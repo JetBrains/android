@@ -23,16 +23,12 @@ import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ModuleResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
+import com.android.tools.idea.rendering.*;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -61,7 +57,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -110,7 +105,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final String NAME = "Android";
 
   private AvdManager myAvdManager = null;
-  private SdkManager mySdkManager;
+  private AndroidSdkData mySdkData;
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
@@ -555,32 +550,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private boolean canRunOnDevice(@NotNull IAndroidTarget projectTarget, @Nullable AndroidVersion deviceVersion) {
-    int minSdkVersion = -1;
-    int maxSdkVersion = -1;
-    final Manifest manifest = getManifest();
-    if (manifest != null) {
-      XmlTag manifestTag = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
-        @Override
-        public XmlTag compute() {
-          return manifest.getXmlTag();
-        }
-      });
-      if (manifestTag != null) {
-        XmlTag[] tags = manifestTag.findSubTags("uses-sdk");
-        for (XmlTag tag : tags) {
-          int candidate = AndroidUtils.getIntAttrValue(tag, "minSdkVersion");
-          if (candidate >= 0) minSdkVersion = candidate;
-          candidate = AndroidUtils.getIntAttrValue(tag, "maxSdkVersion");
-          if (candidate >= 0) maxSdkVersion = candidate;
-        }
-      }
-    }
-
+    int minSdkVersion = AndroidModuleInfo.get(this).getMinSdkVersion();
     int baseApiLevel = deviceVersion != null ? deviceVersion.getApiLevel() : 1;
     AndroidVersion targetVersion = projectTarget.getVersion();
     if (minSdkVersion < 0) minSdkVersion = targetVersion.getApiLevel();
     if (minSdkVersion > baseApiLevel) return false;
-    if (maxSdkVersion >= 0 && maxSdkVersion < baseApiLevel) return false;
     String codeName = targetVersion.getCodename();
     String baseCodeName = deviceVersion != null ? deviceVersion.getCodename() : null;
     if (codeName != null && !codeName.equals(baseCodeName)) {
@@ -609,9 +583,9 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @NotNull
   public AvdManager getAvdManager(ILogger log) throws AvdsNotSupportedException, AndroidLocation.AndroidLocationException {
     if (myAvdManager == null) {
-      SdkManager sdkManager = getSdkManager();
-      if (sdkManager != null) {
-        myAvdManager = AvdManager.getInstance(sdkManager, log);
+      AndroidSdkData sdkData = getSdkData();
+      if (sdkData != null) {
+        myAvdManager = AvdManager.getInstance(sdkData.getLocalSdk(), log);
       }
       else {
         throw new AvdsNotSupportedException();
@@ -621,17 +595,13 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @Nullable
-  public SdkManager getSdkManager() {
-    if (mySdkManager == null) {
+  public AndroidSdkData getSdkData() {
+    if (mySdkData == null) {
       AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-      AndroidSdkData sdkData = platform != null ? platform.getSdkData() : null;
-
-      if (sdkData != null) {
-        mySdkManager = sdkData.getSdkManager();
-      }
+      mySdkData = platform != null ? platform.getSdkData() : null;
     }
 
-    return mySdkManager;
+    return mySdkData;
   }
 
   /**
@@ -642,8 +612,8 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   @Nullable
   public IAndroidTarget getTargetFromHashString(@NotNull String hash) {
-    SdkManager sdkManager = getSdkManager();
-    return sdkManager != null ? sdkManager.getTargetFromHashString(hash) : null;
+    AndroidSdkData sdkData = getSdkData();
+    return sdkData != null ? sdkData.getLocalSdk().getTargetFromHashString(hash) : null;
   }
 
   public void launchEmulator(@Nullable final String avdName, @NotNull final String commands, @NotNull final ProcessHandler handler) {
@@ -746,7 +716,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     });
   }
-  
+
   private void addResourceFolderToSdkRootsIfNecessary() {
     final Sdk sdk = ModuleRootManager.getInstance(getModule()).getSdk();
     if (sdk == null || !(sdk.getSdkType() instanceof AndroidSdkType)) {
@@ -775,7 +745,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
 
     if (platform.needToAddAnnotationsJarToClasspath()) {
-      final String sdkHomePath = FileUtil.toSystemIndependentName(platform.getSdkData().getLocation());
+      final String sdkHomePath = FileUtil.toSystemIndependentName(platform.getSdkData().getLocation().getPath());
       final VirtualFile annotationsJar = JarFileSystem.getInstance().findFileByPath(
         sdkHomePath + AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH + JarFileSystem.JAR_SEPARATOR);
       if (annotationsJar != null) {
@@ -916,7 +886,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public Manifest getManifest() {
     File manifestIoFile = getMainSourceSet().getManifestFile();
-    if (manifestIoFile == null) return null;
 
     final VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
     if (manifestFile == null) return null;
@@ -1111,7 +1080,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
-
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
@@ -1121,6 +1089,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
       return myModuleResources;
     }
+  }
+
+  public void refreshResources() {
+    myModuleResources = null;
+    myProjectResources = null;
+    myAppResources = null;
+    ResourceFolderRegistry.reset();
+    FileResourceRepository.reset();
   }
 
   @NotNull
@@ -1196,11 +1172,20 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   // Compatibility bridge for old (non-Gradle) projects
   private class LegacySourceProvider implements SourceProvider {
-    @Nullable // TEMPORARY hack; trying to figure out why we're hitting assertions here
+    @NonNull
     @Override
     public File getManifestFile() {
       final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(AndroidFacet.this);
-      return manifestFile == null ? null : VfsUtilCore.virtualToIoFile(manifestFile);
+      if (manifestFile == null) {
+        VirtualFile root = AndroidRootUtil.getMainContentRoot(AndroidFacet.this);
+        if (root != null) {
+          return new File(VfsUtilCore.virtualToIoFile(root), SdkConstants.ANDROID_MANIFEST_XML);
+        } else {
+          return new File(SdkConstants.ANDROID_MANIFEST_XML);
+        }
+      } else {
+        return VfsUtilCore.virtualToIoFile(manifestFile);
+      }
     }
 
     @NonNull

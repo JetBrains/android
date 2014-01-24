@@ -48,6 +48,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
+
 /**
  * Base class for classes that parse Gradle Groovy files (e.g. settings.gradle, build.gradle). It provides a number of convenience
  * methods for its subclasses to extract interesting pieces from Gradle files.
@@ -78,7 +80,8 @@ class GradleGroovyFile {
    * Automatically reformats all the Groovy code inside the given closure.
    */
   static void reformatClosure(@NotNull GrStatementOwner closure) {
-    new ReformatCodeProcessor(closure.getProject(), closure.getContainingFile(), closure.getTextRange(), false).run();
+    new ReformatCodeProcessor(closure.getProject(), closure.getContainingFile(), closure.getParent().getTextRange(), false)
+        .runWithoutProgress();
 
     // Now strip out any blank lines. They tend to accumulate otherwise. To do this, we iterate through our elements and find those that
     // consist only of whitespace, and eliminate all double-newline occurrences.
@@ -102,7 +105,7 @@ class GradleGroovyFile {
    * Creates a new, blank-valued property at the given path.
    */
   @Nullable
-  static GrMethodCall createNewValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+  static GrMethodCall createNewValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @Nullable Object value) {
     // First iterate through the components of the path and make sure all of the nested closures are in place.
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(root.getProject());
     String path = key.getPath();
@@ -113,7 +116,6 @@ class GradleGroovyFile {
       GrStatementOwner closure = getMethodClosureArgument(parent, part);
       if (closure == null) {
         parent.addStatementBefore(factory.createStatementFromText(part + " {}"), null);
-        reformatClosure(parent);
         closure = getMethodClosureArgument(parent, part);
         if (closure == null) {
           return null;
@@ -122,7 +124,7 @@ class GradleGroovyFile {
       parent = closure;
     }
     String name = parts[parts.length - 1];
-    String text = name + " " + key.getType().getDefaultValue();
+    String text = name + " " + key.getType().convertValueToExpression(value);
     parent.addStatementBefore(factory.createStatementFromText(text), null);
     reformatClosure(parent);
     return getMethodCall(parent, name);
@@ -404,7 +406,7 @@ class GradleGroovyFile {
     } else if (value instanceof Number || value instanceof Boolean) {
       return value.toString();
     } else {
-      return "'" + value.toString() + "'";
+      return "'" + escapeLiteralString(value.toString()) + "'";
     }
   }
   /**
@@ -437,7 +439,7 @@ class GradleGroovyFile {
   /**
    * Returns the first argument of the given method call that is a closure, or null if the closure could not be found.
    */
-  protected static @Nullable GrClosableBlock getMethodClosureArgument(@NotNull GrMethodCall methodCall) {
+  public static @Nullable GrClosableBlock getMethodClosureArgument(@NotNull GrMethodCall methodCall) {
     return Iterables.getFirst(Arrays.asList(methodCall.getClosureArguments()), null);
   }
 
@@ -460,9 +462,15 @@ class GradleGroovyFile {
    * Sets the value for the given key
    */
   static void setValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
+    if (value == GradleBuildFile.UNRECOGNIZED_VALUE) {
+      return;
+    }
     GrMethodCall method = getMethodCallByPath(root, key.getPath());
     if (method == null) {
-      method = createNewValue(root, key);
+      method = createNewValue(root, key, value);
+      if (key.getType() != BuildFileKeyType.CLOSURE) {
+        return;
+      }
     }
     if (method != null) {
       GroovyPsiElement arg = key.getType() == BuildFileKeyType.CLOSURE  ? getMethodClosureArgument(method) : getFirstArgument(method);
@@ -470,6 +478,16 @@ class GradleGroovyFile {
         return;
       }
       key.setValue(arg, value);
+    }
+  }
+
+  /**
+   * Removes the build file value identified by the given key
+   */
+  static void removeValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key) {
+    GrMethodCall method = getMethodCallByPath(root, key.getPath());
+    if (method != null) {
+      method.delete();
     }
   }
 

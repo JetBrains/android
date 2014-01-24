@@ -1960,6 +1960,77 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
+  public void testIssue64239() throws Exception {
+    // If you duplicate a string, then change its contents (which still duplicated),
+    // and then finally rename the string, then the value of the second clone will
+    // continue to be referred from the first string:
+    //    <string name="foo">value 1</foo>
+    //    <string name="foo">value 2</foo>
+    // then change the second string name to
+    //    <string name="foo2">value 2</foo>
+    // If you now evaluate the value of foo, you get "value 1". Basically while the
+    // two strings are (illegally) aliasing, the value of the first string is replaced.
+
+    // TODO: Test both *duplicating* a node, as well as manually typing in a brand
+    // new one with the same result
+
+    VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    //noinspection ConstantConditions
+    assertEquals("My Application 574",
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+
+    final long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    final int offset = document.getText().indexOf("</resources>");
+    assertTrue(offset != -1);
+    final String string = "<string name=\"app_name\">New Value</string>";
+
+    // First duplicate the line:
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        document.insertString(offset, string);
+        documentManager.commitDocument(document);
+      }
+    });
+
+    assertTrue(generation < resources.getModificationCount());
+    resetScanCounter();
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+
+    // Then replace the name of the duplicated string
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        String string = "<string name=\"app_name\">New Value</string>";
+        int startOffset = offset + "<string name=\"".length();
+        document.replaceString(startOffset, startOffset + "app_name".length(), "new_name");
+        documentManager.commitDocument(document);
+      }
+    });
+
+    assertFalse(resources.isScanPending(psiFile1));
+    assertTrue(generation < resources.getModificationCount());
+    resetScanCounter();
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "new_name"));
+
+    //noinspection ConstantConditions
+    assertEquals("New Value",
+                 resources.getResourceItem(ResourceType.STRING, "new_name").get(0).getResourceValue(false).getValue());
+    //noinspection ConstantConditions
+    assertEquals("My Application 574",
+                 resources.getResourceItem(ResourceType.STRING, "app_name").get(0).getResourceValue(false).getValue());
+  }
+
   @Nullable
   private static XmlTag findTagById(@NotNull PsiFile file, @NotNull String id) {
     assertFalse(id.startsWith(PREFIX_RESOURCE_REF)); // just the id

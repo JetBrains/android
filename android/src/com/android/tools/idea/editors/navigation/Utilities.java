@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.editors.navigation.macros.MultiMatch;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -32,7 +33,6 @@ import java.util.List;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
-  public static final PsiMethod[] EMPTY_PSI_METHOD_ARRAY = new PsiMethod[0];
 
   public static Point add(Point p1, Point p2) {
     return new Point(p1.x + p2.x, p1.y + p2.y);
@@ -200,58 +200,6 @@ public class Utilities {
     return d == null ? ZERO_SIZE : d;
   }
 
-  @NotNull
-  static PsiJavaCodeReferenceElement[] getReferenceElements(final @NotNull PsiClass clazz, String methodName) {
-    final List<PsiJavaCodeReferenceElement> results = new ArrayList<PsiJavaCodeReferenceElement>();
-
-    // test
-    JavaRecursiveElementVisitor visitor = new JavaRecursiveElementVisitor() {
-      private boolean debug = false;
-      private int indent = 0;
-
-      @Override
-      public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
-        super.visitReferenceElement(reference);
-        if (AndroidPsiUtils.getResourceReferenceType(reference) == AndroidPsiUtils.ResourceReferenceType.APP) {
-          if (debug) System.out.println("reference = " + reference);
-          results.add(reference);
-        }
-      }
-
-      @Override
-      public void visitElement(PsiElement element) {
-        indent++;
-        for (int i = 0; i < indent; i++) {
-          if (debug) System.out.print("  ");
-        }
-        if (debug) System.out.println(element);
-
-        //ProgressIndicatorProvider.checkCanceled();
-        element.acceptChildren(this);
-        indent--;
-      }
-    };
-
-    /*
-    Module module = myMyRenderingParams.myFacet.getModule();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
-    PsiElementFactory factory = facade.getElementFactory();
-    GlobalSearchScope scope = module.getModuleWithDependenciesAndLibrariesScope(false);
-    PsiClass aClass = facade.findClass("android.os.Bundle", scope);
-    PsiMethod protoType = factory.createMethod("onCreate", factory.createType(aClass));
-    PsiMethod onCreates = clazz.findMethodBySignature(protoType, false);
-    */
-
-    PsiMethod[] methodsByName = clazz.findMethodsByName(methodName, false);
-    if (methodName != null) {
-      for (PsiMethod m : methodsByName) {
-        m.accept(visitor);
-      }
-    }
-
-    return results.toArray(new PsiJavaCodeReferenceElement[results.size()]);
-  }
-
   @Nullable
   public static PsiClass getPsiClass(Module module, String className) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
@@ -260,18 +208,27 @@ public class Utilities {
   }
 
   @Nullable
-  public static PsiJavaCodeReferenceElement getReferenceElement(Module module, String className, String methodName) {
-    PsiClass aClass = getPsiClass(module, className);
-    if (aClass == null) {
-      return null;
-    }
-    PsiJavaCodeReferenceElement[] referenceElement = getReferenceElements(aClass, methodName);
-    return referenceElement.length == 1 ? referenceElement[0] : null;
+  public static PsiMethod findMethodBySignature(Module module, String className, String signature) {
+    PsiClass psiClass = getPsiClass(module, className);
+    return psiClass == null ? null : findMethodBySignature(psiClass, signature);
   }
 
-  public static PsiMethod[] getMethodsByName(Module module, String className, String methodName) {
-    PsiClass psiClass = getPsiClass(module, className);
-    return psiClass == null ? EMPTY_PSI_METHOD_ARRAY : psiClass.findMethodsByName(methodName, false);
+  @Nullable
+  public static PsiMethod findMethodBySignature(@NotNull PsiClass psiClass, @NotNull String signature) {
+    PsiMethod template = createMethodFromText(psiClass, signature);
+    return psiClass.findMethodBySignature(template, false);
+  }
+
+  public static PsiMethod createMethodFromText(PsiClass psiClass, String text) {
+    return createMethodFromText(psiClass.getProject(), text, psiClass);
+  }
+
+  public static PsiMethod createMethodFromText(Project project, String text, @Nullable PsiElement context) {
+    return JavaPsiFacade.getInstance(project).getElementFactory().createMethodFromText(text, context);
+  }
+
+  public static PsiMethod createMethodFromText(Project project, String text) {
+    return createMethodFromText(project, text, null);
   }
 
   public static Module getModule(Project project, VirtualFile file) {

@@ -78,24 +78,50 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
  */
 public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   private static final String[] LAYOUT_ATTRIBUTES_SUFS = new String[]{"_Layout", "_MarginLayout", "_Cell"};
-  public static final String ANDROID_NS_PREFIX = "http://schemas.android.com/apk/res";
+  private static final MyAttributeProcessor ourLayoutAttrsProcessor = new MyAttributeProcessor() {
+    @Override
+    public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element) {
+      if ((element instanceof LayoutViewElement || element instanceof Fragment) &&
+          SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+        XmlElement xmlElement = element.getXmlElement();
+        XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
+        String tagName = tag != null ? tag.getName() : null;
+        if (!VIEW_MERGE.equals(tagName) &&
+            !TABLE_ROW.equals(tagName) &&
+            !VIEW_INCLUDE.equals(tagName) &&
+            !REQUEST_FOCUS.equals(tagName) &&
+            (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
+          XmlTag parentTag = tag != null ? tag.getParentTag() : null;
+          String parentTagName = parentTag != null ? parentTag.getName() : null;
+          if (!TABLE_ROW.equals(parentTagName) &&
+              !TABLE_LAYOUT.equals(parentTagName) &&
+              !VIEW_MERGE.equals(parentTagName) &&
+              !GRID_LAYOUT.equals(parentTagName) &&
+              !FQCN_GRID_LAYOUT_V7.equals(parentTagName) &&
+              (ATTR_LAYOUT_WIDTH.equals(attrName.getLocalName()) || ATTR_LAYOUT_HEIGHT.equals(attrName.getLocalName()))) {
+            extension.addCustomAnnotation(new MyRequired());
+          }
+        }
+      }
+    }
+  };
 
   @Nullable
   public static String getNamespaceKeyByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
-      if (facet.getProperties().LIBRARY_PROJECT) {
-        return SdkConstants.AUTO_URI;
+      if (facet.getProperties().LIBRARY_PROJECT || facet.isGradleProject()) {
+        return AUTO_URI;
       }
       Manifest manifest = facet.getManifest();
       if (manifest != null) {
         String aPackage = manifest.getPackage().getValue();
         if (aPackage != null && aPackage.length() > 0) {
-          return ANDROID_NS_PREFIX + "/" + aPackage;
+          return URI_PREFIX + aPackage;
         }
       }
     }
     else if (resPackage.equals(SYSTEM_RESOURCE_PACKAGE)) {
-      return SdkConstants.NS_RESOURCES;
+      return ANDROID_URI;
     }
     return null;
   }
@@ -122,10 +148,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       return false;
     }
     return formats.size() > 1;
-  }
-
-  private interface MyAttributeProcessor {
-    void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element);
   }
 
   private static void registerAttribute(@NotNull AttributeDefinition attrDef,
@@ -369,11 +391,11 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
   }
 
   public static void registerExtensionsForAnimator(final AndroidFacet facet,
-                                                    String tagName,
-                                                    AnimatorElement element,
-                                                    MyCallback callback,
-                                                    Set<String> registeredSubtags,
-                                                    Set<XmlName> skipAttrNames) {
+                                                   String tagName,
+                                                   AnimatorElement element,
+                                                   MyCallback callback,
+                                                   Set<String> registeredSubtags,
+                                                   Set<XmlName> skipAttrNames) {
     if (tagName.equals("set")) {
       for (String subtagName : AndroidAnimatorUtil.getPossibleChildren()) {
         registerSubtags(subtagName, AnimatorElement.class, callback, registeredSubtags);
@@ -436,56 +458,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       for (String suf : LAYOUT_ATTRIBUTES_SUFS) {
         registerAttributes(facet, element, new String[]{styleableName + suf}, callback, processor, skipAttrNames);
       }
-    }
-  }
-
-  private static final MyAttributeProcessor ourLayoutAttrsProcessor = new MyAttributeProcessor() {
-    @Override
-    public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element) {
-      if ((element instanceof LayoutViewElement || element instanceof Fragment) &&
-          SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
-        XmlElement xmlElement = element.getXmlElement();
-        XmlTag tag = xmlElement instanceof XmlTag ? (XmlTag)xmlElement : null;
-        String tagName = tag != null ? tag.getName() : null;
-        if (!VIEW_MERGE.equals(tagName) &&
-            !TABLE_ROW.equals(tagName) &&
-            !VIEW_INCLUDE.equals(tagName) &&
-            !REQUEST_FOCUS.equals(tagName) &&
-            (tag == null || tag.getAttribute(ATTR_STYLE) == null)) {
-          XmlTag parentTag = tag != null ? tag.getParentTag() : null;
-          String parentTagName = parentTag != null ? parentTag.getName() : null;
-          if (!TABLE_ROW.equals(parentTagName) &&
-              !VIEW_MERGE.equals(parentTagName) &&
-              !TABLE_LAYOUT.equals(parentTagName) &&
-              !GRID_LAYOUT.equals(parentTagName) &&
-              !FQCN_GRID_LAYOUT_V7.equals(parentTagName) &&
-              (ATTR_LAYOUT_WIDTH.equals(attrName.getLocalName()) || ATTR_LAYOUT_HEIGHT.equals(attrName.getLocalName()))) {
-            extension.addCustomAnnotation(new MyRequired());
-          }
-        }
-      }
-    }
-  };
-
-  private static class MyRequired implements Required {
-    @Override
-    public boolean value() {
-      return true;
-    }
-
-    @Override
-    public boolean nonEmpty() {
-      return true;
-    }
-
-    @Override
-    public boolean identifier() {
-      return false;
-    }
-
-    @Override
-    public Class<? extends Annotation> annotationType() {
-      return Required.class;
     }
   }
 
@@ -589,13 +561,15 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
     registerStyleableAttributes(element, new StyleableDefinition[]{styleable}, SdkConstants.NS_RESOURCES, callback,
                                 new MyAttributeProcessor() {
-      @Override
-      public void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element) {
-        if (AndroidManifestUtils.isRequiredAttribute(attrName, element)) {
-          extension.addCustomAnnotation(new MyRequired());
-        }
-      }
-    }, newSkippedNames);
+                                  @Override
+                                  public void process(@NotNull XmlName attrName,
+                                                      @NotNull DomExtension extension,
+                                                      @NotNull DomElement element) {
+                                    if (AndroidManifestUtils.isRequiredAttribute(attrName, element)) {
+                                      extension.addCustomAnnotation(new MyRequired());
+                                    }
+                                  }
+                                }, newSkippedNames);
 
     Set<String> subtagSet;
 
@@ -612,32 +586,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
         registerSubtags(childTagName, ManifestElement.class, callback, registeredSubtags);
       }
     }
-  }
-
-  @Override
-  public void registerExtensions(@NotNull AndroidDomElement element, @NotNull final DomExtensionsRegistrar registrar) {
-    final AndroidFacet facet = AndroidFacet.getInstance(element);
-
-    if (facet == null) {
-      return;
-    }
-    processAttrsAndSubtags(element, new MyCallback() {
-      @Nullable
-      @Override
-      public DomExtension processAttribute(@NotNull XmlName xmlName,
-                                           @NotNull AttributeDefinition attrDef,
-                                           @Nullable String parentStyleableName) {
-        Set<AttributeFormat> formats = attrDef.getFormats();
-        Class valueClass = formats.size() == 1 ? getValueClass(formats.iterator().next()) : String.class;
-        registrar.registerAttributeChildExtension(xmlName, GenericAttributeValue.class);
-        return registrar.registerGenericAttributeValueChildExtension(xmlName, valueClass);
-      }
-
-      @Override
-      public void processSubtag(@NotNull XmlName xmlName, @NotNull Type type) {
-        registrar.registerCollectionChildrenExtension(xmlName, type);
-      }
-    }, facet, true, false);
   }
 
   public static void processAttrsAndSubtags(@NotNull AndroidDomElement element,
@@ -766,6 +714,58 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       }
     }
     return result;
+  }
+
+  @Override
+  public void registerExtensions(@NotNull AndroidDomElement element, @NotNull final DomExtensionsRegistrar registrar) {
+    final AndroidFacet facet = AndroidFacet.getInstance(element);
+
+    if (facet == null) {
+      return;
+    }
+    processAttrsAndSubtags(element, new MyCallback() {
+      @Nullable
+      @Override
+      public DomExtension processAttribute(@NotNull XmlName xmlName,
+                                           @NotNull AttributeDefinition attrDef,
+                                           @Nullable String parentStyleableName) {
+        Set<AttributeFormat> formats = attrDef.getFormats();
+        Class valueClass = formats.size() == 1 ? getValueClass(formats.iterator().next()) : String.class;
+        registrar.registerAttributeChildExtension(xmlName, GenericAttributeValue.class);
+        return registrar.registerGenericAttributeValueChildExtension(xmlName, valueClass);
+      }
+
+      @Override
+      public void processSubtag(@NotNull XmlName xmlName, @NotNull Type type) {
+        registrar.registerCollectionChildrenExtension(xmlName, type);
+      }
+    }, facet, true, false);
+  }
+
+  private interface MyAttributeProcessor {
+    void process(@NotNull XmlName attrName, @NotNull DomExtension extension, @NotNull DomElement element);
+  }
+
+  private static class MyRequired implements Required {
+    @Override
+    public boolean value() {
+      return true;
+    }
+
+    @Override
+    public boolean nonEmpty() {
+      return true;
+    }
+
+    @Override
+    public boolean identifier() {
+      return false;
+    }
+
+    @Override
+    public Class<? extends Annotation> annotationType() {
+      return Required.class;
+    }
   }
 
   private static class MyStopException extends RuntimeException {

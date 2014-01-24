@@ -61,6 +61,7 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
     return PsiClassImplUtil.isFieldEquivalentTo(this, another);
   }
 
+  @Override
   public PsiElement getParent() {
     return myContext;
   }

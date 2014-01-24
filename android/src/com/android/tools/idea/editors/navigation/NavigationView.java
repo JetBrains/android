@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.macros.Analysis;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -28,12 +29,13 @@ import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.*;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -731,7 +733,7 @@ public class NavigationView extends JComponent {
 
   private JComboBox createEditorFor(final Transition transition) {
     String gesture = transition.getType();
-    JComboBox c = new JComboBox(new Object[]{"press", "swipe"});
+    JComboBox c = new ComboBox(new DefaultComboBoxModel(new Object[]{"press", "swipe"}));
     c.setSelectedItem(gesture);
     c.setForeground(getForeground());
     //c.setBorder(LABEL_BORDER);
@@ -761,16 +763,10 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static String getXMLFileName(Module module, String controllerClassName) {
-    PsiJavaCodeReferenceElement referenceElement = Utilities.getReferenceElement(module, controllerClassName, "onCreate");
-    return referenceElement != null ? referenceElement.getLastChild().getText() : null;
-  }
-
-  @Nullable
   public static String getXMLFileName(Module module, State state) {
     String controllerClassName = state.getClassName();
     String definedXmlFileName = state.getXmlResourceName();
-    return definedXmlFileName != null ? definedXmlFileName : getXMLFileName(module, controllerClassName);
+    return definedXmlFileName != null ? definedXmlFileName : Analysis.getXMLFileName(module, controllerClassName);
   }
 
   @Nullable
@@ -778,24 +774,56 @@ public class NavigationView extends JComponent {
     return xmlResourceName == null ? null : fileSystem.findFileByPath(path + dir + xmlResourceName + ".xml");
   }
 
+  private static Map<String, String> getLayoutAliases(@Nullable XmlFile psiFile) {
+    if (psiFile == null) {
+      return Collections.emptyMap();
+    }
+    final Map<String, String> result = new HashMap<String, String>();
+    psiFile.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+        if (tag.getName().equals("item") && tag.getAttributeValue("type").equals("layout")) {
+          String name = tag.getAttributeValue("name");
+          String value = tag.getValue().getText();
+          result.put(name, value);
+        }
+      }
+    });
+    return result;
+  }
+
+  private static String applyAliases(String name, Map<String, String> layoutAliases) {
+    String to = layoutAliases.get(name);
+    String prefix = "@layout/";
+    if (to == null || !to.startsWith(prefix)) {
+      return name;
+    }
+    return to.substring(prefix.length());
+  }
+
   @Nullable
-  public static PsiFile getPsiFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
-    String dir = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
+  public static PsiFile getLayoutXmlFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
+    String resourceType = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
     VirtualFileSystem fileSystem = navFile.getFileSystem();
-    String path = navFile.getParent().getParent().getPath();
+    String resourceRoot = navFile.getParent().getParent().getPath();
     String directoryName = navFile.getParent().getName();
     int index = directoryName.indexOf('-');
     String qualifier = index == -1 ? "" : directoryName.substring(index);
-    VirtualFile qualifiedFile = getFile(fileSystem, path, "/" + dir + qualifier + "/", xmlFileName);
-    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, path, "/" + dir + "/", xmlFileName);
-    return file == null ? null : PsiManager.getInstance(project).findFile(file);
+    VirtualFile layoutAliasesFile = getFile(fileSystem, resourceRoot, "/" + "values" + qualifier + "/", "refs");
+    PsiManager psiManager = PsiManager.getInstance(project);
+    Map<String, String> layoutAliases = getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
+    xmlFileName = applyAliases(xmlFileName, layoutAliases);
+    VirtualFile qualifiedFile = getFile(fileSystem, resourceRoot, "/" + resourceType + qualifier + "/", xmlFileName);
+    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, resourceRoot, "/" + resourceType + "/", xmlFileName);
+    return file == null ? null : psiManager.findFile(file);
   }
 
   private AndroidRootComponent createRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myMyRenderingParams.myFacet.getModule();
     String xmlFileName = getXMLFileName(module, state);
-    PsiFile psiFile = xmlFileName == null ? null : getPsiFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
+    PsiFile psiFile = xmlFileName == null ? null : getLayoutXmlFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
     AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile, isMenu);
     result.setScale(myTransform.myScale);
     return result;
@@ -845,7 +873,8 @@ public class NavigationView extends JComponent {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       if (!shiftDown) {
         return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, mouseDownLocation, transition,
-                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent), myTransform);
+                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent),
+                                                            myTransform);
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);

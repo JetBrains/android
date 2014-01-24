@@ -168,7 +168,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
         }
 
         if (f != null && !isSuppressedFor(f)) {
-          result.add(manager.createProblemDescriptor(f, message, false, getLocalQuickFixes(f, f, message),
+          result.add(manager.createProblemDescriptor(f, message, false, getLocalQuickFixes(f, f, s),
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
         }
       }
@@ -179,7 +179,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
         if (startElement != null && endElement != null && !isSuppressedFor(startElement)) {
           result.add(manager.createProblemDescriptor(startElement, endElement, message,
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false,
-                                                     getLocalQuickFixes(startElement, endElement, message)));
+                                                     getLocalQuickFixes(startElement, endElement, s)));
         }
       }
     }

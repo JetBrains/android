@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.sdklib.SdkManager;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
@@ -26,6 +25,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.templates.Template.TEMPLATE_XML;
+import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
 
 /**
  * Handles locating templates and providing template metadata
@@ -91,9 +91,9 @@ public class TemplateManager {
     }
 
     // Fall back to SDK template root
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkManager != null) {
-      String location = sdkManager.getLocation();
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData != null) {
+      File location = sdkData.getLocation();
       File folder = new File(location, FD_TOOLS + File.separator + FD_TEMPLATES);
       if (folder.isDirectory()) {
         return folder;
@@ -177,7 +177,7 @@ public class TemplateManager {
       File[] files = new File(root, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) { // Avoid .DS_Store etc, & non Freemarker templates
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML_NAME)).exists()) { // Avoid .DS_Store etc, & non Freemarker templates
             templates.add(file);
             templateNames.put(file.getName(), file);
           }
@@ -190,7 +190,7 @@ public class TemplateManager {
       File[] files = new File(extra, folder).listFiles();
       if (files != null) {
         for (File file : files) {
-          if (file.isDirectory() && (new File(file, TEMPLATE_XML)).exists()) {
+          if (file.isDirectory() && (new File(file, TEMPLATE_XML_NAME)).exists()) {
             File replaces = templateNames.get(file.getName());
             if (replaces != null) {
               int compare = compareTemplates(replaces, file);
@@ -261,7 +261,7 @@ public class TemplateManager {
     }
 
     try {
-      File templateFile = new File(templateDir, TEMPLATE_XML);
+      File templateFile = new File(templateDir, TEMPLATE_XML_NAME);
       if (templateFile.isFile()) {
         String xml = Files.toString(templateFile, Charsets.UTF_8);
         Document doc = XmlUtils.parseDocumentSilently(xml, true);
@@ -297,7 +297,12 @@ public class TemplateManager {
     }
   }
 
-  public static boolean templateRootIsValid(File templateRootFolder) {
-    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
+  public static File getWrapperLocation(@NotNull File templateRootFolder) {
+    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper"));
+
+  }
+
+  public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
+    return new File(getWrapperLocation(templateRootFolder), "gradlew").exists();
   }
 }

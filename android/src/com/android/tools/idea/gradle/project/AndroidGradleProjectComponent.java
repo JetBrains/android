@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
-import com.android.tools.idea.gradle.compiler.BuildFailures;
+import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
-import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -29,7 +29,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.compiler.*;
+import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -68,42 +68,18 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     return ServiceManager.getService(project, AndroidGradleProjectComponent.class);
   }
 
-  public AndroidGradleProjectComponent(Project project) {
+  public AndroidGradleProjectComponent(@NotNull final Project project) {
     super(project);
-    // Register a task that will be executed after project build (e.g. make, rebuild, generate sources.)
-    CompilerManager.getInstance(project).addAfterTask(new CompileTask() {
+    // Register a task that will be executed after project build (e.g. make, rebuild, generate sources) with JPS.
+    ProjectBuilder.getInstance(project).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
+      }
+
       @Override
       public boolean execute(CompileContext context) {
-        Project contextProject = context.getProject();
-        if (Projects.isGradleProject(contextProject)) {
-
-          if (Projects.isOfflineBuildModeEnabled(contextProject)) {
-            CompilerMessage[] errors = context.getMessages(CompilerMessageCategory.ERROR);
-            for (CompilerMessage error : errors) {
-              String text = error.getMessage();
-              if (text != null && BuildFailures.unresolvedDependenciesFound(text)) {
-                BuildFailures.notifyUnresolvedDependenciesInOfflineMode(contextProject);
-                break;
-              }
-            }
-          }
-
-          // Refresh Studio's view of the file system after a compile. This is necessary for Studio to see generated code.
-          Projects.refresh(contextProject);
-
-          BuildMode buildMode = Projects.getBuildModeFrom(contextProject);
-          Projects.removeBuildDataFrom(contextProject);
-
-          if (BuildMode.SOURCE_GEN.equals(buildMode)) {
-            // Notify facets after project was synced. This only happens after importing a project.
-            // Importing a project means:
-            // * Creating a new project
-            // * Importing an existing project
-            // * Syncing with Gradle files
-            // * Opening Studio with an already imported project
-            Projects.notifyProjectSyncCompleted(contextProject, true);
-          }
-        }
+        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
         return true;
       }
     });
@@ -165,7 +141,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     listenForProjectChanges(myProject, myDisposable);
 
-    GradleImportNotificationListener.attachToManager();
     Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
 
     if (reImportProject) {

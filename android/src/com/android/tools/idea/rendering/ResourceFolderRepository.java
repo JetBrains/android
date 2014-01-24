@@ -87,6 +87,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     scan();
   }
 
+  @NotNull
+  AndroidFacet getFacet() {
+    return myFacet;
+  }
+
   VirtualFile getResourceDir() {
     return myResourceDir;
   }
@@ -428,8 +433,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       PsiResourceFile resourceFile = myResourceFiles.get(file);
       boolean removed = false;
       if (resourceFile != null) {
-        Collection<ResourceItem> items = resourceFile.getItems();
-        for (ResourceItem item : items) {
+        for (ResourceItem item : resourceFile) {
           boolean removeFromFile = false; // Will throw away file
           removed |= removeItems(resourceFile, item.getType(), item.getName(), removeFromFile);
         }
@@ -476,9 +480,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           Set<String> idsAfter = Sets.newHashSet();
           ListMultimap<String, ResourceItem> map = myItems.get(ResourceType.ID);
           if (map != null) {
-            Collection<ResourceItem> items = resourceFile.getItems();
-            List<ResourceItem> idItems = Lists.newArrayListWithExpectedSize(items.size() - 1);
-            for (ResourceItem item : items) {
+            List<ResourceItem> idItems = Lists.newArrayList();
+            for (ResourceItem item : resourceFile) {
               if (item.getType() == ResourceType.ID) {
                 idsBefore.add(item.getName());
                 idItems.add(item);
@@ -1024,7 +1027,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                         // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc)
                         return;
                       }
-                      ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName);
+                      ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
                       if (item != null) {
                         ListMultimap<String, ResourceItem> map = myItems.get(item.getType());
                         if (map != null) {
@@ -1060,7 +1063,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc)
                       return;
                     }
-                    ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName);
+                    ResourceItem item = findResourceItem(ResourceType.ID, psiFile, oldName, xmlTag);
                     if (item != null) {
                       ListMultimap<String, ResourceItem> map = myItems.get(item.getType());
                       if (map != null) {
@@ -1151,7 +1154,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                       // Can happen when there are error nodes (e.g. attribute value not yet closed during typing etc)
                       return;
                     }
-                    ResourceItem item = findResourceItem(type, psiFile, oldName);
+                    ResourceItem item = findResourceItem(type, psiFile, oldName, xmlTag);
                     if (item != null) {
                       ListMultimap<String, ResourceItem> map = myItems.get(item.getType());
                       if (map != null) {
@@ -1342,7 +1345,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
                 // We need to recompute resource values too, since some of these can point to
                 // the old file (e.g. a drawable resource could have a DensityBasedResourceValue
                 // pointing to the old file
-                for (ResourceItem item : resourceFile.getItemMap().values()) { // usually just 1
+                for (ResourceItem item : resourceFile) { // usually just 1
                   if (item instanceof PsiResourceItem) {
                     ((PsiResourceItem)item).recomputeValue();
                   }
@@ -1499,8 +1502,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   private void removeItemsFromFile(PsiResourceFile resourceFile) {
-    Collection<ResourceItem> items = resourceFile.getItems();
-    for (ResourceItem item : items) {
+    for (ResourceItem item : resourceFile) {
       boolean removeFromFile = false; // no need since we're discarding the file
       removeItems(resourceFile, item.getType(), item.getName(), removeFromFile);
     }
@@ -1519,7 +1521,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     if (!tag.isValid()) {
       PsiResourceFile resourceFile = myResourceFiles.get(file);
       if (resourceFile != null) {
-        for (ResourceItem item : resourceFile.getItems()) {
+        for (ResourceItem item : resourceFile) {
           PsiResourceItem pri = (PsiResourceItem)item;
           XmlTag xmlTag = pri.getTag();
           if (xmlTag == tag) {
@@ -1536,16 +1538,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @Nullable
   private ResourceItem findValueResourceItem(XmlTag tag, PsiFile file, String name) {
     ResourceType type = getType(tag);
-    return findResourceItem(type, file, name);
+    return findResourceItem(type, file, name, tag);
   }
 
   @Nullable
-  private ResourceItem findResourceItem(@Nullable ResourceType type, PsiFile file, String name) {
+  private ResourceItem findResourceItem(@Nullable ResourceType type, @Nullable PsiFile file, @Nullable String name, @Nullable XmlTag tag) {
     if (type != null && name != null) {
       ListMultimap<String, ResourceItem> map = myItems.get(type);
       if (map != null) {
         List<ResourceItem> items = map.get(name);
         assert items != null;
+        if (tag != null) {
+          for (ResourceItem item : items) {
+            assert item instanceof PsiResourceItem;
+            PsiResourceItem psiItem = (PsiResourceItem)item;
+            if (psiItem.getTag() == tag) {
+              return item;
+            }
+          }
+        }
+
         for (ResourceItem item : items) {
           assert item instanceof PsiResourceItem;
           PsiResourceItem psiItem = (PsiResourceItem)item;

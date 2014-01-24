@@ -16,8 +16,12 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
@@ -45,6 +49,16 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   }
 
   public void testPopulateJvmArgsWithGradleExecutionSettings() {
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+      @Override
+      public void execute() {
+        String jdkHome = myJdk.getHomePath();
+        assertNotNull(jdkHome);
+        File jdkHomePath = new File(FileUtil.toSystemDependentName(jdkHome));
+        DefaultSdks.setDefaultJavaHome(jdkHomePath);
+      }
+    });
+
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 
     expect(settings.getRemoteProcessIdleTtlInMs()).andReturn(55L);
@@ -90,11 +104,24 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   }
 
   public void testPopulateModulesToBuildWithModuleNames() {
-    Projects.setModulesToBuild(myProject, new Module[] {myModule});
+    BuildSettings.getInstance(myProject).setModulesToBuild(new Module[] {myModule});
     List<String> jvmArgs= Lists.newArrayList();
-    myParametersProvider.populateModulesToBuild(jvmArgs);
+    myParametersProvider.populateModulesToBuild(BuildMode.CLEAN, jvmArgs);
     assertEquals(2, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.modules.count=1", jvmArgs.get(0));
     assertEquals("-Dcom.android.studio.gradle.modules.0=" + myModule.getName(), jvmArgs.get(1));
+  }
+
+  public void testPopulateJvmArgsWithBuildConfiguration() {
+    AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
+    configuration.COMMAND_LINE_OPTIONS = "--stacktrace --offline";
+    configuration.OFFLINE_MODE = true;
+    List<String> jvmArgs= Lists.newArrayList();
+    AndroidGradleBuildProcessParametersProvider.populateJvmArgs(configuration, jvmArgs);
+    assertEquals(4, jvmArgs.size());
+    assertEquals("-Dcom.android.studio.gradle.offline.mode=true", jvmArgs.get(0));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.count=2", jvmArgs.get(1));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.0=--stacktrace", jvmArgs.get(2));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.1=--offline", jvmArgs.get(3));
   }
 }

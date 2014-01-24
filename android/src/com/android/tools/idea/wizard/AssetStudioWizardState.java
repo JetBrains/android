@@ -18,12 +18,9 @@ package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.*;
 import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -189,6 +186,7 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
   /**
    * Allows dependency injection for testing
    */
+  @SuppressWarnings("UseJBColor") // These colors are for the graphics generator, not the plugin UI
   public AssetStudioWizardState(@Nullable ActionBarIconGenerator actionBarIconGenerator,
                                 @Nullable NotificationIconGenerator notificationIconGenerator,
                                 @Nullable LauncherIconGenerator launcherIconGenerator) {
@@ -202,14 +200,6 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
     put(ATTR_SHAPE, GraphicGenerator.Shape.NONE);
     put(ATTR_FONT_SIZE, 144);
     put(ATTR_SOURCE_TYPE, AssetStudioWizardState.SourceType.IMAGE);
-    final File templateRootFolder = TemplateManager.getTemplateRootFolder();
-
-    if (templateRootFolder != null) {
-      put(ATTR_IMAGE_PATH, new File(templateRootFolder,
-        FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
-                      "root", "res", "drawable-xhdpi", "ic_launcher.png"))
-        .getAbsolutePath());
-    }
     put(ATTR_CLIPART_NAME, "android.png");
     put(ATTR_FOREGROUND_COLOR, Color.BLUE);
     put(ATTR_BACKGROUND_COLOR, Color.WHITE);

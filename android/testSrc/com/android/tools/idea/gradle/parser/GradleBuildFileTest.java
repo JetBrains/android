@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.parser.GradleBuildFile.UNRECOGNIZED_VALUE;
+
 public class GradleBuildFileTest extends IdeaTestCase {
   private Document myDocument;
 
@@ -53,17 +55,6 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     GrStatementOwner closure = file.getClosure("android/defaultConfig");
     assertEquals(1, file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
-  }
-
-  public void testCanParseSimpleValue() throws Exception {
-    final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    assertTrue(file.canParseValue(BuildFileKey.BUILD_TOOLS_VERSION));
-  }
-
-  public void testCantParseComplexValue() throws Exception {
-    final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    GrStatementOwner closure = file.getClosure("android/defaultConfig");
-    assertFalse(file.canParseValue(closure, BuildFileKey.MIN_SDK_VERSION));
   }
 
   public void testSetTopLevelValue() throws Exception {
@@ -102,6 +93,71 @@ public class GradleBuildFileTest extends IdeaTestCase {
     String expected = getSimpleTestFile().replaceAll("buildToolsVersion '17.0.0'", "buildToolsVersion '99.0.0'");
     assertContents(file, expected);
     assertEquals("99.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
+  }
+
+  public void testExistingStringValueWithQuote() throws Exception {
+    final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "17'0'0");
+      }
+    });
+    String expected = getSimpleTestFile().replace("buildToolsVersion '17.0.0'", "buildToolsVersion '17\\'0\\'0'");
+    assertContents(file, expected);
+    assertEquals("17'0'0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
+  }
+
+  public void testNewStringValueWithQuote() throws Exception {
+    final GradleBuildFile file = getTestFile("");
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "17'0'0");
+      }
+    });
+    String expected =
+      "android {\n" +
+      "    buildToolsVersion '17\\'0\\'0'\n" +
+      "}";
+    assertContents(file, expected);
+    assertEquals("17'0'0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
+  }
+
+  public void testNewDependencyWithQuote() throws Exception {
+    final GradleBuildFile file = getTestFile("");
+    Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, "abc'def");
+    final List<Dependency> dependencyList = ImmutableList.of(dep);
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.DEPENDENCIES, dependencyList);
+      }
+    });
+    String expected =
+      "dependencies {\n" +
+      "    compile files('abc\\'def')\n" +
+      "}";
+    assertContents(file, expected);
+    assertEquals(dependencyList, file.getValue(BuildFileKey.DEPENDENCIES));
+  }
+
+  public void testNewRepositoryWithQuote() throws Exception {
+    final GradleBuildFile file = getTestFile("");
+    Repository rep = new Repository(Repository.Type.URL, "http://www.foo.com?q=abc'def");
+    final List<Repository> repositoryList = ImmutableList.of(rep);
+    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+      @Override
+      public void run() throws Exception {
+        file.setValue(BuildFileKey.LIBRARY_REPOSITORY, repositoryList);
+      }
+    });
+    String expected =
+      "repositories {\n" +
+      "    maven { url 'http://www.foo.com?q=abc\\'def' }\n" +
+      "}";
+    assertContents(file, expected);
+    assertEquals(repositoryList, file.getValue(BuildFileKey.LIBRARY_REPOSITORY));
   }
 
   public void testSetIntegerValue() throws Exception {
@@ -161,13 +217,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.PROGUARD_FILE));
   }
 
-  // TODO: Make this test work.
   public void testSetNamedObjectValue() throws Exception {
-    if (true) {
-      System.err.println("GradleBuildFileTest#testSetNamedObjectValue currently disabled");
-      return;
-    }
-
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     Object value = file.getValue(BuildFileKey.FLAVORS);
     assert value != null;
@@ -308,28 +358,6 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertNull(file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
   }
 
-  public void testCanParseValueChecksInitialization() {
-    GradleBuildFile file = getBadGradleBuildFile();
-    try {
-      file.canParseValue(BuildFileKey.TARGET_SDK_VERSION);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
-  }
-
-  public void testCanParseNestedValueChecksInitialization() {
-    GradleBuildFile file = getBadGradleBuildFile();
-    try {
-      file.canParseValue(getDummyClosure(), BuildFileKey.TARGET_SDK_VERSION);
-    } catch (IllegalStateException e) {
-      // expected
-      return;
-    }
-    fail("Failed to get expected IllegalStateException");
-  }
-
   public void testGetClosureChecksInitialization() {
     GradleBuildFile file = getBadGradleBuildFile();
     try {
@@ -465,6 +493,188 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
       "}";
     assertContents(file, expected);
+  }
+
+  public void testReadsUnparseableDependencies() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    // Comment 1\n" +
+      "    compile 'foo.com:1.0.0'\n" +
+      "    compile random.expression\n" +
+      "    functionCall()\n" +
+      "    random.expression\n" +
+      "}"
+    );
+    List<BuildFileStatement> expected = ImmutableList.of(
+      new UnparseableStatement("// Comment 1", getProject()),
+      new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
+      new UnparseableStatement("compile random.expression", getProject()),
+      new UnparseableStatement("functionCall()", getProject()), new UnparseableStatement("random.expression", getProject())
+    );
+    assertEquals(expected, file.getValue(BuildFileKey.DEPENDENCIES));
+  }
+
+  public void testWritesUnparseableDependencies() throws Exception {
+    GradleBuildFile file = getTestFile("");
+    List<BuildFileStatement> deps = ImmutableList.of(
+      new UnparseableStatement("// Comment 1", getProject()),
+      new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
+      new UnparseableStatement("compile random.expression", getProject()),
+      new UnparseableStatement("functionCall()", getProject()), new UnparseableStatement("random.expression", getProject())
+    );
+    file.setValue(BuildFileKey.DEPENDENCIES, deps);
+    String expected =
+      "dependencies {\n" +
+      "    // Comment 1\n" +
+      "    compile 'foo.com:1.0.0'\n" +
+      "    compile random.expression\n" +
+      "    functionCall()\n" +
+      "    random.expression\n" +
+      "}";
+
+    assertContents(file, expected);
+  }
+
+  public void testReadsUnparseableRepositories() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "repositories {\n" +
+      "    // Comment 1\n" +
+      "    mavenCentral()\n" +
+      "    maven { url random.expression }\n" +
+      "    functionCall()\n" +
+      "    random.expression\n" +
+      "}"
+    );
+    List<BuildFileStatement> expected = ImmutableList.of(
+      new UnparseableStatement("// Comment 1", getProject()),
+      new Repository(Repository.Type.MAVEN_CENTRAL, null),
+      new UnparseableStatement("maven { url random.expression }", getProject()),
+      new UnparseableStatement("functionCall()", getProject()),
+      new UnparseableStatement("random.expression", getProject())
+    );
+    assertEquals(expected, file.getValue(BuildFileKey.LIBRARY_REPOSITORY));
+  }
+
+  public void testWritesUnparseableRepositories() throws Exception {
+    GradleBuildFile file = getTestFile("");
+    List<BuildFileStatement> deps = ImmutableList.of(
+      new UnparseableStatement("// Comment 1", getProject()),
+      new Repository(Repository.Type.MAVEN_CENTRAL, null),
+      new UnparseableStatement("maven { url random.expression }", getProject()),
+      new UnparseableStatement("functionCall()", getProject()),
+      new UnparseableStatement("random.expression", getProject())
+    );
+    file.setValue(BuildFileKey.DEPENDENCIES, deps);
+    String expected =
+      "dependencies {\n" +
+      "    // Comment 1\n" +
+      "    mavenCentral()\n" +
+      "    maven { url random.expression }\n" +
+      "    functionCall()\n" +
+      "    random.expression\n" +
+      "}";
+
+    assertContents(file, expected);
+  }
+
+  public void testReadsNamedObjectsWithUnparseableValues() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        type1 {\n" +
+      "            //Comment\n" +
+      "            debuggable true\n" +
+      "            runProguard methodCall() {\n" +
+      "                whatIsThisMethodCall()\n" +
+      "            }\n" +
+      "            zipAlign some.expression\n" +
+      "        }\n" +
+      "    }\n" +
+      "}"
+    );
+    List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertEquals(1, objects.size());
+    NamedObject no = objects.get(0);
+    assertEquals(true, no.getValue(BuildFileKey.DEBUGGABLE));
+    assertSame(UNRECOGNIZED_VALUE, no.getValue(BuildFileKey.RUN_PROGUARD));
+    assertSame(UNRECOGNIZED_VALUE, no.getValue(BuildFileKey.ZIP_ALIGN));
+  }
+
+  public void testWritesNamedObjectsWithUnparseableValues() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        type1 {\n" +
+      "            //Comment\n" +
+      "            debuggable true\n" +
+      "            runProguard methodCall() {\n" +
+      "                whatIsThisMethodCall()\n" +
+      "            }\n" +
+      "            zipAlign some.expression\n" +
+      "        }\n" +
+      "    }\n" +
+      "}"
+    );
+    List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertEquals(1, objects.size());
+    NamedObject no = objects.get(0);
+    no.setValue(BuildFileKey.DEBUGGABLE, false);
+    no.setValue(BuildFileKey.ZIP_ALIGN, false);
+    file.setValue(BuildFileKey.BUILD_TYPES, objects);
+
+    String expected =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        type1 {\n" +
+      "            //Comment\n" +
+      "            debuggable false\n" +
+      "            runProguard methodCall() {\n" +
+      "                whatIsThisMethodCall()\n" +
+      "            }\n" +
+      "            zipAlign false\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+
+    assertContents(file, expected);
+  }
+
+  public void testRemoveNamedObjectValue() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        type1 {\n" +
+      "            //Comment\n" +
+      "            debuggable true\n" +
+      "            runProguard methodCall() {\n" +
+      "                whatIsThisMethodCall()\n" +
+      "            }\n" +
+      "            zipAlign some.expression\n" +
+      "        }\n" +
+      "    }\n" +
+      "}"
+    );
+    List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertEquals(1, objects.size());
+    NamedObject no = objects.get(0);
+    no.getValues().remove(BuildFileKey.DEBUGGABLE);
+    file.setValue(BuildFileKey.BUILD_TYPES, objects);
+
+    String expected =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        type1 {\n" +
+      "            //Comment\n" +
+      "            runProguard methodCall() {\n" +
+      "                whatIsThisMethodCall()\n" +
+      "            }\n" +
+      "            zipAlign some.expression\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+
+    assertContents(file, expected);
+
   }
 
   private static String getSimpleTestFile() throws IOException {

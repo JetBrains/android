@@ -15,26 +15,29 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.invoker.GradleTaskExecutionListener;
+import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
+import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -120,18 +123,18 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
 
-    final AtomicBoolean result = new AtomicBoolean();
+    final AtomicBoolean success = new AtomicBoolean();
     try {
       final Semaphore done = new Semaphore();
       done.down();
-      final GradleTaskExecutionListener listener = new GradleTaskExecutionListener() {
-        @Override
-        public void executionStarted(@NotNull List<String> tasks) {
-        }
 
+      final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
+
+      final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
         @Override
-        public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
-          result.set(errorCount == 0);
+        public void execute(@NotNull GradleInvocationResult result) {
+          success.set(result.getErrorCount() == 0);
+          gradleInvoker.removeAfterGradleInvocationTask(this);
           done.up();
         }
       };
@@ -145,8 +148,17 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         SwingUtilities.invokeAndWait(new Runnable() {
           @Override
           public void run() {
-            GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
-            gradleInvoker.make(context, listener, configuration);
+            Module[] modules;
+            if (configuration instanceof ModuleBasedConfiguration) {
+              // ModuleBasedConfiguration includes Android and JUnit run configurations.
+              modules = ((ModuleBasedConfiguration)configuration).getModules();
+            }
+            else {
+              modules = Projects.getModulesToBuildFromSelection(myProject, context);
+            }
+            TestCompileType testCompileType = getTestCompileType(configuration);
+            gradleInvoker.addAfterGradleInvocationTask(afterTask);
+            gradleInvoker.make(modules, testCompileType);
           }
         });
         done.waitFor();
@@ -156,6 +168,20 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       LOG.info("Unable to launch '" + TASK_NAME + "' task", t);
       return false;
     }
-    return result.get();
+    return success.get();
+  }
+
+  @NotNull
+  private static TestCompileType getTestCompileType(@Nullable RunConfiguration runConfiguration) {
+    if (runConfiguration != null) {
+      String id = runConfiguration.getType().getId();
+      if (AndroidCommonUtils.isTestConfiguration(id)) {
+        return TestCompileType.JAVA_TESTS;
+      }
+      if (AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
+        return TestCompileType.ANDROID_TESTS;
+      }
+    }
+    return TestCompileType.NONE;
   }
 }

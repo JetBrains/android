@@ -15,19 +15,14 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-
-import java.io.File;
 
 import static org.easymock.EasyMock.*;
 
@@ -35,13 +30,6 @@ import static org.easymock.EasyMock.*;
  * Tests for {@link Projects}.
  */
 public class ProjectsTest extends IdeaTestCase {
-  public void testGetJavaHome() {
-    Sdk jdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
-    File javaHome = Projects.getJavaHome(myProject);
-    assertNotNull(javaHome);
-    FileUtil.pathsEqual(jdk.getHomePath(), javaHome.getPath());
-  }
-
   public void testIsGradleProjectWithRegularProject() {
     assertFalse(Projects.isGradleProject(myProject));
   }

@@ -15,9 +15,11 @@ import java.util.regex.Pattern;
  * @author Eugene.Kudelevsky
  */
 public class AndroidLintInspectionToolProvider {
-  /**
-   * Batch-mode-only inspections
-   */
+  public static class AndroidLintAaptCrashInspection extends AndroidLintInspectionBase {
+    public AndroidLintAaptCrashInspection() {
+      super(AndroidBundle.message("android.lint.inspections.aapt.crash"), ResourceCycleDetector.CRASH);
+    }
+  }
   public static class AndroidLintInconsistentArraysInspection extends AndroidLintInspectionBase {
     public AndroidLintInconsistentArraysInspection() {
       super(AndroidBundle.message("android.lint.inspections.inconsistent.arrays"), ArraySizeDetector.INCONSISTENT);
@@ -255,12 +257,6 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintSdCardPathInspection extends AndroidLintInspectionBase {
     public AndroidLintSdCardPathInspection() {
       super(AndroidBundle.message("android.lint.inspections.sd.card.path"), SdCardDetector.ISSUE);
-    }
-  }
-
-  public static class AndroidLintStyleCycleInspection extends AndroidLintInspectionBase {
-    public AndroidLintStyleCycleInspection() {
-      super(AndroidBundle.message("android.lint.inspections.style.cycle"), StyleCycleDetector.ISSUE);
     }
   }
 
@@ -508,6 +504,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGradleOverridesInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleOverridesInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.overrides"), ManifestDetector.GRADLE_OVERRIDES);
+    }
+  }
+
   public static class AndroidLintGrantAllUrisInspection extends AndroidLintInspectionBase {
     public AndroidLintGrantAllUrisInspection() {
       super(AndroidBundle.message("android.lint.inspections.grant.all.uris"), SecurityDetector.OPEN_PROVIDER);
@@ -679,6 +681,11 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintMissingApplicationIconInspection extends AndroidLintInspectionBase {
     public AndroidLintMissingApplicationIconInspection() {
       super(AndroidBundle.message("android.lint.inspections.missing.application.icon"), ManifestDetector.APPLICATION_ICON);
+    }
+  }
+  public static class AndroidLintResourceCycleInspection extends AndroidLintInspectionBase {
+    public AndroidLintResourceCycleInspection() {
+      super(AndroidBundle.message("android.lint.inspections.resource.cycle"), ResourceCycleDetector.CYCLE);
     }
   }
   public static class AndroidLintRtlCompatInspection extends AndroidLintInspectionBase {

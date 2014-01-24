@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomizer;
@@ -26,10 +25,12 @@ import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
@@ -56,25 +57,24 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.ex.IdeFrameEx;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -83,6 +83,9 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+
+import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
+import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -117,6 +120,72 @@ public class GradleProjectImporter {
   }
 
   /**
+   * Imports the given Gradle project.
+   *
+   * @param selectedFile the selected build.gradle or the project's root directory.
+   */
+  public void importProject(@NotNull VirtualFile selectedFile) {
+    VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
+    File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
+
+    // Sync Android SDKs paths *before* importing project. Studio will freeze if the project has a local.properties file pointing to a SDK
+    // path that does not exist. The cause is that having 2 dialogs: one modal (the "Project Import" one) and another from
+    // Messages.showErrorDialog (indicating the Android SDK path does not exist) produce a deadlock.
+    try {
+      LocalProperties localProperties = new LocalProperties(projectDirPath);
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        SdkSync.syncIdeAndProjectAndroidHomes(localProperties);
+      }
+    }
+    catch (IOException e) {
+      LOG.info("Failed to sync SDKs", e);
+      Messages.showErrorDialog(e.getMessage(), "Project Import");
+      return;
+    }
+
+    // Set up Gradle settings. Otherwise we get an "already disposed project" error.
+    new GradleSettings(ProjectManager.getInstance().getDefaultProject());
+
+    // If we have Gradle wrapper go ahead and import the project, without showing the "Project Import" wizard.
+    boolean hasGradleWrapper = isGradleDefaultWrapperFilesExist(projectDirPath.getPath());
+
+    if (!hasGradleWrapper) {
+      // If we don't have a Gradle wrapper, but we have the location of GRADLE_HOME, we import the project without showing the "Project
+      // Import" wizard.
+      boolean validGradleHome = false;
+      String gradleHome = getLastUsedGradleHome();
+      if (!gradleHome.isEmpty()) {
+        GradleInstallationManager gradleInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
+        File gradleHomePath = new File(FileUtil.toSystemDependentName(gradleHome));
+        validGradleHome = gradleInstallationManager.isGradleSdkHome(gradleHomePath);
+      }
+      if (!validGradleHome) {
+        ChooseGradleHomeDialog chooseGradleHomeDialog = new ChooseGradleHomeDialog();
+        if (!chooseGradleHomeDialog.showAndGet()) {
+          return;
+        }
+        chooseGradleHomeDialog.storeLastUsedGradleHome();
+      }
+    }
+
+    try {
+      importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
+        @Override
+        public void projectImported(@NotNull Project project) {
+          activateProjectView(project);
+        }
+      });
+    }
+    catch (Exception e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new RuntimeException(e);
+      }
+      Messages.showErrorDialog(e.getMessage(), "Project Import");
+      LOG.error(e);
+    }
+  }
+
+  /**
    * Re-imports an existing Android-Gradle project.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
@@ -126,6 +195,8 @@ public class GradleProjectImporter {
   public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
+      setUpGradleSettings(project);
+      removeAllLibraries(project);
       doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC /* asynchronous import */, callback);
     }
     else {
@@ -155,6 +226,25 @@ public class GradleProjectImporter {
     return gradleBuildFile != null && gradleBuildFile.exists() && !gradleBuildFile.isDirectory();
   }
 
+  // See issue: https://code.google.com/p/android/issues/detail?id=64508
+  private static void removeAllLibraries(@NotNull final Project project) {
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+      @Override
+      public void execute() {
+        LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+        LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
+        try {
+          for (Library library : model.getLibraries()) {
+            model.removeLibrary(library);
+          }
+        }
+        finally {
+          model.commit();
+        }
+      }
+    });
+  }
+
   /**
    * Imports and opens the newly created Android project.
    *
@@ -177,10 +267,9 @@ public class GradleProjectImporter {
    * @param projectName          name of the project.
    * @param projectRootDir       root directory of the project.
    * @param callback             called after the project has been imported.
-   * @param initialLanguageLevel when creating a new project, sets the language level to the given version
-   *                             early on (this is because you cannot set a language level later on in the process
-   *                             without telling the user that the language level has changed and to re-open the
-   *                             project)
+   * @param initialLanguageLevel when creating a new project, sets the language level to the given version early on (this is because you
+   *                             cannot set a language level later on in the process without telling the user that the language level has
+   *                             changed and to re-open the project)
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
@@ -189,8 +278,6 @@ public class GradleProjectImporter {
                             @Nullable Callback callback,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
-    GradleImportNotificationListener.attachToManager();
-
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
@@ -264,14 +351,34 @@ public class GradleProjectImporter {
     }, null, null);
   }
 
-  private static void setUpGradleSettings(@NotNull Project newProject) {
-    GradleProjectSettings projectSettings = new GradleProjectSettings();
-    projectSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
-    projectSettings.setExternalProjectPath(FileUtil.toCanonicalPath(newProject.getBasePath()));
+  private static void setUpGradleSettings(@NotNull Project project) {
+    GradleProjectSettings projectSettings = GradleUtil.getGradleProjectSettings(project);
+    if (projectSettings == null) {
+      projectSettings = new GradleProjectSettings();
+      GradleSettings gradleSettings = GradleSettings.getInstance(project);
+      gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
+    }
     projectSettings.setUseAutoImport(false);
+    setUpGradleProjectSettings(project, projectSettings);
+  }
 
-    GradleSettings gradleSettings = GradleSettings.getInstance(newProject);
-    gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
+  private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
+    settings.setExternalProjectPath(FileUtil.toCanonicalPath(project.getBasePath()));
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    DistributionType distributionType = settings.getDistributionType();
+    if (wrapperPropertiesFile == null) {
+      if (!DistributionType.LOCAL.equals(distributionType)) {
+        settings.setDistributionType(DistributionType.LOCAL);
+      }
+      if (Strings.isNullOrEmpty(settings.getGradleHome())) {
+        settings.setGradleHome(getLastUsedGradleHome());
+      }
+    }
+    else {
+      if (distributionType == null || DistributionType.LOCAL.equals(distributionType)) {
+        settings.setDistributionType(DistributionType.WRAPPED);
+      }
+    }
   }
 
   private void doImport(@NotNull final Project project,
@@ -290,7 +397,7 @@ public class GradleProjectImporter {
             boolean isTest = application.isUnitTestMode();
             if (!isTest || !ourSkipSetupFromTest) {
               if (newProject) {
-                open(project);
+                Projects.open(project);
               }
               else {
                 updateStructureAccordingToBuildVariants(project);
@@ -360,22 +467,6 @@ public class GradleProjectImporter {
         });
       }
     });
-  }
-
-  private static void open(@NotNull final Project newProject) {
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    ProjectUtil.updateLastProjectLocation(newProject.getBasePath());
-    if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
-      IdeFocusManager instance = IdeFocusManager.findInstance();
-      IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
-      if (lastFocusedFrame instanceof IdeFrameEx) {
-        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
-        if (fullScreen) {
-          newProject.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, Boolean.TRUE);
-        }
-      }
-    }
-    projectManager.openProject(newProject);
   }
 
   private void updateStructureAccordingToBuildVariants(final Project project) {

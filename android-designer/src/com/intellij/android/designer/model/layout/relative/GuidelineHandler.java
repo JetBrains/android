@@ -22,9 +22,9 @@ import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import lombok.ast.libs.org.parboiled.common.StringUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
@@ -705,7 +705,7 @@ public class GuidelineHandler {
     removeRelativeParams(node);
 
     String id = previous.getId();
-    if (StringUtils.isEmpty(id)) {
+    if (StringUtil.isEmpty(id)) {
       return;
     }
 

@@ -91,7 +91,7 @@ public final class AndroidSdkUtils {
   public static final String SDK_NAME_PREFIX = "Android ";
   public static final String DEFAULT_JDK_NAME = "JDK";
 
-  private static SdkManager ourSdkManager;
+  private static AndroidSdkData ourSdkData;
 
   private AndroidSdkUtils() {
   }
@@ -260,7 +260,7 @@ public final class AndroidSdkUtils {
 
   @Nullable
   private static IAndroidTarget findBestTarget(@NotNull String sdkPath) {
-    AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     if (sdkData != null) {
       IAndroidTarget[] targets = sdkData.getTargets();
       return findBestTarget(targets);
@@ -392,7 +392,7 @@ public final class AndroidSdkUtils {
         AndroidPlatform androidPlatform = data.getAndroidPlatform();
         if (androidPlatform != null) {
           // Put default platforms in the list before non-default ones so they'll be looked at first.
-          String sdkPath = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation());
+          String sdkPath = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getPath());
           if (result.contains(sdkPath)) continue;
           if (androidSdk.getName().startsWith(SDK_NAME_PREFIX)) {
             result.add(0, sdkPath);
@@ -462,7 +462,7 @@ public final class AndroidSdkUtils {
       }
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {
-        String baseDir = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation());
+        String baseDir = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getPath());
         boolean compatibleVersion = VersionCheck.isCompatibleVersion(baseDir);
         boolean matchingHashString = targetHashString.equals(androidPlatform.getTarget().hashString());
         boolean suitable = compatibleVersion && matchingHashString && checkSdkRoots(sdk, androidPlatform.getTarget(), false);
@@ -565,11 +565,11 @@ public final class AndroidSdkUtils {
                                              @NotNull String sdkPath,
                                              @NotNull String targetHashString,
                                              boolean promptUserIfNecessary) {
-    AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     if (sdkData != null) {
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
-        Sdk androidSdk = createNewAndroidPlatform(target, sdkData.getLocation(), true);
+        Sdk androidSdk = createNewAndroidPlatform(target, sdkData.getPath(), true);
         if (androidSdk != null) {
           ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
           return true;
@@ -612,6 +612,9 @@ public final class AndroidSdkUtils {
         if (dlg.showAndGet()) {
           Sdk sdk = createNewAndroidPlatform(target, dlg.getAndroidHome(), dlg.getJdkHome());
           sdkRef.set(sdk);
+          if (sdk != null) {
+            RunAndroidSdkManagerAction.updateInWelcomePage(dlg.getContentPanel());
+          }
         }
       }
     };
@@ -678,7 +681,7 @@ public final class AndroidSdkUtils {
       String homePath = sdk.getHomePath();
 
       if (homePath != null && isAndroidSdk(sdk)) {
-        AndroidSdkData currentSdkData = AndroidSdkData.parse(homePath, NullLogger.getLogger());
+        AndroidSdkData currentSdkData = AndroidSdkData.getSdkData(homePath);
 
         if (currentSdkData != null && currentSdkData.equals(sdkData)) {
           AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
@@ -832,20 +835,19 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  public static SdkManager tryToChooseAndroidSdk() {
-    if (ourSdkManager == null) {
-      ILogger logger = new StdLogger(StdLogger.Level.INFO);
+  public static AndroidSdkData tryToChooseAndroidSdk() {
+    if (ourSdkData == null) {
       for (String s : getAndroidSdkPathsFromExistingPlatforms()) {
-        ourSdkManager = SdkManager.createManager(s, logger);
-        if (ourSdkManager != null) {
+        ourSdkData = AndroidSdkData.getSdkData(s);
+        if (ourSdkData != null) {
           break;
         }
       }
     }
-    return ourSdkManager;
+    return ourSdkData;
   }
 
-  public static void setSdkManager(@Nullable SdkManager manager) {
-    ourSdkManager = manager;
+  public static void setSdkData(@Nullable AndroidSdkData data) {
+    ourSdkData = data;
   }
 }

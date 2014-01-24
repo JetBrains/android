@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.google.common.base.Strings;
@@ -65,6 +66,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.idea.gradle.util.GradleBuilds.OFFLINE_MODE_OPTION;
+import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 
 /**
  * Builds Gradle-based Android project using Gradle.
@@ -148,8 +152,14 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
     List<String> tasks = Lists.newArrayList();
 
-    for (JpsModule module : getModulesToBuild(project, executionSettings)) {
-      populateBuildTasks(module, executionSettings, tasks, context);
+    List<JpsModule> modulesToBuild = getModulesToBuild(project, executionSettings);
+    if (modulesToBuild.isEmpty()) {
+      tasks.add(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
+    }
+    else {
+      for (JpsModule module : modulesToBuild) {
+        populateBuildTasks(module, executionSettings, tasks, context);
+      }
     }
 
     if (!tasks.isEmpty()) {
@@ -165,8 +175,11 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   @NotNull
   private static List<JpsModule> getModulesToBuild(@NotNull JpsProject project, @NotNull BuilderExecutionSettings executionSettings) {
     List<JpsModule> modules = project.getModules();
-    Set<String> moduleNames = executionSettings.getModulesToBuildNames();
+    List<String> moduleNames = executionSettings.getModulesToBuildNames();
     if (moduleNames.isEmpty()) {
+      if (isGradleProject(modules)) {
+        return Collections.emptyList();
+      }
       return modules;
     }
     List<JpsModule> modulesToBuild = Lists.newArrayList();
@@ -178,6 +191,22 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     return modulesToBuild;
   }
 
+  private static boolean isGradleProject(@NotNull List<JpsModule> modules) {
+    for (JpsModule module : modules) {
+      JpsAndroidModuleProperties properties = getAndroidModuleProperties(module);
+      if (properties != null && !properties.ALLOW_USER_CONFIGURATION) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  private static JpsAndroidModuleProperties getAndroidModuleProperties(@NotNull JpsModule module) {
+    JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
+    return androidFacet != null ? androidFacet.getProperties() : null;
+  }
+
   private static void populateBuildTasks(@NotNull JpsModule module,
                                          @NotNull BuilderExecutionSettings executionSettings,
                                          @NotNull List<String> tasks,
@@ -187,24 +216,20 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       return;
     }
     String gradleProjectPath = androidGradleFacet.getProperties().GRADLE_PROJECT_PATH;
-    JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
-    JpsAndroidModuleProperties properties = androidFacet != null ? androidFacet.getProperties() : null;
+    JpsAndroidModuleProperties properties = getAndroidModuleProperties(module);
 
-    GradleBuilds.TestCompileContext testCompileContext;
-    if (AndroidJpsUtil.isInstrumentationTestContext(context)) {
-      testCompileContext = GradleBuilds.TestCompileContext.ANDROID_TESTS;
-    } else if (AndroidJpsUtil.isJunitTestContext(context)) {
-      testCompileContext = GradleBuilds.TestCompileContext.JAVA_TESTS;
-    } else {
-      testCompileContext = GradleBuilds.TestCompileContext.NONE;
+    GradleBuilds.findAndAddBuildTask(module.getName(), executionSettings.getBuildMode(), gradleProjectPath, properties, tasks,
+                                     getTestCompileType(context));
+  }
+
+  private static TestCompileType getTestCompileType(CompileContext context) {
+    if (AndroidJpsUtil.isJunitTestContext(context)) {
+      return TestCompileType.JAVA_TESTS;
     }
-
-    GradleBuilds.findAndAddBuildTask(module.getName(),
-                                     executionSettings.getBuildMode(),
-                                     gradleProjectPath,
-                                     properties,
-                                     tasks,
-                                     testCompileContext);
+    if (AndroidJpsUtil.isInstrumentationTestContext(context)) {
+      return TestCompileType.ANDROID_TESTS;
+    }
+    return TestCompileType.NONE;
   }
 
   private static void ensureTempDirExists() {
@@ -279,15 +304,16 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       }
 
       List<String> args = Lists.newArrayList();
+      args.addAll(executionSettings.getGradleDaemonCommandLineOptions());
 
-      if (executionSettings.isParallelBuild()) {
+      if (executionSettings.isParallelBuild() && !args.contains(PARALLEL_BUILD_OPTION)) {
         LOG.info("Using 'parallel' build option");
-        args.add(GradleBuilds.PARALLEL_BUILD_OPTION);
+        args.add(PARALLEL_BUILD_OPTION);
       }
 
-      if (executionSettings.isOfflineBuild()) {
+      if (executionSettings.isOfflineBuild() && !args.contains(OFFLINE_MODE_OPTION)) {
         LOG.info("Using 'offline' mode option");
-        args.add(GradleBuilds.OFFLINE_MODE_OPTION);
+        args.add(OFFLINE_MODE_OPTION);
       }
 
       if (!args.isEmpty()) {

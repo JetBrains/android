@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.SdkConstants;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.PkgProps;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
@@ -31,10 +29,12 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,6 +104,29 @@ public class TemplateUtils {
     }
 
     return string;
+  }
+
+  /**
+   * Strips the given suffix from the given file, provided that the file name ends with
+   * the suffix.
+   *
+   * @param file the file to strip from
+   * @param suffix the suffix to strip out
+   * @return the file without the suffix at the end
+   */
+  public static File stripSuffix(@NotNull File file, @NotNull String suffix) {
+    if (file.getName().endsWith(suffix)) {
+      String name = file.getName();
+      name = name.substring(0, name.length() - suffix.length());
+      File parent = file.getParentFile();
+      if (parent != null) {
+        return new File(parent, name);
+      } else {
+        return new File(name);
+      }
+    }
+
+    return file;
   }
 
   /**
@@ -195,10 +218,10 @@ public class TemplateUtils {
   *         maximum known versions (with no gaps)
   */
   public static String[] getKnownVersions() {
-    final SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assert sdkManager != null;
+    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assert sdkData != null;
     int max = SdkVersionInfo.HIGHEST_KNOWN_API;
-    IAndroidTarget[] targets = sdkManager.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets();
     SparseArray<IAndroidTarget> apiTargets = null;
     for (IAndroidTarget target : targets) {
       if (target.isPlatform()) {
@@ -284,16 +307,15 @@ public class TemplateUtils {
    * Opens the specified files in the editor
    *
    * @param project The project which contains the given file.
-   * @param paths   The paths to the files on disk.
+   * @param files   The files on disk.
    * @param select  If true, select the last (topmost) file in the project view
    * @return true if all files were opened
    */
-  public static boolean openEditors(@NotNull Project project, @NotNull List<String> paths, boolean select) {
-    if (paths.size() > 0) {
+  public static boolean openEditors(@NotNull Project project, @NotNull List<File> files, boolean select) {
+    if (files.size() > 0) {
       boolean result = true;
       VirtualFile last = null;
-      for (String path : paths) {
-        File file = new File(path);
+      for (File file : files) {
         if (file.exists()) {
           VirtualFile vFile = VfsUtil.findFileByIoFile(file, true /** refreshIfNeeded */);
           if (vFile != null) {
@@ -378,5 +400,27 @@ public class TemplateUtils {
   @Nullable
   public static String readTextFile(@NotNull File file) {
     return readTextFile(file, true);
+  }
+
+  /**
+   * Reads the given file as text (or the current contents of the edited buffer of the file, if open and not saved.)
+   * @param file The file to read.
+   * @return the contents of the file as text, or null if for some reason it couldn't be read
+   */
+  @Nullable
+  public static String readTextFile(@NotNull final Project project, @NotNull final VirtualFile file) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Nullable
+      @Override
+      public String compute() {
+        final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+        if (psiFile == null) {
+          return null;
+        }
+        else {
+          return psiFile.getText();
+        }
+      }
+    });
   }
 }

@@ -69,7 +69,7 @@ public class ResourceEditor extends PropertyEditor {
     this(convertTypes(formats), formats, values);
   }
 
-  public ResourceEditor(ResourceType[] types, Set<AttributeFormat> formats, String[] values) {
+  public ResourceEditor(@Nullable ResourceType[] types, Set<AttributeFormat> formats, @Nullable String[] values) {
     myTypes = types;
     myIsDimension = formats.contains(AttributeFormat.Dimension);
 

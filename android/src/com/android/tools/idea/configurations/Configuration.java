@@ -499,7 +499,7 @@ public class Configuration implements Disposable {
    */
   @NotNull
   public FolderConfiguration getFullConfig() {
-    if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0 || myProjectStateVersion < myManager.getStateVersion()) {
+    if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0 || myProjectStateVersion != myManager.getStateVersion()) {
       syncFolderConfig();
     }
 
@@ -948,7 +948,7 @@ public class Configuration implements Disposable {
     myNotifyDirty |= flags;
     myFolderConfigDirty |= flags;
 
-    if (myManager.getStateVersion() > myProjectStateVersion) {
+    if (myManager.getStateVersion() != myProjectStateVersion) {
       myNotifyDirty |= MASK_PROJECT_STATE;
       myFolderConfigDirty |= MASK_PROJECT_STATE;
       // TODO: Update myProjectStateVersion?

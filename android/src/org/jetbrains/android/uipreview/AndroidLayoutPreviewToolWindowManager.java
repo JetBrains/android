@@ -16,18 +16,16 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.ide.common.resources.ResourceUrl;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.rendering.LayoutPullParserFactory;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.ProjectTopics;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileTask;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
@@ -144,18 +142,20 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
             if (((XmlAttribute)child).getValueElement() == null) {
               return;
             }
-          } else if (parent instanceof XmlAttribute && child instanceof XmlAttributeValue) {
+          }
+          else if (parent instanceof XmlAttribute && child instanceof XmlAttributeValue) {
             XmlAttributeValue attributeValue = (XmlAttributeValue)child;
             if (attributeValue.getValue() == null || attributeValue.getValue().isEmpty()) {
               // Just added a new blank attribute; nothing to render yet
               return;
             }
-          } else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() == null) {
+          }
+          else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() == null) {
             // Just added attribute value
             String text = child.getText();
             // See if this is an attribute that takes a resource!
             if (text.startsWith(PREFIX_RESOURCE_REF)) {
-              if (text.equals(PREFIX_RESOURCE_REF) ||text.equals(ANDROID_PREFIX)) {
+              if (text.equals(PREFIX_RESOURCE_REF) || text.equals(ANDROID_PREFIX)) {
                 // Using code completion to insert resource reference; not yet done
                 return;
               }
@@ -184,7 +184,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
             if (valueElement == null || valueElement.getValue() == null || valueElement.getValue().isEmpty()) {
               return;
             }
-          } else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() != null) {
+          }
+          else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() != null) {
             String newText = child.getText();
             String prevText = event.getOldChild().getText();
             // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually
@@ -226,12 +227,10 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       }
     }, project);
 
-    CompilerManager.getInstance(project).addAfterTask(new CompileTask() {
+    ProjectBuilder.getInstance(project).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
       @Override
-      public boolean execute(CompileContext context) {
-        if (myToolWindowForm != null &&
-            myToolWindowReady &&
-            !myToolWindowDisposed) {
+      protected void buildFinished() {
+        if (myToolWindowForm != null && myToolWindowReady && !myToolWindowDisposed) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -239,7 +238,6 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
             }
           });
         }
-        return true;
       }
     });
   }
@@ -248,8 +246,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   private MergingUpdateQueue getRenderingQueue() {
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
-        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", 800, true, null,
-                                                  myProject, null, Alarm.ThreadToUse.OWN_THREAD);
+        myRenderingQueue =
+          new MergingUpdateQueue("android.layout.rendering", 800, true, null, myProject, null, Alarm.ThreadToUse.OWN_THREAD);
       }
       return myRenderingQueue;
     }
@@ -272,8 +270,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     // We can ignore edits in whitespace, and in XML error nodes, and in comments
     // (Note that editing text in an attribute value, including whitespace characters,
     // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
-    if (child instanceof PsiWhiteSpace || child instanceof PsiErrorElement
-        || child instanceof XmlComment || parent instanceof XmlComment) {
+    if (child instanceof PsiWhiteSpace || child instanceof PsiErrorElement || child instanceof XmlComment || parent instanceof XmlComment) {
       return false;
     }
 
@@ -363,11 +360,17 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   public void disposeComponent() {
   }
 
-  /** Whether we've seen an open file editor yet */
+  /**
+   * Whether we've seen an open file editor yet
+   */
   private boolean mySeenEditor;
-  /** The most recently opened file editor that was not showing (while {@link #mySeenEditor} was false) */
+  /**
+   * The most recently opened file editor that was not showing (while {@link #mySeenEditor} was false)
+   */
   private JComponent myPendingShowComponent;
-  /** A listener on {@link #myPendingShowComponent} which listens for the most recently opened file editor to start showing */
+  /**
+   * A listener on {@link #myPendingShowComponent} which listens for the most recently opened file editor to start showing
+   */
   private HierarchyListener myHierarchyListener;
 
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
@@ -388,7 +391,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         if (myToolWindow == null) {
           if (activeEditor == null) {
             return;
-          } else if (!activeEditor.getComponent().isShowing()) {
+          }
+          else if (!activeEditor.getComponent().isShowing()) {
             // When the IDE starts, it opens all the previously open editors, one
             // after the other. This means that this method gets called, and for
             // each layout editor that is on top, it opens up the preview window
@@ -417,8 +421,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
                   @Override
                   public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
                     if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
-                      if (hierarchyEvent.getComponent() == myPendingShowComponent &&
-                          myPendingShowComponent.isShowing()) {
+                      if (hierarchyEvent.getComponent() == myPendingShowComponent && myPendingShowComponent.isShowing()) {
                         myPendingShowComponent.removeHierarchyListener(myHierarchyListener);
                         mySeenEditor = true;
                         myPendingShowComponent = null;
@@ -568,19 +571,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
       final RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, toolWindowForm);
       if (service != null) {
-        // Prefetch outside of read lock
-        service.getResourceResolver();
-
-        result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
-          @Nullable
-          @Override
-          public RenderResult compute() {
-            if (psiFile instanceof XmlFile) {
-              service.useDesignMode(((XmlFile)psiFile).getRootTag());
-            }
-            return service.render();
-          }
-        });
+        service.useDesignMode(psiFile);
+        result = service.render();
         service.dispose();
       }
       if (result == null) {
@@ -669,10 +661,9 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         if (module != null) {
           final Sdk prevSdk = myModule2Sdk.get(module);
           final Sdk newSdk = ModuleRootManager.getInstance(module).getSdk();
-          if (newSdk != null
-              && (newSdk.getSdkType() instanceof AndroidSdkType ||
-                  (prevSdk != null && prevSdk.getSdkType() instanceof AndroidSdkType))
-              && !newSdk.equals(prevSdk)) {
+          if (newSdk != null &&
+              (newSdk.getSdkType() instanceof AndroidSdkType || (prevSdk != null && prevSdk.getSdkType() instanceof AndroidSdkType)) &&
+              !newSdk.equals(prevSdk)) {
             render();
           }
         }
