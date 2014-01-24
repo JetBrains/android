@@ -26,8 +26,23 @@ import org.jetbrains.annotations.Nullable;
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
  * is derived from a combination of gradle files and manifest files.
  * <p>
- * TODO: Handle the case where gradle files are not specifying attributes, and they are specified
- * in non-default manifest files (e.g. flavor-specific manifest files)
+ * NOTE: The build process allows for specifying and overriding different components in either the Gradle build scripts,
+ * the main manifest file, or a variant specific manifest file. These values should always be obtained from the final
+ * merged manifest file for a particular variant. However, there are two issues:
+ * <ol>
+ *   <li>The merged manifest file may not always be available, since it is present within the build folder
+ * and that might have been cleaned.</li>
+ *   <li>Reading/Parsing a file is higher overhead that simply querying the Gradle model.</li>
+ * </ol>
+ * As a result, the code below uses the following sequence to obtain required information:
+ * <ol>
+ *   <li>Query the gradle model for the current variant. If the value is specified/overridden in
+ *   gradle build scripts, then this should be sufficient.</li>
+ *   <li>The model won't have information if it is not specified in a build script. In such a case,
+ *   the merged manifest file should be parsed for the information</li>
+ *   <li>If the merged manifest file is not available, then the final fallback is to parse the main manifest.</li>
+ * </ol>
+ * <p>
  */
 public class AndroidModuleInfo {
   private final @NotNull AndroidFacet myFacet;
@@ -54,16 +69,15 @@ public class AndroidModuleInfo {
 
   @Nullable
   public String getPackage() {
-    String manifestPackage = ManifestInfo.get(myFacet.getModule()).getPackage();
-
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      return project.computePackageName(manifestPackage);
+      return project.computePackageName();
     }
 
     // Read from the manifest: Not overridden in the configuration
-    // TODO: there could be more than one manifest file; I need to look at the merged view!
-    return manifestPackage;
+    // Note: The package name is always obtained from the main manifest, unless it is overridden in gradle,
+    // so in this case we don't have to check the merged manifest.
+    return ManifestInfo.get(myFacet.getModule()).getPackage();
   }
 
   public int getMinSdkVersion() {
@@ -76,7 +90,8 @@ public class AndroidModuleInfo {
       // Else: not specified in gradle files; fall back to manifest
     }
 
-    // TODO: there could be more than one manifest file; I need to look at the merged view!
+    // Note: The min sdk version can only come from the main manifest (libraries can only have a lower minSdk),
+    // so there is no need to check the merged manifest.
     return ManifestInfo.get(myFacet.getModule()).getMinSdkVersion();
   }
 
