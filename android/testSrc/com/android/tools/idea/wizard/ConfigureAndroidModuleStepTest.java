@@ -331,4 +331,15 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     // "app" already exists
     assertEquals("app2", myStep.computeModuleName());
   }
+
+  public void testComputePackageName() throws Exception {
+    myState.put(ATTR_MODULE_NAME, "App-Foo");
+    assertEquals("com.example.app_foo", myStep.computePackageName());
+
+    myState.put(ATTR_MODULE_NAME, "$asdf$");
+    assertEquals("com.example.asdf", myStep.computePackageName());
+
+    myState.put(ATTR_MODULE_NAME, "App_Foo");
+    assertEquals("com.example.app_foo", myStep.computePackageName());
+  }
 }
