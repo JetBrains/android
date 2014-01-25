@@ -283,19 +283,17 @@ public class AndroidDomUtil {
   }
 
   @Nullable
-  public static Activity getActivityDomElementByClass(@NotNull Module module, PsiClass c) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      Manifest manifest = facet.getManifest();
-      if (manifest != null) {
-        Application application = manifest.getApplication();
-        if (application != null) {
-          for (Activity activity : application.getActivities()) {
-            PsiClass activityClass = activity.getActivityClass().getValue();
-            if (c.getManager().areElementsEquivalent(c, activityClass)) {
-              return activity;
-            }
-          }
+  public static Activity getActivityDomElementByClass(@Nullable Manifest manifest, PsiClass c) {
+    if (manifest == null) {
+      return null;
+    }
+
+    Application application = manifest.getApplication();
+    if (application != null) {
+      for (Activity activity : application.getActivities()) {
+        PsiClass activityClass = activity.getActivityClass().getValue();
+        if (c.getManager().areElementsEquivalent(c, activityClass)) {
+          return activity;
         }
       }
     }
