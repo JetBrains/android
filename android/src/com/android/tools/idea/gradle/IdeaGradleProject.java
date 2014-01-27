@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.facet.JavaModel;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
@@ -29,6 +31,8 @@ public class IdeaGradleProject implements Serializable {
   @NotNull private final String myModuleName;
   @NotNull private final VirtualFile myBuildFile;
   @NotNull private final String myGradleProjectPath;
+
+  private JavaModel myJavaModel;
 
   /**
    * Creates a new {@link IdeaGradleProject}.
@@ -62,5 +66,14 @@ public class IdeaGradleProject implements Serializable {
   @NotNull
   public VirtualFile getBuildFile() {
     return myBuildFile;
+  }
+
+  @Nullable
+  public JavaModel getJavaModel() {
+    return myJavaModel;
+  }
+
+  public void setJavaModel(@NotNull JavaModel javaModel) {
+    myJavaModel = javaModel;
   }
 }
