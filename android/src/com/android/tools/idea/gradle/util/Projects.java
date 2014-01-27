@@ -46,6 +46,7 @@ import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.io.File;
@@ -153,8 +154,7 @@ public final class Projects {
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    return buildConfiguration.OFFLINE_MODE;
+    return GradleSettings.getInstance(project).isOfflineWork();
   }
 
   public static boolean isGradleProject(@NotNull Project project) {
