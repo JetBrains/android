@@ -209,10 +209,10 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     myWizardState.put(ATTR_CREATE_ICONS, true);
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, false);
 
-    AssetStudioWizardState launcherIconStateMock = mock(AssetStudioWizardState.class);
+    AssetStudioAssetGenerator launcherIconStateMock = mock(AssetStudioAssetGenerator.class);
     NewProjectWizardState spyState = spy(myWizardState);
     myWizard.myWizardState = spyState;
-    when(spyState.getLauncherIconState()).thenReturn(launcherIconStateMock);
+    myWizard.myAssetGenerator = launcherIconStateMock;
 
     TemplateWizardState activityStateMock = spy(myWizardState.getActivityTemplateState());
     Template activityTemplateMock = mock(Template.class);
@@ -233,10 +233,10 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     myWizardState.put(ATTR_CREATE_ICONS, false);
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, false);
 
-    AssetStudioWizardState launcherIconStateMock = mock(AssetStudioWizardState.class);
+    AssetStudioAssetGenerator launcherIconStateMock = mock(AssetStudioAssetGenerator.class);
     NewProjectWizardState spyState = spy(myWizardState);
     myWizard.myWizardState = spyState;
-    when(spyState.getLauncherIconState()).thenReturn(launcherIconStateMock);
+    myWizard.myAssetGenerator = launcherIconStateMock;
 
     TemplateWizardState activityStateMock = spy(myWizardState.getActivityTemplateState());
     Template activityTemplateMock = mock(Template.class);
