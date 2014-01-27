@@ -27,7 +27,7 @@ public class AndroidApplicationModifiedSettingsStep extends AndroidModifiedSetti
     final String applicationName = builder.getApplicationName();
 
     if (applicationName != null && applicationName.length() > 0) {
-      settingsStep.getNameField().setText(applicationName);
+      settingsStep.getModuleNameField().setText(applicationName);
     }
     final String[] items = {TARGET_DO_NOT_CREATE_RUN_CONF, TARGET_SHOW_CHOOSER_DIALOG,
       TARGET_USB_DEVICE, TARGET_EMULATOR};
