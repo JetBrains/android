@@ -29,7 +29,7 @@ class AndroidLibraryModifiedSettingsStep extends AndroidModifiedSettingsStep {
       }
     });
 
-    settingsStep.getNameField().getDocument().addDocumentListener(new DocumentAdapter() {
+    settingsStep.getModuleNameField().getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
         if (!myPackageNameFieldChangedByUser) {
@@ -41,7 +41,7 @@ class AndroidLibraryModifiedSettingsStep extends AndroidModifiedSettingsStep {
   }
 
   private void updatePackageNameField(SettingsStep settingsStep) {
-    final String moduleName = settingsStep.getNameField().getText().trim();
+    final String moduleName = settingsStep.getModuleNameField().getText().trim();
 
     if (moduleName.length() > 0) {
       myPackageNameField.setText(AndroidAppPropertiesEditor.getDefaultPackageNameByModuleName(moduleName));
