@@ -72,6 +72,7 @@ import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.Consumer;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
@@ -1200,9 +1201,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
         // The problem is that at this point, the project maybe a Gradle-based project, but its IdeaAndroidProject may be null.
         // We can check if there is a top-level build.gradle or settings.gradle file.
-        DataManager.getInstance().getDataContextFromFocus().doWhenDone(new AsyncResult.Handler<DataContext>() {
+        DataManager.getInstance().getDataContextFromFocus().doWhenDone(new Consumer<DataContext>() {
           @Override
-          public void run(DataContext dataContext) {
+          public void consume(DataContext dataContext) {
             if (dataContext != null) {
               Project project = CommonDataKeys.PROJECT.getData(dataContext);
               if (project != null && hasGradleFiles(project)) {

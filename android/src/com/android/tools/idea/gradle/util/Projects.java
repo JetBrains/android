@@ -41,6 +41,7 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.util.Consumer;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -190,9 +191,9 @@ public final class Projects {
    * @param handler the handler to run when the context is available
    */
   public static void applyToCurrentGradleProject(@NotNull final AsyncResult.Handler<Project> handler) {
-    DataManager.getInstance().getDataContextFromFocus().doWhenDone(new AsyncResult.Handler<DataContext>() {
+    DataManager.getInstance().getDataContextFromFocus().doWhenDone(new Consumer<DataContext>() {
       @Override
-      public void run(DataContext dataContext) {
+      public void consume(DataContext dataContext) {
         if (dataContext != null) {
           Project project = CommonDataKeys.PROJECT.getData(dataContext);
           if (project != null && isGradleProject(project)) {
