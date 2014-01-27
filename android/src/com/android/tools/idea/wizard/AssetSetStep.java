@@ -16,16 +16,22 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
+import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +48,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-import static com.android.tools.idea.wizard.AssetStudioWizardState.*;
+import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
 
 /**
  * {@linkplain AssetSetStep} is a wizard page that lets the user create a variety of density-scaled assets.
@@ -52,11 +58,12 @@ public class AssetSetStep extends TemplateWizardStep {
   private static final int CLIPART_ICON_SIZE = 32;
   private static final int CLIPART_DIALOG_BORDER = 10;
   private static final int DIALOG_HEADER = 20;
+  private static final String ATTR_ICON_RESOURCE = "icon_resource";
 
   private static final String V11 = "V11";
   private static final String V9 = "V9";
 
-  private AssetStudioWizardState myWizardState;
+  private AssetStudioAssetGenerator myAssetGenerator;
   private JPanel myPanel;
   private JRadioButton myImageRadioButton;
   private JRadioButton myClipartRadioButton;
@@ -109,11 +116,12 @@ public class AssetSetStep extends TemplateWizardStep {
 
   protected AssetType mySelectedAssetType;
   private boolean myInitialized;
+  private final StringEvaluator myStringEvaluator = new StringEvaluator();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
-  public AssetSetStep(AssetStudioWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
+  public AssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
     super(state, project, sidePanelIcon, updateListener);
-    myWizardState = state;
+    myAssetGenerator = new AssetStudioAssetGenerator(state);
 
     register(ATTR_TEXT, myText);
     register(ATTR_SCALING, myCropRadioButton, Scaling.CROP);
@@ -124,9 +132,9 @@ public class AssetSetStep extends TemplateWizardStep {
     register(ATTR_PADDING, myPaddingSlider);
     register(ATTR_TRIM, myTrimBlankSpace);
     register(ATTR_FONT, myFontFamily);
-    register(ATTR_SOURCE_TYPE, myImageRadioButton, AssetStudioWizardState.SourceType.IMAGE);
-    register(ATTR_SOURCE_TYPE, myClipartRadioButton, AssetStudioWizardState.SourceType.CLIPART);
-    register(ATTR_SOURCE_TYPE, myTextRadioButton, AssetStudioWizardState.SourceType.TEXT);
+    register(ATTR_SOURCE_TYPE, myImageRadioButton, AssetStudioAssetGenerator.SourceType.IMAGE);
+    register(ATTR_SOURCE_TYPE, myClipartRadioButton, AssetStudioAssetGenerator.SourceType.CLIPART);
+    register(ATTR_SOURCE_TYPE, myTextRadioButton, AssetStudioAssetGenerator.SourceType.TEXT);
     register(ATTR_FOREGROUND_COLOR, myForegroundColor);
     register(ATTR_BACKGROUND_COLOR, myBackgroundColor);
     register(ATTR_ASSET_TYPE, myAssetTypeComboBox);
@@ -139,7 +147,7 @@ public class AssetSetStep extends TemplateWizardStep {
 
     for (String font : GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames()) {
       myFontFamily.addItem(new ComboBoxItem(font, font, 1, 1));
-      if (font.equals(myWizardState.get(ATTR_FONT))) {
+      if (font.equals(myTemplateState.get(ATTR_FONT))) {
         myFontFamily.setSelectedIndex(myFontFamily.getItemCount() - 1);
       }
     }
@@ -159,6 +167,8 @@ public class AssetSetStep extends TemplateWizardStep {
   public void deriveValues() {
     super.deriveValues();
 
+    myTemplateState.put(ATTR_ICON_RESOURCE, myTemplateState.getString(ATTR_ASSET_NAME));
+
     // Source Radio button
     if (myImageRadioButton.isSelected()) {
       hide(myChooseClipart, myChooseClipartLabel, myText, myTextLabel, myFontFamily, myFontFamilyLabel, myForegroundColor,
@@ -174,15 +184,15 @@ public class AssetSetStep extends TemplateWizardStep {
     }
 
     // Asset Type Combo Box
-    if (myWizardState.get(ATTR_ASSET_TYPE) != null) {
-      final AssetType selectedAssetType = AssetType.valueOf(myWizardState.getString(ATTR_ASSET_TYPE));
+    if (myTemplateState.get(ATTR_ASSET_TYPE) != null) {
+      final AssetType selectedAssetType = AssetType.valueOf(myTemplateState.getString(ATTR_ASSET_TYPE));
       mySelectedAssetType = selectedAssetType;
       if (selectedAssetType != null) {
         switch (selectedAssetType) {
           case LAUNCHER:
             hide(myChooseThemeComboBox, myChooseThemeLabel, myResourceNameLabel, myResourceNameField, myVersionPanel);
             show(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel, myDpiPanel);
-            myWizardState.put(ATTR_ASSET_NAME, "icon");
+            myTemplateState.put(ATTR_ASSET_NAME, "icon");
             break;
           case ACTIONBAR:
             show(myResourceNameField, myResourceNameLabel);
@@ -202,7 +212,7 @@ public class AssetSetStep extends TemplateWizardStep {
           updateDerivedValue(ATTR_ASSET_NAME, myResourceNameField, new Callable<String>() {
             @Override
             public String call() throws Exception {
-              return String.format(selectedAssetType.getDefaultNameFormat(), "name");
+              return computeResourceName();
             }
           });
         }
@@ -210,8 +220,8 @@ public class AssetSetStep extends TemplateWizardStep {
     }
 
     // Theme chooser
-    if (myChooseThemeComboBox.isVisible() && myWizardState.hasAttr(ATTR_ASSET_THEME)) {
-      if (ActionBarIconGenerator.Theme.valueOf(myWizardState.getString(ATTR_ASSET_THEME))
+    if (myChooseThemeComboBox.isVisible() && myTemplateState.hasAttr(ATTR_ASSET_THEME)) {
+      if (ActionBarIconGenerator.Theme.valueOf(myTemplateState.getString(ATTR_ASSET_THEME))
           .equals(ActionBarIconGenerator.Theme.CUSTOM)) {
         show(myForegroundColor, myForegroundColorLabel);
       } else {
@@ -226,14 +236,19 @@ public class AssetSetStep extends TemplateWizardStep {
       return false;
     }
 
-    myFontFamily.setSelectedItem(myWizardState.getString(ATTR_FONT));
+    myFontFamily.setSelectedItem(myTemplateState.getString(ATTR_FONT));
 
     try {
-      Map<String, Map<String, BufferedImage>> imageMap = myWizardState.generateImages(true);
+      Map<String, Map<String, BufferedImage>> imageMap = myAssetGenerator.generateImages(true);
 
 
       if (mySelectedAssetType == null) {
         return false;
+      }
+
+      String assetName = myTemplateState.getString(ATTR_ASSET_NAME);
+      if (drawableExists(assetName)) {
+        setErrorHtml(String.format("A drawable resource named %s already exists and will be overwritten.", assetName));
       }
 
       if (mySelectedAssetType.equals(AssetType.NOTIFICATION)) {
@@ -306,7 +321,7 @@ public class AssetSetStep extends TemplateWizardStep {
         btn.addActionListener(new ActionListener() {
           @Override
           public void actionPerformed(ActionEvent e) {
-            myWizardState.put(ATTR_CLIPART_NAME, name);
+            myTemplateState.put(ATTR_CLIPART_NAME, name);
             dialog.setVisible(false);
             update();
           }
@@ -326,8 +341,15 @@ public class AssetSetStep extends TemplateWizardStep {
 
   public void finalizeAssetType(AssetType type) {
     mySelectedAssetType = type;
-    myWizardState.put(ATTR_ASSET_TYPE, type.name());
+    myTemplateState.put(ATTR_ASSET_TYPE, type.name());
+    for (int i = 0; i < myAssetTypeComboBox.getItemCount(); ++i) {
+      if (((ComboBoxItem)myAssetTypeComboBox.getItemAt(i)).id.equals(type.name())) {
+        myAssetTypeComboBox.setSelectedIndex(i);
+        break;
+      }
+    }
     hide(myAssetTypeComboBox, myAssetTypeLabel);
+    update();
   }
 
   @Nullable
@@ -374,12 +396,69 @@ public class AssetSetStep extends TemplateWizardStep {
   }
 
   private void initialize() {
-    myWizardState.put(ATTR_IMAGE_PATH,
-        new File(TemplateManager.getTemplateRootFolder(),
-                 FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "drawable-xhdpi",
-                               "ic_launcher.png"))
-          .getAbsolutePath());
+    myTemplateState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
+      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "drawable-xhdpi", "ic_launcher.png"))
+      .getAbsolutePath());
     register(ATTR_IMAGE_PATH, myImageFile);
+  }
+
+  @NotNull
+  private String computeResourceName() {
+    String resourceName = null;
+    if (myTemplateState.get(TemplateMetadata.ATTR_ICON_NAME) != null) {
+      resourceName = myStringEvaluator.evaluate(myTemplateState.getString(TemplateMetadata.ATTR_ICON_NAME), myTemplateState.getParameters());
+    }
+
+    if (resourceName == null) {
+      resourceName = String.format(mySelectedAssetType.getDefaultNameFormat(), "name");
+    }
+
+
+    if (drawableExists(resourceName)) {
+      // While uniqueness isn't satisfied, increment number and add to end
+      int i = 2;
+      while (drawableExists(resourceName + Integer.toString(i))) {
+        i++;
+      }
+      resourceName += Integer.toString(i);
+    }
+
+    return resourceName;
+  }
+
+  /**
+   * Must be run inside a write action. Creates the asset files on disk.
+   */
+  public void createAssets(@Nullable Module module) {
+    File targetResDir = (File)myTemplateState.get(ChooseOutputLocationStep.ATTR_OUTPUT_FOLDER);
+    if (targetResDir == null) {
+      if (myTemplateState.hasAttr(TemplateMetadata.ATTR_RES_DIR)) {
+        assert module != null;
+        File moduleDir = new File(module.getModuleFilePath()).getParentFile();
+        targetResDir = new File(moduleDir, myTemplateState.getString(TemplateMetadata.ATTR_RES_DIR));
+      } else {
+        return;
+      }
+    }
+
+    File targetVariantDir = targetResDir.getParentFile();
+
+    myAssetGenerator.outputImagesIntoVariantRoot(targetVariantDir);
+
+    VirtualFile resDir = LocalFileSystem.getInstance().findFileByIoFile(targetResDir);
+    if (resDir != null) {
+      // Refresh the res directory so that the new files show up in the IDE.
+      resDir.refresh(true, true);
+    } else {
+      // If we can't find the res directory, refresh the project.
+      if (myProject != null) {
+        myProject.getBaseDir().refresh(true, true);
+      }
+    }
+  }
+
+  private boolean drawableExists(String resourceName) {
+    return Parameter.existsResourceFile(myProject, SdkConstants.FD_RES_DRAWABLE, resourceName + SdkConstants.DOT_PNG);
   }
 
   @Override

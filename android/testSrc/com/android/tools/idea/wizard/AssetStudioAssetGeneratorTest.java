@@ -28,7 +28,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
 
-import static com.android.tools.idea.wizard.AssetStudioWizardState.*;
+import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -38,12 +38,13 @@ import static com.android.assetstudiolib.GeneratorTest.assertImageSimilar;
  * Tests for generation of asset images.
  */
 @SuppressWarnings("unchecked")
-public class AssetStudioWizardStateTest extends AndroidTestCase {
+public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
 
   private NotificationIconGenerator myNotificationIconGenerator;
   private ActionBarIconGenerator myActionBarIconGenerator;
   private LauncherIconGenerator myLauncherIconGenerator;
-  private AssetStudioWizardState myState;
+  private TemplateWizardState myState = new TemplateWizardState();
+  private AssetStudioAssetGenerator myAssetGenerator;
   private static final String ASSET_NAME = "ThisIsTheFileName";
 
   @Override
@@ -52,12 +53,12 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
     myNotificationIconGenerator = mock(NotificationIconGenerator.class);
     myActionBarIconGenerator = mock(ActionBarIconGenerator.class);
     myLauncherIconGenerator = mock(LauncherIconGenerator.class);
-    myState = new AssetStudioWizardState(myActionBarIconGenerator, myNotificationIconGenerator, myLauncherIconGenerator);
+    myAssetGenerator = new AssetStudioAssetGenerator(myState, myActionBarIconGenerator, myNotificationIconGenerator, myLauncherIconGenerator);
     pickImage(myState);
     myState.put(ATTR_ASSET_NAME, ASSET_NAME);
   }
 
-  private static void pickImage(AssetStudioWizardState state) {
+  private static void pickImage(TemplateWizardState state) {
     // This is no longer done by the asset state by default, but by the
     // AssetSetStep#initialize method
     state.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), FileUtil
@@ -66,7 +67,7 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
   }
 
   public void testNoOp() throws Exception {
-    myState.generateImages(true);
+    myAssetGenerator.generateImages(true);
     verify(myNotificationIconGenerator, never())
       .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
     verify(myNotificationIconGenerator, never())
@@ -88,7 +89,7 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
 
   public void testLauncherIcons() throws Exception {
     myState.put(ATTR_ASSET_TYPE, AssetType.LAUNCHER.name());
-    myState.generateImages(true);
+    myAssetGenerator.generateImages(true);
 
 
     verify(myNotificationIconGenerator, never())
@@ -104,20 +105,21 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
                 any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
 
     verify(myLauncherIconGenerator, never())
-      .generate(eq(myState), any(LauncherIconGenerator.LauncherOptions.class));
+      .generate(eq(myAssetGenerator), any(LauncherIconGenerator.LauncherOptions.class));
     verify(myLauncherIconGenerator, times(1))
-      .generate(isNull(String.class), any(Map.class), eq(myState),
+      .generate(isNull(String.class), any(Map.class), eq(myAssetGenerator),
                 any(LauncherIconGenerator.LauncherOptions.class), eq(ASSET_NAME));
   }
 
   public void testNotificationIcons() throws Exception {
     myState.put(ATTR_ASSET_TYPE, AssetType.NOTIFICATION.name());
-    myState.generateImages(true);
+    myAssetGenerator.generateImages(true);
 
     verify(myNotificationIconGenerator, never())
-      .generate(eq(myState), any(NotificationIconGenerator.NotificationOptions.class));
+      .generate(eq(myAssetGenerator), any(NotificationIconGenerator.NotificationOptions.class));
     verify(myNotificationIconGenerator, times(1))
-      .generate(isNull(String.class), any(Map.class), eq(myState), any(NotificationIconGenerator.NotificationOptions.class), eq(ASSET_NAME));
+      .generate(isNull(String.class), any(Map.class), eq(myAssetGenerator),
+                any(NotificationIconGenerator.NotificationOptions.class), eq(ASSET_NAME));
 
     verify(myActionBarIconGenerator, never())
       .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
@@ -134,7 +136,7 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
 
   public void testActionBarIcons() throws Exception {
     myState.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
-    myState.generateImages(true);
+    myAssetGenerator.generateImages(true);
 
     verify(myNotificationIconGenerator, never())
       .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
@@ -143,9 +145,10 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
                 any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class), anyString());
 
     verify(myActionBarIconGenerator, never())
-      .generate(eq(myState), any(ActionBarIconGenerator.ActionBarOptions.class));
+      .generate(eq(myAssetGenerator), any(ActionBarIconGenerator.ActionBarOptions.class));
     verify(myActionBarIconGenerator, times(1))
-      .generate(isNull(String.class), any(Map.class), eq(myState), any(ActionBarIconGenerator.ActionBarOptions.class), eq(ASSET_NAME));
+      .generate(isNull(String.class), any(Map.class), eq(myAssetGenerator),
+                any(ActionBarIconGenerator.ActionBarOptions.class), eq(ASSET_NAME));
 
     verify(myLauncherIconGenerator, never())
       .generate(any(GraphicGeneratorContext.class), any(GraphicGenerator.Options.class));
@@ -167,15 +170,16 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
 
     ActionBarIconGenerator generator = mock(ActionBarIconGenerator.class);
 
-    AssetStudioWizardState state = new AssetStudioWizardState(generator, null, null);
+    TemplateWizardState state = new TemplateWizardState();
+    AssetStudioAssetGenerator studioGenerator = new AssetStudioAssetGenerator(state, generator, null, null);
     pickImage(state);
     state.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     state.put(ATTR_ASSET_THEME, theme.name());
     state.put(ATTR_FOREGROUND_COLOR, color);
-    state.generateImages(true);
+    studioGenerator.generateImages(true);
 
     verify(generator, times(1))
-      .generate(isNull(String.class), any(Map.class), eq(state),
+      .generate(isNull(String.class), any(Map.class), eq(studioGenerator),
                 argument.capture(), anyString());
 
     assertEquals(theme, argument.getValue().theme);
@@ -191,10 +195,10 @@ public class AssetStudioWizardStateTest extends AndroidTestCase {
     myState.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     myState.put(ATTR_ASSET_THEME, ActionBarIconGenerator.Theme.HOLO_DARK.name());
 
-    myState.generateImages(true);
+    myAssetGenerator.generateImages(true);
 
     verify(myActionBarIconGenerator, times(1))
-      .generate(isNull(String.class), any(Map.class), eq(myState),
+      .generate(isNull(String.class), any(Map.class), eq(myAssetGenerator),
                 argument.capture(), anyString());
 
     return argument;

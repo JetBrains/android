@@ -164,13 +164,13 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
         int minSdk = templateListItem.myMetadata.getMinSdk();
         Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
         if (minApi != null && minSdk > minApi) {
-          setErrorHtml(String.format("The activity %s has a minimum SDK level of %d.", templateListItem.myMetadata.getTitle(), minSdk));
+          setErrorHtml(String.format("The component %s has a minimum SDK level of %d.", templateListItem.myMetadata.getTitle(), minSdk));
           return false;
         }
         int minBuildApi = templateListItem.myMetadata.getMinBuildApi();
         Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
         if (buildApi != null && minSdk > buildApi) {
-          setErrorHtml(String.format("The activity %s has a minimum build API level of %d.", templateListItem.myMetadata.getTitle(), minBuildApi));
+          setErrorHtml(String.format("The component %s has a minimum build API level of %d.", templateListItem.myMetadata.getTitle(), minBuildApi));
           return false;
         }
         if (myTemplateChangeListener != null && myPreviousSelection != index) {
@@ -192,6 +192,15 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
   @Override
   protected JLabel getError() {
     return myError;
+  }
+
+  @Nullable
+  public TemplateMetadata getSelectedTemplateMetadata() {
+    MetadataListItem templateListItem = (MetadataListItem)myTemplateList.getSelectedValue();
+    if (templateListItem != null) {
+      return templateListItem.myMetadata;
+    }
+    return null;
   }
 
   protected static class MetadataListItem {
