@@ -48,18 +48,12 @@ public class NewModuleWizardState extends TemplateWizardState {
   protected final TemplateWizardState myActivityTemplateState;
 
   /**
-   * State for the page that lets users create custom launcher icons
-   */
-  protected final AssetStudioWizardState myLauncherIconState;
-
-  /**
    * True if the module being created is an Android module (as opposed to a generic Java module with no Android support)
    */
   protected boolean myIsAndroidModule;
 
   public NewModuleWizardState() {
     myActivityTemplateState = new TemplateWizardState();
-    myLauncherIconState = new AssetStudioWizardState();
 
     myHidden.add(ATTR_PROJECT_LOCATION);
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
@@ -106,11 +100,6 @@ public class NewModuleWizardState extends TemplateWizardState {
     return myActivityTemplateState;
   }
 
-  @NotNull
-  public AssetStudioWizardState getLauncherIconState() {
-    return myLauncherIconState;
-  }
-
   @Override
   public void setTemplateLocation(@NotNull File file) {
     super.setTemplateLocation(file);
@@ -153,9 +142,6 @@ public class NewModuleWizardState extends TemplateWizardState {
   public void updateParameters() {
     put(ATTR_COPY_ICONS, !Boolean.parseBoolean(get(ATTR_CREATE_ICONS).toString()));
     copyParameters(myParameters, myActivityTemplateState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
-                   ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
-                   ATTR_CREATE_ICONS, ATTR_IS_GRADLE, ATTR_TOP_OUT, ATTR_PROJECT_OUT, ATTR_SRC_OUT, ATTR_RES_OUT, ATTR_MANIFEST_OUT);
-    copyParameters(myParameters, myLauncherIconState.myParameters, ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
                    ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
                    ATTR_CREATE_ICONS, ATTR_IS_GRADLE, ATTR_TOP_OUT, ATTR_PROJECT_OUT, ATTR_SRC_OUT, ATTR_RES_OUT, ATTR_MANIFEST_OUT);
   }

@@ -45,7 +45,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * complex objects like projects or modules that get customized wizards, but objects simple enough that we can show a generic template
  * parameter page and run the template against the source tree.
  */
-public class NewTemplateObjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
+public class NewTemplateObjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener,
+                                                                       ChooseTemplateStep.TemplateChangeListener {
   private static final Logger LOG = Logger.getInstance("#" + NewTemplateObjectWizard.class.getName());
 
   private TemplateWizardState myWizardState;
@@ -54,6 +55,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   private String myTemplateCategory;
   private VirtualFile myTargetFolder;
   private Set<String> myExcluded;
+  private AssetSetStep myAssetSetStep;
+  private ChooseTemplateStep myChooseTemplateStep;
 
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
@@ -94,7 +97,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myWizardState.put(ATTR_BUILD_API, platform.getTarget().getVersion().getApiLevel());
 
     // Read minSdkVersion and package from manifest and/or build.gradle files
-    int minSdkVersion = -1;
+    int minSdkVersion;
     String minSdkName;
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     String packageName = null;
@@ -142,6 +145,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       } else {
         javaSourceRoot = new File(javaDir.getPath());
       }
+
       File javaSourcePackageRoot = new File(myTargetFolder.getPath());
       String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
       packageName = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
@@ -157,12 +161,16 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     minSdkVersion = moduleInfo.getMinSdkVersion();
     minSdkName = moduleInfo.getMinSdkName();
 
-    myWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
+    myWizardState.put(ATTR_PACKAGE_NAME, packageName);
     myWizardState.put(ATTR_MIN_API, minSdkName);
     myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
 
-    mySteps.add(new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, null, myExcluded));
+    myChooseTemplateStep = new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, null, this, this, myExcluded);
+    mySteps.add(myChooseTemplateStep);
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, this);
+    mySteps.add(myAssetSetStep);
+
 
     myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
@@ -208,6 +216,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
             VirtualFile rootDir = contentRoots[0];
             File moduleRoot = new File(rootDir.getCanonicalPath());
             myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
+            // Render the assets if necessary
+            if (myAssetSetStep != null) {
+              myAssetSetStep.createAssets(myModule);
+            }
             // Open any new files specified by the template
             TemplateUtils.openEditors(myProject, myWizardState.myTemplate.getFilesToOpen(), true);
           }
@@ -217,5 +229,19 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
         }
       }
     });
+  }
+
+  @Override
+  public void templateChanged(String templateName) {
+    if (myChooseTemplateStep != null) {
+      TemplateMetadata chosenTemplateMetadata = myChooseTemplateStep.getSelectedTemplateMetadata();
+      if (chosenTemplateMetadata != null && chosenTemplateMetadata.getIconType() != null) {
+        myAssetSetStep.finalizeAssetType(chosenTemplateMetadata.getIconType());
+        myWizardState.put(ATTR_ICON_NAME, chosenTemplateMetadata.getIconName());
+        myAssetSetStep.setVisible(true);
+      } else {
+        myAssetSetStep.setVisible(false);
+      }
+    }
   }
 }
