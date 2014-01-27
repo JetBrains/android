@@ -28,6 +28,7 @@ import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.util.List;
@@ -115,9 +116,9 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   public void testPopulateJvmArgsWithBuildConfiguration() {
     AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
     configuration.COMMAND_LINE_OPTIONS = "--stacktrace --offline";
-    configuration.OFFLINE_MODE = true;
+    GradleSettings.getInstance(myProject).setOfflineWork(true);
     List<String> jvmArgs= Lists.newArrayList();
-    AndroidGradleBuildProcessParametersProvider.populateJvmArgs(configuration, jvmArgs);
+    AndroidGradleBuildProcessParametersProvider.populateJvmArgs(configuration, jvmArgs, myProject);
     assertEquals(4, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.offline.mode=true", jvmArgs.get(0));
     assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.count=2", jvmArgs.get(1));

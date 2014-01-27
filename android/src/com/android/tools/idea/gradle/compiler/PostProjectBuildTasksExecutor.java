@@ -47,10 +47,10 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -210,8 +210,7 @@ public class PostProjectBuildTasksExecutor {
     NotificationHyperlink disableOfflineModeHyperlink = new NotificationHyperlink("disable.gradle.offline.mode", "Disable offline mode") {
       @Override
       protected void execute(@NotNull Project project) {
-        AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-        buildConfiguration.OFFLINE_MODE = false;
+        GradleSettings.getInstance(myProject).setOfflineWork(false);
       }
     };
     NotificationListener notificationListener = new CustomNotificationListener(myProject, disableOfflineModeHyperlink);
