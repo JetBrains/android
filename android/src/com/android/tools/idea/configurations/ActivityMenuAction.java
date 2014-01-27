@@ -16,8 +16,8 @@
 package com.android.tools.idea.configurations;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.AndroidModuleInfo;
-import com.android.tools.idea.rendering.ManifestInfo;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
