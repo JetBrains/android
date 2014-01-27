@@ -736,11 +736,16 @@ class IntellijLintProject extends Project {
     public List<File> getJavaLibraries() {
       if (SUPPORT_CLASS_FILES) {
         if (mJavaLibraries == null) {
+          mJavaLibraries = Lists.newArrayList();
           File jarFile = myLibrary.getJarFile();
           if (jarFile.exists()) {
-            mJavaLibraries = Collections.singletonList(jarFile);
-          } else {
-            mJavaLibraries = Collections.emptyList();
+            mJavaLibraries.add(jarFile);
+          }
+
+          for (File local : myLibrary.getLocalJars()) {
+            if (local.exists()) {
+              mJavaLibraries.add(local);
+            }
           }
         }
 
