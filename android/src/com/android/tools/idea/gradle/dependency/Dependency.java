@@ -32,9 +32,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.SdkConstants.DOT_AAR;
-import static com.android.SdkConstants.FD_RES;
-
 /**
  * An IDEA module's dependency on an artifact (e.g. a jar file or another IDEA module.)
  */
@@ -146,10 +143,10 @@ public abstract class Dependency {
     }
   }
 
+  @NotNull
   private static String getLibraryName(@NotNull AndroidLibrary library) {
-    File jar = library.getJarFile();
-    File aar = jar.getParentFile();
-    return aar != null ? aar.getName() : FileUtil.getNameWithoutExtension(jar);
+    File bundle = library.getBundle();
+    return FileUtil.getNameWithoutExtension(bundle);
   }
 
   /**
@@ -170,17 +167,11 @@ public abstract class Dependency {
     LibraryDependency dependency = new LibraryDependency(getLibraryName(library), scope);
     File jar = library.getJarFile();
     dependency.addPath(LibraryDependency.PathType.BINARY, jar);
-    dependencies.add(dependency);
 
-    // The model does not yet provide pointers to resources in AAR files, so
-    // manually look for them where they are known to be and add them manually
-    File aar = jar.getParentFile();
-    if (aar != null && aar.getName().endsWith(DOT_AAR)) {
-      File res = new File(aar, FD_RES);
-      if (res.exists()) {
-        dependency.addPath(LibraryDependency.PathType.BINARY, res);
-      }
-    }
+    File resFolder = library.getResFolder();
+    dependency.addPath(LibraryDependency.PathType.BINARY, resFolder);
+
+    dependencies.add(dependency);
 
     for (AndroidLibrary dependentLibrary : library.getLibraryDependencies()) {
       addLibrary(dependentLibrary, dependencies, scope, unique);
