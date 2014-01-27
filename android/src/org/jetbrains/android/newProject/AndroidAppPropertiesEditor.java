@@ -53,10 +53,11 @@ public class AndroidAppPropertiesEditor {
   public AndroidAppPropertiesEditor(String moduleName, ModulesProvider modulesProvider) {
     myModulesProvider = modulesProvider;
 
-    if (moduleName != null) {
-      myApplicationNameField.setText(moduleName);
-      myPackageNameField.setText(getDefaultPackageNameByModuleName(moduleName));
-    }
+    String defaultAppName = moduleName != null ? moduleName : "myapp";
+    myApplicationNameField.setText(defaultAppName);
+    myApplicationNameField.selectAll();
+    myPackageNameField.setText(getDefaultPackageNameByModuleName(defaultAppName));
+
     myHelloAndroidCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
