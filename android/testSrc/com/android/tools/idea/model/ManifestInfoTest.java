@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.model;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
-import com.intellij.psi.PsiFile;
+import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.rendering.ResourceHelper;
+import junit.framework.Assert;
 import org.jetbrains.android.AndroidTestCase;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

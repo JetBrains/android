@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.gradle.AndroidModuleInfo;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
