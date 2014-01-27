@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidContentRoot;
@@ -43,30 +43,30 @@ import java.io.File;
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class ContentRootModuleCustomizer implements ModuleCustomizer {
+public class ContentRootModuleCustomizer implements AndroidModuleCustomizer {
   /**
    * Sets the content roots of the given IDEA module based on the settings of the given Android-Gradle project.
    *
    * @param module             module to customize.
    * @param project            project that owns the module to customize.
-   * @param ideaAndroidProject the imported Android-Gradle project.
+   * @param androidProject the imported Android-Gradle project.
    */
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject == null) {
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
+    if (androidProject == null) {
       return;
     }
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel model = moduleRootManager.getModifiableModel();
 
-    final ContentEntry contentEntry = findMatchingContentEntry(model, ideaAndroidProject);
+    final ContentEntry contentEntry = findMatchingContentEntry(model, androidProject);
     if (contentEntry == null) {
       model.dispose();
       return;
     }
     try {
       contentEntry.clearSourceFolders();
-      storePaths(contentEntry, ideaAndroidProject);
+      storePaths(contentEntry, androidProject);
     }
     finally {
       model.commit();

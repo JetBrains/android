@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.customizer.android.AndroidFacetModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.android.tools.idea.gradle.util.Facets;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -28,7 +28,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 
 /**
- * Tests for {@link AndroidFacetModuleCustomizer}.
+ * Tests for {@link com.android.tools.idea.gradle.customizer.android.AndroidFacetModuleCustomizer}.
  */
 public class AndroidFacetModuleCustomizerTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;

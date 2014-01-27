@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -32,7 +32,7 @@ import java.io.File;
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
+public class AndroidSdkModuleCustomizer implements AndroidModuleCustomizer {
   private static final Logger LOG = Logger.getInstance(AndroidSdkModuleCustomizer.class);
 
   /**
@@ -44,11 +44,11 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
    *
    * @param module             module to customize.
    * @param project            project that owns the module to customize.
-   * @param ideaAndroidProject the imported Android-Gradle project.
+   * @param androidProject the imported Android-Gradle project.
    */
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject == null) {
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
+    if (androidProject == null) {
       return;
     }
     File androidSdkHomePath = DefaultSdks.getDefaultAndroidHome();
@@ -58,10 +58,10 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer {
     }
 
     String androidHome = androidSdkHomePath.getPath();
-    String compileTarget = ideaAndroidProject.getDelegate().getCompileTarget();
+    String compileTarget = androidProject.getDelegate().getCompileTarget();
 
     boolean sdkSet =
-      AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidHome, ideaAndroidProject.getJavaLanguageLevel(), true);
+      AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidHome, androidProject.getJavaLanguageLevel(), true);
     if (sdkSet) {
       String sdkPath = getSdkPath(module);
       assert sdkPath != null;
