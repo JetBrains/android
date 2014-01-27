@@ -20,6 +20,8 @@ import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindo
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.base.Splitter;
@@ -41,6 +43,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompilerBundle;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
@@ -56,7 +59,6 @@ import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -84,15 +86,11 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.gradle.util.GradleBuilds.OFFLINE_MODE_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
@@ -111,8 +109,12 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NonNls private static final String CONTENT_NAME = "Gradle tasks";
   @NonNls private static final String APP_ICON_ID = "compiler";
+
   private static final Key<Key<?>> CONTENT_ID_KEY = Key.create("CONTENT_ID");
   private static final int BUFFER_SIZE = 2048;
+
+  private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
+  private static final String STOPPING_GRADLE_MSG_TITLE = "Stopping Gradle";
 
   @NotNull private final Key<Key<?>> myContentIdKey = CONTENT_ID_KEY;
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
@@ -128,8 +130,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private volatile int myWarningCount;
 
   @NotNull private volatile ProgressIndicator myIndicator = new EmptyProgressIndicator();
-  @NotNull private final AtomicBoolean myMessageViewWasPrepared = new AtomicBoolean(false);
-  private boolean myMessagesAutoActivated;
+
+  private volatile boolean myMessageViewWasPrepared;
+  private volatile boolean myMessagesAutoActivated;
 
   private CloseListener myCloseListener;
 
@@ -232,7 +235,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     final Project project = getNotNullProject();
 
     final GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(project);
-    final String projectPath = FileUtil.toSystemDependentName(project.getBasePath());
+    final String projectPath = project.getBasePath();
 
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
       @Override
@@ -323,7 +326,17 @@ class GradleTasksExecutor extends Task.Backgroundable {
       }
     };
 
-    myHelper.execute(projectPath, executionSettings, executeTasksFunction);
+    try {
+      myHelper.execute(projectPath, executionSettings, executeTasksFunction);
+    }
+    catch (ExternalSystemException e) {
+      if (myIndicator.isCanceled()) {
+        LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
+      }
+      else {
+        Messages.showErrorDialog(myProject, "Failed to complete Gradle execution.\n\nCause:\n" + e.getMessage(), GRADLE_RUNNING_MSG_TITLE);
+      }
+    }
   }
 
   /**
@@ -393,9 +406,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   private void prepareMessageView() {
-    if (!myIndicator.isRunning() || myMessageViewWasPrepared.getAndSet(true)) {
+    if (!myIndicator.isRunning() || myMessageViewWasPrepared) {
       return;
     }
+    myMessageViewWasPrepared = true;
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -623,10 +637,28 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
   }
 
+  private void cancel() {
+    if (!myIndicator.isCanceled()) {
+      try {
+        GradleUtil.stopAllGradleDaemons(getNotNullProject());
+      }
+      catch (FileNotFoundException e) {
+        Messages.showErrorDialog(myProject, e.getMessage(), STOPPING_GRADLE_MSG_TITLE);
+      }
+      catch (IOException e) {
+        String errMsg = "Failed to stop Gradle daemons. Cause: " + e.getMessage();
+        Messages.showErrorDialog(myProject, errMsg, STOPPING_GRADLE_MSG_TITLE);
+      }
+      myIndicator.cancel();
+    }
+  }
+
   private class CloseListener extends ContentManagerAdapter implements ProjectManagerListener {
     @NotNull private ContentManager myContentManager;
     @Nullable private Content myContent;
+
     private boolean myIsApplicationExitingOrProjectClosing;
+    private boolean myUserAcceptedCancel;
 
     @Override
     public void projectOpened(Project project) {
@@ -638,8 +670,12 @@ class GradleTasksExecutor extends Task.Backgroundable {
         return true;
       }
       if (shouldPromptUser()) {
-        askUserToWait();
-        return false;
+        myUserAcceptedCancel = askUserToCancelGradleExecution();
+        if (!myUserAcceptedCancel) {
+          return false; // veto closing
+        }
+        cancel();
+        return true;
       }
       return !myIndicator.isRunning();
     }
@@ -671,6 +707,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
           if (myErrorTreeView != null) {
             myErrorTreeView.dispose();
             myErrorTreeView = null;
+            if (myIndicator.isRunning()) {
+              cancel();
+            }
             Project project = getNotNullProject();
             AppIcon appIcon = AppIcon.getInstance();
             if (appIcon.hideProgress(project, APP_ICON_ID)) {
@@ -688,17 +727,43 @@ class GradleTasksExecutor extends Task.Backgroundable {
     @Override
     public void contentRemoveQuery(ContentManagerEvent event) {
       if (event.getContent() == myContent && !myIndicator.isCanceled() && shouldPromptUser()) {
-        askUserToWait();
-        event.consume(); // veto closing
+        myUserAcceptedCancel = askUserToCancelGradleExecution();
+        if (!myUserAcceptedCancel) {
+          event.consume(); // veto closing
+        }
       }
     }
 
     private boolean shouldPromptUser() {
-      return !myIsApplicationExitingOrProjectClosing && myIndicator.isRunning();
+      return !myUserAcceptedCancel && !myIsApplicationExitingOrProjectClosing && myIndicator.isRunning();
     }
 
-    private void askUserToWait() {
-      Messages.showMessageDialog(myProject, "Please wait until Gradle execution finishes", "Gradle Running", null);
+    private boolean askUserToCancelGradleExecution() {
+      ProjectManager projectManager = ProjectManager.getInstance();
+      List<String> projectsBeingBuilt = Lists.newArrayList();
+      for (Project project : projectManager.getOpenProjects()) {
+        if (project.getBasePath().equals(getNotNullProject().getBasePath())) {
+          continue;
+        }
+        BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
+        if (buildMode != null) {
+          projectsBeingBuilt.add("'" + project.getName() + "'");
+        }
+      }
+
+      StringBuilder msgBuilder = new StringBuilder();
+      msgBuilder.append("Gradle is running. Proceed with Project closing?\n\n")
+        .append("If you click \"Yes\" Android Studio will stop all the Gradle daemons currently running on your machine.\n")
+        .append("Any project builds, either from the command line or in other IDE instances, will stop.");
+
+      if (!projectsBeingBuilt.isEmpty()) {
+        msgBuilder.append("\n\nCurrently these projects may be currently being built: ").append(projectsBeingBuilt);
+      }
+
+      String msg = msgBuilder.toString();
+
+      int result = Messages.showYesNoDialog(myProject, msg, GRADLE_RUNNING_MSG_TITLE, Messages.getQuestionIcon());
+      return result == Messages.YES;
     }
   }
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -27,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,15 +38,13 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -66,6 +66,8 @@ public final class GradleUtil {
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
+
+  private static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
 
   private GradleUtil() {
   }
@@ -232,5 +234,18 @@ public final class GradleUtil {
       return args;
     }
     return Collections.emptyList();
+  }
+
+  public static void stopAllGradleDaemons(@NotNull final Project project) throws IOException {
+    GradleInstallationManager gradleInstallation = ServiceManager.getService(GradleInstallationManager.class);
+    File gradleHome = gradleInstallation.getGradleHome(project, project.getBasePath());
+    if (gradleHome == null) {
+      throw new FileNotFoundException("Unable to find path to Gradle home directory, based on the project's settings");
+    }
+    File gradleExecutable = new File(gradleHome, "bin" + File.separatorChar + GRADLE_EXECUTABLE_NAME);
+    if (!gradleExecutable.isFile()) {
+      throw new FileNotFoundException("Unable to find Gradle executable: " + gradleExecutable.getPath());
+    }
+    new ProcessBuilder(gradleExecutable.getPath(), "--stop").start();
   }
 }
