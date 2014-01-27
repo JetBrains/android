@@ -738,7 +738,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     static String getLabel(@NotNull IAndroidTarget target) {
       if (target.isPlatform()
           && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        return SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
+        String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
+        if (name == null) {
+          return "API " + Integer.toString(target.getVersion().getApiLevel());
+        } else {
+          return name;
+        }
       } else {
         return TemplateUtils.getTargetLabel(target);
       }
