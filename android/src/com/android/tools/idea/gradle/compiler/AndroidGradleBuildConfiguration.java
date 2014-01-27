@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
@@ -25,9 +23,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @State(
@@ -39,7 +34,6 @@ import java.util.List;
 )
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
   public boolean USE_EXPERIMENTAL_FASTER_BUILD = true;
-  public boolean OFFLINE_MODE;
   public String COMMAND_LINE_OPTIONS = "";
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {
