@@ -54,6 +54,18 @@ class DomPsiParser implements IDomParser {
     }
   }
 
+  @Override
+  public int getNodeStartOffset(@NonNull XmlContext context, @NonNull Node node) {
+    TextRange textRange = DomPsiConverter.getTextRange(node);
+    return textRange.getStartOffset();
+  }
+
+  @Override
+  public int getNodeEndOffset(@NonNull XmlContext context, @NonNull Node node) {
+    TextRange textRange = DomPsiConverter.getTextRange(node);
+    return textRange.getEndOffset();
+  }
+
   @Nullable
   @Override
   public Document parseXml(@NonNull final XmlContext context) {
