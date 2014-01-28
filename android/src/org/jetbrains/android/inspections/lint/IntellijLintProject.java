@@ -25,10 +25,12 @@ import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -95,10 +97,9 @@ class IntellijLintProject extends Project {
 
   @Nullable
   public static Project createForSingleFile(@NonNull IntellijLintClient client, @Nullable VirtualFile file, @NonNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
     // TODO: Can make this method even more lightweight: we don't need to initialize anything in the project (source paths etc)
     // other than the metadata necessary for this file's type
-    LintModuleProject project = facet != null ? createModuleProject(client, facet) : null;
+    LintModuleProject project = createModuleProject(client, module);
     Map<Project,Module> projectMap = Maps.newHashMap();
     if (project != null) {
       project.setDirectLibraries(Collections.<Project>emptyList());
@@ -128,8 +129,7 @@ class IntellijLintProject extends Project {
       return;
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    LintModuleProject project = facet != null ? createModuleProject(client, facet) : null;
+    LintModuleProject project = createModuleProject(client, module);
 
     if (project == null) {
       // It's possible for the module to *depend* on Android code, e.g. in a Gradle
@@ -161,7 +161,8 @@ class IntellijLintProject extends Project {
       }
     }
 
-    if (facet.isGradleProject()) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && facet.isGradleProject()) {
       addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies);
     }
 
@@ -194,23 +195,57 @@ class IntellijLintProject extends Project {
 
   /** Creates a new module project */
   @Nullable
-  private static LintModuleProject createModuleProject(@NonNull LintClient client, @NonNull AndroidFacet facet) {
-    final VirtualFile mainContentRoot = AndroidRootUtil.getMainContentRoot(facet);
+  private static LintModuleProject createModuleProject(@NonNull LintClient client, @NonNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    File dir;
 
-    if (mainContentRoot == null) {
-      return null;
+    if (facet != null) {
+      final VirtualFile mainContentRoot = AndroidRootUtil.getMainContentRoot(facet);
+
+      if (mainContentRoot == null) {
+        return null;
+      }
+      dir = new File(FileUtil.toSystemDependentName(mainContentRoot.getPath()));
+    } else {
+      String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
+      if (moduleDirPath == null) {
+        return null;
+      }
+      dir = new File(FileUtil.toSystemDependentName(moduleDirPath));
     }
-    File dir = new File(mainContentRoot.getPath());
-
     LintModuleProject project;
-    if (facet.isGradleProject()) {
+    if (facet == null) {
+      project = new LintModuleProject(client, dir, dir, module);
+      AndroidFacet f = findAndroidFacetInProject(module.getProject());
+      if (f != null) {
+        project.mGradleProject = f.isGradleProject();
+      }
+    }
+    else if (facet.isGradleProject()) {
       project = new LintGradleProject(client, dir, dir, facet);
     }
     else {
-      project = new LintModuleProject(client, dir, dir, facet);
+      project = new LintAndroidProject(client, dir, dir, facet);
     }
     client.registerProject(dir, project);
     return project;
+  }
+
+  public static boolean hasAndroidModule(@NonNull com.intellij.openapi.project.Project project) {
+    return findAndroidFacetInProject(project) != null;
+  }
+
+  @Nullable
+  private static AndroidFacet findAndroidFacetInProject(@NonNull com.intellij.openapi.project.Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        return facet;
+      }
+    }
+
+    return null;
   }
 
   /** Adds any gradle library projects to the dependency list */
@@ -262,12 +297,95 @@ class IntellijLintProject extends Project {
     // the gradle data instead
   }
 
-  /** Wraps an Android module */
   private static class LintModuleProject extends IntellijLintProject {
+    private Module myModule;
+
+    public void setDirectLibraries(List<Project> libraries) {
+      mDirectLibraries = libraries;
+    }
+
+    private LintModuleProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, Module module) {
+      super(client, dir, referenceDir);
+      myModule = module;
+    }
+
+    @Override
+    public boolean isAndroidProject() {
+      return false;
+    }
+
+    @NonNull
+    @Override
+    public List<File> getJavaSourceFolders() {
+      if (mJavaSourceFolders == null) {
+        VirtualFile[] sourceRoots = ModuleRootManager.getInstance(myModule).getSourceRoots(false);
+        List<File> dirs = new ArrayList<File>(sourceRoots.length);
+        for (VirtualFile root : sourceRoots) {
+          dirs.add(new File(root.getPath()));
+        }
+        mJavaSourceFolders = dirs;
+      }
+
+      return mJavaSourceFolders;
+    }
+
+    @NonNull
+    @Override
+    public List<File> getJavaClassFolders() {
+      if (SUPPORT_CLASS_FILES) {
+        if (mJavaClassFolders == null) {
+          VirtualFile folder = AndroidDexCompiler.getOutputDirectoryForDex(myModule);
+          if (folder != null) {
+            mJavaClassFolders = Collections.singletonList(VfsUtilCore.virtualToIoFile(folder));
+          } else {
+            mJavaClassFolders = Collections.emptyList();
+          }
+        }
+
+        return mJavaClassFolders;
+      }
+
+      return Collections.emptyList();
+    }
+
+    @NonNull
+    @Override
+    public List<File> getJavaLibraries() {
+      if (SUPPORT_CLASS_FILES) {
+        if (mJavaLibraries == null) {
+          mJavaLibraries = Lists.newArrayList();
+
+          final OrderEntry[] entries = ModuleRootManager.getInstance(myModule).getOrderEntries();
+          // loop in the inverse order to resolve dependencies on the libraries, so that if a library
+          // is required by two higher level libraries it can be inserted in the correct place
+
+          for (int i = entries.length - 1; i >= 0; i--) {
+            final OrderEntry orderEntry = entries[i];
+            if (orderEntry instanceof LibraryOrderEntry) {
+              LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
+              VirtualFile[] classes = libraryOrderEntry.getRootFiles(OrderRootType.CLASSES);
+              if (classes != null) {
+                for (VirtualFile file : classes) {
+                  mJavaLibraries.add(VfsUtilCore.virtualToIoFile(file));
+                }
+              }
+            }
+          }
+        }
+
+        return mJavaLibraries;
+      }
+
+      return Collections.emptyList();
+    }
+  }
+
+  /** Wraps an Android module */
+  private static class LintAndroidProject extends LintModuleProject {
     protected final AndroidFacet myFacet;
 
-    private LintModuleProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, @NonNull AndroidFacet facet) {
-      super(client, dir, referenceDir);
+    private LintAndroidProject(@NonNull LintClient client, @NonNull File dir, @NonNull File referenceDir, @NonNull AndroidFacet facet) {
+      super(client, dir, referenceDir, facet.getModule());
       myFacet = facet;
 
       mGradleProject = false;
@@ -279,14 +397,15 @@ class IntellijLintProject extends Project {
       }
     }
 
+    @Override
+    public boolean isAndroidProject() {
+      return true;
+    }
+
     @NonNull
     @Override
     public String getName() {
       return myFacet.getModule().getName();
-    }
-
-    public void setDirectLibraries(List<Project> libraries) {
-      mDirectLibraries = libraries;
     }
 
     @Override
@@ -347,74 +466,9 @@ class IntellijLintProject extends Project {
 
       return mResourceFolders;
     }
-
-    @NonNull
-    @Override
-    public List<File> getJavaSourceFolders() {
-      if (mJavaSourceFolders == null) {
-        VirtualFile[] sourceRoots = ModuleRootManager.getInstance(myFacet.getModule()).getSourceRoots(false);
-        List<File> dirs = new ArrayList<File>(sourceRoots.length);
-        for (VirtualFile root : sourceRoots) {
-          dirs.add(new File(root.getPath()));
-        }
-        mJavaSourceFolders = dirs;
-      }
-
-      return mJavaSourceFolders;
-    }
-
-    @NonNull
-    @Override
-    public List<File> getJavaClassFolders() {
-      if (SUPPORT_CLASS_FILES) {
-        if (mJavaClassFolders == null) {
-          VirtualFile folder = AndroidDexCompiler.getOutputDirectoryForDex(myFacet.getModule());
-          if (folder != null) {
-            mJavaClassFolders = Collections.singletonList(VfsUtilCore.virtualToIoFile(folder));
-          } else {
-            mJavaClassFolders = Collections.emptyList();
-          }
-        }
-
-        return mJavaClassFolders;
-      }
-
-      return Collections.emptyList();
-    }
-
-    @NonNull
-    @Override
-    public List<File> getJavaLibraries() {
-      if (SUPPORT_CLASS_FILES) {
-        if (mJavaLibraries == null) {
-          mJavaLibraries = Lists.newArrayList();
-
-          final OrderEntry[] entries = ModuleRootManager.getInstance(myFacet.getModule()).getOrderEntries();
-          // loop in the inverse order to resolve dependencies on the libraries, so that if a library
-          // is required by two higher level libraries it can be inserted in the correct place
-
-          for (int i = entries.length - 1; i >= 0; i--) {
-            final OrderEntry orderEntry = entries[i];
-            if (orderEntry instanceof LibraryOrderEntry) {
-              LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
-              VirtualFile[] classes = libraryOrderEntry.getRootFiles(OrderRootType.CLASSES);
-              if (classes != null) {
-                for (VirtualFile file : classes) {
-                  mJavaLibraries.add(VfsUtilCore.virtualToIoFile(file));
-                }
-              }
-            }
-          }
-        }
-
-        return mJavaLibraries;
-      }
-
-      return Collections.emptyList();
-    }
   }
 
-  private static class LintGradleProject extends LintModuleProject {
+  private static class LintGradleProject extends LintAndroidProject {
     /**
      * Creates a new Project. Use one of the factory methods to create.
      */
