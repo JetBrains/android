@@ -589,12 +589,6 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     if (sourceRoot != null) {
       contentEntry.addSourceFolder(sourceRoot, false);
     }
-    else {
-      AndroidUtils.reportImportErrorToEventLog(
-        "Cannot find " + AndroidMavenUtil.APK_LIB_ARTIFACT_SOURCE_ROOT + " directory in " + vApklibDir.getPath(),
-        genModuleName, project);
-    }
-
     final AndroidFacet facet = AndroidUtils.addAndroidFacet(apklibModuleModel.getModule(), vApklibDir, true);
 
     final AndroidFacetConfiguration configuration = facet.getConfiguration();
