@@ -662,9 +662,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Nullable
   private AndroidSdkData getSdkData() {
-    AndroidSdkData sdkData = myWizardContext != null
-                             ? AndroidSdkData.getSdkData(myWizardContext.getProjectJdk())
-                             : null;
+    AndroidSdkData sdkData = null;
+    if (myWizardContext != null) {
+      final Sdk projectJdk = myWizardContext.getProjectJdk();
+
+      if (projectJdk != null) {
+        sdkData = AndroidSdkData.getSdkData(projectJdk);
+      }
+    }
     if (sdkData == null) {
       sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     }
