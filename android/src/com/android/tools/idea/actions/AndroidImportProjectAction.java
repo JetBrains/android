@@ -142,9 +142,21 @@ public class AndroidImportProjectAction extends AnAction {
 
     // Prioritize ADT importer
     VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
-    if (GradleImport.isAdtProjectDir(VfsUtilCore.virtualToIoFile(targetDir))
+    File targetDirFile = VfsUtilCore.virtualToIoFile(targetDir);
+    if (GradleImport.isAdtProjectDir(targetDirFile)
         && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null) {
       importAdtProject(file);
+      return null;
+    }
+    if (GradleImport.isEclipseProjectDir(targetDirFile)
+        && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null) {
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+          Messages.showErrorDialog(String.format(
+            "%1$s is an Eclipse project, but not an Android Eclipse project.\n\n" +
+            "Please select the directory of an Android Eclipse project (which for example will contain\n" +
+            "an AndroidManifest.xml file) and try again.",
+            targetDirFile.getPath()), "Import Project");
+        }
       return null;
     }
 
