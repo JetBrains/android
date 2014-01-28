@@ -42,6 +42,7 @@ public class Dependency extends BuildFileStatement {
 
   public enum Scope {
     COMPILE("Compile", "compile"),
+    PROVIDED("Provided", "provided"),
     INSTRUMENT_TEST_COMPILE("Test compile", "instrumentTestCompile"),
     DEBUG_COMPILE("Debug compile", "debugCompile"),
     RELEASE_COMPILE("Release compile", "releaseCompile");
