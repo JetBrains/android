@@ -355,11 +355,11 @@ public class GradleProjectImporter {
     GradleProjectSettings projectSettings = GradleUtil.getGradleProjectSettings(project);
     if (projectSettings == null) {
       projectSettings = new GradleProjectSettings();
-      GradleSettings gradleSettings = GradleSettings.getInstance(project);
-      gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
     }
     projectSettings.setUseAutoImport(false);
     setUpGradleProjectSettings(project, projectSettings);
+    GradleSettings gradleSettings = GradleSettings.getInstance(project);
+    gradleSettings.setLinkedProjectsSettings(ImmutableList.of(projectSettings));
   }
 
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
