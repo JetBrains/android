@@ -28,14 +28,17 @@ import java.util.List;
 public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull private final List<File> myLocalJars = Lists.newArrayList();
 
+  @NotNull private final File myBundle;
   @NotNull private final File myJarFile;
+
   @Nullable private final String myProject;
 
-  public AndroidLibraryStub(@NotNull File jarFile) {
-    this(jarFile, null);
+  public AndroidLibraryStub(@NotNull File bundle, @NotNull File jarFile) {
+    this(bundle, jarFile, null);
   }
 
-  public AndroidLibraryStub(@NotNull File jarFile, @Nullable String project) {
+  public AndroidLibraryStub(@NotNull File bundle, @NotNull File jarFile, @Nullable String project) {
+    myBundle = bundle;
     myJarFile = jarFile;
     myProject = project;
   }
@@ -49,7 +52,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @NotNull
   public File getBundle() {
-    throw new UnsupportedOperationException();
+    return myBundle;
   }
 
   @Override

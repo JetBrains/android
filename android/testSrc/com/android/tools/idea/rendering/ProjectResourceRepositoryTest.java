@@ -164,8 +164,9 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     IdeaAndroidProject ideaAndroidProject = new IdeaAndroidProject(androidProject.getName(), rootDir, androidProject, variant.getName());
     myFacet.setIdeaAndroidProject(ideaAndroidProject);
 
-    File libJar = new File(rootDir, "library.aar/library.jar");
-    AndroidLibraryStub library = new AndroidLibraryStub(libJar);
+    File bundle = new File(rootDir, "bundle.aar");
+    File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
+    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
     variant.getMainArtifact().getDependencies().addLibrary(library);
   }
 
