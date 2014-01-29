@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -37,6 +38,9 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -74,6 +78,19 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
               Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
             } else {
               customizeModule(module, gradleProject);
+            }
+
+            // All modules should have a SDK.
+            ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+            ModifiableRootModel model = moduleRootManager.getModifiableModel();
+            if (model.getSdk() == null) {
+              Sdk jdk = DefaultSdks.getDefaultJdk();
+              try {
+                model.setSdk(jdk);
+              }
+              finally {
+                model.commit();
+              }
             }
           }
         }
