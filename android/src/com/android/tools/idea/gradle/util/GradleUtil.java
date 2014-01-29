@@ -308,17 +308,17 @@ public final class GradleUtil {
         }
       }
     }
-    else {
-      File wrapperPropertiesFile = findWrapperPropertiesFile(project);
-      if (wrapperPropertiesFile != null) {
-        WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(wrapperPropertiesFile, new StringBuilder());
-        WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
-        File gradleHome = getGradleHome(project, configuration);
-        if (gradleHome != null) {
-          return gradleHome;
-        }
+
+    File wrapperPropertiesFile = findWrapperPropertiesFile(project);
+    if (wrapperPropertiesFile != null) {
+      WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(wrapperPropertiesFile, new StringBuilder());
+      WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
+      File gradleHome = getGradleHome(project, configuration);
+      if (gradleHome != null) {
+        return gradleHome;
       }
     }
+
     return null;
   }
 
