@@ -216,7 +216,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
       @Override
       public void run() {
         synchronized (myMessageViewLock) {
-          if (myErrorTreeView != null) {
+          if (myErrorTreeView != null && !getNotNullProject().isDisposed()) {
             addStatisticsMessage(CompilerBundle.message("statistics.error.count", myErrorCount));
             addStatisticsMessage(CompilerBundle.message("statistics.warnings.count", myWarningCount));
             addMessage(new GradleMessage(GradleMessage.Kind.INFO, "See complete output in console"), new OpenGradleConsole());
@@ -503,7 +503,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private void add(@NotNull GradleMessage message, @Nullable Navigatable navigatable) {
     synchronized (myMessageViewLock) {
-      if (myErrorTreeView != null) {
+      if (myErrorTreeView != null && !getNotNullProject().isDisposed()) {
         GradleMessage.Kind messageKind = message.getKind();
         int type = translateMessageKind(messageKind);
         String[] text = getTextOf(message);
@@ -602,7 +602,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private void showMessages() {
     synchronized (myMessageViewLock) {
-      if (myErrorTreeView != null) {
+      if (myErrorTreeView != null && !getNotNullProject().isDisposed()) {
         MessageView messageView = getMessageView();
         Content[] contents = messageView.getContentManager().getContents();
         for (Content content : contents) {
@@ -640,7 +640,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private void cancel() {
     if (!myIndicator.isCanceled()) {
       try {
-        GradleUtil.stopAllGradleDaemons(getNotNullProject());
+        GradleUtil.stopAllGradleDaemons(false);
       }
       catch (FileNotFoundException e) {
         Messages.showErrorDialog(myProject, e.getMessage(), STOPPING_GRADLE_MSG_TITLE);
@@ -704,13 +704,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
     public void contentRemoved(ContentManagerEvent event) {
       if (event.getContent() == myContent) {
         synchronized (myMessageViewLock) {
-          if (myErrorTreeView != null) {
+          Project project = getNotNullProject();
+          if (myErrorTreeView != null && !project.isDisposed()) {
             myErrorTreeView.dispose();
             myErrorTreeView = null;
             if (myIndicator.isRunning()) {
               cancel();
             }
-            Project project = getNotNullProject();
             AppIcon appIcon = AppIcon.getInstance();
             if (appIcon.hideProgress(project, APP_ICON_ID)) {
               //noinspection ConstantConditions
