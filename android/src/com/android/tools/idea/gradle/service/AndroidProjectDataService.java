@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.customizer.*;
+import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -51,17 +51,17 @@ import java.util.Map;
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject, Void> {
-  private final ModuleCustomizer[] myCustomizers;
+  private final AndroidModuleCustomizer[] myCustomizers;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   public AndroidProjectDataService() {
     //noinspection TestOnlyProblems
     this(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new RunConfigModuleCustomizer(),
-         new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
+         new DependenciesAndroidModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
   }
 
   @VisibleForTesting
-  AndroidProjectDataService(@NotNull ModuleCustomizer... customizers) {
+  AndroidProjectDataService(@NotNull AndroidModuleCustomizer... customizers) {
     myCustomizers = customizers;
   }
 
@@ -138,7 +138,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   }
 
   private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    for (ModuleCustomizer customizer : myCustomizers) {
+    for (AndroidModuleCustomizer customizer : myCustomizers) {
       customizer.customizeModule(module, project, ideaAndroidProject);
     }
   }

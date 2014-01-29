@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.AndroidModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -37,8 +37,8 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
 
   private AndroidProjectStub myAndroidProject;
   private IdeaAndroidProject myIdeaAndroidProject;
-  private ModuleCustomizer myCustomizer1;
-  private ModuleCustomizer myCustomizer2;
+  private AndroidModuleCustomizer myCustomizer1;
+  private AndroidModuleCustomizer myCustomizer2;
 
   private AndroidProjectDataService service;
 
@@ -50,8 +50,8 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     myAndroidProject.addBuildType(DEBUG);
     File rootDir = myAndroidProject.getRootDir();
     myIdeaAndroidProject = new IdeaAndroidProject(myAndroidProject.getName(), rootDir, myAndroidProject, DEBUG);
-    myCustomizer1 = createMock(ModuleCustomizer.class);
-    myCustomizer2 = createMock(ModuleCustomizer.class);
+    myCustomizer1 = createMock(AndroidModuleCustomizer.class);
+    myCustomizer2 = createMock(AndroidModuleCustomizer.class);
     service = new AndroidProjectDataService(myCustomizer1, myCustomizer2);
   }
 

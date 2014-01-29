@@ -19,10 +19,10 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.AndroidModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.DependenciesAndroidModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -94,8 +94,8 @@ public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
-  private final ModuleCustomizer[] myModuleCustomizers =
-    {new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()};
+  private final AndroidModuleCustomizer[] myAndroidModuleCustomizers =
+    {new ContentRootModuleCustomizer(), new DependenciesAndroidModuleCustomizer(), new CompilerOutputPathModuleCustomizer()};
 
   private final ImporterDelegate myDelegate;
 
@@ -480,7 +480,7 @@ public class GradleProjectImporter {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
             IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-            for (ModuleCustomizer customizer : myModuleCustomizers) {
+            for (AndroidModuleCustomizer customizer : myAndroidModuleCustomizers) {
               customizer.customizeModule(module, project, ideaAndroidProject);
             }
           }
