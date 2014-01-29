@@ -24,6 +24,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.components.JBLabel;
+import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
@@ -45,8 +46,9 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
   private TextFieldWithBrowseButton myGradleHomePathField;
   private JBLabel myGradleHomeLabel;
   private JPanel myPanel;
+  private JXLabel myDescriptionLabel;
 
-  protected ChooseGradleHomeDialog() {
+  public ChooseGradleHomeDialog() {
     super(null);
     myInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
     init();
@@ -80,6 +82,10 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
     });
   }
 
+  public void setDescription(@NotNull String descriptionLabel) {
+    myDescriptionLabel.setText(descriptionLabel);
+  }
+
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
@@ -100,7 +106,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
 
   @NotNull
   private LocationSettingType validateLocation() {
-    String gradleHome = myGradleHomePathField.getText();
+    String gradleHome = getEnteredGradleHomePath();
     if (gradleHome.isEmpty()) {
       return LocationSettingType.UNKNOWN;
     }
@@ -110,7 +116,12 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
            : LocationSettingType.EXPLICIT_INCORRECT;
   }
 
-  void storeLastUsedGradleHome() {
-    GradleUtil.storeLastUsedGradleHome(myGradleHomePathField.getText());
+  public void storeLastUsedGradleHome() {
+    GradleUtil.storeLastUsedGradleHome(getEnteredGradleHomePath());
+  }
+
+  @NotNull
+  public String getEnteredGradleHomePath() {
+    return myGradleHomePathField.getText();
   }
 }
