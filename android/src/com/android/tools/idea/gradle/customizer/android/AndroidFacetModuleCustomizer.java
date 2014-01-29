@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
@@ -41,21 +41,21 @@ import java.util.Collection;
 /**
  * Adds the Android facet to modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
-public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
+public class AndroidFacetModuleCustomizer implements AndroidModuleCustomizer {
   private static final String EMPTY_PATH = "";
 
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
   private static final String SEPARATOR = "/";
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull final Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject == null) {
+  public void customizeModule(@NotNull Module module, @NotNull final Project project, @Nullable IdeaAndroidProject androidProject) {
+    if (androidProject == null) {
       Facets.removeAllFacetsOfType(module, AndroidFacet.ID);
     }
     else {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        configureFacet(facet, ideaAndroidProject);
+        configureFacet(facet, androidProject);
       }
       else {
         // Module does not have Android facet. Create one and add it.
@@ -64,7 +64,7 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer {
         try {
           facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
           model.addFacet(facet);
-          configureFacet(facet, ideaAndroidProject);
+          configureFacet(facet, androidProject);
         } finally {
           model.commit();
         }

@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.java;
 
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.facet.JavaModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Sets up a {@link Module} using the settings from a given Gradle model.
+ * Sets up a {@link Module} using the settings from a given {@link JavaModel}.
  */
-public interface ModuleCustomizer<T> {
+public interface JavaModuleCustomizer extends ModuleCustomizer<JavaModel> {
   /**
    * Customizes the given module (e.g. add facets, SDKs, etc.)
    *
    * @param module  module to customize.
    * @param project project that owns the module to customize.
-   * @param model   the imported Gradle model.
+   * @param model   the imported Java model.
    */
-  void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model);
+  @Override
+  void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable JavaModel model);
 }
