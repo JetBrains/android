@@ -15,6 +15,9 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.configurations.RenderOptionsMenuBuilder;
+import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayout;
@@ -77,7 +80,14 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
     ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getRhsActions(), true);
     JPanel bottom = new JPanel(new BorderLayout());
     bottom.add(layoutToolBar.getComponent(), BorderLayout.WEST);
-    bottom.add(zoomToolBar.getComponent(), BorderLayout.EAST);
+    RenderContext context = (AndroidDesignerEditorPanel)myDesigner;
+    RenderOptionsMenuBuilder optionsMenuBuilder = RenderOptionsMenuBuilder.create(context, myDesigner.getProject());
+    ActionToolbar optionsToolBar = optionsMenuBuilder.addDeviceFrameOption().build();
+    JPanel combined = new JPanel(new BorderLayout());
+    combined.add(zoomToolBar.getComponent(), BorderLayout.WEST);
+    combined.add(optionsToolBar.getComponent(), BorderLayout.EAST);
+    bottom.add(combined, BorderLayout.EAST);
+
     panel.add(bottom, BorderLayout.SOUTH);
 
     return panel;
@@ -149,6 +159,9 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
       }
     });
 
+    AndroidDesignerEditorPanel designer = (AndroidDesignerEditorPanel)myDesigner;
+    group.add(new RefreshRenderAction(designer));
+
     return group;
   }
 
@@ -178,7 +191,7 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
       }
 
       for (RadComponent component : selection) {
-        component.addSelectionActions(myDesigner, group, getShortcuts(), Collections.<RadComponent>singletonList(component));
+        component.addSelectionActions(myDesigner, group, getShortcuts(), Collections.singletonList(component));
       }
     }
   }
