@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -312,44 +313,37 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
     else {
       File manifestCopy = null;
-      final VirtualFile manifestVFile;
+      final Manifest manifest;
       final String manifestLocalPath;
 
       try {
-        //if (facet.isGradleProject()) {
-        //  manifestVFile = AndroidRootUtil.getMergedManifestFile(facet);
-        //  manifestLocalPath = manifestVFile != null ? PathUtil.getLocalPath(manifestVFile) : null;
-        //}
-        //else
         if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
           final Pair<File,String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
           manifestCopy = pair != null ? pair.getFirst() : null;
-          manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
+          VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
+          if (manifestVFile != null) {
+            manifestVFile.refresh(false, false);
+            manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
+          } else {
+            manifest = null;
+          }
           manifestLocalPath = pair != null ? pair.getSecond() : null;
         }
         else {
-          manifestVFile = AndroidRootUtil.getManifestFile(facet);
-          manifestLocalPath = manifestVFile != null ? PathUtil.getLocalPath(manifestVFile) : null;
+          manifest = AndroidModuleInfo.get(facet).getManifest(true);
+          manifestLocalPath = PathUtil.getLocalPath(AndroidRootUtil.getMergedManifestFile(facet));
         }
         final Module module = facet.getModule();
         final String moduleName = module.getName();
 
-        if (manifestVFile == null) {
+        if (manifest == null) {
           message("Cannot find " + SdkConstants.FN_ANDROID_MANIFEST_XML + " file for module " + moduleName, STDERR);
           return null;
         }
-        manifestVFile.refresh(false, false);
 
         return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
           @Override
           public String compute() {
-            final Manifest manifest = AndroidUtils.loadDomElement(module, manifestVFile, Manifest.class);
-
-            if (manifest == null) {
-              message("[" + moduleName + "] File " + manifestLocalPath + " is not a valid manifest file", STDERR);
-              //noinspection ConstantConditions
-              return null;
-            }
             final GenericAttributeValue<String> packageAttrValue = manifest.getPackage();
             final String aPackage = packageAttrValue.getValue();
 
