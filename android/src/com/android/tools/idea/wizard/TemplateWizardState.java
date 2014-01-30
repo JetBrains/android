@@ -119,11 +119,11 @@ public class TemplateWizardState {
     }
     File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-    put(TemplateMetadata.ATTR_TOP_OUT, projectRoot.getPath());
-    put(TemplateMetadata.ATTR_PROJECT_OUT, moduleRoot.getPath());
-    put(TemplateMetadata.ATTR_MANIFEST_OUT, mainFlavorSourceRoot.getPath());
-    put(TemplateMetadata.ATTR_SRC_OUT, javaSourcePackageRoot.getPath());
-    put(TemplateMetadata.ATTR_RES_OUT, resourceSourceRoot.getPath());
+    put(TemplateMetadata.ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
+    put(TemplateMetadata.ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getPath()));
+    put(TemplateMetadata.ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
+    put(TemplateMetadata.ATTR_SRC_OUT, FileUtil.toSystemIndependentName(javaSourcePackageRoot.getPath()));
+    put(TemplateMetadata.ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     if (mavenUrl != null) {
       put(TemplateMetadata.ATTR_MAVEN_URL, mavenUrl);
     }
