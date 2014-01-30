@@ -129,7 +129,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     if (s == null) {
       s = "";
     }
-    if (!s.isEmpty() && ApplicationManager.getApplication().isUnitTestMode()) throw new RuntimeException(this + " not validated: " + s);
+    if (!s.isEmpty() &&
+        ApplicationManager.getApplication().isUnitTestMode() &&
+        TemplateWizardProjectTemplateFactory.ANDROID_GRADLE_WIZARD_TEST_MODE) {
+      throw new RuntimeException(this + " not validated: " + s);
+    }
     if (!s.startsWith("<html>")) {
       s = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'>" + XmlUtils.toXmlTextValue(s) + "</font></html>";
       s.replaceAll("\n", "<br>");
