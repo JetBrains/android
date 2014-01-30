@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ActionRunner;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -627,18 +626,22 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}"
     );
-    List<NamedObject> objects = WriteCommandAction.runWriteCommandAction(myProject, new Computable<List<NamedObject>>() {
+    final List<NamedObject> objects = WriteCommandAction.runWriteCommandAction(myProject, new Computable<List<NamedObject>>() {
       @Override
       public List<NamedObject> compute() {
         return (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
       }
     });
     assertEquals(1, objects.size());
-    NamedObject no = objects.get(0);
-    no.setValue(BuildFileKey.DEBUGGABLE, false);
-    no.setValue(BuildFileKey.ZIP_ALIGN, false);
-    file.setValue(BuildFileKey.BUILD_TYPES, objects);
-
+    final NamedObject no = objects.get(0);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        no.setValue(BuildFileKey.DEBUGGABLE, false);
+        no.setValue(BuildFileKey.ZIP_ALIGN, false);
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
     String expected =
       "android {\n" +
       "    buildTypes {\n" +

@@ -2007,7 +2007,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
 
     // Then replace the name of the duplicated string
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
         String string = "<string name=\"app_name\">New Value</string>";
