@@ -375,8 +375,8 @@ public class GradleProjectImporter {
       }
     }
     else {
-      if (distributionType == null || DistributionType.LOCAL.equals(distributionType)) {
-        settings.setDistributionType(DistributionType.WRAPPED);
+      if (!DistributionType.DEFAULT_WRAPPED.equals(distributionType)) {
+        settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
       }
     }
   }
