@@ -36,9 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactory {
-  public static boolean ANDROID_GRADLE_WIZARD_TEST_MODE = false;
 
-  public static final String ANDROID_GRADLE_GROUP = "Android Gradle";
   public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = new ProjectTemplate[]{};
 
   @NotNull
