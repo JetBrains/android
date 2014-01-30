@@ -23,7 +23,6 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -128,11 +127,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected void setErrorHtml(@Nullable String s) {
     if (s == null) {
       s = "";
-    }
-    if (!s.isEmpty() &&
-        ApplicationManager.getApplication().isUnitTestMode() &&
-        TemplateWizardProjectTemplateFactory.ANDROID_GRADLE_WIZARD_TEST_MODE) {
-      throw new RuntimeException(this + " not validated: " + s);
     }
     if (!s.startsWith("<html>")) {
       s = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'>" + XmlUtils.toXmlTextValue(s) + "</font></html>";
