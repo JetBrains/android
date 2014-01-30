@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -76,8 +77,9 @@ public enum BuildFileKeyType {
 
     @Override
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
+      String path = FileUtil.toSystemIndependentName(((File)value).getPath());
       arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject())
-                    .createStatementFromText(Constants.FILE_METHOD_CALL + "('" + escapeLiteralString(((File)value).getPath()) + "')"));
+                    .createStatementFromText(Constants.FILE_METHOD_CALL + "('" + escapeLiteralString(path) + "')"));
     }
 
     @Override
@@ -100,7 +102,8 @@ public enum BuildFileKeyType {
 
     @Override
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
-      arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createLiteralFromValue(((File)value).getPath()));
+      String path = FileUtil.toSystemIndependentName(((File)value).getPath());
+      arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createLiteralFromValue(path));
     }
 
     @Override
