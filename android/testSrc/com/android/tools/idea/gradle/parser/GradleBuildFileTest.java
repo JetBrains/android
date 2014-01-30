@@ -189,14 +189,15 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetFileValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/debug");
-    final File replacementFile = new File("foo.keystore");
+    final File replacementFile = new File("abc/def/foo.keystore");
     ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
       @Override
       public void run() throws Exception {
         file.setValue(closure, BuildFileKey.STORE_FILE, replacementFile);
       }
     });
-    String expected = getSimpleTestFile().replaceAll("debug.keystore", "foo.keystore");
+    // We always expect system independent paths in build.gradle files.
+    String expected = getSimpleTestFile().replaceAll("debug.keystore", "abc/def/foo.keystore");
     assertContents(file, expected);
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.STORE_FILE));
   }
@@ -204,14 +205,15 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetFileStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
-    final File replacementFile = new File("foo.txt");
+    final File replacementFile = new File("abc/def/foo.txt");
     ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
       @Override
       public void run() throws Exception {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, replacementFile);
       }
     });
-    String expected = getSimpleTestFile().replaceAll("proguard-flavor1.txt", "foo.txt");
+    // We always expect system independent paths in build.gradle files.
+    String expected = getSimpleTestFile().replaceAll("proguard-flavor1.txt", "abc/def/foo.txt");
     assertContents(file, expected);
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.PROGUARD_FILE));
   }
