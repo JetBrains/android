@@ -17,11 +17,14 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.customizer.java.DependenciesJavaModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.JavaModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -35,6 +38,9 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -44,6 +50,8 @@ import java.util.Map;
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
 public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
+  private final JavaModuleCustomizer[] myCustomizers = {new DependenciesJavaModuleCustomizer()};
+
   @NotNull
   @Override
   public Key<IdeaGradleProject> getTargetDataKey() {
@@ -68,8 +76,22 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
               // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
               // to delete the orphan module when Studio prompts to do so.
               Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
-            } else {
+            }
+            else {
               customizeModule(module, gradleProject);
+            }
+
+            // All modules should have a SDK.
+            ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+            ModifiableRootModel model = moduleRootManager.getModifiableModel();
+            try {
+              if (model.getSdk() == null) {
+                Sdk jdk = DefaultSdks.getDefaultJdk();
+                model.setSdk(jdk);
+              }
+            }
+            finally {
+              model.commit();
             }
           }
         }
@@ -100,9 +122,13 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     return gradleProjectsByModuleName;
   }
 
-  private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
+  private void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
     AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
     androidGradleFacet.setGradleProject(gradleProject);
+
+    for (JavaModuleCustomizer customizer : myCustomizers) {
+      customizer.customizeModule(module, module.getProject(), gradleProject.getJavaModel());
+    }
   }
 
   /**
@@ -124,7 +150,8 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     try {
       facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
       model.addFacet(facet);
-    } finally {
+    }
+    finally {
       model.commit();
     }
     return facet;

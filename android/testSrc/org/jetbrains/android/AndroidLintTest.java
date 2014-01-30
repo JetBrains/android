@@ -107,6 +107,24 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/layout/layout.xml", "xml");
   }
 
+  public void testMissingPrefix2() throws Exception {
+    // lint.xml which disables the missing prefix
+    myFixture.copyFileToProject(getGlobalTestDir() + "/lint.xml", "lint.xml");
+    doTestHighlighting(new AndroidLintInspectionToolProvider.AndroidLintMissingPrefixInspection(), "/res/layout/layout.xml", "xml");
+  }
+
+  public void testMissingPrefix3() throws Exception {
+    // lint.xml which changes the severity to warning (is normally error)
+    myFixture.copyFileToProject(getGlobalTestDir() + "/lint.xml", "lint.xml");
+    doTestHighlighting(new AndroidLintInspectionToolProvider.AndroidLintMissingPrefixInspection(), "/res/layout/layout.xml", "xml");
+  }
+
+  public void testMissingPrefix4() throws Exception {
+    // lint.xml which suppresses this specific error path
+    myFixture.copyFileToProject(getGlobalTestDir() + "/lint.xml", "lint.xml");
+    doTestHighlighting(new AndroidLintInspectionToolProvider.AndroidLintMissingPrefixInspection(), "/res/layout/layout.xml", "xml");
+  }
+
   public void testDuplicatedIds() throws Exception {
     doTestNoFix(new AndroidLintInspectionToolProvider.AndroidLintDuplicateIdsInspection(),
                 "/res/layout/layout.xml", "xml");
@@ -179,6 +197,8 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testTypographyQuotes() throws Exception {
+    // Re-enable typography quotes, normally off
+    myFixture.copyFileToProject(getGlobalTestDir() + "/lint.xml", "lint.xml");
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTypographyQuotesInspection(),
                   AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
                   "/res/values/typography.xml", "xml");

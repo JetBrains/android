@@ -16,16 +16,14 @@
 package org.jetbrains.android.uipreview;
 
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
 import com.android.tools.idea.rendering.ScalableImage;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -38,7 +36,6 @@ import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,13 +62,11 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   private AndroidFacet myFacet;
   private final AndroidLayoutPreviewToolWindowManager myToolWindowManager;
   private final ActionToolbar myActionToolBar;
-  private final AndroidLayoutPreviewToolWindowSettings mySettings;
 
   public AndroidLayoutPreviewToolWindowForm(final Project project, AndroidLayoutPreviewToolWindowManager toolWindowManager) {
     Disposer.register(this, myPreviewPanel);
 
     myToolWindowManager = toolWindowManager;
-    mySettings = AndroidLayoutPreviewToolWindowSettings.getInstance(project);
 
     final DefaultActionGroup actionGroup = new DefaultActionGroup();
     actionGroup.add(new ZoomToFitAction());
@@ -80,52 +75,13 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     actionGroup.add(new ZoomInAction());
     actionGroup.add(new ZoomOutAction());
     actionGroup.addSeparator();
-    actionGroup.add(new RefreshAction());
+    actionGroup.add(new RefreshRenderAction(this));
     actionGroup.add(new SaveScreenshotAction(this));
     myActionToolBar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
 
-    final DefaultActionGroup optionsGroup = new DefaultActionGroup();
-    final ActionToolbar optionsToolBar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, optionsGroup, true);
-    optionsToolBar.setReservePlaceAutoPopupIcon(false);
-    optionsToolBar.setSecondaryActionsTooltip("Options");
-    optionsGroup.addAction(new CheckboxAction("Hide for non-layout files") {
-      @Override
-      public boolean isSelected(AnActionEvent e) {
-        return mySettings.getGlobalState().isHideForNonLayoutFiles();
-      }
-
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        mySettings.getGlobalState().setHideForNonLayoutFiles(state);
-      }
-    }).setAsSecondary(true);
-    optionsGroup.addAction(new CheckboxAction("Include Device Frames (if available)") {
-      @Override
-      public boolean isSelected(AnActionEvent e) {
-        return mySettings.getGlobalState().isShowDeviceFrames();
-      }
-
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        mySettings.getGlobalState().setShowDeviceFrames(state);
-        myPreviewPanel.update();
-        myToolWindowManager.render();
-      }
-    }).setAsSecondary(true);
-    optionsGroup.addAction(new CheckboxAction("Show Lighting Effects") {
-      @Override
-      public boolean isSelected(AnActionEvent e) {
-        return mySettings.getGlobalState().isShowEffects();
-      }
-
-      @Override
-      public void setSelected(AnActionEvent e, boolean state) {
-        mySettings.getGlobalState().setShowEffects(state);
-        myToolWindowManager.render();
-      }
-    }).setAsSecondary(true);
-
+    final ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption()
+      .addRetinaOption().build();
     final JComponent toolbar = myActionToolBar.getComponent();
     final JPanel toolBarWrapper = new JPanel(new BorderLayout());
     toolBarWrapper.add(toolbar, BorderLayout.CENTER);
@@ -272,6 +228,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public void requestRender() {
     if (myFile != null) {
       myToolWindowManager.render();
+      myPreviewPanel.update();
     }
   }
 
@@ -456,35 +413,6 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     public void setSelected(AnActionEvent e, boolean state) {
       myPreviewPanel.setZoomToFit(state);
       myActionToolBar.updateActionsImmediately();
-    }
-  }
-
-  private class RefreshAction extends AnAction {
-    RefreshAction() {
-      super(AndroidBundle.message("android.layout.preview.refresh.action.text"), null, AllIcons.Actions.Refresh);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      Configuration configuration = getConfiguration();
-
-      if (configuration != null) {
-        // Clear layoutlib bitmap cache (in case files have been modified externally)
-        IAndroidTarget target = configuration.getTarget();
-        Module module = configuration.getModule();
-        if (target != null && module != null) {
-          AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
-          if (targetData != null) {
-            targetData.clearLayoutBitmapCache(module);
-          }
-        }
-      }
-
-      myFacet.refreshResources();
-      if (configuration != null) {
-        configuration.updated(ConfigurationListener.MASK_RENDERING);
-      }
-      myToolWindowManager.render();
     }
   }
 }

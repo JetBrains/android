@@ -46,7 +46,12 @@ public class IntegerConverter extends ResolvingConverter<String> {
       return s;
     }
     try {
-      Integer.decode(s);
+      // Can't use Integer.decode since it will overflow for values like 0xff4861ec.
+      // Use Long.decode instead, but reject values larger than what will fit in an integer
+      Long l = Long.decode(s);
+      if (l >= 0x100000000L || l <= -0xffffffffL) {
+        return null;
+      }
     }
     catch (NumberFormatException e) {
       return null;

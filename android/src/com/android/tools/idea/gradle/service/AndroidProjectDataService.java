@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.customizer.*;
+import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -51,17 +51,17 @@ import java.util.Map;
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject, Void> {
-  private final ModuleCustomizer[] myCustomizers;
+  private final AndroidModuleCustomizer[] myCustomizers;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   public AndroidProjectDataService() {
     //noinspection TestOnlyProblems
     this(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new RunConfigModuleCustomizer(),
-         new CompilerOutputPathModuleCustomizer());
+         new DependenciesAndroidModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
   }
 
   @VisibleForTesting
-  AndroidProjectDataService(@NotNull ModuleCustomizer... customizers) {
+  AndroidProjectDataService(@NotNull AndroidModuleCustomizer... customizers) {
     myCustomizers = customizers;
   }
 
@@ -92,13 +92,16 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         LanguageLevel javaLangVersion = null;
 
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
-        for (Module module : ModuleManager.getInstance(project).getModules()) {
+
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        for (Module module : moduleManager.getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
           if (androidProject != null && javaLangVersion == null) {
             javaLangVersion = androidProject.getJavaLanguageLevel();
           }
         }
+
         Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
 
         if (jdk == null || !Jdks.isApplicableJdk(jdk)) {
@@ -110,7 +113,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
             LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
             String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
-            msg += "After configuring a suitable JDK in the Project Structure dia log, sync the Gradle project again.";
+            msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
             notification.showNotification(title, msg, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
           }
         }
@@ -138,7 +141,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   }
 
   private void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    for (ModuleCustomizer customizer : myCustomizers) {
+    for (AndroidModuleCustomizer customizer : myCustomizers) {
       customizer.customizeModule(module, project, ideaAndroidProject);
     }
   }

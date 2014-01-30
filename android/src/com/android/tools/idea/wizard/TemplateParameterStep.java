@@ -17,6 +17,8 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -31,6 +33,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * TemplateParameterStep is a step in new project or add module wizards that pulls eligible parameters from the template being run
@@ -43,9 +47,9 @@ public class TemplateParameterStep extends TemplateWizardStep {
   private JPanel myContainer;
   private JLabel myDescription;
   private JLabel myError;
-  private JLabel myPreview;
+  @VisibleForTesting JLabel myPreview;
   private JComponent myPreferredFocusComponent;
-  private String myCurrentThumb;
+  @VisibleForTesting String myCurrentThumb;
 
   public TemplateParameterStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
                                UpdateListener updateListener) {
@@ -152,7 +156,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
     if (thumb == null) {
       myPreview.setIcon(AndroidIcons.Wizards.DefaultTemplate256);
     } else if (!thumb.isEmpty() && !thumb.equals(myCurrentThumb)) {
-      File file = new File(myTemplateState.myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
+      File file = new File(myTemplateState.getTemplate().getRootPath(), thumb.replace('/', File.separatorChar));
       try {
         byte[] bytes = Files.toByteArray(file);
         ImageIcon previewImage = new ImageIcon(bytes);
@@ -164,6 +168,29 @@ public class TemplateParameterStep extends TemplateWizardStep {
       }
     }
     setDescriptionHtml(myTemplateState.getTemplateMetadata().getDescription());
+  }
+
+  @Override
+  public boolean validate() {
+    if (!super.validate()) {
+      return false;
+    }
+
+    Set<String> layoutNames = Sets.newHashSet();
+    Collection<Parameter> parameters = myTemplateState.getTemplateMetadata().getParameters();
+    for (Parameter parameter : parameters) {
+      if (parameter.constraints.contains(Parameter.Constraint.UNIQUE)) {
+        String value = myTemplateState.getString(parameter.id);
+        if (parameter.constraints.contains(Parameter.Constraint.LAYOUT) && layoutNames.contains(value)) {
+          setErrorHtml(String.format("Layout name %s is already in use. Please choose a unique name.", value));
+          return false;
+        } else {
+          layoutNames.add(value);
+        }
+      }
+    }
+
+    return true;
   }
 
   @Override

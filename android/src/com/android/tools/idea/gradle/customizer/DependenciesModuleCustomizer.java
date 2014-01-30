@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,116 +15,97 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.dependency.Dependency;
-import com.android.tools.idea.gradle.dependency.DependencyUpdater;
-import com.android.tools.idea.gradle.dependency.LibraryDependency;
-import com.android.tools.idea.gradle.dependency.ModuleDependency;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.google.common.base.Objects;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.StandardFileSystems;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-/**
- * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
- */
-public class DependenciesModuleCustomizer extends DependencyUpdater<ModifiableRootModel> implements ModuleCustomizer {
-  private static final Logger LOG = Logger.getInstance(DependenciesModuleCustomizer.class);
-
-  @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject == null) {
-      return;
-    }
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel model = moduleRootManager.getModifiableModel();
-    try {
-      removeExistingDependencies(model);
-      Collection<Dependency> dependencies = Dependency.extractFrom(ideaAndroidProject);
-      updateDependencies(model, dependencies);
-    } finally {
-      model.commit();
+public abstract class DependenciesModuleCustomizer {
+  protected void notifyUser(@NotNull List<String> errorsFound, @NotNull Module module) {
+    if (!errorsFound.isEmpty()) {
+      StringBuilder msgBuilder = new StringBuilder();
+      for (String error : errorsFound) {
+        msgBuilder.append("  - ").append(error).append("\n");
+      }
+      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(module.getProject());
+      String title = String.format("Error(s) found while populating dependencies of module '%1$s'.", module.getName());
+      notification.showBalloon(title, msgBuilder.toString(), NotificationType.ERROR);
     }
   }
 
-  private static void removeExistingDependencies(@NotNull final ModifiableRootModel moduleModel) {
-    RootPolicy<Object> dependencyRemover = new RootPolicy<Object>() {
-      @Override
-      public Object visitLibraryOrderEntry(LibraryOrderEntry libraryOrderEntry, Object value) {
-        moduleModel.removeOrderEntry(libraryOrderEntry);
-        return value;
-      }
-
-      @Override
-      public Object visitModuleOrderEntry(ModuleOrderEntry moduleOrderEntry, Object value) {
-        moduleModel.removeOrderEntry(moduleOrderEntry);
-        return value;
-      }
-    };
-    for (OrderEntry orderEntry : moduleModel.getOrderEntries()) {
+  protected void removeExistingDependencies(@NotNull ModifiableRootModel model) {
+    DependencyRemover dependencyRemover = new DependencyRemover(model);
+    for (OrderEntry orderEntry : model.getOrderEntries()) {
       orderEntry.accept(dependencyRemover, null);
     }
   }
 
-  @Override
-  protected void updateDependency(@NotNull ModifiableRootModel moduleModel, @NotNull LibraryDependency dependency) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(moduleModel.getProject());
-    Library library = libraryTable.getLibraryByName(dependency.getName());
+  protected void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+                                        @NotNull String libraryName,
+                                        @NotNull DependencyScope scope,
+                                        @NotNull Collection<String> binaryPaths) {
+    Collection<String> empty = Collections.emptyList();
+    setUpLibraryDependency(model, libraryName, scope, binaryPaths, empty, empty);
+  }
+
+  protected void setUpLibraryDependency(@NotNull ModifiableRootModel model,
+                                        @NotNull String libraryName,
+                                        @NotNull DependencyScope scope,
+                                        @NotNull Collection<String> binaryPaths,
+                                        @NotNull Collection<String> sourcePaths,
+                                        @NotNull Collection<String> documentationPaths) {
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(model.getProject());
+    Library library = libraryTable.getLibraryByName(libraryName);
     if (library == null) {
       // Create library.
       LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();
       try {
-        library = libraryTableModel.createLibrary(dependency.getName());
-        updateLibraryPaths(library, dependency);
+        library = libraryTableModel.createLibrary(libraryName);
+        updateLibraryBinaryPaths(library, binaryPaths);
       }
       finally {
         libraryTableModel.commit();
       }
     }
-    LibraryOrderEntry orderEntry = moduleModel.addLibraryEntry(library);
-    orderEntry.setScope(dependency.getScope());
+
+    // It is common that the same dependency is used by more than one module. Here we update the "sources" and "documentation" paths if they
+    // were not set before.
+
+    // Example:
+    // In a multi-project project, there are 2 modules: 'app'' (an Android app) and 'util' (a Java lib.) Both of them depend on Guava. Since
+    // Android artifacts do not support source attachments, the 'app' module may not indicate where to find the sources for Guava, but the
+    // 'util' method can, since it is a plain Java module.
+    // If the 'Guava' library was already defined when setting up 'app', it won't have source attachments. When setting up 'util' we may
+    // have source attachments, but the library may have been already created. Here we just add the "source" paths if they were not already
+    // set.
+    updateLibrarySourcesIfAbsent(library, sourcePaths, OrderRootType.SOURCES);
+    updateLibrarySourcesIfAbsent(library, documentationPaths, OrderRootType.DOCUMENTATION);
+
+    LibraryOrderEntry orderEntry = model.addLibraryEntry(library);
+    orderEntry.setScope(scope);
     orderEntry.setExported(true);
   }
 
-  private static void updateLibraryPaths(@NotNull Library library, @NotNull LibraryDependency dependency) {
+  private static void updateLibraryBinaryPaths(@NotNull Library library, @NotNull Collection<String> binaryPaths) {
     Library.ModifiableModel libraryModel = library.getModifiableModel();
     try {
-      Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-      for (String binaryPath : binaryPaths) {
-        File file = new File(binaryPath);
-        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
-        if (virtualFile == null) {
-          // TODO: log and show balloon
-          String msg = String.format("Unable to find file at path '%1$s', library '%2$s'", file.getPath(), library.getName());
-          LOG.warn(msg);
-          continue;
-        }
-        if (virtualFile.isDirectory()) {
-          libraryModel.addRoot(virtualFile, OrderRootType.CLASSES);
-          continue;
-        }
-        VirtualFile jarRoot = JarFileSystem.getInstance().getJarRootForLocalFile(virtualFile);
-        if (jarRoot == null) {
-          // TODO: log and show balloon
-          String msg = String.format("Unable to parse contents of jar file '%1$s', library '%2$s'", file.getPath(), library.getName());
-          LOG.warn(msg);
-          continue;
-        }
-        libraryModel.addRoot(jarRoot, OrderRootType.CLASSES);
+      for (String path : binaryPaths) {
+        String url = pathToUrl(path);
+        libraryModel.addRoot(url, OrderRootType.CLASSES);
       }
     }
     finally {
@@ -132,36 +113,56 @@ public class DependenciesModuleCustomizer extends DependencyUpdater<ModifiableRo
     }
   }
 
-  @Override
-  protected boolean tryUpdating(@NotNull ModifiableRootModel moduleModel, @NotNull ModuleDependency dependency) {
-    ModuleManager moduleManager = ModuleManager.getInstance(moduleModel.getProject());
-    Module moduleDependency = null;
-    for (Module module : moduleManager.getModules()) {
-      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
-      if (androidGradleFacet != null) {
-        String gradlePath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-        if (Objects.equal(gradlePath, dependency.getGradlePath())) {
-          moduleDependency = module;
-          break;
-        }
+  private static void updateLibrarySourcesIfAbsent(@NotNull Library library,
+                                                   @NotNull Collection<String> paths,
+                                                   @NotNull OrderRootType pathType) {
+    if (paths.isEmpty() || library.getFiles(pathType).length > 0) {
+      return;
+    }
+    // We only update paths if the library does not have any already defined.
+    Library.ModifiableModel libraryModel = library.getModifiableModel();
+    try {
+      for (String path : paths) {
+        libraryModel.addRoot(pathToUrl(path), pathType);
       }
     }
-    if (moduleDependency != null) {
-      ModuleOrderEntry orderEntry = moduleModel.addModuleOrderEntry(moduleDependency);
-      orderEntry.setExported(true);
-      return true;
+    finally {
+      libraryModel.commit();
     }
-    return false;
   }
 
   @NotNull
-  @Override
-  protected String getNameOf(@NotNull ModifiableRootModel moduleModel) {
-    return moduleModel.getModule().getName();
+  private static String pathToUrl(@NotNull String path) {
+    File file = new File(path);
+
+    boolean isJarFile = FileUtilRt.extensionEquals(file.getName(), SdkConstants.EXT_JAR);
+    // .jar files require an URL with "jar" protocol.
+    String protocol = isJarFile ? StandardFileSystems.JAR_PROTOCOL : StandardFileSystems.FILE_PROTOCOL;
+    String filePath = FileUtil.toSystemIndependentName(file.getPath());
+    String url = VirtualFileManager.constructUrl(protocol, filePath);
+    if (isJarFile) {
+      url += StandardFileSystems.JAR_SEPARATOR;
+    }
+    return url;
   }
 
-  @Override
-  protected void log(ModifiableRootModel moduleModel, String category, String msg) {
-    // TODO: log and show balloon.
+  private static class DependencyRemover extends RootPolicy<Object> {
+    @NotNull private final ModifiableRootModel myModel;
+
+    DependencyRemover(@NotNull ModifiableRootModel model) {
+      myModel = model;
+    }
+
+    @Override
+    public Object visitLibraryOrderEntry(LibraryOrderEntry libraryOrderEntry, Object value) {
+      myModel.removeOrderEntry(libraryOrderEntry);
+      return value;
+    }
+
+    @Override
+    public Object visitModuleOrderEntry(ModuleOrderEntry moduleOrderEntry, Object value) {
+      myModel.removeOrderEntry(moduleOrderEntry);
+      return value;
+    }
   }
 }

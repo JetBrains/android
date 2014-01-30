@@ -2,10 +2,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.lint.client.api.Configuration;
-import com.android.tools.lint.client.api.IDomParser;
-import com.android.tools.lint.client.api.IJavaParser;
-import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
@@ -91,7 +88,12 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
 
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project) {
-    return new IntellijLintConfiguration(getIssues());
+    return new DefaultConfiguration(this, project, null) {
+      @Override
+      public boolean isEnabled(@NonNull Issue issue) {
+        return getIssues().contains(issue) && super.isEnabled(issue);
+      }
+    };
   }
 
   @Override
@@ -309,7 +311,8 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                                       ? new TextRange(start.getOffset(), end.getOffset())
                                       : TextRange.EMPTY_RANGE;
 
-          myState.getProblems().add(new ProblemData(issue, message, textRange));
+          Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
+          myState.getProblems().add(new ProblemData(issue, message, textRange, configuredSeverity));
         }
 
         Location secondary = location.getSecondary();
@@ -478,7 +481,8 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
             textRange = new TextRange(start.getOffset(), end.getOffset());
           }
         }
-        problemList.add(new ProblemData(issue, message, textRange));
+        Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
+        problemList.add(new ProblemData(issue, message, textRange, configuredSeverity));
 
         if (location != null && location.getSecondary() != null) {
           reportSecondary(context, issue, severity, location, message, data);
@@ -514,5 +518,10 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
       }
       return super.getResourceFolders(project);
     }
+  }
+
+  @Override
+  public boolean checkForSuppressComments() {
+    return false;
   }
 }

@@ -17,18 +17,12 @@ package com.android.tools.idea.wizard;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.ide.structureView.impl.java.JavaFileTreeModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -36,13 +30,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
 /**
  * This step allows the user to select a build variant and provides a preview
@@ -69,6 +61,8 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
   private final FileTreeCellRenderer myFileTreeRenderer = new FileTreeCellRenderer();
   private FileTreeModel myTreeModel;
 
+  private AssetStudioAssetGenerator myAssetGenerator;
+
   public ChooseOutputLocationStep(@NotNull TemplateWizardState state,
                                   @NotNull Project project,
                                   @Nullable Icon sidePanelIcon,
@@ -77,6 +71,7 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
     super(state, project, sidePanelIcon, updateListener);
 
     myModule = module;
+    myAssetGenerator = new AssetStudioAssetGenerator(state);
 
     init();
   }
@@ -226,7 +221,7 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
         myTemplateState.put(ATTR_OUTPUT_FOLDER, resDir);
 
         try {
-        Map<String, Map<String, BufferedImage>> images = ((AssetStudioWizardState)myTemplateState).generateImages(false);
+        Map<String, Map<String, BufferedImage>> images = myAssetGenerator.generateImages(false);
           for (String density : images.keySet()) {
             Map<String, BufferedImage> filenameMap = images.get(density);
             for (String filename : filenameMap.keySet()) {

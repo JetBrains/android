@@ -57,6 +57,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -68,6 +69,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.ThrowableConsumer;
 import com.intellij.util.ThrowableRunnable;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -299,7 +301,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           if (myRootView != null && myRootView.getImage() != null && session.getImage() != null &&
             session.getImage().getWidth() == myRootView.getImage().getWidth() &&
             session.getImage().getHeight() == myRootView.getImage().getHeight()) {
-            myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
+            myRootView.setRenderedImage(result.getImage());
             myRootView.repaint();
           }
           return;
@@ -307,7 +309,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
         boolean insertPanel = !myShowingRoot;
         if (myRootView == null) {
-          myRootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, session.getImage(), session.isAlphaChannelImage());
+          myRootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, result);
           myRootView.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
@@ -317,7 +319,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           insertPanel = true;
         }
         else {
-          myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
+          myRootView.setRenderedImage(result.getImage());
           myRootView.updateBounds(true);
         }
         try {
@@ -612,7 +614,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
         RadViewComponent rootComponent = (RadViewComponent)myRootComponent;
         RootView rootView = (RootView)rootComponent.getNativeComponent();
-        rootView.setImage(session.getImage(), session.isAlphaChannelImage());
+        rootView.setRenderedImage(result.getImage());
         ModelParser.updateRootComponent(myConfiguration.getFullConfig(), rootComponent, session, rootView);
 
         zoomToFitIfNecessary();
@@ -1136,7 +1138,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         setZoom(myZoom / ZOOM_FACTOR);
         break;
       case ACTUAL:
-        setZoom(1);
+        if (SystemInfo.isMac && UIUtil.isRetina()) {
+          setZoom(0.5);
+        } else {
+          setZoom(1);
+        }
         break;
       case FIT_INTO:
       case FIT: {
