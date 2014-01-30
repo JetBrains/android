@@ -1,11 +1,13 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
+import com.android.utils.SdkUtils;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -22,6 +24,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
@@ -36,6 +39,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -59,7 +63,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
+    if (facet == null && !IntellijLintProject.hasAndroidModule(module.getProject())) {
       return null;
     }
 
@@ -71,7 +75,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     final FileType fileType = file.getFileType();
 
     if (fileType == StdFileTypes.XML) {
-      if (facet.getLocalResourceManager().getFileResourceType(file) == null &&
+      if (facet == null || facet.getLocalResourceManager().getFileResourceType(file) == null &&
           !SdkConstants.ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
       }
@@ -79,6 +83,11 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     else if (fileType == FileTypes.PLAIN_TEXT) {
       if (!AndroidCommonUtils.PROGUARD_CFG_FILE_NAME.equals(file.getName()) &&
           !AndroidCompileUtil.OLD_PROGUARD_CFG_FILE_NAME.equals(file.getName())) {
+        return null;
+      }
+    }
+    else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
+      if (!SdkUtils.endsWithIgnoreCase(file.getName(), DOT_GRADLE)) {
         return null;
       }
     }
@@ -113,6 +122,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         scope = Scope.JAVA_FILE_SCOPE;
       } else if (name.equals(OLD_PROGUARD_FILE) || name.equals(FN_PROJECT_PROGUARD_FILE)) {
         scope = EnumSet.of(Scope.PROGUARD_FILE);
+      } else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
+        scope = Scope.GRADLE_SCOPE;
       } else {
         // #collectionInformation above should have prevented this
         assert false;
@@ -181,7 +192,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         continue;
       }
       final AndroidLintInspectionBase inspection = pair.getFirst();
-      final HighlightDisplayLevel displayLevel = pair.getSecond();
+      HighlightDisplayLevel displayLevel = pair.getSecond();
 
       if (inspection != null) {
         final HighlightDisplayKey key = HighlightDisplayKey.find(inspection.getShortName());
@@ -191,6 +202,13 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
           final PsiElement endElement = file.findElementAt(range.getEndOffset() - 1);
 
           if (startElement != null && endElement != null && !inspection.isSuppressedFor(startElement)) {
+            if (problemData.getConfiguredSeverity() != null) {
+              HighlightDisplayLevel configuredLevel =
+                AndroidLintInspectionBase.toHighlightDisplayLevel(problemData.getConfiguredSeverity());
+              if (configuredLevel != null) {
+                displayLevel = configuredLevel;
+              }
+            }
             final Annotation annotation = createAnnotation(holder, message, range, displayLevel);
 
             for (AndroidLintQuickFix fix : inspection.getQuickFixes(message)) {

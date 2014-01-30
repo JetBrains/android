@@ -17,6 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
@@ -42,9 +43,7 @@ import static com.android.tools.idea.templates.Template.CATEGORY_OTHER;
  */
 public class NewAndroidComponentAction extends AnAction {
 
-  // The new notification template relies on support for invoking the asset studio. This is not currently supported
-  // in AS.
-  private static final Set<String> EXCLUDED = ImmutableSet.of("New Notification");
+  private static final Set<String> EXCLUDED = ImmutableSet.of();
 
   protected NewAndroidComponentAction() {
     super(AndroidBundle.message("android.new.component.action.title"), AndroidBundle.message("android.new.component.action.description"),

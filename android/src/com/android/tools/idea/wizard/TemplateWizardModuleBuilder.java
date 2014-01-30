@@ -95,7 +95,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, sidePanelIcon, this);
     myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, sidePanelIcon, this);
-    myAssetSetStep = new AssetSetStep(myWizardState.getLauncherIconState(), myProject, sidePanelIcon, this);
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, sidePanelIcon, this);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, sidePanelIcon,
                                                   this, null);
     myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, sidePanelIcon, this);
@@ -114,7 +114,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
-    myAssetSetStep.finalizeAssetType(AssetStudioWizardState.AssetType.LAUNCHER);
+    myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
     update();
 
     myInitializationComplete = true;
@@ -180,7 +180,8 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
                   if (myProject == null) {
                     myWizardState.putSdkDependentParams();
                     myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-                    NewProjectWizard.createProject(myWizardState, project);
+                    AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
+                    NewProjectWizard.createProject(myWizardState, project, assetGenerator);
                   }
                   else {
                     createModule();
@@ -223,7 +224,8 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       // TODO: handle return type of "mkdirs".
       projectRoot.mkdirs();
       if (myAssetSetStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
-        myWizardState.getLauncherIconState().outputImagesIntoDefaultVariant(moduleRoot);
+        AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
+        assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
       }
       myWizardState.updateParameters();
       myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);

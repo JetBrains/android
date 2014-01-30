@@ -40,6 +40,7 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
@@ -93,10 +94,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.Application;
-import org.jetbrains.android.dom.manifest.IntentFilter;
-import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.run.AndroidRunConfiguration;
@@ -174,15 +172,25 @@ public class AndroidUtils {
       public T compute() {
         if (project.isDisposed()) return null;
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        if (psiFile == null || !(psiFile instanceof XmlFile)) {
+        if (psiFile instanceof XmlFile) {
+          return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
+        } else {
           return null;
         }
-        DomManager domManager = DomManager.getDomManager(project);
-        DomFileElement<T> element = domManager.getFileElement((XmlFile)psiFile, aClass);
-        if (element == null) return null;
-        return element.getRootElement();
       }
     });
+  }
+
+  /** This method should be called under a read action. */
+  @Nullable
+  public static <T extends DomElement> T loadDomElementWithReadPermission(@NotNull Project project,
+                                                                          @NotNull XmlFile xmlFile,
+                                                                          @NotNull Class<T> aClass) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    DomManager domManager = DomManager.getDomManager(project);
+    DomFileElement<T> element = domManager.getFileElement(xmlFile, aClass);
+    if (element == null) return null;
+    return element.getRootElement();
   }
 
   @Nullable
@@ -277,18 +285,29 @@ public class AndroidUtils {
   }
 
   @Nullable
-  public static String getDefaultActivityName(@NotNull Manifest manifest) {
+  public static String getDefaultLauncherActivityName(@NotNull Manifest manifest) {
     Application application = manifest.getApplication();
-    if (application != null) {
-      for (Activity activity : application.getActivities()) {
-        for (IntentFilter filter : activity.getIntentFilters()) {
-          if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
-            PsiClass c = activity.getActivityClass().getValue();
-            return c != null ? c.getQualifiedName() : null;
-          }
+    if (application == null) {
+      return null;
+    }
+
+    for (Activity activity : application.getActivities()) {
+      for (IntentFilter filter : activity.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
+          PsiClass c = activity.getActivityClass().getValue();
+          return c != null ? c.getQualifiedName() : null;
         }
       }
     }
+
+    for (ActivityAlias alias : application.getActivityAliass()) {
+      for (IntentFilter filter : alias.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
+          return alias.getName().getStringValue();
+        }
+      }
+    }
+
     return null;
   }
 

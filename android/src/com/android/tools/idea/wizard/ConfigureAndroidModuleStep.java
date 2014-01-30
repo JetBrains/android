@@ -574,10 +574,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @NotNull
-  private String computePackageName() {
+  @VisibleForTesting
+  String computePackageName() {
     String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
     if (!moduleName.isEmpty()) {
-      moduleName = moduleName.replaceAll("[^a-zA-Z0-9_\\-]", "");
+      moduleName = moduleName.replace('-', '_');
+      moduleName = moduleName.replaceAll("[^a-zA-Z0-9_]", "");
       moduleName = moduleName.toLowerCase();
       return SAMPLE_PACKAGE_PREFIX + moduleName;
     } else {
@@ -741,7 +743,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     static String getLabel(@NotNull IAndroidTarget target) {
       if (target.isPlatform()
           && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        return SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
+        String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
+        if (name == null) {
+          return "API " + Integer.toString(target.getVersion().getApiLevel());
+        } else {
+          return name;
+        }
       } else {
         return TemplateUtils.getTargetLabel(target);
       }
