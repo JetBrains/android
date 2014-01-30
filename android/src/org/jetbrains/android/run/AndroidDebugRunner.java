@@ -163,17 +163,13 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
     state.setDebugMode(true);
     RunContentDescriptor runDescriptor;
-
     synchronized (myDebugLock) {
       MyDebugLauncher launcher = new MyDebugLauncher(project, state, environment);
       state.setDebugLauncher(launcher);
-      final AndroidSessionInfo sessionInfo = embedToExistingSession(project, environment.getExecutor(), state);
-      final RunContentDescriptor descriptor = sessionInfo != null ? sessionInfo.getDescriptor() : null;
-      runDescriptor = descriptor != null ? descriptor : super.doExecute(project, state, contentToReuse, environment);
 
-      if (sessionInfo != null) {
-        launcher.setSessionTabToReuse(sessionInfo.getDebuggerSessionTab());
-      }
+      final RunContentDescriptor descriptor = embedToExistingSession(project, environment.getExecutor(), state);
+      runDescriptor = descriptor != null ? descriptor : super.doExecute(project, state, contentToReuse, environment);
+      launcher.setRunDescriptor(runDescriptor);
       if (descriptor != null) {
         return null;
       }
@@ -184,7 +180,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     tryToCloseOldSessions(environment.getExecutor(), project);
     final ProcessHandler handler = state.getProcessHandler();
     handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
-      runDescriptor, state, environment.getExecutor().getId(), null));
+      runDescriptor, state, environment.getExecutor().getId()));
     state.setRestarter(runDescriptor.getRestarter());
     setActivateToolWindowWhenAddedProperty(project, environment.getExecutor(), runDescriptor, "running");
     return runDescriptor;
@@ -224,10 +220,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     return null;
   }
 
-  @Nullable
-  private static AndroidSessionInfo embedToExistingSession(final Project project,
-                                                           final Executor executor,
-                                                           final AndroidRunningState state) throws ExecutionException {
+  private static RunContentDescriptor embedToExistingSession(final Project project,
+                                                             final Executor executor,
+                                                             final AndroidRunningState state) throws ExecutionException {
     final Pair<ProcessHandler, AndroidSessionInfo> pair = findOldSession(project, executor, state.getConfiguration());
     final AndroidSessionInfo oldSessionInfo = pair != null ? pair.getSecond() : null;
     final ProcessHandler oldProcessHandler = pair != null ? pair.getFirst() : null;
@@ -275,7 +270,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     } else {
       newProcessHandler = new RemoteDebugProcessHandler(project);
     }
-    newProcessHandler.putUserData(ANDROID_SESSION_INFO, oldSessionInfo);
     oldDescriptor.setProcessHandler(newProcessHandler);
     state.setProcessHandler(newProcessHandler);
     oldConsole.attachToProcess(newProcessHandler);
@@ -290,7 +284,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
         state.start(false);
       }
     });
-    return oldSessionInfo;
+    return oldDescriptor;
   }
 
   private static void showNotification(final Project project,
@@ -461,7 +455,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
       // todo: provide other icon
       final Content logcatContent = layoutUi.createContent(ANDROID_LOGCAT_CONTENT_ID, myToolWindowView.getContentPanel(), "Logcat",
-                                                         AndroidIcons.Android, getPreferredFocusableComponent());
+                                                           AndroidIcons.Android, getPreferredFocusableComponent());
       logcatContent.setCloseable(false);
       logcatContent.setSearchComponent(myToolWindowView.createSearchComponent(myProject));
       layoutUi.addContent(logcatContent, 2, PlaceInGrid.bottom, false);
@@ -532,7 +526,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     private final Executor myExecutor;
     private final AndroidRunningState myRunningState;
     private final ExecutionEnvironment myEnvironment;
-    private DebuggerSessionTab mySessionTabToReuse;
+    private RunContentDescriptor myRunDescriptor;
 
     public MyDebugLauncher(Project project,
                            AndroidRunningState state,
@@ -543,8 +537,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       myExecutor = environment.getExecutor();
     }
 
-    public void setSessionTabToReuse(DebuggerSessionTab sessionTabToReuse) {
-      mySessionTabToReuse = sessionTabToReuse;
+    public void setRunDescriptor(RunContentDescriptor runDescriptor) {
+      myRunDescriptor = runDescriptor;
     }
 
     @Override
@@ -561,8 +555,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           final ProcessHandler processHandler = myRunningState.getProcessHandler();
           try {
             synchronized (myDebugLock) {
+              assert myRunDescriptor != null;
               debugDescriptor = manager
-                .attachVirtualMachine(myExecutor, AndroidDebugRunner.this, myEnvironment, st, null, st.getRemoteConnection(),
+                .attachVirtualMachine(myExecutor, AndroidDebugRunner.this, myEnvironment, st, myRunDescriptor, st.getRemoteConnection(),
                                       false);
             }
           }
@@ -581,15 +576,14 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
             oldText.printTo(newProcessHandler);
           }
           AndroidProcessText.attach(newProcessHandler);
+
+          myRunningState.getProcessHandler().putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
+            debugDescriptor, st, myExecutor.getId()));
+
           final DebuggerSessionTab sessionTab = manager.getSessionTab();
           assert sessionTab != null;
           sessionTab.setEnvironment(myEnvironment);
 
-          if (mySessionTabToReuse != null) {
-            sessionTab.reuse(mySessionTabToReuse);
-          }
-          myRunningState.getProcessHandler().putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
-            debugDescriptor, st, myExecutor.getId(), sessionTab));
           RunProfile profile = myEnvironment.getRunProfile();
           assert profile instanceof AndroidRunConfigurationBase;
           RunContentManager runContentManager = ExecutionManager.getInstance(myProject).getContentManager();
