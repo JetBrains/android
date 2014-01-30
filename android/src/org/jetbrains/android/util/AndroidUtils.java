@@ -40,7 +40,6 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
@@ -669,21 +668,6 @@ public class AndroidUtils {
   public static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module, boolean androidLibrariesOnly) {
     final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
     collectAllAndroidDependencies(module, androidLibrariesOnly, result, new HashSet<AndroidFacet>());
-
-    // Temporary workaround: In gradle projects, other modules are missed. For now, manually make
-    // sure they are present.
-    AndroidFacet primary = AndroidFacet.getInstance(module);
-    if (primary != null && primary.isGradleProject()) {
-      Module[] modules = ModuleManager.getInstance(module.getProject()).getModules();
-      for (Module m : modules) {
-        if (m != module) {
-          AndroidFacet facet = AndroidFacet.getInstance(m);
-          if (facet != null && !result.contains(facet)) {
-            result.add(facet);
-          }
-        }
-      }
-    }
     return result;
   }
 
