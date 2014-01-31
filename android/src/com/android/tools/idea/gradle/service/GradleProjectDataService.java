@@ -20,16 +20,10 @@ import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.customizer.java.DependenciesJavaModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.JavaModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
@@ -38,9 +32,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -62,54 +53,29 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   public void importData(@NotNull final Collection<DataNode<IdeaGradleProject>> toImport,
                          @NotNull final Project project,
                          boolean synchronous) {
-    if (!toImport.isEmpty()) {
+    if (toImport.isEmpty()) {
+      return;
+    }
 
-      ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
-        @Override
-        public void execute() {
-          ModuleManager moduleManager = ModuleManager.getInstance(project);
-          Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
-          for (Module module : moduleManager.getModules()) {
-            IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
-            if (gradleProject == null) {
-              // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
-              // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
-              // to delete the orphan module when Studio prompts to do so.
-              Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
-            }
-            else {
-              customizeModule(module, gradleProject);
-            }
-
-            // All modules should have a SDK.
-            ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-            ModifiableRootModel model = moduleRootManager.getModifiableModel();
-            try {
-              if (model.getSdk() == null) {
-                Sdk jdk = DefaultSdks.getDefaultJdk();
-                model.setSdk(jdk);
-              }
-            }
-            finally {
-              model.commit();
-            }
+    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
+      @Override
+      public void execute() {
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
+        for (Module module : moduleManager.getModules()) {
+          IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
+          if (gradleProject == null) {
+            // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
+            // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
+            // to delete the orphan module when Studio prompts to do so.
+            Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
+          }
+          else {
+            customizeModule(module, gradleProject);
           }
         }
-      });
-    }
-
-    Projects.ensureExternalBuildIsEnabledForGradleProject(project);
-    AndroidGradleProjectComponent.getInstance(project).checkForSupportedModules();
-
-    Application application = ApplicationManager.getApplication();
-    if (!application.isUnitTestMode()) {
-      application.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          ProjectBuilder.getInstance(project).generateSourcesOnly();
-        }
-      });
-    }
+      }
+    });
   }
 
   @NotNull
