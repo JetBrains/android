@@ -452,7 +452,6 @@ public class TemplateTest extends AndroidGradleTestCase {
     values.put(ATTR_CREATE_ACTIVITY, createWithProject);
     values.put(ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
     values.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
-    values.put(ATTR_V4_SUPPORT_LIBRARY_VERSION, V4_SUPPORT_LIBRARY_VERSION);
     values.put(ATTR_MODULE_NAME, "TestModule");
     values.put(ATTR_PACKAGE_NAME, "test.pkg");
 
