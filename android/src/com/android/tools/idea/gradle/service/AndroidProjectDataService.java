@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.android.*;
+import com.android.tools.idea.gradle.project.ProjectStructureSanitizer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -92,7 +93,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         LanguageLevel javaLangVersion = null;
 
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
-
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
@@ -128,6 +128,8 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         }
       }
     });
+
+    ProjectStructureSanitizer.getInstance(project).cleanUp();
   }
 
   @NotNull
