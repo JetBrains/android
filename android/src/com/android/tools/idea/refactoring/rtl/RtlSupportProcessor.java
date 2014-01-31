@@ -40,6 +40,7 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -157,11 +158,10 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     // For all non library modules in our project
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.isLibraryProject()) {
-        final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
-        if (manifestFile == null) {
-          continue;
-        }
+      if (facet == null || facet.isLibraryProject()) {
+        continue;
+      }
+      for (VirtualFile manifestFile : IdeaSourceProvider.getManifestFiles(facet)) {
         XmlFile manifestPsiFile = (XmlFile)PsiManager.getInstance(myProject).findFile(manifestFile);
         try {
           if (manifestPsiFile == null) {

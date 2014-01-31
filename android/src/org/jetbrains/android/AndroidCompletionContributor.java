@@ -70,7 +70,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
   }
 
   private static boolean completeTagNames(@NotNull AndroidFacet facet, @NotNull XmlFile xmlFile, @NotNull CompletionResultSet resultSet) {
-    if (ManifestDomFileDescription.isManifestFile(xmlFile)) {
+    if (ManifestDomFileDescription.isManifestFile(xmlFile, facet)) {
       resultSet.addElement(LookupElementBuilder.create("manifest"));
       return false;
     }

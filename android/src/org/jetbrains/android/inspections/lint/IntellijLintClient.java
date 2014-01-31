@@ -448,7 +448,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
 
         if (module != null) {
           final AndroidFacet facet = AndroidFacet.getInstance(module);
-          vFile = facet != null ? AndroidRootUtil.getManifestFile(facet) : null;
+          vFile = facet != null ? AndroidRootUtil.getPrimaryManifestFile(facet) : null;
 
           if (vFile != null) {
             file = new File(vFile.getPath());
