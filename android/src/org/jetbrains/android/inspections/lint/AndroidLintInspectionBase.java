@@ -159,7 +159,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
 
           if (module != null) {
             final AndroidFacet facet = AndroidFacet.getInstance(module);
-            final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getManifestFile(facet) : null;
+            final VirtualFile manifestFile = facet != null ? AndroidRootUtil.getPrimaryManifestFile(facet) : null;
 
             if (manifestFile != null) {
               f = f.getManager().findFile(manifestFile);

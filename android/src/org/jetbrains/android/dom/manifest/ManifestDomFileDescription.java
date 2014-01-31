@@ -16,38 +16,61 @@
 package org.jetbrains.android.dom.manifest;
 
 import com.android.SdkConstants;
+import com.android.xml.AndroidManifest;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.xml.DomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.NS_RESOURCES;
 
 /**
  * @author yole
  */
 public class ManifestDomFileDescription extends DomFileDescription<Manifest> {
   public ManifestDomFileDescription() {
-    super(Manifest.class, "manifest");
+    super(Manifest.class, AndroidManifest.NODE_MANIFEST);
   }
 
   @Override
   public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
-    return isManifestFile(file);
+    return (module == null) ? isManifestFile(file) : isManifestFile(file, module);
   }
 
   public static boolean isManifestFile(@NotNull XmlFile file) {
-    if (!file.getName().equals(SdkConstants.FN_ANDROID_MANIFEST_XML)) {
-      return false;
+    final Module module = ModuleUtilCore.findModuleForPsiElement(file);
+    return isManifestFile(file, module);
+  }
+
+  public static boolean isManifestFile(@NotNull XmlFile file, @Nullable Module module) {
+    if (module != null && !module.isDisposed()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        return isManifestFile(file, facet);
+      }
     }
-    final Module module = ModuleUtil.findModuleForPsiElement(file);
-    return module == null || !module.isDisposed() && AndroidFacet.getInstance(module) != null;
+
+    return file.getName().equals(FN_ANDROID_MANIFEST_XML);
+  }
+
+  public static boolean isManifestFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
+    return file.getName().equals(FN_ANDROID_MANIFEST_XML) ||
+           facet.isGradleProject() && IdeaSourceProvider.isManifestFile(facet, file.getVirtualFile());
+  }
+
+  public static boolean isManifestFile(@NotNull VirtualFile file, @NotNull AndroidFacet facet) {
+    return file.getName().equals(FN_ANDROID_MANIFEST_XML) || facet.isGradleProject() && IdeaSourceProvider.isManifestFile(facet, file);
   }
 
   @Override
   protected void initializeFileDescription() {
-    registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, SdkConstants.NS_RESOURCES);
+    registerNamespacePolicy(AndroidUtils.NAMESPACE_KEY, NS_RESOURCES);
   }
 }
