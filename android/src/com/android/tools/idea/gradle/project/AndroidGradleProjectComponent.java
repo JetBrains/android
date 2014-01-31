@@ -141,7 +141,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     listenForProjectChanges(myProject, myDisposable);
 
-    Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
+    Projects.enforceExternalBuild(myProject);
 
     if (reImportProject) {
       try {
