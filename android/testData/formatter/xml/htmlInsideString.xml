@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="contactsSyncPlug"><font fgcolor="#ffffffff">Sync your Google contacts!</font>
         \nAfter syncing to your phone, <p>your contacts</p> will be <div><font>available</font></div>\n
         to you wherever you go.</string>
+
+<plurals   name="stop_info_no_additional_data_hours_minutes">
+        <item quantity="one">No additional arrivals in the <b>next 1 hour</b> and %1$d minutes.</item>
+        <item quantity="other">No additional arrivals in the next <xliff:g id="count">%2$d</xliff:g> hours and %1$d minutes.</item>
+         </plurals>
+
+         <string-array name="spatial_resolution_desc">
+         <item>5m/yd (fine, default)<p>more info</p></item>
+ </string-array>
 </resources>
