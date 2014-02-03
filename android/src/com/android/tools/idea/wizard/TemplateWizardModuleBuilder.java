@@ -116,8 +116,6 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     }
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
-
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
     update();
 
@@ -272,7 +270,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         myAndroidSdkLocationField = new TextFieldWithBrowseButton();
         myAndroidSdkLocationField.addBrowseFolderListener(new TextBrowseFolderListener(
           new FileChooserDescriptor(false, true, false, false, false, false)));
-        settingsStep.addSettingsField("An\u001Bdroid SDK location:", myAndroidSdkLocationField);
+        settingsStep.addSettingsField("Android SDK location:", myAndroidSdkLocationField);
       }
     }
 
@@ -302,7 +300,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     @NotNull
     @Override
     protected String getSdkFieldLabel(@Nullable Project project) {
-      return "Java \u001BSDK:";
+      return "Java SDK:";
     }
 
     @Override
