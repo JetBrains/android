@@ -111,10 +111,10 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   @Override
-  protected RunContentDescriptor doExecute(final Project project,
-                                           final RunProfileState state,
+  protected RunContentDescriptor doExecute(@NotNull final Project project,
+                                           @NotNull final RunProfileState state,
                                            final RunContentDescriptor contentToReuse,
-                                           final ExecutionEnvironment environment) throws ExecutionException {
+                                           @NotNull final ExecutionEnvironment environment) throws ExecutionException {
     assert state instanceof AndroidRunningState;
     final AndroidRunningState runningState = (AndroidRunningState)state;
     final RunContentDescriptor[] descriptor = {null};
