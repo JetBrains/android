@@ -74,13 +74,24 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     myProject = project;
     mySteps = steps;
 
-    myWizardState = new NewModuleWizardState() {
-      @Override
-      public void setTemplateLocation(@NotNull File file) {
-        super.setTemplateLocation(file);
-        update();
-      }
-    };
+    if (project == null) {
+      myWizardState = new NewProjectWizardState() {
+        @Override
+        public void setTemplateLocation(@NotNull File file) {
+          super.setTemplateLocation(file);
+          update();
+        }
+      };
+    }
+    else {
+      myWizardState = new NewModuleWizardState() {
+        @Override
+        public void setTemplateLocation(@NotNull File file) {
+          super.setTemplateLocation(file);
+          update();
+        }
+      };
+    }
     myWizardState.put(ATTR_IS_LAUNCHER, project == null);
     myWizardState.updateParameters();
 
