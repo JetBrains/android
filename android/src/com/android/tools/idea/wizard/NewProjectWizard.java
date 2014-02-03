@@ -98,7 +98,6 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myWizardState.convertApisToInt();
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_PER_MODULE_REPOS, false);
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);

@@ -64,7 +64,6 @@ public class TemplateMetadata {
   public static final String ATTR_MANIFEST_DIR = "manifestDir";
   public static final String ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion";
   public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
-  public static final String ATTR_V4_SUPPORT_LIBRARY_VERSION = "v4SupportLibraryVersion";
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";
   public static final String ATTR_JAVA_VERSION = "javaVersion";
   public static final String ATTR_SDK_DIR = "sdkDir";
@@ -76,8 +75,6 @@ public class TemplateMetadata {
   public static final String ATTR_ACTION_BAR_EXTRA = "usesActionBar";
   public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
-
-  public static final String V4_SUPPORT_LIBRARY_VERSION = "13.0.+";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
