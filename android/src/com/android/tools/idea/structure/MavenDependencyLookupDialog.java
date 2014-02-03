@@ -16,376 +16,348 @@
 package com.android.tools.idea.structure;
 
 import com.android.SdkConstants;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.ComboboxWithBrowseButton;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.util.PairProcessor;
+import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.xml.util.XmlStringUtil;
-import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.idea.maven.indices.MavenArtifactSearchResult;
+import org.jetbrains.idea.maven.indices.MavenArtifactSearcher;
 import org.jetbrains.idea.maven.model.MavenArtifactInfo;
-import org.jetbrains.idea.maven.model.MavenRepositoryInfo;
-import org.jetbrains.idea.maven.services.MavenRepositoryServicesManager;
 import org.jetbrains.idea.maven.utils.MavenLog;
-import org.jetbrains.idea.maven.utils.library.RepositoryAttachHandler;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MavenDependencyLookupDialog extends DialogWrapper {
   private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
   private static final String JAR_PACKAGING = "@" + SdkConstants.EXT_JAR;
+  private static final int RESULT_LIMIT = 50;
 
-  private JBLabel myInfoLabel;
-  private final Project myProject;
+  /**
+   * Hardcoded list of common libraries that we will show in the dialog until the user actually does a search.
+   */
+  private static final List<Artifact> COMMON_LIBRARIES = ImmutableList.of(
+    new Artifact(new MavenArtifactInfo("com.google.android.gms", "play-services", "+", null, null), "Google Play Services"),
+    new Artifact(new MavenArtifactInfo("com.android.support", "appcompat-v7", "+", null, null), "AppCompat"),
+    new Artifact(new MavenArtifactInfo("com.android.support", "support-v4", "+", null, null), "Support v4"),
+    new Artifact(new MavenArtifactInfo("com.android.support", "mediarouter-v7", "+", null, null), "MediaRouter"),
+    new Artifact(new MavenArtifactInfo("com.android.support", "gridlayout-v7", "+", null, null), "GridLayout"),
+    new Artifact(new MavenArtifactInfo("com.android.support", "support-v13", "+", null, null), "Support v13"),
+    new Artifact(new MavenArtifactInfo("com.google.code.gson", "gson", "2.2.+", null, null), "GSON"),
+    new Artifact(new MavenArtifactInfo("joda-time", "joda-time", "2.3", null, null), "Joda-time"),
+    new Artifact(new MavenArtifactInfo("com.squareup", "picasso", "2.2.+", null, null), "Picasso"),
+    new Artifact(new MavenArtifactInfo("com.squareup", "otto", "1.3.+", null, null), "Otto"),
+    new Artifact(new MavenArtifactInfo("org.slf4j", "slf4j-android", "1.6.1-RC1", null, null), "slf4j"),
+    new Artifact(new MavenArtifactInfo("de.keyboardsurfer.android.widget", "crouton", "1.8.+", null, null), "Crouton"),
+    new Artifact(new MavenArtifactInfo("com.nineoldandroids", "library", "2.4.+", null, null), "Nine Old Androids"),
+    new Artifact(new MavenArtifactInfo("com.jakewharton", "butterknife", "4.0.+", null, null), "Butterknife"),
+    new Artifact(new MavenArtifactInfo("com.google.guava", "guava", "16.0.+", null, null), "Guava"),
+    new Artifact(new MavenArtifactInfo("com.squareup.okhttp", "okhttp", "1.3.+", null, null), "okhttp"),
+    new Artifact(new MavenArtifactInfo("com.squareup.dagger", "dagger", "1.2.+", null, null), "Dagger")
+  );
+
+  /**
+   * Hardcoded list of search rewrites to help users find common libraries.
+   */
+  private static final Map<String, String> SEARCH_OVERRIDES = ImmutableMap.<String, String>builder()
+    .put("jodatime", "joda-time")
+    .put("slf4j", "org.slf4j:slf4j-android")
+    .put("slf4j-android", "org.slf4j:slf4j-android")
+    .put("animation", "com.nineoldandroids:library")
+    .put("pulltorefresh", "com.github.chrisbanes.actionbarpulltorefresh:library")
+    .put("wire", "wire-runtime")
+    .put("tape", "com.squareup:tape")
+    .put("annotations", "androidannotations")
+    .put("svg", "svg-android")
+    .put("commons", "org.apache.commons")
+    .build();
+
   private AsyncProcessIcon myProgressIcon;
-  private ComboboxWithBrowseButton myComboComponent;
+  private TextFieldWithBrowseButton mySearchField;
+  private JTextField mySearchTextField;
   private JPanel myPanel;
-  private JBLabel myCaptionLabel;
-  private final THashMap<String, Pair<MavenArtifactInfo, MavenRepositoryInfo>> myCoordinates
-    = new THashMap<String, Pair<MavenArtifactInfo, MavenRepositoryInfo>>();
-  private final Map<String, MavenRepositoryInfo> myRepositories = new TreeMap<String, MavenRepositoryInfo>();
-  private final ArrayList<String> myShownItems = new ArrayList<String>();
-  private final JComboBox myCombobox;
+  private JBList myResultList;
+  private final List<Artifact> myShownItems = Lists.newArrayList();
+  private final ExecutorService mySearchWorker = Executors.newSingleThreadExecutor();
+  private final Project myProject;
+  private final boolean myAndroidModule;
 
-  private String myFilterString;
-  private boolean myInUpdate;
+  /**
+   * Wraps the MavenArtifactInfo and supplies extra descriptive information we can display.
+   */
+  private static class Artifact extends MavenArtifactInfo {
+    private final String myDescription;
 
-  public MavenDependencyLookupDialog(Project project, final @Nullable String initialSearch) {
-    super(project, true);
-    myProject = project;
-    myProgressIcon.suspend();
-    myCaptionLabel.setText(
-      XmlStringUtil.wrapInHtml(StringUtil.escapeXml("enter keyword, pattern or class name to search by or Maven coordinates, " +
-                                                    "i.e. 'guava', 'com.google.code.gson:gson:2.2.4':")
-      ));
-    myInfoLabel.setPreferredSize(
-      new Dimension(myInfoLabel.getFontMetrics(myInfoLabel.getFont()).stringWidth("Showing: 1000"), myInfoLabel.getPreferredSize().height));
-
-    myComboComponent.setButtonIcon(AllIcons.Actions.Menu_find);
-    myComboComponent.getButton().addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        performSearch();
-      }
-    });
-    myCombobox = myComboComponent.getComboBox();
-    myCombobox.setModel(new CollectionComboBoxModel(myShownItems, null));
-    myCombobox.setEditable(true);
-    final JTextField textField = (JTextField)myCombobox.getEditor().getEditorComponent();
-    textField.setColumns(20);
-    if (initialSearch != null) {
-      textField.setText(initialSearch);
+    Artifact(@NotNull MavenArtifactInfo mai, @Nullable String description) {
+      super(mai.getGroupId(), mai.getArtifactId(), mai.getVersion(), mai.getPackaging(), mai.getClassifier(), mai.getClassNames(),
+            mai.getRepositoryId());
+      myDescription = description;
     }
-    textField.getDocument().addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          public void run() {
-            if (myProgressIcon.isDisposed()) {
-              return;
-            }
-            updateComboboxSelection(null, false);
-          }
-        });
+
+    public @NotNull String toString() {
+      if (myDescription != null) {
+        return myDescription + " (" + getCoordinates() + ")";
+      } else {
+        return getCoordinates();
       }
-    });
-    myCombobox.addActionListener(new ActionListener() {
+    }
+
+    public @NotNull String getCoordinates() {
+      return getGroupId() + ":" + getArtifactId() + ":" + getVersion() + (getPackaging() != null ? ("@" + getPackaging()) : "");
+    }
+  }
+
+  /**
+   * Comparator for Maven artifacts that does smart ordering for search results based on a given search string
+   */
+  private static class ArtifactComparator implements Comparator<Artifact> {
+    @NotNull private final String mySearchText;
+
+    private ArtifactComparator(@NotNull String searchText) {
+      mySearchText = searchText;
+    }
+
+    @Override
+    public int compare(@NotNull Artifact artifact1, @NotNull Artifact artifact2) {
+      int score = calculateScore(mySearchText, artifact2) - calculateScore(mySearchText, artifact1);
+      if (score != 0) {
+        return score;
+      } else {
+        return artifact2.getVersion().compareTo(artifact1.getVersion());
+      }
+    }
+
+    private static int calculateScore(@NotNull String searchText, @NotNull MavenArtifactInfo artifact) {
+      int score = 0;
+      if (artifact.getArtifactId().equals(searchText)) {
+        score++;
+      }
+      if (artifact.getArtifactId().contains(searchText)) {
+        score++;
+      }
+      if (artifact.getGroupId().contains(searchText)) {
+        score++;
+      }
+      return score;
+    }
+  }
+
+  public MavenDependencyLookupDialog(@NotNull Project project, boolean isAndroidModule) {
+    super(project, true);
+    myAndroidModule = isAndroidModule;
+    myProgressIcon.suspend();
+
+    mySearchField.setButtonIcon(AllIcons.Actions.Menu_find);
+    mySearchField.getButton().addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final boolean popupVisible = myCombobox.isPopupVisible();
-        if (!myInUpdate && (!popupVisible || myCoordinates.isEmpty())) {
-          performSearch();
+        startSearch();
+      }
+    });
+
+    mySearchTextField = mySearchField.getTextField();
+    mySearchTextField.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent actionEvent) {
+        if (!isValidCoordinateSelected()) {
+          startSearch();
         } else {
-          final String item = (String)myCombobox.getSelectedItem();
-          if (StringUtil.isNotEmpty(item)) {
-            ((JTextField)myCombobox.getEditor().getEditorComponent()).setText(item);
-          }
+          close(OK_EXIT_CODE);
         }
       }
     });
-    updateInfoLabel();
+
+    myShownItems.addAll(COMMON_LIBRARIES);
+    myResultList.setModel(new CollectionComboBoxModel(myShownItems, null));
+    myResultList.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent listSelectionEvent) {
+        Artifact value = (Artifact)myResultList.getSelectedValue();
+        if (value != null) {
+          mySearchTextField.setText(value.getCoordinates());
+        }
+      }
+    });
+    myResultList.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2 && isValidCoordinateSelected()) {
+          close(OK_EXIT_CODE);
+        }
+      }
+    });
+
     init();
+    myProject = project;
+  }
+
+  public @NotNull String getSearchText() {
+    return mySearchTextField.getText();
+  }
+
+  /**
+   * Prepares the search string and initiates the search in a worker thread.
+   */
+  private void startSearch() {
+    if (myProgressIcon.isRunning()) {
+      return;
+    }
+    myProgressIcon.resume();
+    myResultList.clearSelection();
+    synchronized (myShownItems) {
+      myShownItems.clear();
+      ((CollectionComboBoxModel)myResultList.getModel()).update();
+    }
+    String text = mySearchTextField.getText();
+    if (StringUtil.isEmpty(text)) {
+      return;
+    }
+    String override = SEARCH_OVERRIDES.get(text.toLowerCase(Locale.US));
+    if (override != null) {
+      text = override;
+    }
+    final String finalText = text;
+    mySearchWorker.submit(new Runnable() {
+      @Override
+      public void run() {
+        searchMavenIndex(finalText);
+      }
+    });
+  }
+
+  /**
+   * Worker thread body that performs the search against the Maven index and interprets the result set
+   */
+  private void searchMavenIndex(@NotNull final String text) {
+    try {
+      if (!myProgressIcon.isRunning()) {
+        return;
+      }
+      MavenArtifactSearcher searcher = new MavenArtifactSearcher();
+      List<MavenArtifactSearchResult> searchResults = searcher.search(myProject, text, 100);
+      if (!myProgressIcon.isRunning()) {
+        return;
+      }
+      synchronized(myShownItems) {
+        for (MavenArtifactSearchResult result : searchResults) {
+          if (result.versions.isEmpty()) {
+            continue;
+          }
+          MavenArtifactInfo artifact = result.versions.get(0);
+          if (artifact == null ||
+              (!SdkConstants.EXT_JAR.equals(artifact.getPackaging()) && !SdkConstants.EXT_AAR.equals(artifact.getPackaging()))) {
+            continue;
+          }
+          if (myShownItems.size() >= RESULT_LIMIT) {
+            myProgressIcon.suspend();
+            break;
+          }
+          Artifact wrappedArtifact = new Artifact(artifact, null);
+          if (!myShownItems.contains(wrappedArtifact)) {
+            myShownItems.add(wrappedArtifact);
+          }
+        }
+
+        Collections.sort(myShownItems, new ArtifactComparator(text));
+
+        // In Android modules, if there are both @aar and @jar versions of the same artifact, hide the @jar one.
+        if (myAndroidModule) {
+          Set<String> itemsToRemove = Sets.newHashSet();
+          for (Artifact art : myShownItems) {
+            String s = art.getCoordinates();
+            if (s.endsWith(AAR_PACKAGING)) {
+              itemsToRemove.add(s.replace(AAR_PACKAGING, JAR_PACKAGING));
+            }
+          }
+          for (Iterator<Artifact> i = myShownItems.iterator(); i.hasNext();) {
+            Artifact art = i.next();
+            if (itemsToRemove.contains(art.getCoordinates())) {
+              i.remove();
+            }
+          }
+        }
+      }
+
+      /**
+       * Update the UI in the Swing UI thread
+       */
+      SwingUtilities.invokeLater(
+        new Runnable() {
+          @Override
+          public void run() {
+            synchronized (myShownItems) {
+              ((CollectionComboBoxModel)myResultList.getModel()).update();
+              if (myResultList.getSelectedIndex() == -1 && !myShownItems.isEmpty()) {
+                myResultList.setSelectedIndex(0);
+              }
+              if (!myShownItems.isEmpty()) {
+                myResultList.requestFocus();
+              }
+            }
+          }
+        });
+    } catch (Exception e) {
+      MavenLog.LOG.error(e);
+    } finally {
+      myProgressIcon.suspend();
+    }
   }
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myCombobox;
-  }
-
-  private void updateComboboxSelection(final String searchText, boolean force) {
-    final String prevFilter = myFilterString;
-    final JTextComponent field = (JTextComponent)myCombobox.getEditor().getEditorComponent();
-    final int caret = field.getCaretPosition();
-    myFilterString = field.getText();
-
-    if (!force && Comparing.equal(myFilterString, prevFilter)) {
-      return;
-    }
-    int prevSize = myShownItems.size();
-    myShownItems.clear();
-
-    myInUpdate = true;
-    final boolean itemSelected = myCoordinates.containsKey(myFilterString) &&
-                                 Comparing.strEqual((String)myCombobox.getSelectedItem(), myFilterString, false);
-    final boolean filtered;
-    if (itemSelected) {
-      myShownItems.addAll(myCoordinates.keySet());
-      filtered = false;
-    } else {
-      final String[] parts = myFilterString.split(" ");
-      main:
-      for (String coordinate : myCoordinates.keySet()) {
-        for (String part : parts) {
-          if (!StringUtil.containsIgnoreCase(coordinate, part)) {
-            continue main;
-          }
-        }
-        myShownItems.add(coordinate);
-      }
-      filtered = !myShownItems.isEmpty();
-      if (!filtered) {
-        myShownItems.addAll(myCoordinates.keySet());
-      }
-      myCombobox.setSelectedItem(null);
-    }
-
-    Collections.sort(myShownItems, new Comparator<String>() {
-      @Override
-      public int compare(String s1, String s2) {
-        MavenArtifactInfo mai1 = myCoordinates.get(s1).first;
-        MavenArtifactInfo mai2 = myCoordinates.get(s2).first;
-        int score = calculateSearchScore(searchText, mai2) - calculateSearchScore(searchText, mai1);
-        if (score != 0) {
-          return score;
-        } else {
-          return mai2.getVersion().compareTo(mai1.getVersion());
-        }
-      }
-
-      private int calculateSearchScore(String searchText, MavenArtifactInfo mai) {
-        if (searchText == null) {
-          return 0;
-        }
-        int score = 0;
-        if (mai.getArtifactId().equals(searchText)) {
-          score++;
-        }
-        if (mai.getArtifactId().contains(searchText)) {
-          score++;
-        }
-        if (mai.getGroupId().contains(searchText)) {
-          score++;
-        }
-        return score;
-      }
-    });
-
-    // If there are both @aar and @jar versions of the same artifact, hide the @jar one.
-    Set<String> itemsToRemove = Sets.newHashSet();
-    for (String item : myShownItems) {
-      if (item.endsWith(AAR_PACKAGING)) {
-        itemsToRemove.add(item.replace(AAR_PACKAGING, JAR_PACKAGING));
-      }
-    }
-    myShownItems.removeAll(itemsToRemove);
-
-    ((CollectionComboBoxModel)myCombobox.getModel()).update();
-    myInUpdate = false;
-    field.setText(myFilterString);
-    field.setCaretPosition(caret);
-    updateInfoLabel();
-    if (filtered) {
-      if (prevSize < 10 && myShownItems.size() > prevSize && myCombobox.isPopupVisible()) {
-        myCombobox.setPopupVisible(false);
-      }
-      if (!myCombobox.isPopupVisible()) {
-        myCombobox.setPopupVisible(filtered);
-      }
-    }
-  }
-
-  private boolean performSearch() {
-    final String text = getCoordinateText();
-    if (myCoordinates.contains(text)) {
-      return false;
-    }
-    if (myProgressIcon.isRunning()) {
-      return false;
-    }
-    myProgressIcon.resume();
-    searchArtifacts(myProject, text, new PairProcessor<Collection<Pair<MavenArtifactInfo, MavenRepositoryInfo>>, Boolean>() {
-        @Override
-        public boolean process(Collection<Pair<MavenArtifactInfo, MavenRepositoryInfo>> artifacts, Boolean tooMany) {
-          if (myProgressIcon.isDisposed()) {
-            return false;
-          }
-          if (tooMany != null) {
-            myProgressIcon.suspend();
-          }
-          final int prevSize = myCoordinates.size();
-          for (Pair<MavenArtifactInfo, MavenRepositoryInfo> each : artifacts) {
-            myCoordinates.put(each.first.getGroupId() + ":" + each.first.getArtifactId() + ":" + each.first.getVersion() + "@" +
-                              each.first.getPackaging(), each);
-            String url = each.second != null? each.second.getUrl() : null;
-            if (StringUtil.isNotEmpty(url) && !myRepositories.containsKey(url)) {
-              myRepositories.put(url, each.second);
-            }
-          }
-          String title = getTitle();
-          String tooManyMessage = ": too many results found";
-          if (tooMany != null) {
-            boolean alreadyThere = title.endsWith(tooManyMessage);
-            if (tooMany.booleanValue() && !alreadyThere) {
-              setTitle(title + tooManyMessage);
-            } else if (!tooMany.booleanValue() && alreadyThere) {
-              setTitle(title.substring(0, title.length() - tooManyMessage.length()));
-            }
-          }
-          updateComboboxSelection(text, prevSize != myCoordinates.size());
-          return true;
-        }
-      });
-    return true;
-  }
-
-  public static void searchArtifacts(final Project project, String coord,
-                                     final PairProcessor<Collection<Pair<MavenArtifactInfo, MavenRepositoryInfo>>, Boolean>
-                                       resultProcessor) {
-    if (coord == null || coord.length() == 0) {
-      return;
-    }
-    final MavenArtifactInfo template;
-    if (coord.indexOf(':') == -1 && Character.isUpperCase(coord.charAt(0))) {
-      template = new MavenArtifactInfo(null, null, null, null, null, coord, null);
-    } else {
-      template = new MavenArtifactInfo(RepositoryAttachHandler.getMavenId(coord), null, null);
-    }
-    ProgressManager.getInstance().run(new Task.Backgroundable(project, "Maven lookup", false) {
-
-      @Override
-      public void run(@NotNull ProgressIndicator indicator) {
-        String[] urls = MavenRepositoryServicesManager.getServiceUrls();
-        boolean tooManyResults = false;
-        final AtomicBoolean proceedFlag = new AtomicBoolean(true);
-
-        for (int i = 0, length = urls.length; i < length; i++) {
-          if (!proceedFlag.get()) {
-            break;
-          }
-          final List<Pair<MavenArtifactInfo, MavenRepositoryInfo>> resultList = new ArrayList<Pair<MavenArtifactInfo, MavenRepositoryInfo>>();
-          try {
-            String serviceUrl = urls[i];
-            final List<MavenArtifactInfo> artifacts;
-            artifacts = MavenRepositoryServicesManager.findArtifacts(template, serviceUrl);
-            if (!artifacts.isEmpty()) {
-              if (!proceedFlag.get()) {
-                break;
-              }
-              final List<MavenRepositoryInfo> repositories = MavenRepositoryServicesManager.getRepositories(serviceUrl);
-              final HashMap<String, MavenRepositoryInfo> map = new HashMap<String, MavenRepositoryInfo>();
-              for (MavenRepositoryInfo repository : repositories) {
-                map.put(repository.getId(), repository);
-              }
-              for (MavenArtifactInfo artifact : artifacts) {
-                if (artifact == null) {
-                  tooManyResults = true;
-                } else if (!SdkConstants.EXT_JAR.equals(artifact.getPackaging()) && !SdkConstants.EXT_AAR.equals(artifact.getPackaging())) {
-                  continue;
-                } else {
-                  resultList.add(Pair.create(artifact, map.get(artifact.getRepositoryId())));
-                }
-              }
-            }
-          } catch (Exception e) {
-            MavenLog.LOG.error(e);
-          } finally {
-            if (!proceedFlag.get()) {
-              break;
-            }
-            final Boolean aBoolean = i == length - 1 ? tooManyResults : null;
-            ApplicationManager.getApplication().invokeLater(
-              new Runnable() {
-                public void run() {
-                  proceedFlag.set(resultProcessor.process(resultList, aBoolean));
-                }
-              }, new Condition() {
-                @Override
-                public boolean value(Object o) {
-                  return !proceedFlag.get();
-                }
-              });
-          }
-        }
-      }
-    });
-  }
-
-  private void updateInfoLabel() {
-    myInfoLabel.setText("<html>Found: " + myCoordinates.size() + "<br>Showing: " + myCombobox.getModel().getSize() + "</html>");
+    return mySearchTextField;
   }
 
   @Override
+  @Nullable
   protected ValidationInfo doValidate() {
     if (!isValidCoordinateSelected()) {
-      return new ValidationInfo("Please enter valid coordinate, discover it or select one from the list", myCombobox);
+      return new ValidationInfo("Please enter a valid coordinate, discover it or select one from the list", getPreferredFocusedComponent());
     }
     return super.doValidate();
   }
 
   @Override
+  @NotNull
   protected JComponent createCenterPanel() {
-    return null;
-  }
-
-  @Override
-  protected JComponent createNorthPanel() {
     return myPanel;
   }
 
   @Override
   protected void dispose() {
     Disposer.dispose(myProgressIcon);
+    mySearchWorker.shutdown();
     super.dispose();
   }
 
   @Override
+  @NotNull
   protected String getDimensionServiceKey() {
     return MavenDependencyLookupDialog.class.getName();
   }
 
   private boolean isValidCoordinateSelected() {
-    final String text = getCoordinateText();
-    return text.split(":").length == 3;
-  }
-
-  public String getCoordinateText() {
-    final JTextField field = (JTextField)myCombobox.getEditor().getEditorComponent();
-    return field.getText();
+    return mySearchTextField.getText().split(":").length == 3;
   }
 
   private void createUIComponents() {
