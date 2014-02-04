@@ -19,6 +19,7 @@ package com.android.tools.idea.structure;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -241,13 +242,28 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
    * Opens a Project Settings dialog and selects the Gradle module editor, with the given module and editor pane active.
    */
   public static boolean showDialog(final Project project, @Nullable final String moduleToSelect, @Nullable final String editorToSelect) {
-    final ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(project);
-    return ShowSettingsUtil.getInstance().editConfigurable(project, config, new Runnable() {
+    ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(project);
+    long timeInMillis = System.currentTimeMillis();
+    boolean result = ShowSettingsUtil.getInstance().editConfigurable(project, config, new Runnable() {
       @Override
       public void run() {
         getInstance(project).select(moduleToSelect, editorToSelect, true);
       }
     });
+    if (Projects.isGradleSyncNeeded(project, timeInMillis)) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            GradleProjectImporter.getInstance().reImportProject(project, null);
+          }
+          catch (ConfigurationException e) {
+            Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
+          }
+        }
+      });
+    }
+    return result;
   }
 
   private ActionCallback select(@Nullable final String moduleToSelect, @Nullable String editorNameToSelect, final boolean requestFocus) {
@@ -311,17 +327,6 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
   @Nullable
   protected String getEmptySelectionString() {
     return ProjectBundle.message("empty.module.selection.string");
-  }
-
-  @Override
-  public void apply() throws ConfigurationException {
-    super.apply();
-    try {
-      GradleProjectImporter.getInstance().reImportProject(myProject, null);
-    } catch (ConfigurationException ex) {
-      Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-      LOG.info(ex);
-    }
   }
 
   private class AddModuleAction extends AnAction implements DumbAware {

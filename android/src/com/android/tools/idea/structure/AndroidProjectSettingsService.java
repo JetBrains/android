@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.tools.idea.actions.AndroidShowStructureSettingsAction;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
 import com.intellij.ide.projectView.impl.ModuleGroup;
-import com.intellij.ide.util.projectWizard.JdkChooserPanel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.JdkOrderEntry;
-import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.roots.ui.configuration.*;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ModuleStructureConfigurable;
+import com.intellij.openapi.roots.ui.configuration.IdeaProjectSettingsService;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.packaging.artifacts.Artifact;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +38,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   private final Project myProject;
   private final IdeaProjectSettingsService myDelegate;
 
-  public AndroidProjectSettingsService(final Project project) {
+  public AndroidProjectSettingsService(Project project) {
     myProject = project;
     myDelegate = new IdeaProjectSettingsService(project);
   }
@@ -53,127 +50,141 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void openGlobalLibraries() {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       openProjectSettings();
-    } else {
+    }
+    else {
       myDelegate.openGlobalLibraries();
     }
   }
 
   @Override
-  public void openLibrary(@NotNull final Library library) {
-    if (Projects.isGradleProject(myProject)) {
+  public void openLibrary(@NotNull Library library) {
+    if (isGradleProject()) {
       openProjectSettings();
-    } else {
+    }
+    else {
       myDelegate.openLibrary(library);
     }
   }
 
   @Override
   public boolean canOpenModuleSettings() {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       return true;
-    } else {
+    }
+    else {
       return myDelegate.canOpenModuleSettings();
     }
   }
 
   @Override
-  public void openModuleSettings(final Module module) {
-    if (Projects.isGradleProject(myProject)) {
+  public void openModuleSettings(Module module) {
+    if (isGradleProject()) {
       AndroidModuleStructureConfigurable.showDialog(myProject, module.getName(), null);
-    } else {
+    }
+    else {
       myDelegate.openModuleSettings(module);
     }
   }
 
   @Override
   public boolean canOpenModuleLibrarySettings() {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       return false;
-    } else {
+    }
+    else {
       return myDelegate.canOpenModuleLibrarySettings();
     }
   }
 
   @Override
-  public void openModuleLibrarySettings(final Module module) {
-    if (Projects.isGradleProject(myProject)) {
+  public void openModuleLibrarySettings(Module module) {
+    if (isGradleProject()) {
       openModuleSettings(module);
-    } else {
+    }
+    else {
       myDelegate.openModuleLibrarySettings(module);
     }
   }
 
   @Override
   public boolean canOpenContentEntriesSettings() {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       return false;
-    } else {
+    }
+    else {
       return myDelegate.canOpenContentEntriesSettings();
     }
   }
 
   @Override
-  public void openContentEntriesSettings(final Module module) {
-    if (Projects.isGradleProject(myProject)) {
+  public void openContentEntriesSettings(Module module) {
+    if (isGradleProject()) {
       openModuleSettings(module);
-    } else {
+    }
+    else {
       myDelegate.openContentEntriesSettings(module);
     }
   }
 
   @Override
   public boolean canOpenModuleDependenciesSettings() {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       // TODO: This is something we ought to be able to do. However, it's not clear that there's any code path that can reach this method.
       return false;
-    } else {
+    }
+    else {
       return myDelegate.canOpenModuleDependenciesSettings();
     }
   }
 
   @Override
-  public void openModuleDependenciesSettings(@NotNull final Module module, @Nullable final OrderEntry orderEntry) {
-    if (Projects.isGradleProject(myProject)) {
+  public void openModuleDependenciesSettings(@NotNull Module module, @Nullable OrderEntry orderEntry) {
+    if (isGradleProject()) {
       openModuleSettings(module);
-    } else {
+    }
+    else {
       myDelegate.openModuleDependenciesSettings(module, orderEntry);
     }
   }
 
   @Override
   public boolean canOpenLibraryOrSdkSettings(OrderEntry orderEntry) {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       return false;
-    } else {
+    }
+    else {
       return myDelegate.canOpenLibraryOrSdkSettings(orderEntry);
     }
   }
 
   @Override
-  public void openLibraryOrSdkSettings(@NotNull final OrderEntry orderEntry) {
-    if (Projects.isGradleProject(myProject)) {
+  public void openLibraryOrSdkSettings(@NotNull OrderEntry orderEntry) {
+    if (isGradleProject()) {
       openProjectSettings();
-    } else {
+    }
+    else {
       myDelegate.openLibraryOrSdkSettings(orderEntry);
     }
   }
 
   @Override
-  public boolean processModulesMoved(final Module[] modules, @Nullable final ModuleGroup targetGroup) {
-    if (Projects.isGradleProject(myProject)) {
+  public boolean processModulesMoved(Module[] modules, @Nullable ModuleGroup targetGroup) {
+    if (isGradleProject()) {
       return false;
-    } else {
+    }
+    else {
       return myDelegate.processModulesMoved(modules, targetGroup);
     }
   }
 
   @Override
   public void showModuleConfigurationDialog(String moduleToSelect, String editorNameToSelect) {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       AndroidModuleStructureConfigurable.showDialog(myProject, moduleToSelect, editorNameToSelect);
-    } else {
+    }
+    else {
       myDelegate.showModuleConfigurationDialog(moduleToSelect, editorNameToSelect);
     }
   }
@@ -186,10 +197,15 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void openArtifactSettings(@Nullable Artifact artifact) {
-    if (Projects.isGradleProject(myProject)) {
+    if (isGradleProject()) {
       openProjectSettings();
-    } else {
+    }
+    else {
       myDelegate.openArtifactSettings(artifact);
     }
+  }
+
+  private boolean isGradleProject() {
+    return Projects.isGradleProject(myProject);
   }
 }
