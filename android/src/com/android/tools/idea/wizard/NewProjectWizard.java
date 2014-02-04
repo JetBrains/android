@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -53,7 +54,7 @@ import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
-  private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%s1$s'.";
+  private static final String UNABLE_TO_CREATE_DIR_FORMAT = "Unable to create directory '%1$s'.";
 
   @VisibleForTesting NewProjectWizardState myWizardState;
 
@@ -147,61 +148,62 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       String projectName = wizardState.getString(TemplateMetadata.ATTR_APP_TITLE);
       File projectRoot = new File(wizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
-      if (!FileUtilRt.createDirectory(projectRoot)) {
+      if (FileUtilRt.createDirectory(projectRoot)) {
+        if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
+          assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
+        }
+        wizardState.updateParameters();
+        wizardState.updateDependencies();
+
+        // If this is a new project, instantiate the project-level files
+        if (wizardState instanceof NewProjectWizardState) {
+          ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+        }
+
+        wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+        if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
+          TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
+          Template template = activityTemplateState.getTemplate();
+          assert template != null;
+          template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
+          wizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
+        }
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+          return;
+        }
+        GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+
+        LanguageLevel initialLanguageLevel = null;
+        Object version = wizardState.hasAttr(ATTR_JAVA_VERSION) ? wizardState.get(ATTR_JAVA_VERSION) : null;
+        if (version != null) {
+          initialLanguageLevel = LanguageLevel.parse(version.toString());
+        }
+        projectImporter.importProject(projectName, projectRoot, new NewProjectImportCallback() {
+          @Override
+          public void projectImported(@NotNull final Project project) {
+            // Open files -- but wait until the Android facets are available, otherwise for example
+            // the layout editor won't add Design tabs to the file
+            StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
+            if (!manager.postStartupActivityPassed()) {
+              manager.registerPostStartupActivity(new Runnable() {
+                @Override
+                public void run() {
+                  openTemplateFiles(project);
+                }
+              });
+            }
+            else {
+              openTemplateFiles(project);
+            }
+          }
+
+          private boolean openTemplateFiles(Project project) {
+            return TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
+          }
+        }, project, initialLanguageLevel);
+      } else {
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
-      if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
-        assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
-      }
-      wizardState.updateParameters();
-      wizardState.updateDependencies();
-
-      // If this is a new project, instantiate the project-level files
-      if (wizardState instanceof NewProjectWizardState) {
-        ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
-      }
-
-      wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
-      if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
-        TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
-        Template template = activityTemplateState.getTemplate();
-        assert template != null;
-        template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
-        wizardState.myTemplate.getFilesToOpen().addAll(template.getFilesToOpen());
-      }
-      if (ApplicationManager.getApplication().isUnitTestMode()) {
-        return;
-      }
-      GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-
-      LanguageLevel initialLanguageLevel = null;
-      Object version = wizardState.hasAttr(ATTR_JAVA_VERSION) ? wizardState.get(ATTR_JAVA_VERSION) : null;
-      if (version != null) {
-        initialLanguageLevel = LanguageLevel.parse(version.toString());
-      }
-      projectImporter.importProject(projectName, projectRoot, new NewProjectImportCallback() {
-        @Override
-        public void projectImported(@NotNull final Project project) {
-          // Open files -- but wait until the Android facets are available, otherwise for example
-          // the layout editor won't add Design tabs to the file
-          StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
-          if (!manager.postStartupActivityPassed()) {
-            manager.registerPostStartupActivity(new Runnable() {
-              @Override
-              public void run() {
-                openTemplateFiles(project);
-              }
-            });
-          }
-          else {
-            openTemplateFiles(project);
-          }
-        }
-
-        private boolean openTemplateFiles(Project project) {
-          return TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
-        }
-      }, project, initialLanguageLevel);
     }
     catch (Exception e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
