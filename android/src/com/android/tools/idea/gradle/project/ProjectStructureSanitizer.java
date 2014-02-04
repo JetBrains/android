@@ -32,7 +32,9 @@ import com.intellij.openapi.module.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -131,6 +133,7 @@ public class ProjectStructureSanitizer {
           ModifiableModuleModel moduleModel = moduleManager.getModifiableModel();
           try {
             for (Module module : modulesToRemove) {
+              removeDependencyLinks(module, moduleManager);
               moduleModel.disposeModule(module);
             }
           }
@@ -174,5 +177,29 @@ public class ProjectStructureSanitizer {
     String gradleProjectPath = facet.getConfiguration().GRADLE_PROJECT_PATH;
     // top-level modules have Gradle path ":"
     return SdkConstants.GRADLE_PATH_SEPARATOR.equals(gradleProjectPath);
+  }
+
+  private static void removeDependencyLinks(@NotNull Module module, @NotNull ModuleManager moduleManager) {
+    List<Module> dependents = moduleManager.getModuleDependentModules(module);
+    for (Module dependent : dependents) {
+      if (dependent.isDisposed()) {
+        continue;
+      }
+      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(dependent);
+      ModifiableRootModel modifiableModel = moduleRootManager.getModifiableModel();
+      try {
+        for (OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+          if (orderEntry instanceof ModuleOrderEntry) {
+            Module orderEntryModule = ((ModuleOrderEntry)orderEntry).getModule();
+            if (module.equals(orderEntryModule)) {
+              modifiableModel.removeOrderEntry(orderEntry);
+            }
+          }
+        }
+      }
+      finally {
+        modifiableModel.commit();
+      }
+    }
   }
 }
