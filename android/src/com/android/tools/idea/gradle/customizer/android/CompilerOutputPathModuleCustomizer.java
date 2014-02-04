@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.JavaModuleType;
@@ -37,7 +38,7 @@ import java.io.File;
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class CompilerOutputPathModuleCustomizer implements AndroidModuleCustomizer {
+public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
   private static final Logger LOG = Logger.getInstance(CompilerOutputPathModuleCustomizer.class);
 
   @Override
