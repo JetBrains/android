@@ -536,6 +536,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         if (!CharMatcher.ASCII.matchesAllOf(filename)) {
           setErrorHtml("Your project location contains non-ASCII characters. This can cause problems on Windows. Proceed with caution.");
         }
+        // Check that we can write to that location: make sure we can write into the first extant directory in the path.
+        if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
+          if (!testFile.getParentFile().canWrite()) {
+            setErrorHtml(String.format("The path '%s' is not writeable. Please choose a new location.", testFile.getParentFile().getPath()));
+            return false;
+          }
+        }
+
         testFile = testFile.getParentFile();
       }
       File file = new File(projectLocation);
