@@ -27,7 +27,11 @@ public class AndroidImportFilter extends ImportFilter {
 
   /** Never import android.R, or inner classes of application R or android.R classes */
   @Override
-  public boolean shouldUseFullyQualifiedName(@Nullable PsiFile targetFile, @NotNull String classQualifiedName) {
+  public boolean shouldUseFullyQualifiedName(@NotNull PsiFile targetFile, @NotNull String classQualifiedName) {
+    return shouldUseFullyQualifiedName(classQualifiedName);
+  }
+
+  public static boolean shouldUseFullyQualifiedName(@NotNull String classQualifiedName) {
     if (classQualifiedName.endsWith(".R")) {
       return CLASS_R.equals(classQualifiedName);
     }
