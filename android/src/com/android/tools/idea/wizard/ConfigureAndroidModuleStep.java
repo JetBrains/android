@@ -28,6 +28,7 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -106,6 +107,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myAppNameLabel;
   boolean myInitializedPackageNameText = false;
   private boolean myInitialized = false;
+  private String myPackagePrefix = SAMPLE_PACKAGE_PREFIX;
   @Nullable private WizardContext myWizardContext;
 
   public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
@@ -391,6 +393,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         myTemplateState.put(ATTR_MIN_API, item.apiLevel);
       }
     }
+
+    if (myTemplateState.myModified.contains(ATTR_PACKAGE_NAME) &&
+        !computePackagePrefix(myTemplateState.getString(ATTR_PACKAGE_NAME)).equals(myPackagePrefix)) {
+      // The package prefix has been changed by the user. Save it for next time
+      myPackagePrefix = computePackagePrefix(myTemplateState.getString(ATTR_PACKAGE_NAME));
+      PropertiesComponent.getInstance().setValue(LAST_USED_CLASS_PREFIX_KEY, myPackagePrefix);
+    }
   }
 
   @Override
@@ -417,6 +426,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     if (!myInitializedPackageNameText) {
       myInitializedPackageNameText = true;
+      String maybePackagePrefix = PropertiesComponent.getInstance().getValue(LAST_USED_CLASS_PREFIX_KEY);
+      if (maybePackagePrefix != null && !maybePackagePrefix.isEmpty()) {
+        myPackagePrefix = maybePackagePrefix;
+      }
       if ((myTemplateState.getString(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
         int length = SAMPLE_PACKAGE_PREFIX.length();
         if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
@@ -573,17 +586,56 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
+  @VisibleForTesting static String nameToPackage(String moduleName) {
+    moduleName = moduleName.replace('-', '_');
+    moduleName = moduleName.replaceAll("[^a-zA-Z0-9_]", "");
+    moduleName = moduleName.toLowerCase();
+    return moduleName;
+  }
+
   @NotNull
   @VisibleForTesting
   String computePackageName() {
     String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
-    if (!moduleName.isEmpty()) {
-      moduleName = moduleName.replace('-', '_');
-      moduleName = moduleName.replaceAll("[^a-zA-Z0-9_]", "");
-      moduleName = moduleName.toLowerCase();
-      return SAMPLE_PACKAGE_PREFIX + moduleName;
-    } else {
+    String projectName = myTemplateState.getString(ATTR_APP_TITLE);
+    projectName = nameToPackage(projectName);
+    moduleName = nameToPackage(moduleName);
+    if (!myPackagePrefix.endsWith(".")) {
+      myPackagePrefix += '.';
+    }
+    if (moduleName.isEmpty() && projectName.isEmpty()) {
       return "";
+    } else if (moduleName.isEmpty()) {
+      return myPackagePrefix + projectName;
+    } else if (projectName.isEmpty()) {
+      return myPackagePrefix + moduleName;
+    } else {
+      return myPackagePrefix + projectName + '.' + moduleName;
+    }
+  }
+
+  @NotNull
+  @VisibleForTesting
+  String computePackagePrefix(String packageName) {
+    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String projectName = myTemplateState.getString(ATTR_APP_TITLE);
+    if (!projectName.isEmpty()) {
+      projectName = nameToPackage(projectName);
+      int nameIndex = packageName.lastIndexOf(projectName);
+      if (nameIndex != -1) {
+        return packageName.substring(0, nameIndex);
+      }
+    }
+    if (!moduleName.isEmpty()) {
+      moduleName = nameToPackage(moduleName);
+      int nameIndex = packageName.lastIndexOf(moduleName);
+      if (nameIndex != -1) {
+        return packageName.substring(0, nameIndex);
+      } else {
+        return packageName;
+      }
+    } else {
+      return packageName;
     }
   }
 
