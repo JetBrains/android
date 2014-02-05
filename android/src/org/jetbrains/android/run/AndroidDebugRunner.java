@@ -441,7 +441,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
         }
       };
       Disposer.register(this, myToolWindowView);
-      myToolWindowView.getLogConsole().attachStopLogConsoleTrackingListener(process);
     }
 
     @Override
