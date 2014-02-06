@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
-import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.JavaModel;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,34 +36,14 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static java.util.Collections.singletonList;
 
-public class DependenciesJavaModuleCustomizer extends DependenciesModuleCustomizer implements JavaModuleCustomizer {
-  private static final Logger LOG = Logger.getInstance(DependenciesModuleCustomizer.class);
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<JavaModel> {
+  private static final Logger LOG = Logger.getInstance(AbstractDependenciesModuleCustomizer.class);
 
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = DependencyScope.COMPILE;
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable JavaModel javaModel) {
-    if (javaModel == null) {
-      return;
-    }
-    List<String> errorsFound = Lists.newArrayList();
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel model = moduleRootManager.getModifiableModel();
-    try {
-      removeExistingDependencies(model);
-      setUpDependencies(model, javaModel.getDependencies(), errorsFound);
-    }
-    finally {
-      model.commit();
-    }
-    notifyUser(errorsFound, module);
-  }
-
-  private void setUpDependencies(@NotNull ModifiableRootModel model,
-                                 @NotNull List<? extends IdeaDependency> dependencies,
-                                 @NotNull List<String> errorsFound) {
-    for (IdeaDependency dependency : dependencies) {
+  protected void setUpDependencies(@NotNull ModifiableRootModel model, @NotNull JavaModel javaModel, @NotNull List<String> errorsFound) {
+    for (IdeaDependency dependency : javaModel.getDependencies()) {
       if (dependency instanceof IdeaModuleDependency) {
         updateDependency(model, (IdeaModuleDependency)dependency, errorsFound);
       }

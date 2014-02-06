@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.android.AndroidModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.DependenciesAndroidModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -34,15 +35,16 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Updates the contents/settings of a module when a build variant changes.
  */
 class BuildVariantUpdater {
   private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
 
-  private final AndroidModuleCustomizer[] myAndroidModuleCustomizers = {
-    new ContentRootModuleCustomizer(), new DependenciesAndroidModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
-  };
+  private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
+    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
@@ -91,7 +93,7 @@ class BuildVariantUpdater {
     androidProject.setSelectedVariantName(buildVariantName);
     facet.syncSelectedVariant();
 
-    for (AndroidModuleCustomizer customizer : myAndroidModuleCustomizers) {
+    for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
       customizer.customizeModule(moduleToUpdate, project, androidProject);
     }
 

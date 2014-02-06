@@ -29,7 +29,7 @@ import com.intellij.ui.EditorNotifications;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.project.AndroidContentRoot.BUILD_DIR;
+import static com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer.BUILD_DIR;
 
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
