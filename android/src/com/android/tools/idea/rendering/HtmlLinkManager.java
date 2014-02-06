@@ -94,7 +94,7 @@ public class HtmlLinkManager {
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
                         @Nullable RenderResult result) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
-      UrlOpener.launchBrowser(null, url);
+      UrlOpener.launchBrowser(url, null);
     } else if (url.startsWith("file:")) {
       assert module != null;
       handleFileUrl(url, module);
