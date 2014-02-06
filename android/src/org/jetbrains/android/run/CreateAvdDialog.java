@@ -236,7 +236,7 @@ public class CreateAvdDialog extends DialogWrapper {
     myAvdInfoLabel.setVisible(showAvdInfo);
     new ClickListener() {
       @Override
-      public boolean onClick(MouseEvent e, int clickCount) {
+      public boolean onClick(@NotNull MouseEvent e, int clickCount) {
         try {
           BrowserUtil.launchBrowser(url);
         }
