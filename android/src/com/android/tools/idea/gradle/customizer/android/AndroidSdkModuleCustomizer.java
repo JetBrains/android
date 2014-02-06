@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -32,7 +33,7 @@ import java.io.File;
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class AndroidSdkModuleCustomizer implements AndroidModuleCustomizer {
+public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
   private static final Logger LOG = Logger.getInstance(AndroidSdkModuleCustomizer.class);
 
   /**

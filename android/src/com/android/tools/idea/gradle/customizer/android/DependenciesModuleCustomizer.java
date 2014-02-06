@@ -16,22 +16,18 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,34 +35,14 @@ import java.util.List;
 /**
  * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class DependenciesAndroidModuleCustomizer extends DependenciesModuleCustomizer implements AndroidModuleCustomizer {
-  private static final Logger LOG = Logger.getInstance(DependenciesModuleCustomizer.class);
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaAndroidProject> {
+  private static final Logger LOG = Logger.getInstance(AbstractDependenciesModuleCustomizer.class);
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
-    if (androidProject == null) {
-      return;
-    }
-    List<String> errorsFound = Lists.newArrayList();
-
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel model = moduleRootManager.getModifiableModel();
-    try {
-      removeExistingDependencies(model);
-
-      Collection<Dependency> dependencies = Dependency.extractFrom(androidProject);
-      setUpDependencies(model, dependencies, errorsFound);
-    }
-    finally {
-      model.commit();
-    }
-    notifyUser(errorsFound, module);
-  }
-
-  private void setUpDependencies(@NotNull ModifiableRootModel model,
-                                 @NotNull Collection<Dependency> dependencies,
-                                 @NotNull List<String> errorsFound) {
-    for (Dependency dependency : dependencies) {
+  protected void setUpDependencies(@NotNull ModifiableRootModel model,
+                                   @NotNull IdeaAndroidProject androidProject,
+                                   @NotNull List<String> errorsFound) {
+    for (Dependency dependency : Dependency.extractFrom(androidProject)) {
       if (dependency instanceof LibraryDependency) {
         updateDependency(model, (LibraryDependency)dependency);
       }
