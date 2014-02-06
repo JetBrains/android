@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.ddms.actions;
 
-import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DumpSysAction;
@@ -49,7 +48,7 @@ public class DumpSysActions {
     return group;
   }
 
-  private static class MyDumpSysAction extends AbstractClientAction {
+  private static class MyDumpSysAction extends AbstractDeviceAction {
     private final String myService;
     private final Project myProject;
 
@@ -61,8 +60,8 @@ public class DumpSysActions {
     }
 
     @Override
-    protected void performAction(@NotNull Client c) {
-      new DumpSysAction(myProject, myDeviceContext.getSelectedDevice(), myService, c).performAction();
+    protected void performAction(@NotNull IDevice device) {
+      new DumpSysAction(myProject, myDeviceContext.getSelectedDevice(), myService, myDeviceContext.getSelectedClient()).performAction();
     }
   }
 
