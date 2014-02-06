@@ -195,6 +195,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       state.setDeploy(DEPLOY);
       state.setArtifactName(ARTIFACT_NAME);
       state.setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY);
+      state.setFilterLogcatAutomatically(FILTER_LOGCAT_AUTOMATICALLY);
     }
     return state;
   }
