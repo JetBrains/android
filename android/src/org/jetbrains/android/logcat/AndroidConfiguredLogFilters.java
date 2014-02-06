@@ -22,6 +22,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.AbstractCollection;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +78,29 @@ public class AndroidConfiguredLogFilters implements PersistentStateComponent<And
     final String pidString = Integer.toString(pid);
     entry.setName("Process id: " + pidString);
     entry.setPid(pidString);
+    return entry;
+  }
+
+  @Nullable
+  @Contract("!null, true -> !null")
+  public MyFilterEntry getFilterForPackage(@NotNull String packageName, boolean createIfNotExist) {
+    String filterName = "app: " + packageName;
+
+    // find any existing filters of that name
+    MyFilterEntry entry = findFilterEntryByName(filterName);
+    if (entry != null) {
+      return entry;
+    }
+
+    // create new one otherwise
+    if (createIfNotExist) {
+      entry = new MyFilterEntry();
+      entry.setName(filterName);
+      entry.setPackageNamePattern(packageName);
+
+      myFilterEntries.add(entry);
+    }
+
     return entry;
   }
 

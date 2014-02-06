@@ -152,6 +152,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private volatile String myAvdName;
   private volatile boolean myDebugMode;
   private volatile boolean myOpenLogcatAutomatically;
+  private volatile boolean myFilterLogcatAutomatically;
 
   private volatile DebugLauncher myDebugLauncher;
 
@@ -865,6 +866,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myOpenLogcatAutomatically = openLogcatAutomatically;
   }
 
+  public void setFilterLogcatAutomatically(boolean filterLogcatAutomatically) {
+    myFilterLogcatAutomatically = filterLogcatAutomatically;
+  }
+
   private boolean doPrepareAndStart(@NotNull final IDevice device) {
     if (myClearLogcatBeforeStart) {
       clearLogcatAndConsole(getModule().getProject(), device);
@@ -938,9 +943,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                 int count = androidToolWindow.getContentManager().getContentCount();
                 for (int i = 0; i < count; i++) {
                   Content content = androidToolWindow.getContentManager().getContent(i);
-                  DevicePanel devicePanel = content.getUserData(AndroidToolWindowFactory.DEVICES_PANEL_KEY);
+                  DevicePanel devicePanel = content == null ? null : content.getUserData(AndroidToolWindowFactory.DEVICES_PANEL_KEY);
+                  AndroidLogcatView logcatView = content == null ? null : content.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
                   if (devicePanel != null) {
                     devicePanel.selectDevice(device);
+                    if (logcatView != null && myFilterLogcatAutomatically) {
+                      logcatView.createAndSelectFilterByPackage(myPackageName);
+                    }
                     break;
                   }
                 }
