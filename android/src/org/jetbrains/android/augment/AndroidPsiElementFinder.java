@@ -2,22 +2,27 @@ package org.jetbrains.android.augment;
 
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
+import com.intellij.util.CommonProcessors;
+import com.intellij.util.Processor;
+import com.intellij.util.SmartList;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
-import org.jetbrains.android.AndroidSdkResolveScopeProvider;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -48,66 +53,72 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
       }
     });
   }
+  
+  private boolean processInternalRClasses(@NotNull Project project, @NotNull GlobalSearchScope scope, Processor<PsiClass> processor) {
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+      AndroidPlatform platform = sdk == null ? null : AndroidPlatform.getInstance(sdk);
+      PsiClass internalRClass = platform == null ? null : getOrCreateInternalRClass(project, sdk, platform);
+      if (internalRClass != null && scope.contains(internalRClass.getContainingFile().getViewProvider().getVirtualFile())) {
+        if (!processor.process(internalRClass)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
   @Nullable
   @Override
   public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    final Project project = scope.getProject();
-
-    if (project == null ||
-        !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
-      return null;
-    }
-    final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-
-    if (scope instanceof AndroidSdkResolveScopeProvider.MyJdkScope && INTERNAL_R_CLASS_QNAME.equals(qualifiedName)) {
-      synchronized (myLock) {
-        return getAndroidInternalRClass(project, (AndroidSdkResolveScopeProvider.MyJdkScope)scope);
-      }
-    }
-    final int lastDot = qualifiedName.lastIndexOf('.');
-    if (lastDot < 0) {
-      return null;
-    }
-    final String shortName = qualifiedName.substring(lastDot + 1);
-    final String parentName = qualifiedName.substring(0, lastDot);
-
-    if (shortName.length() == 0 || !parentName.endsWith(".R")) {
-      return null;
-    }
-    final PsiClass rClass = facade.findClass(parentName, scope);
-
-    if (rClass == null) {
-      return null;
-    }
-    return rClass.findInnerClassByName(shortName, false);
+    PsiClass[] classes = findClasses(qualifiedName, scope);
+    return classes.length == 0 ? null : classes[0];
   }
 
-  private PsiClass getAndroidInternalRClass(Project project, AndroidSdkResolveScopeProvider.MyJdkScope scope) {
-    final Sdk sdk = scope.getJdkOrderEntry().getJdk();
+  private PsiClass getOrCreateInternalRClass(Project project, Sdk sdk, AndroidPlatform platform) {
+    synchronized (myLock) {
+      PsiClass internalRClass = SoftReference.dereference(myInternalRClasses.get(sdk));
 
-    if (sdk == null) {
-      return null;
+      if (internalRClass == null) {
+        internalRClass = new AndroidInternalRClass(PsiManager.getInstance(project), platform, sdk);
+        myInternalRClasses.put(sdk, new SoftReference<PsiClass>(internalRClass));
+      }
+      return internalRClass;
     }
-    final AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
-
-    if (platform == null) {
-      return null;
-    }
-    PsiClass internalRClass = SoftReference.dereference(myInternalRClasses.get(sdk));
-
-    if (internalRClass == null) {
-      internalRClass = new AndroidInternalRClass(PsiManager.getInstance(project), platform);
-      myInternalRClasses.put(sdk, new SoftReference<PsiClass>(internalRClass));
-    }
-    return internalRClass;
   }
 
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    final PsiClass aClass = findClass(qualifiedName, scope);
-    return aClass != null ? new PsiClass[] {aClass} : PsiClass.EMPTY_ARRAY;
+    Project project = scope.getProject();
+    if (!qualifiedName.startsWith(INTERNAL_R_CLASS_QNAME) || 
+        project == null || 
+        !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+      return PsiClass.EMPTY_ARRAY;
+    }
+
+    if (INTERNAL_R_CLASS_QNAME.equals(qualifiedName)) {
+      CommonProcessors.CollectUniquesProcessor<PsiClass> processor = new CommonProcessors.CollectUniquesProcessor<PsiClass>();
+      processInternalRClasses(project, scope, processor);
+      Collection<PsiClass> results = processor.getResults();
+      return results.isEmpty() ? PsiClass.EMPTY_ARRAY : results.toArray(new PsiClass[results.size()]);
+    }
+
+    final int lastDot = qualifiedName.lastIndexOf('.');
+    if (lastDot < 0) {
+      return PsiClass.EMPTY_ARRAY;
+    }
+    final String shortName = qualifiedName.substring(lastDot + 1);
+    final String parentName = qualifiedName.substring(0, lastDot);
+
+    if (shortName.length() == 0 || !parentName.endsWith(".R")) {
+      return PsiClass.EMPTY_ARRAY;
+    }
+    List<PsiClass> result = new SmartList<PsiClass>();
+    for (PsiClass parentClass : findClasses(parentName, scope)) {
+      ContainerUtil.addIfNotNull(result, parentClass.findInnerClassByName(shortName, false));
+    }
+    return result.isEmpty() ? PsiClass.EMPTY_ARRAY : result.toArray(new PsiClass[result.size()]);
   }
 
   @NotNull
