@@ -71,9 +71,6 @@
                   <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
-                <clientProperties>
-                  <BorderFactoryClass class="java.lang.String" value="com.intellij.ui.IdeBorderFactory$PlainSmallWithoutIndent"/>
-                </clientProperties>
                 <border type="etched" title-resource-bundle="messages/AndroidBundle" title-key="deployment.target.settings.title"/>
                 <children>
                   <component id="69acb" class="javax.swing.JRadioButton" binding="myEmulatorRadioButton">
@@ -240,7 +237,7 @@
               </grid>
             </children>
           </grid>
-          <grid id="79366" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="79366" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <tabbedpane title-resource-bundle="messages/AndroidBundle" title-key="android.run.configuration.logcat.tab.title"/>
@@ -258,7 +255,7 @@
               </component>
               <vspacer id="87d8e">
                 <constraints>
-                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                 </constraints>
               </vspacer>
               <component id="12392" class="javax.swing.JCheckBox" binding="myShowLogcatCheckBox">
@@ -267,6 +264,14 @@
                 </constraints>
                 <properties>
                   <text value="&amp;Show logcat automatically"/>
+                </properties>
+              </component>
+              <component id="ed4b9" class="javax.swing.JCheckBox" binding="myFilterLogcatCheckBox">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="&amp;Filter to only show output from this application"/>
                 </properties>
               </component>
             </children>
