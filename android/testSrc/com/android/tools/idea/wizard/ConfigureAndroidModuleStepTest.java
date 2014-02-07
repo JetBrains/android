@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -24,6 +25,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -115,7 +117,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_MODULE_NAME, "foo");
     myState.myModified.add(ATTR_MODULE_NAME);
     myStep.deriveValues();
-    assertEquals("com.example.foo", myState.getString(ATTR_PACKAGE_NAME));
+    assertEquals("com.example.apptitle.foo", myState.getString(ATTR_PACKAGE_NAME));
 
     resetValues();
 
@@ -339,13 +341,35 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
   }
 
   public void testComputePackageName() throws Exception {
+    myState.put(ATTR_APP_TITLE, "My Awesome App");
+
     myState.put(ATTR_MODULE_NAME, "App-Foo");
-    assertEquals("com.example.app_foo", myStep.computePackageName());
+    assertEquals("com.example.myawesomeapp.app_foo", myStep.computePackageName());
 
     myState.put(ATTR_MODULE_NAME, "$asdf$");
-    assertEquals("com.example.asdf", myStep.computePackageName());
+    assertEquals("com.example.myawesomeapp.asdf", myStep.computePackageName());
 
     myState.put(ATTR_MODULE_NAME, "App_Foo");
+    assertEquals("com.example.myawesomeapp.app_foo", myStep.computePackageName());
+
+    myState.put(ATTR_APP_TITLE, "");
     assertEquals("com.example.app_foo", myStep.computePackageName());
+  }
+
+  public void testComputePackagePrefix() {
+    myState.put(ATTR_MODULE_NAME, "");
+    myState.put(ATTR_APP_TITLE, "");
+
+    assertEquals("com.foo", myStep.computePackagePrefix("com.foo"));
+
+    myState.put(ATTR_MODULE_NAME, "app");
+    assertEquals("com.foo.", myStep.computePackagePrefix("com.foo.app"));
+
+    myState.put(ATTR_APP_TITLE, "My Cool App");
+    assertEquals("com.foo.", myStep.computePackagePrefix("com.foo.mycoolapp.app"));
+
+    myState.put(ATTR_MODULE_NAME, "");
+    assertEquals("com.foo.", myStep.computePackagePrefix("com.foo.mycoolapp.app"));
+    assertEquals("com.foo.", myStep.computePackagePrefix("com.foo.mycoolapp"));
   }
 }

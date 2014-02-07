@@ -136,6 +136,11 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
       // Show the create icons checkbox
       myModuleBuilder.myWizardState.myHidden.remove(ATTR_CREATE_ICONS);
     }
+
+    if (myModuleBuilder.myWizardState.myHidden.contains(ATTR_APP_TITLE)) {
+      // If the app title is hidden, set it to the existing app title
+      myModuleBuilder.myWizardState.put(ATTR_APP_TITLE, myProject.getName());
+    }
     // Let the other elements of the wizard update
     for (ModuleWizardStep step : mySteps) {
       step.updateStep();
