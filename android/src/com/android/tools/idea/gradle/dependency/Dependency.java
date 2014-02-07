@@ -23,9 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
-import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -42,33 +40,23 @@ public abstract class Dependency {
    */
   static final List<DependencyScope> SUPPORTED_SCOPES = Lists.newArrayList(DependencyScope.COMPILE, DependencyScope.TEST);
 
-  @NotNull private final String myName;
   @NotNull private DependencyScope myScope;
 
   /**
-   * Creates a new {@link Dependency}. This constructor sets the scope to {@link DependencyScope#COMPILE}.
-   *
-   * @param name the name of the artifact to depend on.
+   * Creates a new {@link Dependency} with {@link DependencyScope#COMPILE} scope.
    */
-  Dependency(@NotNull String name) {
-    this(name, DependencyScope.COMPILE);
+  Dependency() {
+    this(DependencyScope.COMPILE);
   }
 
   /**
    * Creates a new {@link Dependency}.
    *
-   * @param name  the name of the artifact to depend on.
    * @param scope the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  Dependency(@NotNull String name, @NotNull DependencyScope scope) throws IllegalArgumentException {
-    myName = name;
+  Dependency(@NotNull DependencyScope scope) throws IllegalArgumentException {
     setScope(scope);
-  }
-
-  @NotNull
-  public final String getName() {
-    return myName;
   }
 
   @NotNull
@@ -91,7 +79,7 @@ public abstract class Dependency {
   }
 
   @NotNull
-  public static Collection<Dependency> extractFrom(@NotNull IdeaAndroidProject androidProject) {
+  public static DependencySet extractFrom(@NotNull IdeaAndroidProject androidProject) {
     DependencySet dependencies = new DependencySet();
     Variant selectedVariant = androidProject.getSelectedVariant();
 
@@ -102,7 +90,7 @@ public abstract class Dependency {
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
     populate(dependencies, mainArtifact, DependencyScope.COMPILE);
 
-    return dependencies.getValues();
+    return dependencies;
   }
 
   private static void populate(@NotNull DependencySet dependencies,
@@ -183,51 +171,5 @@ public abstract class Dependency {
       //noinspection TestOnlyProblems
       dependencies.add(new LibraryDependency(jar, scope));
     }
-  }
-
-  @NotNull
-  public static Collection<Dependency> extractFrom(@NotNull IdeaModule module) {
-    DependencySet dependencies = new DependencySet();
-    for (IdeaDependency ideaDependency : module.getDependencies()) {
-      DependencyScope scope = parseScope(ideaDependency.getScope());
-
-      if (ideaDependency instanceof IdeaModuleDependency) {
-        IdeaModule ideaModule = ((IdeaModuleDependency)ideaDependency).getDependencyModule();
-        String moduleName = ideaModule.getName();
-        String gradlePath = ideaModule.getGradleProject().getPath();
-        Dependency dependency = new ModuleDependency(moduleName, gradlePath, scope);
-        dependencies.add(dependency);
-      }
-      else if (ideaDependency instanceof IdeaSingleEntryLibraryDependency) {
-        IdeaSingleEntryLibraryDependency ideaLibrary = (IdeaSingleEntryLibraryDependency)ideaDependency;
-        //noinspection TestOnlyProblems
-        LibraryDependency dependency = new LibraryDependency(ideaLibrary.getFile(), scope);
-        File javadoc = ideaLibrary.getJavadoc();
-        if (javadoc != null) {
-          dependency.addPath(LibraryDependency.PathType.DOC, javadoc);
-        }
-        File source = ideaLibrary.getSource();
-        if (source != null) {
-          dependency.addPath(LibraryDependency.PathType.SOURCE, source);
-        }
-        dependencies.add(dependency);
-      }
-    }
-    return dependencies.getValues();
-  }
-
-  @NotNull
-  private static DependencyScope parseScope(@Nullable IdeaDependencyScope scope) {
-    if (scope != null) {
-      String scopeAsString = scope.getScope();
-      if (scopeAsString != null) {
-        for (DependencyScope dependencyScope : DependencyScope.values()) {
-          if (scopeAsString.equalsIgnoreCase(dependencyScope.toString())) {
-            return dependencyScope;
-          }
-        }
-      }
-    }
-    return DependencyScope.COMPILE;
   }
 }
