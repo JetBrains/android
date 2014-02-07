@@ -238,7 +238,7 @@ public class CreateAvdDialog extends DialogWrapper {
       @Override
       public boolean onClick(@NotNull MouseEvent e, int clickCount) {
         try {
-          BrowserUtil.launchBrowser(url);
+          BrowserUtil.browse(url);
         }
         catch (IllegalThreadStateException ex) {
           /* not a problem */
