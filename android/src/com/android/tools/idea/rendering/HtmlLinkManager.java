@@ -18,14 +18,14 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
-import com.intellij.ide.browsers.UrlOpener;
+import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -94,7 +94,7 @@ public class HtmlLinkManager {
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
                         @Nullable RenderResult result) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
-      UrlOpener.launchBrowser(url, null, module == null ? null : module.getProject());
+      BrowserLauncher.getInstance().browse(url, null, module == null ? null : module.getProject());
     }
     else if (url.startsWith("file:")) {
       assert module != null;
