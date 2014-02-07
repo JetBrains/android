@@ -94,69 +94,87 @@ public class HtmlLinkManager {
   public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
                         @Nullable RenderResult result) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
-      UrlOpener.launchBrowser(url, null);
-    } else if (url.startsWith("file:")) {
+      UrlOpener.launchBrowser(url, null, module == null ? null : module.getProject());
+    }
+    else if (url.startsWith("file:")) {
       assert module != null;
       handleFileUrl(url, module);
-    } else if (url.startsWith(URL_REPLACE_TAGS)) {
+    }
+    else if (url.startsWith(URL_REPLACE_TAGS)) {
       assert module != null;
       assert file != null;
       handleReplaceTagsUrl(url, module, file);
-    } else if (url.equals(URL_BUILD)) {
+    }
+    else if (url.equals(URL_BUILD)) {
       assert dataContext != null;
       assert module != null;
       handleCompileModuleUrl(url, module);
-    } else if (url.equals(URL_EDIT_CLASSPATH)) {
+    }
+    else if (url.equals(URL_EDIT_CLASSPATH)) {
       assert module != null;
       handleEditClassPathUrl(url, module);
-    } else if (url.startsWith(URL_CREATE_CLASS)) {
+    }
+    else if (url.startsWith(URL_CREATE_CLASS)) {
       assert module != null && file != null;
       handleNewClassUrl(url, module);
-    } else if (url.startsWith(URL_OPEN)) {
+    }
+    else if (url.startsWith(URL_OPEN)) {
       assert module != null;
       handleOpenStackUrl(url, module);
-    } else if (url.startsWith(URL_OPEN_CLASS)) {
+    }
+    else if (url.startsWith(URL_OPEN_CLASS)) {
       assert module != null;
       handleOpenClassUrl(url, module);
-    } else if (url.equals(URL_SHOW_XML)) {
+    }
+    else if (url.equals(URL_SHOW_XML)) {
       assert module != null && file != null;
       handleShowXmlUrl(url, module, file);
-    } else if (url.startsWith(URL_SHOW_TAG)) {
+    }
+    else if (url.startsWith(URL_SHOW_TAG)) {
       assert module != null && file != null;
       handleShowTagUrl(url, module, file);
-    } else if (url.startsWith(URL_ASSIGN_FRAGMENT_URL)) {
+    }
+    else if (url.startsWith(URL_ASSIGN_FRAGMENT_URL)) {
       assert module != null && file != null;
       handleAssignFragmentUrl(url, module, file);
-    } else if (url.startsWith(URL_ASSIGN_LAYOUT_URL)) {
+    }
+    else if (url.startsWith(URL_ASSIGN_LAYOUT_URL)) {
       assert module != null && file != null;
       handleAssignLayoutUrl(url, module, file);
-    } else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
+    }
+    else if (url.equals(URL_ACTION_IGNORE_FRAGMENTS)) {
       assert result != null;
       handleIgnoreFragments(url, result);
-    } else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
+    }
+    else if (url.startsWith(URL_EDIT_ATTRIBUTE)) {
       assert result != null;
       if (module != null && file != null) {
         handleEditAttribute(url, module, file);
       }
-    } else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
+    }
+    else if (url.startsWith(URL_REPLACE_ATTRIBUTE_VALUE)) {
       assert result != null;
       if (module != null && file != null) {
         handleReplaceAttributeValue(url, module, file);
       }
-    } else if (url.startsWith(URL_DISABLE_SANDBOX)) {
+    }
+    else if (url.startsWith(URL_DISABLE_SANDBOX)) {
       assert module != null;
       handleDisableSandboxUrl(module, result);
-    } else if (url.startsWith(URL_RUNNABLE)) {
+    }
+    else if (url.startsWith(URL_RUNNABLE)) {
       Runnable linkRunnable = getLinkRunnable(url);
       if (linkRunnable != null) {
         linkRunnable.run();
       }
-    } else if (url.startsWith(URL_COMMAND)) {
+    }
+    else if (url.startsWith(URL_COMMAND)) {
       WriteCommandAction command = getLinkCommand(url);
       if (command != null) {
         command.execute();
       }
-    } else {
+    }
+    else {
       assert false : "Unexpected URL: " + url;
     }
   }
@@ -373,7 +391,7 @@ public class HtmlLinkManager {
       if (moduleInfo == null) {
         return;
       }
-      packageName = moduleInfo.getPackage();
+      packageName = moduleInfo.getPackage(false);
       if (packageName == null) {
         return;
       }
@@ -579,7 +597,7 @@ public class HtmlLinkManager {
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
       @Override
-      protected void run(Result<Void> result) throws Throwable {
+      protected void run(@NotNull Result<Void> result) throws Throwable {
         Collection<XmlTag> tags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : tags) {
           if (!tag.getName().equals(VIEW_FRAGMENT)) {
@@ -671,7 +689,7 @@ public class HtmlLinkManager {
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Assign Preview Layout", file) {
       @Override
-      protected void run(Result<Void> result) throws Throwable {
+      protected void run(@NotNull Result<Void> result) throws Throwable {
         SuppressLintIntentionAction.ensureNamespaceImported(getProject(), file, TOOLS_URI);
         Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
@@ -755,7 +773,7 @@ public class HtmlLinkManager {
 
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Set Attribute Value", file) {
       @Override
-      protected void run(Result<Void> result) throws Throwable {
+      protected void run(@NotNull Result<Void> result) throws Throwable {
         Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
         int oldValueLen = oldValue.length();
         for (XmlAttribute attribute : attributes) {
