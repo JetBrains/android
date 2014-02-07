@@ -25,12 +25,12 @@ public class AndroidComponentEntryPoint extends EntryPoint {
   }
 
   @Override
-  public boolean isEntryPoint(RefElement refElement, PsiElement psiElement) {
+  public boolean isEntryPoint(@NotNull RefElement refElement, @NotNull PsiElement psiElement) {
     return isEntryPoint(psiElement);
   }
 
   @Override
-  public boolean isEntryPoint(PsiElement psiElement) {
+  public boolean isEntryPoint(@NotNull PsiElement psiElement) {
     return ADD_ANDROID_COMPONENTS_TO_ENTRIES &&
            psiElement instanceof PsiClass &&
            AndroidUtils.isAndroidComponent((PsiClass)psiElement);
