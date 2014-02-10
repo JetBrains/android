@@ -167,7 +167,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (myIdeaAndroidProject != null) {
       return myIdeaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
     } else {
-      return new LegacySourceProvider();
+      if (myMainSourceSet == null) {
+        myMainSourceSet = new LegacySourceProvider();
+      }
+      return myMainSourceSet;
     }
   }
 
@@ -179,7 +182,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       }
     } else {
       SourceProvider mainSourceSet = getMainSourceSet();
-      if (mainSourceSet != myMainSourceSet) {
+      if (myMainIdeaSourceSet == null || mainSourceSet != myMainSourceSet) {
         myMainIdeaSourceSet = IdeaSourceProvider.create(mainSourceSet);
       }
     }
@@ -1169,14 +1172,15 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myAndroidModuleInfo;
   }
 
-  // Compatibility bridge for old (non-Gradle) projects
+  // Compatibility bridge for old (non-Gradle) projects. Also used in Gradle projects before the module has been synced.
   private class LegacySourceProvider implements SourceProvider {
     @NonNull
     @Override
     public File getManifestFile() {
-      final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(AndroidFacet.this);
+      Module module = getModule();
+      VirtualFile manifestFile = AndroidRootUtil.getFileByRelativeModulePath(module, getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
       if (manifestFile == null) {
-        VirtualFile root = AndroidRootUtil.getMainContentRoot(AndroidFacet.this);
+        VirtualFile root = !isGradleProject() ? AndroidRootUtil.getMainContentRoot(AndroidFacet.this) : null;
         if (root != null) {
           return new File(VfsUtilCore.virtualToIoFile(root), SdkConstants.ANDROID_MANIFEST_XML);
         } else {
