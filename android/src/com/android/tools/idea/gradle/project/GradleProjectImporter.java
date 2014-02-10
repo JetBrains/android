@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustom
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
@@ -187,18 +188,34 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Re-imports an existing Android-Gradle project.
+   * Re-imports an existing Android-Gradle project. If the project import is successful,
+   * {@link com.android.tools.idea.gradle.util.ProjectBuilder#generateSourcesOnly()} will be invoked at the end.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param callback called after the project has been imported.
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
+    reImportProject(project, true, callback);
+  }
+
+  /**
+   * Re-imports an existing Android-Gradle project.
+   *
+   *
+   * @param project                  the given project. This method does nothing if the project is not an Android-Gradle project.
+   * @param generateSourcesOnSuccess indicates whether the IDE should invoke Gradle to generate Java sources after a successful project
+   *                                 import.
+   * @param callback                 called after the project has been imported.
+   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   */
+  public void reImportProject(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable Callback callback)
+    throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       removeAllLibraries(project);
-      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC /* asynchronous import */, callback);
+      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, callback);
     }
     else {
       Runnable notificationTask = new Runnable() {
@@ -289,7 +306,7 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, callback);
+    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, callback);
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
@@ -385,6 +402,7 @@ public class GradleProjectImporter {
   private void doImport(@NotNull final Project project,
                         final boolean newProject,
                         @NotNull final ProgressExecutionMode progressExecutionMode,
+                        final boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
@@ -417,6 +435,9 @@ public class GradleProjectImporter {
             }
             if (callback != null) {
               callback.projectImported(project);
+            }
+            if (generateSourcesOnSuccess) {
+              ProjectBuilder.getInstance(project).generateSourcesOnly();
             }
           }
         };
