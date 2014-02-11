@@ -460,6 +460,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         setErrorHtml("The application name for most apps begins with an uppercase letter");
       }
     }
+    if (!myTemplateState.hasAttr(ATTR_PACKAGE_NAME)) {
+      myTemplateState.put(ATTR_PACKAGE_NAME, SAMPLE_PACKAGE_PREFIX + '.' + myTemplateState.getString(ATTR_MODULE_NAME));
+    }
     String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
