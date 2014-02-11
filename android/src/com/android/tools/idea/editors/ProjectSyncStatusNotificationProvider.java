@@ -31,6 +31,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,17 +59,30 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @Override
   public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
     if (GradleImportNotificationListener.isProjectImportInProgress()) {
-      return new ProjectImportInProgressNotificationPanel();
+      EditorNotificationPanel panel = new EditorNotificationPanel();
+      panel.setText("Gradle project sync in progress...");
+      return panel;
     }
     if (Projects.lastGradleSyncFailed(myProject)) {
       return new ProjectImportFailedNotificationPanel();
     }
+    ThreeState gradleSyncNeeded = Projects.isGradleSyncNeeded(myProject);
+    if (gradleSyncNeeded == ThreeState.YES || gradleSyncNeeded == ThreeState.UNSURE) {
+      return new StaleGradleModelNotificationPanel();
+    }
     return null;
   }
 
-  private static class ProjectImportInProgressNotificationPanel extends EditorNotificationPanel {
-    ProjectImportInProgressNotificationPanel() {
-      setText("Gradle project sync in progress...");
+  private class StaleGradleModelNotificationPanel extends EditorNotificationPanel {
+    StaleGradleModelNotificationPanel() {
+      setText("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+
+      createActionLabel("Sync Now", new Runnable() {
+        @Override
+        public void run() {
+          reImportProject();
+        }
+      });
     }
   }
 
@@ -79,13 +93,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       createActionLabel("Try Again", new Runnable() {
         @Override
         public void run() {
-          try {
-            GradleProjectImporter.getInstance().reImportProject(myProject, null);
-          }
-          catch (ConfigurationException ex) {
-            Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-            LOG.info(ex);
-          }
+          reImportProject();
         }
       });
 
@@ -106,6 +114,16 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
           ShowFilePathAction.openFile(logFile);
         }
       });
+    }
+  }
+
+  private void reImportProject() {
+    try {
+      GradleProjectImporter.getInstance().reImportProject(myProject, null);
+    }
+    catch (ConfigurationException ex) {
+      Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
+      LOG.info(ex);
     }
   }
 }
