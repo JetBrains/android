@@ -112,7 +112,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
                                     UpdateListener updateListener) {
-    super(state, project, sidePanelIcon, updateListener);
+    super(state, project, null, sidePanelIcon, updateListener);
   }
 
   private void initialize() {
