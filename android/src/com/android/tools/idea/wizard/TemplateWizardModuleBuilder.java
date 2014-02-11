@@ -25,6 +25,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
@@ -99,11 +100,12 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     myWizardState.convertApisToInt();
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, sidePanelIcon, this);
-    myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, sidePanelIcon, this);
-    myAssetSetStep = new AssetSetStep(myWizardState, myProject, sidePanelIcon, this);
-    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, sidePanelIcon,
-                                                  this, null);
-    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, sidePanelIcon, this);
+    myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, null, sidePanelIcon, this);
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, sidePanelIcon, this);
+    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null,
+                                                  sidePanelIcon, this, null);
+    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, null,
+                                                                sidePanelIcon, this);
 
     mySteps.add(myConfigureAndroidModuleStep);
     mySteps.add(myTemplateParameterStep);
