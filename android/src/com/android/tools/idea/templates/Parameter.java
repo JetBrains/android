@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
@@ -427,6 +428,19 @@ public class Parameter {
       return false;
     }
     for (PsiFile file : FilenameIndex.getFilesByName(project, name, GlobalSearchScope.projectScope(project))) {
+      PsiDirectory containingDirectory = file.getContainingDirectory();
+      if (containingDirectory != null && containingDirectory.getName().startsWith(resourceType)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean existsResourceFile(@Nullable Module module, @NotNull String resourceType, @Nullable String name) {
+    if (name == null || name.isEmpty() || module == null) {
+      return false;
+    }
+    for (PsiFile file : FilenameIndex.getFilesByName(module.getProject(), name, GlobalSearchScope.moduleScope(module))) {
       PsiDirectory containingDirectory = file.getContainingDirectory();
       if (containingDirectory != null && containingDirectory.getName().startsWith(resourceType)) {
         return true;

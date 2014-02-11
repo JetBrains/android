@@ -53,7 +53,7 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
   private Tree myOutputPreviewTree;
   private JLabel myResDirLabel;
 
-  private Module myModule;
+  private Module mySelectedModule;
   private Module[] myModuleArray;
   private boolean myComputeNewSourceSet;
 
@@ -67,10 +67,9 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
                                   @NotNull Project project,
                                   @Nullable Icon sidePanelIcon,
                                   UpdateListener updateListener,
-                                  Module module) {
-    super(state, project, sidePanelIcon, updateListener);
+                                  @Nullable Module module) {
+    super(state, project, module, sidePanelIcon, updateListener);
 
-    myModule = module;
     myAssetGenerator = new AssetStudioAssetGenerator(state);
 
     init();
@@ -132,14 +131,14 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
   @Override
   public void updateParams() {
     super.updateParams();
-    myModule = myModuleArray[myModuleComboBox.getSelectedIndex()];
+    mySelectedModule = myModuleArray[myModuleComboBox.getSelectedIndex()];
   }
 
   @Override
   public void deriveValues() {
     if (myIdsWithNewValues.contains(ATTR_TARGET_MODULE)) {
       // Populate the Build Flavor and Build Type lists
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      AndroidFacet facet = AndroidFacet.getInstance(mySelectedModule);
       if (facet == null) {
         // Clear variant list
         myVariantComboBox.setModel(new DefaultComboBoxModel());
@@ -252,7 +251,7 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
       return false;
     }
 
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    AndroidFacet facet = AndroidFacet.getInstance(mySelectedModule);
     if (facet == null) {
       setErrorHtml("The selected module does not have an Android Facet. Please choose an Android module");
       return false;
