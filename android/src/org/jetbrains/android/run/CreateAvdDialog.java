@@ -139,10 +139,13 @@ public class CreateAvdDialog extends DialogWrapper {
     return null;
   }
 
-  private static boolean containsDefaultSkinWithSuffix(@NotNull String[] skinNames) {
-    for (String skinName : skinNames) {
-      if (skinName != null && !skinName.equals(DEFAULT_SKIN) && skinName.startsWith(DEFAULT_SKIN)) {
-        return true;
+  private static boolean containsDefaultSkinWithSuffix(@NotNull File[] skins) {
+    for (File skin : skins) {
+      if (skin != null) {
+        String skinName = skin.getName();
+        if (!skinName.equals(DEFAULT_SKIN) && skinName.startsWith(DEFAULT_SKIN)) {
+          return true;
+        }
       }
     }
     return false;
@@ -175,13 +178,14 @@ public class CreateAvdDialog extends DialogWrapper {
         if (selected != null) {
           IAndroidTarget target = (IAndroidTarget)selected;
           List<String> skinsToAdd = new ArrayList<String>();
-          String[] skins = target.getSkins();
-          for (String skin : skins) {
+          File[] skins = target.getSkins();
+          for (File skin : skins) {
             // skip default HVGA skin without suffix
-            if (DEFAULT_SKIN.equals(skin) && containsDefaultSkinWithSuffix(skins)) {
+            String skinName = skin.getName();
+            if (DEFAULT_SKIN.equals(skinName) && containsDefaultSkinWithSuffix(skins)) {
               continue;
             }
-            skinsToAdd.add(skin);
+            skinsToAdd.add(skinName);
           }
           mySkinField.setModel(new CollectionComboBoxModel(skinsToAdd, null));
 
@@ -359,13 +363,14 @@ public class CreateAvdDialog extends DialogWrapper {
     }
     super.doOKAction();
     IAndroidTarget selectedTarget = (IAndroidTarget)myTargetBox.getSelectedItem();
-    String skin = (String)mySkinField.getSelectedItem();
+    String skinName = (String) mySkinField.getSelectedItem();
     ISystemImage sysImg = (ISystemImage)myTagAbiCombo.getSelectedItem();
     String sdCard = getSdCardParameter();
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
     myCreatedAvd = myAvdManager.createAvd(avdFolder, avdName, selectedTarget,
                                           sysImg.getTag(), sysImg.getAbiType(),
-                                          skin, sdCard, null, true, false, false, log);
+                                          null /*skinFolder*/, skinName,
+                                          sdCard, null, true, false, false, log);
     if (log.getErrorMessage().length() > 0) {
       Messages.showErrorDialog(myProject, log.getErrorMessage(), AndroidBundle.message("android.avd.error.title"));
     }
