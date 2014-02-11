@@ -166,7 +166,8 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
       return NONE;
     }
     ResourceType type = AndroidPsiUtils.getResourceType(expression);
-    if (type == null || !(type == ResourceType.STRING || type == ResourceType.DIMEN || type == ResourceType.INTEGER)) {
+    if (type == null || !(type == ResourceType.STRING || type == ResourceType.DIMEN || type == ResourceType.INTEGER ||
+        type == ResourceType.PLURALS)) {
       return NONE;
     }
 
@@ -182,7 +183,8 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
             (methodName.equals("getString") ||
              methodName.equals("getText") ||
              methodName.equals("getInteger") ||
-             methodName.startsWith("getDimension"))) {
+             methodName.startsWith("getDimension") ||
+             methodName.startsWith("getQuantityString"))) {
           // This seems to be an IntelliJ bug; it complains that type can be null, but it clearly can not
           // (and if I insert assert type != null it correctly says that the assertion is not necessary)
           //noinspection ConstantConditions
