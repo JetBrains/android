@@ -110,8 +110,8 @@ public class AppResourceRepository extends MultiResourceRepository {
                                                                  List<LocalResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
     LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(facet, true);
-    repositories.add(resources);
     repositories.addAll(libraries);
+    repositories.add(resources);
     return repositories;
   }
 
