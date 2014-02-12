@@ -111,11 +111,11 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
     super.update();
   }
 
-  public void createModule() {
+  public void createModule(final boolean performGradleSyncAfter) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        myModuleBuilder.createModule();
+        myModuleBuilder.createModule(performGradleSyncAfter);
       }
     });
   }
@@ -124,17 +124,21 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
   public void templateChanged(String templateName) {
     myModuleBuilder.myConfigureAndroidModuleStep.refreshUiFromParameters();
     if (templateName.equals(LIB_NAME)) {
+      myModuleBuilder.myWizardState.myIsAndroidModule = true;
       myModuleBuilder.myWizardState.put(ATTR_IS_LIBRARY_MODULE, true);
       myModuleBuilder.myWizardState.put(ATTR_IS_LAUNCHER, false);
       myModuleBuilder.myWizardState.put(ATTR_CREATE_ICONS, false);
       // Hide the create icons checkbox
       myModuleBuilder.myWizardState.myHidden.add(ATTR_CREATE_ICONS);
     } else if (templateName.equals(APP_NAME)) {
+      myModuleBuilder.myWizardState.myIsAndroidModule = true;
       myModuleBuilder.myWizardState.put(ATTR_IS_LIBRARY_MODULE, false);
       myModuleBuilder.myWizardState.put(ATTR_IS_LAUNCHER, true);
       myModuleBuilder.myWizardState.put(ATTR_CREATE_ICONS, true);
       // Show the create icons checkbox
       myModuleBuilder.myWizardState.myHidden.remove(ATTR_CREATE_ICONS);
+    } else {
+      myModuleBuilder.myWizardState.myIsAndroidModule = false;
     }
 
     if (myModuleBuilder.myWizardState.myHidden.contains(ATTR_APP_TITLE)) {
