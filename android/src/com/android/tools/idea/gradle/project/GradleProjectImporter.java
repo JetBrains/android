@@ -412,8 +412,9 @@ public class GradleProjectImporter {
   private void doImport(@NotNull final Project project,
                         final boolean newProject,
                         @NotNull final ProgressExecutionMode progressExecutionMode,
-                        final boolean generateSourcesOnSuccess,
+                        boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
+    PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -445,9 +446,6 @@ public class GradleProjectImporter {
             }
             if (callback != null) {
               callback.projectImported(project);
-            }
-            if (generateSourcesOnSuccess) {
-              ProjectBuilder.getInstance(project).generateSourcesOnly();
             }
           }
         };

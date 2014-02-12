@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
@@ -44,19 +45,23 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.util.List;
 
-public class ProjectStructureSanitizer {
+public class PostProjectSyncTasksExecutor {
   @NotNull private final Project myProject;
 
+  private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
+
+  private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+
   @NotNull
-  public static ProjectStructureSanitizer getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectStructureSanitizer.class);
+  public static PostProjectSyncTasksExecutor getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, PostProjectSyncTasksExecutor.class);
   }
 
-  public ProjectStructureSanitizer(@NotNull Project project) {
+  public PostProjectSyncTasksExecutor(@NotNull Project project) {
     myProject = project;
   }
 
-  public void cleanUp() {
+  public void onProjectSetupCompletion() {
     ensureAllModulesHaveSdk();
     Projects.enforceExternalBuild(myProject);
 
@@ -72,6 +77,13 @@ public class ProjectStructureSanitizer {
     GradleImportNotificationListener.updateLastSyncTimestamp(myProject);
     EditorNotifications.getInstance(myProject).updateAllNotifications();
     ProjectResourceRepository.moduleRootsChanged(myProject);
+
+    if (myGenerateSourcesAfterSync) {
+      ProjectBuilder.getInstance(myProject).generateSourcesOnly();
+    } else {
+      // set default value back.
+      myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
+    }
   }
 
   private void ensureAllModulesHaveSdk() {
@@ -196,5 +208,9 @@ public class ProjectStructureSanitizer {
         modifiableModel.commit();
       }
     }
+  }
+
+  public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
+    myGenerateSourcesAfterSync = generateSourcesAfterSync;
   }
 }
