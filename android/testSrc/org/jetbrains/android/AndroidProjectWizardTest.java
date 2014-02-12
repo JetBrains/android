@@ -45,20 +45,6 @@ public class AndroidProjectWizardTest extends NewProjectWizardTestCase {
 
   private static final String ANDROID = "Android";
 
-  public void testCreateProject() throws Exception {
-    createProjectFromTemplate(AndroidProjectTemplatesFactory.ANDROID, "Application Module", new Consumer<ModuleWizardStep>() {
-      @Override
-      public void consume(ModuleWizardStep step) {
-        if (step instanceof AndroidModuleWizardStep) {
-          ProjectBuilder builder = myWizard.getProjectBuilder();
-          assertTrue(builder instanceof AndroidModuleBuilder);
-          String name = ((AndroidModuleBuilder)builder).getName();
-          assertTrue(name, StringUtil.isNotEmpty(name));
-        }
-      }
-    });
-  }
-
   public void testCreateLibrary() throws Exception {
     createProjectFromTemplate(AndroidProjectTemplatesFactory.ANDROID, AndroidProjectTemplatesFactory.LIBRARY_MODULE,
                               new Consumer<ModuleWizardStep>() {
