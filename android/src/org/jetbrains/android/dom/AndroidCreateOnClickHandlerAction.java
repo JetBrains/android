@@ -9,6 +9,7 @@ import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
@@ -169,6 +170,11 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
                                                  @NotNull final PsiClass psiClass,
                                                  @NotNull final String methodName,
                                                  @NotNull final String methodParamType) {
+    if (!AndroidUtils.isIdentifier(methodName)) {
+      Messages.showErrorDialog(project, String.format("%1$s is not a valid Java identifier/method name.", methodName), "Invalid Name");
+      return;
+    }
+
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
