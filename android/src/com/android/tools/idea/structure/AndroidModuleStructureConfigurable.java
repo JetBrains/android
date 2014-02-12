@@ -16,10 +16,12 @@
 
 package com.android.tools.idea.structure;
 
+import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -277,7 +279,11 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
   }
 
   private void addModule() {
-    myContext.myModulesConfigurator.addModule(myTree, false);
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      AndroidNewModuleAction.createModule(myProject, false);
+    } else {
+      myContext.myModulesConfigurator.addModule(myTree, false);
+    }
 
     // Template instantiation is already being run via invokeLater. When it's done, pick up the changes to settings.gradle and reload
     // the tree.
