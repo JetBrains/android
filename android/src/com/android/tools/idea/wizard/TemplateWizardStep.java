@@ -193,7 +193,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
     myTemplateState.convertApisToInt();
 
-    JComponent focusedComponent = (JComponent)KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+    Component focusedComponent = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
     setDescriptionHtml("");
     setErrorHtml("");
     for (String paramName : myParamFields.keySet()) {
