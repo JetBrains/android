@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.components.*;
@@ -33,7 +34,7 @@ import java.util.List;
     )}
 )
 public class AndroidGradleBuildConfiguration implements PersistentStateComponent<AndroidGradleBuildConfiguration> {
-  public boolean USE_EXPERIMENTAL_FASTER_BUILD = true;
+  public boolean USE_EXPERIMENTAL_FASTER_BUILD = AndroidStudioSpecificInitializer.isAndroidStudio();
   public String COMMAND_LINE_OPTIONS = "";
 
   public static AndroidGradleBuildConfiguration getInstance(Project project) {

@@ -198,7 +198,8 @@ public class GradleBuildFileTest extends IdeaTestCase {
         file.setValue(closure, BuildFileKey.STORE_FILE, replacementFile);
       }
     });
-    String expected = getSimpleTestFile().replaceAll("debug.keystore", "foo.keystore");
+    // We always expect system independent paths in build.gradle files.
+    String expected = getSimpleTestFile().replaceAll("debug.keystore", "abc/def/foo.keystore");
     assertContents(file, expected);
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.STORE_FILE));
   }
@@ -213,7 +214,8 @@ public class GradleBuildFileTest extends IdeaTestCase {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, replacementFile);
       }
     });
-    String expected = getSimpleTestFile().replaceAll("proguard-flavor1.txt", "foo.txt");
+    // We always expect system independent paths in build.gradle files.
+    String expected = getSimpleTestFile().replaceAll("proguard-flavor1.txt", "abc/def/foo.txt");
     assertContents(file, expected);
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.PROGUARD_FILE));
   }

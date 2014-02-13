@@ -32,4 +32,15 @@
   <string name="string4">String 4</string>
   <integer name="max_action_buttons">5</integer>
   <integer name="login_pane_width_percent">65</integer>
+  <string name="hello">Hello!</string>
+  <plurals name="plural1">
+    <item quantity="one">@string/hello</item>
+    <item quantity="few">@string/hello</item>
+    <item quantity="other">@string/hello</item>
+  </plurals>
+  <plurals name="plural2">
+    <item quantity="one">Quantity One</item>
+    <item quantity="few">Quantity Few</item>
+  </plurals>
+
 </resources>

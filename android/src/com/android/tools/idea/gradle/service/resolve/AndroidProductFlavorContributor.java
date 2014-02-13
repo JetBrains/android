@@ -13,24 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.service.resolve;
 
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
+import com.android.builder.model.ProductFlavor;
+import org.jetbrains.plugins.gradle.service.resolve.GradleSimpleContributor;
 
-public class ProjectStructureSanitizer {
-  @NotNull private final Project myProject;
-
-  @NotNull
-  public static ProjectStructureSanitizer getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectStructureSanitizer.class);
-  }
-
-  public ProjectStructureSanitizer(@NotNull Project project) {
-    myProject = project;
-  }
-
-  public void cleanUp() {
+public class AndroidProductFlavorContributor extends GradleSimpleContributor {
+  public AndroidProductFlavorContributor() {
+    super("defaultConfig", ProductFlavor.class.getCanonicalName());
   }
 }

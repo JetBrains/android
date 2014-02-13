@@ -71,9 +71,32 @@ public class AndroidRootUtil {
     return null;
   }
 
+  /**
+   * Returns the main manifest file of the module.
+   *
+   * @deprecated Modules can have multiple manifests. If you really want the main manifest
+   *   of the module, use {@link #getPrimaryManifestFile(AndroidFacet)}, but to test if
+   *   a given file is a manifest, or to process all of them, use
+   *   {@link IdeaSourceProvider#isManifestFile(AndroidFacet, VirtualFile)} or
+   *   {@link IdeaSourceProvider#getManifestFiles(AndroidFacet)}.
+   */
   @Nullable
+  @Deprecated
   public static VirtualFile getManifestFile(@NotNull AndroidFacet facet) {
+    if (facet.isGradleProject()) {
+      return facet.getMainIdeaSourceSet().getManifestFile();
+    }
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
+  }
+
+  /**
+   * Returns the main manifest file of the module. Note that a module can have multiple
+   * manifests so only use this if you really know you need to only look at the main manifests.
+   * To look at all manifests, use  {@link IdeaSourceProvider#getManifestFiles(AndroidFacet)}.
+   */
+  @Nullable
+  public static VirtualFile getPrimaryManifestFile(@NotNull AndroidFacet facet) {
+    return facet.getMainIdeaSourceSet().getManifestFile();
   }
 
   @Nullable
@@ -86,7 +109,7 @@ public class AndroidRootUtil {
   public static VirtualFile getManifestFileForCompiler(@NotNull AndroidFacet facet) {
     return facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST
            ? getCustomManifestFileForCompiler(facet)
-           : getManifestFile(facet);
+           : getPrimaryManifestFile(facet);
   }
 
   /** @deprecated You must use {@link AndroidFacet#getAllResourceDirectories()} instead */
@@ -404,7 +427,7 @@ public class AndroidRootUtil {
     if (contentRoots.length == 1) {
       return contentRoots[0];
     }
-    final VirtualFile manifestFile = getManifestFile(facet);
+    final VirtualFile manifestFile = getPrimaryManifestFile(facet);
     if (manifestFile != null) {
       for (VirtualFile root : contentRoots) {
         if (VfsUtilCore.isAncestor(root, manifestFile, true)) {

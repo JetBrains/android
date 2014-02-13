@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
@@ -63,39 +64,52 @@ public final class Projects {
   }
 
   /**
-   * Indicates whether a project sync with Gradle is needed. A sync is usually needed when a build.gradle or settings.gradle file has been
-   * updated <b>after</b> the last project sync was performed.
+   * Indicates whether a project sync with Gradle is needed. A Gradle sync is usually needed when a build.gradle or settings.gradle file has
+   * been updated <b>after</b> the last project sync was performed.
    *
    * @param project the given project.
    * @return {@code YES} if a sync with Gradle is needed, {@code FALSE} otherwise, or {@code UNSURE} If the timestamp of the last Gradle
-   * sync cannot be found.
+   *         sync cannot be found.
    */
+  @NotNull
   public static ThreeState isGradleSyncNeeded(@NotNull Project project) {
-    if (GradleImportNotificationListener.isProjectImportInProgress()) {
-      return ThreeState.NO;
-    }
     long lastGradleSyncTimestamp = GradleImportNotificationListener.getLastGradleSyncTimestamp(project);
     if (lastGradleSyncTimestamp < 0) {
       // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
       return ThreeState.UNSURE;
     }
+    return isGradleSyncNeeded(project, lastGradleSyncTimestamp) ? ThreeState.YES : ThreeState.NO;
+  }
 
-    File settingsFilePath = new File(project.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
-    if (settingsFilePath.exists() && settingsFilePath.lastModified() > lastGradleSyncTimestamp) {
-      return ThreeState.YES;
+  /**
+   * Indicates whether a project sync with Gradle is needed if changes to build.gradle or settings.gradle files were made after the given
+   * time.
+   *
+   * @param project               the given project.
+   * @param referenceTimeInMillis the given time, in milliseconds.
+   * @return {@code true} if a sync with Gradle is needed, {@code false} otherwise.
+   * @throws AssertionError if the given time is less than or equal to zero.
+   */
+  public static boolean isGradleSyncNeeded(@NotNull Project project, long referenceTimeInMillis) {
+    assert referenceTimeInMillis > 0;
+    if (GradleImportNotificationListener.isProjectImportInProgress()) {
+      return false;
     }
-
+    File settingsFilePath = new File(project.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
+    if (settingsFilePath.exists() && settingsFilePath.lastModified() > referenceTimeInMillis) {
+      return true;
+    }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(module);
-      if (gradleBuildFile != null) {
-        File gradleBuildFilePath = VfsUtilCore.virtualToIoFile(gradleBuildFile);
-        if (gradleBuildFilePath.lastModified() > lastGradleSyncTimestamp) {
-          return ThreeState.YES;
+      VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+      if (buildFile != null) {
+        File buildFilePath = VfsUtilCore.virtualToIoFile(buildFile);
+        if (buildFilePath.lastModified() > referenceTimeInMillis) {
+          return true;
         }
       }
     }
-    return ThreeState.NO;
+    return false;
   }
 
   /**
@@ -210,9 +224,13 @@ public final class Projects {
    *
    * @param project the given project. This method does not do anything if the given project is not a Gradle-based project.
    */
-  public static void ensureExternalBuildIsEnabledForGradleProject(@NotNull Project project) {
+  public static void enforceExternalBuild(@NotNull Project project) {
     if (isGradleProject(project)) {
       // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
+      if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = false;
+      }
+
       CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
       boolean wasUsingExternalMake = workspaceConfiguration.useOutOfProcessBuild();
       if (!wasUsingExternalMake) {

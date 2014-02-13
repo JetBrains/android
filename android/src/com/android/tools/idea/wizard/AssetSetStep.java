@@ -33,6 +33,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorPanel;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,10 +45,10 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.Timer;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
 
@@ -117,12 +119,16 @@ public class AssetSetStep extends TemplateWizardStep {
   protected AssetType mySelectedAssetType;
   private boolean myInitialized;
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
+  private final MergingUpdateQueue myUpdateQueue;
+  private final Map<String, Map<String, BufferedImage>> myImageMap = new ConcurrentHashMap<String, Map<String, BufferedImage>>();
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
-  public AssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
-    super(state, project, sidePanelIcon, updateListener);
+  public AssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Module module,
+                      @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
+    super(state, project, module, sidePanelIcon, updateListener);
     myAssetGenerator = new AssetStudioAssetGenerator(state);
 
+    myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, project, null, false);
     register(ATTR_TEXT, myText);
     register(ATTR_SCALING, myCropRadioButton, Scaling.CROP);
     register(ATTR_SCALING, myCenterRadioButton, Scaling.CENTER);
@@ -181,6 +187,7 @@ public class AssetSetStep extends TemplateWizardStep {
       hide(myChooseClipart, myChooseClipartLabel, myImageFile, myImageFileLabel);
       show(myText, myTextLabel, myFontFamily, myFontFamilyLabel, myBackgroundColor, myBackgroundColorLabel, myForegroundColor,
            myForegroundColorLabel);
+      myFontFamily.setSelectedItem(myTemplateState.getString(ATTR_FONT));
     }
 
     // Asset Type Combo Box
@@ -190,9 +197,12 @@ public class AssetSetStep extends TemplateWizardStep {
       if (selectedAssetType != null) {
         switch (selectedAssetType) {
           case LAUNCHER:
-            hide(myChooseThemeComboBox, myChooseThemeLabel, myResourceNameLabel, myResourceNameField, myVersionPanel);
-            show(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel, myDpiPanel);
-            myTemplateState.put(ATTR_ASSET_NAME, "icon");
+            hide(myChooseThemeComboBox, myChooseThemeLabel, myVersionPanel);
+            show(myForegroundScalingLabel, myScalingPanel, myShapeLabel, myShapePanel, myDpiPanel,
+                 myResourceNameLabel, myResourceNameField);
+            if (!myTemplateState.myModified.contains(ATTR_ASSET_NAME)) {
+              myTemplateState.put(ATTR_ASSET_NAME, "icon");
+            }
             break;
           case ACTIONBAR:
             show(myResourceNameField, myResourceNameLabel);
@@ -236,59 +246,81 @@ public class AssetSetStep extends TemplateWizardStep {
       return false;
     }
 
-    myFontFamily.setSelectedItem(myTemplateState.getString(ATTR_FONT));
 
-    try {
-      Map<String, Map<String, BufferedImage>> imageMap = myAssetGenerator.generateImages(true);
-
-
-      if (mySelectedAssetType == null) {
-        return false;
-      }
-
-      String assetName = myTemplateState.getString(ATTR_ASSET_NAME);
-      if (drawableExists(assetName)) {
-        setErrorHtml(String.format("A drawable resource named %s already exists and will be overwritten.", assetName));
-      }
-
-      if (mySelectedAssetType.equals(AssetType.NOTIFICATION)) {
-        final BufferedImage v9_mdpi = getImage(imageMap, V9, Density.MEDIUM);
-        final BufferedImage v9_hdpi = getImage(imageMap, V9, Density.HIGH);
-        final BufferedImage v9_xhdpi = getImage(imageMap, V9, Density.XHIGH);
-        final BufferedImage v9_xxhdpi = getImage(imageMap, V9, Density.XXHIGH);
-        setIconOrClear(myV9MdpiPreview, v9_mdpi);
-        setIconOrClear(myV9HdpiPreview, v9_hdpi);
-        setIconOrClear(myV9XHdpiPreview, v9_xhdpi);
-        setIconOrClear(myV9XXHdpiPreview, v9_xxhdpi);
-
-        final BufferedImage v11_mdpi = getImage(imageMap, V11, Density.MEDIUM);
-        final BufferedImage v11_hdpi = getImage(imageMap, V11, Density.HIGH);
-        final BufferedImage v11_xhdpi = getImage(imageMap, V11, Density.XHIGH);
-        final BufferedImage v11_xxhdpi = getImage(imageMap, V11, Density.XXHIGH);
-        setIconOrClear(myV11MdpiPreview, v11_mdpi);
-        setIconOrClear(myV11HdpiPreview, v11_hdpi);
-        setIconOrClear(myV11XHdpiPreview, v11_xhdpi);
-        setIconOrClear(myV11XXHdpiPreview, v11_xxhdpi);
-
-      } else {
-        final BufferedImage mdpi = getImage(imageMap, Density.MEDIUM.getResourceValue());
-        final BufferedImage hdpi = getImage(imageMap, Density.HIGH.getResourceValue());
-        final BufferedImage xhdpi = getImage(imageMap, Density.XHIGH.getResourceValue());
-        final BufferedImage xxhdpi = getImage(imageMap, Density.XXHIGH.getResourceValue());
-
-        setIconOrClear(myMdpiPreview, mdpi);
-        setIconOrClear(myHdpiPreview, hdpi);
-        setIconOrClear(myXHdpiPreview, xhdpi);
-        setIconOrClear(myXXHdpiPreview, xxhdpi);
-      }
-
-      myUpdateListener.update();
-      return true;
+    String assetName = myTemplateState.getString(ATTR_ASSET_NAME);
+    if (drawableExists(assetName)) {
+      setErrorHtml(String.format("A drawable resource named %s already exists and will be overwritten.", assetName));
     }
-    catch (ImageGeneratorException e) {
-      setErrorHtml(e.getMessage());
-      return false;
+
+    requestPreviewUpdate();
+    return true;
+  }
+
+  /**
+   * (Re)schedule the background task which updates the preview images.
+   */
+  private void requestPreviewUpdate() {
+    myUpdateQueue.cancelAllUpdates();
+    myUpdateQueue.queue(new Update("update") {
+      @Override
+      public void run() {
+        try {
+          myAssetGenerator.generateImages(myImageMap, true, true);
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              updatePreviewImages();
+            }
+          });
+        } catch (final ImageGeneratorException e) {
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              setErrorHtml(e.getMessage());
+            }
+          });
+        }
+      }
+    });
+  }
+
+  private void updatePreviewImages() {
+    if (mySelectedAssetType == null || myImageMap == null) {
+      return;
     }
+
+    if (mySelectedAssetType.equals(AssetType.NOTIFICATION)) {
+      final BufferedImage v9_mdpi = getImage(myImageMap, V9, Density.MEDIUM);
+      final BufferedImage v9_hdpi = getImage(myImageMap, V9, Density.HIGH);
+      final BufferedImage v9_xhdpi = getImage(myImageMap, V9, Density.XHIGH);
+      final BufferedImage v9_xxhdpi = getImage(myImageMap, V9, Density.XXHIGH);
+      setIconOrClear(myV9MdpiPreview, v9_mdpi);
+      setIconOrClear(myV9HdpiPreview, v9_hdpi);
+      setIconOrClear(myV9XHdpiPreview, v9_xhdpi);
+      setIconOrClear(myV9XXHdpiPreview, v9_xxhdpi);
+
+      final BufferedImage v11_mdpi = getImage(myImageMap, V11, Density.MEDIUM);
+      final BufferedImage v11_hdpi = getImage(myImageMap, V11, Density.HIGH);
+      final BufferedImage v11_xhdpi = getImage(myImageMap, V11, Density.XHIGH);
+      final BufferedImage v11_xxhdpi = getImage(myImageMap, V11, Density.XXHIGH);
+      setIconOrClear(myV11MdpiPreview, v11_mdpi);
+      setIconOrClear(myV11HdpiPreview, v11_hdpi);
+      setIconOrClear(myV11XHdpiPreview, v11_xhdpi);
+      setIconOrClear(myV11XXHdpiPreview, v11_xxhdpi);
+
+    } else {
+      final BufferedImage mdpi = getImage(myImageMap, Density.MEDIUM.getResourceValue());
+      final BufferedImage hdpi = getImage(myImageMap, Density.HIGH.getResourceValue());
+      final BufferedImage xhdpi = getImage(myImageMap, Density.XHIGH.getResourceValue());
+      final BufferedImage xxhdpi = getImage(myImageMap, Density.XXHIGH.getResourceValue());
+
+      setIconOrClear(myMdpiPreview, mdpi);
+      setIconOrClear(myHdpiPreview, hdpi);
+      setIconOrClear(myXHdpiPreview, xhdpi);
+      setIconOrClear(myXXHdpiPreview, xxhdpi);
+    }
+
+    myUpdateListener.update();
   }
 
   private static void setIconOrClear(@NotNull ImageComponent component, @Nullable BufferedImage image) {
@@ -414,7 +446,8 @@ public class AssetSetStep extends TemplateWizardStep {
     }
 
 
-    if (drawableExists(resourceName)) {
+    // It's unusual to have > 1 launcher icon, don't fix the name for launcher icons.
+    if (drawableExists(resourceName) && mySelectedAssetType != AssetType.LAUNCHER) {
       // While uniqueness isn't satisfied, increment number and add to end
       int i = 2;
       while (drawableExists(resourceName + Integer.toString(i))) {
@@ -458,7 +491,7 @@ public class AssetSetStep extends TemplateWizardStep {
   }
 
   private boolean drawableExists(String resourceName) {
-    return Parameter.existsResourceFile(myProject, SdkConstants.FD_RES_DRAWABLE, resourceName + SdkConstants.DOT_PNG);
+    return Parameter.existsResourceFile(myModule, SdkConstants.FD_RES_DRAWABLE, resourceName + SdkConstants.DOT_PNG);
   }
 
   @Override

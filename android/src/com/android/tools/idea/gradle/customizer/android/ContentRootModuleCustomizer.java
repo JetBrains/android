@@ -15,129 +15,161 @@
  */
 package com.android.tools.idea.gradle.customizer.android;
 
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.project.AndroidContentRoot;
-import com.android.tools.idea.gradle.project.AndroidContentRoot.ContentRootStorage;
-import com.google.common.base.Preconditions;
-import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
+import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.model.JpsElement;
 import org.jetbrains.jps.model.java.JavaResourceRootType;
-import org.jetbrains.jps.model.java.JavaSourceRootProperties;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
-import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
+import java.util.Collection;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class ContentRootModuleCustomizer implements AndroidModuleCustomizer {
-  /**
-   * Sets the content roots of the given IDEA module based on the settings of the given Android-Gradle project.
-   *
-   * @param module             module to customize.
-   * @param project            project that owns the module to customize.
-   * @param androidProject the imported Android-Gradle project.
-   */
+public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject> {
+  // TODO: Retrieve this information from Gradle.
+  private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
+    // Note that build/exploded-bundles and build/exploded-aar should *not* be excluded
+    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp", "res"};
+
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
-    if (androidProject == null) {
-      return;
-    }
-    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
-    ModifiableRootModel model = moduleRootManager.getModifiableModel();
-
-    final ContentEntry contentEntry = findMatchingContentEntry(model, androidProject);
-    if (contentEntry == null) {
-      model.dispose();
-      return;
-    }
-    try {
-      contentEntry.clearSourceFolders();
-      storePaths(contentEntry, androidProject);
-    }
-    finally {
-      model.commit();
-    }
-  }
-
-  @Nullable
-  private static ContentEntry findMatchingContentEntry(@NotNull ModifiableRootModel model, @NotNull IdeaAndroidProject ideaAndroidProject) {
+  @NotNull
+  protected ContentEntry findOrCreateContentEntry(@NotNull ModifiableRootModel model, @NotNull IdeaAndroidProject androidProject) {
     ContentEntry[] contentEntries = model.getContentEntries();
-    if (contentEntries.length == 0) {
-      return null;
-    }
-    VirtualFile rootDir = ideaAndroidProject.getRootDir();
-    for (ContentEntry contentEntry : contentEntries) {
-      VirtualFile contentEntryFile = contentEntry.getFile();
-      if (rootDir.equals(contentEntryFile)) {
-        return contentEntry;
+    VirtualFile rootDir = androidProject.getRootDir();
+    if (contentEntries.length > 0) {
+      for (ContentEntry contentEntry : contentEntries) {
+        VirtualFile contentEntryFile = contentEntry.getFile();
+        if (rootDir.equals(contentEntryFile)) {
+          return contentEntry;
+        }
       }
     }
-    return null;
+    return model.addContentEntry(rootDir);
   }
 
-  private static void storePaths(@NotNull final ContentEntry contentEntry, @NotNull IdeaAndroidProject ideaAndroidProject) {
-    ContentRootStorage storage = new ContentRootStorage() {
-      @Override
-      @NotNull
-      public String getRootDirPath() {
-        VirtualFile file = Preconditions.checkNotNull(contentEntry.getFile());
-        return file.getPath();
+  @Override
+  protected void setUpContentEntry(@NotNull ContentEntry contentEntry, @NotNull IdeaAndroidProject androidProject) {
+    Variant selectedVariant = androidProject.getSelectedVariant();
+
+    AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+    addSourceFolders(contentEntry, mainArtifact, false);
+
+    AndroidArtifact testArtifact = androidProject.findInstrumentationTestArtifactInSelectedVariant();
+    if (testArtifact != null) {
+      addSourceFolders(contentEntry, testArtifact, true);
+    }
+
+    AndroidProject delegate = androidProject.getDelegate();
+
+    for (String flavorName : selectedVariant.getProductFlavors()) {
+      ProductFlavorContainer flavor = androidProject.findProductFlavor(flavorName);
+      if (flavor != null) {
+        addSourceFolder(contentEntry, flavor);
       }
+    }
 
-      @Override
-      public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File dir) {
-        if (sourceType.equals(ExternalSystemSourceType.EXCLUDED)) {
-          return;
-        }
+    String buildTypeName = selectedVariant.getBuildType();
+    BuildTypeContainer buildTypeContainer = androidProject.findBuildType(buildTypeName);
+    if (buildTypeContainer != null) {
+      addSourceFolder(contentEntry, buildTypeContainer.getSourceProvider(), false);
+    }
 
-        String dirPath = FileUtil.toSystemIndependentName(dir.getPath());
-        String url = VfsUtilCore.pathToUrl(dirPath);
-        if (sourceType.equals(ExternalSystemSourceType.SOURCE)) {
-          storePath(url, JavaSourceRootType.SOURCE, false);
-        }
-        else if (sourceType.equals(ExternalSystemSourceType.SOURCE_GENERATED)) {
-          storePath(url, JavaSourceRootType.SOURCE, true);
-        }
-        else if (sourceType.equals(ExternalSystemSourceType.RESOURCE)) {
-          storePath(url, JavaResourceRootType.RESOURCE, false);
-        }
-        else if (sourceType.equals(ExternalSystemSourceType.TEST)) {
-          storePath(url, JavaSourceRootType.TEST_SOURCE, false);
-        }
-        else if (sourceType.equals(ExternalSystemSourceType.TEST_GENERATED)) {
-          storePath(url, JavaSourceRootType.TEST_SOURCE, true);
-        }
-        else if (sourceType.equals(ExternalSystemSourceType.TEST_RESOURCE)) {
-          storePath(url, JavaResourceRootType.TEST_RESOURCE, false);
-        }
+    ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
+    addSourceFolder(contentEntry, defaultConfig);
+
+    addExcludedOutputFolders(contentEntry);
+  }
+
+  private void addSourceFolders(@NotNull ContentEntry contentEntry, @NotNull AndroidArtifact androidArtifact, boolean isTest) {
+    addGeneratedSourceFolder(contentEntry, androidArtifact, isTest);
+
+    SourceProvider variantSourceProvider = androidArtifact.getVariantSourceProvider();
+    if (variantSourceProvider != null) {
+      addSourceFolder(contentEntry, variantSourceProvider, isTest);
+    }
+
+    SourceProvider multiFlavorSourceProvider = androidArtifact.getMultiFlavorSourceProvider();
+    if (multiFlavorSourceProvider != null) {
+      addSourceFolder(contentEntry, multiFlavorSourceProvider, isTest);
+    }
+  }
+
+  private void addGeneratedSourceFolder(@NotNull ContentEntry contentEntry, @NotNull AndroidArtifact androidArtifact, boolean isTest) {
+    JpsModuleSourceRootType sourceType = getSourceType(isTest);
+    addSourceFolders(contentEntry, sourceType, androidArtifact.getGeneratedSourceFolders(), true);
+
+    sourceType = getResourceSourceType(isTest);
+    addSourceFolders(contentEntry, sourceType, androidArtifact.getGeneratedResourceFolders(), true);
+  }
+
+  private void addSourceFolder(@NotNull ContentEntry contentEntry, @NotNull ProductFlavorContainer flavor) {
+    addSourceFolder(contentEntry, flavor.getSourceProvider(), false);
+
+    Collection<SourceProviderContainer> extraArtifactSourceProviders = flavor.getExtraSourceProviders();
+    for (SourceProviderContainer sourceProviders : extraArtifactSourceProviders) {
+      String artifactName = sourceProviders.getArtifactName();
+      if (AndroidProject.ARTIFACT_INSTRUMENT_TEST.equals(artifactName)) {
+        addSourceFolder(contentEntry, sourceProviders.getSourceProvider(), true);
+        break;
       }
+    }
+  }
 
-      private void storePath(@NotNull String url, @NotNull JpsModuleSourceRootType sourceRootType, boolean isGenerated) {
-        SourceFolder sourceFolder = contentEntry.addSourceFolder(url, sourceRootType);
+  private void addSourceFolder(@NotNull ContentEntry contentEntry, @NotNull SourceProvider sourceProvider, boolean isTest) {
+    JpsModuleSourceRootType sourceType = getSourceType(isTest);
+    addSourceFolders(contentEntry, sourceType, sourceProvider.getAidlDirectories(), false);
+    addSourceFolders(contentEntry, sourceType, sourceProvider.getAssetsDirectories(), false);
+    addSourceFolders(contentEntry, sourceType, sourceProvider.getJavaDirectories(), false);
+    addSourceFolders(contentEntry, sourceType, sourceProvider.getJniDirectories(), false);
+    addSourceFolders(contentEntry, sourceType, sourceProvider.getRenderscriptDirectories(), false);
 
-        if (isGenerated) {
-          JpsModuleSourceRoot sourceRoot = sourceFolder.getJpsElement();
-          JpsElement properties = sourceRoot.getProperties();
-          if (properties instanceof JavaSourceRootProperties) {
-            ((JavaSourceRootProperties)properties).setForGeneratedSources(true);
-          }
-        }
+    sourceType = getResourceSourceType(isTest);
+    addSourceFolders(contentEntry, sourceType, sourceProvider.getResDirectories(), false);
+    addSourceFolders(contentEntry, sourceType, sourceProvider.getResourcesDirectories(), false);
+  }
+
+  @NotNull
+  private static JpsModuleSourceRootType getSourceType(boolean isTest) {
+    return isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
+  }
+
+  @NotNull
+  private static JpsModuleSourceRootType getResourceSourceType(boolean isTest) {
+    return isTest ? JavaResourceRootType.TEST_RESOURCE : JavaResourceRootType.RESOURCE;
+  }
+
+  private void addSourceFolders(@NotNull ContentEntry contentEntry,
+                                @NotNull JpsModuleSourceRootType sourceType,
+                                @NotNull Collection<File> dirPaths,
+                                boolean isGenerated) {
+    for (File dirPath : dirPaths) {
+      addSourceFolder(contentEntry, sourceType, dirPath, isGenerated);
+    }
+  }
+
+  private void addExcludedOutputFolders(@NotNull ContentEntry contentEntry) {
+    VirtualFile file = contentEntry.getFile();
+    assert file != null;
+    File rootDirPath = VfsUtilCore.virtualToIoFile(file);
+
+    for (File child : FileUtil.notNullize(rootDirPath.listFiles())) {
+      if (child.isDirectory() && child.getName().startsWith(".")) {
+        addExcludedFolder(contentEntry, child);
       }
-    };
-    AndroidContentRoot.storePaths(ideaAndroidProject, storage);
+    }
+    File outputDirPath = new File(rootDirPath, BUILD_DIR);
+    for (String childName : EXCLUDED_OUTPUT_DIR_NAMES) {
+      File child = new File(outputDirPath, childName);
+      addExcludedFolder(contentEntry, child);
+    }
   }
 }

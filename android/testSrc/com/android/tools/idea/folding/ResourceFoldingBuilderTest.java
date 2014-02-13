@@ -24,6 +24,7 @@ public class ResourceFoldingBuilderTest extends AndroidTestCase {
   public void testJavaStrings2() throws Throwable { performTest(".java"); }
   public void testJavaDimens() throws Throwable { performTest(".java"); }
   public void testXmlString() throws Throwable { performTest(".xml"); }
+  public void testPlurals() throws Throwable { performTest(".java"); }
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   public ResourceFoldingBuilderTest() {

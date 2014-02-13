@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -51,9 +52,9 @@ public class TemplateParameterStep extends TemplateWizardStep {
   private JComponent myPreferredFocusComponent;
   @VisibleForTesting String myCurrentThumb;
 
-  public TemplateParameterStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
-                               UpdateListener updateListener) {
-    super(state, project, sidePanelIcon, updateListener);
+  public TemplateParameterStep(TemplateWizardState state, @Nullable Project project, @Nullable Module module,
+                               @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
+    super(state, project, module, sidePanelIcon, updateListener);
   }
 
   @Override

@@ -91,7 +91,7 @@
           <text value="Make project automatically (only works while not running / debugging)"/>
         </properties>
       </component>
-      <component id="298a4" class="javax.swing.JCheckBox" binding="myUseExperimentalBuildCheckBox">
+      <component id="298a4" class="javax.swing.JCheckBox" binding="myUseInProcessBuildCheckBox">
         <constraints>
           <grid row="13" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -116,7 +116,7 @@
           <text value="&lt;html&gt;&lt;br&gt;&lt;/html&gt;"/>
         </properties>
       </component>
-      <component id="b8b8c" class="com.intellij.ui.components.JBLabel">
+      <component id="b8b8c" class="com.intellij.ui.components.JBLabel" binding="myUseInProcessBuildLabel">
         <constraints>
           <grid row="14" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>

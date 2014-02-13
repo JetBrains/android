@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.io.FileWrapper;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,7 @@ import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.DOT_AAR;
+import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
  * A registry for class lookup of resource classes (R classes) in AAR libraries.
@@ -41,7 +43,8 @@ public class AarResourceClassRegistry {
   }
 
   public void addLibrary(AppResourceRepository appResources, File aarDir) {
-    if (aarDir.getPath().endsWith(DOT_AAR)) {
+    String path = aarDir.getPath();
+    if (path.endsWith(DOT_AAR) || path.contains(EXPLODED_AAR)) {
       FileResourceRepository repository = appResources.findRepositoryFor(aarDir);
       if (repository != null) {
         String pkg = getAarPackage(aarDir);

@@ -19,13 +19,14 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.android.tools.idea.gradle.customizer.android.AndroidModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.DependenciesAndroidModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
@@ -83,6 +84,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
@@ -94,8 +96,8 @@ public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
-  private final AndroidModuleCustomizer[] myAndroidModuleCustomizers =
-    {new ContentRootModuleCustomizer(), new DependenciesAndroidModuleCustomizer(), new CompilerOutputPathModuleCustomizer()};
+  private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
+    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
 
   private final ImporterDelegate myDelegate;
 
@@ -186,18 +188,34 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Re-imports an existing Android-Gradle project.
+   * Re-imports an existing Android-Gradle project. If the project import is successful,
+   * {@link com.android.tools.idea.gradle.util.ProjectBuilder#generateSourcesOnly()} will be invoked at the end.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param callback called after the project has been imported.
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
+    reImportProject(project, true, callback);
+  }
+
+  /**
+   * Re-imports an existing Android-Gradle project.
+   *
+   *
+   * @param project                  the given project. This method does nothing if the project is not an Android-Gradle project.
+   * @param generateSourcesOnSuccess indicates whether the IDE should invoke Gradle to generate Java sources after a successful project
+   *                                 import.
+   * @param callback                 called after the project has been imported.
+   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   */
+  public void reImportProject(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable Callback callback)
+    throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
-      removeAllLibraries(project);
-      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC /* asynchronous import */, callback);
+      resetProject(project);
+      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, callback);
     }
     else {
       Runnable notificationTask = new Runnable() {
@@ -227,7 +245,7 @@ public class GradleProjectImporter {
   }
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
-  private static void removeAllLibraries(@NotNull final Project project) {
+  private static void resetProject(@NotNull final Project project) {
     ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
@@ -240,6 +258,16 @@ public class GradleProjectImporter {
         }
         finally {
           model.commit();
+        }
+
+        // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of
+        // the failure.
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        for (Module module : moduleManager.getModules()) {
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet != null) {
+            facet.setIdeaAndroidProject(null);
+          }
         }
       }
     });
@@ -288,7 +316,7 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, callback);
+    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, callback);
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
@@ -384,7 +412,9 @@ public class GradleProjectImporter {
   private void doImport(@NotNull final Project project,
                         final boolean newProject,
                         @NotNull final ProgressExecutionMode progressExecutionMode,
+                        boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
+    PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -480,7 +510,7 @@ public class GradleProjectImporter {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           if (facet != null) {
             IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-            for (AndroidModuleCustomizer customizer : myAndroidModuleCustomizers) {
+            for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
               customizer.customizeModule(module, project, ideaAndroidProject);
             }
           }
