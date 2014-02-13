@@ -2,6 +2,7 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.unusedSymbol.UnusedSymbolLocalInspection;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection;
@@ -78,6 +79,13 @@ public class AndroidMenuTest extends AndroidDomTest {
     myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
     myFixture.copyFileToProject(testFolder + "/OnClickActivity3Abs.java", "src/p1/p2/Activity1.java");
     doTestHighlighting("onClickHighlightingAbs.xml");
+  }
+
+  public void testOnClickHighlightingJava() throws Throwable {
+    myFixture.enableInspections(UnusedSymbolLocalInspection.class);
+    final VirtualFile f = myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
+    myFixture.configureFromExistingVirtualFile(f);
+    myFixture.checkHighlighting(true, false, false);
   }
 
   public void testOnClickCompletion() throws Throwable {
