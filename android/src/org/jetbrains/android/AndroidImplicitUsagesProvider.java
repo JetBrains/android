@@ -3,8 +3,11 @@ package org.jetbrains.android;
 import com.intellij.codeInsight.daemon.ImplicitUsageProvider;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Eugene.Kudelevsky
@@ -12,11 +15,41 @@ import org.jetbrains.android.util.AndroidUtils;
 public class AndroidImplicitUsagesProvider implements ImplicitUsageProvider {
   @Override
   public boolean isImplicitUsage(PsiElement element) {
-    if (!(element instanceof PsiField)) {
+    if (element instanceof PsiField) {
+      return isImplicitFieldUsage((PsiField)element);
+    }
+    else if (element instanceof PsiParameter) {
+      return isImplicitParameterUsage((PsiParameter)element);
+    }
+    return false;
+  }
+
+  private static boolean isImplicitParameterUsage(@NotNull PsiParameter parameter) {
+    if (AndroidFacet.getInstance(parameter) == null) {
       return false;
     }
-    final PsiField field = (PsiField)element;
+    final PsiMethod method = PsiTreeUtil.getParentOfType(parameter, PsiMethod.class);
 
+    if (method == null ||
+        !OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
+        !OnClickConverter.CONVERTER_FOR_MENU.checkSignature(method)) {
+      return false;
+    }
+    final PsiClass aClass = PsiTreeUtil.getParentOfType(method, PsiClass.class);
+
+    if (aClass == null) {
+      return false;
+    }
+    final PsiClass activityBaseClass = JavaPsiFacade.getInstance(aClass.getProject()).
+      findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, parameter.getResolveScope());
+
+    if (activityBaseClass == null) {
+      return false;
+    }
+    return aClass.isInheritor(activityBaseClass, true);
+  }
+
+  private static boolean isImplicitFieldUsage(@NotNull PsiField field) {
     if (!"CREATOR".equals(field.getName())) {
       return false;
     }

@@ -9,6 +9,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.lookup.LookupEx;
+import com.intellij.codeInspection.unusedSymbol.UnusedSymbolLocalInspection;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
@@ -707,6 +708,13 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.copyFileToProject(testFolder + "/OnClickActivity6.java", "src/p1/p2/Activity1.java");
     myFixture.copyFileToProject(testFolder + "/OnClickActivity4.java", "src/p1/p2/Activity2.java");
     doTestHighlighting();
+  }
+
+  public void testOnClickHighlightingJava() throws Throwable {
+    myFixture.enableInspections(UnusedSymbolLocalInspection.class);
+    final VirtualFile f = myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
+    myFixture.configureFromExistingVirtualFile(f);
+    myFixture.checkHighlighting(true, false, false);
   }
 
   public void testMinHeightCompletion() throws Throwable {
