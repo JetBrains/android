@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.navigation.macros.Analysis;
+import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -731,7 +731,7 @@ public class NavigationView extends JComponent {
   public static String getXMLFileName(Module module, State state) {
     String controllerClassName = state.getClassName();
     String definedXmlFileName = state.getXmlResourceName();
-    return definedXmlFileName != null ? definedXmlFileName : Analysis.getXMLFileName(module, controllerClassName);
+    return definedXmlFileName != null ? definedXmlFileName : Analyser.getXMLFileName(module, controllerClassName);
   }
 
   @Nullable
