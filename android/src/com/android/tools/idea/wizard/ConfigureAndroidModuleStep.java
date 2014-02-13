@@ -28,6 +28,7 @@ import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -106,11 +107,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myAppNameLabel;
   boolean myInitializedPackageNameText = false;
   private boolean myInitialized = false;
+  private String myPackagePrefix = SAMPLE_PACKAGE_PREFIX;
   @Nullable private WizardContext myWizardContext;
 
   public ConfigureAndroidModuleStep(TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
                                     UpdateListener updateListener) {
-    super(state, project, sidePanelIcon, updateListener);
+    super(state, project, null, sidePanelIcon, updateListener);
   }
 
   private void initialize() {
@@ -164,6 +166,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     // Find a unique project location
     if (myWizardContext == null) {
       computeUniqueProjectLocation();
+    }
+    if (!myTemplateState.hasAttr(ATTR_APP_TITLE) && myProject != null) {
+      myTemplateState.put(ATTR_APP_TITLE, myProject.getName());
     }
     preselectTargetAndBuildApi();
     registerUiElements();
@@ -266,6 +271,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   public void refreshUiFromParameters() {
+    if (!myVisible) {
+      return;
+    }
     // It's easier to just re-register the UI elements instead of trying to set their values manually. Not all of the elements have
     // parameters in the template, and the super refreshUiFromParameters won't touch those elements.
     registerUiElements();
@@ -391,6 +399,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         myTemplateState.put(ATTR_MIN_API, item.apiLevel);
       }
     }
+
+    if (myTemplateState.myModified.contains(ATTR_PACKAGE_NAME) &&
+        !computePackagePrefix(myTemplateState.getString(ATTR_PACKAGE_NAME)).equals(myPackagePrefix)) {
+      // The package prefix has been changed by the user. Save it for next time
+      myPackagePrefix = computePackagePrefix(myTemplateState.getString(ATTR_PACKAGE_NAME));
+      PropertiesComponent.getInstance().setValue(LAST_USED_CLASS_PREFIX_KEY, myPackagePrefix);
+    }
   }
 
   @Override
@@ -417,6 +432,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     if (!myInitializedPackageNameText) {
       myInitializedPackageNameText = true;
+      String maybePackagePrefix = PropertiesComponent.getInstance().getValue(LAST_USED_CLASS_PREFIX_KEY);
+      if (maybePackagePrefix != null && !maybePackagePrefix.isEmpty()) {
+        myPackagePrefix = maybePackagePrefix;
+      }
       if ((myTemplateState.getString(ATTR_PACKAGE_NAME)).startsWith(SAMPLE_PACKAGE_PREFIX)) {
         int length = SAMPLE_PACKAGE_PREFIX.length();
         if (SAMPLE_PACKAGE_PREFIX.endsWith(".")) {
@@ -446,6 +465,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       if (Character.isLowerCase(applicationName.charAt(0))) {
         setErrorHtml("The application name for most apps begins with an uppercase letter");
       }
+    }
+    if (!myTemplateState.hasAttr(ATTR_PACKAGE_NAME)) {
+      myTemplateState.put(ATTR_PACKAGE_NAME, SAMPLE_PACKAGE_PREFIX + '.' + myTemplateState.getString(ATTR_MODULE_NAME));
     }
     String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
@@ -536,6 +558,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         if (!CharMatcher.ASCII.matchesAllOf(filename)) {
           setErrorHtml("Your project location contains non-ASCII characters. This can cause problems on Windows. Proceed with caution.");
         }
+        // Check that we can write to that location: make sure we can write into the first extant directory in the path.
+        if (!testFile.exists() && testFile.getParentFile() != null && testFile.getParentFile().exists()) {
+          if (!testFile.getParentFile().canWrite()) {
+            setErrorHtml(String.format("The path '%s' is not writeable. Please choose a new location.", testFile.getParentFile().getPath()));
+            return false;
+          }
+        }
+
         testFile = testFile.getParentFile();
       }
       File file = new File(projectLocation);
@@ -573,17 +603,56 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
   }
 
+  @VisibleForTesting static String nameToPackage(String moduleName) {
+    moduleName = moduleName.replace('-', '_');
+    moduleName = moduleName.replaceAll("[^a-zA-Z0-9_]", "");
+    moduleName = moduleName.toLowerCase();
+    return moduleName;
+  }
+
   @NotNull
   @VisibleForTesting
   String computePackageName() {
     String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
-    if (!moduleName.isEmpty()) {
-      moduleName = moduleName.replace('-', '_');
-      moduleName = moduleName.replaceAll("[^a-zA-Z0-9_]", "");
-      moduleName = moduleName.toLowerCase();
-      return SAMPLE_PACKAGE_PREFIX + moduleName;
-    } else {
+    String projectName = myTemplateState.getString(ATTR_APP_TITLE);
+    projectName = nameToPackage(projectName);
+    moduleName = nameToPackage(moduleName);
+    if (!myPackagePrefix.endsWith(".")) {
+      myPackagePrefix += '.';
+    }
+    if (moduleName.isEmpty() && projectName.isEmpty()) {
       return "";
+    } else if (moduleName.isEmpty()) {
+      return myPackagePrefix + projectName;
+    } else if (projectName.isEmpty()) {
+      return myPackagePrefix + moduleName;
+    } else {
+      return myPackagePrefix + projectName + '.' + moduleName;
+    }
+  }
+
+  @NotNull
+  @VisibleForTesting
+  String computePackagePrefix(String packageName) {
+    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String projectName = myTemplateState.getString(ATTR_APP_TITLE);
+    if (!projectName.isEmpty()) {
+      projectName = nameToPackage(projectName);
+      int nameIndex = packageName.lastIndexOf(projectName);
+      if (nameIndex != -1) {
+        return packageName.substring(0, nameIndex);
+      }
+    }
+    if (!moduleName.isEmpty()) {
+      moduleName = nameToPackage(moduleName);
+      int nameIndex = packageName.lastIndexOf(moduleName);
+      if (nameIndex != -1) {
+        return packageName.substring(0, nameIndex);
+      } else {
+        return packageName;
+      }
+    } else {
+      return packageName;
     }
   }
 

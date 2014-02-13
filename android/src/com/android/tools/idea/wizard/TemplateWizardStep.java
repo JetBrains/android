@@ -24,6 +24,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.ColorPanel;
@@ -63,11 +64,14 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   implements ActionListener, FocusListener, DocumentListener, ChangeListener {
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardStep.class.getName());
 
+  protected static final String LAST_USED_CLASS_PREFIX_KEY = "LAST_USED_CLASS_PREFIX";
+
   protected final TemplateWizardState myTemplateState;
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
   protected final Map<Parameter, ComboBoxItem> myComboBoxValues = Maps.newHashMap();
   protected final Project myProject;
+  protected final Module myModule;
   private final Icon mySidePanelIcon;
   protected boolean myIgnoreUpdates = false;
   protected boolean myIsValid = true;
@@ -87,10 +91,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     public void update() {}
   };
 
-  public TemplateWizardStep(@NotNull TemplateWizardState state, @Nullable Project project, @Nullable Icon sidePanelIcon,
-                            UpdateListener updateListener) {
+  public TemplateWizardStep(@NotNull TemplateWizardState state, @Nullable Project project, @Nullable Module module,
+                            @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
     myTemplateState = state;
     myProject = project;
+    myModule = module;
     mySidePanelIcon = sidePanelIcon;
     myUpdateListener = updateListener;
   }

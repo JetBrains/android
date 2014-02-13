@@ -37,6 +37,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.DOT_AAR;
+import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
@@ -110,8 +111,8 @@ public class AppResourceRepository extends MultiResourceRepository {
                                                                  List<LocalResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
     LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(facet, true);
-    repositories.add(resources);
     repositories.addAll(libraries);
+    repositories.add(resources);
     return repositories;
   }
 
@@ -192,6 +193,8 @@ public class AppResourceRepository extends MultiResourceRepository {
         String name = folder.getName();
         if (name.endsWith(DOT_AAR)) {
           libraryName = name.substring(0, name.length() - DOT_AAR.length());
+        } else if (folder.getPath().contains(EXPLODED_AAR)) {
+          libraryName = folder.getParentFile().getName();
         }
       }
       if (libraryName != null && !moduleNames.contains(libraryName)) {
@@ -276,7 +279,7 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Nullable
   public FileResourceRepository findRepositoryFor(@NotNull File aarDirectory) {
     String aarPath = aarDirectory.getPath();
-    assert aarPath.endsWith(DOT_AAR) : aarPath;
+    assert aarPath.endsWith(DOT_AAR) || aarPath.contains(EXPLODED_AAR) : aarPath;
     for (LocalResourceRepository r : myLibraries) {
       if (r instanceof FileResourceRepository) {
         FileResourceRepository repository = (FileResourceRepository)r;

@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.google.common.collect.Lists;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
@@ -28,14 +30,37 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class DependenciesModuleCustomizer {
-  protected void notifyUser(@NotNull List<String> errorsFound, @NotNull Module module) {
+public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
+  @Override
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
+    if (model == null) {
+      return;
+    }
+    List<String> errorsFound = Lists.newArrayList();
+
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+    try {
+      removeExistingDependencies(rootModel);
+      setUpDependencies(rootModel, model, errorsFound);
+    }
+    finally {
+      rootModel.commit();
+    }
+    notifyUser(errorsFound, module);
+  }
+
+  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model, @NotNull List<String> errorsFound);
+
+
+  private static void notifyUser(@NotNull List<String> errorsFound, @NotNull Module module) {
     if (!errorsFound.isEmpty()) {
       StringBuilder msgBuilder = new StringBuilder();
       for (String error : errorsFound) {
@@ -47,7 +72,7 @@ public abstract class DependenciesModuleCustomizer {
     }
   }
 
-  protected void removeExistingDependencies(@NotNull ModifiableRootModel model) {
+  private static void removeExistingDependencies(@NotNull ModifiableRootModel model) {
     DependencyRemover dependencyRemover = new DependencyRemover(model);
     for (OrderEntry orderEntry : model.getOrderEntries()) {
       orderEntry.accept(dependencyRemover, null);

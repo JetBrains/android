@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.fileTypes.FileType;
@@ -23,8 +24,10 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import java.util.Map;
 
@@ -53,7 +56,7 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
   }
 
   @NotNull
-  private static PsiProjectListener getListener(@NotNull Project project) {
+  public static PsiProjectListener getListener(@NotNull Project project) {
     PsiProjectListener listener = ourListeners.get(project);
     if (listener == null) {
       listener = new PsiProjectListener(project);
@@ -205,6 +208,12 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
     if (psiFile != null) {
       if (isRelevantFile(psiFile)) {
         dispatchChildReplaced(event, psiFile.getVirtualFile());
+      }
+      if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
+        VirtualFile virtualFile = psiFile.getVirtualFile();
+        if (virtualFile != null && SdkConstants.EXT_GRADLE.equals(virtualFile.getExtension())) {
+          EditorNotifications.getInstance(psiFile.getProject()).updateAllNotifications();
+        }
       }
     } else {
       PsiElement parent = event.getParent();

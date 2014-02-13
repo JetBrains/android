@@ -65,6 +65,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private JBCheckBox myUseAdditionalCommandLineOptionsCheckBox;
   private RawCommandLineEditor myCommandLineField;
   private JCheckBox myShowLogcatCheckBox;
+  private JCheckBox myFilterLogcatCheckBox;
   private JCheckBox myUseLastSelectedDeviceCheckBox;
   private AvdComboBox myAvdCombo;
   private String incorrectPreferredAvd;
@@ -81,6 +82,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificPanel.add(configurationSpecificEditor.getComponent());
     setAnchor(myConfigurationSpecificEditor.getAnchor());
     myShowLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
+    myFilterLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
   }
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator) {
@@ -255,6 +257,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     selectItemCaseInsensitively(myNetworkLatencyCombo, configuration.NETWORK_LATENCY);
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
+    myFilterLogcatCheckBox.setSelected(configuration.FILTER_LOGCAT_AUTOMATICALLY);
   }
 
   private static void selectItemCaseInsensitively(@NotNull JComboBox comboBox, @Nullable String item) {
@@ -298,6 +301,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     configuration.NETWORK_LATENCY = ((String)myNetworkLatencyCombo.getSelectedItem()).toLowerCase();
     configuration.CLEAR_LOGCAT = myClearLogCheckBox.isSelected();
     configuration.SHOW_LOGCAT_AUTOMATICALLY = myShowLogcatCheckBox.isSelected();
+    configuration.FILTER_LOGCAT_AUTOMATICALLY = myFilterLogcatCheckBox.isSelected();
     if (myAvdComboComponent.isEnabled()) {
       JComboBox combo = myAvdCombo.getComboBox();
       String preferredAvd = (String)combo.getSelectedItem();

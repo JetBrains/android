@@ -237,10 +237,26 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   @NotNull
   public Map<String, Map<String, BufferedImage>> generateImages(boolean previewOnly) throws ImageGeneratorException {
     Map<String, Map<String, BufferedImage>> categoryMap = new LinkedHashMap<String, Map<String, BufferedImage>>();
+    generateImages(categoryMap, false, previewOnly);
+    return categoryMap;
+  }
+
+  /**
+   * Generate images using the given wizard state into the given map
+   * @param categoryMap the map to store references to the resultant images in
+   * @param clearMap if true, the map will be emptied before use
+   * @param previewOnly whether we are only generating previews
+   * @throws ImageGeneratorException
+   */
+  public void generateImages(Map<String, Map<String, BufferedImage>> categoryMap, boolean clearMap, boolean previewOnly)
+      throws ImageGeneratorException {
+    if (clearMap) {
+      categoryMap.clear();
+    }
 
     if (!myWizardState.hasAttr(ATTR_ASSET_TYPE)) {
       // If we don't know what we're building, don't do it yet.
-      return categoryMap;
+      return;
     }
 
 
@@ -249,7 +265,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     int padding = myWizardState.getInt(ATTR_PADDING);
 
     if (type == null) {
-      return categoryMap;
+      return;
     }
 
     BufferedImage sourceImage = null;
@@ -362,7 +378,6 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     options.sourceImage = sourceImage;
     generator.generate(null, categoryMap, this, options, baseName);
-    return categoryMap;
   }
 
   /**

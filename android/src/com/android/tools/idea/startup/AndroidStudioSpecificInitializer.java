@@ -90,6 +90,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       hideIdeaNewFilePopupActions();
     }
 
+    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
+
     try {
       // Setup JDK and Android SDK if necessary
       setupSdks();
@@ -127,11 +129,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     hideActionForAndroidGradle("ImportModule", "Import Module...");
 
     hideActionForAndroidGradle(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
-
     hideActionForAndroidGradle("AddFrameworkSupport", "Add Framework Support...");
-
     hideActionForAndroidGradle("BuildArtifact", "Build Artifacts...");
-
     hideActionForAndroidGradle("RunTargetAction", "Run Ant Target");
 
     replaceProjectPopupActions();

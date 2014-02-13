@@ -28,12 +28,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 
 /**
- * Re-imports an Android-Gradle project, without showing the "Import Project" wizard.
+ * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
  */
-public class ReImportProjectAction extends AnAction {
-  private static final Logger LOG = Logger.getInstance(ReImportProjectAction.class);
+public class SyncProjectAction extends AnAction {
+  private static final Logger LOG = Logger.getInstance(SyncProjectAction.class);
 
-  public ReImportProjectAction() {
+  public SyncProjectAction() {
     super("Sync Project with Gradle Files");
   }
 

@@ -17,27 +17,32 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.SettingsStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.ide.util.projectWizard.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkType;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TextBrowseFolderListener;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.Condition;
 import icons.AndroidIcons;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,11 +110,12 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     myWizardState.convertApisToInt();
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, sidePanelIcon, this);
-    myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, sidePanelIcon, this);
-    myAssetSetStep = new AssetSetStep(myWizardState, myProject, sidePanelIcon, this);
-    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, sidePanelIcon,
-                                                  this, null);
-    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, sidePanelIcon, this);
+    myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, null, sidePanelIcon, this);
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, sidePanelIcon, this);
+    myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null,
+                                                  sidePanelIcon, this, null);
+    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, null,
+                                                                sidePanelIcon, this);
 
     mySteps.add(new ChooseAndroidAndJavaSdkStep());
     mySteps.add(myConfigureAndroidModuleStep);
@@ -123,8 +129,6 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     }
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
-
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
     update();
 
@@ -228,6 +232,14 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   }
 
   public void createModule() {
+    createModule(true);
+  }
+
+  /**
+   * Inflate the chosen template to create the module.
+   * @param performGradleSync if set to true, a sync will be triggered after the template has been created.
+   */
+  public void createModule(boolean performGradleSync) {
     try {
       myWizardState.populateDirectoryParameters();
       File projectRoot = new File(myProject.getBasePath());
@@ -246,7 +258,9 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         assert template != null;
         template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
       }
-      GradleProjectImporter.getInstance().reImportProject(myProject, null);
+      if (performGradleSync) {
+        GradleProjectImporter.getInstance().reImportProject(myProject, null);
+      }
     } catch (Exception e) {
       Messages.showErrorDialog(e.getMessage(), "New Module");
       LOG.error(e);

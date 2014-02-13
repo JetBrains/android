@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -29,6 +30,12 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.module.ModifiableModuleModel;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
@@ -175,10 +182,161 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
     final String testName = getTestName(true);
-    if (testName.equals("parents")) { // for unit test testParents
+    if (testName.equals("parents")) { // for unit test testDependencies
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib1", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib2", true);
+    } else if (testName.equals("dependencies")) { // for unit test testDependencies
+      addModuleWithAndroidFacet(projectBuilder, modules, "sharedlib", true);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib1", true);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib2", true);
+      addModuleWithAndroidFacet(projectBuilder, modules, "app", true);
     }
+  }
+
+  // Regression test for https://code.google.com/p/android/issues/detail?id=65140
+  public void testDependencies() throws Exception {
+    myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
+
+    Module lib1 = null;
+    Module lib2 = null;
+    Module sharedLib = null;
+    Module app = null;
+
+    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
+      if (module != myModule) {
+        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+        assertEquals(1, contentRoots.length);
+
+        String name = contentRoots[0].getName();
+        if (name.equals("lib1")) {
+          lib1 = module;
+        }
+        else if (name.equals("lib2")) {
+          lib2 = module;
+        }
+        else if (name.equals("sharedlib")) {
+          sharedLib = module;
+        }
+        else if (name.equals("app")) {
+          app = module;
+        } else {
+          fail(name);
+        }
+      }
+    }
+
+    assertNotNull(lib1);
+    assertNotNull(lib2);
+    assertNotNull(sharedLib);
+    assertNotNull(app);
+
+    renameModule(lib1, "lib1");
+    renameModule(lib2, "lib2");
+    renameModule(sharedLib, "sharedLib");
+    renameModule(app, "app");
+
+    AndroidFacet lib1Facet = AndroidFacet.getInstance(lib1);
+    AndroidFacet lib2Facet = AndroidFacet.getInstance(lib2);
+    AndroidFacet sharedLibFacet = AndroidFacet.getInstance(sharedLib);
+    AndroidFacet appFacet = AndroidFacet.getInstance(app);
+
+    assertNotNull(lib1Facet);
+    assertNotNull(lib2Facet);
+    assertNotNull(sharedLibFacet);
+    assertNotNull(appFacet);
+
+    // Set up project dependencies
+    addModuleDependency(lib1, sharedLib);
+    addModuleDependency(lib2, sharedLib);
+    addModuleDependency(app, lib1);
+    addModuleDependency(app, lib2);
+
+    assertTrue(ModuleRootManager.getInstance(app).isDependsOn(lib1));
+    assertTrue(ModuleRootManager.getInstance(lib1).isDependsOn(sharedLib));
+    assertFalse(ModuleRootManager.getInstance(sharedLib).isDependsOn(lib1));
+    assertFalse(ModuleRootManager.getInstance(lib2).isDependsOn(lib1));
+    // Note that these are currently direct dependencies only, so app.isDependsOn(sharedLib) is false
+
+    // Test AndroidUtils#getallAndroidDependencies
+    List<AndroidFacet> appDependsOn = AndroidUtils.getAllAndroidDependencies(app, true);
+    assertTrue(appDependsOn.contains(lib1Facet));
+    assertTrue(appDependsOn.contains(lib2Facet));
+    assertTrue(appDependsOn.contains(sharedLibFacet));
+    assertFalse(appDependsOn.contains(appFacet));
+
+    List<AndroidFacet> lib1DependsOn = AndroidUtils.getAllAndroidDependencies(lib1, true);
+    assertTrue(lib1DependsOn.contains(sharedLibFacet));
+    assertFalse(lib1DependsOn.contains(appFacet));
+    assertFalse(lib1DependsOn.contains(lib1Facet));
+    assertFalse(lib1DependsOn.contains(lib2Facet));
+
+    // Set up resources so we can check which values are inherited through module dependencies
+    VirtualFile v1 = myFixture.copyFileToProject(VALUES, "additionalModules/sharedlib/res/values/sharedvalues.xml");
+    VirtualFile v2 = myFixture.copyFileToProject(VALUES_OVERLAY1, "additionalModules/lib2/res/values/lib2values.xml");
+    assertNotNull(v1);
+    assertNotNull(v2);
+
+    PsiManager manager = PsiManager.getInstance(getProject());
+    PsiFile sharedLibValues = manager.findFile(v1);
+    PsiFile lib2Values = manager.findFile(v2);
+    assertNotNull(sharedLibValues);
+    assertNotNull(lib2Values);
+
+    final AppResourceRepository lib1Resources = lib1Facet.getAppResources(true);
+    final AppResourceRepository lib2Resources = lib2Facet.getAppResources(true);
+    assertNotNull(lib1Resources);
+    assertNotNull(lib2Resources);
+    assertNotSame(lib1Resources, lib2Resources);
+
+    assertFalse(lib1Resources.isScanPending(sharedLibValues));
+    assertFalse(lib1Resources.isScanPending(lib2Values));
+    assertFalse(lib2Resources.isScanPending(sharedLibValues));
+    assertFalse(lib2Resources.isScanPending(lib2Values));
+
+    assertTrue(lib1Resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
+    assertTrue(lib1Resources.hasResourceItem(ResourceType.STRING, "ellipsis"));
+    assertTrue(lib1Resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    List<ResourceItem> items = lib1Resources.getResourceItem(ResourceType.STRING, "ellipsis");
+    assertNotNull(items);
+    ResourceValue firstValue = items.get(0).getResourceValue(false);
+    assertNotNull(firstValue);
+    assertEquals("Here it is: \u2026!", firstValue.getValue());
+
+    assertTrue(lib2Resources.hasResourceItem(ResourceType.ARRAY, "security_questions"));
+    assertTrue(lib2Resources.hasResourceItem(ResourceType.PLURALS, "my_plural"));
+    assertTrue(lib2Resources.hasResourceItem(ResourceType.STRING, "ellipsis"));
+
+    // ONLY defined in lib2: should not be visible from lib1
+    assertTrue(lib2Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
+    items = lib2Resources.getResourceItem(ResourceType.STRING, "unique_string");
+    assertNotNull(items);
+    firstValue = items.get(0).getResourceValue(false);
+    assertNotNull(firstValue);
+    assertEquals("Unique", firstValue.getValue());
+
+    assertFalse(lib1Resources.hasResourceItem(ResourceType.STRING, "unique_string"));
+  }
+
+  private static void addModuleDependency(Module from, Module to) {
+    final ModifiableRootModel model = ModuleRootManager.getInstance(from).getModifiableModel();
+    model.addModuleOrderEntry(to);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        model.commit();
+      }
+    });
+  }
+
+  private static void renameModule(Module from, String name) throws ModuleWithNameAlreadyExists {
+    final ModifiableModuleModel model = ModuleManager.getInstance(from.getProject()).getModifiableModel();
+    model.renameModule(from, name);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        model.commit();
+      }
+    });
   }
 
   // Note that the project resource repository is also tested in the app resource repository test, which of course merges

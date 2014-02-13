@@ -86,7 +86,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     return ProblemDescriptor.EMPTY_ARRAY;
   }
 
-  static boolean isMyFile(AndroidFacet facet, XmlFile file) {
+  static boolean isMyFile(@NotNull AndroidFacet facet, XmlFile file) {
     String resourceType = facet.getLocalResourceManager().getFileResourceType(file);
     if (resourceType != null) {
       if (ourSupportedResourceTypes == null) {
@@ -107,7 +107,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
       }
       return true;
     }
-    return ManifestDomFileDescription.isManifestFile(file);
+    return ManifestDomFileDescription.isManifestFile(file, facet);
   }
 
   private static class MyVisitor extends XmlRecursiveElementVisitor {

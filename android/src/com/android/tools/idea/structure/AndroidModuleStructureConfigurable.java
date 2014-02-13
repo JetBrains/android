@@ -16,11 +16,15 @@
 
 package com.android.tools.idea.structure;
 
+import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -99,7 +103,9 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
       MyNode parentNode = myRoot;
       List<String> segments = GradleUtil.getPathSegments(path);
       if (segments.isEmpty()) {
-        continue;
+        // This must be a single-module project with a settings.gradle file that includes ':'. Create a single empty-named module so we
+        // can edit the build.gradle file for it.
+        segments = Lists.newArrayList("");
       }
       String moduleName = segments.remove(segments.size() - 1);
       for (String segment : segments) {
@@ -239,13 +245,28 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
    * Opens a Project Settings dialog and selects the Gradle module editor, with the given module and editor pane active.
    */
   public static boolean showDialog(final Project project, @Nullable final String moduleToSelect, @Nullable final String editorToSelect) {
-    final ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(project);
-    return ShowSettingsUtil.getInstance().editConfigurable(project, config, new Runnable() {
+    ProjectStructureConfigurable config = ProjectStructureConfigurable.getInstance(project);
+    long timeInMillis = System.currentTimeMillis();
+    boolean result = ShowSettingsUtil.getInstance().editConfigurable(project, config, new Runnable() {
       @Override
       public void run() {
         getInstance(project).select(moduleToSelect, editorToSelect, true);
       }
     });
+    if (Projects.isGradleSyncNeeded(project, timeInMillis)) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            GradleProjectImporter.getInstance().reImportProject(project, null);
+          }
+          catch (ConfigurationException e) {
+            Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
+          }
+        }
+      });
+    }
+    return result;
   }
 
   private ActionCallback select(@Nullable final String moduleToSelect, @Nullable String editorNameToSelect, final boolean requestFocus) {
@@ -259,7 +280,11 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
   }
 
   private void addModule() {
-    myContext.myModulesConfigurator.addModule(myTree, false);
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      AndroidNewModuleAction.createModule(myProject, false);
+    } else {
+      myContext.myModulesConfigurator.addModule(myTree, false);
+    }
 
     // Template instantiation is already being run via invokeLater. When it's done, pick up the changes to settings.gradle and reload
     // the tree.
@@ -309,17 +334,6 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
   @Nullable
   protected String getEmptySelectionString() {
     return ProjectBundle.message("empty.module.selection.string");
-  }
-
-  @Override
-  public void apply() throws ConfigurationException {
-    super.apply();
-    try {
-      GradleProjectImporter.getInstance().reImportProject(myProject, null);
-    } catch (ConfigurationException ex) {
-      Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-      LOG.info(ex);
-    }
   }
 
   private class AddModuleAction extends AnAction implements DumbAware {

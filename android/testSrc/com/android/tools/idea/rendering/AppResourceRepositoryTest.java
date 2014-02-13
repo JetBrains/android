@@ -126,4 +126,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       }
     });
   }
+
+  // TODO: When we can load gradle projects from unit tests, test that we properly override
+  // library resources (from AARs) with resources in the main app (e.g. that computeRepositories()
+  // places the libraries *before* the module resources)
 }

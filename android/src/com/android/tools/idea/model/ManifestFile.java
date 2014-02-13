@@ -20,6 +20,7 @@ import com.google.common.base.Charsets;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -36,7 +37,7 @@ import java.io.IOException;
 
 public class ManifestFile {
   private final Module myModule;
-  private final VirtualFile myVFile;
+  private VirtualFile myVFile;
   private final File myIoFile;
   private final boolean myIsMerged;
 
@@ -50,6 +51,7 @@ public class ManifestFile {
     myIsMerged = isMergedManifest;
   }
 
+  @Nullable
   public static ManifestFile create(@NotNull Module module, boolean preferMergedManifest) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
@@ -77,6 +79,20 @@ public class ManifestFile {
 
   @Nullable
   private XmlFile parseManifest() {
+    if (!myVFile.isValid()) {
+      // Attempt to look it up again from IO file.
+      if (myIoFile != null) {
+        VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(myIoFile);
+        if (vFile != null && vFile.isValid()) {
+          myVFile = vFile;
+        } else {
+          // TODO: Should we fall back to the source manifest in this case?
+          return null;
+        }
+      } else {
+        return null;
+      }
+    }
     PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(myVFile);
     if (psiFile instanceof XmlFile) {
       return (XmlFile)psiFile;
@@ -100,6 +116,9 @@ public class ManifestFile {
     long lastModified = getLastModified();
     if (myXmlFile == null || myLastModified < lastModified) {
       myXmlFile = parseManifest();
+      if (myXmlFile == null) {
+        return false;
+      }
       myLastModified = lastModified;
       return true;
     } else {

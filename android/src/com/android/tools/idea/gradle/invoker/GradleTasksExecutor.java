@@ -38,6 +38,7 @@ import com.intellij.ide.errorTreeView.impl.ErrorTreeViewConfiguration;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompilerBundle;
@@ -317,12 +318,24 @@ class GradleTasksExecutor extends Task.Backgroundable {
     try {
       myHelper.execute(projectPath, executionSettings, executeTasksFunction);
     }
-    catch (ExternalSystemException e) {
+    catch (final ExternalSystemException e) {
       if (myIndicator.isCanceled()) {
         LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
       }
       else {
-        Messages.showErrorDialog(myProject, "Failed to complete Gradle execution.\n\nCause:\n" + e.getMessage(), GRADLE_RUNNING_MSG_TITLE);
+        Application application = ApplicationManager.getApplication();
+        Runnable showErrorTask = new Runnable() {
+          @Override
+          public void run() {
+            Messages.showErrorDialog(myProject, "Failed to complete Gradle execution.\n\nCause:\n" + e.getMessage(), GRADLE_RUNNING_MSG_TITLE);
+          }
+        };
+        if (application.isDispatchThread()) {
+          showErrorTask.run();
+        }
+        else {
+          application.invokeLater(showErrorTask);
+        }
       }
     }
   }
@@ -333,7 +346,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
   private List<GradleMessage> handleBuildException(BuildException e, String stdErr) {
-    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr, false);
+    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
       for (GradleMessage msg : compilerMessages) {
         addMessage(msg, null);

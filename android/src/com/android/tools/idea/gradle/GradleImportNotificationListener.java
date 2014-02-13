@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle;
 
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -25,7 +24,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.Key;
 import com.intellij.ui.EditorNotifications;
@@ -106,24 +104,11 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
         return;
       }
       myProjectImportInProgress = false;
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-            EditorNotifications.getInstance(project).updateAllNotifications();
-          }
-          Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
-            @Override
-            public void run(Project project) {
-              project.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
-              EditorNotifications.getInstance(project).updateAllNotifications();
-              BuildVariantView.getInstance(project).updateContents();
-              ProjectResourceRepository.moduleRootsChanged(project);
-            }
-          });
-        }
-      });
     }
+  }
+
+  public static void updateLastSyncTimestamp(@NotNull Project project) {
+    project.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
   }
 
   private static boolean resolvingProject(ExternalSystemTaskId id) {

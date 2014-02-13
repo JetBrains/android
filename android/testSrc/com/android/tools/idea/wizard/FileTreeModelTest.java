@@ -32,6 +32,9 @@ import static com.android.tools.idea.wizard.FileTreeModel.Node;
 public class FileTreeModelTest extends AndroidTestCase {
 
   private static File createFile(String systemIndependentPath) {
+    if (File.separatorChar == '\\' && systemIndependentPath.startsWith("/") && !systemIndependentPath.startsWith("//")) {
+      systemIndependentPath = "/" + systemIndependentPath;
+    }
     return new File(FileUtil.toSystemDependentName(systemIndependentPath));
   }
 
