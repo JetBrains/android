@@ -58,6 +58,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+    if (!Projects.isGradleProject(myProject)) {
+      return null;
+    }
     if (GradleImportNotificationListener.isProjectImportInProgress()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("Gradle project sync in progress...");
