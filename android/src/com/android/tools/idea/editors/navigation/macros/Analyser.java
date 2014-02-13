@@ -40,8 +40,17 @@ import static com.android.navigation.Utilities.getPropertyName;
 import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class Analysis {
-  private static final Logger LOG = Logger.getInstance("#" + Analysis.class.getName());
+public class Analyser {
+  private static final Logger LOG = Logger.getInstance("#" + Analyser.class.getName());
+  private final Project myProject;
+  private Module myModule;
+  private Macros myMacros;
+
+  public Analyser(Project project, Module module) {
+    myProject = project;
+    myModule = module;
+    myMacros = Macros.getInstance(myModule.getProject());
+  }
 
   @Nullable
   public static String getInnerText(String s) {
@@ -165,113 +174,132 @@ public class Analysis {
     return result;
   }
 
-  public static NavigationModel deriveAllStatesAndTransitions(final NavigationModel model, Project project, VirtualFile modelFile) {
-    final Module module = Utilities.getModule(project, modelFile);
+  private void deriveTransitions(final NavigationModel model,
+                                 final Map<String, ActivityState> classNameToActivityState,
+                                 final Map<String, MenuState> menuNameToMenuState,
+                                 final ActivityState fromActivityState,
+                                 final String activityOrFragmentClassName) {
 
-    final Macros macros = Macros.getInstance(module.getProject());
+    if (NavigationEditor.DEBUG) System.out.println("className = " + activityOrFragmentClassName);
 
-    Set<String> rootActivityClassNamesFromManifest = readManifestFile(project);
-    final Map<String, ActivityState> classNameToActivityState = getActivityClassNameToActivityState(rootActivityClassNamesFromManifest);
-    final Map<String, MenuState> menuNameToMenuState = new HashMap<String, MenuState>();
+    final PsiClass activityOrFragmentClass = Utilities.getPsiClass(myModule, activityOrFragmentClassName);
 
-    if (NavigationEditor.DEBUG) System.out.println("activityStates = " + classNameToActivityState.values());
+    if (activityOrFragmentClass == null) {
+      // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
+      LOG.info("Class " + activityOrFragmentClass + " not found");
+      return;
+    }
 
-    for (ActivityState state : classNameToActivityState.values()) {
-      String className = state.getClassName();
-      final ActivityState finalState = state;
+    // Search for menu inflation
 
-      if (NavigationEditor.DEBUG) System.out.println("className = " + className);
+    search(activityOrFragmentClass,
+           "public boolean onCreateOptionsMenu(Menu menu)",
+           "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }",
+           new Statement() {
+             @Override
+             public void apply(MultiMatch.Bindings<PsiElement> args) {
+               String menuIdName = args.get("id").getLastChild().getText();
+               final MenuState menu = getMenuState(menuIdName, menuNameToMenuState);
+               addTransition(model, new Transition("click", new Locator(fromActivityState), new Locator(menu)));
+               // Search for menu item bindings
+               search(activityOrFragmentClass,
+                      "public boolean onPrepareOptionsMenu(Menu m)",
+                      myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
+                      new Statement() {
+                        @Override
+                        public void apply(MultiMatch.Bindings<PsiElement> args) {
+                          String className = getQualifiedName(args.get("$f", "activityClass").getFirstChild());
+                          ActivityState activityState = getActivityState(className, classNameToActivityState);
+                          // e.g. $id=PsiReferenceExpression:R.id.action_account
+                          String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
+                          addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
+                        }
+                      }
+               );
+             }
+           });
 
-      final PsiClass activityClass = Utilities.getPsiClass(module, className);
+    // Search for 'onClick' listeners on Buttons etc.
 
-      if (activityClass == null) {
-        // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
-        LOG.info("Class " + className + " not found");
-        continue;
-      }
+    search(activityOrFragmentClass,
+           "public void onViewCreated(View v, Bundle b)",
+           myMacros.installItemClickAndCallMacro,
+           new Statement() {
+             @Override
+             public void apply(MultiMatch.Bindings<PsiElement> args) {
+               PsiElement $view = args.get("$view");
+               final String viewName = $view == null ? null : getPropertyName(removeTrailingParens($view.getText()));
+               searchForCallExpression(args.get("$f"), myMacros.createIntent,
+                                       createProcessor(viewName, classNameToActivityState, model, fromActivityState));
+             }
+           });
 
-      // Search for menu inflation
-      search(activityClass,
-             "public boolean onCreateOptionsMenu(Menu menu)",
-             "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }",
+    // Search for 'onItemClick' listeners is listViews
+
+    search(activityOrFragmentClass,
+           "public void onViewCreated(View v, Bundle b)",
+           myMacros.installItemClickAndCallMacro,
+           new Statement() {
+             @Override
+             public void apply(MultiMatch.Bindings<PsiElement> args) {
+               PsiElement $listView = args.get("$listView");
+               final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
+               searchForCallExpression(args.get("$f"), myMacros.createIntent,
+                                       createProcessor(viewName, classNameToActivityState, model, fromActivityState));
+             }
+           });
+
+    // Accommodate Master-Detail template idioms - todo rework this
+
+    PsiClassType superType = activityOrFragmentClass.getSuperTypes()[0];
+    if (superType.getClassName().equals("ListFragment")) {
+      search(activityOrFragmentClass,
+             "public void onListItemClick(ListView listView, View view, int position, long id)",
+             "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
              new Statement() {
                @Override
                public void apply(MultiMatch.Bindings<PsiElement> args) {
-                 String menuIdName = args.get("id").getLastChild().getText();
-                 final MenuState menu = getMenuState(menuIdName, menuNameToMenuState);
-                 addTransition(model, new Transition("click", new Locator(finalState), new Locator(menu)));
-                 // Search for menu item bindings
-                 search(activityClass,
-                        "public boolean onPrepareOptionsMenu(Menu m)",
-                        macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
-                        new Statement() {
-                          @Override
-                          public void apply(MultiMatch.Bindings<PsiElement> args) {
-                            String className = getQualifiedName(args.get("$f", "activityClass").getFirstChild());
-                            ActivityState activityState = getActivityState(className, classNameToActivityState);
-                            // e.g. $id=PsiReferenceExpression:R.id.action_account
-                            String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
-                            addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
-                          }
-                        }
-                 );
+                 PsiElement exp = args.get("f");
+                 if (exp instanceof PsiMethodCallExpression) {
+                   PsiMethodCallExpression call = (PsiMethodCallExpression)exp;
+                   if (call.getFirstChild().getFirstChild().getText().equals("super")) {
+                     return;
+                   }
+                   PsiMethod resolvedMethod = call.resolveMethod();
+                   Query<PsiMethod> overridingMethods =
+                     OverridingMethodsSearch.search(resolvedMethod, new ModuleContentRootSearchScope(myModule), true);
+                   overridingMethods.forEach(new Processor<PsiMethod>() {
+                     @Override
+                     public boolean process(PsiMethod implementation) {
+                       searchForCallExpression(implementation.getBody(),
+                                               myMacros.createIntent,
+                                               createProcessor(/*"listView"*/null, classNameToActivityState, model, fromActivityState));
+                       return true;
+                     }
+                   });
+                 }
                }
              });
+    }
+  }
+
+  public NavigationModel deriveAllStatesAndTransitions(final NavigationModel model, final VirtualFile modelFile) {
+    Set<String> rootActivityClassNamesFromManifest = readManifestFile(myProject);
+    Map<String, ActivityState> classNameToActivityState = getActivityClassNameToActivityState(rootActivityClassNamesFromManifest);
+    Map<String, MenuState> menuNameToMenuState = new HashMap<String, MenuState>();
+
+    if (NavigationEditor.DEBUG) System.out.println("activityStates = " + classNameToActivityState.values());
+
+    for (ActivityState sourceActivity : classNameToActivityState.values()) {
+      deriveTransitions(model, classNameToActivityState, menuNameToMenuState, sourceActivity, sourceActivity.getClassName());
 
       // Examine fragments associated with this activity
-      String xmlFileName = NavigationView.getXMLFileName(module, state);
-      XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, project);
+      String xmlFileName = NavigationView.getXMLFileName(myModule, sourceActivity);
+      XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, myProject);
       final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {
-        final PsiClass fragmentClass = getPsiClass(module, fragment.className);
-        if (fragmentClass == null) {
-          // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
-          LOG.info("Class " + fragmentClass + " not found");
-          continue;
-        }
-        search(fragmentClass,
-               "public void onViewCreated(View v, Bundle b)",
-               macros.installItemClickAndCallMacro,
-               new Statement() {
-                 @Override
-                 public void apply(MultiMatch.Bindings<PsiElement> args) {
-                   PsiElement $listView = args.get("$listView");
-                   final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-                   searchForCallExpression(args.get("$f"), macros.createIntent,
-                                           createProcessor(viewName, classNameToActivityState, model, finalState));
-                 }
-               });
-        PsiClassType superType = fragmentClass.getSuperTypes()[0];
-        if (superType.getClassName().equals("ListFragment")) {
-          search(fragmentClass,
-                 "public void onListItemClick(ListView listView, View view, int position, long id)",
-                 "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
-                 new Statement() {
-                   @Override
-                   public void apply(MultiMatch.Bindings<PsiElement> args) {
-                     PsiElement exp = args.get("f");
-                     if (exp instanceof PsiMethodCallExpression) {
-                       PsiMethodCallExpression call = (PsiMethodCallExpression)exp;
-                       if (call.getFirstChild().getFirstChild().getText().equals("super")) {
-                         return;
-                       }
-                       PsiMethod resolvedMethod = call.resolveMethod();
-                       Query<PsiMethod> overridingMethods =
-                         OverridingMethodsSearch.search(resolvedMethod, new ModuleContentRootSearchScope(module), true);
-                       overridingMethods.forEach(new Processor<PsiMethod>() {
-                         @Override
-                         public boolean process(PsiMethod implementation) {
-                           searchForCallExpression(implementation.getBody(),
-                                                   macros.createIntent,
-                                                   createProcessor(/*"listView"*/null, classNameToActivityState, model, finalState));
-                           return true;
-                         }
-                       });
-                     }
-                   }
-                 });
-        }
+        deriveTransitions(model, classNameToActivityState, menuNameToMenuState, sourceActivity, fragment.className);
       }
     }
     return model;
@@ -280,13 +308,13 @@ public class Analysis {
   private static Statement createProcessor(final String viewName,
                                            final Map<String, ActivityState> activities,
                                            final NavigationModel model,
-                                           final ActivityState finalState) {
+                                           final ActivityState fromState) {
     return new Statement() {
       @Override
       public void apply(MultiMatch.Bindings<PsiElement> args) {
         PsiElement activityClass = args.get("activityClass").getFirstChild();
         State toState = getActivityState(getQualifiedName(activityClass), activities);
-        addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
+        addTransition(model, new Transition("click", Locator.of(fromState, viewName), new Locator(toState)));
       }
     };
   }
