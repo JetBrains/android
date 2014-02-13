@@ -35,7 +35,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -54,7 +55,7 @@ import static com.android.tools.idea.editors.navigation.Utilities.*;
 
 public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
-  private static final Dimension GAP = new Dimension(150, 50);
+  public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
@@ -683,42 +684,6 @@ public class NavigationView extends JComponent {
     }
   }
 
-  /*
-  private void addChildrenOld(Collection<State> states) {
-    final Set<State> visited = new HashSet<State>();
-    final Point location = new Point(GAP.width, GAP.height);
-    final Point maxLocation = new Point(0, 0);
-    final int gridWidth = PREVIEW_SIZE.width + GAP.width;
-    final int gridHeight = PREVIEW_SIZE.height + GAP.height;
-    getStateComponentAssociation().clear();
-    for (State state : states) {
-      if (visited.contains(state)) {
-        continue;
-      }
-      new Object() {
-        public void addChildrenFor(State source) {
-          visited.add(source);
-          add(createRootComponentFor(source, location));
-          List<State> children = findDestinationsFor(source, visited);
-          location.x += gridWidth;
-          maxLocation.x = Math.max(maxLocation.x, location.x);
-          if (children.isEmpty()) {
-            location.y += gridHeight;
-            maxLocation.y = Math.max(maxLocation.y, location.y);
-          }
-          else {
-            for (State child : children) {
-              addChildrenFor(child);
-            }
-          }
-          location.x -= gridWidth;
-        }
-      }.addChildrenFor(state);
-    }
-    setPreferredSize(new Dimension(maxLocation.x, maxLocation.y));
-  }
-  */
-
   private <K, V extends Component> void removeLeftovers(Assoc<K, V> assoc, Collection<K> a) {
     for (Map.Entry<K, V> e : new ArrayList<Map.Entry<K, V>>(assoc.keyToValue.entrySet())) {
       K k = e.getKey();
@@ -776,7 +741,7 @@ public class NavigationView extends JComponent {
 
   private static Map<String, String> getLayoutAliases(@Nullable XmlFile psiFile) {
     if (psiFile == null) {
-       return Collections.emptyMap();
+      return Collections.emptyMap();
     }
     final Map<String, String> result = new HashMap<String, String>();
     psiFile.accept(new XmlRecursiveElementVisitor() {
@@ -812,7 +777,8 @@ public class NavigationView extends JComponent {
     String qualifier = index == -1 ? "" : directoryName.substring(index);
     VirtualFile layoutAliasesFile = getFile(fileSystem, resourceRoot, "/" + "values" + qualifier + "/", "refs");
     PsiManager psiManager = PsiManager.getInstance(project);
-    Map<String, String> layoutAliases = getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
+    Map<String, String> layoutAliases =
+      getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
     xmlFileName = applyAliases(xmlFileName, layoutAliases);
     VirtualFile qualifiedFile = getFile(fileSystem, resourceRoot, "/" + resourceType + qualifier + "/", xmlFileName);
     VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, resourceRoot, "/" + resourceType + "/", xmlFileName);
