@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import junit.framework.Assert;
 import org.jetbrains.android.AndroidTestCase;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -238,7 +239,7 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public String getDefaultSkin() {
+    public File getDefaultSkin() {
       return null;
     }
 
@@ -288,6 +289,11 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
+    public File getFile(int pathId) {
+      return null;
+    }
+
+    @Override
     public BuildToolInfo getBuildToolInfo() {
       return null;
     }
@@ -323,7 +329,7 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public String[] getSkins() {
+    public File[] getSkins() {
       return null;
     }
 
