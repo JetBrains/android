@@ -22,6 +22,9 @@ import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
 
 public class ActionBarHandler extends ActionBarCallback {
@@ -41,6 +44,18 @@ public class ActionBarHandler extends ActionBarCallback {
       return VALUE_SPLIT_ACTION_BAR_WHEN_NARROW.equals(attributes.getUiOptions());
     }
     return false;
+  }
+
+  @Override
+  public boolean isOverflowPopupNeeded() {
+    return true;
+  }
+
+  @Override
+  public List<String> getMenuIdNames() {
+    ArrayList<String> menus = new ArrayList<String>(1);
+    menus.add("main");
+    return menus;
   }
 
   @Override
