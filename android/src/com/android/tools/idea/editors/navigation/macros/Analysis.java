@@ -62,17 +62,121 @@ public class Analysis {
     return null;
   }
 
-  public static NavigationModel deriveAndAddTransitions(final NavigationModel model, Project project, VirtualFile file) {
-    final Module module = Utilities.getModule(project, file);
-    final Map<String, ActivityState> activities = getActivities(model);
-    final Map<String, MenuState> menus = getMenus(model);
+  @Nullable
+  private static String qualifyClassNameIfNecessary(String packageName, String className) {
+    return (className == null) ? null : !className.contains(".") ? (packageName + "." + className) : className;
+  }
+
+  private static Set<String> qualifyClassNames(Set<String> classNames, String packageName) {
+    Set<String> result = new HashSet<String>();
+    for (String name : classNames) {
+      result.add(qualifyClassNameIfNecessary(packageName, name));
+    }
+    return result;
+  }
+
+  private static class Results {
+    String packageName;
+    Set<String> activities = new HashSet<String>();
+    Set<String> mainActivities = new HashSet<String>();
+    Set<String> launcherActivities = new HashSet<String>();
+  }
+
+  private static Set<String> getActivityClassNamesFromManifestFile(@Nullable XmlFile manifest) {
+    if (manifest == null) {
+      return Collections.emptySet();
+    }
+    final Results results = new Results();
+    manifest.accept(new XmlRecursiveElementVisitor() {
+      private String processFilter(XmlTag tag, String filterName, String parentName) {
+        if (tag.getName().equals(parentName) && filterName.equals(tag.getAttributeValue("android:name"))) {
+          XmlTag parent = (XmlTag)tag.getParent();
+          if (parent.getName().equals("intent-filter")) {
+            XmlTag grandparent = (XmlTag)parent.getParent();
+            if (grandparent.getName().equals("activity")) {
+              return grandparent.getAttributeValue("android:name");
+            }
+          }
+        }
+        return null;
+      }
+
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+        if (tag.getName().equals("manifest")) {
+          results.packageName = tag.getAttributeValue("package");
+        }
+        if (tag.getName().equals("activity")) {
+          String name = tag.getAttributeValue("android:name");
+          if (name != null) {
+            results.activities.add(name);
+          }
+        }
+        String mainActivity = processFilter(tag, "android.intent.action.MAIN", "action");
+        if (mainActivity != null) {
+          results.mainActivities.add(mainActivity);
+        }
+        String launcherActivity = processFilter(tag, "android.intent.category.LAUNCHER", "category");
+        if (launcherActivity != null) {
+          results.launcherActivities.add(launcherActivity);
+        }
+      }
+    });
+    String packageName = results.packageName;
+    results.activities = qualifyClassNames(results.activities, packageName);
+    results.mainActivities = qualifyClassNames(results.mainActivities, packageName);
+    results.launcherActivities = qualifyClassNames(results.launcherActivities, packageName);
+
+    Set<String> result = new HashSet<String>(results.activities);
+    result.retainAll(results.mainActivities);
+    result.retainAll(results.launcherActivities);
+    return result;
+  }
+
+  private static Set<String> readManifestFile(Project project) {
+    VirtualFile baseDir = project.getBaseDir();
+    VirtualFile manifestFile = baseDir.findFileByRelativePath("AndroidManifest.xml");
+    if (manifestFile == null) {
+      manifestFile = baseDir.findFileByRelativePath("app/src/main/AndroidManifest.xml");
+    }
+    if (manifestFile == null) {
+      if (NavigationEditor.DEBUG) System.out.println("Can't find Manifest"); // todo generalize
+      return Collections.emptySet();
+    }
+    PsiManager psiManager = PsiManager.getInstance(project);
+    XmlFile manifestPsiFile = (XmlFile)psiManager.findFile(manifestFile);
+    return getActivityClassNamesFromManifestFile(manifestPsiFile);
+  }
+
+  private static ActivityState getActivityState(String className, Map<String, ActivityState> classNameToActivityState) {
+    ActivityState result = classNameToActivityState.get(className);
+    if (result == null) {
+      classNameToActivityState.put(className, result = new ActivityState(className));
+    }
+    return result;
+  }
+
+  private static MenuState getMenuState(String menuName, Map<String, MenuState> menuNameToMenuState) {
+    MenuState result = menuNameToMenuState.get(menuName);
+    if (result == null) {
+      menuNameToMenuState.put(menuName, result = new MenuState(menuName));
+    }
+    return result;
+  }
+
+  public static NavigationModel deriveAllStatesAndTransitions(final NavigationModel model, Project project, VirtualFile modelFile) {
+    final Module module = Utilities.getModule(project, modelFile);
+
     final Macros macros = Macros.getInstance(module.getProject());
 
-    final Collection<ActivityState> activityStates = activities.values();
+    Set<String> rootActivityClassNamesFromManifest = readManifestFile(project);
+    final Map<String, ActivityState> classNameToActivityState = getActivityClassNameToActivityState(rootActivityClassNamesFromManifest);
+    final Map<String, MenuState> menuNameToMenuState = new HashMap<String, MenuState>();
 
-    if (NavigationEditor.DEBUG) System.out.println("activityStates = " + activityStates);
+    if (NavigationEditor.DEBUG) System.out.println("activityStates = " + classNameToActivityState.values());
 
-    for (ActivityState state : activityStates) {
+    for (ActivityState state : classNameToActivityState.values()) {
       String className = state.getClassName();
       final ActivityState finalState = state;
 
@@ -93,9 +197,9 @@ public class Analysis {
              new Statement() {
                @Override
                public void apply(MultiMatch.Bindings<PsiElement> args) {
-                 final MenuState menu = menus.get(args.get("id").getLastChild().getText());
+                 String menuIdName = args.get("id").getLastChild().getText();
+                 final MenuState menu = getMenuState(menuIdName, menuNameToMenuState);
                  addTransition(model, new Transition("click", new Locator(finalState), new Locator(menu)));
-
                  // Search for menu item bindings
                  search(activityClass,
                         "public boolean onPrepareOptionsMenu(Menu m)",
@@ -103,12 +207,11 @@ public class Analysis {
                         new Statement() {
                           @Override
                           public void apply(MultiMatch.Bindings<PsiElement> args) {
-                            ActivityState activityState = activities.get(getQualifiedName(args.get("$f", "activityClass").getFirstChild()));
-                            if (activityState != null) {
-                              // e.g. $id=PsiReferenceExpression:R.id.action_account
-                              String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
-                              addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
-                            }
+                            String className = getQualifiedName(args.get("$f", "activityClass").getFirstChild());
+                            ActivityState activityState = getActivityState(className, classNameToActivityState);
+                            // e.g. $id=PsiReferenceExpression:R.id.action_account
+                            String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
+                            addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
                           }
                         }
                  );
@@ -117,7 +220,7 @@ public class Analysis {
 
       // Examine fragments associated with this activity
       String xmlFileName = NavigationView.getXMLFileName(module, state);
-      XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, file, project);
+      XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, project);
       final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {
@@ -135,7 +238,8 @@ public class Analysis {
                  public void apply(MultiMatch.Bindings<PsiElement> args) {
                    PsiElement $listView = args.get("$listView");
                    final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-                   searchForCallExpression(args.get("$f"), macros.createIntent, createProcessor(viewName, activities, model, finalState));
+                   searchForCallExpression(args.get("$f"), macros.createIntent,
+                                           createProcessor(viewName, classNameToActivityState, model, finalState));
                  }
                });
         PsiClassType superType = fragmentClass.getSuperTypes()[0];
@@ -153,13 +257,14 @@ public class Analysis {
                          return;
                        }
                        PsiMethod resolvedMethod = call.resolveMethod();
-                       Query<PsiMethod> overridingMethods = OverridingMethodsSearch.search(resolvedMethod, new ModuleContentRootSearchScope(module), true);
+                       Query<PsiMethod> overridingMethods =
+                         OverridingMethodsSearch.search(resolvedMethod, new ModuleContentRootSearchScope(module), true);
                        overridingMethods.forEach(new Processor<PsiMethod>() {
                          @Override
                          public boolean process(PsiMethod implementation) {
                            searchForCallExpression(implementation.getBody(),
                                                    macros.createIntent,
-                                                   createProcessor(/*"listView"*/null, activities, model, finalState));
+                                                   createProcessor(/*"listView"*/null, classNameToActivityState, model, finalState));
                            return true;
                          }
                        });
@@ -180,10 +285,8 @@ public class Analysis {
       @Override
       public void apply(MultiMatch.Bindings<PsiElement> args) {
         PsiElement activityClass = args.get("activityClass").getFirstChild();
-        State toState = activities.get(getQualifiedName(activityClass));
-        if (toState != null) {
-          addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
-        }
+        State toState = getActivityState(getQualifiedName(activityClass), activities);
+        addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
       }
     };
   }
@@ -230,26 +333,12 @@ public class Analysis {
     return null;
   }
 
-  private static Map<String, MenuState> getMenus(NavigationModel model) {
-    Map<String, MenuState> menus = new HashMap<String, MenuState>();
-    for (State state : model.getStates()) {
-      if (state instanceof MenuState) {
-        MenuState menuState = (MenuState)state;
-        menus.put(state.getXmlResourceName(), menuState);
-      }
+  private static Map<String, ActivityState> getActivityClassNameToActivityState(Set<String> activityClassNames) {
+    Map<String, ActivityState> result = new HashMap<String, ActivityState>();
+    for (String activityClassName : activityClassNames) {
+      result.put(activityClassName, new ActivityState(activityClassName));
     }
-    return menus;
-  }
-
-  private static Map<String, ActivityState> getActivities(NavigationModel model) {
-    Map<String, ActivityState> activities = new HashMap<String, ActivityState>();
-    for (State state : model.getStates()) {
-      if (state instanceof ActivityState) {
-        ActivityState activityState = (ActivityState)state;
-        activities.put(state.getClassName(), activityState);
-      }
-    }
-    return activities;
+    return result;
   }
 
   @Nullable
