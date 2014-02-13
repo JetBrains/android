@@ -2,6 +2,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.rendering.PsiProjectListener;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -89,6 +90,11 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
       if (!SdkUtils.endsWithIgnoreCase(file.getName(), DOT_GRADLE)) {
         return null;
+      }
+      // Ensure that we're listening to the PSI structure for Gradle file edit notifications
+      Project project = file.getProject();
+      if (Projects.isGradleProject(project)) {
+        PsiProjectListener.getListener(project);
       }
     }
     else if (fileType != StdFileTypes.JAVA) {
