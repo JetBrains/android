@@ -31,7 +31,7 @@ public class Macros {
   private static final String TEMPLATES_PACKAGE = /*"com.android.templates.".replace('.', '/')*/ "";
   private static final String GENERAL_TEMPLATES = TEMPLATES_PACKAGE + "GeneralTemplates";
   private static final String LISTENER_TEMPLATES = TEMPLATES_PACKAGE + "InstallListenerTemplates";
-  private static final String MENU_ACCESS_TEMPLATES = TEMPLATES_PACKAGE + "MenuAccessTemplates";
+  private static final String ACCESS_TEMPLATES = TEMPLATES_PACKAGE + "AccessTemplates";
   private static final String LAUNCH_ACTIVITY_TEMPLATES = TEMPLATES_PACKAGE + "LaunchActivityTemplates";
 
   public final PsiMethod defineAssignment;
@@ -41,7 +41,7 @@ public class Macros {
   public final MultiMatch installItemClickAndCallMacro;
   public final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro;
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
-
+  public final MultiMatch findViewById;
   private static Map<Project, Macros> ourProjectToMacros = new IdentityHashMap<Project, Macros>();
 
   private static PsiMethod[] getMethodsByName(String templateName, String methodName, Project project) {
@@ -82,11 +82,12 @@ public class Macros {
     defineAssignment = getMethodsByName(GENERAL_TEMPLATES, "defineAssignment", project)[0];
     PsiMethod defineInnerClassMacro = getMethodsByName(GENERAL_TEMPLATES, "defineInnerClass", project)[0];
 
-    PsiMethod installMenuItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installMenuItemClick", project)[0];
     PsiMethod installClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installClickListener", project)[0];
+    PsiMethod installMenuItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installMenuItemClick", project)[0];
     PsiMethod installItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installItemClickListener", project)[0];
 
-    PsiMethod getMenuItemMacro = getMethodsByName(MENU_ACCESS_TEMPLATES, "getMenuItem", project)[0];
+    PsiMethod getMenuItemMacro = getMethodsByName(ACCESS_TEMPLATES, "getMenuItem", project)[0];
+
     PsiMethod launchActivityMacro = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[0];
     PsiMethod launchActivityMacro2 = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[1];
 
@@ -95,6 +96,7 @@ public class Macros {
     installClickAndCallMacro = new MultiMatch(installClickMacro);
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
+    findViewById = new MultiMatch(Utilities.createMethodFromText(project, "void findViewById(int $id) { findViewById(R.id.$id);}"));
     installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
     installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$menuItem", getMenuItemMacro);
     installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$f", launchActivityMacro);
