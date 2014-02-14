@@ -216,7 +216,7 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
       }
       if (resDir != null) {
         // Populate the output file tree
-        myTreeModel = new FileTreeModel(resDir);
+        myTreeModel = new FileTreeModel(resDir, true);
         myTemplateState.put(ATTR_OUTPUT_FOLDER, resDir);
 
         try {
@@ -240,9 +240,16 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
         }
         myOutputPreviewTree.setModel(myTreeModel);
         myOutputPreviewTree.setCellRenderer(myFileTreeRenderer);
+        expandTree();
       }
     }
     myComputeNewSourceSet = false;
+  }
+
+  private void expandTree() {
+    for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {
+      myOutputPreviewTree.expandRow(i);
+    }
   }
 
   @Override
