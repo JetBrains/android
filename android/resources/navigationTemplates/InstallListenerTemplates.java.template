@@ -23,11 +23,11 @@ import android.widget.ListView;
 
 public class InstallListenerTemplates {
 
-    public static void installClickListener(View $view, final Statement $f) {
+    public static void installClickListener(View $view, Statement $f) {
         $view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                $f.$$();
+                $f.$();
             }
         });
     }
