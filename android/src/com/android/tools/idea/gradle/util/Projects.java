@@ -34,7 +34,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -204,14 +203,14 @@ public final class Projects {
    *
    * @param handler the handler to run when the context is available
    */
-  public static void applyToCurrentGradleProject(@NotNull final AsyncResult.Handler<Project> handler) {
+  public static void applyToCurrentGradleProject(@NotNull final Consumer<Project> handler) {
     DataManager.getInstance().getDataContextFromFocus().doWhenDone(new Consumer<DataContext>() {
       @Override
       public void consume(DataContext dataContext) {
         if (dataContext != null) {
           Project project = CommonDataKeys.PROJECT.getData(dataContext);
           if (project != null && isGradleProject(project)) {
-            handler.run(project);
+            handler.consume(project);
           }
         }
       }
