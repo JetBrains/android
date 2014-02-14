@@ -16,6 +16,7 @@
 package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
@@ -32,19 +33,24 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.PlatformUtilsCore;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -113,6 +119,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
+
+    checkAndSetAndroidSdkSources();
   }
 
   private static void replaceIdeaNewProjectActions() {
@@ -354,5 +362,31 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         }
       }
     });
+  }
+
+
+  private static void checkAndSetAndroidSdkSources() {
+    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+      checkAndSetSources(sdk);
+    }
+  }
+
+  private static void checkAndSetSources(@NotNull Sdk sdk) {
+    VirtualFile[] storedSources = sdk.getRootProvider().getFiles(OrderRootType.SOURCES);
+    if (storedSources.length > 0) {
+      return;
+    }
+
+    SdkAdditionalData sdkData = sdk.getSdkAdditionalData();
+    if (sdkData instanceof AndroidSdkAdditionalData) {
+      AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)sdkData;
+      AndroidPlatform platform = androidSdkData.getAndroidPlatform();
+      if (platform != null) {
+        SdkModificator sdkModificator = sdk.getSdkModificator();
+        IAndroidTarget target = platform.getTarget();
+        AndroidSdkUtils.findAndSetPlatformSources(target, sdkModificator);
+        sdkModificator.commitChanges();
+      }
+    }
   }
 }

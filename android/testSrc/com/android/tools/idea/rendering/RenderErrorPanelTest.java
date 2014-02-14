@@ -23,7 +23,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -32,6 +31,7 @@ import junit.framework.AssertionFailedError;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -289,7 +289,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
 
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertNotNull(target.get());
-    boolean havePlatformSources = RenderErrorPanel.findPlatformSources(target.get()) != null;
+    boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
         "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
@@ -517,7 +517,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
     String html = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
 
     assertNotNull(target.get());
-    boolean havePlatformSources = RenderErrorPanel.findPlatformSources(target.get()) != null;
+    boolean havePlatformSources = AndroidSdkUtils.findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
         "<html><body><A HREF=\"action:close\"></A><font style=\"font-weight:bold; color:#005555;\">Rendering Problems</font><BR/>\n" +
