@@ -201,7 +201,7 @@ public class TemplateWizardState {
     }
   }
 
-  protected void setParameterDefaults() {
+  public void setParameterDefaults() {
     for (Parameter param : myTemplate.getMetadata().getParameters()) {
       if (!myFinal.contains(param.id) && !myParameters.containsKey(param.id) && param.initial != null) {
         switch(param.type) {
