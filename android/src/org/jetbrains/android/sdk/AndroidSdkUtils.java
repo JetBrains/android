@@ -59,10 +59,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.java.LanguageLevel;
@@ -79,6 +76,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 
 /**
@@ -357,11 +355,12 @@ public final class AndroidSdkUtils {
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk, jdk);
     data.setBuildTarget(target);
 
-    sdkName = SdkConfigurationUtil.createUniqueSdkName(sdkName, Arrays.asList(allSdks));
+    String name = SdkConfigurationUtil.createUniqueSdkName(sdkName, Arrays.asList(allSdks));
 
     SdkModificator sdkModificator = androidSdk.getSdkModificator();
-    sdkModificator.setName(sdkName);
+    findAndSetPlatformSources(target, sdkModificator);
 
+    sdkModificator.setName(name);
     if (jdk != null) {
       //noinspection ConstantConditions
       sdkModificator.setVersionString(jdk.getVersionString());
@@ -376,6 +375,16 @@ public final class AndroidSdkUtils {
     }
 
     sdkModificator.commitChanges();
+  }
+
+  public static void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
+    File sources = findPlatformSources(target);
+    if (sources != null) {
+      VirtualFile virtualFile = VfsUtil.findFileByIoFile(sources, true);
+      if (virtualFile != null) {
+        sdkModificator.addRoot(virtualFile, OrderRootType.SOURCES);
+      }
+    }
   }
 
   public static boolean targetHasId(@NotNull IAndroidTarget target, @NotNull String id) {
@@ -849,5 +858,19 @@ public final class AndroidSdkUtils {
 
   public static void setSdkData(@Nullable AndroidSdkData data) {
     ourSdkData = data;
+  }
+
+  /** Finds the root source code folder for the given android target, if any */
+  @Nullable
+  public static File findPlatformSources(@NotNull IAndroidTarget target) {
+    String path = target.getPath(IAndroidTarget.SOURCES);
+    if (path != null) {
+      File platformSource = new File(path);
+      if (platformSource.isDirectory()) {
+        return platformSource;
+      }
+    }
+
+    return null;
   }
 }
