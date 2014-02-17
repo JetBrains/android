@@ -16,12 +16,11 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -38,7 +37,6 @@ import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -73,10 +71,9 @@ public class PostProjectSyncTasksExecutor {
       AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
     }
 
-    BuildVariantView.getInstance(myProject).updateContents();
-    GradleImportNotificationListener.updateLastSyncTimestamp(myProject);
-    EditorNotifications.getInstance(myProject).updateAllNotifications();
     ProjectResourceRepository.moduleRootsChanged(myProject);
+
+    GradleSyncState.getInstance(myProject).syncEnded();
 
     if (myGenerateSourcesAfterSync) {
       ProjectBuilder.getInstance(myProject).generateSourcesOnly();

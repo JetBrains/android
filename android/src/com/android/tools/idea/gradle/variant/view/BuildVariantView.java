@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -111,7 +111,7 @@ public class BuildVariantView {
   }
 
   public void updateContents() {
-    if (GradleImportNotificationListener.isProjectImportInProgress()) {
+    if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
       projectImportStarted();
       return;
     }
