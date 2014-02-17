@@ -5,6 +5,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
@@ -26,6 +27,7 @@ import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.*;
 import org.jetbrains.jps.incremental.artifacts.ArtifactBuildTarget;
 import org.jetbrains.jps.incremental.artifacts.impl.JpsArtifactUtil;
+import org.jetbrains.jps.incremental.java.FormsParsing;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.storage.BuildDataManager;
@@ -47,9 +49,7 @@ import org.jetbrains.jps.model.module.*;
 import org.jetbrains.jps.model.serialization.JpsModelSerializationDataService;
 import org.jetbrains.jps.util.JpsPathUtil;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -74,6 +74,7 @@ public class AndroidJpsUtil {
   @NonNls private static final String GENERATED_SOURCES_FOLDER_NAME = "generated_sources";
   @NonNls private static final String PREPROCESSED_MANIFEST_FOLDER_NAME = "preprocessed_manifest";
   @NonNls private static final String COPIED_SOURCES_FOLDER_NAME = "copied_sources";
+  @NonNls private static final String MANIFEST_TAG = "manifest";
 
   private AndroidJpsUtil() {
   }
@@ -878,6 +879,30 @@ public class AndroidJpsUtil {
     return hasAndroidFacet;
   }
 
+  public static void collectRTextFilesFromAarDeps(@NotNull JpsModule module, @NotNull Collection<Pair<String, String>> result) {
+    final ArrayList<String> resDirs = new ArrayList<String>();
+    collectResDirectoriesFromAarDeps(module, resDirs);
+
+    for (String dir : resDirs) {
+      final File parent = new File(dir).getParentFile();
+      final File manifestFile = new File(parent, SdkConstants.FN_ANDROID_MANIFEST_XML);
+      final File rTxt = new File(parent, SdkConstants.FN_RESOURCE_TEXT);
+
+      if (manifestFile.exists() && rTxt.exists()) {
+        try {
+          final String packageName = parsePackageNameFromManifestFile(manifestFile);
+
+          if (packageName != null && packageName.length() > 0) {
+            result.add(Pair.create(rTxt.getPath(), packageName));
+          }
+        }
+        catch (IOException e) {
+          LOG.debug(e);
+        }
+      }
+    }
+  }
+
   public static void collectResDirectoriesFromAarDeps(@NotNull JpsModule module, @NotNull Collection<String> result) {
     final Set<JpsLibrary> libs =
       JpsJavaExtensionService.getInstance().enumerateDependencies(Collections.singletonList(module)).getLibraries();
@@ -919,5 +944,42 @@ public class AndroidJpsUtil {
       }
     }
     return null;
+  }
+
+  @Nullable
+  public static String parsePackageNameFromManifestFile(@NotNull File manifestFile) throws IOException {
+    final InputStream inputStream = new BufferedInputStream(new FileInputStream(manifestFile));
+    try {
+      final Ref<String> packageName = new Ref<String>(null);
+      FormsParsing.parse(inputStream, new FormsParsing.IXMLBuilderAdapter() {
+        boolean processingManifestTagAttrs = false;
+
+        @Override
+        public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr)
+          throws Exception {
+          if (MANIFEST_TAG.equals(name)) {
+            processingManifestTagAttrs = true;
+          }
+        }
+
+        @Override
+        public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type)
+          throws Exception {
+          if (value != null && AndroidCommonUtils.PACKAGE_MANIFEST_ATTRIBUTE.equals(key)) {
+            packageName.set(value.trim());
+          }
+        }
+
+        @Override
+        public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) throws Exception {
+          stop();
+        }
+      });
+
+      return packageName.get();
+    }
+    finally {
+      inputStream.close();
+    }
   }
 }
