@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
@@ -26,7 +27,6 @@ import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustom
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
@@ -415,6 +415,12 @@ public class GradleProjectImporter {
                         boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
     PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
+    if (!newProject) {
+      // For existing projects, we can notify the IDE that project sync has started. The side of this is that the "Build Variants" tool
+      // window and editor notifications will be updated. It is not safe to do this for new projects because the new project has not been
+      // opened at this point.
+      GradleSyncState.getInstance(project).syncStarted();
+    }
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -428,6 +434,8 @@ public class GradleProjectImporter {
             if (!isTest || !ourSkipSetupFromTest) {
               if (newProject) {
                 Projects.open(project);
+                // Now that the project is open, we can update project-specific UI related to "sync".
+                GradleSyncState.getInstance(project).syncStarted();
               }
               else {
                 updateStructureAccordingToBuildVariants(project);
@@ -464,6 +472,9 @@ public class GradleProjectImporter {
         }
         String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
         LOG.info(newMessage);
+
+        GradleSyncState.getInstance(project).syncEnded();
+
         if (callback != null) {
           callback.importFailed(project, newMessage);
         }
@@ -482,15 +493,14 @@ public class GradleProjectImporter {
             ProjectRootManagerEx.getInstanceEx(newProject).mergeRootsChangesDuring(new Runnable() {
               @Override
               public void run() {
-                boolean synchronous = true;
                 ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
 
                 Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
-                dataManager.importData(ProjectKeys.MODULE, modules, newProject, synchronous);
+                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */ );
 
                 Collection<DataNode<ProjectImportEventMessage>> eventMessages =
                   ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
-                dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, synchronous);
+                dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */ );
               }
             });
           }
@@ -525,11 +535,9 @@ public class GradleProjectImporter {
                        @NotNull ExternalProjectRefreshCallback callback,
                        @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
-        boolean previewMode = false; // false -> resolve dependencies for Java modules (Gradle model takes care of its own dependencies.)
-        boolean reportRefreshError = true; // always report errors when importing.
         String externalProjectPath = FileUtil.toCanonicalPath(project.getBasePath());
-        ExternalSystemUtil
-          .refreshProject(project, SYSTEM_ID, externalProjectPath, callback, previewMode, progressExecutionMode, reportRefreshError);
+        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
+                                          progressExecutionMode, true /* always report import errors */);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
