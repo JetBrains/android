@@ -17,6 +17,7 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
@@ -39,9 +40,9 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
 
   public CreateResourceFileActionGroup() {
     CreateResourceFileAction a = new CreateResourceFileAction();
-    a.add(new AndroidCreateLayoutFileAction());
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.LAYOUT.getDisplayName(), ResourceFolderType.LAYOUT));
 
-    a.add(new CreateTypedResourceFileAction("XML", ResourceFolderType.XML, false, true) {
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.XML.getDisplayName(), ResourceFolderType.XML) {
       @NotNull
       @Override
       public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
@@ -49,7 +50,7 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       }
     });
 
-    a.add(new CreateTypedResourceFileAction("Drawable", ResourceFolderType.DRAWABLE, false, true) {
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.DRAWABLE.getDisplayName(), ResourceFolderType.DRAWABLE) {
       @NotNull
       @Override
       public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
@@ -57,11 +58,11 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       }
     });
 
-    a.add(new CreateTypedResourceFileAction("Color", ResourceFolderType.COLOR, false, false));
+    a.add(new CreateTypedResourceFileAction(ResourceType.COLOR.getDisplayName(), ResourceFolderType.COLOR, false, false));
     a.add(new CreateTypedResourceFileAction("Values", ResourceFolderType.VALUES, true, false));
-    a.add(new CreateTypedResourceFileAction("Menu", ResourceFolderType.MENU, false, false));
+    a.add(new CreateTypedResourceFileAction(ResourceType.MENU.getDisplayName(), ResourceFolderType.MENU, false, false));
 
-    a.add(new CreateTypedResourceFileAction("Animation", ResourceFolderType.ANIM, false, true) {
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.ANIM.getDisplayName(), ResourceFolderType.ANIM) {
       @NotNull
       @Override
       public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
@@ -69,7 +70,7 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       }
     });
 
-    a.add(new CreateTypedResourceFileAction("Animator", ResourceFolderType.ANIMATOR, false, true) {
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.ANIMATOR.getDisplayName(), ResourceFolderType.ANIMATOR) {
       @NotNull
       @Override
       public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
