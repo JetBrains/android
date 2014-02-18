@@ -55,8 +55,8 @@ import java.util.List;
  */
 public class CreateTypedResourceFileAction extends CreateElementActionBase {
 
-  private final ResourceFolderType myResourceType;
-  private final String myResourcePresentableName;
+  protected final ResourceFolderType myResourceType;
+  protected final String myResourcePresentableName;
   protected final String myDefaultRootTag;
   private final boolean myValuesResourceFile;
   private final boolean myChooseTagName;
