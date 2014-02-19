@@ -37,7 +37,6 @@ import java.util.List;
 
 public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactory {
 
-  public static final String ANDROID_GRADLE_GROUP = "Android Gradle";
   public static final ProjectTemplate[] EMPTY_PROJECT_TEMPLATES = new ProjectTemplate[]{};
 
   @NotNull
@@ -48,7 +47,12 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
 
   @Override
   public Icon getGroupIcon(String group) {
-    return AndroidIcons.Android;
+    return AndroidIcons.Android24;
+  }
+
+  @Override
+  public String getParentGroup(String group) {
+    return "Java";
   }
 
   @NotNull

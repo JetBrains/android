@@ -5,20 +5,24 @@ import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
+import org.jetbrains.android.AndroidSdkResolveScopeProvider;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.augment.AndroidPsiElementFinder;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -132,6 +136,33 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
 
   public void testNavigationToResources10() throws Exception {
     doTestNavigationToResource(new LogicalPosition(30, 46), 1, FileResourceElementWrapper.class);
+  }
+
+  public void testFindingInternalResourceClasses() throws Exception {
+    configureMockSdk();
+    final JdkOrderEntry jdkOrderEntry = findJdkOrderEntry();
+    assertNotNull(jdkOrderEntry);
+    final GlobalSearchScope scope = new AndroidSdkResolveScopeProvider().getScope(getProject(), jdkOrderEntry);
+    assertNotNull(scope);
+    final JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
+
+    assertNotNull(facade.findClass(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME, scope));
+    assertNotNull(facade.findClass(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME + ".string", scope));
+
+    PsiClass[] classes = facade.findClasses(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME, scope);
+    assertEquals(1, classes.length);
+    classes = facade.findClasses(AndroidPsiElementFinder.INTERNAL_R_CLASS_QNAME + ".string", scope);
+    assertEquals(1, classes.length);
+  }
+
+  @Nullable
+  private JdkOrderEntry findJdkOrderEntry() {
+    for (OrderEntry entry : ModuleRootManager.getInstance(myModule).getOrderEntries()) {
+      if (entry instanceof JdkOrderEntry) {
+        return (JdkOrderEntry)entry;
+      }
+    }
+    return null;
   }
 
   private void doTestNavigationToResource(LogicalPosition position, int expectedCount, Class<?> aClass) {

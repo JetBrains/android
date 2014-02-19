@@ -17,14 +17,21 @@ package com.android.tools.idea.editors;
 
 import com.android.resources.ResourceType;
 import com.intellij.codeInsight.ImportFilter;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.CLASS_R;
 
 public class AndroidImportFilter extends ImportFilter {
+
   /** Never import android.R, or inner classes of application R or android.R classes */
   @Override
-  public boolean shouldUseFullyQualifiedName(@NotNull String classQualifiedName) {
+  public boolean shouldUseFullyQualifiedName(@NotNull PsiFile targetFile, @NotNull String classQualifiedName) {
+    return shouldUseFullyQualifiedName(classQualifiedName);
+  }
+
+  public static boolean shouldUseFullyQualifiedName(@NotNull String classQualifiedName) {
     if (classQualifiedName.endsWith(".R")) {
       return CLASS_R.equals(classQualifiedName);
     }

@@ -77,6 +77,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.*;
+import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -147,6 +148,8 @@ public class AndroidUtils {
   @NonNls public static final String ANDROID_TARGET_PROPERTY = "target";
   @NonNls public static final String ANDROID_LIBRARY_REFERENCE_PROPERTY_PREFIX = "android.library.reference.";
   @NonNls public static final String TAG_LINEAR_LAYOUT = "LinearLayout";
+  private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
+    SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
 
   private AndroidUtils() {
   }
@@ -272,7 +275,7 @@ public class AndroidUtils {
           final String moduleName = facet.getModule().getName();
           final int result = Messages.showYesNoDialog(project, AndroidBundle.message("create.run.configuration.question", moduleName),
                                                       AndroidBundle.message("create.run.configuration.title"), Messages.getQuestionIcon());
-          if (result == 0) {
+          if (result == Messages.YES) {
             r.run();
           }
         }
@@ -996,5 +999,18 @@ public class AndroidUtils {
   @NotNull
   public static String getAndroidSystemDirectoryOsPath() {
     return PathManager.getSystemPath() + File.separator + "android";
+  }
+
+  public static boolean isAndroidComponent(@NotNull PsiClass c) {
+    final Project project = c.getProject();
+    final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+
+    for (String componentClassName : ANDROID_COMPONENT_CLASSES) {
+      final PsiClass componentClass = facade.findClass(componentClassName, ProjectScope.getAllScope(project));
+      if (componentClass != null && c.isInheritor(componentClass, true)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

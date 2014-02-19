@@ -1,6 +1,6 @@
 package org.jetbrains.android;
 
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -224,7 +224,12 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", dst);
     myFixture.configureFromExistingVirtualFile(f);
     final ArrangementEngine engine = ServiceManager.getService(getProject(), ArrangementEngine.class);
-    engine.arrange(myFixture.getEditor(), myFixture.getFile(), Arrays.asList(new TextRange(0, myFixture.getFile().getTextLength())));
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        engine.arrange(myFixture.getEditor(), myFixture.getFile(), Arrays.asList(new TextRange(0, myFixture.getFile().getTextLength())));
+      }
+    });
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
@@ -245,7 +250,7 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + fileName, dstFileName);
     myFixture.configureFromExistingVirtualFile(f);
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         CodeStyleManager.getInstance(getProject()).reformat(myFixture.getFile());

@@ -185,7 +185,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
         String filename = currentPath.getName();
         VirtualFileWrapper fileWrapper =
-            FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project)null).save(parent, filename);
+          FileChooserFactory.getInstance().createSaveFileDialog(fileSaverDescriptor, (Project)null).save(parent, filename);
         if (fileWrapper != null) {
           myProjectLocation.setText(fileWrapper.getFile().getAbsolutePath());
         }
@@ -472,7 +472,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
       setErrorHtml(String.format("The prefix '%1$s' is meant as a placeholder and should " +
-                                    "not be used", SAMPLE_PACKAGE_PREFIX));
+                                 "not be used", SAMPLE_PACKAGE_PREFIX));
     }
 
     String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
@@ -733,9 +733,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Nullable
   private AndroidSdkData getSdkData() {
-    AndroidSdkData sdkData = myWizardContext != null
-                            ? AndroidSdkData.getSdkData(myWizardContext.getProjectJdk())
-                            : null;
+    AndroidSdkData sdkData = null;
+    if (myWizardContext != null) {
+      final Sdk projectJdk = myWizardContext.getProjectJdk();
+
+      if (projectJdk != null) {
+        sdkData = AndroidSdkData.getSdkData(projectJdk);
+      }
+    }
     if (sdkData == null) {
       sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     }

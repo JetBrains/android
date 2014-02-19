@@ -9,8 +9,8 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.lookup.LookupEx;
+import com.intellij.codeInspection.unusedSymbol.UnusedSymbolLocalInspection;
 import com.intellij.lang.documentation.DocumentationProvider;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
@@ -161,7 +161,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     assertFalse(variants.contains("p1.p2.LabelView"));
     assertTrue(variants.contains("p1.p2.LabelView1"));
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         try {
@@ -710,6 +710,13 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
+  public void testOnClickHighlightingJava() throws Throwable {
+    myFixture.enableInspections(UnusedSymbolLocalInspection.class);
+    final VirtualFile f = myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
+    myFixture.configureFromExistingVirtualFile(f);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
   public void testMinHeightCompletion() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen");
   }
@@ -985,7 +992,12 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final AndroidCreateOnClickHandlerAction action = new AndroidCreateOnClickHandlerAction();
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
-    action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
+      }
+    });
     myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity_after.java", false);
   }
@@ -1014,7 +1026,13 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     final List<IntentionAction> actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
     assertEquals(1, actions.size());
-    actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile());
+      }
+    });
+
     myFixture.checkResultByFile(testFolder + "/onClickIntention.xml");
     myFixture.checkResultByFile("src/p1/p2/Activity1.java", testFolder + "/OnClickActivity1_after.java", false);
   }
