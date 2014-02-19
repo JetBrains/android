@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
@@ -79,16 +80,22 @@ public class GenericEditor<E extends EditorPanel> implements ModuleConfiguration
 
   @Override
   public void apply() throws ConfigurationException {
-    try {
-      ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
-        @Override
-        public void run() throws Exception {
-            myPanel.apply();
-          }
-      });
-    } catch (Exception e) {
-      LOG.error("Error while applying changes", e);
-    }
+    CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+            @Override
+            public void run() throws Exception {
+              myPanel.apply();
+            }
+          });
+        }
+        catch (Exception e) {
+          LOG.error("Error while applying changes", e);
+        }
+      }
+    });
   }
 
   @Override
