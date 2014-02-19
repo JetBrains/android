@@ -60,6 +60,8 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     rules.add(attrArrangementRule(".*", SdkConstants.NS_RESOURCES, BY_NAME));
     rules.add(attrArrangementRule(".*", ".*", BY_NAME));
     // TODO: Should sort name:"color",namespace:"" to the end (primarily for color state lists)
-    settings.getCommonSettings(XMLLanguage.INSTANCE).setArrangementSettings(new StdRulePriorityAwareSettings(rules));
+    final CommonCodeStyleSettings xmlCommonSettings = settings.getCommonSettings(XMLLanguage.INSTANCE);
+    xmlCommonSettings.setArrangementSettings(new StdRulePriorityAwareSettings(rules));
+    xmlCommonSettings.FORCE_REARRANGE_MODE = CommonCodeStyleSettings.REARRANGE_ALWAYS;
   }
 }
