@@ -77,6 +77,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
         continue;
       }
       JLabel label = new JLabel(parameter.name);
+      registerLabel(parameter.id, label);
       c.setHSizePolicy(GridConstraints.SIZEPOLICY_CAN_GROW);
       c.setColumn(0);
       c.setColSpan(1);
@@ -137,6 +138,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
           }
           break;
       }
+      updateVisibility(parameter);
     }
     update();
 
