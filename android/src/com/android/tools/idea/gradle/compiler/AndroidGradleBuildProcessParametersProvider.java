@@ -38,6 +38,7 @@ import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.util.Collection;
@@ -107,7 +108,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
     //noinspection TestOnlyProblems
-    populateJvmArgs(buildConfiguration, jvmArgs);
+    populateJvmArgs(buildConfiguration, jvmArgs, myProject);
 
     GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(myProject);
     if (executionSettings != null) {
@@ -142,9 +143,11 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   }
 
   @VisibleForTesting
-  static void populateJvmArgs(@NotNull AndroidGradleBuildConfiguration buildConfiguration, @NotNull List<String> jvmArgs) {
+  static void populateJvmArgs(@NotNull AndroidGradleBuildConfiguration buildConfiguration,
+                              @NotNull List<String> jvmArgs,
+                              @NotNull Project project) {
     // Indicate whether build is in "offline" mode.
-    jvmArgs.add(createJvmArg(GRADLE_OFFLINE_BUILD_MODE, buildConfiguration.OFFLINE_MODE));
+    jvmArgs.add(createJvmArg(GRADLE_OFFLINE_BUILD_MODE, GradleSettings.getInstance(project).isOfflineWork()));
 
     // Add command-line options.
     String[] commandLineOptions = buildConfiguration.getCommandLineOptions();

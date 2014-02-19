@@ -21,7 +21,10 @@ import com.intellij.debugger.ui.DebuggerContentInfo;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.debugger.ui.DebuggerSessionTab;
 import com.intellij.execution.*;
-import com.intellij.execution.configurations.*;
+import com.intellij.execution.configurations.RemoteConnection;
+import com.intellij.execution.configurations.RemoteState;
+import com.intellij.execution.configurations.RunProfile;
+import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessAdapter;
@@ -53,14 +56,12 @@ import com.intellij.psi.PsiClass;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManagerAdapter;
 import com.intellij.ui.content.ContentManagerEvent;
-import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import com.intellij.xdebugger.XDebuggerBundle;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.logcat.AndroidLogcatView;
+import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -110,10 +111,10 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   @Override
-  protected RunContentDescriptor doExecute(final Project project,
-                                           final RunProfileState state,
+  protected RunContentDescriptor doExecute(@NotNull final Project project,
+                                           @NotNull final RunProfileState state,
                                            final RunContentDescriptor contentToReuse,
-                                           final ExecutionEnvironment environment) throws ExecutionException {
+                                           @NotNull final ExecutionEnvironment environment) throws ExecutionException {
     assert state instanceof AndroidRunningState;
     final AndroidRunningState runningState = (AndroidRunningState)state;
     final RunContentDescriptor[] descriptor = {null};
@@ -440,7 +441,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
         }
       };
       Disposer.register(this, myToolWindowView);
-      myToolWindowView.getLogConsole().attachStopLogConsoleTrackingListener(process);
     }
 
     @Override
@@ -454,7 +454,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
       // todo: provide other icon
       final Content logcatContent = layoutUi.createContent(ANDROID_LOGCAT_CONTENT_ID, myToolWindowView.getContentPanel(), "Logcat",
-                                                         AndroidIcons.Android, getPreferredFocusableComponent());
+                                                           AndroidIcons.Android, getPreferredFocusableComponent());
       logcatContent.setCloseable(false);
       logcatContent.setSearchComponent(myToolWindowView.createSearchComponent(myProject));
       layoutUi.addContent(logcatContent, 2, PlaceInGrid.bottom, false);

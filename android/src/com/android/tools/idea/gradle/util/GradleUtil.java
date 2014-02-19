@@ -37,7 +37,6 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.StartParameter;
-import org.gradle.api.tasks.wrapper.Wrapper;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
@@ -325,7 +324,7 @@ public final class GradleUtil {
   @Nullable
   private static File getGradleHome(@NotNull Project project, @NotNull WrapperConfiguration configuration) {
     File systemHomePath = StartParameter.DEFAULT_GRADLE_USER_HOME;
-    if (Wrapper.PathBase.PROJECT.name().equals(configuration.getDistributionBase())) {
+    if ("PROJECT".equals(configuration.getDistributionBase())) {
       systemHomePath = new File(project.getBasePath(), SdkConstants.DOT_GRADLE);
     }
     if (!systemHomePath.isDirectory()) {

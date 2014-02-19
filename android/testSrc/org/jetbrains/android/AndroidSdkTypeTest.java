@@ -15,13 +15,12 @@
  */
 package org.jetbrains.android;
 
-import com.intellij.ide.projectWizard.ProjectWizardTestCase;
+import com.intellij.ide.projectWizard.NewProjectWizardTestCase;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
-import com.intellij.openapi.projectRoots.impl.JavaSdkImpl;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel;
 import com.intellij.openapi.util.Condition;
 import com.intellij.testFramework.IdeaTestUtil;
@@ -33,7 +32,7 @@ import org.jetbrains.android.util.AndroidBundle;
  * @author Dmitry Avdeev
  *         Date: 12/5/12
  */
-public class AndroidSdkTypeTest extends ProjectWizardTestCase {
+public class AndroidSdkTypeTest extends NewProjectWizardTestCase {
 
   public void testUnsatisfied() throws Exception {
     ProjectSdksModel model = new ProjectSdksModel();
