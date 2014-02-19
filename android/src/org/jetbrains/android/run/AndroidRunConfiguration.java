@@ -30,6 +30,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
@@ -87,6 +88,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   protected void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
     final boolean packageContainMavenProperty = doesPackageContainMavenProperty(facet);
     final JavaRunConfigurationModule configurationModule = getConfigurationModule();
+    final Module module = facet.getModule();
+
     if (MODE.equals(LAUNCH_SPECIFIC_ACTIVITY)) {
       Project project = configurationModule.getProject();
       final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
@@ -112,15 +115,33 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         return;
       }
       if (!packageContainMavenProperty) {
-        Manifest manifest = AndroidModuleInfo.getManifest(facet.getModule(), true);
-        final Activity activity = AndroidDomUtil.getActivityDomElementByClass(manifest, c);
+        Manifest manifest = AndroidModuleInfo.getManifest(module, true);
+        Activity activity = AndroidDomUtil.getActivityDomElementByClass(manifest, c);
+        Module libModule = null;
+
         if (activity == null) {
-          throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
+          for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
+            final Module depModule = depFacet.getModule();
+            final Manifest depManifest = AndroidModuleInfo.getManifest(depModule, true);
+            activity = AndroidDomUtil.getActivityDomElementByClass(depManifest, c);
+
+            if (activity != null) {
+              libModule = depModule;
+              break;
+            }
+          }
+          if (activity == null) {
+            throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
+          }
+          else if (!facet.getProperties().ENABLE_MANIFEST_MERGING) {
+            throw new RuntimeConfigurationError(AndroidBundle.message("activity.declared.but.manifest.merging.disabled",
+                                                                      c.getName(), libModule.getName(), module.getName()));
+          }
         }
       }
     }
     else if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
-      Manifest manifest = AndroidModuleInfo.getManifest(facet.getModule(), true);
+      Manifest manifest = AndroidModuleInfo.getManifest(module, true);
       if (manifest != null) {
         if (packageContainMavenProperty || AndroidUtils.getDefaultLauncherActivityName(manifest) != null) return;
       }
