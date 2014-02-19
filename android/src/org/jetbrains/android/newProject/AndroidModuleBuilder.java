@@ -160,10 +160,15 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
+              CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
                 @Override
                 public void run() {
-                  createProject(contentRoot, sourceRoot, facet);
+                  ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                    @Override
+                    public void run() {
+                      createProject(contentRoot, sourceRoot, facet);
+                    }
+                  });
                 }
               });
             }
@@ -375,37 +380,42 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
             if (!manifestGenerated) {
               return;
             }
-            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
               @Override
               public void run() {
-                try {
-                  if (project.isDisposed()) {
-                    return;
-                  }
-                  if (myProjectType == ProjectType.APPLICATION) {
-                    assignApplicationName(facet);
-                    configureManifest(facet, target);
-                    createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_ASSETS);
-                    createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_NATIVE_LIBS);
-                  }
-                  else if (myProjectType == ProjectType.LIBRARY && myPackageName != null) {
-                    final String[] dirs = myPackageName.split("\\.");
-                    VirtualFile file = sourceRoot;
-
-                    for (String dir : dirs) {
-                      if (file == null || dir.length() == 0) {
-                        break;
+                ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                  @Override
+                  public void run() {
+                    try {
+                      if (project.isDisposed()) {
+                        return;
                       }
-                      final VirtualFile childDir = file.findChild(dir);
-                      file = childDir != null
-                             ? childDir
-                             : file.createChildDirectory(project, dir);
+                      if (myProjectType == ProjectType.APPLICATION) {
+                        assignApplicationName(facet);
+                        configureManifest(facet, target);
+                        createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_ASSETS);
+                        createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_NATIVE_LIBS);
+                      }
+                      else if (myProjectType == ProjectType.LIBRARY && myPackageName != null) {
+                        final String[] dirs = myPackageName.split("\\.");
+                        VirtualFile file = sourceRoot;
+
+                        for (String dir : dirs) {
+                          if (file == null || dir.length() == 0) {
+                            break;
+                          }
+                          final VirtualFile childDir = file.findChild(dir);
+                          file = childDir != null
+                                 ? childDir
+                                 : file.createChildDirectory(project, dir);
+                        }
+                      }
+                    }
+                    catch (IOException e) {
+                      LOG.error(e);
                     }
                   }
-                }
-                catch (IOException e) {
-                  LOG.error(e);
-                }
+                });
               }
             });
 
@@ -673,27 +683,22 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
   }
 
   private void createResourcesAndLibs(final Project project, final VirtualFile rootDir) {
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          createChildDirectoryIfNotExist(project, rootDir, SdkConstants.FD_ASSETS);
-          createChildDirectoryIfNotExist(project, rootDir, SdkConstants.FD_NATIVE_LIBS);
-          VirtualFile resDir = createChildDirectoryIfNotExist(project, rootDir, SdkConstants.FD_RES);
-          VirtualFile drawableDir = createChildDirectoryIfNotExist(project, resDir, SdkConstants.FD_RES_DRAWABLE);
-          createFileFromResource(project, drawableDir, "icon.png", "/icons/androidLarge.png");
-          if (isHelloAndroid()) {
-            VirtualFile valuesDir = createChildDirectoryIfNotExist(project, resDir, SdkConstants.FD_RES_VALUES);
-            createFileFromResource(project, valuesDir, "strings.xml", "res/values/strings.xml");
-            VirtualFile layoutDir = createChildDirectoryIfNotExist(project, resDir, SdkConstants.FD_RES_LAYOUT);
-            createFileFromResource(project, layoutDir, "main.xml", "res/layout/main.xml");
-          }
-        }
-        catch (IOException e) {
-          LOG.error(e);
-        }
+    try {
+      createChildDirectoryIfNotExist(project, rootDir, SdkConstants.FD_ASSETS);
+      createChildDirectoryIfNotExist(project, rootDir, SdkConstants.FD_NATIVE_LIBS);
+      VirtualFile resDir = createChildDirectoryIfNotExist(project, rootDir, SdkConstants.FD_RES);
+      VirtualFile drawableDir = createChildDirectoryIfNotExist(project, resDir, SdkConstants.FD_RES_DRAWABLE);
+      createFileFromResource(project, drawableDir, "icon.png", "/icons/androidLarge.png");
+      if (isHelloAndroid()) {
+        VirtualFile valuesDir = createChildDirectoryIfNotExist(project, resDir, SdkConstants.FD_RES_VALUES);
+        createFileFromResource(project, valuesDir, "strings.xml", "res/values/strings.xml");
+        VirtualFile layoutDir = createChildDirectoryIfNotExist(project, resDir, SdkConstants.FD_RES_LAYOUT);
+        createFileFromResource(project, layoutDir, "main.xml", "res/layout/main.xml");
       }
-    });
+    }
+    catch (IOException e) {
+      LOG.error(e);
+    }
   }
 
   private static void createFileFromResource(Project project, VirtualFile drawableDir, String name, String resourceFilePath)
@@ -720,6 +725,10 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     myApplicationName = applicationName;
   }
 
+  public String getApplicationName() {
+    return myApplicationName;
+  }
+
   public void setPackageName(String packageName) {
     myPackageName = packageName;
   }
@@ -738,7 +747,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     switch (myProjectType) {
 
       case APPLICATION:
-        return new AndroidModifiedSettingsStep(this, settingsStep);
+        return new AndroidApplicationModifiedSettingsStep(this, settingsStep);
       case LIBRARY:
         return new AndroidLibraryModifiedSettingsStep(this, settingsStep);
       case TEST:
@@ -763,7 +772,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
   @Override
   public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
-    return new ModuleWizardStep[] { new AndroidModuleWizardStep(this, wizardContext, modulesProvider, myProjectType) };
+    return new ModuleWizardStep[] { new AndroidModuleWizardStep(this, modulesProvider, myProjectType) };
   }
 
   @Override

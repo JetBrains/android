@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -70,7 +71,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     final LocalResourceRepository resources = myFacet.getModuleResources(true);
     assertNotNull(resources); final long generation = resources.getModificationCount();
     assertEquals("Cancel", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         //noinspection ConstantConditions

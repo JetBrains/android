@@ -2,6 +2,9 @@ package org.jetbrains.android.augment;
 
 import com.android.resources.ResourceType;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
@@ -13,14 +16,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-class AndroidInternalRClass extends AndroidLightClassBase {
+public class AndroidInternalRClass extends AndroidLightClassBase {
+  private static final Key<Sdk> ANDROID_INTERNAL_R = Key.create("ANDROID_INTERNAL_R");
   private final PsiFile myFile;
   private final ResourceManager mySystemResourceManager;
   private final PsiClass[] myInnerClasses;
 
-  public AndroidInternalRClass(@NotNull PsiManager psiManager, @NotNull AndroidPlatform platform) {
+  public AndroidInternalRClass(@NotNull PsiManager psiManager, @NotNull AndroidPlatform platform, Sdk sdk) {
     super(psiManager);
     myFile = PsiFileFactory.getInstance(myManager.getProject()).createFileFromText("R.java", JavaFileType.INSTANCE, "");
+    myFile.getViewProvider().getVirtualFile().putUserData(ANDROID_INTERNAL_R, sdk);
     mySystemResourceManager = new SystemResourceManager(psiManager.getProject(), platform, false);
 
     final ResourceType[] types = ResourceType.values();
@@ -86,5 +91,9 @@ class AndroidInternalRClass extends AndroidLightClassBase {
     protected PsiField[] doGetFields() {
       return buildResourceFields(mySystemResourceManager, false, myName, AndroidInternalRClass.this);
     }
+  }
+
+  public static boolean isAndroidInternalR(@NotNull VirtualFile file, @NotNull Sdk sdk) {
+    return sdk.equals(file.getUserData(ANDROID_INTERNAL_R));
   }
 }
