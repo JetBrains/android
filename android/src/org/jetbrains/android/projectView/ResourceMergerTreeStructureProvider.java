@@ -11,6 +11,7 @@ import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -22,8 +23,9 @@ import java.util.Map;
  * @author yole
  */
 public class ResourceMergerTreeStructureProvider implements TreeStructureProvider {
+  @NotNull
   @Override
-  public Collection<AbstractTreeNode> modify(AbstractTreeNode parent, Collection<AbstractTreeNode> children, ViewSettings settings) {
+  public Collection<AbstractTreeNode> modify(@NotNull AbstractTreeNode parent, @NotNull Collection<AbstractTreeNode> children, ViewSettings settings) {
     if (!ApplicationManager.getApplication().isInternal()) {
       return children;
     }
