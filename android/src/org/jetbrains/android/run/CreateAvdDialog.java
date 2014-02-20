@@ -370,7 +370,7 @@ public class CreateAvdDialog extends DialogWrapper {
     myCreatedAvd = myAvdManager.createAvd(avdFolder, avdName, selectedTarget,
                                           sysImg.getTag(), sysImg.getAbiType(),
                                           null /*skinFolder*/, skinName,
-                                          sdCard, null, true, false, false, log);
+                                          sdCard, null, null, true, false, false, log);
     if (log.getErrorMessage().length() > 0) {
       Messages.showErrorDialog(myProject, log.getErrorMessage(), AndroidBundle.message("android.avd.error.title"));
     }
