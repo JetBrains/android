@@ -191,7 +191,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetFileValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/debug");
-    final File replacementFile = new File("foo.keystore");
+    final File replacementFile = new File("abc/def/foo.keystore");
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
@@ -207,7 +207,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetFileStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
-    final File replacementFile = new File("foo.txt");
+    final File replacementFile = new File("abc/def/foo.txt");
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
