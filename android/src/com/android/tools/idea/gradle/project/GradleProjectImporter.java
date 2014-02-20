@@ -337,7 +337,21 @@ public class GradleProjectImporter {
 
   private static void createIdeaProjectDir(@NotNull File projectRootDir) throws IOException {
     File ideaDir = new File(projectRootDir, Project.DIRECTORY_STORE_FOLDER);
-    FileUtil.ensureExists(ideaDir);
+    if (ideaDir.isDirectory()) {
+      // "libraries" is hard-coded in com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable
+      File librariesDir = new File(ideaDir, "libraries");
+      if (librariesDir.exists()) {
+        // remove contents of libraries. This is useful when importing existing projects that may have invalid library entries (e.g.
+        // created with Studio 0.4.3 or earlier.)
+        boolean librariesDirDeleted = FileUtil.delete(librariesDir);
+        if (!librariesDirDeleted) {
+          LOG.info(String.format("Failed to delete %1$s'", librariesDir.getPath()));
+        }
+      }
+    }
+    else {
+      FileUtil.ensureExists(ideaDir);
+    }
   }
 
   @NotNull
