@@ -27,6 +27,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -42,10 +43,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 
-import static com.android.sdklib.devices.DeviceManager.DEFAULT_DEVICES;
-import static com.android.sdklib.devices.DeviceManager.VENDOR_DEVICES;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
 
@@ -187,7 +187,7 @@ public class ConfigurationManager implements Disposable {
         final AndroidSdkData sdkData = platform.getSdkData();
         devices = new ArrayList<Device>();
         DeviceManager deviceManager = sdkData.getDeviceManager();
-        devices.addAll(deviceManager.getDevices(DEFAULT_DEVICES | VENDOR_DEVICES));
+        devices.addAll(deviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)));
         devices.addAll(myUserDeviceManager.parseUserDevices(new MessageBuildingSdkLog()));
       }
 
