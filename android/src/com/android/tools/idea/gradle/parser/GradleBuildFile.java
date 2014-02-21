@@ -128,4 +128,27 @@ public class GradleBuildFile extends GradleGroovyFile {
     }
     return false;
   }
+
+  public boolean hasDependency(@NotNull BuildFileStatement statement) {
+    List<BuildFileStatement> currentDeps = (List<BuildFileStatement>)getValue(BuildFileKey.DEPENDENCIES);
+    if (currentDeps == null) {
+      return false;
+    }
+    return hasDependency(currentDeps, statement);
+  }
+
+  public static boolean hasDependency(@NotNull List<BuildFileStatement> currentDeps, @NotNull BuildFileStatement statement) {
+    if (currentDeps.contains(statement)) {
+      return true;
+    }
+    if (!(statement instanceof Dependency)) {
+      return false;
+    }
+    for (BuildFileStatement currentStatement : currentDeps) {
+      if (currentStatement instanceof Dependency && ((Dependency)currentStatement).matches((Dependency)statement)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
