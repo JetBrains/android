@@ -15,28 +15,39 @@
  */
 package com.android.tools.idea.editors;
 
-import junit.framework.TestCase;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import org.jetbrains.android.AndroidTestCase;
 
-public class AndroidImportFilterTest extends TestCase {
+public class AndroidImportFilterTest extends AndroidTestCase {
   public void test() {
-    assertTrue(AndroidImportFilter.shouldUseFullyQualifiedName("android.R"));
-    assertTrue(AndroidImportFilter.shouldUseFullyQualifiedName("android.R.anim"));
-    assertTrue(AndroidImportFilter.shouldUseFullyQualifiedName("android.R.anything"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("com.android.tools.R"));
-    assertTrue(AndroidImportFilter.shouldUseFullyQualifiedName("com.android.tools.R.anim"));
-    assertTrue(AndroidImportFilter.shouldUseFullyQualifiedName("com.android.tools.R.layout"));
-    assertTrue(AndroidImportFilter.shouldUseFullyQualifiedName("a.R.string"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("my.weird.clz.R"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("my.weird.clz.R.bogus"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName(""));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("."));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("a.R"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("android"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("android."));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("android.r"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("android.Random"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("my.R.unrelated"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("my.R.unrelated.to"));
-    assertFalse(AndroidImportFilter.shouldUseFullyQualifiedName("R.string")); // R is never in the default package
+    VirtualFile vFile = myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    PsiFile file = PsiManager.getInstance(getProject()).findFile(vFile);
+    assertNotNull(file);
+
+    AndroidImportFilter filter = new AndroidImportFilter();
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "android.R"));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "android.R.anim"));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "android.R.anything"));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "com.android.tools.R"));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "com.android.tools.R.anim"));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "com.android.tools.R.layout"));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "a.R.string"));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "my.weird.clz.R"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "my.weird.clz.R.bogus"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "p1.p2.R")); // Application package: android/testData/AndroidManifest.xml
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "p1.p2.R.string"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "p1.p2.R.bogus"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, ""));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "."));
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "a.R"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "android"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "android."));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "android.r"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "android.Random"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "my.R.unrelated"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "my.R.unrelated.to"));
+    assertFalse(filter.shouldUseFullyQualifiedName(file, "R.string")); // R is never in the default package
   }
 }
