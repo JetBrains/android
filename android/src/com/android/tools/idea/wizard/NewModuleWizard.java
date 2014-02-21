@@ -66,7 +66,8 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
 
   @Override
   protected void init() {
-    myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel, mySteps, false) {
+    myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
+                                                      mySteps, getDisposable(), false) {
       @Override
       public void update() {
         super.update();
