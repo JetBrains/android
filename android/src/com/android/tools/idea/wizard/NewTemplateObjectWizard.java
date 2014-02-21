@@ -154,14 +154,26 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
         myTargetFolder = null;
       }
     }
-    if (packageName == null) {
-      packageName = moduleInfo.getPackage();
+
+    // If the wizard was not invoked on a package folder, select the application package
+    if (gradleProject != null) {
+      String applicationPackageName =  gradleProject.computePackageName();
+      if (packageName == null) {
+        packageName = applicationPackageName;
+      } else if (!packageName.equals(applicationPackageName)) {
+        // If we have selected a folder, make sure we pass along the application package
+        // so that we can do proper imports
+        myWizardState.put(ATTR_APPLICATION_PACKAGE, applicationPackageName);
+      }
+    }
+
+    if (packageName != null) {
+      myWizardState.put(ATTR_PACKAGE_NAME, packageName);
     }
 
     minSdkVersion = moduleInfo.getMinSdkVersion();
     minSdkName = moduleInfo.getMinSdkName();
 
-    myWizardState.put(ATTR_PACKAGE_NAME, packageName);
     myWizardState.put(ATTR_MIN_API, minSdkName);
     myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
 
@@ -191,9 +203,11 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
     super.init();
 
-    // Ensure that the window is large enough to accommodate the contents without clipping the validation error label
-    Dimension preferredSize = getContentPanel().getPreferredSize();
-    getContentPanel().setPreferredSize(new Dimension(Math.max(800, preferredSize.width), Math.max(640, preferredSize.height)));
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      // Ensure that the window is large enough to accommodate the contents without clipping the validation error label
+      Dimension preferredSize = getContentPanel().getPreferredSize();
+      getContentPanel().setPreferredSize(new Dimension(Math.max(800, preferredSize.width), Math.max(640, preferredSize.height)));
+    }
   }
 
   /**
