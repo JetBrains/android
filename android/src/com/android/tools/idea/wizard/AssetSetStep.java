@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.wizard;
 
-import com.android.SdkConstants;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
@@ -25,15 +24,16 @@ import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColorPanel;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -47,8 +47,9 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.Timer;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,7 +58,7 @@ import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.*;
 /**
  * {@linkplain AssetSetStep} is a wizard page that lets the user create a variety of density-scaled assets.
  */
-public class AssetSetStep extends TemplateWizardStep {
+public class AssetSetStep extends TemplateWizardStep implements Disposable {
   private static final Logger LOG = Logger.getInstance(AssetSetStep.class);
   private static final int CLIPART_ICON_SIZE = 32;
   private static final int CLIPART_DIALOG_BORDER = 10;
@@ -130,7 +131,8 @@ public class AssetSetStep extends TemplateWizardStep {
     super(state, project, module, sidePanelIcon, updateListener);
     myAssetGenerator = new AssetStudioAssetGenerator(state);
 
-    myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, project, null, false);
+    myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, this, null, false);
+
     register(ATTR_TEXT, myText);
     register(ATTR_SCALING, myCropRadioButton, Scaling.CROP);
     register(ATTR_SCALING, myCenterRadioButton, Scaling.CENTER);
@@ -512,5 +514,11 @@ public class AssetSetStep extends TemplateWizardStep {
   @Override
   protected JLabel getError() {
     return myError;
+  }
+
+
+  @Override
+  public void dispose()  {
+    myUpdateQueue.cancelAllUpdates();
   }
 }
