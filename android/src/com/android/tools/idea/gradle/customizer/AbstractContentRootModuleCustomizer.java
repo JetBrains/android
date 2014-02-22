@@ -50,6 +50,10 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
 
     try {
+      for (ContentEntry contentEntry : rootModel.getContentEntries()) {
+        rootModel.removeContentEntry(contentEntry);
+      }
+
       Collection<ContentEntry> contentEntries = findOrCreateContentEntries(rootModel, model);
       setUpContentEntries(contentEntries, model);
     }
