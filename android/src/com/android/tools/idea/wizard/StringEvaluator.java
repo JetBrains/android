@@ -37,13 +37,13 @@ import java.util.Map;
  * evaluator supports only simple strings, referencing only values from the
  * provided map (and builtin functions).
  */
-class StringEvaluator implements TemplateLoader {
+public class StringEvaluator implements TemplateLoader {
   private Configuration myFreemarker;
   private String myCurrentExpression;
 
   private static final String BOOLEAN_TEMPLATE = "<#if (%s)>true<#else>false</#if>";
 
-  StringEvaluator() {
+  public StringEvaluator() {
 
     myFreemarker = new Configuration();
     myFreemarker.setObjectWrapper(new DefaultObjectWrapper());
@@ -52,7 +52,7 @@ class StringEvaluator implements TemplateLoader {
 
   /** Evaluates the given expression, with the given set of arguments */
   @Nullable
-  String evaluate(@NonNull String expression, Map<String, Object> inputs) {
+  public String evaluate(@NonNull String expression, Map<String, Object> inputs) {
     try {
       myCurrentExpression = expression;
       Template inputsTemplate = myFreemarker.getTemplate(expression);
@@ -66,7 +66,7 @@ class StringEvaluator implements TemplateLoader {
     }
   }
 
-  boolean evaluateBooleanExpression(@NonNull String expression, Map<String, Object> inputs, boolean defaultValue) {
+  public boolean evaluateBooleanExpression(@NonNull String expression, Map<String, Object> inputs, boolean defaultValue) {
     try {
       myCurrentExpression = String.format(BOOLEAN_TEMPLATE, expression);
       String result = evaluate(myCurrentExpression, inputs);
