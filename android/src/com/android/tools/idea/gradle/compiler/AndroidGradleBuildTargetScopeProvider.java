@@ -25,6 +25,7 @@ import com.intellij.compiler.impl.ProjectCompileScope;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerFilter;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.api.CmdlineProtoUtil;
@@ -56,6 +57,8 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
       if (buildSettings.getBuildMode() == null) {
         buildSettings.setBuildMode(buildMode);
       }
+      Module[] modulesToBuild = ModuleManager.getInstance(project).getModules();
+      buildSettings.setModulesToBuild(modulesToBuild);
     }
     else if (baseScope instanceof ModuleCompileScope) {
       String userDataString = ((ModuleCompileScope)baseScope).getUserDataString();
@@ -65,7 +68,7 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
         modulesToBuild = baseScope.getAffectedModules();
       }
       else {
-        // Triggered by menu item
+        // Triggered by menu item.
         // Make selected modules
         modulesToBuild = Projects.getModulesToBuildFromSelection(project, null);
       }
