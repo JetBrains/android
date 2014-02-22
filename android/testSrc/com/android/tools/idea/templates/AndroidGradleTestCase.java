@@ -71,9 +71,11 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
 
 /** Base class for unit tests that operate on Gradle projects */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
-  /** Investigate _LastInSuiteTest.testProjectLeak: something about the way we're simulating project
-   * creation leads to project leak for unknown reasons */
-  protected static final boolean CAN_SYNC_PROJECTS = false;
+  /**
+   * Flag to control whether gradle projects can be synced in tests. This was
+   * disabled earlier since it resulted in _LastInSuiteTest.testProjectLeak
+   */
+  protected static final boolean CAN_SYNC_PROJECTS = true;
 
   private static AndroidSdkData ourPreviousSdkData;
 
