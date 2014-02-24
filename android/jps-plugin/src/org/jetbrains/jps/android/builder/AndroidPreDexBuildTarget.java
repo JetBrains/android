@@ -50,8 +50,13 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     for (JpsModule module : myProject.getModules()) {
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
 
-      if (extension != null && extension.isLibrary()) {
-        result.add(new AndroidLibraryPackagingTarget(module));
+      if (extension != null) {
+        if (extension.isLibrary()) {
+          result.add(new AndroidLibraryPackagingTarget(module));
+        }
+        else {
+          result.add(new AndroidAarDepsBuildTarget(module));
+        }
       }
     }
     return result;
@@ -62,7 +67,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
                                           @NotNull Set<String> externalJars,
                                           @NotNull BuildDataPaths dataPaths,
                                           @NotNull AndroidPlatform platform) {
-    for (String jarOrLibDirPath : AndroidJpsUtil.getExternalLibraries(dataPaths, root, platform, false)) {
+    for (String jarOrLibDirPath : AndroidJpsUtil.getExternalLibraries(dataPaths, root, platform, false, false, true)) {
       final String path = FileUtil.toCanonicalPath(jarOrLibDirPath);
 
       if (path != null) {
