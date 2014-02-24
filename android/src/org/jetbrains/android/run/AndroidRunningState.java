@@ -262,6 +262,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           if (chooser.useSameDevicesAgain()) {
             myConfiguration.USE_LAST_SELECTED_DEVICE = true;
             myConfiguration.setDevicesUsedInLaunch(getDeviceNames(selectedDevices));
+          } else {
+            myConfiguration.USE_LAST_SELECTED_DEVICE = false;
+            myConfiguration.setDevicesUsedInLaunch(Collections.<String>emptySet());
           }
         }
       }
