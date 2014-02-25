@@ -43,13 +43,11 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
   @Override
   protected void setUpDependencies(@NotNull ModifiableRootModel model, @NotNull JavaModel javaModel, @NotNull List<String> errorsFound) {
-    for (IdeaDependency dependency : javaModel.getDependencies()) {
-      if (dependency instanceof IdeaModuleDependency) {
-        updateDependency(model, (IdeaModuleDependency)dependency, errorsFound);
-      }
-      else if (dependency instanceof IdeaSingleEntryLibraryDependency) {
-        updateDependency(model, (IdeaSingleEntryLibraryDependency)dependency, errorsFound);
-      }
+    for (IdeaModuleDependency dependency : javaModel.getModuleDependencies()) {
+      updateDependency(model, dependency, errorsFound);
+    }
+    for (IdeaSingleEntryLibraryDependency dependency : javaModel.getLibraryDependencies()) {
+      updateDependency(model, dependency, errorsFound);
     }
   }
 
