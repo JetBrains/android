@@ -40,6 +40,7 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
   @NotNull private final ProductFlavorContainerStub myDefaultConfig;
+  @NotNull private File myBuildFolder;
   @NotNull private final File myBuildFile;
 
   @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
@@ -58,6 +59,7 @@ public class AndroidProjectStub implements AndroidProject {
   private AndroidProjectStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     this.myName = name;
     myFileStructure = fileStructure;
+    myBuildFolder = myFileStructure.createProjectDir("build");
     myDefaultConfig = new ProductFlavorContainerStub("main", myFileStructure);
     myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
   }
@@ -207,6 +209,12 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public JavaCompileOptionsStub getJavaCompileOptions() {
     return myJavaCompileOptions;
+  }
+
+  @Override
+  @NotNull
+  public File getBuildFolder() {
+    return myBuildFolder;
   }
 
   /**
