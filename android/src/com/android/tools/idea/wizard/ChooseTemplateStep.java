@@ -19,8 +19,6 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -72,6 +70,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
                             @Nullable TemplateChangeListener templateChangeListener, @Nullable Set<String> excluded) {
     super(state, project, module, sidePanelIcon, updateListener);
     myTemplateChangeListener = templateChangeListener;
+    myTemplateList.setBorder(BorderFactory.createLoweredBevelBorder());
 
     if (templateCategory != null) {
       List<MetadataListItem> templates = getTemplateList(state, templateCategory, excluded);
