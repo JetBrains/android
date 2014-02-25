@@ -16,12 +16,10 @@
 package com.android.tools.idea.model;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.android.dom.manifest.Manifest;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
