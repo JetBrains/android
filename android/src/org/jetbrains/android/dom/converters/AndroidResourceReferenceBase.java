@@ -108,7 +108,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
         List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
         if (items != null && FolderTypeRelationship.getRelatedFolders(resourceType).contains(ResourceFolderType.VALUES)) {
           for (ResourceItem item : items) {
-            XmlTag tag = LocalResourceRepository.getItemTag(myFacet, item);
+            XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
             if (tag != null) {
               elements.add(tag);
             }
