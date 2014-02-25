@@ -447,6 +447,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintNfcTechWhitespaceInspection extends AndroidLintInspectionBase {
+    public AndroidLintNfcTechWhitespaceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.nfc.tech.whitespace"), NfcTechListDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintNotSiblingInspection extends AndroidLintInspectionBase {
     public AndroidLintNotSiblingInspection() {
       super(AndroidBundle.message("android.lint.inspections.not.sibling"), WrongIdDetector.NOT_SIBLING);
