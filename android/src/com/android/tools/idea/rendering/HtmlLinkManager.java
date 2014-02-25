@@ -391,7 +391,7 @@ public class HtmlLinkManager {
       if (moduleInfo == null) {
         return;
       }
-      packageName = moduleInfo.getPackage(false);
+      packageName = moduleInfo.getPackage();
       if (packageName == null) {
         return;
       }
