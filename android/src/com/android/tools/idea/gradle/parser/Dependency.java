@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.android.SdkConstants;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,8 +30,10 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgument
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
 
@@ -39,6 +43,9 @@ import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralStr
  */
 public class Dependency extends BuildFileStatement {
   private static final Logger LOG = Logger.getInstance(Dependency.class);
+  public static final String APPCOMPAT_V7 = "com.android.support:appcompat-v7";
+  public static final String FILETREE_BASE_DIR_PROPERTY = "dir";
+  public static final String FILETREE_INCLUDE_PATTERN_PROPERTY = "include";
 
   public enum Scope {
     COMPILE("Compile", "compile"),
@@ -123,6 +130,96 @@ public class Dependency extends BuildFileStatement {
     return ImmutableList.of(
       (PsiElement)factory.createStatementFromText(scope.getGroovyMethodCall() + extraGroovyCode)
     );
+  }
+
+  /**
+   * Returns true if the given dependency "matches" or "is covered" by this dependency. It will return true if they are equal
+   * in the {@link #equals(Object)}} sense, but it does some broader matching as well, in order to aid the use case of merging new
+   * dependencies into existing build files.
+   *
+   * <ul>
+   *   <li>For Maven-style dependencies, it only checks the group and name parts of the coordinate; it ignores version number
+   *   and packaging. This allows us to gloss over differences between minor version numbers, or whether a version number uses
+   *   + syntax, by giving up on it altogether. It also glosses over whether a dependency has explicit packaging (e.g. @aar)
+   *   specified or not by also giving up on it.</li>
+   *   <li>For module dependencies, it ignores the leading colon in the Gradle module specification when comparing.</li>
+   *   <li>For files('...') dependencies, it will match a filetree dependency that includes the same file; e.g.
+   *   files('libs/foo.jar') is matched by fileTree(dir: 'lib', include: ['*.jar', '*.aar'])</li>
+   *   <li>It has hardcoded knowledge that the appcompat-v7 library includes support-v4.</li>
+   * </ul>
+   */
+  public boolean matches(@NotNull Dependency dependency) {
+    if (equals(dependency)) {
+      return true;
+    }
+    if (scope != dependency.scope) {
+      return false;
+    }
+    String s1 = data.toString();
+    String s2 = dependency.data.toString();
+    switch(type) {
+      default:
+      case MODULE:
+        if (dependency.type != Type.MODULE) {
+          return false;
+        }
+        if (s1.startsWith(":")) {
+          s1 = s1.substring(1);
+        }
+        if (s2.startsWith(":")) {
+          s2 = s2.substring(1);
+        }
+        return (s1.equals(s2));
+      case EXTERNAL:
+        if (dependency.type != Type.EXTERNAL) {
+          return false;
+        }
+
+        // Special hardcoded case: com.android.support:appcompat-v7 includes com.android.support:support-v4
+        if (s1.startsWith(APPCOMPAT_V7) && s2.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT)) {
+          return true;
+        }
+
+        // Maven dependencies match if they share the same group and artifact. We ignore version and packaging.
+        String[] tokens1 = s1.split(":");
+        String[] tokens2 = s2.split(":");
+        if (tokens1.length < 2 || tokens2.length < 2) {
+          return false;
+        }
+
+        return tokens1[0].equals(tokens2[0]) && tokens1[1].equals(tokens2[1]);
+      case FILES:
+        if (dependency.type != Type.FILES) {
+          return false;
+        }
+        return FileUtil.pathsEqual(s1, s2);
+      case FILETREE:
+        if (dependency.type != Type.FILES) {
+          return false;
+        }
+        Map<String, Object> values = (Map<String, Object>)data;
+        String dir = (String)values.get(FILETREE_BASE_DIR_PROPERTY);
+        Object value = values.get(FILETREE_INCLUDE_PATTERN_PROPERTY);
+        List<String> includes = (value instanceof List) ? (List<String>)value : ImmutableList.of(value.toString());
+        if (dir == null || includes == null) {
+          return false;
+        }
+        File baseDir = new File(dir);
+        File depFile = new File(s2);
+        File depDir = depFile.getParentFile();
+        if (depDir == null) {
+          return false;
+        }
+        if (FileUtil.filesEqual(baseDir, depDir)) {
+          for (String glob : includes) {
+            Pattern pattern = Pattern.compile(FileUtil.convertAntToRegexp(glob));
+            if (pattern.matcher(depFile.getName()).matches()) {
+              return true;
+            }
+          }
+        }
+        return false;
+    }
   }
 
   @Override
