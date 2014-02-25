@@ -22,32 +22,42 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.util.Pair;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.XmlElementVisitor;
+import com.intellij.psi.XmlRecursiveElementVisitor;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 
 
 /**
@@ -239,7 +249,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   /** Returns the {@link PsiFile} corresponding to the source of the given resource item, if possible */
   @Nullable
-  public static PsiFile getItemPsiFile(@NonNull AndroidFacet facet, @NonNull ResourceItem item) {
+  public static PsiFile getItemPsiFile(@NonNull Project project, @NonNull ResourceItem item) {
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiResourceItem = (PsiResourceItem)item;
       return psiResourceItem.getPsiFile();
@@ -256,7 +266,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     File file = source.getFile();
     VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file);
     if (virtualFile != null) {
-      PsiManager psiManager = PsiManager.getInstance(facet.getModule().getProject());
+      PsiManager psiManager = PsiManager.getInstance(project);
       return psiManager.findFile(virtualFile);
     }
 
@@ -268,13 +278,13 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
    * defined for resource items in value files.
    */
   @Nullable
-  public static XmlTag getItemTag(@NonNull AndroidFacet facet, @NonNull ResourceItem item) {
+  public static XmlTag getItemTag(@NonNull Project project, @NonNull ResourceItem item) {
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiResourceItem = (PsiResourceItem)item;
       return psiResourceItem.getTag();
     }
 
-    PsiFile psiFile = getItemPsiFile(facet, item);
+    PsiFile psiFile = getItemPsiFile(project, item);
     if (psiFile instanceof XmlFile) {
       String resourceName = item.getName();
       XmlFile xmlFile = (XmlFile)psiFile;
@@ -291,6 +301,47 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
       // This method should only be called on value resource types
       assert FolderTypeRelationship.getRelatedFolders(item.getType()).contains(ResourceFolderType.VALUES) : item.getType();
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public String getViewTag(ResourceItem item) {
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiItem = (PsiResourceItem)item;
+      XmlTag tag = psiItem.getTag();
+      if (tag != null) {
+        return tag.getName();
+      }
+
+      final String id = item.getName();
+
+      PsiFile file = psiItem.getPsiFile();
+      if (file instanceof XmlFile) {
+        XmlFile xmlFile = (XmlFile)file;
+        XmlTag rootTag = xmlFile.getRootTag();
+        if (rootTag != null) {
+          return findViewTag(rootTag, id);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static String findViewTag(XmlTag tag, String target) {
+    String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+    if (id != null && id.endsWith(target) && target.equals(LintUtils.stripIdPrefix(id))) {
+      return tag.getName();
+    }
+
+    for (XmlTag sub : tag.getSubTags()) {
+      String found = findViewTag(sub, target);
+      if (found != null) {
+        return found;
+      }
     }
 
     return null;
