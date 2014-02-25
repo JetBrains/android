@@ -283,18 +283,11 @@ public class AndroidDomUtil {
   }
 
   @Nullable
-  public static Activity getActivityDomElementByClass(@Nullable Manifest manifest, PsiClass c) {
-    if (manifest == null) {
-      return null;
-    }
-
-    Application application = manifest.getApplication();
-    if (application != null) {
-      for (Activity activity : application.getActivities()) {
-        PsiClass activityClass = activity.getActivityClass().getValue();
-        if (c.getManager().areElementsEquivalent(c, activityClass)) {
-          return activity;
-        }
+  public static Activity getActivityDomElementByClass(@NotNull List<Activity> activities, PsiClass c) {
+    for (Activity activity : activities) {
+      PsiClass activityClass = activity.getActivityClass().getValue();
+      if (c.getManager().areElementsEquivalent(c, activityClass)) {
+        return activity;
       }
     }
     return null;
