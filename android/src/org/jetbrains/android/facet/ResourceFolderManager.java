@@ -20,10 +20,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -274,8 +271,18 @@ public class ResourceFolderManager implements ModificationTracker {
   }
 
   private static boolean isAarDependency(@NotNull AndroidFacet facet, @NotNull OrderEntry orderEntry) {
-    return facet.isGradleProject() && orderEntry.getPresentableName().endsWith(DOT_AAR) ||
-           AndroidMavenUtil.isMavenAarDependency(facet.getModule(), orderEntry);
+    if (facet.isGradleProject() && orderEntry instanceof LibraryOrderEntry) {
+      VirtualFile[] files = orderEntry.getFiles(OrderRootType.CLASSES);
+      if (files.length >= 2) {
+        for (VirtualFile file : files) {
+          if (FD_RES.equals(file.getName()) && file.isDirectory()) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    return AndroidMavenUtil.isMavenAarDependency(facet.getModule(), orderEntry);
   }
 
   /**
