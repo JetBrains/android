@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
@@ -239,7 +240,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myScreenGlareCheckBox.setEnabled(shouldFrame);
 
     if (shouldFrame) {
-      processScreenshot(shouldFrame, 0);
+      processScreenshot(true, 0);
     } else {
       myDisplayedImageRef.set(mySourceImageRef.get());
       updateEditorImage();
@@ -251,7 +252,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     boolean shadow = addFrame && myDropShadowCheckBox.isSelected();
     boolean reflection = addFrame && myScreenGlareCheckBox.isSelected();
 
-    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByAngle, spec, shadow, reflection) {
+    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByAngle, spec, shadow, reflection, myBackingVirtualFile) {
       @Override
       public void onSuccess() {
         mySourceImageRef.set(getRotatedImage());
@@ -267,6 +268,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     private final DeviceArtDescriptor myDescriptor;
     private final boolean myAddShadow;
     private final boolean myAddReflection;
+    private final VirtualFile myDestinationFile;
 
     private BufferedImage myRotatedImage;
     private BufferedImage myProcessedImage;
@@ -276,7 +278,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                               int rotateByAngle,
                               @Nullable DeviceArtDescriptor descriptor,
                               boolean addShadow,
-                              boolean addReflection) {
+                              boolean addReflection,
+                              VirtualFile writeToFile) {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
@@ -284,6 +287,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       myDescriptor = descriptor;
       myAddShadow = addShadow;
       myAddReflection = addReflection;
+      myDestinationFile = writeToFile;
     }
 
     @Override
@@ -301,6 +305,18 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       }
 
       myProcessedImage = ImageUtils.cropBlank(myProcessedImage, null);
+
+      // update backing file, this is necessary for operations that read the backing file from the editor,
+      // such as: Right click image -> Open in external editor
+      if (myDestinationFile != null) {
+        File file = VfsUtilCore.virtualToIoFile(myDestinationFile);
+        try {
+          ImageIO.write(myProcessedImage, SdkConstants.EXT_PNG, file);
+        }
+        catch (IOException e) {
+          Logger.getInstance(ImageProcessorTask.class).error("Unexpected error while writing to backing file", e);
+        }
+      }
     }
 
     protected BufferedImage getProcessedImage() {

@@ -445,11 +445,6 @@ public class ImageUtils {
       }
     }
 
-    // No need to crop?
-    if (x1 == 0 && y1 == 0 && x2 == image.getWidth() && y2 == image.getHeight()) {
-      return null;
-    }
-
     if (x1 == x2 || y1 == y2) {
       // Nothing left after crop -- blank image
       return null;
