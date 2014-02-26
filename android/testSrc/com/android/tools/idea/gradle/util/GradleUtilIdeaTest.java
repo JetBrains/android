@@ -23,9 +23,14 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -54,7 +59,18 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
   }
 
   public void testGetGradleBuildFileFromModuleWithGradleFacet() {
-    IdeaGradleProject gradleProject = new IdeaGradleProject(myModule.getName(), myBuildFile, myModule.getName());
+    GradleProject project = createMock(GradleProject.class);
+    expect(project.getPath()).andReturn(myModule.getName());
+
+    //noinspection unchecked
+    DomainObjectSet<? extends GradleTask> tasks = createMock(DomainObjectSet.class);
+    project.getTasks();
+    expectLastCall().andReturn(tasks);
+
+    expect(tasks.isEmpty()).andReturn(true);
+    replay(project, tasks);
+
+    IdeaGradleProject gradleProject = new IdeaGradleProject(myModule.getName(), myBuildFile, project);
 
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel model = facetManager.createModifiableModel();
@@ -62,12 +78,15 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
       AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
       model.addFacet(facet);
       facet.setGradleProject(gradleProject);
-    } finally {
+    }
+    finally {
       model.commit();
     }
 
     VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
+
+    verify(project, tasks);
   }
 
   private static void assertIsGradleBuildFile(@Nullable VirtualFile buildFile) {

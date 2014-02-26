@@ -16,38 +16,58 @@
 package com.android.tools.idea.gradle;
 
 import com.android.tools.idea.gradle.facet.JavaModel;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Contains Gradle related state necessary for building an IDEA module using Gradle.
  */
 public class IdeaGradleProject implements Serializable {
   @NotNull private final String myModuleName;
+  @NotNull private final List<GradleTask> myTasks;
   @NotNull private final VirtualFile myBuildFile;
-  @NotNull private final String myGradleProjectPath;
+  @NotNull private final String myGradlePath;
 
   private JavaModel myJavaModel;
 
   /**
    * Creates a new {@link IdeaGradleProject}.
    *
-   * @param moduleName        the name of the IDEA module.
-   * @param buildFile         the build.gradle file.
-   * @param gradleProjectPath Gradle project path.
+   * @param moduleName    the name of the IDEA module.
+   * @param buildFile     the build.gradle file.
+   * @param gradleProject the Gradle project.
    */
-  public IdeaGradleProject(@NotNull String moduleName, @NotNull File buildFile, @NotNull String gradleProjectPath) {
+  public IdeaGradleProject(@NotNull String moduleName, @NotNull File buildFile, @NotNull GradleProject gradleProject) {
     myModuleName = moduleName;
+
+    myTasks = Lists.newArrayList();
+    DomainObjectSet<? extends GradleTask> tasks = gradleProject.getTasks();
+    if (!tasks.isEmpty()) {
+      for (GradleTask task : tasks) {
+        String name = task.getName();
+        if (!Strings.isNullOrEmpty(name)) {
+          myTasks.add(task);
+        }
+      }
+    }
+
     VirtualFile found = VfsUtil.findFileByIoFile(buildFile, true);
     // the build.gradle file can never be null.
     assert found != null;
     myBuildFile = found;
-    myGradleProjectPath = gradleProjectPath;
+
+    myGradlePath = gradleProject.getPath();
   }
 
   @NotNull
@@ -59,8 +79,13 @@ public class IdeaGradleProject implements Serializable {
    * @return the path of the Gradle project.
    */
   @NotNull
-  public String getGradleProjectPath() {
-    return myGradleProjectPath;
+  public String getGradlePath() {
+    return myGradlePath;
+  }
+
+  @NotNull
+  public List<GradleTask> getTasks() {
+    return myTasks;
   }
 
   @NotNull
