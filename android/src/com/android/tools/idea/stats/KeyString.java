@@ -20,7 +20,7 @@ public class KeyString {
   private final String myKey;
   private final String myValue;
 
-  KeyString(String key, String value) {
+  public KeyString(String key, String value) {
     myKey = key;
     myValue = value;
   }
@@ -31,5 +31,34 @@ public class KeyString {
 
   public String getValue() {
     return myValue;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    KeyString keyString = (KeyString)o;
+
+    if (myKey != null ? !myKey.equals(keyString.myKey) : keyString.myKey != null) return false;
+    if (myValue != null ? !myValue.equals(keyString.myValue) : keyString.myValue != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = myKey != null ? myKey.hashCode() : 0;
+    result = 31 * result + (myValue != null ? myValue.hashCode() : 0);
+    return result;
+  }
+
+  // For debugging purposes
+  @Override
+  public String toString() {
+    return "KeyString{" +
+           "myKey='" + myKey + '\'' +
+           ", myValue='" + myValue + '\'' +
+           '}';
   }
 }
