@@ -2,8 +2,17 @@
   <name>Android Designer</name>
   <id>com.intellij.android-designer</id>
   <description>
-    Provides visual editing support for Android layout files.
-  </description>
+      <![CDATA[
+      This plugin provides visual editing support for Android layout files.
+      The following features are available:
+        <ul>
+        <li>Android Layout Preview tool window.</li>
+        <li>Ability to create user interface of Android applications.</li>
+        <li>Ability to toggle between modes.</li>
+        <li>Navigation between activities and their layout definition files.</li>
+        </ul>
+      ]]>
+   </description>
   <vendor>JetBrains</vendor>
 
   <resource-bundle>messages.AndroidDesignerBundle</resource-bundle>
