@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.project.VariantSelectionVerifier;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -30,7 +35,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,70 +57,145 @@ class BuildVariantUpdater {
    * @param project          the module's project.
    * @param moduleName       the module's name.
    * @param buildVariantName the name of the selected build variant.
-   * @return the facet containing the updated build variant, if the module update was successful; {@code null} otherwise.
+   * @return the facets affected by the build variant selection, if the module update was successful; an empty list otherwise.
    */
-  @Nullable
-  AndroidFacet updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
-    final Ref<AndroidFacet> facetRef = new Ref<AndroidFacet>();
+  @NotNull
+  List<AndroidFacet> updateModule(@NotNull final Project project, @NotNull final String moduleName, @NotNull final String buildVariantName) {
+    final List<AndroidFacet> facets = Lists.newArrayList();
     ExternalSystemApiUtil.executeProjectChangeAction(true /*synchronous*/, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
-        AndroidFacet updatedFacet = doUpdate(project, moduleName, buildVariantName);
-        facetRef.set(updatedFacet);
+        Module updatedModule = doUpdate(project, moduleName, buildVariantName, facets);
+        if (updatedModule != null) {
+          VariantSelectionVerifier.getInstance(project).verifySelectedVariant(updatedModule);
+        }
+
+        if (!facets.isEmpty()) {
+          // We build only the selected variant. If user changes variant, we need to re-generate sources since the generated sources may not
+          // be there.
+          if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            ProjectBuilder.getInstance(project).generateSourcesOnly();
+          }
+        }
       }
     });
-    return facetRef.get();
+    return facets;
   }
 
   @Nullable
-  private AndroidFacet doUpdate(@NotNull Project project, @NotNull String moduleName, @NotNull String buildVariantName) {
+  private Module doUpdate(@NotNull Project project,
+                          @NotNull String moduleName,
+                          @NotNull String variant,
+                          @NotNull List<AndroidFacet> affectedFacets) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
-      // Reason is not capitalized because it is a sentence fragment.
-      String reason = String.format("cannot find module with name '%1$s' in project '%2$s", moduleName, project.getName());
-      logAndShowUpdateFailure(buildVariantName, reason);
+      logAndShowUpdateFailure(variant, String.format("Cannot find module '%1$s'.", moduleName));
       return null;
     }
-    AndroidFacet facet = AndroidFacet.getInstance(moduleToUpdate);
+    AndroidFacet facet = getAndroidFacet(moduleToUpdate, variant);
     if (facet == null) {
-      // Reason is not capitalized because it is a sentence fragment.
-      String reason = String.format("cannot find 'Android' facet in module '%1$s', project '%2$s'", moduleName, project.getName());
-      logAndShowUpdateFailure(buildVariantName, reason);
       return null;
     }
-    final IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+    IdeaAndroidProject androidProject = getAndroidProject(facet, variant);
     if (androidProject == null) {
-      // Reason is not capitalized because it is a sentence fragment.
-      String reason = String.format("cannot find AndroidProject for module '%1$s', project '%2$s'", moduleName, project.getName());
-      logAndShowUpdateFailure(buildVariantName, reason);
       return null;
     }
-    androidProject.setSelectedVariantName(buildVariantName);
-    facet.syncSelectedVariant();
 
-    for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
-      customizer.customizeModule(moduleToUpdate, project, androidProject);
+    if (!updateSelectedVariant(facet, androidProject, variant, affectedFacets)) {
+      return null;
     }
-
-    // We changed the way we build projects: now we build only the selected variant. If user changes variant, we need to re-generate sources
-    // since the generated sources may not be there.
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      ProjectBuilder.getInstance(project).generateSourcesOnly();
-    }
-
-    return facet;
-  }
-
-  private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {
-    String prefix = String.format("Unable to select build variant '%1$s'", buildVariantName);
-    LOG.error(prefix + ": " + reason);
-    String msg = prefix + ".\n\nConsult IDE log for more details (Help | Show Log)";
-    Messages.showErrorDialog(msg, "Error");
+    affectedFacets.add(facet);
+    return moduleToUpdate;
   }
 
   @Nullable
   private static Module findModule(@NotNull Project project, @NotNull String moduleName) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     return moduleManager.findModuleByName(moduleName);
+  }
+
+  private boolean updateSelectedVariant(@NotNull AndroidFacet androidFacet,
+                                        @NotNull IdeaAndroidProject androidProject,
+                                        @NotNull String variantToSelect,
+                                        @NotNull List<AndroidFacet> affectedFacets) {
+    Variant selectedVariant = androidProject.getSelectedVariant();
+    if (variantToSelect.equals(selectedVariant.getName())) {
+      return false;
+    }
+    androidProject.setSelectedVariantName(variantToSelect);
+
+    androidFacet.syncSelectedVariant();
+
+    Module module = androidFacet.getModule();
+    Project project = module.getProject();
+    for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
+      customizer.customizeModule(module, project, androidProject);
+    }
+
+    selectedVariant = androidProject.getSelectedVariant();
+
+    for (AndroidLibrary library : selectedVariant.getMainArtifact().getDependencies().getLibraries()) {
+      String gradlePath = library.getProject();
+      if (StringUtil.isEmpty(gradlePath)) {
+        continue;
+      }
+      String projectVariant = library.getProjectVariant();
+      if (StringUtil.isNotEmpty(projectVariant)) {
+        ensureSelectedVariant(project, gradlePath, projectVariant, affectedFacets);
+      }
+    }
+    return true;
+  }
+
+
+  private void ensureSelectedVariant(@NotNull Project project,
+                                     @NotNull String moduleGradlePath,
+                                     @NotNull String variant,
+                                     @NotNull List<AndroidFacet> affectedFacets) {
+    Module module = GradleUtil.findModuleByGradlePath(project, moduleGradlePath);
+    if (module == null) {
+      logAndShowUpdateFailure(variant, String.format("Cannot find module with Gradle path '%1$s'.", moduleGradlePath));
+      return;
+    }
+    AndroidFacet facet = getAndroidFacet(module, variant);
+    if (facet == null) {
+      return;
+    }
+    IdeaAndroidProject androidProject = getAndroidProject(facet, variant);
+    if (androidProject == null) {
+      return;
+    }
+
+    if (!updateSelectedVariant(facet, androidProject, variant, affectedFacets)) {
+      return;
+    }
+    affectedFacets.add(facet);
+  }
+
+
+  @Nullable
+  private static AndroidFacet getAndroidFacet(@NotNull Module module, @NotNull String variantToSelect) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      logAndShowUpdateFailure(variantToSelect, String.format("Cannot find 'Android' facet in module '%1$s'.", module.getName()));
+    }
+    return facet;
+  }
+
+  @Nullable
+  private static IdeaAndroidProject getAndroidProject(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
+    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+    if (androidProject == null) {
+      logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
+    }
+    return androidProject;
+  }
+
+  private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {
+    String prefix = String.format("Unable to select build variant '%1$s':\n", buildVariantName);
+    String msg = prefix + reason;
+    LOG.error(msg);
+    msg += ".\n\nConsult IDE log for more details (Help | Show Log)";
+    Messages.showErrorDialog(msg, "Error");
   }
 }
