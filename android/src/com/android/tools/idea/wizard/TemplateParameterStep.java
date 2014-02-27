@@ -28,6 +28,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -151,6 +152,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
     c.setColumn(2);
     Spacer spacer = new Spacer();
     myParamContainer.add(spacer, c);
+    setDescriptionHtml(myTemplateState.getTemplateMetadata().getDescription());
   }
 
   @Override
@@ -173,7 +175,6 @@ public class TemplateParameterStep extends TemplateWizardStep {
         LOG.warn(e);
       }
     }
-    setDescriptionHtml(myTemplateState.getTemplateMetadata().getDescription());
   }
 
   @Override
