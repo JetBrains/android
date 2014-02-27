@@ -17,17 +17,21 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.VariantSelectionVerifier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
@@ -60,6 +64,7 @@ public class BuildVariantView {
 
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
+  private JPanel myErrorPanel;
 
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
 
@@ -73,6 +78,7 @@ public class BuildVariantView {
     myUpdater = updater;
   }
 
+  @NotNull
   public static BuildVariantView getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, BuildVariantView.class);
   }
@@ -93,6 +99,15 @@ public class BuildVariantView {
 
   private void createUIComponents() {
     myVariantsTable = new BuildVariantTable();
+    myErrorPanel = new JPanel() {
+      @Override
+      public Color getBackground() {
+        // Same color as the editor notification panel (EditorComposite.TopBottomPanel.)
+        Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.GUTTER_BACKGROUND);
+        return color == null ? JBColor.GRAY : color;
+      }
+    };
+    myErrorPanel.setLayout(new BoxLayout(myErrorPanel, BoxLayout.Y_AXIS));
   }
 
   public void projectImportStarted() {
@@ -184,6 +199,15 @@ public class BuildVariantView {
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
+  public void updateNotification() {
+    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.getInstance(myProject).getConflict();
+    if (conflict == null) {
+      myErrorPanel.removeAll();
+      return;
+    }
+    myErrorPanel.add(conflict.createNotificationPanel());
+  }
+
   public interface BuildVariantSelectionChangeListener {
     /**
      * Indicates that a user selected a build variant from the "Build Variants" tool window.
@@ -196,9 +220,9 @@ public class BuildVariantView {
      * <p/>
      * This listener will not be invoked if the project structure update fails.
      *
-     * @param facet the Android facet containing the selected build variant.
+     * @param facets the facets affected by the variant selection.
      */
-    void buildVariantSelected(@NotNull AndroidFacet facet);
+    void buildVariantSelected(@NotNull List<AndroidFacet> facets);
   }
 
   private static class BuildVariantItem implements Comparable<BuildVariantItem> {
@@ -271,10 +295,7 @@ public class BuildVariantView {
       }
 
       boolean hasVariants = !variantNamesPerRow.isEmpty();
-      List<String[]> content = ImmutableList.of();
-      if (hasVariants) {
-        content = rows;
-      }
+      List<String[]> content = hasVariants ? rows : ImmutableList.<String[]>of();
 
       setModel(new BuildVariantTableModel(content));
       addBuildVariants(variantNamesPerRow);
@@ -302,7 +323,6 @@ public class BuildVariantView {
           public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() == ItemEvent.SELECTED) {
               BuildVariantItem selected = (BuildVariantItem)e.getItem();
-              //noinspection TestOnlyProblems
               buildVariantSelected(selected.myModuleName, selected.myBuildVariantName);
             }
           }
@@ -320,19 +340,32 @@ public class BuildVariantView {
     }
   }
 
-  @VisibleForTesting
-  void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
-    final AndroidFacet updatedFacet = myUpdater.updateModule(myProject, moduleName, variantName);
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+  public void selectVariant(@NotNull Module module, @NotNull String variantName) {
+    buildVariantSelected(module.getName(), variantName);
+  }
+
+  private void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
+    final List<AndroidFacet> facets = myUpdater.updateModule(myProject, moduleName, variantName);
+    if (facets.isEmpty()) {
+      return;
+    }
+    Runnable invokeListenersTask = new Runnable() {
       @Override
       public void run() {
-        if (updatedFacet != null) {
-          for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
-            listener.buildVariantSelected(updatedFacet);
-          }
+        updateContents();
+        for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
+          listener.buildVariantSelected(facets);
         }
-      }
-    });
+     }
+    };
+
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode()) {
+      invokeListenersTask.run();
+    }
+    else {
+      application.invokeLater(invokeListenersTask);
+    }
   }
 
   private static class BuildVariantTableModel extends DefaultTableModel {
