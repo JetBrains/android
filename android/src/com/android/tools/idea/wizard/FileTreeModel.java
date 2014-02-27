@@ -321,7 +321,9 @@ public class FileTreeModel implements TreeModel {
       File[] children = root.listFiles();
       if (children != null) {
         for (File f : children) {
-          n.children.add(makeTree(f));
+          if (!f.isHidden()) {
+            n.children.add(makeTree(f));
+          }
         }
       }
     }
