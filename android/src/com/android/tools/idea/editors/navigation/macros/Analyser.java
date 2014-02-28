@@ -153,63 +153,39 @@ public class Analyser {
   }
 
   public static abstract class StaticEvaluator {
+    public static final StaticEvaluator TRUE = new StaticEvaluator() {
+      @Override
+      public boolean evaluate(@Nullable PsiExpression expression) {
+        return true;
+      }
+    };
+
     public abstract boolean evaluate(@Nullable PsiExpression expression);
   }
 
-  public static void searchForCallExpression2(@Nullable PsiElement element,
-                                              final StaticEvaluator evaluator,
-                                              final MultiMatch matcher,
-                                              final Statement statement) {
-    if (element != null) {
-      element.accept(new JavaRecursiveElementVisitor() {
-        @Override
-        public void visitIfStatement(PsiIfStatement statement) {
-          if (evaluator.evaluate(statement.getCondition())) {
-            super.visitIfStatement(statement);
-          }
-        }
-
-        @Override
-        public void visitCallExpression(PsiCallExpression expression) {
-          super.visitCallExpression(expression);
-          MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
-          if (exp != null) {
-            statement.apply(exp);
-          }
-        }
-      });
-    }
-  }
-
-  public static Map<PsiVariable, PsiExpression> searchForFieldAssignments(@Nullable PsiElement element, final StaticEvaluator evaluator) {
+  public Map<PsiVariable, PsiExpression> searchForFieldAssignments(@Nullable PsiElement element, final StaticEvaluator evaluator) {
     final Map<PsiVariable, PsiExpression> result = new HashMap<PsiVariable, PsiExpression>();
-    if (element != null) {
-      element.accept(new JavaRecursiveElementVisitor() {
-        @Override
-        public void visitIfStatement(PsiIfStatement statement) {
-          if (evaluator.evaluate(statement.getCondition())) {
-            super.visitIfStatement(statement);
-          }
-        }
-
-        @Override
-        public void visitAssignmentExpression(PsiAssignmentExpression expression) {
-          super.visitAssignmentExpression(expression);
-          PsiExpression lExpression = expression.getLExpression();
-          if (lExpression instanceof PsiReferenceExpression) {
-            PsiReferenceExpression ref = (PsiReferenceExpression)lExpression;
-            PsiElement resolve = ref.resolve();
-            if (resolve instanceof PsiField) {
-              result.put((PsiField)resolve, expression.getRExpression());
-            }
-          }
-        }
-      });
-    }
+    search(element,
+           evaluator,
+           myMacros.createMacro("void assign(Object $lhs, Object $rhs) { $lhs = $rhs; }"),
+           new Statement() {
+             @Override
+             public void apply(MultiMatch.Bindings<PsiElement> exp) {
+               PsiElement lExpression = exp.get("$lhs");
+               PsiElement rExpression = exp.get("$rhs");
+               if (lExpression instanceof PsiReferenceExpression && rExpression instanceof PsiExpression) {
+                 PsiReferenceExpression ref = (PsiReferenceExpression)lExpression;
+                 PsiElement resolve = ref.resolve();
+                 if (resolve instanceof PsiField) {
+                   result.put((PsiField)resolve, (PsiExpression)rExpression);
+                 }
+               }
+             }
+           });
     return result;
   }
 
-  private static Map<PsiVariable, PsiExpression> getVariableToValueBindings(PsiClass activityClass1, StaticEvaluator evaluator) {
+  private Map<PsiVariable, PsiExpression> getVariableToValueBindings(PsiClass activityClass1, StaticEvaluator evaluator) {
     PsiMethod onCreate = Utilities.findMethodBySignature(activityClass1, "void onCreate(Bundle bundle)");
     if (onCreate == null) {
       return Collections.emptyMap();
@@ -328,8 +304,8 @@ public class Analyser {
                MultiMatch.Bindings<PsiElement> bindings = myMacros.findViewById.match($view);
                if (bindings != null) {
                  String tag = bindings.get("$id").getText();
-                 searchForCallExpression(args.get("$f"), myMacros.createIntent,
-                                         createProcessor(tag, miniModel.classNameToActivityState, model, fromActivityState));
+                 search(args.get("$f"), myMacros.createIntent,
+                        createProcessor(tag, miniModel.classNameToActivityState, model, fromActivityState));
                }
              }
            });
@@ -344,8 +320,8 @@ public class Analyser {
              public void apply(MultiMatch.Bindings<PsiElement> args) {
                PsiElement $listView = args.get("$listView");
                final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-               searchForCallExpression(args.get("$f"), myMacros.createIntent,
-                                       createProcessor(viewName, miniModel.classNameToActivityState, model, fromActivityState));
+               search(args.get("$f"), myMacros.createIntent,
+                      createProcessor(viewName, miniModel.classNameToActivityState, model, fromActivityState));
              }
            });
 
@@ -374,11 +350,11 @@ public class Analyser {
                        if (implementation != null) {
                          StaticEvaluator evaluator1 = getEvaluator(getIds(getXmlFile(fromActivityState, navigationModelFile)));
                          StaticEvaluator evaluator2 = getEvaluator(getVariableToValueBindings(activityClass, evaluator1));
-                         searchForCallExpression2(implementation.getBody(),
-                                                  evaluator2,
-                                                  myMacros.createIntent,
-                                                  createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model,
-                                                                  fromActivityState));
+                         search(implementation.getBody(),
+                                evaluator2,
+                                myMacros.createIntent,
+                                createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model,
+                                                fromActivityState));
                        }
                      }
                    }
@@ -542,12 +518,22 @@ public class Analyser {
     public abstract void apply(MultiMatch.Bindings<PsiElement> exp);
   }
 
-  public static void searchForCallExpression(@Nullable PsiElement element, final MultiMatch matcher, final Statement statement) {
-    if (element != null) {
-      element.accept(new JavaRecursiveElementVisitor() {
+  public static void search(@Nullable PsiElement input,
+                            final StaticEvaluator branchEvaluator,
+                            final MultiMatch matcher,
+                            final Statement statement) {
+    if (input != null) {
+      input.accept(new JavaRecursiveElementVisitor() {
         @Override
-        public void visitCallExpression(PsiCallExpression expression) {
-          super.visitCallExpression(expression);
+        public void visitIfStatement(PsiIfStatement statement) {
+          if (branchEvaluator.evaluate(statement.getCondition())) {
+            super.visitIfStatement(statement);
+          }
+        }
+
+        @Override
+        public void visitExpression(PsiExpression expression) {
+          super.visitExpression(expression);
           MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
           if (exp != null) {
             statement.apply(exp);
@@ -557,9 +543,13 @@ public class Analyser {
     }
   }
 
+  public static void search(@Nullable PsiElement input, MultiMatch matcher, Statement statement) {
+    search(input, StaticEvaluator.TRUE, matcher, statement);
+  }
+
   public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
     final List<MultiMatch.Bindings<PsiElement>> results = new ArrayList<MultiMatch.Bindings<PsiElement>>();
-    searchForCallExpression(element, matcher, new Statement() {
+    search(element, matcher, new Statement() {
       @Override
       public void apply(MultiMatch.Bindings<PsiElement> exp) {
         results.add(exp);
@@ -573,7 +563,7 @@ public class Analyser {
     if (method == null) {
       return;
     }
-    searchForCallExpression(method.getBody(), matcher, statement);
+    search(method.getBody(), matcher, statement);
   }
 
   private static void search(PsiClass clazz, String methodSignature, String matchMacro, Statement statement) {
