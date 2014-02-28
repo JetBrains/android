@@ -37,10 +37,11 @@ import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Analyser {
   private static final Logger LOG = Logger.getInstance("#" + Analyser.class.getName());
-  private final Project myProject;
-  private Module myModule;
-  private Macros myMacros;
   private static final String ID_PREFIX = "@+id/";
+
+  private final Project myProject;
+  private final Module myModule;
+  private final Macros myMacros;
 
   public Analyser(Project project, Module module) {
     myProject = project;
@@ -163,7 +164,7 @@ public class Analyser {
     public abstract boolean evaluate(@Nullable PsiExpression expression);
   }
 
-  public Map<PsiVariable, PsiExpression> searchForFieldAssignments(@Nullable PsiElement element, final StaticEvaluator evaluator) {
+  public Map<PsiVariable, PsiExpression> searchForVariableAssignments(@Nullable PsiElement element, final StaticEvaluator evaluator) {
     final Map<PsiVariable, PsiExpression> result = new HashMap<PsiVariable, PsiExpression>();
     search(element,
            evaluator,
@@ -176,8 +177,8 @@ public class Analyser {
                if (lExpression instanceof PsiReferenceExpression && rExpression instanceof PsiExpression) {
                  PsiReferenceExpression ref = (PsiReferenceExpression)lExpression;
                  PsiElement resolve = ref.resolve();
-                 if (resolve instanceof PsiField) {
-                   result.put((PsiField)resolve, (PsiExpression)rExpression);
+                 if (resolve instanceof PsiVariable) {
+                   result.put((PsiVariable)resolve, (PsiExpression)rExpression);
                  }
                }
              }
@@ -190,7 +191,7 @@ public class Analyser {
     if (onCreate == null) {
       return Collections.emptyMap();
     }
-    return searchForFieldAssignments(onCreate.getBody(), evaluator);
+    return searchForVariableAssignments(onCreate.getBody(), evaluator);
   }
 
   private static boolean isLiteralFor(@Nullable PsiExpression exp, @Nullable Object value) {
