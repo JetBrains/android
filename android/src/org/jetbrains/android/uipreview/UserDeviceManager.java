@@ -37,7 +37,7 @@ public class UserDeviceManager implements Disposable {
   public UserDeviceManager() {
     myListener = new VirtualFileAdapter() {
       @Override
-      public void contentsChanged(VirtualFileEvent event) {
+      public void contentsChanged(@NotNull VirtualFileEvent event) {
         final VirtualFile file = event.getFile();
         if (myUserDevicesFile != null && SdkConstants.FN_DEVICES_XML.equals(file.getName()) &&
             FileUtil.pathsEqual(FileUtil.toSystemIndependentName(myUserDevicesFile.getPath()),
