@@ -49,25 +49,6 @@ public class Analyser {
   }
 
   @Nullable
-  public static String getInnerText(String s) {
-    if (s.startsWith("\"") && s.endsWith("\"")) {
-      return s.substring(1, s.length() - 1);
-    }
-    assert false;
-    return null;
-  }
-
-  @Nullable
-  private static FragmentEntry findFragmentByTag(Collection<FragmentEntry> l, String tag) {
-    for (FragmentEntry fragment : l) {
-      if (tag.equals(fragment.tag)) {
-        return fragment;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
   private static String qualifyClassNameIfNecessary(String packageName, String className) {
     return (className == null) ? null : !className.contains(".") ? (packageName + "." + className) : className;
   }
@@ -93,6 +74,7 @@ public class Analyser {
     }
     final Results results = new Results();
     manifest.accept(new XmlRecursiveElementVisitor() {
+      @Nullable
       private String processFilter(XmlTag tag, String filterName, String parentName) {
         if (tag.getName().equals(parentName) && filterName.equals(tag.getAttributeValue("android:name"))) {
           XmlTag parent = (XmlTag)tag.getParent();
@@ -235,15 +217,22 @@ public class Analyser {
     return searchForFieldAssignments(onCreate.getBody(), evaluator);
   }
 
+  private static boolean isLiteralFor(@Nullable PsiExpression exp, @Nullable Object value) {
+    if (exp instanceof PsiLiteral) {
+      PsiLiteral literal = (PsiLiteral)exp;
+      return literal.getValue() == value;
+    }
+    return false;
+  }
+
   private StaticEvaluator getEvaluator(final Set<String> ids) {
     return new StaticEvaluator() {
       @Override
       public boolean evaluate(@Nullable PsiExpression expression) {
         if (expression instanceof PsiBinaryExpression) {
-          PsiBinaryExpression bin = (PsiBinaryExpression)expression;
-          if (bin.getOperationSign().getText().equals("!=") &&
-              bin.getROperand().getText().equals("null")) { // todo use appropriate types
-            MultiMatch.Bindings<PsiElement> match = myMacros.findViewById.match(bin.getLOperand());
+          PsiBinaryExpression exp = (PsiBinaryExpression)expression;
+          if (exp.getOperationSign().getTokenType() == JavaTokenType.NE && isLiteralFor(exp.getROperand(), null)) {
+            MultiMatch.Bindings<PsiElement> match = myMacros.findViewById.match(exp.getLOperand());
             if (match != null) {
               String id = match.bindings.get("$id").getText();
               if (ids.contains(id)) {
@@ -266,11 +255,7 @@ public class Analyser {
           PsiElement resolved = psiReferenceExpression.resolve();
           if (resolved instanceof PsiField) {
             PsiField psiField = (PsiField)resolved;
-            PsiExpression value = variableToValue.get(psiField);
-            if (value instanceof PsiLiteral) {
-              PsiLiteral literal = (PsiLiteral)value;
-              return literal.getValue() == Boolean.TRUE;
-            }
+            return isLiteralFor(variableToValue.get(psiField), Boolean.TRUE);
           }
         }
         return false;
@@ -296,7 +281,7 @@ public class Analyser {
 
     if (activityOrFragmentClass == null) {
       // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
-      LOG.info("Class " + activityOrFragmentClass + " not found");
+      LOG.info("Class " + activityOrFragmentClassName + " not found");
       return;
     }
 
@@ -319,10 +304,12 @@ public class Analyser {
                         @Override
                         public void apply(MultiMatch.Bindings<PsiElement> args) {
                           String className = getQualifiedName(args.get("$f", "activityClass").getFirstChild());
-                          ActivityState activityState = getActivityState(className, miniModel.classNameToActivityState);
-                          // e.g. $id=PsiReferenceExpression:R.id.action_account
-                          String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
-                          addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
+                          if (className != null) {
+                            ActivityState activityState = getActivityState(className, miniModel.classNameToActivityState);
+                            // e.g. $id=PsiReferenceExpression:R.id.action_account
+                            String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
+                            addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
+                          }
                         }
                       }
                );
@@ -448,7 +435,7 @@ public class Analyser {
     return model;
   }
 
-  private static Statement createProcessor(final String viewName,
+  private static Statement createProcessor(@Nullable final String viewName,
                                            final Map<String, ActivityState> activities,
                                            final NavigationModel model,
                                            final ActivityState fromState) {
@@ -456,8 +443,11 @@ public class Analyser {
       @Override
       public void apply(MultiMatch.Bindings<PsiElement> args) {
         PsiElement activityClass = args.get("activityClass").getFirstChild();
-        State toState = getActivityState(getQualifiedName(activityClass), activities);
-        addTransition(model, new Transition("click", Locator.of(fromState, viewName), new Locator(toState)));
+        String qualifiedName = getQualifiedName(activityClass);
+        if (qualifiedName != null) {
+          State toState = getActivityState(qualifiedName, activities);
+          addTransition(model, new Transition("click", Locator.of(fromState, viewName), new Locator(toState)));
+        }
       }
     };
   }
@@ -475,7 +465,9 @@ public class Analyser {
           String fragmentTag = tag.getAttributeValue("android:tag");
           String fragmentClassName = tag.getAttributeValue("android:name");
           if (NavigationEditor.DEBUG) System.out.println("fragmentClassName = " + fragmentClassName);
-          result.add(new FragmentEntry(fragmentTag, fragmentClassName));
+          if (fragmentTag != null && fragmentClassName != null) {
+            result.add(new FragmentEntry(fragmentTag, fragmentClassName));
+          }
         }
       }
     });
@@ -588,6 +580,7 @@ public class Analyser {
     search(clazz, methodSignature, new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro)), statement);
   }
 
+  @Nullable
   private static MultiMatch.Bindings<PsiElement> match(PsiClass clazz, String methodSignature, String matchMacro) {
     PsiMethod method = Utilities.findMethodBySignature(clazz, methodSignature);
     if (method == null) {
