@@ -23,6 +23,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -98,6 +99,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     // Test invocation with null invocation target
     NewTemplateObjectWizard wizard = new NewTemplateObjectWizard(myAppModule.getProject(), myAppModule, null,
                                                                  Template.CATEGORY_OTHER);
+    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
     assertNull(wizard.myWizardState.get(ATTR_APPLICATION_PACKAGE));
     assertEquals("com.example.projectwithappandlib.app", wizard.myWizardState.getString(ATTR_PACKAGE_NAME));
     assertFalse(wizard.myWizardState.myHidden.contains(ATTR_PACKAGE_NAME));
@@ -105,6 +107,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
 
     // Test invocation on the module level
     wizard = new NewTemplateObjectWizard(myAppModule.getProject(), myAppModule, moduleFile, Template.CATEGORY_OTHER);
+    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
     assertNull(wizard.myWizardState.get(ATTR_APPLICATION_PACKAGE));
     assertEquals("com.example.projectwithappandlib.app", wizard.myWizardState.getString(ATTR_PACKAGE_NAME));
 
@@ -114,6 +117,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
 
     // Test invocation on the app package
     wizard = new NewTemplateObjectWizard(myAppModule.getProject(), myAppModule, javaSrcFile, Template.CATEGORY_OTHER);
+    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
 
     assertNull(wizard.myWizardState.get(ATTR_APPLICATION_PACKAGE));
     assertEquals("com.example.projectwithappandlib.app", wizard.myWizardState.getString(ATTR_PACKAGE_NAME));
@@ -133,6 +137,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertNotNull(virtualDirectory);
 
     wizard = new NewTemplateObjectWizard(myAppModule.getProject(), myAppModule, virtualDirectory, Template.CATEGORY_OTHER);
+    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
 
     assertNotNull(wizard.myWizardState.get(ATTR_APPLICATION_PACKAGE));
     assertEquals("com.example.projectwithappandlib.app", wizard.myWizardState.getString(ATTR_APPLICATION_PACKAGE));
@@ -150,6 +155,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertNotNull(myLibFacet.getIdeaAndroidProject());
     wizard = new NewTemplateObjectWizard(myLibModule.getProject(), myLibModule, myLibFacet.getIdeaAndroidProject().getRootDir(),
                                          Template.CATEGORY_OTHER);
+    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
     assertEquals(true, wizard.myWizardState.getBoolean(ATTR_IS_LIBRARY_MODULE));
     assertEquals("lib", wizard.myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
   }
@@ -157,6 +163,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
   public void testTemplateChanged() throws Exception {
     NewTemplateObjectWizard wizard = new NewTemplateObjectWizard(myAppModule.getProject(), myAppModule, null,
                                                                  Template.CATEGORY_OTHER);
+    Disposer.register(getTestRootDisposable(), wizard.getDisposable());
     AssetSetStep mockAssetSetStep = mock(AssetSetStep.class);
     wizard.myAssetSetStep = mockAssetSetStep;
     ChooseTemplateStep mockChooseTemplateStep = mock(ChooseTemplateStep.class);
