@@ -69,7 +69,7 @@ public class AndroidPackagingBuildTarget extends AndroidBuildTarget {
     final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(myModule, null, null);
 
     if (platform != null) {
-      for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
+      for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false, true, false)) {
         roots.add(new BuildRootDescriptorImpl(this, new File(jarOrLibDir), false));
       }
     }
