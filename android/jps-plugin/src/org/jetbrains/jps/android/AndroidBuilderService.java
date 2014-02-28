@@ -20,6 +20,7 @@ public class AndroidBuilderService extends BuilderService {
     return Arrays.asList(
       AndroidManifestMergingTarget.MyTargetType.INSTANCE,
       AndroidLibraryPackagingTarget.MyTargetType.INSTANCE,
+      AndroidAarDepsBuildTarget.MyTargetType.INSTANCE,
       AndroidPreDexBuildTarget.MyTargetType.INSTANCE,
       AndroidDexBuildTarget.MyTargetType.INSTANCE,
       AndroidResourceCachingBuildTarget.MyTargetType.INSTANCE,
@@ -38,6 +39,7 @@ public class AndroidBuilderService extends BuilderService {
   public List<? extends TargetBuilder<?,?>> createBuilders() {
     return Arrays.asList(new AndroidManifestMergingBuilder(),
                          new AndroidLibraryPackagingBuilder(),
+                         new AndroidAarDepsBuilder(),
                          new AndroidPreDexBuilder(),
                          new AndroidDexBuilder(),
                          new AndroidResourceCachingBuilder(),
