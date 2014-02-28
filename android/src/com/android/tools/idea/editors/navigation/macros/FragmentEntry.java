@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-public class FragmentEntry {
-  public final String tag;
-  public final String className;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 
-  public FragmentEntry(String tag, String className) {
-    this.tag = tag;
+public class FragmentEntry {
+  @NonNull
+  public final String className;
+  @Nullable
+  public final String tag;
+
+  public FragmentEntry(@NonNull String className, @Nullable String tag) {
     this.className = className;
+    this.tag = tag;
   }
 }
