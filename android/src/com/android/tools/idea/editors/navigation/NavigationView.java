@@ -758,7 +758,8 @@ public class NavigationView extends JComponent {
     return result;
   }
 
-  private static String applyAliases(String name, Map<String, String> layoutAliases) {
+  @Nullable
+  private static String applyAliases(@Nullable String name, Map<String, String> layoutAliases) {
     String to = layoutAliases.get(name);
     String prefix = "@layout/";
     if (to == null || !to.startsWith(prefix)) {
@@ -768,11 +769,11 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static PsiFile getLayoutXmlFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
-    String resourceType = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
+  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String xmlFileName, VirtualFile navFile, Project project) {
     VirtualFileSystem fileSystem = navFile.getFileSystem();
     String resourceRoot = navFile.getParent().getParent().getPath();
     String directoryName = navFile.getParent().getName();
+    String resourceType = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
     int index = directoryName.indexOf('-');
     String qualifier = index == -1 ? "" : directoryName.substring(index);
     VirtualFile layoutAliasesFile = getFile(fileSystem, resourceRoot, "/" + "values" + qualifier + "/", "refs");
