@@ -465,8 +465,8 @@ public class Analyser {
           String fragmentTag = tag.getAttributeValue("android:tag");
           String fragmentClassName = tag.getAttributeValue("android:name");
           if (NavigationEditor.DEBUG) System.out.println("fragmentClassName = " + fragmentClassName);
-          if (fragmentTag != null && fragmentClassName != null) {
-            result.add(new FragmentEntry(fragmentTag, fragmentClassName));
+          if (fragmentClassName != null) {
+            result.add(new FragmentEntry(fragmentClassName, fragmentTag));
           }
         }
       }
