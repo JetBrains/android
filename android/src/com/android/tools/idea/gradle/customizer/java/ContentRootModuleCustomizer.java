@@ -41,26 +41,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull JavaModel model) {
     List<ContentEntry> allEntries = Lists.newArrayList();
-    ContentEntry[] currentEntries = rootModel.getContentEntries();
     for (IdeaContentRoot contentRoot : model.getContentRoots()) {
-      boolean added = false;
       File rootDirPath = contentRoot.getRootDirectory();
-      for (ContentEntry contentEntry : currentEntries) {
-        VirtualFile contentEntryFile = contentEntry.getFile();
-        if (contentEntryFile == null) {
-          continue;
-        }
-        String path = FileUtil.toSystemDependentName(contentEntryFile.getPath());
-        if (FileUtil.pathsEqual(rootDirPath.getPath(), path)) {
-          allEntries.add(contentEntry);
-          added = true;
-          break;
-        }
-      }
-      if (!added) {
-        ContentEntry contentEntry = rootModel.addContentEntry(pathToUrl(rootDirPath));
-        allEntries.add(contentEntry);
-      }
+      ContentEntry contentEntry = rootModel.addContentEntry(pathToUrl(rootDirPath));
+      allEntries.add(contentEntry);
     }
     return allEntries;
   }

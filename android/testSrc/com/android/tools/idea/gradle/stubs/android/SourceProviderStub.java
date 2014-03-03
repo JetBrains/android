@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 public class SourceProviderStub implements SourceProvider {
@@ -50,8 +51,14 @@ public class SourceProviderStub implements SourceProvider {
     myManifestFile = myFileStructure.createProjectFile(manifestFilePath);
   }
 
-  @NotNull
   @Override
+  @NotNull
+  public String getName() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public File getManifestFile() {
     if (myManifestFile != null) {
       return myManifestFile;
@@ -69,8 +76,8 @@ public class SourceProviderStub implements SourceProvider {
     myJavaDirectories.add(directory);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<File> getJavaDirectories() {
     return myJavaDirectories;
   }
@@ -85,8 +92,8 @@ public class SourceProviderStub implements SourceProvider {
     myResourcesDirectories.add(directory);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<File> getResourcesDirectories() {
     return myResourcesDirectories;
   }
@@ -101,8 +108,8 @@ public class SourceProviderStub implements SourceProvider {
     myAidlDirectories.add(directory);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<File> getAidlDirectories() {
     return myAidlDirectories;
   }
@@ -116,8 +123,8 @@ public class SourceProviderStub implements SourceProvider {
     myRenderscriptDirectories.add(directory);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<File> getRenderscriptDirectories() {
     return myRenderscriptDirectories;
   }
@@ -132,8 +139,8 @@ public class SourceProviderStub implements SourceProvider {
     myJniDirectories.add(directory);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<File> getJniDirectories() {
     return myJniDirectories;
   }
@@ -148,8 +155,8 @@ public class SourceProviderStub implements SourceProvider {
     myResDirectories.add(directory);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<File> getResDirectories() {
     return myResDirectories;
   }
@@ -165,9 +172,15 @@ public class SourceProviderStub implements SourceProvider {
     myAssetsDirectories.add(directory);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<File> getAssetsDirectories() {
     return myAssetsDirectories;
+  }
+
+  @Override
+  @NotNull
+  public Collection<File> getJniLibsDirectories() {
+    return null;
   }
 }
