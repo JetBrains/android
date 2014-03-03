@@ -207,7 +207,11 @@ public class DevicePanel implements Disposable,
     List<Pair<String, SimpleTextAttributes>> components = new ArrayList<Pair<String, SimpleTextAttributes>>(3);
     String name;
     if (d.isEmulator()) {
-      name = String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), d.getAvdName());
+      String avdName = d.getAvdName();
+      if (avdName == null) {
+        avdName = "unknown";
+      }
+      name = String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
     } else {
       name = String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
     }
