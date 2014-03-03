@@ -143,7 +143,9 @@ public class ImageUtilsTest extends TestCase {
     g.dispose();
 
     BufferedImage crop = ImageUtils.cropBlank(image, null);
-    assertNull(crop);
+    assertNotNull(crop);
+    assertEquals(crop.getWidth(), image.getWidth());
+    assertEquals(crop.getHeight(), image.getHeight());
   }
 
   public void testCropSomething() throws Exception {

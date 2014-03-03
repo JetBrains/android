@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
@@ -46,7 +47,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -68,12 +68,14 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
   protected final TemplateWizardState myTemplateState;
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
+  protected final Map<String, JLabel> myParamFieldLabels = Maps.newHashMap();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
   protected final Map<Parameter, ComboBoxItem> myComboBoxValues = Maps.newHashMap();
   protected final Project myProject;
   protected final Module myModule;
   private final Icon mySidePanelIcon;
   protected boolean myIgnoreUpdates = false;
+  protected boolean myFirstUpdate = true;
   protected boolean myIsValid = true;
   protected boolean myVisible = true;
   protected final UpdateListener myUpdateListener;
@@ -196,7 +198,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       return;
     }
 
-    myTemplateState.convertApisToInt();
+    Template.convertApisToInt(myTemplateState.getParameters());
 
     Component focusedComponent = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
     setDescriptionHtml("");
@@ -236,24 +238,34 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
    * Called by update() to write derived values to the template model.
    */
   protected void deriveValues() {
-    Iterator<String> iter = myIdsWithNewValues.iterator();
-    while(iter.hasNext()) {
-      String changedParamId = iter.next();
+    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
+    if (metadata == null) {
+      return;
+    }
+
+    for (String changedParamId : myIdsWithNewValues) {
       for (String paramName : myParamFields.keySet()) {
-        // Don't process hidden fields or ones which have been manually edited
-        if (myTemplateState.myHidden.contains(paramName) ) {
+        Parameter param = myTemplateState.hasTemplate() ? metadata.getParameter(paramName) : null;
+
+        // If this parameter is null or doesn't have anything to update (both visibility and suggestion are null or empty), skip it.
+        if (param == null ||
+            ((param.suggest == null || param.suggest.isEmpty()) && (param.visibility == null || param.visibility.isEmpty()))) {
           continue;
         }
 
-        Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
+        // If this parameter has dynamic visibility, calculate it and process accordingly
+        if (param.visibility != null && param.visibility.contains(changedParamId)) {
+          updateVisibility(param);
+        }
 
-        if (param == null || param.suggest == null || param.suggest.isEmpty()) {
+        // Don't process hidden fields
+        if (myTemplateState.myHidden.contains(paramName)) {
           continue;
         }
 
         // If this parameter has a suggestion depending on the changed parameter, calculate it, record the new value
         // and add it for consideration so that things dependent on it can be updated
-        if (param.suggest.contains(changedParamId)) {
+        if (param.suggest != null && param.suggest.contains(changedParamId)) {
           final String updated = myStringEvaluator.evaluate(param.suggest, myTemplateState.getParameters());
           if (updated != null && !updated.equals(myTemplateState.get(param.id))) {
             myIdsWithNewValues.add(param.id);
@@ -270,9 +282,25 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
   }
 
+  protected void updateVisibility(Parameter param) {
+    if (param.visibility != null && !param.visibility.isEmpty()) {
+      boolean visible = myStringEvaluator.evaluateBooleanExpression(param.visibility, myTemplateState.getParameters(), true);
+      if (visible) {
+        myTemplateState.myHidden.remove(param.id);
+      }
+      else {
+        myTemplateState.myHidden.add(param.id);
+      }
+      myParamFields.get(param.id).setVisible(visible);
+      if (myParamFieldLabels.containsKey(param.id)) {
+        myParamFieldLabels.get(param.id).setVisible(visible);
+      }
+    }
+  }
+
   @Override
   public boolean validate() {
-    myTemplateState.convertApisToInt();
+    Template.convertApisToInt(myTemplateState.getParameters());
     if (!myVisible) {
       return true;
     }
@@ -285,7 +313,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       if (param != null) {
-        String error = param.validate(myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
+        String error = param.validate(myProject, myModule, (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
         if (error != null) {
           setErrorHtml(error);
           return false;
@@ -328,7 +356,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
     }
     myTemplateState.setParameterDefaults();
-    myTemplateState.convertApisToInt();
+    Template.convertApisToInt(myTemplateState.getParameters());
     boolean oldIgnoreUpdates = myIgnoreUpdates;
     try {
       myIgnoreUpdates = true;
@@ -446,6 +474,14 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     for (int i = 0; i < array.length; ++i) {
       comboBox.addItem(new ComboBoxItem(i, array[i].toString(), 1, 1));
     }
+  }
+
+  /**
+   * Connects the given {@link JLabel} to the given parameter and sets a listener to pick up changes to visibility that need to
+   * trigger UI updates.
+   */
+  protected void registerLabel(@NotNull String paramName, @NotNull JLabel label) {
+    myParamFieldLabels.put(paramName, label);
   }
 
   /**
@@ -574,6 +610,12 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
     // First we load the updated values into our model
     updateParams();
+
+    // The first time update() is called, refresh the "suggest" attrs by ensuring *all* parameters are set.
+    if (myFirstUpdate) {
+      myIdsWithNewValues = new ConcurrentLinkedQueue<String>(myTemplateState.getParameters().keySet());
+    }
+
     // Then we calculate any values that we need to
     deriveValues();
     // Finally we make sure these new values are valid
@@ -582,7 +624,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       myUpdateListener.update();
     }
 
-
+    myFirstUpdate = false;
     myIgnoreUpdates = false;
   }
 

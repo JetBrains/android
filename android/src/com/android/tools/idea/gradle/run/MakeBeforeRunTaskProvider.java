@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
@@ -28,16 +31,21 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
+import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -84,12 +92,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @Override
   public String getDescription(MakeBeforeRunTask task) {
-    return TASK_NAME;
+    String goal = task.getGoal();
+    return StringUtil.isEmpty(goal) ? TASK_NAME : "gradle " + goal;
   }
 
   @Override
   public boolean isConfigurable() {
-    return false;
+    return true;
   }
 
   @Nullable
@@ -105,19 +114,52 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @Override
   public boolean configureTask(RunConfiguration runConfiguration, MakeBeforeRunTask task) {
-    return false;
+    GradleEditGoalDialog dialog = new GradleEditGoalDialog(myProject);
+    dialog.setGoal(task.getGoal());
+    dialog.setAvailableGoals(getAvailableTasks());
+    dialog.show();
+    if (!dialog.isOK()) {
+      // since we allow tasks without any arguments (assumed to be equivalent to assembling the app),
+      // we need a way to specify that a task is not valid. This is because of the current restriction
+      // of this API, where the return value from configureTask is ignored.
+      task.setInvalid();
+      return false;
+    }
+
+    task.setGoal(dialog.getGoal());
+    return true;
+  }
+
+  private List<GradleTask> getAvailableTasks() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    List<GradleTask> gradleTasks = Lists.newArrayList();
+    for (Module module : moduleManager.getModules()) {
+      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+      if (facet == null) {
+        continue;
+      }
+
+      IdeaGradleProject gradleProject = facet.getGradleProject();
+      if (gradleProject == null) {
+        continue;
+      }
+
+      gradleTasks.addAll(gradleProject.getTasks());
+    }
+
+    return gradleTasks;
   }
 
   @Override
   public boolean canExecuteTask(RunConfiguration configuration, MakeBeforeRunTask task) {
-    return true;
+    return task.isValid();
   }
 
   @Override
   public boolean executeTask(final DataContext context,
                              final RunConfiguration configuration,
                              ExecutionEnvironment env,
-                             MakeBeforeRunTask task) {
+                             final MakeBeforeRunTask task) {
     if (!Projects.isGradleProject(myProject) || !Projects.isDirectGradleInvocationEnabled(myProject)) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
@@ -158,7 +200,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
             }
             TestCompileType testCompileType = getTestCompileType(configuration);
             gradleInvoker.addAfterGradleInvocationTask(afterTask);
-            gradleInvoker.make(modules, testCompileType);
+            String goal = task.getGoal();
+            if (StringUtil.isEmpty(goal)) {
+              gradleInvoker.make(modules, testCompileType);
+            } else {
+              gradleInvoker.executeTasks(Lists.newArrayList(goal));
+            }
           }
         });
         done.waitFor();

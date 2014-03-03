@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
@@ -69,10 +67,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
@@ -956,7 +951,7 @@ public class RenderErrorPanel extends JPanel {
           if (isFramework(frame) && platformSourceExists) { // try to link to documentation, if available
             if (platformSource == null) {
               IAndroidTarget target = myResult.getRenderService().getConfiguration().getTarget();
-              platformSource = findPlatformSources(target);
+              platformSource = AndroidSdkUtils.findPlatformSources(target);
               platformSourceExists = platformSource != null;
             }
 
@@ -997,21 +992,6 @@ public class RenderErrorPanel extends JPanel {
         }
       }
     }));
-  }
-
-  /** Finds the root source code folder for the given android target, if any */
-  @VisibleForTesting
-  @Nullable
-  public static File findPlatformSources(@NotNull IAndroidTarget target) {
-    String path = target.getPath(IAndroidTarget.SOURCES);
-    if (path != null) {
-      File platformSource = new File(path);
-      if (platformSource.isDirectory()) {
-        return platformSource;
-      }
-    }
-
-    return null;
   }
 
   private static boolean isHiddenFrame(StackTraceElement frame) {

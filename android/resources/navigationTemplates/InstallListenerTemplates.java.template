@@ -23,7 +23,7 @@ import android.widget.ListView;
 
 public class InstallListenerTemplates {
 
-    public static void installClickListener(View $view, final Statement $f) {
+    public static void installClickListener(View $view, Statement $f) {
         $view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -35,16 +35,7 @@ public class InstallListenerTemplates {
     public static void installItemClickListener(ListView $listView, final Statement $f) {
         $listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                $f.$();
-            }
-        });
-    }
-
-    public static void installItemClickListener2(ListView $listView, final Statement $f) {
-        $listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 $f.$$();
             }
         });

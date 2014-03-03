@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
@@ -91,7 +92,12 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @Override
   public void projectOpened() {
     checkForSupportedModules();
-
+    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+    if (syncState.isSyncInProgress()) {
+      // when opening a new project, the UI was not updated when sync started. Updating UI ("Build Variants" tool window, "Sync" toolbar
+      // button and editor notifications.
+      syncState.notifyUser();
+    }
     if (shouldShowMigrateToGradleNotification()
         && AndroidStudioSpecificInitializer.isAndroidStudio()
         && Projects.isIdeaAndroidProject(myProject)) {
@@ -166,6 +172,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     MessageBusConnection connection = project.getMessageBus().connect(disposable);
     connection.subscribe(ProjectTopics.MODULES, moduleListener);
     connection.subscribe(VirtualFileManager.VFS_CHANGES, buildFileUpdater);
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, buildFileUpdater);
   }
 
   @Override

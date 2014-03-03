@@ -43,9 +43,9 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
   public void testConstructor() throws Exception {
     // Null project means creating a new project
     TemplateWizardModuleBuilder moduleBuilder1 = new TemplateWizardModuleBuilder(
-        null, null, null, null, new ArrayList<ModuleWizardStep>(), false);
+        null, null, null, null, new ArrayList<ModuleWizardStep>(), getTestRootDisposable(), false);
     assertTrue(moduleBuilder1.myWizardState.getBoolean(ATTR_IS_LAUNCHER));
-    assertNull(moduleBuilder1.myWizardState.get(ATTR_PROJECT_LOCATION));
+    assertEquals(NewProjectWizardState.getProjectFileDirectory(), moduleBuilder1.myWizardState.get(ATTR_PROJECT_LOCATION));
     assertDoesntContain(moduleBuilder1.myWizardState.myHidden, ATTR_MODULE_NAME);
 
     assertNotNull(moduleBuilder1.myWizardState.get(ATTR_GRADLE_VERSION));
@@ -56,7 +56,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
 
     // Non-null project means we're adding a module to an existing project
     TemplateWizardModuleBuilder moduleBuilder2 = new TemplateWizardModuleBuilder(
-        null, null, getProject(), null, new ArrayList<ModuleWizardStep>(), true);
+        null, null, getProject(), null, new ArrayList<ModuleWizardStep>(), getTestRootDisposable(), true);
     assertFalse(moduleBuilder2.myWizardState.getBoolean(ATTR_IS_LAUNCHER));
     assertContainsElements(moduleBuilder2.myWizardState.myHidden, ATTR_MODULE_NAME);
 
@@ -72,7 +72,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
     assertTrue(templateFile.exists());
 
     final TemplateWizardModuleBuilder moduleBuilder = new TemplateWizardModuleBuilder(
-      templateFile, null, getProject(), null, new ArrayList<ModuleWizardStep>(), false);
+      templateFile, null, getProject(), null, new ArrayList<ModuleWizardStep>(), getTestRootDisposable(), false);
 
     moduleBuilder.myWizardState.put(ATTR_IS_LIBRARY_MODULE, false);
     moduleBuilder.myWizardState.put(ATTR_PACKAGE_NAME, "com.test.foo");

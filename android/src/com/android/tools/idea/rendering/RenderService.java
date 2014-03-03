@@ -33,6 +33,7 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -587,6 +588,7 @@ public class RenderService implements IImageFactory {
     @SuppressWarnings("ConstantConditions")
     RenderSecurityManager securityManager = new RenderSecurityManager(sdkPath, projectPath);
     securityManager.setLogger(new LogWrapper(RenderLogger.LOG));
+    securityManager.setAppTempDir(PathManager.getTempPath());
 
     return securityManager;
   }

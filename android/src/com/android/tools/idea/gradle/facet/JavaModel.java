@@ -15,47 +15,91 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.intellij.openapi.diagnostic.Logger;
+import com.google.common.collect.Lists;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
+import org.gradle.tooling.model.idea.IdeaModuleDependency;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
 public class JavaModel {
-  private static final Logger LOG = Logger.getInstance(JavaModel.class);
+  @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
 
-  @Nullable private final IdeaContentRoot myContentRoot;
-  @NotNull private final List<? extends IdeaDependency> myDependencies;
+  @NotNull private final List<IdeaContentRoot> myContentRoots = Lists.newArrayList();
+  @NotNull private final List<IdeaModuleDependency> myModuleDependencies = Lists.newArrayList();
+  @NotNull private final List<IdeaSingleEntryLibraryDependency> myLibraryDependencies = Lists.newArrayList();
+  @NotNull private final List<String> myUnresolvedDependencyNames = Lists.newArrayList();
 
   public JavaModel(@NotNull Collection<? extends IdeaContentRoot> contentRoots, @NotNull List<? extends IdeaDependency> dependencies) {
-    myContentRoot = getFirstNotNull(contentRoots);
-    myDependencies = dependencies;
-  }
-
-  @Nullable
-  private static IdeaContentRoot getFirstNotNull(Collection<? extends IdeaContentRoot> contentRoots) {
-    // The IDEA model returns a Collection of IdeaContentRoots, but in practice there should be no more than one element in it.
-    if (contentRoots.size() > 1) {
-      LOG.info(String.format("Found a JavaModel with %d content roots", contentRoots.size()));
-    }
     for (IdeaContentRoot contentRoot : contentRoots) {
       if (contentRoot != null) {
-        return contentRoot;
+        myContentRoots.add(contentRoot);
       }
     }
-    return null;
+    for (IdeaDependency dependency : dependencies) {
+      if (dependency instanceof IdeaModuleDependency) {
+        myModuleDependencies.add((IdeaModuleDependency)dependency);
+      }
+      else if (dependency instanceof IdeaSingleEntryLibraryDependency) {
+        IdeaSingleEntryLibraryDependency libDependency = (IdeaSingleEntryLibraryDependency)dependency;
+        if (isResolved(libDependency)) {
+          myLibraryDependencies.add(libDependency);
+        }
+        else {
+          String name = getUnresolvedDependencyName(libDependency);
+          if (name != null) {
+            myUnresolvedDependencyNames.add(name);
+          }
+        }
+      }
+    }
+  }
+
+  private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    String libraryName = getFileName(dependency);
+    return libraryName != null && !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
   }
 
   @Nullable
-  public IdeaContentRoot getContentRoot() {
-    return myContentRoot;
+  private static String getUnresolvedDependencyName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    String libraryName = getFileName(dependency);
+    if (libraryName == null) {
+      return null;
+    }
+    // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.
+    // We report the unresolved dependency as 'commons-collections:commons-collections:3.2'
+    return libraryName.substring(UNRESOLVED_DEPENDENCY_PREFIX.length()).replace(' ', ':');
+  }
+
+  @Nullable
+  private static String getFileName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    File binaryPath = dependency.getFile();
+    return binaryPath != null ? binaryPath.getName() : null;
   }
 
   @NotNull
-  public List<? extends IdeaDependency> getDependencies() {
-    return myDependencies;
+  public List<IdeaContentRoot> getContentRoots() {
+    return myContentRoots;
+  }
+
+  @NotNull
+  public List<IdeaModuleDependency> getModuleDependencies() {
+    return myModuleDependencies;
+  }
+
+  @NotNull
+  public List<IdeaSingleEntryLibraryDependency> getLibraryDependencies() {
+    return myLibraryDependencies;
+  }
+
+  @NotNull
+  public List<String> getUnresolvedDependencyNames() {
+    return myUnresolvedDependencyNames;
   }
 }

@@ -41,7 +41,6 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -81,7 +80,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     if (!Strings.isNullOrEmpty(gradleToolingApiJarPath)) {
       gradleLibDirPath = PathUtil.getParentPath(gradleToolingApiJarPath);
     }
-    if (Strings.isNullOrEmpty(gradleLibDirPath)) {
+    if (gradleLibDirPath == null || gradleLibDirPath.isEmpty()) {
       return Collections.emptyList();
     }
     List<String> classpath = Lists.newArrayList();

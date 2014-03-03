@@ -75,7 +75,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSI
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-  public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
+
+  @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
     "The project is using an unsupported version of the Android Gradle plug-in";
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
@@ -131,20 +132,36 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject());
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
     if (androidProject == null) {
       // This is a Java lib module.
       JavaModel javaModel = createJavaModelFrom(gradleModule);
       gradleProject.setJavaModel(javaModel);
+
+      List<String> unresolved = javaModel.getUnresolvedDependencyNames();
+      populateUnresolvedDependencies(ideModule, unresolved);
+    }
+  }
+
+  private static void populateUnresolvedDependencies(@NotNull DataNode<ModuleData> ideModule, @NotNull List<String> unresolved) {
+    if (unresolved.isEmpty() || ideModule.getParent() == null) {
+      return;
+    }
+    DataNode<?> parent = ideModule.getParent();
+    Object data = parent.getData();
+    // the following is always going to be true.
+    if (data instanceof ProjectData) {
+      //noinspection unchecked
+      populateUnresolvedDependencies((DataNode<ProjectData>)parent, unresolved);
     }
   }
 
   @NotNull
-  private JavaModel createJavaModelFrom(@NotNull IdeaModule module) {
-    Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(module);
-    List<? extends IdeaDependency> dependencies = getDependenciesFrom(module);
+  private JavaModel createJavaModelFrom(@NotNull IdeaModule gradleModule) {
+    Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(gradleModule);
+    List<? extends IdeaDependency> dependencies = getDependencies(gradleModule);
     return new JavaModel(contentRoots, dependencies);
   }
 
@@ -159,7 +176,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private List<? extends IdeaDependency> getDependenciesFrom(@NotNull IdeaModule module) {
+  private List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule module) {
     ProjectDependenciesModel model = resolverCtx.getExtraProject(module, ProjectDependenciesModel.class);
     List<? extends IdeaDependency> dependencies = model != null ? model.getDependencies() : module.getDependencies().getAll();
     if (dependencies != null) {
@@ -375,7 +392,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
-                                                     @NotNull Set<String> unresolvedDependencies) {
+                                                     @NotNull Collection<String> unresolvedDependencies) {
     boolean promptToInstallSupportRepository = false;
     for (String dep : unresolvedDependencies) {
       if (dep.startsWith("com.android.support:")) {

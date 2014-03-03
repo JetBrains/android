@@ -71,19 +71,6 @@ public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroi
         }
       }
     }
-    Runnable updateBuildVariantViewTask = new Runnable() {
-      @Override
-      public void run() {
-        BuildVariantView buildVariantView = BuildVariantView.getInstance(project);
-        buildVariantView.updateContents();
-      }
-    };
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      updateBuildVariantViewTask.run();
-    } else {
-      application.invokeLater(updateBuildVariantViewTask);
-    }
   }
 
   private static void configureFacet(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject ideaAndroidProject) {

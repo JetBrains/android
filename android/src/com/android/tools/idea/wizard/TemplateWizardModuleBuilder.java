@@ -21,6 +21,7 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.*;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
@@ -41,6 +42,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Disposer;
 import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -74,6 +76,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
                                      @Nullable Project project,
                                      @Nullable Icon sidePanelIcon,
                                      @NotNull List<ModuleWizardStep> steps,
+                                     @NotNull Disposable disposable,
                                      boolean hideModuleName) {
     myMetadata = metadata;
     myProject = project;
@@ -107,11 +110,12 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       myWizardState.myHidden.add(ATTR_MODULE_NAME);
     }
 
-    myWizardState.convertApisToInt();
+    Template.convertApisToInt(myWizardState.getParameters());
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, sidePanelIcon, this);
     myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, null, sidePanelIcon, this);
     myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, sidePanelIcon, this);
+    Disposer.register(disposable, myAssetSetStep);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null,
                                                   sidePanelIcon, this, null);
     myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, null,

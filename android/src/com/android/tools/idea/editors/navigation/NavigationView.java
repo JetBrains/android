@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.navigation.macros.Analysis;
+import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -35,7 +35,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
-import com.intellij.psi.xml.*;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -54,7 +55,7 @@ import static com.android.tools.idea.editors.navigation.Utilities.*;
 
 public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
-  private static final Dimension GAP = new Dimension(150, 50);
+  public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
@@ -683,42 +684,6 @@ public class NavigationView extends JComponent {
     }
   }
 
-  /*
-  private void addChildrenOld(Collection<State> states) {
-    final Set<State> visited = new HashSet<State>();
-    final Point location = new Point(GAP.width, GAP.height);
-    final Point maxLocation = new Point(0, 0);
-    final int gridWidth = PREVIEW_SIZE.width + GAP.width;
-    final int gridHeight = PREVIEW_SIZE.height + GAP.height;
-    getStateComponentAssociation().clear();
-    for (State state : states) {
-      if (visited.contains(state)) {
-        continue;
-      }
-      new Object() {
-        public void addChildrenFor(State source) {
-          visited.add(source);
-          add(createRootComponentFor(source, location));
-          List<State> children = findDestinationsFor(source, visited);
-          location.x += gridWidth;
-          maxLocation.x = Math.max(maxLocation.x, location.x);
-          if (children.isEmpty()) {
-            location.y += gridHeight;
-            maxLocation.y = Math.max(maxLocation.y, location.y);
-          }
-          else {
-            for (State child : children) {
-              addChildrenFor(child);
-            }
-          }
-          location.x -= gridWidth;
-        }
-      }.addChildrenFor(state);
-    }
-    setPreferredSize(new Dimension(maxLocation.x, maxLocation.y));
-  }
-  */
-
   private <K, V extends Component> void removeLeftovers(Assoc<K, V> assoc, Collection<K> a) {
     for (Map.Entry<K, V> e : new ArrayList<Map.Entry<K, V>>(assoc.keyToValue.entrySet())) {
       K k = e.getKey();
@@ -766,7 +731,7 @@ public class NavigationView extends JComponent {
   public static String getXMLFileName(Module module, State state) {
     String controllerClassName = state.getClassName();
     String definedXmlFileName = state.getXmlResourceName();
-    return definedXmlFileName != null ? definedXmlFileName : Analysis.getXMLFileName(module, controllerClassName);
+    return definedXmlFileName != null ? definedXmlFileName : Analyser.getXMLFileName(module, controllerClassName);
   }
 
   @Nullable
@@ -793,7 +758,8 @@ public class NavigationView extends JComponent {
     return result;
   }
 
-  private static String applyAliases(String name, Map<String, String> layoutAliases) {
+  @Nullable
+  private static String applyAliases(@Nullable String name, Map<String, String> layoutAliases) {
     String to = layoutAliases.get(name);
     String prefix = "@layout/";
     if (to == null || !to.startsWith(prefix)) {
@@ -803,16 +769,17 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static PsiFile getLayoutXmlFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
-    String resourceType = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
+  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String xmlFileName, VirtualFile navFile, Project project) {
     VirtualFileSystem fileSystem = navFile.getFileSystem();
     String resourceRoot = navFile.getParent().getParent().getPath();
     String directoryName = navFile.getParent().getName();
+    String resourceType = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
     int index = directoryName.indexOf('-');
     String qualifier = index == -1 ? "" : directoryName.substring(index);
     VirtualFile layoutAliasesFile = getFile(fileSystem, resourceRoot, "/" + "values" + qualifier + "/", "refs");
     PsiManager psiManager = PsiManager.getInstance(project);
-    Map<String, String> layoutAliases = getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
+    Map<String, String> layoutAliases =
+      getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
     xmlFileName = applyAliases(xmlFileName, layoutAliases);
     VirtualFile qualifiedFile = getFile(fileSystem, resourceRoot, "/" + resourceType + qualifier + "/", xmlFileName);
     VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, resourceRoot, "/" + resourceType + "/", xmlFileName);
