@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors;
 
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.actions.ShowFilePathAction;
@@ -61,7 +61,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (!Projects.isGradleProject(myProject)) {
       return null;
     }
-    if (GradleImportNotificationListener.isProjectImportInProgress()) {
+    GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+    if (syncState.isSyncInProgress()) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("Gradle project sync in progress...");
       return panel;
@@ -69,8 +70,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     if (Projects.lastGradleSyncFailed(myProject)) {
       return new ProjectImportFailedNotificationPanel();
     }
-    ThreeState gradleSyncNeeded = Projects.isGradleSyncNeeded(myProject);
-    if (gradleSyncNeeded == ThreeState.YES || gradleSyncNeeded == ThreeState.UNSURE) {
+    ThreeState gradleSyncNeeded = syncState.isSyncNeeded();
+    if (gradleSyncNeeded == ThreeState.YES) {
       return new StaleGradleModelNotificationPanel();
     }
     return null;

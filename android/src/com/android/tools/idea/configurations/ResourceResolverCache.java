@@ -95,8 +95,6 @@ public class ResourceResolverCache {
   public ResourceResolver getResourceResolver(@Nullable IAndroidTarget target,
                                               @NotNull String themeStyle,
                                               @NotNull final FolderConfiguration fullConfiguration) {
-    assert !fullConfiguration.isDefault(); // Should be a fully configured configuration
-
     // Are caches up to date?
     final LocalResourceRepository resources = AppResourceRepository.getAppResources(myManager.getModule(), true);
     assert resources != null;

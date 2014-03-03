@@ -30,6 +30,8 @@ import static com.android.tools.idea.templates.Template.*;
  */
 public class ParameterTest extends AndroidTestCase {
 
+  private static final String BASE_PATH = "resourceRepository/";
+
   @Override
   protected boolean requireRecentSdk() {
     // Need valid layoutlib install
@@ -67,7 +69,7 @@ public class ParameterTest extends AndroidTestCase {
   }
 
   private void assertViolates(@Nullable String packageName, @Nullable String value, Parameter.Constraint c) {
-    assertTrue(myParameter.validateStringType(getProject(), packageName, value).contains(c));
+    assertTrue(myParameter.validateStringType(getProject(), myModule, packageName, value).contains(c));
   }
 
   private void assertPasses(@Nullable String packageName, @Nullable String value) {
@@ -75,7 +77,7 @@ public class ParameterTest extends AndroidTestCase {
   }
 
   private void assertPasses(@Nullable String packageName, @Nullable String value, Parameter.Constraint c) {
-    assertFalse(myParameter.validateStringType(getProject(), packageName, value).contains(c));
+    assertFalse(myParameter.validateStringType(getProject(), myModule, packageName, value).contains(c));
   }
 
 
@@ -224,5 +226,4 @@ public class ParameterTest extends AndroidTestCase {
 
     // TODO: Implement uniqueness and existence tests
   }
-
 }

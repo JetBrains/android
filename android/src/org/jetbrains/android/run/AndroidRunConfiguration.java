@@ -16,8 +16,9 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.*;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.google.common.base.Predicates;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -88,8 +89,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   protected void checkConfiguration(@NotNull AndroidFacet facet) throws RuntimeConfigurationException {
     final boolean packageContainMavenProperty = doesPackageContainMavenProperty(facet);
     final JavaRunConfigurationModule configurationModule = getConfigurationModule();
-    final Module module = facet.getModule();
-
+    Module module = facet.getModule();
     if (MODE.equals(LAUNCH_SPECIFIC_ACTIVITY)) {
       Project project = configurationModule.getProject();
       final JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
@@ -115,15 +115,15 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         return;
       }
       if (!packageContainMavenProperty) {
-        Manifest manifest = AndroidModuleInfo.getManifest(module, true);
-        Activity activity = AndroidDomUtil.getActivityDomElementByClass(manifest, c);
+        List<Activity> activities = ManifestInfo.get(module, true).getActivities();
+        Activity activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
         Module libModule = null;
-
         if (activity == null) {
           for (AndroidFacet depFacet : AndroidUtils.getAllAndroidDependencies(module, true)) {
             final Module depModule = depFacet.getModule();
-            final Manifest depManifest = AndroidModuleInfo.getManifest(depModule, true);
-            activity = AndroidDomUtil.getActivityDomElementByClass(depManifest, c);
+            activities = ManifestInfo.get(depModule, true).getActivities();
+            activity = AndroidDomUtil.getActivityDomElementByClass(activities, c);
+
 
             if (activity != null) {
               libModule = depModule;
@@ -134,16 +134,22 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
             throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
           }
           else if (!facet.getProperties().ENABLE_MANIFEST_MERGING) {
-            throw new RuntimeConfigurationError(AndroidBundle.message("activity.declared.but.manifest.merging.disabled",
-                                                                      c.getName(), libModule.getName(), module.getName()));
+            throw new RuntimeConfigurationError(AndroidBundle.message("activity.declared.but.manifest.merging.disabled", c.getName(),
+                                                                      libModule.getName(), module.getName()));
           }
         }
       }
     }
     else if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
-      Manifest manifest = AndroidModuleInfo.getManifest(module, true);
-      if (manifest != null) {
-        if (packageContainMavenProperty || AndroidUtils.getDefaultLauncherActivityName(manifest) != null) return;
+      if (packageContainMavenProperty) {
+        return;
+      }
+
+      List<Activity> activities = ManifestInfo.get(module, true).getActivities();
+      List<ActivityAlias> activityAliases = ManifestInfo.get(module, true).getActivityAliases();
+      String activity = AndroidUtils.getDefaultLauncherActivityName(activities, activityAliases);
+      if (activity != null) {
+        return;
       }
       throw new RuntimeConfigurationError(AndroidBundle.message("default.activity.not.found.error"));
     }
@@ -297,6 +303,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     else if (MODE.equals(LAUNCH_SPECIFIC_ACTIVITY)) {
       activityToLaunch = ACTIVITY_CLASS;
     }
+
     if (activityToLaunch != null) {
       final String finalActivityToLaunch = activityToLaunch;
 
@@ -316,26 +323,25 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         return activityRuntimeQName;
       }
     }
+
     return activityToLaunch;
   }
 
   @Nullable
-  private static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final ProcessHandler processHandler) {
-    File manifestCopy = null;
+  @VisibleForTesting
+  static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final ProcessHandler processHandler) {
+    if (!facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
+      ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), true);
+      return AndroidUtils.getDefaultLauncherActivityName(manifestInfo.getActivities(), manifestInfo.getActivityAliases());
+    }
 
+    File manifestCopy = null;
     try {
-      final Manifest manifest;
-      if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-        final Pair<File,String> pair = getCopyOfCompilerManifestFile(facet, processHandler);
-        manifestCopy = pair != null ? pair.getFirst() : null;
-        VirtualFile manifestVFile = manifestCopy != null
-                        ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy)
-                        : null;
-        manifest = manifestVFile == null ? null : AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
-      }
-      else {
-        manifest = AndroidModuleInfo.get(facet).getManifest(true);
-      }
+      final Pair<File, String> pair = getCopyOfCompilerManifestFile(facet, processHandler);
+      manifestCopy = pair != null ? pair.getFirst() : null;
+      VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
+      final Manifest manifest =
+        manifestVFile == null ? null : AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
         @Override

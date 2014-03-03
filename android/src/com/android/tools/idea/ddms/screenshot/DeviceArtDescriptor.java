@@ -17,6 +17,7 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
+import com.android.tools.idea.rendering.ImageUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
@@ -32,6 +33,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -231,6 +233,18 @@ public class DeviceArtDescriptor {
 
   public boolean isStretchable() {
     return myId.equals("phone") || myId.equals("tablet");
+  }
+
+  /** Returns whether this descriptor can frame the given image. */
+  public boolean canFrameImage(BufferedImage image, ScreenOrientation orientation) {
+    if (isStretchable()) {
+      return true;
+    }
+
+    // Make sure that the aspect ratio is nearly identical to the image aspect ratio
+    double imgAspectRatio = image.getWidth() / (double) image.getHeight();
+    double descriptorAspectRatio = getAspectRatio(orientation);
+    return Math.abs(imgAspectRatio - descriptorAspectRatio) < ImageUtils.EPSILON;
   }
 
   /** Descriptor for a particular device frame (e.g. a set of images for a particular device in a particular orientation) */

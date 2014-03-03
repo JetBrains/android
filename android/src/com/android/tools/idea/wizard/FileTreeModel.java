@@ -45,6 +45,13 @@ public class FileTreeModel implements TreeModel {
    */
   private Node myRootNode;
 
+  private boolean myHideIrrelevantFiles;
+
+  public FileTreeModel(@NotNull File root, boolean hideIrrelevantFiles) {
+    this(root);
+    myHideIrrelevantFiles = hideIrrelevantFiles;
+  }
+
   public FileTreeModel(@NotNull File root) {
     myRoot = root;
     myRootNode = makeTree(root);
@@ -55,6 +62,9 @@ public class FileTreeModel implements TreeModel {
    */
   @Override
   public Object getRoot() {
+    if (myHideIrrelevantFiles && !myRootNode.isProposedFile) {
+      return null;
+    }
     return myRootNode;
   }
 
@@ -63,7 +73,21 @@ public class FileTreeModel implements TreeModel {
    */
   @Override
   public Object getChild(Object parent, int index) {
-    return ((Node)parent).children.get(index);
+    Node n = (Node)parent;
+    if (!myHideIrrelevantFiles) {
+      return n.children.get(index);
+    }
+
+    for (int i = 0; i < n.children.size(); i++) {
+      Node child =  n.children.get(i);
+      if (child.isProposedFile && index == 0) {
+        return child;
+      } else if (child.isProposedFile) {
+        index--;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -71,7 +95,16 @@ public class FileTreeModel implements TreeModel {
    */
   @Override
   public int getChildCount(Object parent) {
-    return ((Node)parent).children.size();
+    if (!myHideIrrelevantFiles) {
+      return ((Node)parent).children.size();
+    }
+    int count = 0;
+    for (Node n : ((Node)parent).children) {
+      if (n.isProposedFile) {
+        count++;
+      }
+    }
+    return count;
   }
 
   /**
@@ -79,7 +112,15 @@ public class FileTreeModel implements TreeModel {
    */
   @Override
   public boolean isLeaf(Object node) {
-    return ((Node)node).children.isEmpty();
+    if (!myHideIrrelevantFiles) {
+      return ((Node)node).children.isEmpty();
+    }
+    for (Node n : ((Node)node).children) {
+      if (n.isProposedFile) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Override
@@ -92,8 +133,22 @@ public class FileTreeModel implements TreeModel {
    */
   @Override
   public int getIndexOfChild(Object parent, Object child) {
-    //noinspection SuspiciousMethodCalls
-    return ((Node)parent).children.indexOf(child);
+    if (!myHideIrrelevantFiles) {
+      //noinspection SuspiciousMethodCalls
+      return ((Node)parent).children.indexOf(child);
+    }
+    Node n = (Node)parent;
+    int index = 0;
+    for (int i = 0; i < n.children.size(); i++) {
+      Node candidate = n.children.get(i);
+      if (candidate.equals(child)) {
+        return index;
+      }
+      if (candidate.isProposedFile) {
+        index++;
+      }
+    }
+    return -1;
   }
 
   @Override
@@ -172,6 +227,7 @@ public class FileTreeModel implements TreeModel {
     public List<Node> children = Lists.newLinkedList();
     public boolean existsOnDisk;
     public boolean isConflicted;
+    public boolean isProposedFile;
     public Icon icon;
 
     @Override
@@ -211,6 +267,7 @@ public class FileTreeModel implements TreeModel {
    * as conflicted if it already exists.
    */
   private static void makeNode(@NotNull Node root, @NotNull List<String> path, @Nullable Icon ic, boolean markConflict) {
+    root.isProposedFile = true;
     if (path.isEmpty()) {
       return;
     }
@@ -232,6 +289,7 @@ public class FileTreeModel implements TreeModel {
         Node targetNode = root.getChild(name);
         targetNode.isConflicted = true;
         targetNode.icon = ic;
+        targetNode.isProposedFile = true;
         return;
       }
       //noinspection ConstantConditions
@@ -244,6 +302,7 @@ public class FileTreeModel implements TreeModel {
       if (path.size() == 1) {
         // If this is the end of the path, mark with the given icon
         n.icon = ic;
+        n.isProposedFile = true;
       } else {
         // Continue down to create the rest of the path
         makeNode(n, rest(path), ic, markConflict);
@@ -262,7 +321,9 @@ public class FileTreeModel implements TreeModel {
       File[] children = root.listFiles();
       if (children != null) {
         for (File f : children) {
-          n.children.add(makeTree(f));
+          if (!f.isHidden()) {
+            n.children.add(makeTree(f));
+          }
         }
       }
     }

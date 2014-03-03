@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.output.GradleMessage;
@@ -57,7 +58,6 @@ import java.util.Iterator;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.Projects.isGradleSyncNeeded;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.intellij.util.ThreeState.YES;
 
@@ -182,7 +182,7 @@ public class PostProjectBuildTasksExecutor {
       //    build was successful or not. If isGradleSyncNeeded returns UNSURE, the previous sync may have failed, if this happened
       //    an automatic sync should have been triggered already. No need to trigger a new one.
       if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0 ||
-          !SOURCE_GEN.equals(buildMode) && isGradleSyncNeeded(myProject).equals(YES)) {
+          !SOURCE_GEN.equals(buildMode) && GradleSyncState.getInstance(myProject).isSyncNeeded().equals(YES)) {
         syncProjectWithGradle();
       }
     }
@@ -218,7 +218,7 @@ public class PostProjectBuildTasksExecutor {
 
     String title = "Unresolved Dependencies";
     String msg = "Unresolved dependencies detected while building project in offline mode. Please disable offline mode and try again. " +
-                  disableOfflineModeHyperlink.toString();
+                 disableOfflineModeHyperlink.toString();
 
     AndroidGradleNotification.getInstance(myProject).showBalloon(title, msg, NotificationType.ERROR, notificationListener);
   }

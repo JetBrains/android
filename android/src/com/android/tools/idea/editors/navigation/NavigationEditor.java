@@ -17,7 +17,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
-import com.android.tools.idea.editors.navigation.macros.Analysis;
+import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -38,10 +38,14 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Point;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.List;
+
+import static com.android.tools.idea.editors.navigation.NavigationView.GAP;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationEditor implements FileEditor {
@@ -53,6 +57,7 @@ public class NavigationEditor implements FileEditor {
   private static final int SCROLL_UNIT_INCREMENT = 20;
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
+  private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private final Listener<NavigationModel.Event> myNavigationModelListener;
   private Project myProject;
@@ -61,6 +66,8 @@ public class NavigationEditor implements FileEditor {
   private boolean myDirty;
   private boolean myNotificationsDisabled;
   private final CodeGenerator myCodeGenerator;
+  public static final com.android.navigation.Point UNSET = new com.android.navigation.Point(-1, -1);
+  private Analyser myAnalyser;
 
   public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
@@ -78,6 +85,8 @@ public class NavigationEditor implements FileEditor {
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
     myProject = project;
     myFile = file;
+    myRenderingParams = NavigationView.getRenderingParams(project, file);
+    myAnalyser = new Analyser(myProject, Utilities.getModule(myProject, file));
     try {
       myNavigationModel = read(file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
@@ -107,7 +116,9 @@ public class NavigationEditor implements FileEditor {
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
-        if (!myNotificationsDisabled && event.operation == NavigationModel.Event.Operation.INSERT && event.operandType == Transition.class) {
+        if (!myNotificationsDisabled &&
+            event.operation == NavigationModel.Event.Operation.INSERT &&
+            event.operandType == Transition.class) {
           ArrayList<Transition> transitions = myNavigationModel.getTransitions();
           Transition transition = transitions.get(transitions.size() - 1); // todo don't rely on this being the last
           myCodeGenerator.implementTransition(transition);
@@ -213,11 +224,78 @@ public class NavigationEditor implements FileEditor {
     return myFile.isValid();
   }
 
+  private static <T extends State> void copyLocations(Map<String, T> from, Map<String, T> to) {
+    for (Map.Entry<String, T> toEntry : to.entrySet()) {
+      String toKey = toEntry.getKey();
+      State toState = toEntry.getValue();
+
+      State fromState = from.get(toKey);
+      if (fromState != null) {
+        toState.setLocation(fromState.getLocation());
+      }
+    }
+  }
+
+  private void layoutStatesWithUnsetLocations(Collection<State> states) {
+    final Set<State> visited = new HashSet<State>();
+    com.android.navigation.Dimension size = myRenderingParams.getDeviceScreenSize();
+    com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
+    final Point location = new Point(GAP.width, GAP.height);
+    final int gridWidth = gridSize.width;
+    final int gridHeight = gridSize.height;
+    for (State state : states) {
+      if (visited.contains(state)) {
+        continue;
+      }
+      new Object() {
+        public void addChildrenFor(State source) {
+          visited.add(source);
+          if (source.getLocation().equals(UNSET)) {
+            source.setLocation(new com.android.navigation.Point(location.x, location.y));
+          }
+          List<State> children = findDestinationsFor(source, visited);
+          location.x += gridWidth;
+          if (children.isEmpty()) {
+            location.y += gridHeight;
+          }
+          else {
+            for (State child : children) {
+              addChildrenFor(child);
+            }
+          }
+          location.x -= gridWidth;
+        }
+      }.addChildrenFor(state);
+    }
+  }
+
+  private List<State> findDestinationsFor(State source, Set<State> visited) {
+    java.util.List<State> result = new ArrayList<State>();
+    for (Transition transition : myNavigationModel.getTransitions()) {
+      if (transition.getSource().getState() == source) {
+        State destination = transition.getDestination().getState();
+        if (!visited.contains(destination)) {
+          result.add(destination);
+        }
+      }
+    }
+    return result;
+  }
+
   @Override
   public void selectNotify() {
     myNotificationsDisabled = true;
+    final Map<String, ActivityState> activities = myNavigationModel.getActivities();
+    final Map<String, MenuState> menus = myNavigationModel.getMenus();
+    myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
-    Analysis.deriveAndAddTransitions(myNavigationModel, myProject, myFile);
+    myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myFile);
+    for(State state: myNavigationModel.getStates()) {
+      state.setLocation(UNSET);
+    }
+    copyLocations(activities, myNavigationModel.getActivities());
+    copyLocations(menus, myNavigationModel.getMenus());
+    layoutStatesWithUnsetLocations(myNavigationModel.getStates());
     myNotificationsDisabled = false;
     //myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
   }

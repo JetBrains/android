@@ -80,7 +80,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     LibraryDependency backup = dependency.getBackupDependency();
     boolean hasLibraryBackup = backup != null;
-    String msg = String.format("Unable fo find module with Gradle path '%1$s'.", dependency.getGradlePath());
+    String msg = String.format("Unable to find module with Gradle path '%1$s'.", dependency.getGradlePath());
     if (hasLibraryBackup) {
       msg += String.format(" Linking to library '%1$s' instead.", backup.getName());
     }

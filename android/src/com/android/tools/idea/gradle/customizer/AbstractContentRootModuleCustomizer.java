@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
@@ -23,6 +24,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,8 +34,11 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
+import java.util.Collection;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
+  private static final Logger LOG = Logger.getInstance(AbstractContentRootModuleCustomizer.class);
+
   @NonNls public static final String BUILD_DIR = "build";
 
   @Override
@@ -45,31 +50,35 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
 
     try {
-      ContentEntry contentEntry = findOrCreateContentEntry(rootModel, model);
-      if (contentEntry == null) {
-        // This may happen only with Java libs, but very, very unlikely.
-        return;
+      for (ContentEntry contentEntry : rootModel.getContentEntries()) {
+        rootModel.removeContentEntry(contentEntry);
       }
-      contentEntry.clearSourceFolders();
-      setUpContentEntry(contentEntry, model);
+
+      Collection<ContentEntry> contentEntries = findOrCreateContentEntries(rootModel, model);
+      setUpContentEntries(contentEntries, model);
     }
     finally {
       rootModel.commit();
     }
   }
 
-  @Nullable
-  protected abstract ContentEntry findOrCreateContentEntry(@NotNull ModifiableRootModel rootModel, @NotNull T model);
+  @NotNull
+  protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull T model);
 
-  protected abstract void setUpContentEntry(@NotNull ContentEntry contentEntry, @NotNull T model);
+  protected abstract void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries, @NotNull T model);
 
-  protected void addSourceFolder(@NotNull ContentEntry contentEntry,
+  protected void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries,
                                  @NotNull JpsModuleSourceRootType sourceRootType,
                                  @NotNull File dirPath,
                                  boolean isGenerated) {
+    ContentEntry parent = findParentContentEntry(contentEntries, dirPath);
+    if (parent == null) {
+      return;
+    }
+
     String url = pathToUrl(dirPath);
 
-    SourceFolder sourceFolder = contentEntry.addSourceFolder(url, sourceRootType);
+    SourceFolder sourceFolder = parent.addSourceFolder(url, sourceRootType);
 
     if (isGenerated) {
       JpsModuleSourceRoot sourceRoot = sourceFolder.getJpsElement();
@@ -83,6 +92,26 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
   protected void addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File dirPath) {
     String url = pathToUrl(dirPath);
     contentEntry.addExcludeFolder(url);
+  }
+
+  @Nullable
+  protected ContentEntry findParentContentEntry(@NotNull Collection<ContentEntry> contentEntries, @NotNull File dirPath) {
+    for (ContentEntry contentEntry : contentEntries) {
+      if (isPathInContentEntry(dirPath, contentEntry)) {
+        return contentEntry;
+      }
+    }
+    LOG.info(String.format("Failed to find content entry for file '%1$s'", dirPath.getPath()));
+    return null;
+  }
+
+  protected boolean isPathInContentEntry(@NotNull File path, @NotNull ContentEntry contentEntry) {
+    VirtualFile rootFile = contentEntry.getFile();
+    if (rootFile == null) {
+      return false;
+    }
+    File rootFilePath = VfsUtilCore.virtualToIoFile(rootFile);
+    return FileUtil.isAncestor(rootFilePath, path, false);
   }
 
   @NotNull

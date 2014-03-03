@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -26,7 +25,6 @@ import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.projectView.ProjectView;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,15 +32,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.util.Consumer;
-import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -63,69 +58,18 @@ public final class Projects {
   }
 
   /**
-   * Indicates whether a project sync with Gradle is needed. A Gradle sync is usually needed when a build.gradle or settings.gradle file has
-   * been updated <b>after</b> the last project sync was performed.
-   *
-   * @param project the given project.
-   * @return {@code YES} if a sync with Gradle is needed, {@code FALSE} otherwise, or {@code UNSURE} If the timestamp of the last Gradle
-   *         sync cannot be found.
-   */
-  @NotNull
-  public static ThreeState isGradleSyncNeeded(@NotNull Project project) {
-    long lastGradleSyncTimestamp = GradleImportNotificationListener.getLastGradleSyncTimestamp(project);
-    if (lastGradleSyncTimestamp < 0) {
-      // Previous sync may have failed. We don't know if a sync is needed or not. Let client code decide.
-      return ThreeState.UNSURE;
-    }
-    return isGradleSyncNeeded(project, lastGradleSyncTimestamp) ? ThreeState.YES : ThreeState.NO;
-  }
-
-  /**
-   * Indicates whether a project sync with Gradle is needed if changes to build.gradle or settings.gradle files were made after the given
-   * time.
-   *
-   * @param project               the given project.
-   * @param referenceTimeInMillis the given time, in milliseconds.
-   * @return {@code true} if a sync with Gradle is needed, {@code false} otherwise.
-   * @throws AssertionError if the given time is less than or equal to zero.
-   */
-  public static boolean isGradleSyncNeeded(@NotNull Project project, long referenceTimeInMillis) {
-    assert referenceTimeInMillis > 0;
-    if (GradleImportNotificationListener.isProjectImportInProgress()) {
-      return false;
-    }
-    File settingsFilePath = new File(project.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
-    if (settingsFilePath.exists() && settingsFilePath.lastModified() > referenceTimeInMillis) {
-      return true;
-    }
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
-      if (buildFile != null) {
-        File buildFilePath = VfsUtilCore.virtualToIoFile(buildFile);
-        if (buildFilePath.lastModified() > referenceTimeInMillis) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
    * Indicates whether the last sync with Gradle failed.
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return GradleImportNotificationListener.isInitialized() &&
-           !GradleImportNotificationListener.isProjectImportInProgress() &&
-           isGradleProjectWithoutModel(project);
+    return !GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project);
   }
 
   /**
    * Indicates the given project is an Gradle-based Android project that does not contain any Gradle model. Possible causes for this
    * scenario to happen are:
    * <ul>
-   *   <li>the last sync with Gradle failed</li>
-   *   <li>Studio just started up and it has not synced the project yet</li>
+   * <li>the last sync with Gradle failed</li>
+   * <li>Studio just started up and it has not synced the project yet</li>
    * </ul>
    *
    * @param project the project.
@@ -199,25 +143,6 @@ public final class Projects {
   }
 
   /**
-   * Runs the given handler on the current project, when it's available
-   *
-   * @param handler the handler to run when the context is available
-   */
-  public static void applyToCurrentGradleProject(@NotNull final Consumer<Project> handler) {
-    DataManager.getInstance().getDataContextFromFocus().doWhenDone(new Consumer<DataContext>() {
-      @Override
-      public void consume(DataContext dataContext) {
-        if (dataContext != null) {
-          Project project = CommonDataKeys.PROJECT.getData(dataContext);
-          if (project != null && isGradleProject(project)) {
-            handler.consume(project);
-          }
-        }
-      }
-    });
-  }
-
-  /**
    * Ensures that "External Build" is enabled for the given Gradle-based project. External build is the type of build that delegates project
    * building to Gradle.
    *
@@ -279,6 +204,11 @@ public final class Projects {
     // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.
-    return Objects.equal(module.getName(), project.getName()) && AndroidGradleFacet.getInstance(module) == null;
+    File moduleFilePath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath()));
+    File moduleRootDirPath = moduleFilePath.getParentFile();
+    if (moduleRootDirPath == null) {
+      return false;
+    }
+    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && AndroidGradleFacet.getInstance(module) == null;
   }
 }

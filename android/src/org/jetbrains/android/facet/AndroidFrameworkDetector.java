@@ -96,7 +96,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
   public static void doImportSdkAndFacetConfiguration(@NotNull AndroidFacet facet, @Nullable ModifiableRootModel model) {
     final Module module = facet.getModule();
-    AndroidSdkUtils.setupAndroidPlatformInNecessary(module, true);
+    AndroidSdkUtils.setupAndroidPlatformIfNecessary(module, true);
 
     if (model != null && !model.isDisposed() && model.isWritable()) {
       model.setSdk(ModuleRootManager.getInstance(module).getSdk());

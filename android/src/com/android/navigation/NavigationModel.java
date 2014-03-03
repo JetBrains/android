@@ -19,6 +19,8 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Transient;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NavigationModel {
   public static class Event {
@@ -98,6 +100,36 @@ public class NavigationModel {
     boolean result = transitions.remove(transition);
     listeners.notify(Event.delete(Transition.class));
     return result;
+  }
+
+  @Transient
+  public Map<String, ActivityState> getActivities() {
+    Map<String, ActivityState> activities = new HashMap<String, ActivityState>();
+    for (State state : states) {
+      if (state instanceof ActivityState) {
+        ActivityState activityState = (ActivityState)state;
+        activities.put(state.getClassName(), activityState);
+      }
+    }
+    return activities;
+  }
+
+  @Transient
+  public Map<String, MenuState> getMenus() {
+    Map<String, MenuState> menus = new HashMap<String, MenuState>();
+    for (State state : states) {
+      if (state instanceof MenuState) {
+        MenuState menuState = (MenuState)state;
+        menus.put(state.getXmlResourceName(), menuState);
+      }
+    }
+    return menus;
+  }
+
+  public void clear() {
+    states.clear();
+    transitions.clear();
+    listeners.notify(Event.delete(Object.class));
   }
 
   @Transient

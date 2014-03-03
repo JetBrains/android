@@ -69,11 +69,15 @@ public class GradleInvokerTest extends IdeaTestCase {
   }
 
   public void testCleanProject() throws Exception {
+    final String taskName = "sourceGen";
+    myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = taskName;
+
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
-        assertEquals(1, tasks.size());
+        assertEquals(2, tasks.size());
         assertEquals("clean", tasks.get(0));
+        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName, tasks.get(1));
         assertEquals(BuildMode.CLEAN, getBuildMode());
       }
     });

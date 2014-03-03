@@ -74,7 +74,6 @@ import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
-import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -262,6 +261,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           if (chooser.useSameDevicesAgain()) {
             myConfiguration.USE_LAST_SELECTED_DEVICE = true;
             myConfiguration.setDevicesUsedInLaunch(getDeviceNames(selectedDevices));
+          } else {
+            myConfiguration.USE_LAST_SELECTED_DEVICE = false;
+            myConfiguration.setDevicesUsedInLaunch(Collections.<String>emptySet());
           }
         }
       }
@@ -313,28 +315,24 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
-    else {
+    else if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
       File manifestCopy = null;
       final Manifest manifest;
       final String manifestLocalPath;
 
       try {
-        if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-          final Pair<File,String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
-          manifestCopy = pair != null ? pair.getFirst() : null;
-          VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
-          if (manifestVFile != null) {
-            manifestVFile.refresh(false, false);
-            manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
-          } else {
-            manifest = null;
-          }
-          manifestLocalPath = pair != null ? pair.getSecond() : null;
+        final Pair<File, String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
+        manifestCopy = pair != null ? pair.getFirst() : null;
+        VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
+        if (manifestVFile != null) {
+          manifestVFile.refresh(false, false);
+          manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
         }
         else {
-          manifest = AndroidModuleInfo.get(facet).getManifest(true);
-          manifestLocalPath = PathUtil.getLocalPath(AndroidRootUtil.getMergedManifestFile(facet));
+          manifest = null;
         }
+        manifestLocalPath = pair != null ? pair.getSecond() : null;
+
         final Module module = facet.getModule();
         final String moduleName = module.getName();
 
@@ -349,7 +347,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
             final GenericAttributeValue<String> packageAttrValue = manifest.getPackage();
             final String aPackage = packageAttrValue.getValue();
 
-            if (aPackage == null || aPackage.length() == 0) {
+            if (aPackage == null || aPackage.isEmpty()) {
               message("[" + moduleName + "] Main package is not specified in file " + manifestLocalPath, STDERR);
               //noinspection ConstantConditions
               return null;
@@ -363,6 +361,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           FileUtil.delete(manifestCopy.getParentFile());
         }
       }
+    }
+    else {
+      String pkg = AndroidModuleInfo.get(facet).getPackage();
+      if (pkg == null || pkg.isEmpty()) {
+        message("[" + facet.getModule().getName() + "] Unable to obtain main package from manifest.", STDERR);
+      }
+      return pkg;
     }
   }
 
@@ -622,7 +627,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return;
     }
 
-    myPackageName = getPackageNameFromGradle(myPackageName, myFacet);
     assert myPackageName != null;
     myTestPackageName = computeTestPackageName(myFacet, myPackageName);
 
@@ -1073,8 +1077,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private boolean uploadAndInstallDependentModules(@NotNull IDevice device)
     throws IOException, AdbCommandRejectedException, TimeoutException {
     for (AndroidFacet depFacet : myAdditionalFacet2PackageName.keySet()) {
-      String packageName = myAdditionalFacet2PackageName.get(depFacet);
-      packageName = getPackageNameFromGradle(packageName, depFacet);
+      String packageName = AndroidModuleInfo.get(depFacet).getPackage();
+      if (packageName == null) {
+        packageName = myAdditionalFacet2PackageName.get(depFacet);
+      }
       assert packageName != null;
       if (!uploadAndInstall(device, packageName, depFacet)) {
         return false;
@@ -1094,12 +1100,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
     String testPackageName = selectedVariant.getMergedFlavor().getTestPackageName();
     return (testPackageName != null) ? testPackageName : packageName + DEFAULT_TEST_PACKAGE_SUFFIX;
-  }
-
-  @Nullable
-  private static String getPackageNameFromGradle(@NotNull String packageNameInManifest, @NotNull AndroidFacet facet) {
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    return ideaAndroidProject == null ? packageNameInManifest : ideaAndroidProject.computePackageName();
   }
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
