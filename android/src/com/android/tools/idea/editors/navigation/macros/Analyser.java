@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.navigation.*;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.Utilities;
@@ -38,6 +39,7 @@ import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 public class Analyser {
   private static final Logger LOG = Logger.getInstance("#" + Analyser.class.getName());
   private static final String ID_PREFIX = "@+id/";
+  public static final Boolean BOOLEAN_UNKNOWN = null;
 
   private final Project myProject;
   private final Module myModule;
@@ -154,14 +156,15 @@ public class Analyser {
   }
 
   public static abstract class StaticEvaluator {
-    public static final StaticEvaluator TRUE = new StaticEvaluator() {
+    public static final StaticEvaluator TRUE_OR_FALSE = new StaticEvaluator() {
+      @Nullable
       @Override
-      public boolean evaluate(@Nullable PsiExpression expression) {
-        return true;
+      public Boolean evaluate(@Nullable PsiExpression expression) {
+        return null;
       }
     };
 
-    public abstract boolean evaluate(@Nullable PsiExpression expression);
+    public abstract Boolean evaluate(@Nullable PsiExpression expression);
   }
 
   public Map<PsiVariable, PsiExpression> searchForVariableAssignments(@Nullable PsiElement element, final StaticEvaluator evaluator) {
@@ -205,52 +208,61 @@ public class Analyser {
   private StaticEvaluator getEvaluator(final Set<String> ids) {
     return new StaticEvaluator() {
       @Override
-      public boolean evaluate(@Nullable PsiExpression expression) {
+      public Boolean evaluate(@Nullable PsiExpression expression) {
         if (expression instanceof PsiBinaryExpression) {
           PsiBinaryExpression exp = (PsiBinaryExpression)expression;
           if (exp.getOperationSign().getTokenType() == JavaTokenType.NE && isLiteralFor(exp.getROperand(), null)) {
             MultiMatch.Bindings<PsiElement> match = myMacros.findViewById.match(exp.getLOperand());
             if (match != null) {
               String id = match.bindings.get("$id").getText();
-              if (ids.contains(id)) {
-                return true;
-              }
+              return ids.contains(id); // todo consider whether this should return BOOLEAN_UNKNOWN (instead of FALSE ) in the absent case
             }
           }
         }
-        return false;
-      }
-    };
-  }
-
-  private static StaticEvaluator getEvaluator(final Map<PsiVariable, PsiExpression> variableToValue) {
-    return new StaticEvaluator() {
-      @Override
-      public boolean evaluate(@Nullable PsiExpression expression) {
-        if (expression instanceof PsiReferenceExpression) {
-          PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression)expression;
-          PsiElement resolved = psiReferenceExpression.resolve();
-          if (resolved instanceof PsiField) {
-            PsiField psiField = (PsiField)resolved;
-            return isLiteralFor(variableToValue.get(psiField), Boolean.TRUE);
-          }
-        }
-        return false;
+        return BOOLEAN_UNKNOWN;
       }
     };
   }
 
   @Nullable
-  private XmlFile getXmlFile(ActivityState activity, VirtualFile modelFile) {
+  private static Object getLiteralFor(@Nullable PsiExpression exp) {
+    if (exp instanceof PsiLiteral) {
+      PsiLiteral literal = (PsiLiteral)exp;
+      return literal.getValue();
+    }
+    return null;
+  }
+
+  private static StaticEvaluator getEvaluator(final Map<PsiVariable, PsiExpression> variableToValue) {
+    return new StaticEvaluator() {
+      @Nullable
+      @Override
+      public Boolean evaluate(@Nullable PsiExpression expression) {
+        if (expression instanceof PsiReferenceExpression) {
+          PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression)expression;
+          PsiElement resolved = psiReferenceExpression.resolve();
+          if (resolved instanceof PsiField) {
+            PsiField psiField = (PsiField)resolved;
+            Object value = getLiteralFor(variableToValue.get(psiField));
+            return value == Boolean.TRUE ? Boolean.TRUE : value == Boolean.FALSE ? Boolean.FALSE : BOOLEAN_UNKNOWN;
+          }
+        }
+        return BOOLEAN_UNKNOWN;
+      }
+    };
+  }
+
+  @Nullable
+  private XmlFile getXmlFile(ActivityState activity, Configuration configuration) {
     String xmlFileName = NavigationView.getXMLFileName(myModule, activity);
-    return (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, myProject);
+    return (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, configuration, myProject);
   }
 
   private void deriveTransitions(final NavigationModel model,
                                  final MiniModel miniModel,
                                  final ActivityState fromActivityState,
                                  final String activityOrFragmentClassName,
-                                 final VirtualFile navigationModelFile) {
+                                 final Configuration configuration) {
 
     if (NavigationEditor.DEBUG) System.out.println("className = " + activityOrFragmentClassName);
 
@@ -349,7 +361,7 @@ public class Analyser {
                      if (activityClass != null) {
                        final PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
                        if (implementation != null) {
-                         StaticEvaluator evaluator1 = getEvaluator(getIds(getXmlFile(fromActivityState, navigationModelFile)));
+                         StaticEvaluator evaluator1 = getEvaluator(getIds(getXmlFile(fromActivityState, configuration)));
                          StaticEvaluator evaluator2 = getEvaluator(getVariableToValueBindings(activityClass, evaluator1));
                          search(implementation.getBody(),
                                 evaluator2,
@@ -381,7 +393,7 @@ public class Analyser {
     }
   }
 
-  public NavigationModel deriveAllStatesAndTransitions(final NavigationModel model, final VirtualFile modelFile) {
+  public NavigationModel deriveAllStatesAndTransitions(final NavigationModel model, final Configuration configuration) {
     MiniModel toDo = new MiniModel(getActivityClassNameToActivityState(readManifestFile(myProject)), new HashMap<String, MenuState>());
     MiniModel next = new MiniModel();
     MiniModel done = new MiniModel();
@@ -394,15 +406,15 @@ public class Analyser {
           continue;
         }
         model.addState(sourceActivity); // covers the case of Activities that are not part of a transition (e.g. a model with one Activity)
-        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName(), modelFile);
+        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName(), configuration);
 
         // Examine fragments associated with this activity
 
-        XmlFile layoutFile = getXmlFile(sourceActivity, modelFile);
+        XmlFile layoutFile = getXmlFile(sourceActivity, configuration);
         List<FragmentEntry> fragments = getFragmentEntries(layoutFile);
 
         for (FragmentEntry fragment : fragments) {
-          deriveTransitions(model, next, sourceActivity, fragment.className, modelFile);
+          deriveTransitions(model, next, sourceActivity, fragment.className, configuration);
         }
       }
       done.classNameToActivityState.putAll(toDo.classNameToActivityState);
@@ -525,10 +537,31 @@ public class Analyser {
                             final Statement statement) {
     if (input != null) {
       input.accept(new JavaRecursiveElementVisitor() {
+        private void visitNullableExpression(@Nullable PsiExpression expression) {
+          if (expression != null) {
+            visitExpression(expression);
+          }
+        }
+
+        private void visitNullableStatement(@Nullable PsiStatement statement) {
+          if (statement != null) {
+            visitStatement(statement);
+          }
+        }
+
         @Override
         public void visitIfStatement(PsiIfStatement statement) {
-          if (branchEvaluator.evaluate(statement.getCondition())) {
-            super.visitIfStatement(statement);
+          PsiExpression condition = statement.getCondition();
+          visitNullableExpression(condition);
+          Boolean conditionalValue = branchEvaluator.evaluate(condition);
+          // Both clauses below will be executed when conditionalValue has the value BOOLEAN_UNKNOWN (null).
+          // True branch
+          if (conditionalValue != Boolean.FALSE) {
+            visitNullableStatement(statement.getThenBranch());
+          }
+          // False branch
+          if (conditionalValue != Boolean.TRUE) {
+            visitNullableStatement(statement.getElseBranch());
           }
         }
 
@@ -545,7 +578,7 @@ public class Analyser {
   }
 
   public static void search(@Nullable PsiElement input, MultiMatch matcher, Statement statement) {
-    search(input, StaticEvaluator.TRUE, matcher, statement);
+    search(input, StaticEvaluator.TRUE_OR_FALSE, matcher, statement);
   }
 
   public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
