@@ -82,6 +82,11 @@ public class GradleInvoker {
     executeTasks(tasks);
   }
 
+  public void assembleTranslate() {
+    setProjectBuildMode(BuildMode.ASSEMBLE_TRANSLATE);
+    executeTasks(Lists.newArrayList(GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME));
+  }
+
   public void generateSources() {
     BuildMode buildMode = BuildMode.SOURCE_GEN;
     setProjectBuildMode(buildMode);
@@ -128,7 +133,7 @@ public class GradleInvoker {
                                           @NotNull GradleBuilds.TestCompileType testCompileType) {
     List<String> tasks = Lists.newArrayList();
 
-    if (BuildMode.MAKE.equals(buildMode)) {
+    if (BuildMode.MAKE == buildMode) {
       Project project = modules[0].getProject();
       if (Projects.lastGradleSyncFailed(project)) {
         // If last Gradle sync failed, just call "assemble" at the top-level. Without a model there are no other tasks we can call.

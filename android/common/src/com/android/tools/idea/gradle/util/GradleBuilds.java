@@ -28,8 +28,11 @@ import java.util.List;
 public final class GradleBuilds {
   private static final Logger LOG = Logger.getInstance(GradleBuilds.class);
 
+  @NonNls public static final String ASSEMBLE_TRANSLATE_TASK_NAME = "assembleTranslate";
   @NonNls public static final String CLEAN_TASK_NAME = "clean";
   @NonNls public static final String DEFAULT_ASSEMBLE_TASK_NAME = "assemble";
+
+  @NonNls public static final String ENABLE_TRANSLATION_JVM_ARG = "enableTranslation";
 
   /** Task for compiling a Java module's test classes. */
   @NonNls private static final String TEST_CLASSES_TASK_NAME = "testClasses";
