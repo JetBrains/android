@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,7 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -47,9 +49,15 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model,
                                                                 @NotNull IdeaAndroidProject androidProject) {
     VirtualFile rootDir = androidProject.getRootDir();
-    File buildFolder = androidProject.getDelegate().getBuildFolder();
+    File rootDirPath = VfsUtilCore.virtualToIoFile(rootDir);
 
-    return Lists.newArrayList(model.addContentEntry(rootDir), model.addContentEntry(pathToUrl(buildFolder)));
+    List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(rootDir));
+    File buildFolderPath = androidProject.getDelegate().getBuildFolder();
+    if (!FileUtil.isAncestor(rootDirPath, buildFolderPath, false)) {
+      contentEntries.add(model.addContentEntry(pathToUrl(buildFolderPath)));
+    }
+
+    return contentEntries;
   }
 
   @Override
