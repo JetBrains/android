@@ -538,6 +538,9 @@
          Also disabled; add more info, possibly icon, etc
     <editorNotificationProvider implementation="org.jetbrains.android.projectView.ResourceQualifierSwitcher"/>
     -->
+
+    <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" order="last"/>
+
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
     <sdkResolveScopeProvider implementation="org.jetbrains.android.AndroidSdkResolveScopeProvider"/>
