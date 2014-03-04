@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
@@ -135,6 +136,18 @@ public class VariantSelectionVerifierTest extends IdeaTestCase {
     assertNull(conflict);
   }
 
+  public void testFindFirstConflictWithoutEmptyVariantDependency() {
+    setUpDependencyOnLibrary("");
+    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.findFirstConflict(myLibModule);
+    assertNull(conflict);
+  }
+
+  public void testFindFirstConflictWithoutNullVariantDependency() {
+    setUpDependencyOnLibrary(null);
+    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.findFirstConflict(myLibModule);
+    assertNull(conflict);
+  }
+
   public void testFindFirstConflictWithConflict() {
     setUpDependencyOnLibrary("release");
     VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.findFirstConflict(myLibModule);
@@ -145,7 +158,7 @@ public class VariantSelectionVerifierTest extends IdeaTestCase {
     assertSame("debug", conflict.mySelectedVariant);
   }
 
-  private void setUpDependencyOnLibrary(@NotNull String projectVariant) {
+  private void setUpDependencyOnLibrary(@Nullable String projectVariant) {
     VariantStub selectedVariant = (VariantStub)myApp.getSelectedVariant();
     AndroidArtifactStub mainArtifact = selectedVariant.getMainArtifact();
     DependenciesStub dependencies = mainArtifact.getDependencies();
