@@ -352,7 +352,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (modelVersion != null) {
       builder.append(String.format(" (%1$s)", modelVersion.toString()));
     }
-    builder.append(".");
+    builder.append(".\n\nVersion 0.9.0 introduced incompatible changes in the build language.\n")
+           .append("Please read the migration guide to learn how to update your project.");
     return builder.toString();
   }
 
