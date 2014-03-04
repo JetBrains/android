@@ -147,7 +147,7 @@ public class ResourceFolderManager implements ModificationTracker {
           });
         }
       } else {
-        for (IdeaSourceProvider provider : IdeaSourceProvider.getSourceProviders(myFacet)) {
+        for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
           resDirectories.addAll(provider.getResDirectories());
         }
 
