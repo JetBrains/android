@@ -141,17 +141,17 @@ class BuildVariantUpdater {
       }
       String projectVariant = library.getProjectVariant();
       if (StringUtil.isNotEmpty(projectVariant)) {
-        ensureSelectedVariant(project, gradlePath, projectVariant, affectedFacets);
+        ensureVariantIsSelected(project, gradlePath, projectVariant, affectedFacets);
       }
     }
     return true;
   }
 
 
-  private void ensureSelectedVariant(@NotNull Project project,
-                                     @NotNull String moduleGradlePath,
-                                     @NotNull String variant,
-                                     @NotNull List<AndroidFacet> affectedFacets) {
+  private void ensureVariantIsSelected(@NotNull Project project,
+                                       @NotNull String moduleGradlePath,
+                                       @NotNull String variant,
+                                       @NotNull List<AndroidFacet> affectedFacets) {
     Module module = GradleUtil.findModuleByGradlePath(project, moduleGradlePath);
     if (module == null) {
       logAndShowUpdateFailure(variant, String.format("Cannot find module with Gradle path '%1$s'.", moduleGradlePath));
