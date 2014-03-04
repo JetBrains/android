@@ -261,7 +261,7 @@ public final class ProjectCallback extends LegacyCallback {
   @Nullable
   @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
-    return getParser(layoutResource.getName(), new File(layoutResource.getValue()));
+    return getParser(layoutResource.getName(), new File(layoutResource.getName()));
   }
 
   @Nullable
