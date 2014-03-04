@@ -147,27 +147,8 @@ public class ResourceFolderManager implements ModificationTracker {
           });
         }
       } else {
-        resDirectories.addAll(myFacet.getMainIdeaSourceSet().getResDirectories());
-        List<IdeaSourceProvider> flavorSourceSets = myFacet.getIdeaFlavorSourceSets();
-        if (flavorSourceSets != null) {
-          for (IdeaSourceProvider provider : flavorSourceSets) {
-            resDirectories.addAll(provider.getResDirectories());
-          }
-        }
-
-        IdeaSourceProvider multiProvider = myFacet.getIdeaMultiFlavorSourceProvider();
-        if (multiProvider != null) {
-          resDirectories.addAll(multiProvider.getResDirectories());
-        }
-
-        IdeaSourceProvider buildTypeSourceSet = myFacet.getIdeaBuildTypeSourceSet();
-        if (buildTypeSourceSet != null) {
-          resDirectories.addAll(buildTypeSourceSet.getResDirectories());
-        }
-
-        IdeaSourceProvider variantProvider = myFacet.getIdeaVariantSourceProvider();
-        if (variantProvider != null) {
-          resDirectories.addAll(variantProvider.getResDirectories());
+        for (IdeaSourceProvider provider : IdeaSourceProvider.getSourceProviders(myFacet)) {
+          resDirectories.addAll(provider.getResDirectories());
         }
 
         // Write string property such that subsequent restarts can look up the most recent list
