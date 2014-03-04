@@ -32,15 +32,21 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @NotNull private final File myJarFile;
 
   @Nullable private final String myProject;
+  @Nullable private final String myProjectVariant;
 
   public AndroidLibraryStub(@NotNull File bundle, @NotNull File jarFile) {
     this(bundle, jarFile, null);
   }
 
   public AndroidLibraryStub(@NotNull File bundle, @NotNull File jarFile, @Nullable String project) {
+    this(bundle, jarFile, project, null);
+  }
+
+  public AndroidLibraryStub(@NotNull File bundle, @NotNull File jarFile, @Nullable String project, @Nullable String projectVariant) {
     myBundle = bundle;
     myJarFile = jarFile;
     myProject = project;
+    myProjectVariant = projectVariant;
   }
 
   @Override
@@ -52,7 +58,7 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @Nullable
   public String getProjectVariant() {
-    return null;
+    return myProjectVariant;
   }
 
   @Override
