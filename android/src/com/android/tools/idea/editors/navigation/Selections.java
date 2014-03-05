@@ -138,7 +138,7 @@ class Selections {
         newLocation = Utilities.snap(newLocation, myTransform.modelToView(Dimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
       myComponent.setLocation(newLocation);
-      myState.setLocation(myTransform.viewToModel(newLocation));
+      myNavigationModel.getStateToLocation().put(myState, myTransform.viewToModel(newLocation));
       myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
     }
 
