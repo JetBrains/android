@@ -93,7 +93,6 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.idea.gradle.util.GradleBuilds.OFFLINE_MODE_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
 
@@ -250,7 +249,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
         addMessage(new GradleMessage(GradleMessage.Kind.INFO, "Gradle tasks " + myGradleTasks), null);
 
         ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
-        List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath));
+        BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
+        List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath), buildMode);
 
         String executingTasksText =
           "Executing tasks: " + myGradleTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
