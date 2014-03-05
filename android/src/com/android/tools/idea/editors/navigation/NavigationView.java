@@ -731,7 +731,7 @@ public class NavigationView extends JComponent {
   public static String getXMLFileName(Module module, State state) {
     String controllerClassName = state.getClassName();
     String definedXmlFileName = state.getXmlResourceName();
-    return definedXmlFileName != null ? definedXmlFileName : Analyser.getXMLFileName(module, controllerClassName);
+    return definedXmlFileName != null ? definedXmlFileName : Analyser.getXMLFileName(module, controllerClassName, true);
   }
 
   @Nullable
