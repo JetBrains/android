@@ -41,6 +41,7 @@ public class Macros {
   public final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro;
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
   public final MultiMatch findViewById;
+  public final MultiMatch findFragmentByTag;
   private static Map<Project, Macros> ourProjectToMacros = new IdentityHashMap<Project, Macros>();
   private final Project myProject;
 
@@ -101,6 +102,7 @@ public class Macros {
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
     findViewById = createMacro("void findViewById(int $id) { findViewById(R.id.$id);}");
+    findFragmentByTag = createMacro("void findViewById(void $fragmentManager, int $tag) { $fragmentManager.findFragmentByTag($tag);}");
 
     installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
     installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$menuItem", getMenuItemMacro);
