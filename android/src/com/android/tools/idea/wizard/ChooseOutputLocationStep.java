@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -150,44 +151,17 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
       IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
       if (gradleProject != null) {
         show(myVariantComboBox, myResDirLabel);
-        AndroidProject androidProject = gradleProject.getDelegate();
-
         DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
         String moduleRoot = FileUtil.toSystemIndependentName(AndroidRootUtil.getModuleDirPath(facet.getModule()));
 
         Set<String> knownResPaths = Sets.newHashSet();
 
-        // Add all the project flavors as potential source sets
-        Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
-        for (ProductFlavorContainer pfc : flavors) {
-          for (File f : pfc.getSourceProvider().getResDirectories()) {
+        // Offer all source sets
+        for (SourceProvider sourceProvider : IdeaSourceProvider.getAllSourceProviders(facet)) {
+          for (File f : sourceProvider.getResDirectories()) {
             String resPath = FileUtil.getRelativePath(moduleRoot,
                                                       FileUtil.toSystemIndependentName(f.getPath()), '/');
-            String name = String.format("Flavor-%s (%s)", pfc.getProductFlavor().getName(), resPath);
-            comboBoxModel.addElement(new ComboBoxItem(f, name, 1, 1));
-            knownResPaths.add(resPath);
-          }
-        }
-
-        // Add all the build types as potential source sets
-        Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
-        for (BuildTypeContainer btc : buildTypes) {
-          for (File f : btc.getSourceProvider().getResDirectories()) {
-            String resPath = FileUtil.getRelativePath(moduleRoot,
-                                                      FileUtil.toSystemIndependentName(f.getPath()), '/');
-            String name = String.format("BuildType-%s (%s)", btc.getBuildType().getName(), resPath);
-            comboBoxModel.addElement(new ComboBoxItem(f, name, 1, 1));
-            knownResPaths.add(resPath);
-          }
-        }
-
-        // Add the main source set if it hasn't been taken care of yet
-        for (VirtualFile f : facet.getMainIdeaSourceSet().getResDirectories()) {
-          String resPath = FileUtil.getRelativePath(moduleRoot,
-                                                    FileUtil.toSystemIndependentName(f.getPath()), '/');
-          if (!knownResPaths.contains(resPath)) {
-            String name = String.format("Main Source Set (%s)", resPath);
-            comboBoxModel.insertElementAt(new ComboBoxItem(new File(f.getPath()), name, 1, 1), 0);
+            comboBoxModel.addElement(new ComboBoxItem(f, resPath, 1, 1));
             knownResPaths.add(resPath);
           }
         }

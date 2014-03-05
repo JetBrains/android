@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.facet;
 
-import com.android.builder.model.SourceProvider;
+import com.android.builder.model.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -228,14 +228,14 @@ public abstract class IdeaSourceProvider {
 
   /**
    * Returns an iterable of source providers, in the overlay order (meaning that later providers
-   * override earlier providers when they redefine resources.)
+   * override earlier providers when they redefine resources) for the currently selected variant.
    * <p>
    * Note that the list will never be empty; there is always at least one source provider.
    * <p>
    * The overlay source order is defined by the Android Gradle plugin.
    */
   @NotNull
-  public static Iterable<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
+  public static Iterable<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
     if (!facet.isGradleProject()) {
       return Collections.singletonList(facet.getMainIdeaSourceSet());
     }
@@ -268,6 +268,80 @@ public abstract class IdeaSourceProvider {
     return providers;
   }
 
+  /**
+   * Returns an iterable of all source providers, for the given facet,
+   * in the overlay order (meaning that later providers
+   * override earlier providers when they redefine resources.)
+   * <p>
+   * Note that the list will never be empty; there is always at least one source provider.
+   * <p>
+   * The overlay source order is defined by the Android Gradle plugin.
+   */
+  @NotNull
+  public static Iterable<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
+    if (!facet.isGradleProject() || facet.getIdeaAndroidProject() == null) {
+      return Collections.singletonList(facet.getMainSourceSet());
+    }
+
+    AndroidProject androidProject = facet.getIdeaAndroidProject().getDelegate();
+    Collection<Variant> variants = androidProject.getVariants();
+    List<SourceProvider> providers = Lists.newArrayList();
+
+    // Add main source set
+    providers.add(facet.getMainSourceSet());
+
+    // Add all flavors
+    Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
+    for (ProductFlavorContainer pfc : flavors) {
+      providers.add(pfc.getSourceProvider());
+    }
+
+    // Add the multi-flavor source providers
+    for (Variant v : variants) {
+      SourceProvider provider = v.getMainArtifact().getMultiFlavorSourceProvider();
+      if (provider != null) {
+        providers.add(provider);
+      }
+    }
+
+    // Add all the build types
+    Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
+    for (BuildTypeContainer btc : buildTypes) {
+      providers.add(btc.getSourceProvider());
+    }
+
+    // Add all the variant source providers
+    for (Variant v : variants) {
+      SourceProvider provider = v.getMainArtifact().getVariantSourceProvider();
+      if (provider != null) {
+        providers.add(provider);
+      }
+    }
+
+    return providers;
+  }
+
+  /**
+   * Returns an iterable of all IDEA source providers, for the given facet,
+   * in the overlay order (meaning that later providers
+   * override earlier providers when they redefine resources.)
+   * <p>
+   * Note that the list will never be empty; there is always at least one source provider.
+   * <p>
+   * The overlay source order is defined by the Android Gradle plugin.
+   *
+   * This method should be used when only on-disk source sets are required. It will return
+   * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).
+   */
+  @NotNull
+  public static Iterable<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
+    List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayList();
+    for (SourceProvider sourceProvider : getAllSourceProviders(facet)) {
+      ideaSourceProviders.add(create(sourceProvider));
+    }
+    return ideaSourceProviders;
+  }
+
   /** Returns true if the given candidate file is a manifest file in the given module */
   public static boolean isManifestFile(@NotNull AndroidFacet facet, @Nullable VirtualFile candidate) {
     if (candidate == null) {
@@ -275,7 +349,7 @@ public abstract class IdeaSourceProvider {
     }
 
     if (facet.isGradleProject()) {
-      for (IdeaSourceProvider provider : getSourceProviders(facet)) {
+      for (IdeaSourceProvider provider : getCurrentSourceProviders(facet)) {
         if (provider.getManifestFile() == candidate) {
           return true;
         }
@@ -298,7 +372,7 @@ public abstract class IdeaSourceProvider {
       files.add(main);
     }
 
-    for (IdeaSourceProvider provider : getSourceProviders(facet)) {
+    for (IdeaSourceProvider provider : getCurrentSourceProviders(facet)) {
       VirtualFile manifest = provider.getManifestFile();
       if (manifest != null) {
         files.add(manifest);
