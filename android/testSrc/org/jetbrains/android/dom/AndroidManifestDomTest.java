@@ -70,7 +70,8 @@ public class AndroidManifestDomTest extends AndroidDomTest {
 
   public void testAttributeValueCompletion1() throws Throwable {
     doTestCompletionVariants("av1.xml", "behind", "landscape", "nosensor", "portrait", "sensor", "unspecified", "user", "fullSensor",
-                             "reverseLandscape", "reversePortrait", "sensorLandscape", "sensorPortrait");
+                             "reverseLandscape", "reversePortrait", "sensorLandscape", "sensorPortrait",
+                             "fullUser", "locked", "userLandscape", "userPortrait");
   }
 
   public void testResourceCompletion1() throws Throwable {
