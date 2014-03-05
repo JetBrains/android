@@ -40,7 +40,6 @@ import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 public class Analyser {
   private static final Logger LOG = Logger.getInstance("#" + Analyser.class.getName());
   private static final String ID_PREFIX = "@+id/";
-  public static final Boolean BOOLEAN_UNKNOWN = null;
 
   private final Project myProject;
   private final Module myModule;
@@ -240,54 +239,6 @@ public class Analyser {
     return searchForVariableBindings(method.getBody(), evaluator);
   }
 
-  /*
-  private static boolean isLiteralFor(@Nullable PsiExpression exp, @Nullable Object value) {
-    if (exp instanceof PsiLiteral) {
-      PsiLiteral literal = (PsiLiteral)exp;
-      return literal.getValue() == value;
-    }
-    return false;
-  }
-  */
-
-  /*
-  private StaticEvaluator getEvaluator(final Set<String> ids, final Set<String> tags) {
-    return new StaticEvaluator() {
-      @Override
-      public Object evaluate(@Nullable PsiExpression expression) {
-        if (expression instanceof PsiBinaryExpression) {
-          PsiBinaryExpression exp = (PsiBinaryExpression)expression;
-          if (exp.getOperationSign().getTokenType() == JavaTokenType.NE && isLiteralFor(exp.getROperand(), null)) {
-            MultiMatch.Bindings<PsiElement> match = myMacros.findViewById.match(exp.getLOperand());
-            if (match != null) {
-              String id = match.bindings.get("$id").getText();
-              return ids.contains(id); // todo consider whether this should return BOOLEAN_UNKNOWN (instead of FALSE ) in the absent case
-            }
-          }
-        }
-        return BOOLEAN_UNKNOWN;
-      }
-    };
-  }
-  */
-
-  /*
-  @Nullable
-  private static Object getLiteralFor(@Nullable PsiExpression exp) {
-    if (exp instanceof PsiLiteral) {
-      PsiLiteral literal = (PsiLiteral)exp;
-      return literal.getValue();
-    }
-    return null;
-  }
-  */
-
-  /*
-  private static Boolean toBoolean(@Nullable Object value) {
-    return value == Boolean.TRUE ? Boolean.TRUE : value == Boolean.FALSE ? Boolean.FALSE : BOOLEAN_UNKNOWN;
-  }
-  */
-
   private Evaluator getEvaluator(final Set<String> ids,
                                  final Set<String> tags,
                                  final Map<PsiField, Object> fieldValues,
@@ -296,7 +247,7 @@ public class Analyser {
       @Nullable
       @Override
       public Object evaluate(@Nullable PsiExpression exp) {
-        if (exp == null) { // todo does this actually make any sense?
+        if (exp == null) { // todo does this actually make sense?
           return null;
         }
         if (exp instanceof PsiLiteral) {
@@ -320,13 +271,13 @@ public class Analyser {
         if (exp instanceof PsiBinaryExpression) {
           PsiBinaryExpression binExp = (PsiBinaryExpression)exp;
           IElementType op = binExp.getOperationSign().getTokenType();
-          PsiExpression lhs = binExp.getLOperand();
-          PsiExpression rhs = binExp.getROperand();
+          Object lhs = evaluate(binExp.getLOperand());
+          Object rhs = evaluate(binExp.getROperand());
           if (op == JavaTokenType.EQEQ) {
-            return evaluate(lhs) == evaluate(rhs);
+            return lhs == rhs;
           }
           if (op == JavaTokenType.NE) {
-            return evaluate(lhs) != evaluate(rhs);
+            return lhs != rhs;
           }
         }
         if (exp instanceof PsiReferenceExpression) {
@@ -343,7 +294,7 @@ public class Analyser {
             }
           }
         }
-        return BOOLEAN_UNKNOWN;
+        return null;
       }
     };
   }
