@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
@@ -271,7 +271,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           BuildLauncher launcher = connection.newBuild();
           GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, extraJvmArgs, connection);
 
-          File javaHome = Projects.getJavaHome(getNotNullProject());
+          File javaHome = DefaultSdks.getDefaultJavaHome();
           if (javaHome != null) {
             launcher.setJavaHome(javaHome);
           }
