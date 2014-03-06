@@ -152,6 +152,7 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull final List<String> gradleTasks, @Nullable final AfterExecutionTask afterTask) {
+    LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
     }

@@ -19,14 +19,14 @@ import com.google.common.collect.Lists;
 import junit.framework.TestCase;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests for {@link GradleBuilds}.
  */
 public class GradleBuildsTest extends TestCase {
   public void testFindAndAddBuildTaskWithSourceGenBuildMode() {
-    ArrayList<String> tasks = Lists.newArrayList();
+    List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
     properties.SOURCE_GEN_TASK_NAME = "sourceGen";
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.SOURCE_GEN, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
@@ -35,15 +35,25 @@ public class GradleBuildsTest extends TestCase {
     assertEquals(":basic:sourceGen", tasks.get(0));
   }
 
+  public void testFindAndAddBuildTaskWithRootModel() {
+    List<String> tasks = Lists.newArrayList();
+    JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
+    properties.ASSEMBLE_TASK_NAME = "";
+    GradleBuilds.findAndAddBuildTask("basic", BuildMode.MAKE, ":", properties, tasks, GradleBuilds.TestCompileType.NONE);
+
+    assertEquals(1, tasks.size());
+    assertEquals(":assemble", tasks.get(0));
+  }
+
   public void testFindAndAddBuildTaskWithSourceGenBuildModeAndNullAndroidFacet() {
-    ArrayList<String> tasks = Lists.newArrayList();
+    List<String> tasks = Lists.newArrayList();
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.SOURCE_GEN, ":basic", null, tasks, GradleBuilds.TestCompileType.NONE);
 
     assertEquals(0, tasks.size());
   }
 
   public void testFindAndAddBuildTaskWithCompileJavaBuildMode() {
-    ArrayList<String> tasks = Lists.newArrayList();
+    List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
     properties.COMPILE_JAVA_TASK_NAME = "compileJava";
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.COMPILE_JAVA, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
@@ -53,7 +63,7 @@ public class GradleBuildsTest extends TestCase {
   }
 
   public void testFindAndAddBuildTaskWithMakeBuildMode() {
-    ArrayList<String> tasks = Lists.newArrayList();
+    List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
     properties.ASSEMBLE_TASK_NAME = "assembleDebug";
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.MAKE, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
@@ -63,7 +73,7 @@ public class GradleBuildsTest extends TestCase {
   }
 
   public void testFindAndAddBuildTaskWithRebuildBuildMode() {
-    ArrayList<String> tasks = Lists.newArrayList();
+    List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
     properties.ASSEMBLE_TASK_NAME = "assembleDebug";
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.REBUILD, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
@@ -73,7 +83,7 @@ public class GradleBuildsTest extends TestCase {
   }
 
   public void testFindAndAddBuildTaskWithMakeBuildModeAndNullAndroidFacet() {
-    ArrayList<String> tasks = Lists.newArrayList();
+    List<String> tasks = Lists.newArrayList();
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.MAKE, ":basic", null, tasks, GradleBuilds.TestCompileType.NONE);
 
     assertEquals(1, tasks.size());
