@@ -39,7 +39,7 @@ public final class BuildProcessJvmArgs {
   @NonNls public static final String PROJECT_DIR_PATH = JVM_ARG_PREFIX + "project.path";
   @NonNls public static final String USE_EMBEDDED_GRADLE_DAEMON = JVM_ARG_PREFIX + "use.embedded.daemon";
   @NonNls public static final String USE_GRADLE_VERBOSE_LOGGING = JVM_ARG_PREFIX + "use.verbose.logging";
-  @NonNls public static final String BUILD_ACTION = JVM_ARG_PREFIX + "build.action";
+  @NonNls public static final String BUILD_MODE = JVM_ARG_PREFIX + "build.mode";
   @NonNls public static final String HTTP_PROXY_PROPERTY_PREFIX = JVM_ARG_PREFIX + "proxy.property.";
   @NonNls public static final String HTTP_PROXY_PROPERTY_COUNT = HTTP_PROXY_PROPERTY_PREFIX  + "count";
   @NonNls public static final String HTTP_PROXY_PROPERTY_SEPARATOR = ":";
