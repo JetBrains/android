@@ -574,7 +574,7 @@ class IntellijLintProject extends Project {
 
       IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
       if (project != null) {
-        return project.computePackageName("");
+        return project.computePackageName();
       }
 
       return null;
