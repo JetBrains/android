@@ -262,10 +262,15 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     state.setTargetDevices(devices.toArray(new IDevice[devices.size()]));
     state.setConsole(oldConsole);
     final RunContentDescriptor oldDescriptor = oldSessionInfo.getDescriptor();
-    final DefaultDebugProcessHandler newProcessHandler = new DefaultDebugProcessHandler();
+    RemoteDebugProcessHandler newProcessHandler;
+    if (oldDescriptor.getProcessHandler() instanceof RemoteDebugProcessHandler) {
+      newProcessHandler = (RemoteDebugProcessHandler)oldDescriptor.getProcessHandler();
+      newProcessHandler.destroyProcess();
+    } else {
+      newProcessHandler = new RemoteDebugProcessHandler(project);
+    }
     oldDescriptor.setProcessHandler(newProcessHandler);
     state.setProcessHandler(newProcessHandler);
-    newProcessHandler.startNotify();
     oldConsole.attachToProcess(newProcessHandler);
     AndroidProcessText.attach(newProcessHandler);
     newProcessHandler.notifyTextAvailable("The session was restarted\n", STDOUT);
