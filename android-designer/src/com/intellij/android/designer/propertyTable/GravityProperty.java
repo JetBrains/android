@@ -159,7 +159,7 @@ public class GravityProperty extends FlagProperty {
           }
         }
         else {
-          component.getTag().setAttribute(myDefinition.getName(), SdkConstants.NS_RESOURCES, StringUtil.join(options, "|"));
+          component.getTag().setAttribute(myDefinition.getName(), getNamespace(component, true), StringUtil.join(options, "|"));
         }
       }
     });
