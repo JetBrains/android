@@ -23,12 +23,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
-public class GradleExecutionResult {
+public class GradleInvocationResult {
   @NotNull private final List<String> myTasks;
   @NotNull private final Multimap<GradleMessage.Kind, GradleMessage> myCompilerMessagesByKind = ArrayListMultimap.create();
   private final int myErrorCount;
 
-  GradleExecutionResult(@NotNull List<String> tasks, @NotNull List<GradleMessage> compilerMessages) {
+  GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<GradleMessage> compilerMessages) {
     myTasks = tasks;
     for (GradleMessage msg : compilerMessages) {
       myCompilerMessagesByKind.put(msg.getKind(), msg);

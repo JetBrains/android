@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
@@ -83,7 +84,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
       application.invokeLater(new Runnable() {
         @Override
         public void run() {
-          Projects.generateSourcesOnly(project);
+          ProjectBuilder.getInstance(project).generateSourcesOnly();
         }
       });
     }
