@@ -21,6 +21,7 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.ExtendClass;
 import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.converters.InstrumentationTargetPackageConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.CompleteNonModuleClass;
 import org.jetbrains.android.util.AndroidUtils;
@@ -38,5 +39,6 @@ public interface Instrumentation extends ManifestElementWithName {
 
   @Required
   @Attribute("targetPackage")
+  @Convert(InstrumentationTargetPackageConverter.class)
   AndroidAttributeValue<String> getTargetPackage();
 }

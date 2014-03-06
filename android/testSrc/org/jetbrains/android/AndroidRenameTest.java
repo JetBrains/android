@@ -35,9 +35,13 @@ import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackages
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
 import com.intellij.refactoring.rename.*;
 import com.intellij.testFramework.TestActionEvent;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -342,6 +346,14 @@ public class AndroidRenameTest extends AndroidTestCase {
     doRenameComponentTest("MyActivity1");
   }
 
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    if ("testRenamePackageFromTestModule".equals(getName())) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", false);
+    }
+  }
+
   public void testRenamePackage() throws Throwable {
     doRenameComponentTest("p10");
   }
@@ -356,6 +368,12 @@ public class AndroidRenameTest extends AndroidTestCase {
 
   public void testRenamePackage3() throws Throwable {
     doRenameComponentTest("p1");
+  }
+
+  public void testRenamePackageFromTestModule() throws Throwable {
+    doRenameComponentTest("p1.p3");
+    myFixture.checkResultByFile("additionalModules/module1/AndroidManifest.xml",
+                                BASE_PATH + getTestName(false) + "_module1_after.xml", true);
   }
 
   public void testMovePackage() throws Throwable {
