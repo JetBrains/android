@@ -101,6 +101,25 @@ public class NavigationView extends JComponent {
 
   private boolean showRollover = false;
 
+  /*
+  void foo(String layoutFileBaseName) {
+    System.out.println("layoutFileBaseName = " + layoutFileBaseName);
+    Module module = myMyRenderingParams.myFacet.getModule();
+    ConfigurationManager manager = ConfigurationManager.create(module);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+
+    for (Device device : manager.getDevices()) {
+      com.android.sdklib.devices.State portrait = device.getDefaultState().deepCopy();
+      com.android.sdklib.devices.State landscape = device.getDefaultState().deepCopy();
+      portrait.setOrientation(ScreenOrientation.PORTRAIT);
+      landscape.setOrientation(ScreenOrientation.LANDSCAPE);
+
+      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(portrait)));
+      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(landscape)));
+    }
+  }
+  */
+
   @Nullable
   public static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
     if (file != null) {
@@ -728,13 +747,6 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static String getXMLFileName(Module module, State state) {
-    String controllerClassName = state.getClassName();
-    String definedXmlFileName = state.getXmlResourceName();
-    return definedXmlFileName != null ? definedXmlFileName : Analyser.getXMLFileName(module, controllerClassName, true);
-  }
-
-  @Nullable
   public static VirtualFile virtualFile(File file) {
     return LocalFileSystem.getInstance().findFileByIoFile(file);
   }
@@ -755,8 +767,8 @@ public class NavigationView extends JComponent {
   private AndroidRootComponent createRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myRenderingParams.myFacet.getModule();
-    String xmlFileName = getXMLFileName(module, state);
-    PsiFile psiFile = xmlFileName == null ? null : getLayoutXmlFile(isMenu, xmlFileName, myRenderingParams.myConfiguration, myRenderingParams.myProject);
+    String resourceName = isMenu ? state.getXmlResourceName() : Analyser.getXMLFileName(module, state.getClassName(), true);
+    PsiFile psiFile = getLayoutXmlFile(isMenu, resourceName, myRenderingParams.myConfiguration, myRenderingParams.myProject);
     AndroidRootComponent result = new AndroidRootComponent(myRenderingParams, psiFile, isMenu);
     result.setScale(myTransform.myScale);
     return result;
