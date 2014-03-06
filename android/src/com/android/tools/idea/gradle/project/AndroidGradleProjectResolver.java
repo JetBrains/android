@@ -127,6 +127,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (gradleSettingsFile.isFile() && androidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
+      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
 
