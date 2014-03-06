@@ -161,6 +161,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       String applicationPackageName =  gradleProject.computePackageName();
       if (packageName == null) {
         packageName = applicationPackageName;
+        myWizardState.myHidden.add(ATTR_PACKAGE_NAME);
+        myWizardState.myFinal.add(ATTR_PACKAGE_NAME);
       } else if (!packageName.equals(applicationPackageName)) {
         // If we have selected a folder, make sure we pass along the application package
         // so that we can do proper imports
