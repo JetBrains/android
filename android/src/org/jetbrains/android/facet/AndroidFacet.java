@@ -916,7 +916,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Nullable
   public Manifest getManifest() {
     File manifestIoFile = getMainSourceSet().getManifestFile();
-    if (manifestIoFile == null) return null;
 
     final VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
     if (manifestFile == null) return null;
@@ -1196,11 +1195,20 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   // Compatibility bridge for old (non-Gradle) projects
   private class LegacySourceProvider implements SourceProvider {
-    @Nullable // TEMPORARY hack; trying to figure out why we're hitting assertions here
+    @NonNull
     @Override
     public File getManifestFile() {
       final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(AndroidFacet.this);
-      return manifestFile == null ? null : VfsUtilCore.virtualToIoFile(manifestFile);
+      if (manifestFile == null) {
+        VirtualFile root = AndroidRootUtil.getMainContentRoot(AndroidFacet.this);
+        if (root != null) {
+          return new File(VfsUtilCore.virtualToIoFile(root), SdkConstants.ANDROID_MANIFEST_XML);
+        } else {
+          return new File(SdkConstants.ANDROID_MANIFEST_XML);
+        }
+      } else {
+        return VfsUtilCore.virtualToIoFile(manifestFile);
+      }
     }
 
     @NonNull
