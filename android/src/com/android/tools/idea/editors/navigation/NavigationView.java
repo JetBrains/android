@@ -35,7 +35,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.psi.xml.*;
 import com.intellij.ui.Gray;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -774,24 +774,56 @@ public class NavigationView extends JComponent {
     return xmlResourceName == null ? null : fileSystem.findFileByPath(path + dir + xmlResourceName + ".xml");
   }
 
+  private static Map<String, String> getLayoutAliases(@Nullable XmlFile psiFile) {
+    if (psiFile == null) {
+       return Collections.emptyMap();
+    }
+    final Map<String, String> result = new HashMap<String, String>();
+    psiFile.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+        if (tag.getName().equals("item") && tag.getAttributeValue("type").equals("layout")) {
+          String name = tag.getAttributeValue("name");
+          String value = tag.getValue().getText();
+          result.put(name, value);
+        }
+      }
+    });
+    return result;
+  }
+
+  private static String applyAliases(String name, Map<String, String> layoutAliases) {
+    String to = layoutAliases.get(name);
+    String prefix = "@layout/";
+    if (to == null || !to.startsWith(prefix)) {
+      return name;
+    }
+    return to.substring(prefix.length());
+  }
+
   @Nullable
-  public static PsiFile getPsiFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
-    String dir = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
+  public static PsiFile getLayoutXmlFile(boolean menu, String xmlFileName, VirtualFile navFile, Project project) {
+    String resourceType = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
     VirtualFileSystem fileSystem = navFile.getFileSystem();
-    String path = navFile.getParent().getParent().getPath();
+    String resourceRoot = navFile.getParent().getParent().getPath();
     String directoryName = navFile.getParent().getName();
     int index = directoryName.indexOf('-');
     String qualifier = index == -1 ? "" : directoryName.substring(index);
-    VirtualFile qualifiedFile = getFile(fileSystem, path, "/" + dir + qualifier + "/", xmlFileName);
-    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, path, "/" + dir + "/", xmlFileName);
-    return file == null ? null : PsiManager.getInstance(project).findFile(file);
+    VirtualFile layoutAliasesFile = getFile(fileSystem, resourceRoot, "/" + "values" + qualifier + "/", "refs");
+    PsiManager psiManager = PsiManager.getInstance(project);
+    Map<String, String> layoutAliases = getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
+    xmlFileName = applyAliases(xmlFileName, layoutAliases);
+    VirtualFile qualifiedFile = getFile(fileSystem, resourceRoot, "/" + resourceType + qualifier + "/", xmlFileName);
+    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, resourceRoot, "/" + resourceType + "/", xmlFileName);
+    return file == null ? null : psiManager.findFile(file);
   }
 
   private AndroidRootComponent createRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myMyRenderingParams.myFacet.getModule();
     String xmlFileName = getXMLFileName(module, state);
-    PsiFile psiFile = xmlFileName == null ? null : getPsiFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
+    PsiFile psiFile = xmlFileName == null ? null : getLayoutXmlFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
     AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile, isMenu);
     result.setScale(myTransform.myScale);
     return result;
