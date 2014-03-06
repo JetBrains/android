@@ -99,7 +99,8 @@ public class ResourceResolverCache {
 
     // Are caches up to date?
     final LocalResourceRepository resources = AppResourceRepository.getAppResources(myManager.getModule(), true);
-    if (myCachedGeneration < resources.getModificationCount()) {
+    assert resources != null;
+    if (myCachedGeneration != resources.getModificationCount()) {
       myResolverMap.clear();
       myAppResourceMap.clear();
     }
