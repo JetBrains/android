@@ -36,13 +36,11 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.Processor;
+import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.io.ZipUtil;
 import org.jdom.Element;
@@ -91,6 +89,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   private static final Key<Boolean> DELETE_OBSOLETE_MODULE_TASK_KEY = Key.create("DELETE_OBSOLETE_MODULE_TASK");
   private static final Key<Set<MavenId>> RESOLVED_APKLIB_ARTIFACTS_KEY = Key.create("RESOLVED_APKLIB_ARTIFACTS");
+  private static final Key<Map<MavenId, String>> IMPORTED_AAR_ARTIFACTS = Key.create("IMPORTED_AAR_ARTIFACTS");
 
   public AndroidFacetImporterBase(@NotNull String pluginId) {
     super("com.jayway.maven.plugins.android.generation2", pluginId, FacetType.findInstance(AndroidFacetType.class));
@@ -110,13 +109,15 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   @NotNull
   private static String[] getSupportedPackagingTypes() {
-    return new String[]{AndroidMavenUtil.APK_PACKAGING_TYPE, AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE};
+    return new String[]{AndroidMavenUtil.APK_PACKAGING_TYPE, AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE,
+      AndroidMavenUtil.AAR_DEPENDENCY_AND_PACKAGING_TYPE};
   }
 
   @Override
   public void getSupportedDependencyTypes(Collection<String> result, SupportedRequestType type) {
     result.add(AndroidMavenUtil.APKSOURCES_DEPENDENCY_TYPE);
     result.add(AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE);
+    result.add(AndroidMavenUtil.AAR_DEPENDENCY_AND_PACKAGING_TYPE);
   }
 
   @Override
@@ -127,8 +128,10 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     final boolean hasApkSources = AndroidMavenProviderImpl.hasApkSourcesDependency(mavenProject);
     AndroidMavenProviderImpl.configureAaptCompilation(mavenProject, facet.getModule(), facet.getConfiguration(), hasApkSources);
+    final String packaging = mavenProject.getPackaging();
 
-    if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(mavenProject.getPackaging())) {
+    if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(packaging) ||
+        AndroidMavenUtil.AAR_DEPENDENCY_AND_PACKAGING_TYPE.equals(packaging)) {
       facet.setLibraryProject(true);
     }
     facet.getConfiguration().setIncludeAssetsFromLibraries(true);
@@ -160,10 +163,10 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     configureAndroidPlatform(facet, mavenProject, modelsProvider);
     final Project project = module.getProject();
-    importExternalApklibDependencies(project, rootModel, modelsProvider, mavenTree, mavenProject, mavenProjectToModuleName,
-                                     postTasks);
+    importExternalAndroidLibDependencies(project, rootModel, modelsProvider, mavenTree, mavenProject, mavenProjectToModuleName,
+                                         postTasks);
 
-    if (hasApklibDependencies(mavenProject) &&
+    if (hasAndroidLibDependencies(mavenProject) &&
         MavenProjectsManager.getInstance(project).getImportingSettings().isUseMavenOutput()) {
       // IDEA's apklibs building model is different from Maven's one, so we cannot use the same
       rootModel.useModuleOutput(mavenProject.getBuildDirectory() + "/idea-classes",
@@ -222,28 +225,35 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     facet.getConfiguration().setAdditionalNativeLibraries(additionalNativeLibs);
   }
 
-  private static boolean hasApklibDependencies(@NotNull MavenProject mavenProject) {
+  private static boolean hasAndroidLibDependencies(@NotNull MavenProject mavenProject) {
     for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
-      if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(depArtifact.getType())) {
+      final String type = depArtifact.getType();
+
+      if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(type) ||
+          AndroidMavenUtil.AAR_DEPENDENCY_AND_PACKAGING_TYPE.equals(type)) {
         return true;
       }
     }
     return false;
   }
 
-  private static void importExternalApklibDependencies(Project project,
-                                                       MavenRootModelAdapter rootModelAdapter,
-                                                       MavenModifiableModelsProvider modelsProvider,
-                                                       MavenProjectsTree mavenTree,
-                                                       MavenProject mavenProject,
-                                                       Map<MavenProject, String> mavenProject2ModuleName,
-                                                       List<MavenProjectsProcessorTask> tasks) {
+  private static void importExternalAndroidLibDependencies(Project project,
+                                                           MavenRootModelAdapter rootModelAdapter,
+                                                           MavenModifiableModelsProvider modelsProvider,
+                                                           MavenProjectsTree mavenTree,
+                                                           MavenProject mavenProject,
+                                                           Map<MavenProject, String> mavenProject2ModuleName,
+                                                           List<MavenProjectsProcessorTask> tasks) {
     final ModifiableRootModel rootModel = rootModelAdapter.getRootModel();
     removeExtApklibDependencies(rootModel, modelsProvider);
 
     for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
-      if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(depArtifact.getType()) &&
-          mavenTree.findProject(depArtifact) == null) {
+      if (mavenTree.findProject(depArtifact) != null) {
+        continue;
+      }
+      final String type = depArtifact.getType();
+
+      if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(type)) {
         final AndroidExternalApklibDependenciesManager.MavenDependencyInfo depInfo =
           AndroidExternalApklibDependenciesManager.MavenDependencyInfo.create(depArtifact);
 
@@ -259,6 +269,86 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
           }
         }
       }
+      else if (AndroidMavenUtil.AAR_DEPENDENCY_AND_PACKAGING_TYPE.equals(type) &&
+               MavenConstants.SCOPE_COMPILE.equals(depArtifact.getScope())) {
+        importExternalAarDependency(depArtifact, mavenProject, mavenTree, rootModelAdapter, modelsProvider, project, tasks);
+      }
+    }
+  }
+
+  @Nullable
+  private static String findExtractedAarDirectory(@NotNull List<MavenProject> allProjects, @NotNull String dirName) {
+    final LocalFileSystem lfs = LocalFileSystem.getInstance();
+
+    for (MavenProject project : allProjects) {
+      final VirtualFile file = lfs.refreshAndFindFileByPath(AndroidMavenUtil.getGenExternalApklibDirInProject(project) + "/" + dirName);
+
+      if (file != null) {
+        return file.getPath();
+      }
+    }
+    return null;
+  }
+
+  private static void importExternalAarDependency(@NotNull MavenArtifact artifact,
+                                                  @NotNull MavenProject mavenProject,
+                                                  @NotNull MavenProjectsTree mavenTree,
+                                                  @NotNull MavenRootModelAdapter rootModelAdapter,
+                                                  @NotNull MavenModifiableModelsProvider modelsProvider,
+                                                  @NotNull Project project,
+                                                  @NotNull List<MavenProjectsProcessorTask> postTasks) {
+    final Library aarLibrary = rootModelAdapter.findLibrary(artifact);
+
+    if (aarLibrary == null) {
+      return;
+    }
+    final MavenId mavenId = artifact.getMavenId();
+    Map<MavenId, String> importedAarArtifacts = project.getUserData(IMPORTED_AAR_ARTIFACTS);
+
+    if (importedAarArtifacts == null) {
+      importedAarArtifacts = new HashMap<MavenId, String>();
+      project.putUserData(IMPORTED_AAR_ARTIFACTS, importedAarArtifacts);
+
+      postTasks.add(new MavenProjectsProcessorTask() {
+        @Override
+        public void perform(Project project, MavenEmbeddersManager embeddersManager, MavenConsole console, MavenProgressIndicator indicator)
+          throws MavenProcessCanceledException {
+          project.putUserData(IMPORTED_AAR_ARTIFACTS, null);
+        }
+      });
+    }
+    final List<MavenProject> allProjects = mavenTree.getProjects();
+    String aarDirPath = importedAarArtifacts.get(mavenId);
+
+    if (aarDirPath == null) {
+      final String aarDirName = AndroidMavenUtil.getMavenIdStringForFileName(mavenId);
+      aarDirPath = findExtractedAarDirectory(allProjects, aarDirName);
+
+      if (aarDirPath == null) {
+        final String genDirPath = AndroidMavenUtil.computePathForGenExternalApklibsDir(mavenId, mavenProject, allProjects);
+
+        if (genDirPath == null) {
+          return;
+        }
+        aarDirPath = genDirPath + "/" + aarDirName;
+      }
+      importedAarArtifacts.put(mavenId, aarDirPath);
+      extractArtifact(artifact.getPath(), aarDirPath, project, mavenProject.getName());
+    }
+    final Library.ModifiableModel aarLibModel = modelsProvider.getLibraryModel(aarLibrary);
+    final String classesJarPath = aarDirPath + "/" + SdkConstants.FN_CLASSES_JAR;
+    final String classesJarUrl = VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL, classesJarPath) +
+                                 JarFileSystem.JAR_SEPARATOR;
+    final String resDirUrl = VfsUtilCore.pathToUrl(aarDirPath + "/" + SdkConstants.FD_RES);
+    final Set<String> urlsToAdd = new HashSet<String>(Arrays.asList(classesJarUrl, resDirUrl));
+
+    for (String url : aarLibModel.getUrls(OrderRootType.CLASSES)) {
+      if (!urlsToAdd.remove(url)) {
+        aarLibModel.removeRoot(url, OrderRootType.CLASSES);
+      }
+    }
+    for (String url : urlsToAdd) {
+      aarLibModel.addRoot(url, OrderRootType.CLASSES);
     }
   }
 
@@ -443,42 +533,11 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       return null;
     }
 
-    final File targetDir = new File(targetDirPath);
-    if (targetDir.exists()) {
-      if (!FileUtil.delete(targetDir)) {
-        AndroidUtils.reportImportErrorToEventLog("Cannot delete old " + targetDirPath, genModuleName, project);
-        return null;
-      }
-    }
-
-    if (!targetDir.mkdirs()) {
-      AndroidUtils.reportImportErrorToEventLog("Cannot create directory " + targetDirPath, genModuleName, project);
+    if (!extractArtifact(artifactFilePath, targetDirPath, project, genModuleName)){
       return null;
     }
     final AndroidExternalApklibDependenciesManager adm = AndroidExternalApklibDependenciesManager.getInstance(project);
     adm.setArtifactFilePath(artifactMavenId, FileUtil.toSystemIndependentName(artifactFilePath));
-
-    final File artifactFile = new File(artifactFilePath);
-
-    if (artifactFile.exists()) {
-      try {
-        ZipUtil.extract(artifactFile, targetDir, null);
-      }
-      catch (IOException e) {
-        final String message = e.getMessage();
-
-        if (message == null) {
-          LOG.error(e);
-        }
-        else {
-          AndroidUtils.reportImportErrorToEventLog("I/O error: " + message, genModuleName, project);
-        }
-        return null;
-      }
-    }
-    else {
-      AndroidUtils.reportImportErrorToEventLog("Cannot find file " + artifactFile.getPath(), genModuleName, project);
-    }
 
     final VirtualFile vApklibDir = LocalFileSystem.getInstance().refreshAndFindFileByPath(targetDirPath);
     if (vApklibDir == null) {
@@ -518,6 +577,43 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     importSdkAndDependenciesForApklibArtifact(project, apklibModuleModel, modelsProvider, mavenTree,
                                               artifactMavenId, mavenProject2ModuleName);
     return apklibModule;
+  }
+
+  private static boolean extractArtifact(String zipFilePath, String targetDirPath, Project project, String moduleName) {
+    final File targetDir = new File(targetDirPath);
+    if (targetDir.exists()) {
+      if (!FileUtil.delete(targetDir)) {
+        AndroidUtils.reportImportErrorToEventLog("Cannot delete old " + targetDirPath, moduleName, project);
+        return false;
+      }
+    }
+
+    if (!targetDir.mkdirs()) {
+      AndroidUtils.reportImportErrorToEventLog("Cannot create directory " + targetDirPath, moduleName, project);
+      return false;
+    }
+    final File artifactFile = new File(zipFilePath);
+
+    if (artifactFile.exists()) {
+      try {
+        ZipUtil.extract(artifactFile, targetDir, null);
+      }
+      catch (IOException e) {
+        final String message = e.getMessage();
+
+        if (message == null) {
+          LOG.error(e);
+        }
+        else {
+          AndroidUtils.reportImportErrorToEventLog("I/O error: " + message, moduleName, project);
+        }
+        return false;
+      }
+    }
+    else {
+      AndroidUtils.reportImportErrorToEventLog("Cannot find file " + artifactFile.getPath(), moduleName, project);
+    }
+    return true;
   }
 
   private static void importSdkAndDependenciesForApklibArtifact(Project project,

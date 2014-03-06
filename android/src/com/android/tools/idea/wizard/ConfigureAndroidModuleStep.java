@@ -155,9 +155,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       hide(mySourceVersionLabel, mySourceCombo);
     }
 
+    if (!myTemplateState.hasAttr(ATTR_PROJECT_LOCATION) && myWizardContext != null && myProject == null) {
+      myTemplateState.put(ATTR_PROJECT_LOCATION, myWizardContext.getProjectFileDirectory());
+    }
     // Find a unique project location
-    computeUniqueProjectLocation();
-
+    if (myWizardContext == null) {
+      computeUniqueProjectLocation();
+    }
     preselectTargetAndBuildApi();
     registerUiElements();
 
