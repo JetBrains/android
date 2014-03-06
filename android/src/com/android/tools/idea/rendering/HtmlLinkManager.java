@@ -587,7 +587,8 @@ public class HtmlLinkManager {
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(module.getProject(), "Assign Fragment", file) {
       @Override
       protected void run(Result<Void> result) throws Throwable {
-        for (XmlTag tag : PsiTreeUtil.findChildrenOfType(file, XmlTag.class)) {
+        Collection<XmlTag> tags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+        for (XmlTag tag : tags) {
           if (!tag.getName().equals(VIEW_FRAGMENT)) {
             continue;
           }
@@ -599,8 +600,21 @@ public class HtmlLinkManager {
             }
           }
 
-          tag.setAttribute(ATTR_NAME, ANDROID_URI, fragmentClass);
-          break;
+          if (tag.getAttribute(ATTR_NAME, ANDROID_URI) == null && tag.getAttribute(ATTR_CLASS) == null) {
+            tag.setAttribute(ATTR_NAME, ANDROID_URI, fragmentClass);
+            return;
+          }
+        }
+
+        if (id == null) {
+          for (XmlTag tag : tags) {
+            if (!tag.getName().equals(VIEW_FRAGMENT)) {
+              continue;
+            }
+
+            tag.setAttribute(ATTR_NAME, ANDROID_URI, fragmentClass);
+            break;
+          }
         }
       }
     };
