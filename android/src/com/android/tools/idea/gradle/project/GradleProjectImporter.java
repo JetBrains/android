@@ -184,6 +184,7 @@ public class GradleProjectImporter {
   public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
+      fixGradleProjectSettings(project);
       doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC /* asynchronous import */, callback);
     }
     else {
@@ -211,6 +212,19 @@ public class GradleProjectImporter {
     VirtualFile baseDir = project.getBaseDir();
     VirtualFile gradleBuildFile = baseDir.findChild(SdkConstants.FN_BUILD_GRADLE);
     return gradleBuildFile != null && gradleBuildFile.exists() && !gradleBuildFile.isDirectory();
+  }
+
+  private static void fixGradleProjectSettings(@NotNull Project project) {
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+    if (wrapperPropertiesFile != null) {
+      GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(project);
+      if (settings != null) {
+        DistributionType distributionType = settings.getDistributionType();
+        if (distributionType == null || DistributionType.LOCAL.equals(distributionType)) {
+          settings.setDistributionType(DistributionType.WRAPPED);
+        }
+      }
+    }
   }
 
   /**
