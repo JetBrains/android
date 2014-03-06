@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * Creates run configurations for modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
-public class RunConfigModuleCustomizer implements AndroidModuleCustomizer {
+public class RunConfigModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
     if (androidProject != null) {

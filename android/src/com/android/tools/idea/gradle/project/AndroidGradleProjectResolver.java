@@ -37,9 +37,6 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.ContentRootData;
-import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -53,11 +50,13 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
+import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.model.ProjectDependenciesModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
@@ -107,7 +106,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
-    if (buildScript == null || buildScript.getSourceFile() == null) {
+    if (buildScript == null || buildScript.getSourceFile() == null || !isAndroidGradleProject()) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
@@ -121,12 +120,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       Variant selectedVariant = getVariantToSelect(androidProject);
       IdeaAndroidProject ideaAndroidProject =
         new IdeaAndroidProject(gradleModule.getName(), moduleRootDir, androidProject, selectedVariant.getName());
-      addContentRoot(ideaAndroidProject, ideModule, moduleRootDir);
-
       ideModule.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
-    }
-    else {
-      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
     }
 
     File gradleSettingsFile = new File(moduleRootDir, SdkConstants.FN_SETTINGS_GRADLE);
@@ -136,16 +130,31 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    if (isAndroidGradleProject()) {
-      IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
-      ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
+    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+    ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
-      if (androidProject == null) {
-        // This is a Java lib module.
-        JavaModel javaModel = new JavaModel(getDependenciesFrom(gradleModule));
-        gradleProject.setJavaModel(javaModel);
-      }
+    if (androidProject == null) {
+      // This is a Java lib module.
+      JavaModel javaModel = createJavaModelFrom(gradleModule);
+      gradleProject.setJavaModel(javaModel);
     }
+  }
+
+  @NotNull
+  private JavaModel createJavaModelFrom(@NotNull IdeaModule module) {
+    Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(module);
+    List<? extends IdeaDependency> dependencies = getDependenciesFrom(module);
+    return new JavaModel(contentRoots, dependencies);
+  }
+
+  @NotNull
+  private Collection<? extends IdeaContentRoot> getContentRootsFrom(@NotNull IdeaModule module) {
+    ModuleExtendedModel model = resolverCtx.getExtraProject(module, ModuleExtendedModel.class);
+    Collection<? extends IdeaContentRoot> contentRoots = model != null ? model.getContentRoots() : module.getContentRoots();
+    if (contentRoots != null) {
+      return contentRoots;
+    }
+    return Collections.emptyList();
   }
 
   @NotNull
@@ -160,11 +169,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    // TODO check if an Android module should contain specific compiler settings
-    // AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-    // if (androidProject == null) {
-    //   nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
-    // }
     nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
   }
 
@@ -172,14 +176,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
+    if (!isAndroidGradleProject()) {
+      // For plain Java projects (non-Gradle) we let the framework populate dependencies
+      nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
+      return;
+    }
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
       Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
       populateUnresolvedDependencies(ideProject, Sets.newHashSet(unresolvedDependencies));
-    }
-    else if (!isAndroidGradleProject()) {
-      // For plain Java projects we let the framework populate dependencies
-      nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     }
   }
 
@@ -366,26 +371,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     });
     return sortedVariants.get(0);
-  }
-
-  private static void addContentRoot(@NotNull IdeaAndroidProject androidProject,
-                                     @NotNull DataNode<ModuleData> moduleInfo,
-                                     @NotNull File moduleDir) {
-    final ContentRootData contentRootData = new ContentRootData(GradleConstants.SYSTEM_ID, moduleDir.getPath());
-    AndroidContentRoot.ContentRootStorage storage = new AndroidContentRoot.ContentRootStorage() {
-      @Override
-      @NotNull
-      public String getRootDirPath() {
-        return contentRootData.getRootPath();
-      }
-
-      @Override
-      public void storePath(@NotNull ExternalSystemSourceType sourceType, @NotNull File directory) {
-        contentRootData.storePath(sourceType, directory.getPath());
-      }
-    };
-    AndroidContentRoot.storePaths(androidProject, storage);
-    moduleInfo.createChild(ProjectKeys.CONTENT_ROOT, contentRootData);
   }
 
   private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
