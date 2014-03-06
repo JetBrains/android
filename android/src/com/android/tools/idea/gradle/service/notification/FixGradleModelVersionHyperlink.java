@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -53,7 +53,7 @@ class FixGradleModelVersionHyperlink extends NotificationHyperlink {
         final GradleBuildFile buildFile = new GradleBuildFile(file, project);
         Object pluginVersion = buildFile.getValue(PLUGIN_VERSION);
         if (pluginVersion != null) {
-          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          WriteCommandAction.runWriteCommandAction(project, new Runnable() {
             @Override
             public void run() {
               buildFile.setValue(PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
