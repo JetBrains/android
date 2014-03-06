@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.resources.Density;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -32,6 +33,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColorPanel;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -272,7 +274,8 @@ public class AssetSetStep extends TemplateWizardStep {
               updatePreviewImages();
             }
           });
-        } catch (final ImageGeneratorException e) {
+        }
+        catch (final ImageGeneratorException e) {
           SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -491,7 +494,7 @@ public class AssetSetStep extends TemplateWizardStep {
   }
 
   private boolean drawableExists(String resourceName) {
-    return Parameter.existsResourceFile(myModule, SdkConstants.FD_RES_DRAWABLE, resourceName + SdkConstants.DOT_PNG);
+    return Parameter.existsResourceFile(myModule, ResourceType.DRAWABLE, resourceName);
   }
 
   @Override
