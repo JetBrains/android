@@ -78,14 +78,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
   private JTextField myPackageName;
-  @VisibleForTesting
-  JComboBox myMinSdk;
-  @VisibleForTesting
-  JComboBox myTargetSdk;
-  @VisibleForTesting
-  JComboBox myCompileWith;
+  @VisibleForTesting JComboBox myMinSdk;
+  @VisibleForTesting JComboBox myTargetSdk;
+  @VisibleForTesting JComboBox myCompileWith;
   private JComboBox myTheme;
-  private JCheckBox myCreateCustomLauncherIconCheckBox;
+  @VisibleForTesting JCheckBox myCreateCustomLauncherIconCheckBox;
   private JCheckBox myCreateActivityCheckBox;
   private JCheckBox myLibraryCheckBox;
   private JCheckBox myFragmentCheckBox;
@@ -246,6 +243,8 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       myInitialized = true;
       initialize();
     }
+
+    myCreateCustomLauncherIconCheckBox.setVisible(!myTemplateState.myHidden.contains(ATTR_CREATE_ICONS));
   }
 
   @Override
