@@ -48,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -161,6 +162,10 @@ public final class DefaultSdks {
     }
   }
 
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path) {
+    return setDefaultAndroidHome(path, null);
+  }
+
   /**
    * Sets the given JDK's home path to the given path, and resets all of its content roots.
    */
@@ -193,10 +198,11 @@ public final class DefaultSdks {
    * Sets the path of Android Studio's default Android SDK. This method should be called in a write action. It is assumed that the given
    * path has been validated by {@link #validateAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
    *
+   *
    * @param path the path of the Android SDK.
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
-  public static List<Sdk> setDefaultAndroidHome(@NotNull File path) {
+  public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk) {
     if (validateAndroidSdkPath(path)) {
       assert ApplicationManager.getApplication().isWriteAccessAllowed();
 
@@ -233,7 +239,7 @@ public final class DefaultSdks {
 
       // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill
       // those in.
-      List<Sdk> sdks = createAndroidSdksForAllTargets(resolved);
+      List<Sdk> sdks = createAndroidSdksForAllTargets(resolved, javaSdk);
 
       // Update the local.properties files for any open projects.
       updateLocalPropertiesAndSync(resolved);
@@ -250,12 +256,17 @@ public final class DefaultSdks {
     return AndroidSdkType.validateAndroidSdk(path.getPath()).first;
   }
 
+  @NotNull
+  public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome) {
+    return createAndroidSdksForAllTargets(androidHome, null);
+  }
+
   /**
    * Creates a set of IntelliJ SDKs (one for each build target) corresponding to the Android SDK in the given directory, if SDKs with the
    * default naming convention and each individual build target do not already exist. If IntelliJ SDKs do exist, they are not updated.
    */
   @NotNull
-  public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome) {
+  public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome, @Nullable Sdk javaSdk) {
     String path = androidHome.getPath();
     if (!path.endsWith(File.separator)) {
       path += File.separator;
@@ -264,7 +275,7 @@ public final class DefaultSdks {
     AndroidSdkData sdkData = AndroidSdkData.parse(path, NullLogger.getLogger());
     if (sdkData != null) {
       IAndroidTarget[] targets = sdkData.getTargets();
-      Sdk defaultJdk = getDefaultJdk();
+      Sdk defaultJdk = javaSdk != null ? javaSdk : getDefaultJdk();
       for (IAndroidTarget target : targets) {
         if (target.isPlatform() && !doesDefaultAndroidSdkExist(target)) {
           String sdkName = AndroidSdkUtils.chooseNameForNewLibrary(target);
@@ -433,7 +444,19 @@ public final class DefaultSdks {
     if (!jdks.isEmpty()) {
       return jdks.get(0);
     }
-    VirtualFile javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
+    final Collection<String> jdkPaths = JavaSdk.getInstance().suggestHomePaths();
+    VirtualFile javaHome = null;
+
+    for (String jdkPath : jdkPaths) {
+      javaHome = LocalFileSystem.getInstance().findFileByPath(jdkPath);
+
+      if (javaHome != null) {
+        break;
+      }
+    }
+    if (javaHome == null) {
+      javaHome = LocalFileSystem.getInstance().findFileByPath(SystemProperties.getJavaHome());
+    }
     return javaHome != null ? createJdk(javaHome) : null;
   }
 
