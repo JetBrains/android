@@ -115,9 +115,12 @@ public class PostProjectSyncTasksExecutor {
         continue;
       }
 
-      VirtualFile[] classes = library.getFiles(OrderRootType.CLASSES);
-      if (classes.length == 1 && SdkConstants.EXT_JAR.equals(classes[0].getExtension())) {
-        VirtualFile sourceJar = findSourceJarFor(classes[0]);
+      for (VirtualFile classFile : library.getFiles(OrderRootType.CLASSES)) {
+        if (!SdkConstants.EXT_JAR.equals(classFile.getExtension())) {
+          // we only attach sources to jar files for now.
+          continue;
+        }
+        VirtualFile sourceJar = findSourceJarFor(classFile);
         if (sourceJar != null) {
           Library.ModifiableModel model = library.getModifiableModel();
           try {
@@ -138,9 +141,11 @@ public class PostProjectSyncTasksExecutor {
 
     // We need to get the real jar file. The one that we received is just a wrapper around a URL. Getting the parent from this file returns
     // null.
-    String jarFilePath = extractPath(jarFile.getUrl());
-    File temp = new File(FileUtil.toSystemDependentName(jarFilePath));
-    VirtualFile realJarFile = VfsUtil.findFileByIoFile(temp, true);
+    File jarFilePath = getJarFromJarUrl(jarFile.getUrl());
+    if (jarFilePath == null) {
+      return null;
+    }
+    VirtualFile realJarFile = VfsUtil.findFileByIoFile(jarFilePath, true);
 
     if (realJarFile == null) {
       // Unlikely to happen. At this point the jar file should exist.
@@ -176,15 +181,18 @@ public class PostProjectSyncTasksExecutor {
     return VfsUtil.findFileByIoFile(sourceJar, true);
   }
 
-  @NotNull
-  private static String extractPath(@NotNull String url) {
+  @Nullable
+  private static File getJarFromJarUrl(@NotNull String url) {
     // URLs for jar file start with "jar://" and end with "!/".
     if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
-      return url;
+      return null;
     }
     String path = url.substring(StandardFileSystems.JAR_PROTOCOL_PREFIX.length());
     int index = path.lastIndexOf(StandardFileSystems.JAR_SEPARATOR);
-    return index < 0 ? path : path.substring(0, index);
+    if (index != -1) {
+      path = path.substring(0, index);
+    }
+    return new File(FileUtil.toSystemDependentName(path));
   }
 
 
