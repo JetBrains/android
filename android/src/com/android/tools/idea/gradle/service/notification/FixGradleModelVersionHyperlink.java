@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.service.notification.FixGradleVersionInWrapperHyperlink.updateGradleVersion;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_LATEST_VERSION;
@@ -74,8 +73,8 @@ class FixGradleModelVersionHyperlink extends NotificationHyperlink {
       return;
     }
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-    if (wrapperPropertiesFile != null && !updateGradleVersion(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION)) {
-      return;
+    if (wrapperPropertiesFile != null) {
+      updateGradleVersion(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
     }
     try {
       GradleProjectImporter.getInstance().reImportProject(project, null);
