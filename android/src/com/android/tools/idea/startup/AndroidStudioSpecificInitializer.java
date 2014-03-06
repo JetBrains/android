@@ -17,18 +17,22 @@ package com.android.tools.idea.startup;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.utils.Pair;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
+import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.io.FileUtil;
@@ -38,6 +42,7 @@ import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.PlatformUtilsCore;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -93,6 +98,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     } catch (Exception e) {
       LOG.error("Unexpected error while setting up SDKs: ", e);
     }
+
+    registerAppClosing();
 
     // Always reset the Default scheme to match Android standards
     // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
@@ -331,5 +338,26 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     // Hide individual actions that aren't part of a group
     replaceAction("Groovy.NewClass", new EmptyAction());
     replaceAction("Groovy.NewScript", new EmptyAction());
+  }
+
+  /**
+   * Registers an appClosing callback on the app lifecycle.
+   * Uses it to stop gradle daemons of currently opened projects.
+   */
+  private static void registerAppClosing() {
+    MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+      @Override
+      public void appClosing() {
+        for(Project openProject : ProjectManager.getInstance().getOpenProjects()) {
+          try {
+            GradleUtil.stopAllGradleDaemons(openProject);
+          }
+          catch (IOException e) {
+            LOG.error("stopAllGradleDaemons failed for project " + openProject.getName(), e);
+          }
+        }
+      }
+    });
   }
 }
