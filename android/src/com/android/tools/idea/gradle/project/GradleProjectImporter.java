@@ -57,6 +57,9 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
@@ -185,6 +188,7 @@ public class GradleProjectImporter {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       fixGradleProjectSettings(project);
+      removeAllLibraries(project);
       doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC /* asynchronous import */, callback);
     }
     else {
@@ -225,6 +229,25 @@ public class GradleProjectImporter {
         }
       }
     }
+  }
+
+  // See issue: https://code.google.com/p/android/issues/detail?id=64508
+  private static void removeAllLibraries(@NotNull final Project project) {
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+      @Override
+      public void execute() {
+        LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+        LibraryTable.ModifiableModel model = libraryTable.getModifiableModel();
+        try {
+          for (Library library : model.getLibraries()) {
+            model.removeLibrary(library);
+          }
+        }
+        finally {
+          model.commit();
+        }
+      }
+    });
   }
 
   /**
