@@ -187,17 +187,11 @@ public class DeviceArtPainter {
 
   /** Creates a frame around the given image, using the given descriptor */
   public static BufferedImage createFrame(BufferedImage image, DeviceArtDescriptor descriptor, boolean addShadow, boolean addReflection) {
-    double EPSILON = 1e-5;
-
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
-    ScreenOrientation orientation = imgAspectRatio >= (1 - EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
+    ScreenOrientation orientation = imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
 
-    // Make sure the descriptor fits this image: its aspect ratio should be nearly identical to the image aspect ratio
-    if (!descriptor.isStretchable()) {
-      double descriptorAspectRatio = descriptor.getAspectRatio(orientation);
-      if (Math.abs(imgAspectRatio - descriptorAspectRatio) > EPSILON) {
-        return image;
-      }
+    if (!descriptor.canFrameImage(image, orientation)) {
+      return image;
     }
 
     File shadow = descriptor.getDropShadow(orientation);
@@ -220,7 +214,7 @@ public class DeviceArtPainter {
       } else if (screen.width < image.getWidth()) {
         // if the frame isn't stretchable, but is smaller than the image, then scale down the image
         double scale = (double) screen.width / image.getWidth();
-        if (Math.abs(scale - 1.0) > EPSILON) {
+        if (Math.abs(scale - 1.0) > ImageUtils.EPSILON) {
           image = ImageUtils.scale(image, scale, scale);
         }
       }
