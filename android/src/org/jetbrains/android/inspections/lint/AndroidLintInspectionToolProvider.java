@@ -140,6 +140,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintAssertInspection extends AndroidLintInspectionBase {
+    public AndroidLintAssertInspection() {
+      super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintStringFormatCountInspection extends AndroidLintInspectionBase {
     public AndroidLintStringFormatCountInspection() {
       super(AndroidBundle.message("android.lint.inspections.string.format.count"), StringFormatDetector.ARG_COUNT);
@@ -420,6 +426,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintUsesMinSdkAttributesInspection extends AndroidLintInspectionBase {
     public AndroidLintUsesMinSdkAttributesInspection() {
       super(AndroidBundle.message("android.lint.inspections.uses.min.sdk.attributes"), ManifestDetector.USES_SDK);
+    }
+  }
+
+  public static class AndroidLintWebViewLayoutInspection extends AndroidLintInspectionBase {
+    public AndroidLintWebViewLayoutInspection() {
+      super(AndroidBundle.message("android.lint.inspections.web.view.layout"), WebViewDetector.ISSUE);
     }
   }
 
@@ -739,6 +751,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.rtl.hardcoded"), RtlDetector.USE_START);
     }
   }
+  public static class AndroidLintRtlSymmetryInspection extends AndroidLintInspectionBase {
+    public AndroidLintRtlSymmetryInspection() {
+      super(AndroidBundle.message("android.lint.inspections.rtl.symmetry"), RtlDetector.SYMMETRY);
+    }
+  }
 
   // Missing the following issues, because they require classfile analysis:
   // FloatMath, FieldGetter, Override, OnClick, ViewTag, DefaultLocale, SimpleDateFormat,
@@ -757,6 +774,13 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.button.style"), ButtonDetector.STYLE);
     }
   }
+
+  public static class AndroidLintByteOrderMarkInspection extends AndroidLintInspectionBase {
+    public AndroidLintByteOrderMarkInspection() {
+      super(AndroidBundle.message("android.lint.inspections.byte.order.mark"), ByteOrderMarkDetector.BOM);
+    }
+  }
+
   public static class AndroidLintCommitPrefEditsInspection extends AndroidLintInspectionBase {
     public AndroidLintCommitPrefEditsInspection() {
       super(AndroidBundle.message("android.lint.inspections.commit.pref.edits"), SharedPrefsDetector.ISSUE);
