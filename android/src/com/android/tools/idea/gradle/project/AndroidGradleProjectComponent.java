@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
@@ -142,7 +141,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     listenForProjectChanges(myProject, myDisposable);
 
-    GradleImportNotificationListener.attachToManager();
     Projects.ensureExternalBuildIsEnabledForGradleProject(myProject);
 
     if (reImportProject) {

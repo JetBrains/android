@@ -41,7 +41,6 @@ public class ReImportProjectAction extends AnAction {
   public void actionPerformed(final AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      GradleImportNotificationListener.detachFromManager();
       BuildVariantView.getInstance(project).projectImportStarted();
       Presentation presentation = e.getPresentation();
       presentation.setEnabled(false);
@@ -53,7 +52,6 @@ public class ReImportProjectAction extends AnAction {
         LOG.info(ex);
       }
       finally {
-        GradleImportNotificationListener.attachToManager();
         presentation.setEnabled(true);
       }
     }
