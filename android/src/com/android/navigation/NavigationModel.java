@@ -67,6 +67,9 @@ public class NavigationModel {
   }
 
   public void addState(State state) {
+    if (states.contains(state)) {
+      return;
+    }
     states.add(state);
     listeners.notify(Event.insert(State.class));
   }
