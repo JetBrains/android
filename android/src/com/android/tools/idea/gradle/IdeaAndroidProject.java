@@ -189,39 +189,10 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   /**
-   * Computes the package name to be used for the current variant in the given project.
-   *
-   * @param manifestPackage the manifest package, if known
-   * @return the package for the current variant (and is only null if the user's project is configured incorrectly)
+   * Returns the package name used for the current variant in the given project.
    */
-  @Nullable
-  public String computePackageName(@Nullable String manifestPackage) {
-    return computePackageName(getSelectedVariant(), manifestPackage);
-  }
-
-  /**
-   * Computes the package name to be used for the given project, if specified in the Gradle files.
-   *
-   * @param variant the variant to compute the package name for
-   * @param manifestPackage the manifest package, if known
-   * @return the package for the given variant (and is only null if the user's project is configured incorrectly)
-   */
-  @Nullable
-  private String computePackageName(@NotNull Variant variant, @Nullable String manifestPackage) {
-    String packageName = variant.getMergedFlavor().getPackageName();
-    if (packageName == null) {
-      packageName = manifestPackage;
-    }
-    if (packageName != null) {
-      String buildTypeName = variant.getBuildType();
-      BuildTypeContainer buildTypeContainer = findBuildType(buildTypeName);
-      assert buildTypeContainer != null;
-      String packageNameSuffix = buildTypeContainer.getBuildType().getPackageNameSuffix();
-      if (packageNameSuffix != null && !packageNameSuffix.isEmpty()) {
-        packageName += packageNameSuffix;
-      }
-    }
-
-    return packageName;
+  @NotNull
+  public String computePackageName() {
+    return getSelectedVariant().getMainArtifact().getPackageName();
   }
 }
