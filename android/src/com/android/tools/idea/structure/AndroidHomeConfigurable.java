@@ -35,6 +35,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.projectRoots.ui.PathEditor;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.util.EmptyRunnable;
@@ -172,9 +173,7 @@ public class AndroidHomeConfigurable implements Configurable {
             }
           }
         }
-        for (final Sdk sdk : sdksToDelete) {
-          ProjectJdkTable.getInstance().removeJdk(sdk);
-        }
+        deleteSdks(sdksToDelete);
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           updateSdkManagerActionInWelcomePage();
         }
@@ -196,6 +195,12 @@ public class AndroidHomeConfigurable implements Configurable {
                             presentation, actionManager, 0);
         sdkManagerAction.update(event);
       }
+    }
+  }
+
+  private static void deleteSdks(@NotNull List<Sdk> sdksToDelete) {
+    for (Sdk sdk : sdksToDelete) {
+      SdkConfigurationUtil.removeSdk(sdk);
     }
   }
 
