@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.parser;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
@@ -81,57 +82,55 @@ public class NamedObject {
     myValues.put(property, value);
   }
 
-  public static BuildFileKey.ValueFactory<NamedObject> getFactory(@NotNull List<BuildFileKey> properties) {
+  public static ValueFactory getFactory(@NotNull List<BuildFileKey> properties) {
     return new Factory(properties);
   }
 
-  public static class Factory implements BuildFileKey.ValueFactory<NamedObject> {
+  public static class Factory extends ValueFactory<NamedObject> {
     private final List<BuildFileKey> myProperties;
 
     private Factory(@NotNull List<BuildFileKey> properties) {
       myProperties = properties;
     }
 
-    @NotNull
     @Override
-    public List<NamedObject> getValues(@NotNull GrStatementOwner closure) {
-      List<NamedObject> list = Lists.newArrayList();
-      for (GrMethodCall method : GradleGroovyFile.getMethodCalls(closure)) {
-        NamedObject item = new NamedObject(GradleGroovyFile.getMethodCallName(method));
-        list.add(item);
-        GrClosableBlock subclosure = GradleGroovyFile.getMethodClosureArgument(closure, item.getName());
+    protected void setValue(GrStatementOwner closure, NamedObject object) {
+      GrClosableBlock subclosure = GradleGroovyFile.getMethodClosureArgument(closure, object.myName);
+      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(closure.getProject());
+      if (subclosure == null) {
+        closure.addBefore(factory.createStatementFromText(object.getName() + " {\n}\n"), closure.getLastChild());
+        subclosure = GradleGroovyFile.getMethodClosureArgument(closure, object.myName);
+      }
+      for (BuildFileKey property : myProperties) {
+        Object value = object.getValue(property);
+        if (value != null) {
+          GradleGroovyFile.setValueStatic(subclosure, property, value);
+        } else if (GradleGroovyFile.getValueStatic(subclosure, property) != GradleBuildFile.UNRECOGNIZED_VALUE) {
+          GradleGroovyFile.removeValueStatic(subclosure, property);
+        }
+      }
+    }
+
+    @Nullable
+    @Override
+    public List<NamedObject> getValues(@NotNull PsiElement statement) {
+      if (!(statement instanceof GrMethodCall)) {
+        return null;
+      }
+      GrMethodCall method = (GrMethodCall)statement;
+
+      NamedObject item = new NamedObject(GradleGroovyFile.getMethodCallName((GrMethodCall)statement));
+        GrClosableBlock subclosure = GradleGroovyFile.getMethodClosureArgument(method);
         if (subclosure == null) {
-          continue;
+          return null;
         }
         for (BuildFileKey property : myProperties) {
-          item.setValue(property, GradleGroovyFile.getValueStatic(subclosure, property));
-        }
-      }
-      return list;
-    }
-
-    @Override
-    public void setValues(@NotNull GrStatementOwner closure, @NotNull List<NamedObject> value) {
-      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(closure.getProject());
-      closure = (GrStatementOwner)closure.replace(factory.createClosureFromText("{}"));
-      for (NamedObject item : value) {
-        closure.addStatementBefore(factory.createStatementFromText(item.getName() + " {}"), null);
-        GrStatementOwner subclosure = GradleGroovyFile.getMethodClosureArgument(closure, item.getName());
-        if (subclosure == null) {
-          continue;
-        }
-        for (Map.Entry<BuildFileKey, Object> entry : item.getValues().entrySet()) {
-          if (entry.getValue() != null) {
-            GradleGroovyFile.setValueStatic(subclosure, entry.getKey(), entry.getValue());
+          Object value = GradleGroovyFile.getValueStatic(subclosure, property);
+          if (value != null) {
+            item.setValue(property, value);
           }
         }
-      }
-      GradleGroovyFile.reformatClosure(closure);
-    }
-
-    @Override
-    public boolean canParseValue(@NotNull GrStatementOwner closure) {
-      return true;
+      return ImmutableList.of(item);
     }
 
     @NotNull
@@ -158,5 +157,14 @@ public class NamedObject {
     int result = myName.hashCode();
     result = 31 * result + myValues.hashCode();
     return result;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("NamedObject ");
+    sb.append(myName);
+    sb.append(' ');
+    sb.append(myValues.toString());
+    return sb.toString();
   }
 }
