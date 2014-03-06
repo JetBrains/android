@@ -290,7 +290,7 @@ public class GradleProjectImporter {
             boolean isTest = application.isUnitTestMode();
             if (!isTest || !ourSkipSetupFromTest) {
               if (newProject) {
-                open(project);
+                Projects.open(project);
               }
               else {
                 updateStructureAccordingToBuildVariants(project);
@@ -360,22 +360,6 @@ public class GradleProjectImporter {
         });
       }
     });
-  }
-
-  private static void open(@NotNull final Project newProject) {
-    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    ProjectUtil.updateLastProjectLocation(newProject.getBasePath());
-    if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
-      IdeFocusManager instance = IdeFocusManager.findInstance();
-      IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
-      if (lastFocusedFrame instanceof IdeFrameEx) {
-        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
-        if (fullScreen) {
-          newProject.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, Boolean.TRUE);
-        }
-      }
-    }
-    projectManager.openProject(newProject);
   }
 
   private void updateStructureAccordingToBuildVariants(final Project project) {
