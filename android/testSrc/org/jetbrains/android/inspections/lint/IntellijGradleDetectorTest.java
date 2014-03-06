@@ -49,11 +49,6 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
-  public void testIdeSupport() throws Exception {
-    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
-    doTest(inspection, null);
-  }
-
   public void testSetter() throws Exception {
     AndroidLintGradleGetterInspection inspection = new AndroidLintGradleGetterInspection();
     doTest(inspection, null);
@@ -67,6 +62,11 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
   public void testPlus() throws Exception {
     GradleDetector.PLUS.setEnabledByDefault(true);
     AndroidLintGradleDynamicVersionInspection inspection = new AndroidLintGradleDynamicVersionInspection();
+    doTest(inspection, null);
+  }
+
+  public void testPackageSuffix() throws Exception {
+    AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
     doTest(inspection, null);
   }
 
