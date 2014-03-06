@@ -28,6 +28,6 @@ public class AndroidRebuildProjectAction extends AndroidBuildProjectAction {
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    GradleInvoker.getInstance(project).rebuild(null);
+    GradleInvoker.getInstance(project).rebuild();
   }
 }

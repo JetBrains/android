@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
@@ -28,7 +26,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -93,36 +90,6 @@ public final class Projects {
       }
     }
     projectManager.openProject(project);
-  }
-
-  public static void clean(@NotNull Project project) {
-    if (!isGradleProject(project)) {
-      return;
-    }
-    if (isDirectGradleInvocationEnabled(project)) {
-      GradleInvoker.getInstance(project).cleanProject(null);
-      return;
-    }
-    BuildSettings.getInstance(project).setBuildMode(BuildMode.CLEAN);
-    CompilerManager.getInstance(project).make(null);
-  }
-
-  /**
-   * Generates source code instead of a full compilation. This method does nothing if the Gradle model does not specify the name of the
-   * Gradle task to invoke.
-   *
-   * @param project the given project.
-   */
-  public static void generateSourcesOnly(@NotNull Project project) {
-    if (!isGradleProject(project)) {
-      return;
-    }
-    if (isDirectGradleInvocationEnabled(project)) {
-      GradleInvoker.getInstance(project).generateSources(null);
-      return;
-    }
-    BuildSettings.getInstance(project).setBuildMode(BuildMode.SOURCE_GEN);
-    CompilerManager.getInstance(project).make(null);
   }
 
   public static boolean isDirectGradleInvocationEnabled(@NotNull Project project) {

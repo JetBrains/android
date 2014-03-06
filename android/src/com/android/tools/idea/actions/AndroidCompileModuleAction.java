@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.CompileAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -51,6 +50,6 @@ public class AndroidCompileModuleAction extends AndroidBuildModuleAction {
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
     Module[] modules = Projects.getModulesToBuildFromSelection(project, dataContext);
-    GradleInvoker.getInstance(project).compileJava(modules, null);
+    GradleInvoker.getInstance(project).compileJava(modules);
   }
 }

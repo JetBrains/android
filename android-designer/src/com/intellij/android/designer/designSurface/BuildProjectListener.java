@@ -15,11 +15,9 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.intellij.designer.DesignerEditor;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompileTask;
-import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -34,16 +32,15 @@ public class BuildProjectListener implements ProjectComponent {
 
   public BuildProjectListener(Project project, FileEditorManager fileEditorManager) {
     myFileEditorManager = fileEditorManager;
-    CompilerManager.getInstance(project).addAfterTask(new CompileTask() {
+    ProjectBuilder.getInstance(project).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildListener() {
       @Override
-      public boolean execute(CompileContext context) {
+      protected void buildFinished() {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
             updateDesigners();
           }
         });
-        return true;
       }
     });
   }
