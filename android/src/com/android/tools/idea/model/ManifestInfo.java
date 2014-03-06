@@ -45,11 +45,125 @@ import static com.android.xml.AndroidManifest.*;
 public class ManifestInfo {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.model.ManifestInfo");
 
+  public static class ActivityAttributes {
+    @Nullable
+    private final String myIcon;
+    @Nullable
+    private final String myLabel;
+    @NotNull
+    private final String myName;
+    @Nullable
+    private final String myParentActivity;
+    @Nullable
+    private final String myTheme;
+    @Nullable
+    private final String myUiOptions;
+
+    public ActivityAttributes(@NotNull XmlTag activity, @Nullable String packageName) {
+      // Get activity name.
+      String name = activity.getAttributeValue(ATTRIBUTE_NAME, ANDROID_URI);
+      if (name == null || name.length() == 0) {
+        throw new RuntimeException("Activity name cannot be empty.");
+      }
+      int index = name.indexOf('.');
+      if (index <= 0 && packageName != null && !packageName.isEmpty()) {
+        name =  packageName + (index == -1 ? "." : "") + name;
+      }
+      myName = name;
+
+      // Get activity icon.
+      String value = activity.getAttributeValue(ATTRIBUTE_ICON, ANDROID_URI);
+      if (value != null && value.length() > 0) {
+        myIcon = value;
+      } else {
+        myIcon = null;
+      }
+
+      // Get activity label.
+      value = activity.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
+      if (value != null && value.length() > 0) {
+        myLabel = value;
+      } else {
+        myLabel = null;
+      }
+
+      // Get activity parent. Also search the meta-data for parent info.
+      value = activity.getAttributeValue(ATTRIBUTE_PARENT_ACTIVITY_NAME, ANDROID_URI);
+      if (value == null || value.length() == 0) {
+        // TODO: Not sure if meta data can be used for API Level > 16
+        XmlTag[] metaData = activity.findSubTags(NODE_METADATA);
+        for (XmlTag data : metaData) {
+          String metaDataName = data.getAttributeValue(ATTRIBUTE_NAME, ANDROID_URI);
+          if (VALUE_PARENT_ACTIVITY.equals(metaDataName)) {
+            value = data.getAttributeValue(ATTRIBUTE_VALUE, ANDROID_URI);
+            if (value != null) {
+              index = value.indexOf('.');
+              if (index <= 0 && packageName != null && !packageName.isEmpty()) {
+                value =  packageName + (index == -1 ? "." : "") + value;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (value != null && value.length() > 0) {
+        myParentActivity = value;
+      } else {
+        myParentActivity = null;
+      }
+
+      // Get activity theme.
+      value = activity.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
+      if (value != null && value.length() > 0) {
+        myTheme = value;
+      } else {
+        myTheme = null;
+      }
+
+      // Get UI options.
+      value = activity.getAttributeValue(ATTRIBUTE_UI_OPTIONS, ANDROID_URI);
+      if (value != null && value.length() > 0) {
+        myUiOptions = value;
+      } else {
+        myUiOptions = null;
+      }
+    }
+
+    @Nullable
+    public String getIcon() {
+      return myIcon;
+    }
+
+    @Nullable
+    public String getLabel() {
+      return myLabel;
+    }
+
+    public String getName() {
+      return myName;
+    }
+
+    @Nullable
+    public String getParentActivity() {
+      return myParentActivity;
+    }
+
+    @Nullable
+    public String getTheme() {
+      return myTheme;
+    }
+
+    @Nullable
+    public String getUiOptions() {
+      return myUiOptions;
+    }
+  }
+
   private final Module myModule;
   private final boolean myPreferMergedManifest;
   private String myPackage;
   private String myManifestTheme;
-  private Map<String, String> myActivityThemes;
+  private Map<String, ActivityAttributes> myActivityAttributesMap;
   private ManifestFile myManifestFile;
   private long myLastChecked;
   private String myMinSdkName;
@@ -157,7 +271,7 @@ public class ManifestInfo {
       return;
     }
 
-    myActivityThemes = new HashMap<String, String>();
+    myActivityAttributesMap = new HashMap<String, ActivityAttributes>();
     myManifestTheme = null;
     myTargetSdk = 1; // Default when not specified
     myMinSdk = 1; // Default when not specified
@@ -186,17 +300,8 @@ public class ManifestInfo {
 
         XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
         for (XmlTag activity : activities) {
-          String theme = activity.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
-          if (theme != null && theme.length() > 0) {
-            String name = activity.getAttributeValue(ATTRIBUTE_NAME, ANDROID_URI);
-            if (name != null) {
-              int index = name.indexOf('.');
-              if (index <= 0 && myPackage != null && !myPackage.isEmpty()) {
-                name =  myPackage + (index == -1 ? "." : "") + name;
-              }
-              myActivityThemes.put(name, theme);
-            }
-          }
+          ActivityAttributes attributes = new ActivityAttributes(activity, myPackage);
+          myActivityAttributesMap.put(attributes.getName(), attributes);
         }
       }
 
@@ -262,18 +367,29 @@ public class ManifestInfo {
   }
 
   /**
-   * Returns a map from activity full class names to the corresponding theme style to be
-   * used
+   * Returns a map from activity full class names to the corresponding {@link ActivityAttributes}
    *
-   * @return a map from activity fqcn to theme style
+   * @return a map from activity fqcn to ActivityAttributes
    */
   @NotNull
-  public Map<String, String> getActivityThemes() {
+  public Map<String, ActivityAttributes> getActivityAttributesMap() {
     sync();
-    if (myActivityThemes == null) {
+    if (myActivityAttributesMap == null) {
       return Collections.emptyMap();
     }
-    return myActivityThemes;
+    return myActivityAttributesMap;
+  }
+
+  /**
+   * Returns the attributes of an activity.
+   */
+  @Nullable
+  public ActivityAttributes getActivityAttributes(@NotNull String activity) {
+    int index = activity.indexOf('.');
+    if (index <= 0 && myPackage != null && !myPackage.isEmpty()) {
+      activity = myPackage + (index == -1 ? "." : "") + activity;
+    }
+    return getActivityAttributesMap().get(activity);
   }
 
   /**
