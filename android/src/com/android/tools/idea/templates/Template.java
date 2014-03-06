@@ -94,13 +94,6 @@ public class Template {
   static final int CURRENT_FORMAT = 4;
 
   /**
-   * Special marker indicating that this path refers to the special shared
-   * resource directory rather than being somewhere inside the root/ directory
-   * where all template specific resources are found
-   */
-  private static final String VALUE_TEMPLATE_DIR = "$TEMPLATEDIR";
-
-  /**
    * Directory within the template which contains the resources referenced
    * from the template.xml file
    */
@@ -292,12 +285,10 @@ public class Template {
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
 
-    // This should be handled better: perhaps declared "required packages" as part of the
-    // inputs? (It would be better if we could conditionally disable template based
-    // on availability)
-    Map<String, String> builtin = new HashMap<String, String>();
-    builtin.put("templatesRes", VALUE_TEMPLATE_DIR);
-    paramMap.put("android", builtin);
+    // Root folder of the templates
+    if (getTemplateRootFolder() != null) {
+      paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
+    }
 
     // Wizard parameters supplied by user, specific to this template
     paramMap.putAll(args);
@@ -862,11 +853,13 @@ public class Template {
 
   @NotNull
   private File getFullPath(@NotNull String fromPath) {
-    if (fromPath.startsWith(VALUE_TEMPLATE_DIR)) {
-      return new File(getTemplateRootFolder(),
-                      fromPath.substring(VALUE_TEMPLATE_DIR.length() + 1).replace('/', File.separatorChar));
+    File fromFile = new File(fromPath);
+    if (fromFile.isAbsolute()) {
+      return fromFile;
+    } else {
+      // If it's a relative file path, get the data from the template data directory
+      return new File(myTemplateRoot, DATA_ROOT + File.separator + fromPath);
     }
-    return new File(myTemplateRoot, DATA_ROOT + File.separator + fromPath);
   }
 
   @NotNull

@@ -18,19 +18,23 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.apple.eawt.Application;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -41,6 +45,11 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -62,6 +71,27 @@ public final class Projects {
   private static final Module[] NO_MODULES = new Module[0];
 
   private Projects() {
+  }
+
+  /**
+   * Opens the given project in the IDE.
+   *
+   * @param project the project to open.
+   */
+  public static void open(@NotNull Project project) {
+    ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+    ProjectUtil.updateLastProjectLocation(project.getBasePath());
+    if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
+      IdeFocusManager instance = IdeFocusManager.findInstance();
+      IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
+      if (lastFocusedFrame instanceof IdeFrameEx) {
+        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
+        if (fullScreen) {
+          project.putUserData(IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN, Boolean.TRUE);
+        }
+      }
+    }
+    projectManager.openProject(project);
   }
 
   @Nullable
