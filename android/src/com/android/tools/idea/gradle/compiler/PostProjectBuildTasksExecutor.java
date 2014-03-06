@@ -222,7 +222,8 @@ public class PostProjectBuildTasksExecutor {
       @Override
       public void execute() {
         if (myProject.isOpen()) {
-          LanguageLevel langLevel = getJavaLangLevel(myProject);
+          //noinspection TestOnlyProblems
+          LanguageLevel langLevel = getMaxJavaLangLevel();
           if (langLevel != null) {
             LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(myProject);
             if (langLevel != ext.getLanguageLevel()) {
@@ -231,24 +232,27 @@ public class PostProjectBuildTasksExecutor {
           }
         }
       }
-
-      @Nullable
-      private LanguageLevel getJavaLangLevel(@NotNull Project project) {
-        for (Module module : ModuleManager.getInstance(project).getModules()) {
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet == null) {
-            continue;
-          }
-          IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-          if (androidProject != null) {
-            LanguageLevel langLevel = androidProject.getJavaLanguageLevel();
-            if (langLevel != null) {
-              return langLevel;
-            }
-          }
-        }
-        return null;
-      }
     });
   }
-}
+
+  @VisibleForTesting
+  @Nullable
+  LanguageLevel getMaxJavaLangLevel() {
+    LanguageLevel maxLangLevel = null;
+
+    Module[] modules = ModuleManager.getInstance(myProject).getModules();
+    for (Module module : modules) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        continue;
+      }
+      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+      if (androidProject != null) {
+        LanguageLevel langLevel = androidProject.getJavaLanguageLevel();
+        if (langLevel != null && (maxLangLevel == null || maxLangLevel.compareTo(langLevel) < 0)) {
+          maxLangLevel = langLevel;
+        }
+      }
+    }
+    return maxLangLevel;
+  }}
