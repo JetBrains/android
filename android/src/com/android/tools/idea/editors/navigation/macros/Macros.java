@@ -101,6 +101,7 @@ public class Macros {
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
     findViewById = createMacro("void findViewById(int $id) { findViewById(R.id.$id);}");
+
     installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
     installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$menuItem", getMenuItemMacro);
     installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$f", launchActivityMacro);
