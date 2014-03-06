@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
@@ -30,8 +30,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -40,19 +38,14 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkTypeId;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.AsyncResult;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -67,10 +60,6 @@ import java.io.File;
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
-  private static final Key<BuildMode> PROJECT_BUILD_MODE_KEY = Key.create("android.gradle.project.build.mode");
-  private static final Key<String[]> SELECTED_MODULE_NAMES_KEY = Key.create("android.gradle.project.selected.module.names");
-  private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
-
   private static final Logger LOG = Logger.getInstance(Projects.class);
   private static final Module[] NO_MODULES = new Module[0];
 
@@ -121,11 +110,6 @@ public final class Projects {
     return javaHome != null ? new File(FileUtil.toSystemDependentName(javaHome)) : null;
   }
 
-  @Nullable
-  public static BuildMode getBuildModeFrom(@NotNull Project project) {
-    return project.getUserData(PROJECT_BUILD_MODE_KEY);
-  }
-
   public static void clean(@NotNull Project project) {
     if (!isGradleProject(project)) {
       return;
@@ -134,7 +118,7 @@ public final class Projects {
       GradleInvoker.getInstance(project).cleanProject(null);
       return;
     }
-    setProjectBuildMode(project, BuildMode.CLEAN);
+    BuildSettings.getInstance(project).setBuildMode(BuildMode.CLEAN);
     CompilerManager.getInstance(project).make(null);
   }
 
@@ -152,7 +136,7 @@ public final class Projects {
       GradleInvoker.getInstance(project).generateSources(null);
       return;
     }
-    setProjectBuildMode(project, BuildMode.SOURCE_GEN);
+    BuildSettings.getInstance(project).setBuildMode(BuildMode.SOURCE_GEN);
     CompilerManager.getInstance(project).make(null);
   }
 
@@ -234,44 +218,6 @@ public final class Projects {
     }
   }
 
-  public static void notifyProjectSyncCompleted(@NotNull Project project, boolean success) {
-    if (isGradleProject(project)) {
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      for (Module module : moduleManager.getModules()) {
-        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-        if (androidFacet != null) {
-          androidFacet.projectSyncCompleted(success);
-        }
-      }
-    }
-  }
-
-  public static void removeBuildDataFrom(@NotNull Project project) {
-    setModulesToBuild(project, null);
-    setProjectBuildMode(project, null);
-  }
-
-  public static void setProjectBuildMode(@NotNull Project project, @Nullable BuildMode action) {
-    project.putUserData(PROJECT_BUILD_MODE_KEY, action);
-  }
-
-  public static void setModulesToBuild(@NotNull Project project, @Nullable Module[] modules) {
-    String[] moduleNames = null;
-    if (modules != null) {
-      int moduleCount = modules.length;
-      moduleNames = new String[moduleCount];
-      for (int i = 0; i < moduleCount; i++) {
-        moduleNames[i] = modules[i].getName();
-      }
-    }
-    project.putUserData(SELECTED_MODULE_NAMES_KEY, moduleNames);
-  }
-
-  @Nullable
-  public static String[] getModulesToBuildNames(@NotNull Project project) {
-    return project.getUserData(SELECTED_MODULE_NAMES_KEY);
-  }
-
   /**
    * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
    * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
@@ -309,64 +255,5 @@ public final class Projects {
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.
     return Objects.equal(module.getName(), project.getName()) && AndroidGradleFacet.getInstance(module) == null;
-  }
-
-  /**
-   * Refreshes, asynchronously, the cached view of the given project's contents.
-   *
-   * @param project the given project.
-   */
-  public static void refresh(@NotNull Project project) {
-    String projectPath = FileUtil.toSystemDependentName(project.getBasePath());
-    VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(projectPath);
-    if (rootDir != null && rootDir.isDirectory()) {
-      rootDir.refresh(true, true);
-    }
-  }
-
-  public static void updateJavaLangLevelAfterBuild(@NotNull Project project) {
-    project.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, true);
-  }
-
-  public static void syncJavaLangLevel(@NotNull final Project project) {
-    Boolean updateJavaLangLevel = project.getUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD);
-    if (updateJavaLangLevel == null || !updateJavaLangLevel.booleanValue()) {
-      return;
-    }
-
-    project.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, null);
-
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
-      @Override
-      public void execute() {
-        if (project.isOpen() && isGradleProject(project)) {
-          LanguageLevel langLevel = getJavaLangLevel(project);
-          if (langLevel != null) {
-            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(project);
-            if (langLevel != ext.getLanguageLevel()) {
-              ext.setLanguageLevel(langLevel);
-            }
-          }
-        }
-      }
-
-      @Nullable
-      private LanguageLevel getJavaLangLevel(@NotNull Project project) {
-        for (Module module : ModuleManager.getInstance(project).getModules()) {
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet == null) {
-            continue;
-          }
-          IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-          if (androidProject != null) {
-            LanguageLevel langLevel = androidProject.getJavaLanguageLevel();
-            if (langLevel != null) {
-              return langLevel;
-            }
-          }
-        }
-        return null;
-      }
-    });
   }
 }

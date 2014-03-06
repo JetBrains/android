@@ -17,17 +17,15 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +43,9 @@ public class GradleInvokerTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myModuleGradlePath = SdkConstants.GRADLE_PATH_SEPARATOR + myModule.getName();
+
     myInvoker = new GradleInvoker(myProject);
+    myInvoker.removeAllTaskExecutionListeners();
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
@@ -55,7 +55,8 @@ public class GradleInvokerTest extends IdeaTestCase {
         try {
           model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
           model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
-        } finally {
+        }
+        finally {
           model.commit();
         }
         AndroidGradleFacet facet = AndroidGradleFacet.getInstance(myModule);
@@ -66,134 +67,108 @@ public class GradleInvokerTest extends IdeaTestCase {
         assertNotNull(myAndroidFacet);
       }
     });
-
   }
 
   public void testCleanProject() throws Exception {
-    myInvoker.cleanProject(new GradleTaskExecutionListener() {
+    myInvoker.addTaskExecutionListener(new GradleInvoker.TasksExecutionListener() {
       @Override
       public void executionStarted(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
         assertEquals("clean", tasks.get(0));
-        assertEquals(BuildMode.CLEAN, Projects.getBuildModeFrom(myProject));
+        assertEquals(BuildMode.CLEAN, getBuildMode());
       }
 
       @Override
-      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
-        assertNull(Projects.getBuildModeFrom(myProject));
+      public void executionEnded(@NotNull GradleExecutionResult result) {
       }
     });
+    myInvoker.cleanProject(null);
   }
 
   public void testGenerateSources() throws Exception {
     final String taskName = "sourceGen";
     myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = taskName;
 
-    myInvoker.generateSources(new GradleTaskExecutionListener() {
+    myInvoker.addTaskExecutionListener(new GradleInvoker.TasksExecutionListener() {
       @Override
       public void executionStarted(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
         assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName, tasks.get(0));
-        assertEquals(BuildMode.SOURCE_GEN, Projects.getBuildModeFrom(myProject));
+        assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
 
       @Override
-      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
-        assertNull(Projects.getBuildModeFrom(myProject));
+      public void executionEnded(@NotNull GradleExecutionResult result) {
       }
     });
+    myInvoker.generateSources(null);
   }
 
   public void testCompileJava() throws Exception {
     final String taskName = "compileJava";
     myAndroidFacet.getProperties().COMPILE_JAVA_TASK_NAME = taskName;
 
-    myInvoker.compileJava(new MyDataContext(), new GradleTaskExecutionListener() {
+    myInvoker.addTaskExecutionListener(new GradleInvoker.TasksExecutionListener() {
       @Override
       public void executionStarted(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
         assertEquals(qualifiedTaskName(taskName), tasks.get(0));
-        assertEquals(BuildMode.COMPILE_JAVA, Projects.getBuildModeFrom(myProject));
+        assertEquals(BuildMode.COMPILE_JAVA, getBuildMode());
       }
 
       @Override
-      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
-        assertNull(Projects.getBuildModeFrom(myProject));
+      public void executionEnded(@NotNull GradleExecutionResult result) {
       }
     });
+    myInvoker.compileJava(new Module[] { myModule }, null);
   }
 
   public void testMake() throws Exception {
     final String taskName = "assemble";
     myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = taskName;
 
-    myInvoker.make(new GradleTaskExecutionListener() {
+    myInvoker.addTaskExecutionListener(new GradleInvoker.TasksExecutionListener() {
       @Override
       public void executionStarted(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
         assertEquals(qualifiedTaskName(taskName), tasks.get(0));
-        assertEquals(BuildMode.MAKE, Projects.getBuildModeFrom(myProject));
+        assertEquals(BuildMode.MAKE, getBuildMode());
       }
 
       @Override
-      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
-        assertNull(Projects.getBuildModeFrom(myProject));
+      public void executionEnded(@NotNull GradleExecutionResult result) {
       }
-    }, null);
-  }
-
-  public void testMakeWithDataContext() throws Exception {
-    final String taskName = "assemble";
-    myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = taskName;
-
-    myInvoker.make(new MyDataContext(), new GradleTaskExecutionListener() {
-      @Override
-      public void executionStarted(@NotNull List<String> tasks) {
-        assertEquals(1, tasks.size());
-        assertEquals(qualifiedTaskName(taskName), tasks.get(0));
-        assertEquals(BuildMode.MAKE, Projects.getBuildModeFrom(myProject));
-      }
-
-      @Override
-      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
-        assertNull(Projects.getBuildModeFrom(myProject));
-      }
-    }, null);
+    });
+    myInvoker.make(new Module[] { myModule }, GradleBuilds.TestCompileType.NONE, null);
   }
 
   public void testRebuild() throws Exception {
     final String taskName = "assemble";
     myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = taskName;
 
-    myInvoker.rebuild(new GradleTaskExecutionListener() {
+    myInvoker.addTaskExecutionListener(new GradleInvoker.TasksExecutionListener() {
       @Override
       public void executionStarted(@NotNull List<String> tasks) {
         assertEquals(2, tasks.size());
         assertEquals("clean", tasks.get(0));
         assertEquals(qualifiedTaskName(taskName), tasks.get(1));
-        assertEquals(BuildMode.REBUILD, Projects.getBuildModeFrom(myProject));
+        assertEquals(BuildMode.REBUILD, getBuildMode());
       }
 
       @Override
-      public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
-        assertNull(Projects.getBuildModeFrom(myProject));
+      public void executionEnded(@NotNull GradleExecutionResult result) {
       }
     });
+    myInvoker.rebuild(null);
+  }
+
+  @Nullable
+  private BuildMode getBuildMode() {
+    return BuildSettings.getInstance(myProject).getBuildMode();
   }
 
   @NotNull
   private String qualifiedTaskName(@NotNull String taskName) {
     return myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
-  }
-
-  private class MyDataContext implements DataContext {
-    @Nullable
-    @Override
-    public Object getData(@NonNls String dataId) {
-      if (LangDataKeys.MODULE_CONTEXT_ARRAY.getName().equals(dataId)) {
-        return new Module[]{myModule};
-      }
-      return null;
-    }
   }
 }
