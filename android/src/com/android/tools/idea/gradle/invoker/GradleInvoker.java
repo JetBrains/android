@@ -74,7 +74,11 @@ public class GradleInvoker {
 
   public void cleanProject() {
     setProjectBuildMode(BuildMode.CLEAN);
-    List<String> tasks = Lists.newArrayList(GradleBuilds.CLEAN_TASK_NAME);
+
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    // "Clean" also generates sources.
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, GradleBuilds.TestCompileType.NONE);
+    tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     executeTasks(tasks);
   }
 
