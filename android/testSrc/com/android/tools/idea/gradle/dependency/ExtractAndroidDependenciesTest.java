@@ -78,9 +78,10 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
 
   public void testExtractFromWithLibraryProject() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
-    File libJar = new File(rootDirPath, "library.aar/library.jar");
+    File bundle = new File(rootDirPath, "bundle.aar");
+    File libJar = new File(rootDirPath, "bundle_aar" + File.separatorChar + "library.jar");
     String gradlePath = "abc:xyz:library";
-    AndroidLibraryStub library = new AndroidLibraryStub(libJar, gradlePath);
+    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar, gradlePath);
 
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
@@ -97,7 +98,7 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
 
     LibraryDependency backup = dependency.getBackupDependency();
     assertNotNull(backup);
-    assertEquals("library.aar", backup.getName());
+    assertEquals("bundle", backup.getName());
     assertEquals(DependencyScope.COMPILE, backup.getScope());
 
     Collection<String> binaryPaths = backup.getPaths(LibraryDependency.PathType.BINARY);
@@ -107,8 +108,9 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
 
   public void testExtractFromWithLibraryAar() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
-    File libJar = new File(rootDirPath, "library.aar/library.jar");
-    AndroidLibraryStub library = new AndroidLibraryStub(libJar);
+    File bundle = new File(rootDirPath, "bundle.aar");
+    File libJar = new File(rootDirPath, "bundle_aar" + File.separatorChar + "library.jar");
+    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
 
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
@@ -118,19 +120,20 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
 
     LibraryDependency dependency = (LibraryDependency)ContainerUtil.getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals("library.aar", dependency.getName());
+    assertEquals("bundle", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(DependencyScope.COMPILE, dependency.getScope());
 
     Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-    assertEquals(1, binaryPaths.size());
-    assertEquals(libJar.getPath(), ContainerUtil.getFirstItem(binaryPaths));
+    assertEquals(2, binaryPaths.size());
+    assertTrue(binaryPaths.contains(libJar.getPath()));
   }
 
   public void testExtractFromWithLibraryLocalJar() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
-    File libJar = new File(rootDirPath, "library.aar/library.jar");
-    AndroidLibraryStub library = new AndroidLibraryStub(libJar);
+    File bundle = new File(rootDirPath, "bundle.aar");
+    File libJar = new File(rootDirPath, "bundle_aar" + File.separatorChar + "library.jar");
+    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
 
     File localJar = new File(rootDirPath, "local.jar");
     library.addLocalJar(localJar);
