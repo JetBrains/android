@@ -15,44 +15,26 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.NewProjectImportCallback;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.ide.startup.StartupManagerEx;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.java.LanguageLevel;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.awt.*;
 import java.io.File;
@@ -194,7 +176,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       if (version != null) {
         initialLanguageLevel = LanguageLevel.parse(version.toString());
       }
-      projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
+      projectImporter.importProject(projectName, projectRoot, new NewProjectImportCallback() {
         @Override
         public void projectImported(@NotNull final Project project) {
           // Open files -- but wait until the Android facets are available, otherwise for example
@@ -215,65 +197,6 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
         private boolean openTemplateFiles(Project project) {
           return TemplateUtils.openEditors(project, wizardState.myTemplate.getFilesToOpen(), true);
-        }
-
-        @Override
-        public void importFailed(@NotNull final Project project, @NotNull final String errorMessage) {
-          final Application application = ApplicationManager.getApplication();
-          application.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              application.runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  ModuleManager moduleManager = ModuleManager.getInstance(project);
-
-                  File projectRootDir = new File(project.getBasePath());
-                  VirtualFile contentRoot = VfsUtil.findFileByIoFile(projectRootDir, true);
-
-                  if (contentRoot != null) {
-                    File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
-                    Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
-
-                    // This prevents the balloon "Unsupported Modules detected".
-                    module.setOption(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY, GradleConstants.SYSTEM_ID.getId());
-
-                    ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
-                    model.addContentEntry(contentRoot);
-                    model.commit();
-
-                    FacetManager facetManager = FacetManager.getInstance(module);
-                    ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-                    try {
-                      // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
-                      AndroidGradleFacet gradleFacet =
-                        facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-                      facetModel.addFacet(gradleFacet);
-                      gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR;
-
-                      // Add "android" facet to avoid the balloon "Android Framework detected".
-                      AndroidFacet androidFacet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-                      facetModel.addFacet(androidFacet);
-
-                      // This is what actually stops Studio from showing the balloon.
-                      androidFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-                    } finally {
-                      facetModel.commit();
-                    }
-                  }
-                }
-              });
-
-              // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
-              Projects.open(project);
-
-              // Activate "Project View" so users don't get an empty window.
-              ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW);
-              if (window != null) {
-                window.activate(null, false);
-              }
-            }
-          });
         }
       }, project, initialLanguageLevel);
     }
