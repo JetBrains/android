@@ -57,7 +57,8 @@ public final class LocalProperties {
   }
 
   /**
-   * Creates a new {@link LocalProperties}. This constructor creates a new file at the given path if a local.properties file does not exist.
+   * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method
+   * {@link #save()} is invoked.
    *
    * @param project the Android project.
    * @throws IOException if an I/O error occurs while reading the file.
@@ -68,7 +69,8 @@ public final class LocalProperties {
   }
 
   /**
-   * Creates a new {@link LocalProperties}. This constructor creates a new file at the given path if a local.properties file does not exist.
+   * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method
+   * {@link #save()} is invoked.
    *
    * @param projectDirPath the path of the Android project's root directory.
    * @throws IOException if an I/O error occurs while reading the file.
@@ -91,6 +93,7 @@ public final class LocalProperties {
     Properties properties = new Properties();
     Reader reader = null;
     try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
       reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(filePath)), Charsets.UTF_8);
       properties.load(reader);
     } finally {
@@ -131,10 +134,16 @@ public final class LocalProperties {
     return !Strings.isNullOrEmpty(property);
   }
 
+  /**
+   * Saves any changes to the underlying local.properties file.
+   *
+   * @throws IOException
+   */
   public void save() throws IOException {
     FileUtilRt.createParentDirs(myFilePath);
     FileOutputStream out = null;
     try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
       out = new FileOutputStream(myFilePath);
       // Note that we don't write the properties files in UTF-8; this will *not* write the
       // files with the default platform encoding; instead, it will write it using ISO-8859-1 and
