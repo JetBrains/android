@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -29,7 +30,7 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 
 /**
- * Tests for {@link CompilerOutputPathModuleCustomizer}.
+ * Tests for {@link com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer}.
  */
 public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
   private AndroidProjectStub androidProject;
