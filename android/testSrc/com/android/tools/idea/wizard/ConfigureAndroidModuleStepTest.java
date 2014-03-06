@@ -231,30 +231,42 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_PROJECT_LOCATION, relative.getPath());
     assertValidationError("The project location can not be at the filesystem root");
 
+    // Set the file separator so tests are repeatable on backwards filesystems
     File plainFile = new File(getProject().getBasePath(), "file.txt");
     assertTrue(plainFile.createNewFile());
     File plainFileRooted = new File(plainFile, "fooDir");
     assertFalse(plainFileRooted.exists());
+
     myState.put(ATTR_PROJECT_LOCATION, plainFileRooted.getPath());
     assertValidationError("The project location's parent directory must be a directory, not a plain file");
 
-    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My\\ApplicationProject");
-    assertValidationError("Illegal character in project location path: '\\' in filename: My\\ApplicationProject");
+    String basePath = getProject().getBasePath() + File.separator;
 
-    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My>ApplicationProject");
+    if (File.separatorChar == '/') {
+      myState.put(ATTR_PROJECT_LOCATION, basePath + "My\\ApplicationProject");
+      assertValidationError("Your project location contains incorrect slashes ('\\' vs '/')");
+    } else {
+      myState.put(ATTR_PROJECT_LOCATION, basePath + "My/ApplicationProject");
+      assertValidationError("Your project location contains incorrect slashes ('\\' vs '/')");
+    }
+
+    myState.put(ATTR_PROJECT_LOCATION, basePath + "My>ApplicationProject");
     assertValidationError("Illegal character in project location path: '>' in filename: My>ApplicationProject");
 
-    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My?ApplicationProject");
+    myState.put(ATTR_PROJECT_LOCATION, basePath + "My?ApplicationProject");
     assertValidationError("Illegal character in project location path: '?' in filename: My?ApplicationProject");
 
-    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/MyApplication*Project");
+    myState.put(ATTR_PROJECT_LOCATION, basePath + "MyApplication*Project");
     assertValidationError("Illegal character in project location path: '*' in filename: MyApplication*Project");
 
-    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/MyApplicationPro|ject");
+    myState.put(ATTR_PROJECT_LOCATION, basePath + "MyApplicationPro|ject");
     assertValidationError("Illegal character in project location path: '|' in filename: MyApplicationPro|ject");
 
-    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My Application Project");
+    myState.put(ATTR_PROJECT_LOCATION, basePath + "My Application Project");
     assertValidationWarning("Your project location contains whitespace. This can cause problems on some platforms and is not recommended.");
+
+    myState.put(ATTR_PROJECT_LOCATION, basePath + "My \u2603 Project");
+    assertValidationWarning("Your project location contains non-ASCII characters. This can cause problems on Windows. Proceed with caution.");
 
     resetValues();
 
