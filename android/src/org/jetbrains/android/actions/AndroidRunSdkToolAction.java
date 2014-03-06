@@ -55,7 +55,7 @@ public abstract class AndroidRunSdkToolAction extends AnAction {
     for (AndroidFacet facet : facets) {
       AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
       if (sdkData != null) {
-        sdkSet.add(sdkData.getLocation());
+        sdkSet.add(sdkData.getPath());
       }
     }
     if (sdkSet.size() == 0) {

@@ -133,7 +133,7 @@ public class AndroidPackagingCompiler implements PackagingCompiler {
                                  AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
               continue;
             }
-            String sdkPath = platform.getSdkData().getLocation();
+            String sdkPath = platform.getSdkData().getPath();
             String outputPath = AndroidRootUtil.getApkPath(facet);
             if (outputPath == null) {
               context.addMessage(CompilerMessageCategory.ERROR,

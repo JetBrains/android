@@ -2,7 +2,7 @@ package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -347,7 +347,7 @@ public class AndroidJpsUtil {
   }
 
   @Nullable
-  public static Pair<IAndroidTarget, SdkManager> getAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
+  public static Pair<IAndroidTarget, LocalSdk> getAndroidTarget(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
                                                                   @Nullable CompileContext context,
                                                                   String builderName) {
     JpsAndroidSdkProperties sdkProperties = sdk.getSdkProperties().getData();
@@ -360,18 +360,9 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final SdkManager manager;
-    try {
-      manager = AndroidBuildDataCache.getInstance().getSdkManager(sdk.getHomePath());
-    }
-    catch (AndroidBuildDataCache.ComputationException e) {
-      if (context != null) {
-        context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR, e.getMessage()));
-      }
-      return null;
-    }
+    final LocalSdk localSdk = AndroidBuildDataCache.getInstance().getSdk(new File(sdk.getHomePath()));
 
-    final IAndroidTarget target = manager.getTargetFromHashString(targetHashString);
+    final IAndroidTarget target = localSdk.getTargetFromHashString(targetHashString);
     if (target == null) {
       if (context != null) {
         context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
@@ -380,7 +371,7 @@ public class AndroidJpsUtil {
       }
       return null;
     }
-    return Pair.create(target, manager);
+    return Pair.create(target, localSdk);
   }
 
   @Nullable
@@ -412,7 +403,7 @@ public class AndroidJpsUtil {
       context.processMessage(new CompilerMessage(builderName, exception));
     }
   }
-  
+
   public static ModuleLevelBuilder.ExitCode handleException(@NotNull CompileContext context,
                                                             @NotNull Exception e,
                                                             @NotNull String builderName,
@@ -444,7 +435,7 @@ public class AndroidJpsUtil {
       return null;
     }
 
-    final Pair<IAndroidTarget, SdkManager> pair = getAndroidTarget(sdk, context, builderName);
+    final Pair<IAndroidTarget, LocalSdk> pair = getAndroidTarget(sdk, context, builderName);
     if (pair == null) {
       if (context != null) {
         context.processMessage(new CompilerMessage(builderName, BuildMessage.Kind.ERROR,
