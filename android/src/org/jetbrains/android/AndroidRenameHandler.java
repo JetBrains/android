@@ -4,10 +4,10 @@ import com.android.annotations.Nullable;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -16,6 +16,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.PsiElementRenameHandler;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -56,7 +57,8 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (project == null) {
       return false;
     }
-    return isPackageAttributeInManifest(project, editor, file);
+    final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(dataContext);
+    return element != null && isPackageAttributeInManifest(project, element);
   }
 
   @Override
@@ -75,7 +77,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       performValueResourceRenaming(project, editor, dataContext, tag);
     }
     else {
-      performApplicationPackageRenaming(project, editor, file, dataContext);
+      performApplicationPackageRenaming(project, editor, dataContext);
     }
   }
 
@@ -112,25 +114,22 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     return "Rename Android value resource";
   }
 
-  private static boolean isPackageAttributeInManifest(@NotNull Project project,
-                                                      @NotNull Editor editor,
-                                                      @NotNull PsiFile psiFile) {
-    final VirtualFile vFile = psiFile.getVirtualFile();
+  static boolean isPackageAttributeInManifest(@NotNull Project project, @Nullable PsiElement element) {
+    final PsiFile psiFile = element.getContainingFile();
 
-    if (vFile == null) {
+    if (!(psiFile instanceof XmlFile)) {
       return false;
     }
     final AndroidFacet facet = AndroidFacet.getInstance(psiFile);
 
-    if (facet == null || !vFile.equals(AndroidRootUtil.getManifestFile(facet))) {
+    if (facet == null) {
       return false;
     }
-    PsiElement element = psiFile.findElementAt(editor.getCaretModel().getOffset());
-    element = element != null ? element.getParent() : null;
-    return isPackageAttributeInManifest(project, element);
-  }
+    final VirtualFile vFile = psiFile.getVirtualFile();
 
-  static boolean isPackageAttributeInManifest(@NotNull Project project, @Nullable PsiElement element) {
+    if (vFile == null || !vFile.equals(AndroidRootUtil.getManifestFile(facet))) {
+      return false;
+    }
     if (!(element instanceof XmlAttributeValue)) {
       return false;
     }
@@ -150,19 +149,22 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
 
   private static void performApplicationPackageRenaming(@NotNull Project project,
                                                         @NotNull Editor editor,
-                                                        @NotNull PsiFile file,
                                                         @NotNull DataContext context) {
-    PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
-    element = element != null ? element.getParent() : null;
+    PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
 
     if (!(element instanceof XmlAttributeValue)) {
+      return;
+    }
+    final Module module = ModuleUtilCore.findModuleForPsiElement(element);
+
+    if (module == null) {
       return;
     }
     showRenameDialog(context, new RenameDialog(project, element, null, editor) {
       @NotNull
       @Override
       protected String getLabelText() {
-        return "Rename Android application package to:";
+        return "Rename Android application package of module '" + module.getName() + "' to:";
       }
 
       @Override

@@ -53,8 +53,7 @@ public class AndroidSafeDeleteTestTest extends AndroidTestCase {
       SafeDeleteHandler.invoke(getProject(), new PsiElement[]{resFile}, myModule, true, null);
     }
     catch (BaseRefactoringProcessor.ConflictsInTestsException e) {
-      assertEquals("field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete.\n" +
-                   "Of those 0 usages are in strings, comments, or non-code files.", e.getMessage());
+      assertEquals("field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete.", e.getMessage());
     }
   }
 }
