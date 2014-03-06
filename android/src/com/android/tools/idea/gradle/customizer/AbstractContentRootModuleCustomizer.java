@@ -39,8 +39,6 @@ import java.util.Collection;
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
   private static final Logger LOG = Logger.getInstance(AbstractContentRootModuleCustomizer.class);
 
-  @NonNls public static final String BUILD_DIR = "build";
-
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
     if (model == null) {
@@ -89,9 +87,12 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
     }
   }
 
-  protected void addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File dirPath) {
-    String url = pathToUrl(dirPath);
-    contentEntry.addExcludeFolder(url);
+  protected boolean addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File dirPath) {
+    if (!isPathInContentEntry(dirPath, contentEntry)) {
+      return false;
+    }
+    contentEntry.addExcludeFolder(pathToUrl(dirPath));
+    return true;
   }
 
   @Nullable
