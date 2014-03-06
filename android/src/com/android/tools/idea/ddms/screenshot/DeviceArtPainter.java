@@ -316,10 +316,44 @@ public class DeviceArtPainter {
     return scaledImage;
   }
 
+  @Nullable
+  public Rectangle computeBounds(int imageWidth,
+                                 int imageHeight,
+                                 @NotNull Device device,
+                                 @NotNull ScreenOrientation orientation,
+                                 double scale) {
+    DeviceData data = getDeviceData(device);
+    int scaledHeight = (int)(scale * imageHeight);
+    if (data == null || scaledHeight == 0) {
+      return null;
+    }
+
+    // Tweak the scale down slightly; without this, rounding errors can lead to the frame image
+    // being one or two pixels larger than the screen, such that the underlying theme background
+    // shines through, which is quite visible on a black phone frame with a black navigation bar
+    // for example
+    scale = (scaledHeight - 1) / (double)imageHeight;
+
+    int scaledWidth = (int)(imageWidth * scale);
+    boolean portrait = orientation != ScreenOrientation.LANDSCAPE;
+    FrameData frame = portrait ? data.getPortraitData(scaledHeight) : data.getLandscapeData(scaledHeight);
+    int framedWidth = (int)(imageWidth * scale * frame.getFrameWidth() / (double) frame.getScreenWidth());
+    int framedHeight = (int)(imageHeight * scale * frame.getFrameHeight() / (double) frame.getScreenHeight());
+    if (framedWidth <= 0 || framedHeight <= 0) {
+      return null;
+    }
+
+    double downScale = framedHeight / (double)frame.getFrameHeight();
+    int screenX = (int)(downScale * frame.getScreenX());
+    int screenY = (int)(downScale * frame.getScreenY());
+
+    return new Rectangle(screenX, screenY, scaledWidth, scaledHeight);
+  }
+
   @NotNull
   private static BufferedImage stretchImage(BufferedImage image, int width, int height) {
     @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
-      BufferedImage composite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage composite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = composite.createGraphics();
     g.setColor(new Color(0, 0, 0, 0));
     g.fillRect(0, 0, composite.getWidth(), composite.getHeight());

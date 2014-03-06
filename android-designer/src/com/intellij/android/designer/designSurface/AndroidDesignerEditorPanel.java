@@ -57,6 +57,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -68,6 +69,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.ThrowableConsumer;
 import com.intellij.util.ThrowableRunnable;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -1136,7 +1138,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         setZoom(myZoom / ZOOM_FACTOR);
         break;
       case ACTUAL:
-        setZoom(1);
+        if (SystemInfo.isMac && UIUtil.isRetina()) {
+          setZoom(0.5);
+        } else {
+          setZoom(1);
+        }
         break;
       case FIT_INTO:
       case FIT: {

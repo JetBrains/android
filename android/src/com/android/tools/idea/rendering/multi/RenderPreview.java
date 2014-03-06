@@ -627,13 +627,18 @@ public class RenderPreview implements Disposable {
       return;
     }
 
+    Project project = myConfiguration.getModule().getProject();
+    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
+      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+
+    if (UIUtil.isRetina() && ImageUtils.supportsRetina() && settings.isRetina() && createRetinaThumbnail()) {
+      return;
+    }
+
     int shadowSize = 0;
     myThumbnailHasFrame = false;
     boolean showFrame = myShowFrame;
 
-    Project project = myConfiguration.getModule().getProject();
-    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
     if (showFrame && settings.isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
@@ -673,12 +678,85 @@ public class RenderPreview implements Disposable {
     }
   }
 
+  private boolean createRetinaThumbnail() {
+    BufferedImage image = myFullImage;
+    if (image == null) {
+      myThumbnail = null;
+      return true;
+    }
+
+    myThumbnailHasFrame = false;
+    boolean showFrame = myShowFrame;
+
+    Project project = myConfiguration.getModule().getProject();
+    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
+      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    if (showFrame && settings.isShowDeviceFrames()) {
+      DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+      Device device = myConfiguration.getDevice();
+      boolean showEffects = settings.isShowEffects();
+      State deviceState = myConfiguration.getDeviceState();
+      if (device != null && deviceState != null) {
+        double scale = getLayoutWidth() / (double)image.getWidth();
+        ScreenOrientation orientation = deviceState.getOrientation();
+        double frameScale = framePainter.getFrameMaxOverhead(device, orientation);
+        scale /= frameScale;
+        if (myViewBounds == null) {
+          myViewBounds = new Rectangle();
+        }
+        image = framePainter.createFrame(image, device, orientation, showEffects, 2 * scale, myViewBounds);
+        myViewBounds.x /= 2;
+        myViewBounds.y /= 2;
+        myViewBounds.width /= 2;
+        myViewBounds.height /= 2;
+
+        myThumbnailHasFrame = true;
+      } else {
+        double scale = getLayoutWidth() / (double)image.getWidth();
+        image = ImageUtils.scale(image, 2 * scale, 2 * scale, 0, 0);
+      }
+
+      image = ImageUtils.convertToRetina(image);
+      if (image == null) {
+        return false;
+      }
+    } else {
+      boolean drawShadows = !myRenderContext.hasAlphaChannel();
+      double scale = getLayoutWidth() / (double)image.getWidth();
+      if (scale < 1.0) {
+        image = ImageUtils.scale(image, 2 * scale, 2 * scale);
+
+        image = ImageUtils.convertToRetina(image);
+        if (image == null) {
+          return false;
+        }
+
+        myLayoutWidth = image.getWidth();
+        myLayoutHeight = image.getHeight();
+
+        if (drawShadows) {
+          image = ShadowPainter.createSmallRectangularDropShadow(image);
+        }
+        myThumbnail = image;
+        return true;
+      }
+    }
+
+    myThumbnail = image;
+    myLayoutWidth = image.getWidth();
+    myLayoutHeight = image.getHeight();
+
+    return true;
+  }
+
   void createErrorThumbnail() {
     int width = getLayoutWidth();
     int height = getLayoutHeight();
+    @SuppressWarnings("UndesirableClassUsage")
     BufferedImage image = new BufferedImage(width + SMALL_SHADOW_SIZE, height + SMALL_SHADOW_SIZE, BufferedImage.TYPE_INT_ARGB);
 
     Graphics2D g = image.createGraphics();
+    //noinspection UseJBColor
     g.setColor(new Color(0xfffbfcc6));
     g.fillRect(0, 0, width, height);
 
@@ -838,7 +916,7 @@ public class RenderPreview implements Disposable {
     int height = getHeight();
     BufferedImage thumbnail = getThumbnail();
     if (thumbnail != null && myError == null) {
-      gc.drawImage(thumbnail, x, y, null);
+      UIUtil.drawImage(gc, thumbnail, x, y, null);
 
       if (myActive) {
         // TODO: Can I figure out the actual frame bounds again?
@@ -862,7 +940,7 @@ public class RenderPreview implements Disposable {
     }
     else if (myError != null && !myError.isEmpty()) {
       if (thumbnail != null) {
-        gc.drawImage(thumbnail, x, y, null);
+        UIUtil.drawImage(gc, thumbnail, x, y, null);
       }
       else {
         gc.setColor(Color.DARK_GRAY);
@@ -1198,7 +1276,9 @@ public class RenderPreview implements Disposable {
       myLayoutHeight = (int)(myFullHeight * scale);
     }
 
-    if (myThumbnail != null && (Math.abs(myLayoutWidth - myThumbnail.getWidth()) > 1)) {
+    if (myThumbnail != null && (Math.abs(myLayoutWidth - myThumbnail.getWidth() /
+                                                      // No, only for scalable image!
+                                                        /* (ImageUtils.isRetinaImage(myThumbnail) ? 2 :*/ 1/*)*/) > 1)) {
       // Note that we null out myThumbnail, we *don't* call disposeThumbnail because we
       // want to reuse the large rendering and just scale it down again
       myThumbnail = null;
