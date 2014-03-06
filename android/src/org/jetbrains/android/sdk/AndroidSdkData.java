@@ -60,9 +60,7 @@ public class AndroidSdkData {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkData");
 
   private static volatile boolean myDdmLibInitialized = false;
-
   private static volatile boolean myAdbCrashed = false;
-
   private static final Object myDdmsLock = new Object();
 
   private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDatas =
@@ -73,8 +71,6 @@ public class AndroidSdkData {
 
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
-
-  private PsiClass myInternalRClass;
 
   private static final List<SoftReference<AndroidSdkData>> mInstances = Lists.newArrayList();
 
@@ -413,14 +409,6 @@ public class AndroidSdkData {
       myTargetDatas.put(target, new SoftReference<AndroidTargetData>(targetData));
     }
     return targetData;
-  }
-
-  public PsiClass getInternalRClass() {
-    return myInternalRClass;
-  }
-
-  public void setInternalRClass(PsiClass internalRClass) {
-    myInternalRClass = internalRClass;
   }
 
   private static class MyInitializeDdmlibTask extends Task.Modal {
