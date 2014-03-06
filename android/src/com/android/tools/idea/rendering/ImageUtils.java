@@ -109,16 +109,28 @@ public class ImageUtils {
 
   @Nullable
   public static BufferedImage convertToRetina(@NotNull BufferedImage image) {
-    @SuppressWarnings("ConstantConditions")
-    Image retina = RetinaImage.createFrom(image, 2, null);
-
-    if (!(retina instanceof BufferedImage)) {
-      // Don't try this again
-      ourRetinaCapable = false;
+    final int scale = 2;
+    if (image.getWidth() < scale || image.getHeight() < scale) {
+      // Can't convert to Retina; see issue 65676
       return null;
     }
 
-    return (BufferedImage)retina;
+    try {
+      @SuppressWarnings("ConstantConditions")
+      Image retina = RetinaImage.createFrom(image, scale, null);
+
+      if (!(retina instanceof BufferedImage)) {
+        // Don't try this again
+        ourRetinaCapable = false;
+        return null;
+      }
+
+      return (BufferedImage)retina;
+    } catch (Throwable t) {
+      // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
+      ourRetinaCapable = false;
+      return null;
+    }
   }
 
   public static void drawDipImage(Graphics g, Image image,
