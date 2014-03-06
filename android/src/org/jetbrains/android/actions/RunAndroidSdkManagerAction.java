@@ -20,17 +20,19 @@ import com.android.annotations.Nullable;
 import com.android.sdklib.SdkManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.io.File;
 
 /**
@@ -38,6 +40,22 @@ import java.io.File;
  */
 public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidSdkManagerAction");
+
+  public static void updateInWelcomePage(@NotNull Component component) {
+    if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectManager.getInstance().getOpenProjects().length == 0) {
+      // If there are no open projects, the "SDK Manager" configurable was invoked from the "Welcome Page". We need to update the
+      // "SDK Manager" action to enable it.
+      ActionManager actionManager = ActionManager.getInstance();
+      AnAction sdkManagerAction = actionManager.getAction("WelcomeScreen.RunAndroidSdkManager");
+      if (sdkManagerAction instanceof RunAndroidSdkManagerAction) {
+        Presentation presentation = sdkManagerAction.getTemplatePresentation();
+        DataContext dataContext = DataManager.getInstance().getDataContext(component);
+        //noinspection ConstantConditions
+        AnActionEvent event = new AnActionEvent(null, dataContext, ActionPlaces.WELCOME_SCREEN, presentation, actionManager, 0);
+        sdkManagerAction.update(event);
+      }
+    }
+  }
 
   public RunAndroidSdkManagerAction() {
     super(getName());
@@ -65,7 +83,8 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
       if (sdkman != null) {
         doRunTool(null, sdkman.getLocation());
       }
-    } else {
+    }
+    else {
       // Invoked from a project context
       super.actionPerformed(e);
     }
@@ -98,13 +117,15 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
             try {
               p.start();
               p.setText("Starting SDK Manager...");
-              for (double d = 0; d < 1; d += 1.0/20) {
+              for (double d = 0; d < 1; d += 1.0 / 20) {
                 p.setFraction(d);
                 //noinspection BusyWait
                 Thread.sleep(100);
               }
-            } catch (InterruptedException ignore) {
-            } finally {
+            }
+            catch (InterruptedException ignore) {
+            }
+            finally {
               p.stop();
             }
 
