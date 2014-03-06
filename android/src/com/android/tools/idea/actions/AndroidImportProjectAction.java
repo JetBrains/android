@@ -134,7 +134,7 @@ public class AndroidImportProjectAction extends AnAction {
     List<ProjectImportProvider> available = Lists.newArrayList();
 
     // Prioritize ADT importer
-    if (GradleImport.isEclipseProjectDir(VfsUtilCore.virtualToIoFile(target.isDirectory() ? target : target.getParent()))) {
+    if (GradleImport.isAdtProjectDir(VfsUtilCore.virtualToIoFile(target.isDirectory() ? target : target.getParent()))) {
       ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
       return new AddModuleWizard(null, ProjectImportProvider.getDefaultPath(file),
                                  new AdtImportProvider(new AdtImportBuilder(dataManager)));
