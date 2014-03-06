@@ -175,6 +175,13 @@ public final class GradleUtil {
   }
 
   @Nullable
+  public static File findWrapperPropertiesFile(@NotNull Project project) {
+    File baseDir = new File(project.getBasePath());
+    File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(baseDir);
+    return wrapperPropertiesFile.isFile() ? wrapperPropertiesFile : null;
+  }
+
+  @Nullable
   public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
     GradleSettings settings = (GradleSettings)ExternalSystemApiUtil.getSettings(project, SYSTEM_ID);
 
