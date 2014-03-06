@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.inspections.lint;
 
+import com.android.annotations.Nullable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -22,10 +23,18 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
 import lombok.ast.CompilationUnit;
 import lombok.ast.Node;
-import lombok.ast.grammar.Source;
+import lombok.ast.ecj.EcjTreeConverter;
 import lombok.ast.printer.SourcePrinter;
 import lombok.ast.printer.StructureFormatter;
 import lombok.ast.printer.TextFormatter;
+import org.eclipse.jdt.internal.compiler.CompilationResult;
+import org.eclipse.jdt.internal.compiler.DefaultErrorHandlingPolicies;
+import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.classfmt.ClassFileConstants;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
+import org.eclipse.jdt.internal.compiler.parser.Parser;
+import org.eclipse.jdt.internal.compiler.problem.DefaultProblemFactory;
+import org.eclipse.jdt.internal.compiler.problem.ProblemReporter;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.util.List;
@@ -667,7 +676,7 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, source);
   }
 
-  private void check(PsiFile psiFile, String source) {
+  private static void check(PsiFile psiFile, String source) {
     assertTrue(psiFile.getClass().getName(), psiFile instanceof PsiJavaFile);
     PsiJavaFile psiJavaFile = (PsiJavaFile)psiFile;
     CompilationUnit node = LombokPsiConverter.convert(psiJavaFile);
@@ -697,10 +706,9 @@ public class LombokPsiConverterTest extends AndroidTestCase {
       source = source.replaceAll("<<IMPORT STATIC>>", "import static");
     }
 
-    Source s = new Source(source, "filename");
-    List<Node> nodes = s.getNodes();
-    assertEquals(1, nodes.size());
-    Node expectedNode = nodes.get(0);
+
+    Node expectedNode = parse(source);
+    assertNotNull(expectedNode);
 
     if (CHECK_POSITIONS) {
       StructureFormatter structureFormatter = StructureFormatter.formatterWithPositions();
@@ -715,6 +723,30 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     assertEquals(master, actual);
   }
 
-  // TODO: Iterate over a large body of Java files and run all through the PSI converter
-  // to flush out any remaining issues with unexpected constructs etc.
+  @Nullable
+  private static Node parse(String code) {
+    CompilerOptions options = new CompilerOptions();
+    options.complianceLevel = options.sourceLevel = options.targetJDK = ClassFileConstants.JDK1_7;
+    options.parseLiteralExpressionsAsConstants = true;
+    ProblemReporter problemReporter = new ProblemReporter(
+      DefaultErrorHandlingPolicies.exitOnFirstError(), options, new DefaultProblemFactory());
+    Parser parser = new Parser(problemReporter, options.parseLiteralExpressionsAsConstants);
+    parser.javadocParser.checkDocComment = false;
+    EcjTreeConverter converter = new EcjTreeConverter();
+    org.eclipse.jdt.internal.compiler.batch.CompilationUnit sourceUnit =
+      new org.eclipse.jdt.internal.compiler.batch.CompilationUnit(code.toCharArray(), "unitTest", "UTF-8");
+    CompilationResult compilationResult = new CompilationResult(sourceUnit, 0, 0, 0);
+    CompilationUnitDeclaration unit = parser.parse(sourceUnit, compilationResult);
+    if (unit == null) {
+      return null;
+    }
+    converter.visit(code, unit);
+    List<? extends Node> nodes = converter.getAll();
+    for (lombok.ast.Node node : nodes) {
+      if (node instanceof lombok.ast.CompilationUnit) {
+        return node;
+      }
+    }
+    return null;
+  }
 }
