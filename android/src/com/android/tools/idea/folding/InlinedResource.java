@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.folding;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.SdkConstants.STRING_PREFIX;
 
 /** A resource referenced in code (Java or XML) */
 class InlinedResource implements ModificationTracker {
@@ -95,6 +98,14 @@ class InlinedResource implements ModificationTracker {
           if (text != null) {
             if (myElement instanceof PsiMethodCallExpression) {
               text = insertArguments((PsiMethodCallExpression)myElement, text);
+            }
+            if (myType == ResourceType.PLURALS && text.startsWith(STRING_PREFIX)) {
+              value = myResourceRepository.getConfiguredValue(ResourceType.STRING, text.substring(STRING_PREFIX.length()),
+                                                              referenceConfig);
+              if (value != null && value.getValue() != null) {
+                text = value.getValue();
+                return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
+              }
             }
             if (myType == ResourceType.STRING || myElement instanceof XmlAttributeValue) {
               return '"' + StringUtil.shortenTextWithEllipsis(text, FOLD_MAX_LENGTH - 2, 0) + '"';
