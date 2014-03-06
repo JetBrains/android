@@ -59,10 +59,27 @@
   <item type="id" name="copy" />
   <item type="id" name="paste" />
   <item type="id" name="copyUrl" />
+  <item type="id" name="selectTextMode" />
   <item type="id" name="switchInputMethod" />
   <item type="id" name="keyboardView" />
   <item type="id" name="closeButton" />
   <item type="id" name="startSelectingText" />
   <item type="id" name="stopSelectingText" />
   <item type="id" name="addToDictionary" />
+  <item type="id" name="accountPreferences" />
+  <item type="id" name="smallIcon" />
+  <item type="id" name="custom" />
+  <item type="id" name="home" />
+  <item type="id" name="fillInIntent" />
+  <item type="id" name="rowTypeId" />
+  <item type="id" name="up" />
+  <item type="id" name="action_menu_divider" />
+  <item type="id" name="icon_menu_presenter" />
+  <item type="id" name="list_menu_presenter" />
+  <item type="id" name="action_menu_presenter" />
+  <item type="id" name="overflow_menu_presenter" />
+  <item type="id" name="popup_submenu_presenter" />
+  <item type="id" name="action_bar_spinner" />
+  <item type="id" name="current_scene" />
+  <item type="id" name="scene_layoutid_cache" />
 </resources>

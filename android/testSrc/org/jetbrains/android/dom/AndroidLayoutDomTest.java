@@ -86,7 +86,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     lookupElementStrings = lookupElementStrings.subList(0, 5);
     UsefulTestCase.assertSameElements(
       lookupElementStrings, "android:layout_above", "android:layout_alignBaseline",
-      "android:layout_alignBottom", "android:layout_alignLeft", "android:layout_alignParentBottom");
+      "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft");
   }
 
   public void testCommonPrefixIdea63531() throws Throwable {
@@ -250,7 +250,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testCustomAttributeNameCompletion1() throws Throwable {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    doTestCompletionVariants("can1.xml", "text", "textColor", "textSize");
+    doTestCompletionVariants("can1.xml", "text", "textAlignment", "textColor", "textDirection", "textSize");
   }
 
   public void testCustomAttributeNameCompletion2() throws Throwable {
@@ -261,7 +261,8 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     myFixture.type("text");
     List<String> lookupElementStrings = myFixture.getLookupElementStrings();
     assertNotNull(lookupElementStrings);
-    UsefulTestCase.assertSameElements(lookupElementStrings, "text", "textColor", "textSize");
+    UsefulTestCase.assertSameElements(lookupElementStrings, "android:textAlignment", "android:textDirection", "text", "textColor",
+                                      "textSize");
   }
 
   public void testCustomAttributeNameCompletion3() throws Throwable {
@@ -304,13 +305,15 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
   public void testFlagCompletion1() throws Throwable {
     doTestCompletionVariants("flagCompletion1.xml", "center", "center_horizontal", "center_vertical", "center|bottom",
                              "center|center_horizontal", "center|center_vertical", "center|clip_horizontal", "center|clip_vertical",
-                             "center|fill", "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|top");
+                             "center|end", "center|fill", "center|fill_horizontal", "center|fill_vertical", "center|left",
+                             "center|right", "center|start", "center|top");
   }
 
   public void testFlagCompletion2() throws Throwable {
     doTestCompletionVariants("flagCompletion2.xml", "center", "center_horizontal", "center_vertical", "center|center_horizontal",
-                             "center|center_vertical", "center|clip_horizontal", "center|clip_vertical", "center|fill",
-                             "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|top");
+                             "center|center_vertical", "center|clip_horizontal", "center|clip_vertical", "center|end", "center|fill",
+                             "center|fill_horizontal", "center|fill_vertical", "center|left", "center|right", "center|start",
+                             "center|top");
     myFixture.type("|fill");
     final List<String> lookupElements = myFixture.getLookupElementStrings();
     assertNotNull(lookupElements);
@@ -465,6 +468,7 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
 
   public void testIdCompletion2() throws Throwable {
     doTestCompletionVariants("idcompl2.xml", "@android:id/text1", "@android:id/text2", "@android:id/inputExtractEditText",
+                             "@android:id/selectTextMode",
                              "@android:id/startSelectingText", "@android:id/stopSelectingText");
   }
 
