@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -169,6 +170,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     mySteps.add(myChooseTemplateStep);
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, myModule, null, this));
     myAssetSetStep = new AssetSetStep(myWizardState, myProject, myModule, null, this);
+    Disposer.register(getDisposable(), myAssetSetStep);
     mySteps.add(myAssetSetStep);
     myAssetSetStep.setVisible(false);
 
