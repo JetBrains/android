@@ -382,7 +382,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
-    Collection<GradleMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr, true);
+    Collection<GradleMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
       for (GradleMessage message : compilerMessages) {
         context.processMessage(AndroidGradleJps.createCompilerMessage(message));
