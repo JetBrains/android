@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.*;
 import com.google.common.collect.Maps;
 
 import java.io.File;
@@ -26,7 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.templates.RepositoryUrls.*;
+import static com.android.tools.idea.templates.RepositoryUrlManager.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 
@@ -122,10 +119,12 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
 
     assertEquals(3, dependencyList.size());
 
+    RepositoryUrlManager urlManager = RepositoryUrlManager.get();
+
     assertContainsElements(dependencyList,
-                           getLibraryCoordinate(SUPPORT_ID_V4),
-                           getLibraryCoordinate(APP_COMPAT_ID_V7),
-                           getLibraryCoordinate(GRID_LAYOUT_ID_V7));
+                           urlManager.getLibraryCoordinate(SUPPORT_ID_V4),
+                           urlManager.getLibraryCoordinate(APP_COMPAT_ID_V7),
+                           urlManager.getLibraryCoordinate(GRID_LAYOUT_ID_V7));
 
     myState.put(ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
 
@@ -143,7 +142,7 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     assertEquals(1, dependencyList.size());
 
     assertContainsElements(dependencyList,
-                           getLibraryCoordinate(SUPPORT_ID_V4));
+                           urlManager.getLibraryCoordinate(SUPPORT_ID_V4));
   }
 
   public void testUpdateParameters() throws Exception {

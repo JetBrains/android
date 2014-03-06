@@ -17,12 +17,14 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.FullRevision;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -38,8 +40,8 @@ import java.util.Map;
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
  */
-public class RepositoryUrls {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.RepositoryUrls");
+public class RepositoryUrlManager {
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.RepositoryUrlManager");
 
   /** The tag used by the maven metadata file to describe versions */
   public static final String TAG_VERSION = "version";
@@ -51,8 +53,12 @@ public class RepositoryUrls {
   /** The path ID of the appcompat library. */
   public static final String APP_COMPAT_ID_V7 = "appcompat-v7";
 
-  /** The path ID of the appcompat library. */
+  /** The path ID of the gridlayout library. */
   public static final String GRID_LAYOUT_ID_V7 = "gridlayout-v7";
+
+  /** The path ID of the mediarouter library*/
+  public static final String MEDIA_ROUTER_ID_V7 = "mediarouter-v7";
+
   /** The path ID of the Play Services library */
   public static final String PLAY_SERVICES_ID = "play-services";
 
@@ -64,7 +70,7 @@ public class RepositoryUrls {
   public static final String REVISION_ANY = "0.0.+";
 
   private static final String SUPPORT_BASE_COORDINATE = "com.android.support:%s:%s";
-  private static final String GOOGLE_BASE_COORDINATE = "com.google.android.gms:%s:";
+  private static final String GOOGLE_BASE_COORDINATE = "com.google.android.gms:%s:%s";
 
   private static final String SUPPORT_REPOSITORY_BASE_PATH = "%s/extras/android/m2repository/com/android/support/%s/";
 
@@ -76,13 +82,21 @@ public class RepositoryUrls {
   public static final String MAVEN_METADATA_FILE_NAME = "maven-metadata.xml";
 
   /** Model of our internal extras repository */
-  public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = ImmutableMap.of(
-    SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR),
-    SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR),
-    APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR),
-    GRID_LAYOUT_ID_V7, new RepositoryLibrary(GRID_LAYOUT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR),
-    PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR)
-  );
+  public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
+    .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
+    .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
+    .put(APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(GRID_LAYOUT_ID_V7, new RepositoryLibrary(GRID_LAYOUT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(MEDIA_ROUTER_ID_V7, new RepositoryLibrary(MEDIA_ROUTER_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .build();
+
+  public static RepositoryUrlManager get() {
+    return new RepositoryUrlManager();
+  }
+
+  @VisibleForTesting
+  RepositoryUrlManager() {}
 
   /**
    * Calculate the coordinate pointing to the highest valued version of the given library we
@@ -91,13 +105,13 @@ public class RepositoryUrls {
    * @return a maven coordinate for the requested library or null if we don't support that library
    */
   @Nullable
-  public static String getLibraryCoordinate(String libraryId) {
+  public String getLibraryCoordinate(String libraryId) {
     // Check to see if this is a URL we support:
     if (!EXTRAS_REPOSITORY.containsKey(libraryId)) {
       return null;
     }
 
-    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData sdk = tryToChooseAndroidSdk();
     if (sdk == null) {
       return null;
     }
@@ -107,7 +121,7 @@ public class RepositoryUrls {
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(libraryId);
 
     File supportMetadataFile = new File(String.format(library.basePath, sdkLocation, library.id), MAVEN_METADATA_FILE_NAME);
-    if (!supportMetadataFile.exists()) {
+    if (!fileExists(supportMetadataFile)) {
       return String.format(library.baseCoordinate, library.id, REVISION_ANY);
     }
 
@@ -122,8 +136,8 @@ public class RepositoryUrls {
    * @return a file pointing at the archive for the given coordinate or null if no SDK is configured
    */
   @Nullable
-  public static File getArchiveForCoordinate(GradleCoordinate gradleCoordinate) {
-    AndroidSdkData sdk = AndroidSdkUtils.tryToChooseAndroidSdk();
+  public File getArchiveForCoordinate(GradleCoordinate gradleCoordinate) {
+    AndroidSdkData sdk = tryToChooseAndroidSdk();
 
     if (sdk == null) {
       return null;
@@ -155,8 +169,8 @@ public class RepositoryUrls {
    * @param metadataFile the files to parse
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
-  private static String getLatestVersionFromMavenMetadata(File metadataFile) {
-    String xml = TemplateUtils.readTextFile(metadataFile);
+  private String getLatestVersionFromMavenMetadata(File metadataFile) {
+    String xml = readTextFile(metadataFile);
     final List<FullRevision> versions = new LinkedList<FullRevision>();
     try {
       SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
@@ -187,6 +201,20 @@ public class RepositoryUrls {
     } else {
       return Collections.max(versions).toString();
     }
+  }
+
+  @Nullable
+  protected AndroidSdkData tryToChooseAndroidSdk() {
+    return AndroidSdkUtils.tryToChooseAndroidSdk();
+  }
+
+  @Nullable
+  protected String readTextFile(File file) {
+    return TemplateUtils.readTextFile(file);
+  }
+
+  protected boolean fileExists(@NotNull File file) {
+    return file.exists();
   }
 
   private static class RepositoryLibrary {
