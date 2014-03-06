@@ -28,7 +28,7 @@ class AdtImportPrefsStep extends ProjectImportWizardStep {
   private JCheckBox myLowerCase;
   private JPanel myPanel;
 
-  public AdtImportPrefsStep(WizardContext context) {
+  AdtImportPrefsStep(WizardContext context) {
     super(context);
   }
 
@@ -44,11 +44,16 @@ class AdtImportPrefsStep extends ProjectImportWizardStep {
 
   @Override
   public void updateDataModel() {
-    GradleImport importer = AdtImportProvider.getImporter(getWizardContext());
-    if (importer != null) {
-      importer.setReplaceJars(myReplaceJars.isSelected());
-      importer.setReplaceLibs(myReplaceLibs.isSelected());
-      importer.setGradleNameStyle(myLowerCase.isSelected());
+    AdtImportBuilder builder = AdtImportBuilder.getBuilder(getWizardContext());
+    if (builder != null) {
+      GradleImport importer = builder.getImporter();
+      if (importer != null) {
+        importer.setReplaceJars(myReplaceJars.isSelected());
+        importer.setReplaceLibs(myReplaceLibs.isSelected());
+        importer.setGradleNameStyle(myLowerCase.isSelected());
+        // Refresh read state in case any of the options affect the set of warnings, etc
+        builder.readProjects();
+      }
     }
   }
 
