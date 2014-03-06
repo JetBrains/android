@@ -24,7 +24,7 @@ import junit.framework.TestCase;
 public class DependencyTest extends TestCase {
   public void testConstructorWithScope() {
     try {
-      new Dependency("test", DependencyScope.RUNTIME) {
+      new Dependency(DependencyScope.RUNTIME) {
       };
       fail("Expecting an " + IllegalArgumentException.class.getSimpleName());
     }
@@ -34,7 +34,7 @@ public class DependencyTest extends TestCase {
   }
 
   public void testSetScope() {
-    Dependency dependency = new Dependency("test") {
+    Dependency dependency = new Dependency() {
     };
     try {
       dependency.setScope(DependencyScope.PROVIDED);

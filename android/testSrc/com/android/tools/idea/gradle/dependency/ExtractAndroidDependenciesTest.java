@@ -62,10 +62,10 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addJar(jarFile);
     myVariant.getInstrumentTestArtifact().getDependencies().addJar(jarFile);
 
-    Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
+    Collection<LibraryDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onLibraries();
     assertEquals(1, dependencies.size());
 
-    LibraryDependency dependency = (LibraryDependency)ContainerUtil.getFirstItem(dependencies);
+    LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
     assertNotNull(dependency);
     assertEquals("guava-11.0.2", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
@@ -86,12 +86,11 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
+    Collection<ModuleDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onModules();
     assertEquals(1, dependencies.size());
 
-    ModuleDependency dependency = (ModuleDependency)ContainerUtil.getFirstItem(dependencies);
+    ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals("library", dependency.getName());
     assertEquals(gradlePath, dependency.getGradlePath());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(DependencyScope.COMPILE, dependency.getScope());
@@ -115,10 +114,10 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
+    Collection<LibraryDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onLibraries();
     assertEquals(1, dependencies.size());
 
-    LibraryDependency dependency = (LibraryDependency)ContainerUtil.getFirstItem(dependencies);
+    LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
     assertNotNull(dependency);
     assertEquals("bundle", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
@@ -141,10 +140,10 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    List<Dependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myIdeaAndroidProject));
+    List<LibraryDependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myIdeaAndroidProject).onLibraries());
     assertEquals(2, dependencies.size());
 
-    LibraryDependency dependency = (LibraryDependency)dependencies.get(1);
+    LibraryDependency dependency = dependencies.get(1);
     assertNotNull(dependency);
     assertEquals("local", dependency.getName());
     // Make sure that is a "compile" dependency, even if specified as "test".
@@ -159,12 +158,11 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     String gradlePath = "abc:xyz:library";
     myVariant.getMainArtifact().getDependencies().addProject(gradlePath);
     myVariant.getInstrumentTestArtifact().getDependencies().addProject(gradlePath);
-    Collection<Dependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject);
+    Collection<ModuleDependency> dependencies = Dependency.extractFrom(myIdeaAndroidProject).onModules();
     assertEquals(1, dependencies.size());
 
-    ModuleDependency dependency = (ModuleDependency)ContainerUtil.getFirstItem(dependencies);
+    ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);
     assertNotNull(dependency);
-    assertEquals("library", dependency.getName());
     assertEquals(gradlePath, dependency.getGradlePath());
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(DependencyScope.COMPILE, dependency.getScope());
