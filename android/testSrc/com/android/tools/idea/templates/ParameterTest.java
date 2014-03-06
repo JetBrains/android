@@ -171,6 +171,18 @@ public class ParameterTest extends AndroidTestCase {
     assertPasses(null, "Foo.Bar");
   }
 
+  public void testModule() throws Exception {
+    myParameter.constraints.add(MODULE);
+    setConstraint(UNIQUE);
+
+    // Violates module uniqueness
+    assertViolates(null, myModule.getName());
+
+    // Doesn't violate
+    assertFalse(myModule.getName().equals("foobar"));
+    assertPasses(null, "foobar");
+  }
+
   public void testLayout() throws Exception {
     setConstraint(LAYOUT);
 
