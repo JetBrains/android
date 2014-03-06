@@ -42,7 +42,7 @@ public class AssetStudioWizard extends TemplateWizard implements TemplateWizardS
 
   @Override
   protected void init() {
-    myIconStep = new AssetSetStep(myWizardState, myProject, null, this);
+    myIconStep = new AssetSetStep(myWizardState, myProject, myModule, null, this);
     myOutputStep = new ChooseOutputLocationStep(myWizardState, myProject, null, NONE, myModule);
     addStep(myIconStep);
     addStep(myOutputStep);
