@@ -55,7 +55,7 @@ public class ProjectImportStatusNotificationProvider extends EditorNotifications
     if (GradleImportNotificationListener.isProjectImportInProgress()) {
       return new ProjectImportInProgressNotificationPanel();
     }
-    if (Projects.syncWithGradleFailed(myProject)) {
+    if (GradleImportNotificationListener.isInitialized() && Projects.isGradleProjectWithoutModel(myProject)) {
       return new ProjectImportFailedNotificationPanel();
     }
     return null;
