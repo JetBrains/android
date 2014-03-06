@@ -268,6 +268,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       myModel.addItem(new ModuleDependenciesTableItem(
           new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, coordinateText)));
     }
+    myModel.fireTableDataChanged();
   }
 
   private void addFileDependency() {
@@ -283,6 +284,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       }
       myModel.addItem(new ModuleDependenciesTableItem(new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, path)));
     }
+    myModel.fireTableDataChanged();
   }
 
   private void addModuleDependency() {
