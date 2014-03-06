@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.android.tools.idea.gradle.dependency.Dependency;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
@@ -37,7 +36,6 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ContentRootData;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
@@ -154,26 +152,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                          @NotNull DataNode<ProjectData> ideProject) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
-      IdeaAndroidProject ideAndroidProject = getIdeaAndroidProject(ideModule);
-      Collection<Dependency> dependencies = Collections.emptyList();
-      if (ideAndroidProject != null) {
-        dependencies = Dependency.extractFrom(ideAndroidProject);
-      }
-      else {
-        IdeaModule module = extractIdeaModule(ideModule);
-        if (module != null) {
-          dependencies = Dependency.extractFrom(module);
-        }
-      }
-      if (!dependencies.isEmpty()) {
-        ImportedDependencyUpdater importer = new ImportedDependencyUpdater(ideProject);
-        importer.updateDependencies(ideModule, dependencies);
-      }
-
       Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
       populateUnresolvedDependencies(ideProject, Sets.newHashSet(unresolvedDependencies));
     }
     else {
+      // We populate dependencies of Java libraries using IdeaModule. For Android modules, DependenciesModuleCustomizer will set up
+      // dependencies.
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     }
   }
@@ -181,7 +165,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   @Override
   public Set<Class> getExtraProjectModelClasses() {
-    return ContainerUtil.<Class>set(AndroidProject.class);
+    return Collections.<Class>singleton(AndroidProject.class);
   }
 
   /**
@@ -376,31 +360,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     };
     AndroidContentRoot.storePaths(androidProject, storage);
     moduleInfo.createChild(ProjectKeys.CONTENT_ROOT, contentRootData);
-  }
-
-  @Nullable
-  private static IdeaAndroidProject getIdeaAndroidProject(@NotNull DataNode<ModuleData> moduleInfo) {
-    return getFirstNodeData(moduleInfo, AndroidProjectKeys.IDE_ANDROID_PROJECT);
-  }
-
-  @Nullable
-  private static <T> T getFirstNodeData(@NotNull DataNode<ModuleData> moduleInfo, @NotNull Key<T> key) {
-    Collection<DataNode<T>> children = ExternalSystemApiUtil.getChildren(moduleInfo, key);
-    return getFirstNodeData(children);
-  }
-
-  @Nullable
-  private static IdeaModule extractIdeaModule(@NotNull DataNode<ModuleData> moduleInfo) {
-    Collection<DataNode<IdeaModule>> modules = ExternalSystemApiUtil.getChildren(moduleInfo, AndroidProjectKeys.IDEA_MODULE);
-    // it is safe to remove this node. We only needed it to resolve dependencies.
-    moduleInfo.getChildren().removeAll(modules);
-    return getFirstNodeData(modules);
-  }
-
-  @Nullable
-  private static <T> T getFirstNodeData(Collection<DataNode<T>> nodes) {
-    DataNode<T> node = ContainerUtil.getFirstItem(nodes);
-    return node != null ? node.getData() : null;
   }
 
   private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
