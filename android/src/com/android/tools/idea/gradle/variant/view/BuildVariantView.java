@@ -26,6 +26,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
@@ -210,7 +211,7 @@ public class BuildVariantView {
     }
 
     @Override
-    public int compareTo(BuildVariantItem o) {
+    public int compareTo(@Nullable BuildVariantItem o) {
       return o != null ? Collator.getInstance().compare(myBuildVariantName, o.myBuildVariantName) : 1;
     }
 
@@ -290,7 +291,7 @@ public class BuildVariantView {
           }
         }
 
-        JComboBox editor = new JComboBox(items);
+        ComboBox editor = new ComboBox(items);
         if (selected != null) {
           editor.setSelectedItem(selected);
         }
