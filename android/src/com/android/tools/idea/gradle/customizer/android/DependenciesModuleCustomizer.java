@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer.android;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.dependency.Dependency;
+import com.android.tools.idea.gradle.dependency.DependencySet;
 import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -42,18 +43,12 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   protected void setUpDependencies(@NotNull ModifiableRootModel model,
                                    @NotNull IdeaAndroidProject androidProject,
                                    @NotNull List<String> errorsFound) {
-    for (Dependency dependency : Dependency.extractFrom(androidProject)) {
-      if (dependency instanceof LibraryDependency) {
-        updateDependency(model, (LibraryDependency)dependency);
-      }
-      else if (dependency instanceof ModuleDependency) {
-        updateDependency(model, (ModuleDependency)dependency, errorsFound);
-      }
-      else {
-        // This will NEVER happen.
-        String description = dependency == null ? ": null" : "type: " + dependency.getClass().getName();
-        throw new IllegalArgumentException("Unsupported dependency " + description);
-      }
+    DependencySet dependencies = Dependency.extractFrom(androidProject);
+    for (LibraryDependency dependency : dependencies.onLibraries()) {
+      updateDependency(model, dependency);
+    }
+    for (ModuleDependency dependency : dependencies.onModules()) {
+      updateDependency(model, dependency, errorsFound);
     }
   }
 
@@ -85,7 +80,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     LibraryDependency backup = dependency.getBackupDependency();
     boolean hasLibraryBackup = backup != null;
-    String msg = String.format("Unable fo find module '%1$s'.", dependency.getName());
+    String msg = String.format("Unable fo find module with Gradle path '%1$s'.", dependency.getGradlePath());
     if (hasLibraryBackup) {
       msg += String.format(" Linking to library '%1$s' instead.", backup.getName());
     }
