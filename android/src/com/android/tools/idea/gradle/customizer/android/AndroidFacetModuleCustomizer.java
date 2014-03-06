@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer.android;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.util.Facets;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.base.Strings;
@@ -41,7 +42,7 @@ import java.util.Collection;
 /**
  * Adds the Android facet to modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
-public class AndroidFacetModuleCustomizer implements AndroidModuleCustomizer {
+public class AndroidFacetModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
   private static final String EMPTY_PATH = "";
 
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
