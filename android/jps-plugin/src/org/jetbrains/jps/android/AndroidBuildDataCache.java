@@ -1,11 +1,12 @@
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.SdkManager;
+import com.android.sdklib.repository.local.LocalSdk;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
-import org.jetbrains.android.sdk.MessageBuildingSdkLog;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.android.util.ValueResourcesFileParser;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +27,7 @@ import java.util.*;
 public class AndroidBuildDataCache {
   private static AndroidBuildDataCache ourInstance;
 
-  private final Map<String, MyComputedValue<SdkManager>> mySdkManagers =
-    new HashMap<String, MyComputedValue<SdkManager>>();
+  private final List<LocalSdk> myLocalSdks = Lists.newArrayList();
   private final Map<JpsModule, MyAndroidDeps> myModule2AndroidDeps = new HashMap<JpsModule, MyAndroidDeps>();
   private final Map<String, List<ResourceEntry>> myParsedValueResourceFiles = new HashMap<String, List<ResourceEntry>>();
 
@@ -135,27 +135,16 @@ public class AndroidBuildDataCache {
   }
 
   @NotNull
-  public SdkManager getSdkManager(@NotNull String androidSdkHomePath)
-    throws ComputationException {
-    MyComputedValue<SdkManager> value = mySdkManagers.get(FileUtil.toCanonicalPath(androidSdkHomePath));
-
-    if (value == null) {
-      value = computeSdkManager(androidSdkHomePath);
-      mySdkManagers.put(androidSdkHomePath, value);
+  public LocalSdk getSdk(@NotNull File androidSdkHomePath) {
+    for (LocalSdk sdk : myLocalSdks) {
+      if (FileUtil.filesEqual(sdk.getLocation(), androidSdkHomePath)) {
+        return sdk;
+      }
     }
-    return value.getValue();
-  }
 
-  @NotNull
-  private static MyComputedValue<SdkManager> computeSdkManager(@NotNull String androidSdkHomePath) {
-    final MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-    final SdkManager manager = AndroidCommonUtils.createSdkManager(androidSdkHomePath, log);
-
-    if (manager == null) {
-      final String message = log.getErrorMessage();
-      return new ErrorComputedValue<SdkManager>("Android SDK is parsed incorrectly." + (message.length() > 0 ? " Parsing log:\n" + message : ""));
-    }
-    return new SuccessComputedValue<SdkManager>(manager);
+    LocalSdk newSdk = new LocalSdk(androidSdkHomePath);
+    myLocalSdks.add(0, newSdk);
+    return newSdk;
   }
 
   private abstract static class MyComputedValue<T> {

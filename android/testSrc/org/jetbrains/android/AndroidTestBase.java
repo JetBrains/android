@@ -16,10 +16,6 @@
 package org.jetbrains.android;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
-import com.android.utils.ILogger;
-import com.android.utils.NullLogger;
-import com.android.utils.StdLogger;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -162,7 +158,7 @@ public class AndroidTestBase extends UsefulTestCase {
     }
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     assertNotNull(sdkData);
     IAndroidTarget target = sdkData.findTargetByName("Android 4.2"); // TODO: Get rid of this hardcoded version number
     if (target == null) {
@@ -189,30 +185,25 @@ public class AndroidTestBase extends UsefulTestCase {
   }
 
   protected void ensureSdkManagerAvailable() {
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkManager == null) {
-      sdkManager = createTestSdkManager();
-      if (sdkManager != null) {
-        AndroidSdkUtils.setSdkManager(sdkManager);
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData == null) {
+      sdkData = createTestSdkManager();
+      if (sdkData != null) {
+        AndroidSdkUtils.setSdkData(sdkData);
       }
     }
-    assertNotNull(sdkManager);
+    assertNotNull(sdkData);
   }
 
   @Nullable
-  protected SdkManager createTestSdkManager() {
+  protected AndroidSdkData createTestSdkManager() {
     Sdk androidSdk = createAndroidSdk(getTestSdkPath(), getPlatformDir());
     AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
-        String sdkPath = androidPlatform.getSdkData().getLocation();
-        assertNotNull(sdkPath);
-        ILogger logger = new StdLogger(StdLogger.Level.INFO);
-        SdkManager sdkManager = SdkManager.createManager(sdkPath, logger);
-        assertNotNull(sdkManager);
-        return sdkManager;
+        return androidPlatform.getSdkData();
       } else {
         fail("No getAndroidPlatform() associated with the AndroidSdkAdditionalData: " + data);
       }

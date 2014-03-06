@@ -17,7 +17,6 @@ package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.utils.NullLogger;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -889,7 +888,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   @Nullable
   private static Sdk doFindOrCreateAndroidPlatform(@Nullable String sdkPath, @Nullable String apiLevel) {
     if (sdkPath != null) {
-      AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
       if (sdkData != null) {
         IAndroidTarget target = apiLevel != null && apiLevel.length() > 0
                                 ? sdkData.findTargetByApiLevel(apiLevel)

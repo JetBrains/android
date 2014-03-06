@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -32,6 +31,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -218,10 +218,9 @@ public final class GradleUtil {
     if (ExternalSystemApiUtil.isInProcessMode(SYSTEM_ID)) {
       List<String> args = Lists.newArrayList();
       if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager != null) {
-          String androidHome = FileUtil.toSystemDependentName(sdkManager.getLocation());
-          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData != null) {
+          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(sdkData.getPath());
           args.add(arg);
         }
       }
