@@ -24,6 +24,10 @@ import com.intellij.projectImport.ProjectImportProvider;
 import org.jetbrains.annotations.Nullable;
 
 public class AdtImportProvider extends ProjectImportProvider {
+  public AdtImportProvider() {
+    this(new AdtImportBuilder());
+  }
+
   public AdtImportProvider(AdtImportBuilder builder) {
     super(builder);
   }
