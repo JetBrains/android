@@ -32,7 +32,12 @@ import static com.android.tools.idea.rendering.ShadowPainter.SMALL_SHADOW_SIZE;
 import static java.awt.RenderingHints.KEY_INTERPOLATION;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
-/** A rendered image from layoutlib, which can be zoomed */
+/**
+ *  A rendered image from layoutlib, which can be zoomed.
+ *
+ * TODO: Rename to RenderedImage. With the drop shadow stuff and the device chrome stuff
+ * the fact that it's scalable is less salient than it used to.
+ */
 public class ScalableImage {
   /** Type of shadow to paint into the image, if any */
   enum ShadowType {
@@ -412,5 +417,13 @@ public class ScalableImage {
       return null;
     }
     return myThumbnailHasFrame;
+  }
+
+  public boolean getShowDropShadow() {
+    return myShadowType != ShadowType.NONE;
+  }
+
+  public void imageChanged() {
+    myScaledImage = null;
   }
 }

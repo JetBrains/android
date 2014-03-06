@@ -15,11 +15,10 @@
  */
 package com.intellij.android.designer.designSurface;
 
-import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.rendering.ShadowPainter;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.ScalableImage;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
-import com.intellij.designer.designSurface.ScalableComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,48 +28,40 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
-import static com.android.tools.idea.rendering.ShadowPainter.SMALL_SHADOW_SIZE;
-import static java.awt.RenderingHints.KEY_INTERPOLATION;
-import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
-
 /**
- * Root component used for the Android designer. Note that this view
- * does not extend {@link com.intellij.designer.designSurface.RootView};
- * the designer infrastructure does not require that, and that particular
- * RootView calls setImage from its constructor. We need to handle
- * the alpha channel flag in concert with the image property, since
- * layout of the image depends on the alpha channel property. (We're
- * storing the opposite of the alpha channel attribute in the drop shadow
- * property.)
- * <p>
- * TODO: Use {@link com.android.tools.idea.rendering.ScalableImage} here!
- * </p>
+ * Root component used for the Android designer.
  */
-public class RootView extends JComponent implements ScalableComponent {
+public class RootView extends JComponent implements TransformedComponent {
   @Nullable private List<EmptyRegion> myEmptyRegions;
   @NotNull private final AndroidDesignerEditorPanel myPanel;
-  @Nullable private BufferedImage myScaledImage;
-  private boolean myShowDropShadow;
   protected int myX;
   protected int myY;
-  @Nullable protected BufferedImage myImage;
+  @Nullable ScalableImage myScalableImage;
 
-  public RootView(@NotNull AndroidDesignerEditorPanel panel, int x, int y, @Nullable BufferedImage image, boolean isAlphaChannelImage) {
+  public RootView(@NotNull AndroidDesignerEditorPanel panel, int x, int y, @NotNull RenderResult renderResult) {
     myX = x;
     myY = y;
     myPanel = panel;
-    myImage = image;
-    myShowDropShadow = !isAlphaChannelImage;
+    myScalableImage = renderResult.getImage();
   }
 
+  private RootView(@NotNull AndroidDesignerEditorPanel panel) {
+    myPanel = panel;
+  }
+
+  @NotNull
   public AndroidDesignerEditorPanel getPanel() {
     return myPanel;
   }
 
   @Nullable
   public BufferedImage getImage() {
-    return myImage;
+    return myScalableImage != null ? myScalableImage.getOriginalImage() : null;
+  }
+
+  @Nullable
+  public ScalableImage getScalableImage() {
+    return myScalableImage;
   }
 
   /**
@@ -80,13 +71,11 @@ public class RootView extends JComponent implements ScalableComponent {
    * an empty document.
    *
    * @param image The image to be rendered
-   * @param isAlphaChannelImage whether the alpha channel of the image is relevant
    */
-  public void setImage(@Nullable BufferedImage image, boolean isAlphaChannelImage) {
-    myShowDropShadow = !isAlphaChannelImage;
+  public void setRenderedImage(@Nullable ScalableImage image) {
     myEmptyRegions = null;
-    myImage = image;
-    updateSize();
+    myScalableImage = image;
+    updateBounds(true);
     repaint();
   }
 
@@ -98,7 +87,11 @@ public class RootView extends JComponent implements ScalableComponent {
    * @return true if the image overlay should be shown with a drop shadow.
    */
   public boolean getShowDropShadow() {
-    return myShowDropShadow;
+    if (myScalableImage != null) {
+      return myScalableImage.getShowDropShadow();
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -112,35 +105,39 @@ public class RootView extends JComponent implements ScalableComponent {
   }
 
   protected void updateBounds(boolean imageChanged) {
-    if (myImage != null) {
-      if (myPanel.isZoomToFit()) {
-        myPanel.zoomToFitIfNecessary();
-      }
-      double zoom = getScale();
-      int newWidth = (int)(zoom * myImage.getWidth());
-      int newHeight = (int)(zoom * myImage.getHeight());
-      if (myShowDropShadow) {
-        int shadowSize = myPanel.isUseLargeShadows() ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
-        newWidth += shadowSize;
-        newHeight += shadowSize;
-      }
-      if (getWidth() != newWidth || getHeight() != newHeight) {
-        setSize(newWidth, newHeight);
-        myScaledImage = null;
-      } else if (imageChanged) {
-        myScaledImage = null;
-      }
+    if (myScalableImage == null) {
+      return;
+    }
+    if (myPanel.isZoomToFit()) {
+      myPanel.zoomToFitIfNecessary();
+    }
+
+    double zoom = myPanel.getZoom();
+    myScalableImage.setScale(zoom);
+    Dimension requiredSize = myScalableImage.getRequiredSize();
+    int newWidth = requiredSize.width;
+    int newHeight = requiredSize.height;
+    if (getWidth() != newWidth || getHeight() != newHeight) {
+      setSize(newWidth, newHeight);
+      myScalableImage.imageChanged();
+    } else if (imageChanged) {
+      myScalableImage.imageChanged();
     }
   }
 
   public void addEmptyRegion(int x, int y, int width, int height) {
-    if (myImage != null && new Rectangle(0, 0, myImage.getWidth(), myImage.getHeight()).contains(x, y)) {
+    if (myScalableImage == null) {
+      return;
+    }
+    BufferedImage image = myScalableImage.getOriginalImage();
+    if (new Rectangle(0, 0, image.getWidth(), image.getHeight()).contains(x, y)) {
       EmptyRegion r = new EmptyRegion();
       r.myX = x;
       r.myY = y;
       r.myWidth = width;
       r.myHeight = height;
-      r.myColor = new Color(~myImage.getRGB(x, y));
+      //noinspection UseJBColor
+      r.myColor = new Color(~image.getRGB(x, y));
       if (myEmptyRegions == null) {
         myEmptyRegions = new ArrayList<EmptyRegion>();
       }
@@ -149,71 +146,13 @@ public class RootView extends JComponent implements ScalableComponent {
   }
 
   protected void paintImage(Graphics g) {
-    if (myImage == null) {
+    if (myScalableImage == null) {
       return;
     }
 
     double scale = myPanel.getZoom();
-    if (myScaledImage == null) {
-      // Special cases scale=1 to be fast
-      if (scale == 1) {
-        // Scaling to 100% is easy!
-        myScaledImage = myImage;
-
-        if (myShowDropShadow) {
-          // Just need to draw drop shadows
-          if (myPanel.isUseLargeShadows()) {
-            myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
-          } else {
-            myScaledImage = ShadowPainter.createSmallRectangularDropShadow(myImage);
-          }
-        }
-        g.drawImage(myScaledImage, 0, 0, null);
-      } else if (scale < 1) {
-        // When scaling down we need to do an expensive scaling to ensure that
-        // the thumbnails look good
-        if (myShowDropShadow) {
-          if (myPanel.isUseLargeShadows()) {
-            myScaledImage = ImageUtils.scale(myImage, scale, scale, SHADOW_SIZE, SHADOW_SIZE);
-            ShadowPainter.drawRectangleShadow(myScaledImage, 0, 0,
-                                              myScaledImage.getWidth() - SHADOW_SIZE,
-                                              myScaledImage.getHeight() - SHADOW_SIZE);
-          } else {
-            myScaledImage = ImageUtils.scale(myImage, scale, scale, SMALL_SHADOW_SIZE, SMALL_SHADOW_SIZE);
-            ShadowPainter.drawSmallRectangleShadow(myScaledImage, 0, 0,
-                                                   myScaledImage.getWidth() - SMALL_SHADOW_SIZE,
-                                                    myScaledImage.getHeight() - SMALL_SHADOW_SIZE);
-          }
-        } else {
-          myScaledImage = ImageUtils.scale(myImage, scale, scale);
-        }
-        g.drawImage(myScaledImage, 0, 0, null);
-      } else {
-        // Do a direct scaled paint when scaling up; we don't want to create giant internal images
-        // for a zoomed in version of the canvas, since only a small portion is typically shown on the screen
-        // (without this, you can easily zoom in 10 times and hit an OOM exception)
-        int w = myImage.getWidth();
-        int h = myImage.getHeight();
-        int scaledWidth = (int)(scale * w);
-        int scaledHeight = (int)(scale * h);
-        Graphics2D g2 = (Graphics2D)g.create();
-        try {
-          g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-          g2.drawImage(myImage, 0, 0, scaledWidth, scaledHeight, 0, 0, w, h, null);
-        } finally {
-          g2.dispose();
-        }
-        if (getShowDropShadow()) {
-          if (myPanel.isUseLargeShadows()) {
-            ShadowPainter.drawRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
-          } else {
-            ShadowPainter.drawSmallRectangleShadow(g, 0, 0, scaledWidth, scaledHeight);
-          }
-        }
-      }
-    } else {
-      g.drawImage(myScaledImage, 0, 0, null);
-    }
+    myScalableImage.setScale(scale);
+    myScalableImage.paint(g, 0, 0);
 
     if (myEmptyRegions != null && !myEmptyRegions.isEmpty()) {
       if (scale == 1) {
@@ -231,18 +170,63 @@ public class RootView extends JComponent implements ScalableComponent {
 
   /** Returns the width of the image itself, when scaled */
   public int getScaledWidth() {
-    return myImage != null ? (int)(getScale() * myImage.getWidth()) : 0;
+    if (myScalableImage != null) {
+      myScalableImage.setScale(myPanel.getZoom());
+      return myScalableImage.getScaledWidth();
+    }
+
+    return 0;
   }
 
   /** Returns the height of the image itself, when scaled */
   public int getScaledHeight() {
-    return myImage != null ? (int)(getScale() * myImage.getHeight()) : 0;
+    if (myScalableImage != null) {
+      myScalableImage.setScale(myPanel.getZoom());
+      return myScalableImage.getScaledHeight();
+    }
+
+    return 0;
   }
 
   // Implements ScalableComponent
+
   @Override
   public double getScale() {
-    return myPanel.getZoom();
+    double zoom = myPanel.getZoom();
+    if (myScalableImage != null) {
+      Rectangle viewBounds = myScalableImage.getImageBounds();
+      if (viewBounds != null) {
+        double deviceFrameFactor = viewBounds.getWidth() / (double) myScalableImage.getScaledWidth();
+        if (deviceFrameFactor != 1) {
+          zoom *= deviceFrameFactor;
+        }
+      }
+    }
+    return zoom;
+  }
+
+  // Implements TransformedComponent
+
+  @Override
+  public int getShiftX() {
+    if (myScalableImage != null) {
+      Rectangle viewBounds = myScalableImage.getImageBounds();
+      if (viewBounds != null) {
+        return viewBounds.x;
+      }
+    }
+    return 0;
+  }
+
+  @Override
+  public int getShiftY() {
+    if (myScalableImage != null) {
+      Rectangle viewBounds = myScalableImage.getImageBounds();
+      if (viewBounds != null) {
+        return viewBounds.y;
+      }
+    }
+    return 0;
   }
 
   private static class EmptyRegion {

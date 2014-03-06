@@ -299,7 +299,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           if (myRootView != null && myRootView.getImage() != null && session.getImage() != null &&
             session.getImage().getWidth() == myRootView.getImage().getWidth() &&
             session.getImage().getHeight() == myRootView.getImage().getHeight()) {
-            myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
+            myRootView.setRenderedImage(result.getImage());
             myRootView.repaint();
           }
           return;
@@ -307,7 +307,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
         boolean insertPanel = !myShowingRoot;
         if (myRootView == null) {
-          myRootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, session.getImage(), session.isAlphaChannelImage());
+          myRootView = new RootView(AndroidDesignerEditorPanel.this, 0, 0, result);
           myRootView.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
@@ -317,7 +317,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           insertPanel = true;
         }
         else {
-          myRootView.setImage(session.getImage(), session.isAlphaChannelImage());
+          myRootView.setRenderedImage(result.getImage());
           myRootView.updateBounds(true);
         }
         try {
@@ -612,7 +612,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
         RadViewComponent rootComponent = (RadViewComponent)myRootComponent;
         RootView rootView = (RootView)rootComponent.getNativeComponent();
-        rootView.setImage(session.getImage(), session.isAlphaChannelImage());
+        rootView.setRenderedImage(result.getImage());
         ModelParser.updateRootComponent(myConfiguration.getFullConfig(), rootComponent, session, rootView);
 
         zoomToFitIfNecessary();
