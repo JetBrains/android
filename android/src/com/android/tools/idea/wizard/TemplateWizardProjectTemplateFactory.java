@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.platform.ProjectTemplate;
 import com.intellij.platform.ProjectTemplatesFactory;
@@ -86,7 +87,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     private final TemplateMetadata myTemplateMetadata;
 
     private AndroidProjectTemplate(File templateFile, TemplateMetadata metadata, Project project) {
-      super(new TemplateWizardModuleBuilder(templateFile, metadata, project, null, new ArrayList<ModuleWizardStep>(), true));
+      super(new TemplateWizardModuleBuilder(templateFile, metadata, project, null, new ArrayList<ModuleWizardStep>(), ApplicationManager.getApplication(), true));
       myTemplateMetadata = metadata;
     }
 

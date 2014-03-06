@@ -44,8 +44,8 @@ public class NewModuleWizardTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
-    myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(),
-                                                      AndroidIcons.Wizards.NewModuleSidePanel, steps, false) {
+    myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(), AndroidIcons.Wizards.NewModuleSidePanel,
+                                                      steps, getTestRootDisposable(), false) {
       @Override
       public void update() {
         // Do nothing
