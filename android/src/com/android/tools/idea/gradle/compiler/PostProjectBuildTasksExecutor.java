@@ -183,13 +183,7 @@ public class PostProjectBuildTasksExecutor {
       if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0 ||
           !SOURCE_GEN.equals(buildMode) && isGradleSyncNeeded(myProject).equals(YES)) {
         syncProjectWithGradle();
-        //return;
       }
-
-      //if (errorCount == 0) {
-      //  TODO: uncomment this call when we implement project structure checks.
-      //  ProjectStructureSanitizer.getInstance(myProject).cleanUp();
-      //}
     }
   }
 
@@ -198,7 +192,8 @@ public class PostProjectBuildTasksExecutor {
       @Override
       public void run() {
         try {
-          GradleProjectImporter.getInstance().reImportProject(myProject, null);
+          // Sync project. We don't need to generate sources, since we just built the project.
+          GradleProjectImporter.getInstance().reImportProject(myProject, false /* do not generate sources */, null);
         }
         catch (ConfigurationException e) {
           Messages.showErrorDialog(myProject, e.getMessage(), e.getTitle());
@@ -222,10 +217,10 @@ public class PostProjectBuildTasksExecutor {
     NotificationListener notificationListener = new CustomNotificationListener(myProject, disableOfflineModeHyperlink);
 
     String title = "Unresolved Dependencies";
-    String text = "Unresolved dependencies detected while building project in offline mode. Please disable offline mode and try again. " +
+    String msg = "Unresolved dependencies detected while building project in offline mode. Please disable offline mode and try again. " +
                   disableOfflineModeHyperlink.toString();
 
-    AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, notificationListener);
+    AndroidGradleNotification.getInstance(myProject).showBalloon(title, msg, NotificationType.ERROR, notificationListener);
   }
 
   /**
