@@ -269,9 +269,17 @@ public class Utilities {
     return referenceElement.length == 1 ? referenceElement[0] : null;
   }
 
-  public static PsiMethod[] getMethodsByName(Module module, String className, String methodName) {
+  @Nullable
+  public static PsiMethod getMethodBySignature(Module module, String className, String signature) {
     PsiClass psiClass = getPsiClass(module, className);
-    return psiClass == null ? EMPTY_PSI_METHOD_ARRAY : psiClass.findMethodsByName(methodName, false);
+    return psiClass == null ? null : getMethodBySignature(psiClass, signature);
+  }
+
+  @Nullable
+  public static PsiMethod getMethodBySignature(@NotNull PsiClass psiClass, @NotNull String signature) {
+    JavaPsiFacade facade = JavaPsiFacade.getInstance(psiClass.getProject());
+    PsiMethod template = facade.getElementFactory().createMethodFromText(signature, psiClass);
+    return psiClass.findMethodBySignature(template, false);
   }
 
   public static Module getModule(Project project, VirtualFile file) {
