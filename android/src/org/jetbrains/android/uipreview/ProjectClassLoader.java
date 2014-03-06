@@ -33,6 +33,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.EXT_JAR;
+import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
  * @author Eugene.Kudelevsky
@@ -177,7 +178,8 @@ public final class ProjectClassLoader extends RenderClassLoader {
             result.add(SdkUtils.fileToUrl(file));
 
             File parentFile = file.getParentFile();
-            if (parentFile != null && parentFile.getPath().endsWith(DOT_AAR)) {
+            if (parentFile != null && (parentFile.getPath().endsWith(DOT_AAR) ||
+              parentFile.getPath().contains(EXPLODED_AAR))) {
               AarResourceClassRegistry.get().addLibrary(AppResourceRepository.getAppResources(myModule, true), parentFile);
             }
           }
