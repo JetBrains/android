@@ -17,7 +17,6 @@ package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
-import com.android.sdklib.SdkManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.DataManager;
@@ -28,6 +27,7 @@ import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NotNull;
@@ -79,9 +79,9 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
   public void actionPerformed(AnActionEvent e) {
     if (ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
       // Invoked from Welcome Screen, might not have an SDK setup yet
-      SdkManager sdkman = AndroidSdkUtils.tryToChooseAndroidSdk();
-      if (sdkman != null) {
-        doRunTool(null, sdkman.getLocation());
+      AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      if (sdkData != null) {
+        doRunTool(null, sdkData.getPath());
       }
     }
     else {

@@ -1,8 +1,8 @@
 package org.jetbrains.jps.android;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.SdkConstants;
-import com.android.sdklib.SdkManager;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.local.LocalSdk;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
@@ -14,17 +14,17 @@ public class AndroidPlatform {
   private final IAndroidTarget myTarget;
   private final int myPlatformToolsRevision;
   private final int mySdkToolsRevision;
-  private final SdkManager mySdkManager;
+  private final LocalSdk myLocalSdk;
 
   public AndroidPlatform(@NotNull JpsSdk<JpsSimpleElement<JpsAndroidSdkProperties>> sdk,
                          @NotNull IAndroidTarget target,
-                         @NotNull SdkManager sdkManager) {
+                         @NotNull LocalSdk localSdk) {
     mySdk = sdk;
     myTarget = target;
     final String homePath = sdk.getHomePath();
     myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_PLATFORM_TOOLS);
     mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(homePath, SdkConstants.FD_TOOLS);
-    mySdkManager = sdkManager;
+    myLocalSdk = localSdk;
   }
 
   @NotNull
@@ -50,7 +50,7 @@ public class AndroidPlatform {
   }
 
   @NotNull
-  public SdkManager getSdkManager() {
-    return mySdkManager;
+  public LocalSdk getLocalSdk() {
+    return myLocalSdk;
   }
 }

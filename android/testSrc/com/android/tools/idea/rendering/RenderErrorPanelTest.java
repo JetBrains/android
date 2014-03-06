@@ -596,7 +596,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assertNotNull(platform);
-    String location = platform.getSdkData().getLocation();
+    String location = platform.getSdkData().getPath();
     location = FileUtil.toSystemIndependentName(location);
     html = html.replace(location, "$SDK_HOME");
     return html;

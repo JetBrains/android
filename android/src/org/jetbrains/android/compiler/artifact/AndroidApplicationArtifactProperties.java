@@ -66,7 +66,7 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
                          AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
       return;
     }
-    final String sdkLocation = platform.getSdkData().getLocation();
+    final String sdkLocation = platform.getSdkData().getPath();
     final String artifactFilePath = artifact.getOutputFilePath();
 
     final String keyStorePath = myKeyStoreUrl != null

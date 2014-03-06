@@ -17,14 +17,10 @@ package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
-import com.android.utils.ILogger;
-import com.android.utils.NullLogger;
-import com.android.utils.StdLogger;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -209,9 +205,8 @@ public final class DefaultSdks {
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
       // If we don't force this update, AndroidSdkUtils will still use the old SDK until all SDKs are properly deleted.
-      ILogger logger = new StdLogger(StdLogger.Level.INFO);
-      SdkManager sdkManager = SdkManager.createManager(path.getPath(), logger);
-      AndroidSdkUtils.setSdkManager(sdkManager);
+      AndroidSdkData oldSdkData = AndroidSdkData.getSdkData(path);
+      AndroidSdkUtils.setSdkData(oldSdkData);
 
       // Set up a list of SDKs we don't need any more. At the end we'll delete them.
       List<Sdk> sdksToDelete = Lists.newArrayList();
@@ -219,7 +214,7 @@ public final class DefaultSdks {
       File resolved = resolvePath(path);
       String resolvedPath = resolved.getPath();
       // Parse out the new SDK. We'll need its targets to set up IntelliJ SDKs for each.
-      AndroidSdkData sdkData = AndroidSdkData.parse(resolvedPath, NullLogger.getLogger());
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(resolvedPath);
       if (sdkData != null) {
         // Iterate over all current existing IJ Android SDKs
         for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
@@ -267,19 +262,15 @@ public final class DefaultSdks {
    */
   @NotNull
   public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome, @Nullable Sdk javaSdk) {
-    String path = androidHome.getPath();
-    if (!path.endsWith(File.separator)) {
-      path += File.separator;
-    }
     List<Sdk> sdks = Lists.newArrayList();
-    AndroidSdkData sdkData = AndroidSdkData.parse(path, NullLogger.getLogger());
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHome);
     if (sdkData != null) {
       IAndroidTarget[] targets = sdkData.getTargets();
       Sdk defaultJdk = javaSdk != null ? javaSdk : getDefaultJdk();
       for (IAndroidTarget target : targets) {
         if (target.isPlatform() && !doesDefaultAndroidSdkExist(target)) {
           String sdkName = AndroidSdkUtils.chooseNameForNewLibrary(target);
-          Sdk platform = AndroidSdkUtils.createNewAndroidPlatform(target, path, sdkName, defaultJdk, true);
+          Sdk platform = AndroidSdkUtils.createNewAndroidPlatform(target, sdkData.getPath(), sdkName, defaultJdk, true);
           sdks.add(platform);
         }
       }

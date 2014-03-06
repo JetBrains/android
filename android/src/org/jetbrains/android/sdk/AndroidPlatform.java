@@ -16,9 +16,8 @@
 
 package org.jetbrains.android.sdk;
 
-import com.android.sdklib.IAndroidTarget;
 import com.android.SdkConstants;
-import com.android.utils.NullLogger;
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -88,7 +87,7 @@ public class AndroidPlatform {
     }
     String sdkPath = sdk.getHomePath();
     if (sdkPath != null) {
-      AndroidSdkData sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
       if (sdkData != null) {
         AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
         IAndroidTarget target = data != null ? data.getBuildTarget(sdkData) : null;
@@ -129,7 +128,7 @@ public class AndroidPlatform {
         String sdkPath = sdkDir.getPath();
         AndroidSdkData sdkData = parsedSdks != null ? parsedSdks.get(sdkPath) : null;
         if (sdkData == null) {
-          sdkData = AndroidSdkData.parse(sdkPath, NullLogger.getLogger());
+          sdkData = AndroidSdkData.getSdkData(sdkPath);
           if (sdkData == null) return null;
           if (parsedSdks != null) {
             parsedSdks.put(sdkPath, sdkData);

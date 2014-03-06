@@ -405,6 +405,7 @@ public class AndroidCompileUtil {
 
             ShowSettingsUtil.getInstance()
               .editConfigurable(project, configurable, new Runnable() {
+                @Override
                 public void run() {
                   final Module module = model.getModule();
                   final AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -858,7 +859,7 @@ public class AndroidCompileUtil {
       }
     }
     final AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
-    final String sdkHomePath = platform != null ? FileUtil.toCanonicalPath(platform.getSdkData().getLocation()) : null;
+    final String sdkHomePath = platform != null ? FileUtil.toCanonicalPath(platform.getSdkData().getPath()) : null;
 
     // artifact
     final Project project = context.getProject();
@@ -868,10 +869,10 @@ public class AndroidCompileUtil {
       if (artifact.getArtifactType() instanceof AndroidApplicationArtifactType &&
           facet.equals(AndroidArtifactUtil.getPackagedFacet(project, artifact))) {
         final ArtifactProperties<?> properties = artifact.getProperties(AndroidArtifactPropertiesProvider.getInstance());
-        
+
         if (properties instanceof AndroidApplicationArtifactProperties) {
           final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
-          
+
           if (p.isRunProGuard()) {
             final List<String> paths = AndroidUtils.urlsToOsPaths(p.getProGuardCfgFiles(), sdkHomePath);
             return new ProguardRunningOptions(paths);
