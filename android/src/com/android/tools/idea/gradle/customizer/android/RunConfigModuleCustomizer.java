@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.util.Facets;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
@@ -35,10 +34,10 @@ import java.util.List;
 /**
  * Creates run configurations for modules imported from {@link com.android.builder.model.AndroidProject}s.
  */
-public class RunConfigModuleCustomizer implements ModuleCustomizer {
+public class RunConfigModuleCustomizer implements AndroidModuleCustomizer {
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject != null) {
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
+    if (androidProject != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null && !facet.isLibraryProject()) {
         RunManager runManager = RunManager.getInstance(project);
