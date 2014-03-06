@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.structure.AndroidModuleStructureConfigurable;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
+import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
@@ -26,7 +27,11 @@ import com.intellij.openapi.project.Project;
 /**
  * Displays the "Project Structure" dialog.
  */
-public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAction {
+public class AndroidShowStructureSettingsAction extends AndroidActionRemover {
+  public AndroidShowStructureSettingsAction() {
+    super(new ShowStructureSettingsAction(), ActionsBundle.message("action.ShowProjectStructureSettings.text"));
+  }
+
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
@@ -36,5 +41,10 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
     else {
       super.actionPerformed(e);
     }
+  }
+
+  @Override
+  public void update(AnActionEvent e) {
+    myDelegate.update(e);
   }
 }

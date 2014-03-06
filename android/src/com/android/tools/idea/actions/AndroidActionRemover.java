@@ -64,7 +64,7 @@ public class AndroidActionRemover extends AnAction {
     myDelegate.update(e);
   }
 
-  private static void updateTextAndIcon(@NotNull Presentation source, @NotNull Presentation destination) {
+  protected void updateTextAndIcon(@NotNull Presentation source, @NotNull Presentation destination) {
     destination.setText(source.getTextWithMnemonic());
     destination.setIcon(source.getIcon());
   }
