@@ -289,7 +289,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
     assertNotNull(blankActivity);
     activityWizardState.setTemplateLocation(blankActivity);
-    activityWizardState.convertApisToInt();
+    Template.convertApisToInt(activityWizardState.getParameters());
     assertNotNull(activityWizardState.getTemplate());
   }
 
@@ -298,7 +298,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     assert sdkData != null;
 
-    projectWizardState.convertApisToInt();
+    Template.convertApisToInt(projectWizardState.getParameters());
     projectWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
     projectWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     projectWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());

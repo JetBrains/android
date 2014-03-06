@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
 import com.android.ide.common.xml.XmlPrettyPrinter;
@@ -71,6 +72,7 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
 /**
@@ -228,6 +230,7 @@ public class Template {
     myModuleRoot = moduleRootPath;
 
     Map<String, Object> paramMap = createParameterMap(args);
+    enforceParameterTypes(getMetadata(), args);
     Configuration freemarker = new Configuration();
     freemarker.setObjectWrapper(new DefaultObjectWrapper());
     freemarker.setTemplateLoader(myLoader);
@@ -293,6 +296,57 @@ public class Template {
 
     return paramMap;
   }
+
+  /**
+   * Iterate through parameters and ensure the given map has the correct for each
+   * parameter.
+   */
+  private static void enforceParameterTypes(@NotNull TemplateMetadata metadata, @NotNull Map<String, Object> args) {
+    for (Parameter p : metadata.getParameters()) {
+      Object o = args.get(p.id);
+      if (o == null) {
+        continue;
+      }
+      switch (p.type) {
+        case STRING:
+          if (!(o instanceof String)) {
+            args.put(p.id, o.toString());
+          }
+          break;
+        case BOOLEAN:
+          if (!(o instanceof Boolean)) {
+            args.put(p.id, Boolean.parseBoolean(o.toString()));
+          }
+          break;
+        case ENUM:
+          break;
+        case SEPARATOR:
+          break;
+      }
+    }
+    convertApisToInt(args);
+  }
+
+  public static void convertApisToInt(@NotNull Map<String, Object> args) {
+    convertToInt(ATTR_MIN_API, args);
+    convertToInt(ATTR_BUILD_API, args);
+    convertToInt(ATTR_MIN_API_LEVEL, args);
+    convertToInt(TemplateMetadata.ATTR_TARGET_API, args);
+  }
+
+  private static void convertToInt(@NotNull String key, @NotNull Map<String, Object> args) {
+    Object value = args.get(key);
+    if (value instanceof String) {
+      Integer result;
+      try {
+        result = Integer.parseInt((String)value);
+      } catch (NumberFormatException e) {
+        result = SdkVersionInfo.getApiByPreviewName((String)value, true /* Recognize Unknowns */);
+      }
+      args.put(key, result);
+    }
+  }
+
 
   /** Read the given FreeMarker file and process the variable definitions */
   private void processFile(@NotNull final Configuration freemarker, @NotNull File file, @NotNull final Map<String, Object> paramMap) {
