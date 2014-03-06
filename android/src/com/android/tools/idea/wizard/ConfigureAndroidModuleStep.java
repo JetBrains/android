@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewModuleWizardState.APP_NAME;
@@ -517,7 +518,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         return false;
       }
       // Check the individual components for not allowed characters.
-      for (String s : projectLocation.split(File.separator)) {
+      for (String s : projectLocation.split(Pattern.quote(File.separator))) {
         if (ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(s)) {
           char illegalChar = s.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(s));
           setErrorHtml(String.format(Locale.getDefault(), "Illegal character in project location path: '%c' in filename: %s", illegalChar, s));
