@@ -103,19 +103,17 @@ public class TemplateWizardState {
    * structure and new-style Gradle builds with the new structure.
    */
   protected void populateDirectoryParameters() throws IOException {
-    File projectRoot = new File((String)get(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, (String)get(NewProjectWizardState.ATTR_MODULE_NAME));
+    File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
+    File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
 
     File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
     File javaSourcePackageRoot;
     if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_ROOT)) {
       javaSourcePackageRoot = new File(getString(TemplateMetadata.ATTR_PACKAGE_ROOT));
-      if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_NAME)) {
-        String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
-        String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
-        put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
-      }
+      String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
+      String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
+      put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
     } else {
       javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
     }
