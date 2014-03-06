@@ -22,10 +22,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.NewModuleWizardState;
-import com.android.tools.idea.wizard.NewProjectWizard;
-import com.android.tools.idea.wizard.NewProjectWizardState;
-import com.android.tools.idea.wizard.TemplateWizardState;
+import com.android.tools.idea.wizard.*;
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
@@ -325,7 +322,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        NewProjectWizard.createProject(projectWizardState, myFixture.getProject());
+        AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
+        NewProjectWizard.createProject(projectWizardState, myFixture.getProject(), assetGenerator);
         if (Template.ourMostRecentException != null) {
           fail(Template.ourMostRecentException.getMessage());
         }

@@ -18,12 +18,9 @@ package com.android.tools.idea.wizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.File;
 
 import static com.android.tools.idea.wizard.TemplateWizardStep.NONE;
 
@@ -32,8 +29,9 @@ import static com.android.tools.idea.wizard.TemplateWizardStep.NONE;
  */
 public class AssetStudioWizard extends TemplateWizard implements TemplateWizardStep.UpdateListener {
   protected Module myModule;
-  protected AssetStudioWizardState myState = new AssetStudioWizardState();
+  protected TemplateWizardState myWizardState = new TemplateWizardState();
   protected ChooseOutputLocationStep myOutputStep;
+  protected AssetSetStep myIconStep;
 
   public AssetStudioWizard(@Nullable Project project, @Nullable Module module) {
     super("Asset Studio", project);
@@ -44,9 +42,9 @@ public class AssetStudioWizard extends TemplateWizard implements TemplateWizardS
 
   @Override
   protected void init() {
-    AssetSetStep iconStep = new AssetSetStep(myState, myProject, null, this);
-    myOutputStep = new ChooseOutputLocationStep(myState, myProject, null, NONE, myModule);
-    addStep(iconStep);
+    myIconStep = new AssetSetStep(myWizardState, myProject, null, this);
+    myOutputStep = new ChooseOutputLocationStep(myWizardState, myProject, null, NONE, myModule);
+    addStep(myIconStep);
     addStep(myOutputStep);
 
     super.init();
@@ -64,23 +62,7 @@ public class AssetStudioWizard extends TemplateWizard implements TemplateWizardS
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        File targetResDir = (File)myState.get(ChooseOutputLocationStep.ATTR_OUTPUT_FOLDER);
-        if (targetResDir == null) {
-          return;
-        }
-
-        File targetVariantDir = targetResDir.getParentFile();
-
-        myState.outputImagesIntoVariantRoot(targetVariantDir);
-
-        VirtualFile resDir = LocalFileSystem.getInstance().findFileByIoFile(targetResDir);
-        if (resDir != null) {
-          // Refresh the res directory so that the new files show up in the IDE.
-          resDir.refresh(true, true);
-        } else {
-          // If we can't find the res directory, refresh the project.
-          myProject.getBaseDir().refresh(true, true);
-        }
+        myIconStep.createAssets(null);
       }
     });
   }

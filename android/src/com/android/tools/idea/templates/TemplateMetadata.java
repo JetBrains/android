@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.wizard.TemplateWizardState;
 import com.intellij.openapi.diagnostic.Logger;
+
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.wizard.AssetStudioAssetGenerator;
+import com.android.tools.idea.wizard.TemplateWizardState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.Template.*;
@@ -66,6 +69,7 @@ public class TemplateMetadata {
   public static final String ATTR_JAVA_VERSION = "javaVersion";
   public static final String ATTR_SDK_DIR = "sdkDir";
   public static final String ATTR_PER_MODULE_REPOS = "perModuleRepositories";
+  public static final String ATTR_ICON_NAME = "iconName";
 
   public static final String ATTR_DEPENDENCIES_LIST = "dependencyList";
   public static final String ATTR_FRAGMENTS_EXTRA = "usesFragments";
@@ -77,6 +81,9 @@ public class TemplateMetadata {
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
+
+  private final AssetStudioAssetGenerator.AssetType myIconType;
+  private final String myIconName;
 
   @VisibleForTesting
   public TemplateMetadata(@NotNull Document document) {
@@ -90,6 +97,21 @@ public class TemplateMetadata {
       if (parameter.id != null) {
         myParameterMap.put(parameter.id, parameter);
       }
+    }
+
+    NodeList icons = myDocument.getElementsByTagName(TAG_ICONS);
+    if (icons.getLength() > 0) {
+      Element element = (Element) icons.item(0);
+      if (element.hasAttribute(Template.ATTR_TYPE)) {
+        String iconTypeName = element.getAttribute(Template.ATTR_TYPE).toUpperCase(Locale.US);
+        myIconType = AssetStudioAssetGenerator.AssetType.valueOf(iconTypeName);
+      } else {
+        myIconType = null;
+      }
+      myIconName = element.getAttribute(Template.ATTR_NAME);
+    } else {
+      myIconType = null;
+      myIconName = null;
     }
   }
 
@@ -113,6 +135,16 @@ public class TemplateMetadata {
 
   public int getRevision() {
     return getInteger(ATTR_REVISION, 1);
+  }
+
+  @Nullable
+  public AssetStudioAssetGenerator.AssetType getIconType() {
+    return myIconType;
+  }
+
+  @Nullable
+  public String getIconName() {
+    return myIconName;
   }
 
   @Nullable
