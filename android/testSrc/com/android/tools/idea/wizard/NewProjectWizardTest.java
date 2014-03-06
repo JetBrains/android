@@ -62,7 +62,6 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     assertNotNull(myWizardState);
     assertTrue(myWizardState.hasAttr(ATTR_GRADLE_VERSION));
     assertTrue(myWizardState.hasAttr(ATTR_GRADLE_PLUGIN_VERSION));
-    assertTrue(myWizardState.hasAttr(ATTR_V4_SUPPORT_LIBRARY_VERSION));
 
     assertTrue(myWizardState.hasAttr(ATTR_MIN_API));
     assertTrue(myWizardState.get(ATTR_MIN_API) instanceof Integer);
