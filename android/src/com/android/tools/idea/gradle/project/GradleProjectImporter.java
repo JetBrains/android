@@ -415,12 +415,11 @@ public class GradleProjectImporter {
                         boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
     PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
-    if (!newProject) {
-      // For existing projects, we can notify the IDE that project sync has started. The side of this is that the "Build Variants" tool
-      // window and editor notifications will be updated. It is not safe to do this for new projects because the new project has not been
-      // opened at this point.
-      GradleSyncState.getInstance(project).syncStarted();
-    }
+
+    // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
+    // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
+    GradleSyncState.getInstance(project).syncStarted(!newProject);
+
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
@@ -434,8 +433,6 @@ public class GradleProjectImporter {
             if (!isTest || !ourSkipSetupFromTest) {
               if (newProject) {
                 Projects.open(project);
-                // Now that the project is open, we can update project-specific UI related to "sync".
-                GradleSyncState.getInstance(project).syncStarted();
               }
               else {
                 updateStructureAccordingToBuildVariants(project);
