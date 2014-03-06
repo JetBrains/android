@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * @author Eugene.Kudelevsky
@@ -28,6 +29,8 @@ class AndroidDbUtil {
 
   private static final String DEVICE_ID_EMULATOR_PREFIX = "EMULATOR_";
   private static final String DEVICE_ID_SERIAL_NUMBER_PREFIX = "SERIAL_NUMBER_";
+
+  private static final Pattern RUN_AS_UNKNOWN_PACKAGE_ERROR_PATTERN = Pattern.compile("run-as: Package '\\S+' is unknown");
 
   private AndroidDbUtil() {
   }
@@ -51,7 +54,7 @@ class AndroidDbUtil {
       final String remoteDbPath = getDatabaseRemoteFilePath(packageName, dbName, external);
       final String remoteDbDirPath = remoteDbPath.substring(0, remoteDbPath.lastIndexOf('/'));
 
-      MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator);
+      MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator, device);
       device.executeShellCommand(getRunAsPrefix(packageName, external) +
                                  "mkdir " + remoteDbDirPath, outputReceiver,
                                  DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
@@ -65,7 +68,7 @@ class AndroidDbUtil {
       if (!external && !recreateRemoteFile(device, packageName, remoteDbPath, errorReporter, progressIndicator)) {
         return false;
       }
-      outputReceiver = new MyShellOutputReceiver(progressIndicator);
+      outputReceiver = new MyShellOutputReceiver(progressIndicator, device);
       device.executeShellCommand(getRunAsPrefix(packageName, external) + "cat " + TEMP_REMOTE_DB_PATH + " >" + remoteDbPath,
                                  outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
       output = outputReceiver.getOutput();
@@ -93,7 +96,7 @@ class AndroidDbUtil {
                                             String remotePath,
                                             AndroidDbErrorReporter errorReporter,
                                             ProgressIndicator progressIndicator) throws Exception {
-    MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator);
+    MyShellOutputReceiver outputReceiver = new MyShellOutputReceiver(progressIndicator, device);
     device.executeShellCommand("run-as " + packageName + " rm " + remotePath,
                                outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
     String output = outputReceiver.getOutput();
@@ -102,7 +105,7 @@ class AndroidDbUtil {
       errorReporter.reportError(output);
       return false;
     }
-    outputReceiver = new MyShellOutputReceiver(progressIndicator);
+    outputReceiver = new MyShellOutputReceiver(progressIndicator, device);
     device.executeShellCommand("run-as " + packageName + " touch " + remotePath,
                                outputReceiver, DB_COPYING_TIMEOUT_SEC, TimeUnit.SECONDS);
     output = outputReceiver.getOutput();
@@ -122,7 +125,7 @@ class AndroidDbUtil {
                                          @NotNull final ProgressIndicator progressIndicator,
                                          @NotNull AndroidDbErrorReporter errorReporter) {
     try {
-      final MyShellOutputReceiver receiver = new MyShellOutputReceiver(progressIndicator);
+      final MyShellOutputReceiver receiver = new MyShellOutputReceiver(progressIndicator, device);
       device.executeShellCommand(getRunAsPrefix(packageName, external) + "cat " +
                                  getDatabaseRemoteFilePath(packageName, dbName, external) + " >" +
                                  TEMP_REMOTE_DB_PATH, receiver,
@@ -356,7 +359,7 @@ class AndroidDbUtil {
   private static String executeSingleCommand(@NotNull IDevice device,
                                              @NotNull AndroidDbErrorReporter errorReporter,
                                              @NotNull String command) {
-    final MyShellOutputReceiver receiver = new MyShellOutputReceiver(null);
+    final MyShellOutputReceiver receiver = new MyShellOutputReceiver(null, device);
 
     try {
       device.executeShellCommand(command, receiver, SHELL_COMMAND_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -434,9 +437,11 @@ class AndroidDbUtil {
   private static class MyShellOutputReceiver extends MultiLineReceiver {
     @Nullable private final ProgressIndicator myProgressIndicator;
     private final StringBuilder myOutputBuilder = new StringBuilder();
+    private final boolean myAndroid43;
 
-    public MyShellOutputReceiver(@Nullable ProgressIndicator progressIndicator) {
+    public MyShellOutputReceiver(@Nullable ProgressIndicator progressIndicator, @NotNull IDevice device) {
       myProgressIndicator = progressIndicator;
+      myAndroid43 = "18".equals(device.getProperty("ro.build.version.sdk"));
     }
 
     @Override
@@ -450,6 +455,11 @@ class AndroidDbUtil {
             myOutputBuilder.append('\n');
           }
           myOutputBuilder.append(s);
+
+          if (myAndroid43 && RUN_AS_UNKNOWN_PACKAGE_ERROR_PATTERN.matcher(s).matches()) {
+            myOutputBuilder.append(". \nUnfortunately database support doesn't work for Android 4.3 devices because of the bug " +
+                                   "https://code.google.com/p/android/issues/detail?id=58373");
+          }
         }
       }
     }

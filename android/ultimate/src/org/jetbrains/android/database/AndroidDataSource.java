@@ -2,9 +2,11 @@ package org.jetbrains.android.database;
 
 import com.intellij.javaee.module.view.dataSource.LocalDataSource;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.persistence.database.DataSourceInfo;
+import com.intellij.persistence.database.DataSourceTemplate;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
 import com.intellij.util.xmlb.annotations.Tag;
@@ -137,6 +139,25 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   @Override
   public Icon getBaseIcon() {
     return AndroidIcons.Android;
+  }
+
+  @Override
+  public DataSourceTemplate getTemplate() {
+    return AndroidDbManager.DEFAULT_TEMPLATE;
+  }
+
+  @Override
+  public boolean equalConfiguration(@NotNull LocalDataSource o) {
+    if (!(o instanceof AndroidDataSource)) return super.equalConfiguration(o);
+
+    State s = ((AndroidDataSource)o).getState();
+    if (!Comparing.equal(myState.myDeviceId, s.myDeviceId)) return false;
+    if (!Comparing.equal(myState.myPackageName, s.myPackageName)) return false;
+    if (!Comparing.equal(myState.myDatabaseName, s.myDatabaseName)) return false;
+    if (!Comparing.equal(myState.myExternal, s.myExternal)) return false;
+    if (!Comparing.equal(myState.myExternal, s.myExternal)) return false;
+
+    return true;
   }
 
   @Tag("data-source")
