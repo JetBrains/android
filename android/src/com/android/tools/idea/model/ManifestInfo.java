@@ -18,22 +18,21 @@ package com.android.tools.idea.model;
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.dom.manifest.ActivityAlias;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.xml.AndroidManifest.*;
 
 /**
@@ -42,9 +41,7 @@ import static com.android.xml.AndroidManifest.*;
  *
  * @see com.android.xml.AndroidManifest
  */
-public class ManifestInfo {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.model.ManifestInfo");
-
+public abstract class ManifestInfo {
   public static class ActivityAttributes {
     @Nullable
     private final String myIcon;
@@ -139,6 +136,7 @@ public class ManifestInfo {
       return myLabel;
     }
 
+    @NotNull
     public String getName() {
       return myName;
     }
@@ -159,21 +157,6 @@ public class ManifestInfo {
     }
   }
 
-  private final Module myModule;
-  private final boolean myPreferMergedManifest;
-  private String myPackage;
-  private String myManifestTheme;
-  private Map<String, ActivityAttributes> myActivityAttributesMap;
-  private ManifestFile myManifestFile;
-  private long myLastChecked;
-  private String myMinSdkName;
-  private int myMinSdk;
-  private int myTargetSdk;
-  private String myApplicationIcon;
-  private String myApplicationLabel;
-  private boolean myApplicationSupportsRtl;
-  private Manifest myManifest;
-
   /** Key for the per-module non-persistent property storing the {@link ManifestInfo} for this module. */
   @VisibleForTesting
   final static Key<ManifestInfo> MANIFEST_FINDER = new Key<ManifestInfo>("adt-manifest-info"); //$NON-NLS-1$
@@ -181,26 +164,6 @@ public class ManifestInfo {
   /** Key for the per-module non-persistent property storing the merged {@link ManifestInfo} for this module. */
   @VisibleForTesting
   final static Key<ManifestInfo> MERGED_MANIFEST_FINDER = new Key<ManifestInfo>("adt-merged-manifest-info");
-
-  /**
-   * Constructs an {@link ManifestInfo} for the given module. Don't use this method;
-   * use the {@link #get} factory method instead.
-   *
-   * @param module module to create an {@link ManifestInfo} for
-   * @param preferMergedManifest use the merged manifest if available, fallback to the main manifest otherwise
-   */
-  private ManifestInfo(Module module, boolean preferMergedManifest) {
-    myModule = module;
-    myPreferMergedManifest = preferMergedManifest;
-  }
-
-  /**
-   * Clears the cached manifest information. The next get call on one of the
-   * properties will cause the information to be refreshed.
-   */
-  public void clear() {
-    myLastChecked = 0;
-  }
 
   /**
    * Returns the {@link ManifestInfo} for the given module.
@@ -219,7 +182,7 @@ public class ManifestInfo {
    * Returns the {@link ManifestInfo} for the given module.
    *
    * @param module the module the finder is associated with
-   * @param useMergedManifest if true, the merged manifest is used if available, otherwise the main sourceset's manifest
+   * @param useMergedManifest if true, the merged manifest is used if available, otherwise the main source set's manifest
    *                          is used
    * @return a {@ManifestInfo} for the given module
    */
@@ -228,7 +191,7 @@ public class ManifestInfo {
 
     ManifestInfo finder = module.getUserData(key);
     if (finder == null) {
-      finder = new ManifestInfo(module, useMergedManifest);
+      finder = useMergedManifest ? new MergedManifestInfo(module) : new PrimaryManifestInfo(module);
       module.putUserData(key, finder);
     }
 
@@ -236,124 +199,10 @@ public class ManifestInfo {
   }
 
   /**
-   * Ensure that the package, theme and activity maps are initialized and up to date
-   * with respect to the manifest file
+   * Clears the cached manifest information. The next get call on one of the
+   * properties will cause the information to be refreshed.
    */
-  private void sync() {
-    // Since each of the accessors call sync(), allow a bunch of immediate
-    // accessors to all bypass the file stat() below
-    long now = System.currentTimeMillis();
-    if (now - myLastChecked < 50 && myManifestFile != null) {
-      return;
-    }
-    myLastChecked = now;
-
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        syncWithReadPermission();
-      }
-    });
-  }
-
-  private void syncWithReadPermission() {
-    if (myManifestFile == null) {
-      myManifestFile = ManifestFile.create(myModule, myPreferMergedManifest);
-      if (myManifestFile == null) {
-        return;
-      }
-    }
-
-    // Check to see if our data is up to date
-    boolean refresh = myManifestFile.refresh();
-    if (!refresh) {
-      // Already have up to date data
-      return;
-    }
-
-    myActivityAttributesMap = new HashMap<String, ActivityAttributes>();
-    myManifestTheme = null;
-    myTargetSdk = 1; // Default when not specified
-    myMinSdk = 1; // Default when not specified
-    myMinSdkName = "1"; // Default when not specified
-    myPackage = ""; //$NON-NLS-1$
-    myApplicationIcon = null;
-    myApplicationLabel = null;
-    myApplicationSupportsRtl = false;
-
-    try {
-      XmlTag root = myManifestFile.getXmlFile().getRootTag();
-      if (root == null) {
-        return;
-      }
-
-      myPackage = root.getAttributeValue(ATTRIBUTE_PACKAGE);
-
-      XmlTag[] applications = root.findSubTags(NODE_APPLICATION);
-      if (applications.length > 0) {
-        assert applications.length == 1;
-        XmlTag application = applications[0];
-        myApplicationIcon = application.getAttributeValue(ATTRIBUTE_ICON, ANDROID_URI);
-        myApplicationLabel = application.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
-        myManifestTheme = application.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
-        myApplicationSupportsRtl = VALUE_TRUE.equals(application.getAttributeValue(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI));
-
-        XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
-        for (XmlTag activity : activities) {
-          ActivityAttributes attributes = new ActivityAttributes(activity, myPackage);
-          myActivityAttributesMap.put(attributes.getName(), attributes);
-        }
-      }
-
-      // Look up target SDK
-      XmlTag[] usesSdks = root.findSubTags(NODE_USES_SDK);
-      if (usesSdks.length > 0) {
-        XmlTag usesSdk = usesSdks[0];
-        myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, 1);
-        myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
-      }
-
-      myManifest = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), myManifestFile.getXmlFile(), Manifest.class);
-    }
-    catch (Exception e) {
-      LOG.error("Could not read Manifest data", e);
-    }
-  }
-
-  private int getApiVersion(XmlTag usesSdk, String attribute, int defaultApiLevel) {
-    String valueString = usesSdk.getAttributeValue(attribute, ANDROID_URI);
-    if (attribute.equals(ATTRIBUTE_MIN_SDK_VERSION)) {
-      myMinSdkName = valueString;
-    }
-
-    if (valueString != null) {
-      int apiLevel = -1;
-      try {
-        apiLevel = Integer.valueOf(valueString);
-      }
-      catch (NumberFormatException e) {
-        // Handle codename
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        if (facet != null) {
-          IAndroidTarget target = facet.getTargetFromHashString("android-" + valueString);
-          if (target != null) {
-            // codename future API level is current api + 1
-            apiLevel = target.getVersion().getApiLevel() + 1;
-          }
-        }
-      }
-
-      return apiLevel;
-    }
-
-    return defaultApiLevel;
-  }
-
-  @Nullable
-  public Manifest getManifest() {
-    sync();
-    return myManifest;
-  }
+  public abstract void clear();
 
   /**
    * Returns the default package registered in the Android manifest
@@ -361,10 +210,7 @@ public class ManifestInfo {
    * @return the default package registered in the manifest
    */
   @Nullable
-  public String getPackage() {
-    sync();
-    return myPackage;
-  }
+  public abstract String getPackage();
 
   /**
    * Returns a map from activity full class names to the corresponding {@link ActivityAttributes}
@@ -372,25 +218,13 @@ public class ManifestInfo {
    * @return a map from activity fqcn to ActivityAttributes
    */
   @NotNull
-  public Map<String, ActivityAttributes> getActivityAttributesMap() {
-    sync();
-    if (myActivityAttributesMap == null) {
-      return Collections.emptyMap();
-    }
-    return myActivityAttributesMap;
-  }
+  public abstract Map<String, ActivityAttributes> getActivityAttributesMap();
 
   /**
    * Returns the attributes of an activity.
    */
   @Nullable
-  public ActivityAttributes getActivityAttributes(@NotNull String activity) {
-    int index = activity.indexOf('.');
-    if (index <= 0 && myPackage != null && !myPackage.isEmpty()) {
-      activity = myPackage + (index == -1 ? "." : "") + activity;
-    }
-    return getActivityAttributesMap().get(activity);
-  }
+  public abstract ActivityAttributes getActivityAttributes(@NotNull String activity);
 
   /**
    * Returns the manifest theme registered on the application, if any
@@ -398,10 +232,7 @@ public class ManifestInfo {
    * @return a manifest theme, or null if none was registered
    */
   @Nullable
-  public String getManifestTheme() {
-    sync();
-    return myManifestTheme;
-  }
+  public abstract String getManifestTheme();
 
   /**
    * Returns the default theme for this project, by looking at the manifest default
@@ -412,31 +243,7 @@ public class ManifestInfo {
    * @return the theme to use for this project, never null
    */
   @NotNull
-  public String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize) {
-    sync();
-
-    if (myManifestTheme != null) {
-      return myManifestTheme;
-    }
-
-    // From manifest theme documentation:
-    // "If that attribute is also not set, the default system theme is used."
-
-    int renderingTargetSdk = myTargetSdk;
-    if (renderingTarget != null) {
-      renderingTargetSdk = renderingTarget.getVersion().getApiLevel();
-    }
-
-    int apiLevel = Math.min(myTargetSdk, renderingTargetSdk);
-    // For now this theme works only on XLARGE screens. When it works for all sizes,
-    // add that new apiLevel to this check.
-    if (apiLevel >= 11 && screenSize == ScreenSize.XLARGE || apiLevel >= 14) {
-      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo"; //$NON-NLS-1$
-    }
-    else {
-      return ANDROID_STYLE_RESOURCE_PREFIX + "Theme"; //$NON-NLS-1$
-    }
-  }
+  public abstract String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize);
 
   /**
    * Returns the application icon, or null
@@ -444,10 +251,7 @@ public class ManifestInfo {
    * @return the application icon, or null
    */
   @Nullable
-  public String getApplicationIcon() {
-    sync();
-    return myApplicationIcon;
-  }
+  public abstract String getApplicationIcon();
 
   /**
    * Returns the application label, or null
@@ -455,40 +259,28 @@ public class ManifestInfo {
    * @return the application label, or null
    */
   @Nullable
-  public String getApplicationLabel() {
-    sync();
-    return myApplicationLabel;
-  }
+  public abstract String getApplicationLabel();
 
   /**
    * Returns true if the application has RTL support.
    *
    * @return true if the application has RTL support.
    */
-  public boolean isRtlSupported() {
-    sync();
-    return myApplicationSupportsRtl;
-  }
+  public abstract boolean isRtlSupported();
 
   /**
    * Returns the target SDK version
    *
    * @return the target SDK version
    */
-  public int getTargetSdkVersion() {
-    sync();
-    return myTargetSdk;
-  }
+  public abstract int getTargetSdkVersion();
 
   /**
    * Returns the minimum SDK version
    *
    * @return the minimum SDK version
    */
-  public int getMinSdkVersion() {
-    sync();
-    return myMinSdk;
-  }
+  public abstract int getMinSdkVersion();
 
   /**
    * Returns the minimum SDK version name (which may not be a numeric string, e.g.
@@ -499,14 +291,7 @@ public class ManifestInfo {
    * @return the minimum SDK version
    */
   @NotNull
-  public String getMinSdkName() {
-    sync();
-    if (myMinSdkName == null || myMinSdkName.isEmpty()) {
-      myMinSdkName = "1"; //$NON-NLS-1$
-    }
-
-    return myMinSdkName;
-  }
+  public abstract String getMinSdkName();
 
   /**
    * Returns the code name used for the minimum SDK version, if any.
@@ -514,12 +299,38 @@ public class ManifestInfo {
    * @return the minSdkVersion codename or null
    */
   @Nullable
-  public String getMinSdkCodeName() {
-    String minSdkName = getMinSdkName();
-    if (!Character.isDigit(minSdkName.charAt(0))) {
-      return minSdkName;
+  public abstract String getMinSdkCodeName();
+
+  /** @return the list activities defined in the manifest. */
+  @NotNull
+  public List<Activity> getActivities() {
+    List<Activity> activities = Lists.newArrayList();
+
+    for (Manifest m : getManifests()) {
+      Application application = m.getApplication();
+      if (application != null) {
+        activities.addAll(application.getActivities());
+      }
     }
 
-    return null;
+    return activities;
   }
+
+  /** @return the list activity aliases defined in the manifest. */
+  @NotNull
+  public List<ActivityAlias> getActivityAliases() {
+    List<ActivityAlias> activityAliases = Lists.newArrayList();
+
+    for (Manifest m : getManifests()) {
+      Application application = m.getApplication();
+      if (application != null) {
+        activityAliases.addAll(application.getActivityAliass());
+      }
+    }
+
+    return activityAliases;
+  }
+
+  @NotNull
+  protected abstract List<Manifest> getManifests();
 }

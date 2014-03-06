@@ -74,7 +74,6 @@ import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
-import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -364,7 +363,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
     }
     else {
-      String pkg = AndroidModuleInfo.get(facet).getPackage(true);
+      String pkg = AndroidModuleInfo.get(facet).getPackage();
       if (pkg == null || pkg.isEmpty()) {
         message("[" + facet.getModule().getName() + "] Unable to obtain main package from manifest.", STDERR);
       }
@@ -628,7 +627,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return;
     }
 
-    myPackageName = getPackageNameFromGradle(myPackageName, myFacet);
     assert myPackageName != null;
     myTestPackageName = computeTestPackageName(myFacet, myPackageName);
 
@@ -1079,8 +1077,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private boolean uploadAndInstallDependentModules(@NotNull IDevice device)
     throws IOException, AdbCommandRejectedException, TimeoutException {
     for (AndroidFacet depFacet : myAdditionalFacet2PackageName.keySet()) {
-      String packageName = myAdditionalFacet2PackageName.get(depFacet);
-      packageName = getPackageNameFromGradle(packageName, depFacet);
+      String packageName = AndroidModuleInfo.get(depFacet).getPackage();
+      if (packageName == null) {
+        packageName = myAdditionalFacet2PackageName.get(depFacet);
+      }
       assert packageName != null;
       if (!uploadAndInstall(device, packageName, depFacet)) {
         return false;
@@ -1100,12 +1100,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
     String testPackageName = selectedVariant.getMergedFlavor().getTestPackageName();
     return (testPackageName != null) ? testPackageName : packageName + DEFAULT_TEST_PACKAGE_SUFFIX;
-  }
-
-  @Nullable
-  private static String getPackageNameFromGradle(@NotNull String packageNameInManifest, @NotNull AndroidFacet facet) {
-    IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-    return ideaAndroidProject == null ? packageNameInManifest : ideaAndroidProject.computePackageName();
   }
 
   private boolean uploadAndInstall(@NotNull IDevice device, @NotNull String packageName, AndroidFacet facet)
