@@ -267,6 +267,7 @@ public class AssetSetStep extends TemplateWizardStep {
         setIconOrClear(myXXHdpiPreview, xxhdpi);
       }
 
+      myUpdateListener.update();
       return true;
     }
     catch (ImageGeneratorException e) {

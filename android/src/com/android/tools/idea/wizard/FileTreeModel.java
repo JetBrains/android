@@ -26,8 +26,6 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.io.File;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -109,6 +107,32 @@ public class FileTreeModel implements TreeModel {
   }
 
   /**
+   * Check to see if there are any conflicts (multiple files added to the same location) in the tree.
+   */
+  public boolean hasConflicts() {
+    if (myRootNode == null) {
+      return false;
+    }
+    return treeHasConflicts(myRootNode);
+  }
+
+  /**
+   * DFS through the tree looking for conflicted nodes.
+   */
+  private static boolean treeHasConflicts(Node root) {
+    if (root.isConflicted) {
+      return true;
+    }
+
+    for (Node n : root.children) {
+      if (treeHasConflicts(n)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Add the given file to the representation.
    * This is a no-op if the given path already exists within the tree.
    */
@@ -124,7 +148,19 @@ public class FileTreeModel implements TreeModel {
     String s = f.isAbsolute() ? FileUtil.getRelativePath(myRoot, f) : f.getPath();
     if (s != null) {
       List<String> parts = Lists.newLinkedList(Splitter.on(File.separatorChar).split(s));
-      makeNode(myRootNode, parts, ic);
+      makeNode(myRootNode, parts, ic, false);
+    }
+  }
+
+  /**
+   * Add the given file to the representation and mark it with the given icon.
+   * If the path already exists within the tree it will be marked as a conflicting path.
+   */
+  public void forceAddFile(@NotNull File f, @Nullable Icon ic) {
+    String s = f.isAbsolute() ? FileUtil.getRelativePath(myRoot, f) : f.getPath();
+    if (s != null) {
+      List<String> parts = Lists.newLinkedList(Splitter.on(File.separatorChar).split(s));
+      makeNode(myRootNode, parts, ic, true);
     }
   }
 
@@ -135,6 +171,7 @@ public class FileTreeModel implements TreeModel {
     public String name;
     public List<Node> children = Lists.newLinkedList();
     public boolean existsOnDisk;
+    public boolean isConflicted;
     public Icon icon;
 
     @Override
@@ -170,22 +207,35 @@ public class FileTreeModel implements TreeModel {
 
   /**
    * Recursively build the node(s) specified in the given path hierarchy starting at the given root.
-   * Mark the last node in the path with the given icon.
+   * Mark the last node in the path with the given icon. If markConflict is set, mark the final node
+   * as conflicted if it already exists.
    */
-  private static void makeNode(@NotNull Node root, @NotNull List<String> path, @Nullable Icon ic) {
+  private static void makeNode(@NotNull Node root, @NotNull List<String> path, @Nullable Icon ic, boolean markConflict) {
     if (path.isEmpty()) {
       return;
     }
 
     String name = path.get(0);
 
+    if (markConflict) {
+      if (path.size() == 1 && root.name.equals(name)) {
+        root.isConflicted = true;
+        return;
+      }
+    }
     if (root.name.equals(name)) {
       // Continue down along already-created paths
-      makeNode(root, rest(path), ic);
+      makeNode(root, rest(path), ic, markConflict);
     } else if (root.hasChild(name)) {
       // Allow paths relative to root (rather than including root explicitly)
+      if (markConflict && path.size() == 1) {
+        Node targetNode = root.getChild(name);
+        targetNode.isConflicted = true;
+        targetNode.icon = ic;
+        return;
+      }
       //noinspection ConstantConditions
-      makeNode(root.getChild(name), rest(path), ic);
+      makeNode(root.getChild(name), rest(path), ic, markConflict);
     } else {
       // If this node in the path doesn't exist, then create it.
       Node n = new Node();
@@ -196,7 +246,7 @@ public class FileTreeModel implements TreeModel {
         n.icon = ic;
       } else {
         // Continue down to create the rest of the path
-        makeNode(n, rest(path), ic);
+        makeNode(n, rest(path), ic, markConflict);
       }
     }
   }
