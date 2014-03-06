@@ -15,21 +15,25 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
-import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
 
 /**
  * Represents a Maven repository where the Android plugin or library dependencies may be found.
  */
-public class Repository {
+public class Repository extends BuildFileStatement {
   public enum Type {
     MAVEN_CENTRAL("mavenCentral"),
     MAVEN_LOCAL("mavenLocal"),
@@ -49,25 +53,45 @@ public class Repository {
   public final String myUrl;
   public final Type myType;
 
-  public Repository(@NotNull String s) {
-    if (s.endsWith("()")) {
-      s = s.substring(0, s.length() - 2);
+  public static BuildFileStatement parse(@NotNull String s, @NotNull Project project) {
+    String methodCallName = s;
+    if (methodCallName.endsWith("()")) {
+      methodCallName = methodCallName.substring(0, methodCallName.length() - 2);
     }
-    if (s.equalsIgnoreCase(Type.MAVEN_CENTRAL.getCallName())) {
-      myType = Type.MAVEN_CENTRAL;
-      myUrl = null;
-    } else if (s.equalsIgnoreCase(Type.MAVEN_LOCAL.getCallName())) {
-      myType = Type.MAVEN_LOCAL;
-      myUrl = null;
+    if (methodCallName.equalsIgnoreCase(Type.MAVEN_CENTRAL.getCallName())) {
+      return new Repository(Type.MAVEN_CENTRAL, null);
+    } else if (methodCallName.equalsIgnoreCase(Type.MAVEN_LOCAL.getCallName())) {
+      return new Repository(Type.MAVEN_LOCAL, null);
+    } else if (methodCallName.equalsIgnoreCase(Type.URL.getCallName())) {
+      return new Repository(Type.URL, s);
+    } else if (s.startsWith("'") && s.endsWith("'")) {
+      return new Repository(Type.URL, s.substring(1, s.length() - 1));
     } else {
-      myType = Type.URL;
-      myUrl = s;
+      return new UnparseableStatement(s, project);
     }
   }
 
   public Repository(@NotNull Type type, @Nullable String url) {
     myType = type;
     myUrl = url;
+  }
+
+  @NotNull
+  @Override
+  public List<PsiElement> getGroovyElements(@NotNull GroovyPsiElementFactory factory) {
+    String callName = myType.getCallName();
+    String extraGroovyCode;
+    switch(myType) {
+      case MAVEN_CENTRAL:
+      case MAVEN_LOCAL:
+      default:
+        extraGroovyCode = "()";
+        break;
+      case URL:
+        extraGroovyCode = " { url '" + escapeLiteralString(myUrl) + "' }";
+        break;
+    }
+    return ImmutableList.of((PsiElement)factory.createStatementFromText(callName + extraGroovyCode));
   }
 
   @Override
@@ -77,7 +101,7 @@ public class Repository {
       case MAVEN_LOCAL:
         return myType.getCallName();
       case URL:
-        return myUrl;
+        return "'" + myUrl + "'";
     }
     return null;
   }
@@ -106,68 +130,52 @@ public class Repository {
     return new Factory();
   }
 
-  public static class Factory implements BuildFileKey.ValueFactory<Repository> {
-    @NotNull
+  public static class Factory extends BuildFileStatementFactory {
+    @Nullable
     @Override
-    public List<Repository> getValues(@NotNull GrStatementOwner closure) {
-      List<Repository> list = Lists.newArrayList();
-      for (GrMethodCall methodCall : GradleGroovyFile.getMethodCalls(closure)) {
-        String callName = GradleGroovyFile.getMethodCallName(methodCall);
-        if (Type.MAVEN_CENTRAL.getCallName().equals(callName) || Type.MAVEN_LOCAL.getCallName().equals(callName)) {
-          list.add(new Repository(callName));
-        } else if (Type.URL.getCallName().equals(callName)) {
-          // Handles repositories of the form maven('www.foo.com', 'www.fee.com')
-          Iterable<Object> literals = GradleGroovyFile.getLiteralArgumentValues(methodCall);
-          if (!Iterables.isEmpty(literals)) {
-            for (Object literal : literals) {
-              list.add(new Repository(literal.toString()));
-            }
-          } else {
-            // Handles repositories of the form:
-            //
-            // maven {
-            //  url 'www.foo.com'
-            //  url 'www.fee.com'
-            // }
-            GrClosableBlock cc = GradleGroovyFile.getMethodClosureArgument(methodCall);
-            if (cc != null) {
-              Iterable<GrMethodCall> methodCalls = GradleGroovyFile.getMethodCalls(cc, "url");
-              for (GrMethodCall call : methodCalls) {
-                Iterable<Object> values = GradleGroovyFile.getLiteralArgumentValues(call);
-                for (Object value : values) {
-                  list.add(new Repository(value.toString()));
-                }
+    public List<BuildFileStatement> getValues(@NotNull PsiElement statement) {
+      if (!(statement instanceof GrMethodCall)) {
+        return getUnparseableStatements(statement);
+      }
+      GrMethodCall methodCall = (GrMethodCall)statement;
+      List<BuildFileStatement> list = Lists.newArrayList();
+      String callName = GradleGroovyFile.getMethodCallName(methodCall);
+      if (Type.MAVEN_CENTRAL.getCallName().equals(callName)) {
+        list.add(new Repository(Type.MAVEN_CENTRAL, null));
+      } else if (Type.MAVEN_LOCAL.getCallName().equals(callName)) {
+        list.add(new Repository(Type.MAVEN_LOCAL, null));
+      } else if (Type.URL.getCallName().equals(callName)) {
+        // Handles repositories of the form maven('www.foo.com', 'www.fee.com')
+        Iterable<Object> literals = GradleGroovyFile.getLiteralArgumentValues(methodCall);
+        if (!Iterables.isEmpty(literals)) {
+          for (Object literal : literals) {
+            list.add(new Repository(Type.URL, literal.toString()));
+          }
+        } else {
+          // Handles repositories of the form:
+          //
+          // maven {
+          //  url 'www.foo.com'
+          //  url 'www.fee.com'
+          // }
+          GrClosableBlock cc = GradleGroovyFile.getMethodClosureArgument(methodCall);
+          if (cc != null) {
+            Iterable<GrMethodCall> methodCalls = GradleGroovyFile.getMethodCalls(cc, "url");
+            for (GrMethodCall call : methodCalls) {
+              Iterable<Object> values = GradleGroovyFile.getLiteralArgumentValues(call);
+              for (Object value : values) {
+                list.add(new Repository(Type.URL, value.toString()));
               }
             }
           }
         }
+        if (list.isEmpty()) {
+          return getUnparseableStatements(statement);
+        }
+      } else {
+        return getUnparseableStatements(statement);
       }
       return list;
-    }
-
-    @Override
-    public void setValues(@NotNull GrStatementOwner closure, @NotNull List<Repository> value) {
-      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(closure.getProject());
-      closure = (GrStatementOwner)closure.replace(factory.createClosureFromText("{}"));
-      for (Repository repository : value) {
-        String callName = repository.myType.getCallName();
-        switch(repository.myType) {
-          case MAVEN_CENTRAL:
-          case MAVEN_LOCAL:
-            closure.addStatementBefore(factory.createStatementFromText(callName + "()"), null);
-            break;
-          case URL:
-            closure.addStatementBefore(factory.createStatementFromText(callName + " { url '" + repository.myUrl + "' }"), null);
-            break;
-        }
-      }
-      GradleGroovyFile.reformatClosure(closure);
-    }
-
-    @Override
-    public boolean canParseValue(@NotNull GrStatementOwner closure) {
-      // TODO: Implement
-      return true;
     }
   }
 }

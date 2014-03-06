@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.util.List;
 
@@ -49,8 +49,8 @@ public enum BuildFileKey {
     public Object getValue(@NotNull GroovyPsiElement arg) {
       // PLUGIN_CLASSPATH is STRING type; we're guaranteed the getValue result can be cast to String.
       String s = (String)PLUGIN_CLASSPATH.getValue(arg);
-      if (s != null && s.startsWith(GradleBuildFile.GRADLE_PLUGIN_CLASSPATH)) {
-        return s.substring(GradleBuildFile.GRADLE_PLUGIN_CLASSPATH.length());
+      if (s != null && s.startsWith(SdkConstants.GRADLE_PLUGIN_NAME)) {
+        return s.substring(SdkConstants.GRADLE_PLUGIN_NAME.length());
       } else {
         return null;
       }
@@ -58,7 +58,7 @@ public enum BuildFileKey {
 
     @Override
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
-      PLUGIN_CLASSPATH.setValue(arg, GradleBuildFile.GRADLE_PLUGIN_CLASSPATH + value);
+      PLUGIN_CLASSPATH.setValue(arg, SdkConstants.GRADLE_PLUGIN_NAME + value);
     }
   },
 
@@ -117,15 +117,9 @@ public enum BuildFileKey {
                                        .of(DEBUGGABLE, JNI_DEBUG_BUILD, SIGNING_CONFIG, RENDERSCRIPT_DEBUG_BUILD, RENDERSCRIPT_OPTIM_LEVEL,
                                            RUN_PROGUARD, PROGUARD_FILE, PACKAGE_NAME_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
 
-  public interface ValueFactory<E> {
-    @NotNull List<E> getValues(@NotNull GrStatementOwner closure);
-    void setValues(@NotNull GrStatementOwner closure, @NotNull List<E> values);
-    boolean canParseValue(@NotNull GrStatementOwner closure);
-  }
-
   private final String myPath;
   private final BuildFileKeyType myType;
-  private final ValueFactory<?> myValueFactory;
+  private final ValueFactory myValueFactory;
   private final String myDisplayName;
 
   BuildFileKey(@NotNull String path, @NotNull BuildFileKeyType type) {
@@ -136,7 +130,7 @@ public enum BuildFileKey {
    * @param path an XPath-like identifier to a method call which may be inside nested closures. For example, "a/b/c" will identify
    *             <code>a { b { c("value") } }</code>
    */
-  BuildFileKey(@NotNull String path, @Nullable String displayName, @NotNull BuildFileKeyType type, @Nullable ValueFactory<?> factory) {
+  BuildFileKey(@NotNull String path, @Nullable String displayName, @NotNull BuildFileKeyType type, @Nullable ValueFactory factory) {
     myPath = path;
     myType = type;
     myValueFactory = factory;
@@ -173,8 +167,16 @@ public enum BuildFileKey {
       sb.append(c);
     }
 
-  return sb.toString();
-}
+    return sb.toString();
+  }
+
+  @NotNull
+  static String escapeLiteralString(@Nullable Object o) {
+    if (o == null) {
+      return "";
+    }
+    return o.toString().replace("'", "\\'");
+  }
 
   @NotNull
   public String getDisplayName() {
@@ -187,7 +189,7 @@ public enum BuildFileKey {
   }
 
   @Nullable
-  public ValueFactory<?> getValueFactory() {
+  public ValueFactory getValueFactory() {
     return myValueFactory;
   }
 
@@ -196,18 +198,8 @@ public enum BuildFileKey {
     return myPath;
   }
 
-  protected boolean canParseValue(@NotNull GroovyPsiElement value) {
-    if (myValueFactory != null && value instanceof GrClosableBlock) {
-      return myValueFactory.canParseValue((GrClosableBlock) value);
-    }
-    return myType.canParseValue(value);
-  }
-
   @Nullable
   protected Object getValue(@NotNull GroovyPsiElement arg) {
-    if (!canParseValue(arg)) {
-      return null;
-    }
     if (myValueFactory != null && arg instanceof GrClosableBlock) {
       return myValueFactory.getValues((GrClosableBlock) arg);
     }
@@ -215,12 +207,10 @@ public enum BuildFileKey {
   }
 
   protected void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
-    if (canParseValue(arg)) {
-      if (myValueFactory != null && arg instanceof GrClosableBlock && value instanceof List) {
-        myValueFactory.setValues((GrClosableBlock) arg, (List)value);
-      } else {
-        myType.setValue(arg, value);
-      }
+    if (myValueFactory != null && arg instanceof GrClosableBlock && value instanceof List) {
+      myValueFactory.setValues((GrClosableBlock) arg, (List)value);
+    } else {
+      myType.setValue(arg, value);
     }
   }
 }
