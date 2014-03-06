@@ -19,13 +19,10 @@ import com.android.SdkConstants;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.objectTree.ObjectTree;
 
 import java.io.File;
-import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewProjectWizardState.*;
@@ -38,6 +35,8 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
   NewProjectWizard myWizard;
   NewProjectWizardState myWizardState;
+
+  private static final String MODULE_NAME = "thisisamodulename";
 
   @Override
   protected boolean requireRecentSdk() {
@@ -109,18 +108,24 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     assertEquals(myWizardState.getBoolean(paramName), step.isStepVisible());
   }
 
-  /**
-   * Returns the module directory.
-   */
-  private File runCommonCreateProjectTest() throws Exception {
-    File baseDir = new File(getProject().getBasePath());
 
-    String moduleName = "thisisamodulename";
-    myWizardState.put(ATTR_MODULE_NAME, moduleName);
+  /**
+   * Sets up standard project/module creation
+   */
+  private void setUpStandardProjectCreation() throws Exception {
+    File baseDir = new File(getProject().getBasePath());
+    myWizardState.put(ATTR_MODULE_NAME, MODULE_NAME);
     myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
     String projectName = "ThisIsAProjectName";
     myWizardState.put(ATTR_APP_TITLE, projectName);
     myWizardState.put(ATTR_PACKAGE_NAME, "com.test.package");
+  }
+
+  /**
+   * Returns the module directory.
+   */
+  private File runCommonCreateProjectTest() throws Exception {
+    File baseDir = new File(myWizardState.getString(ATTR_PROJECT_LOCATION));
 
     // Do the project creation
     myWizard.createProject();
@@ -134,7 +139,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
                      "local.properties");
 
     // Make sure we created the module files
-    File moduleBase = new File(baseDir, moduleName);
+    File moduleBase = new File(baseDir, myWizardState.getString(ATTR_MODULE_NAME));
     assertFilesExist(moduleBase,
                      ".gitignore",
                      "build.gradle",
@@ -150,6 +155,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     myWizardState.put(ATTR_CREATE_ICONS, false);
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, true);
 
+    setUpStandardProjectCreation();
     File moduleDir = runCommonCreateProjectTest();
     File gradleFile = new File(moduleDir, SdkConstants.FN_BUILD_GRADLE);
 
@@ -175,6 +181,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     myWizardState.put(ATTR_CREATE_ICONS, false);
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, false);
 
+    setUpStandardProjectCreation();
     File moduleDir = runCommonCreateProjectTest();
     File gradleFile = new File(moduleDir, "build.gradle");
 
@@ -212,6 +219,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     when(activityStateMock.getTemplate()).thenReturn(activityTemplateMock);
     when(spyState.getActivityTemplateState()).thenReturn(activityStateMock);
 
+    setUpStandardProjectCreation();
     File moduleRoot = runCommonCreateProjectTest();
 
     verify(launcherIconStateMock).outputImagesIntoDefaultVariant(eq(moduleRoot));
@@ -235,8 +243,44 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     when(activityStateMock.getTemplate()).thenReturn(activityTemplateMock);
     when(spyState.getActivityTemplateState()).thenReturn(activityStateMock);
 
-    File moduleRoot = runCommonCreateProjectTest();
+    setUpStandardProjectCreation();
+    runCommonCreateProjectTest();
 
     verifyZeroInteractions(activityStateMock, activityTemplateMock, launcherIconStateMock);
+  }
+
+  @SuppressWarnings("unchecked")
+  public void testCreateProjectWithWeirdFileNames() throws Exception {
+    myWizardState.put(ATTR_CREATE_ACTIVITY, false);
+    myWizardState.put(ATTR_CREATE_ICONS, false);
+    myWizardState.put(ATTR_IS_LIBRARY_MODULE, false);
+    String projectName = "ThisIsAProjectName";
+    myWizardState.put(ATTR_APP_TITLE, projectName);
+    myWizardState.put(ATTR_PACKAGE_NAME, "com.test.package");
+    myWizardState.put(ATTR_MODULE_NAME, MODULE_NAME);
+    File baseDir;
+
+    // Check apostrophe in file path
+    baseDir = new File(getProject().getBasePath(), "test'orama");
+    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+    runCommonCreateProjectTest();
+
+    // Check quote in file path
+    baseDir = new File(getProject().getBasePath(), "test\"orama");
+    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+    runCommonCreateProjectTest();
+
+    // Check unicode characters
+    baseDir = new File(getProject().getBasePath(), "test\uD83D\uDCA9orama");
+    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+    runCommonCreateProjectTest();
+
+    // Check < and > characters
+    baseDir = new File(getProject().getBasePath(), "test<orama");
+    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+    runCommonCreateProjectTest();
+    baseDir = new File(getProject().getBasePath(), "test>orama");
+    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+    runCommonCreateProjectTest();
   }
 }
