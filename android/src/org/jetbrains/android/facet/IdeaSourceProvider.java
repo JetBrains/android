@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.SourceProvider;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,10 +41,12 @@ public abstract class IdeaSourceProvider {
   private IdeaSourceProvider() {
   }
 
+  @NotNull
   public static IdeaSourceProvider create(@NotNull SourceProvider provider) {
     return new IdeaSourceProvider.Gradle(provider);
   }
 
+  @NotNull
   public static IdeaSourceProvider create(@NotNull final AndroidFacet facet) {
     return new IdeaSourceProvider.Legacy(facet);
   }
@@ -161,7 +165,7 @@ public abstract class IdeaSourceProvider {
     @Nullable
     @Override
     public VirtualFile getManifestFile() {
-      return AndroidRootUtil.getManifestFile(myFacet);
+      return AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), myFacet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
     }
 
     @NotNull
@@ -220,5 +224,94 @@ public abstract class IdeaSourceProvider {
       assert dir != null;
       return Collections.singleton(dir);
     }
+  }
+
+  /** Returns true if the given candidate file is a manifest file in the given module */
+  public static boolean isManifestFile(@NotNull AndroidFacet facet, @Nullable VirtualFile candidate) {
+    if (candidate == null) {
+      return false;
+    }
+
+    if (candidate == facet.getMainIdeaSourceSet().getManifestFile()) {
+      return true;
+    }
+
+    if (!facet.isGradleProject()) {
+      return false;
+    }
+
+    List<IdeaSourceProvider> flavorSourceSets = facet.getIdeaFlavorSourceSets();
+    if (flavorSourceSets != null) {
+      for (IdeaSourceProvider provider : flavorSourceSets) {
+        if (candidate == provider.getManifestFile()) {
+          return true;
+        }
+      }
+    }
+    IdeaSourceProvider buildTypeSourceSet = facet.getIdeaBuildTypeSourceSet();
+    if (buildTypeSourceSet != null) {
+      if (candidate == buildTypeSourceSet.getManifestFile()) {
+        return true;
+      }
+    }
+    IdeaSourceProvider multiFlavorSourceSet = facet.getIdeaMultiFlavorSourceProvider();
+    if (multiFlavorSourceSet != null) {
+      if (candidate == multiFlavorSourceSet.getManifestFile()) {
+        return true;
+      }
+    }
+    IdeaSourceProvider variantSourceSet = facet.getIdeaVariantSourceProvider();
+    if (variantSourceSet != null) {
+      if (candidate == variantSourceSet.getManifestFile()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /** Returns the manifest files in the given module */
+  @NotNull
+  public static List<VirtualFile> getManifestFiles(@NotNull AndroidFacet facet) {
+    VirtualFile main = facet.getMainIdeaSourceSet().getManifestFile();
+    if (!facet.isGradleProject()) {
+      return main != null ? Collections.singletonList(main) : Collections.<VirtualFile>emptyList();
+    }
+    List<VirtualFile> files = Lists.newArrayList();
+    if (main != null) {
+      files.add(main);
+    }
+
+    List<IdeaSourceProvider> flavorSourceSets = facet.getIdeaFlavorSourceSets();
+    if (flavorSourceSets != null) {
+      for (IdeaSourceProvider provider : flavorSourceSets) {
+        VirtualFile flavorManifest = provider.getManifestFile();
+        if (flavorManifest != null) {
+          files.add(flavorManifest);
+        }
+      }
+    }
+    IdeaSourceProvider multiFlavorSourceSet = facet.getIdeaMultiFlavorSourceProvider();
+    if (multiFlavorSourceSet != null) {
+      VirtualFile multiFlavorManifest = multiFlavorSourceSet.getManifestFile();
+      if (multiFlavorManifest != null) {
+        files.add(multiFlavorManifest);
+      }
+    }
+    IdeaSourceProvider buildTypeSourceSet = facet.getIdeaBuildTypeSourceSet();
+    if (buildTypeSourceSet != null) {
+      VirtualFile buildTypeManifest = buildTypeSourceSet.getManifestFile();
+      if (buildTypeManifest != null) {
+        files.add(buildTypeManifest);
+      }
+    }
+    IdeaSourceProvider variantSourceSet = facet.getIdeaVariantSourceProvider();
+    if (variantSourceSet != null) {
+      VirtualFile variantManifest = variantSourceSet.getManifestFile();
+      if (variantManifest != null) {
+        files.add(variantManifest);
+      }
+    }
+    return files;
   }
 }
