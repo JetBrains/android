@@ -7,7 +7,7 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -191,7 +191,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
     assertEquals(1, actions.size());
     final IntentionAction action = actions.get(0);
     assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         ((AndroidMissingOnClickHandlerInspection.MyQuickFix)action).doApplyFix(getProject());

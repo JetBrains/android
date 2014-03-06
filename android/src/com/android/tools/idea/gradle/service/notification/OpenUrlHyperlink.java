@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.intellij.ide.BrowserUtil;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HTTPProxySettingsPanel;
-import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
 public class OpenUrlHyperlink extends NotificationHyperlink {
@@ -32,6 +29,6 @@ public class OpenUrlHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    BrowserUtil.launchBrowser(myUrl);
+    BrowserUtil.browse(myUrl);
   }
 }

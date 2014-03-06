@@ -411,9 +411,8 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   }
 
   private void checkDriverPresence() {
-    assert myEditController != null;
     if (!DbImplUtil.canConnectTo(myDataSource) && myDataSource.getDatabaseDriver() != null) {
-      myEditController.showErrorNotification(
+      myController.showErrorNotification(this,
         "SQLite driver missing",
         "<font size=\"3\"><a href=\"create\">Download</a> SQLite driver files</font>",
         new Runnable() {
@@ -423,14 +422,14 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
               @Override
               public void run() {
                 fireStateChanged();
-                myEditController.showErrorNotification(null);
+                myController.showErrorNotification(AndroidDataSourcePropertiesDialog.this, null);
               }
             });
           }
         });
     }
     else {
-      myEditController.showErrorNotification(null);
+      myController.showErrorNotification(this, null);
     }
   }
 

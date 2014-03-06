@@ -27,6 +27,7 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -192,14 +193,20 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
       if (changes.size() > 0 && ReadonlyStatusHandler.ensureFilesWritable(
         myProject, files.toArray(new VirtualFile[files.size()]))) {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
           @Override
           public void run() {
-            for (Runnable change : changes) {
-              change.run();
-            }
+            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+              @Override
+              public void run() {
+                for (Runnable change : changes) {
+                  change.run();
+                }
+              }
+            });
+            CommandProcessor.getInstance().markCurrentCommandAsGlobal(myProject);
           }
-        });
+        }, "Update Android property files", null);
       }
     }
   }

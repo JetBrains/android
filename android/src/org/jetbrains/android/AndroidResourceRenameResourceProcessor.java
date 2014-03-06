@@ -233,8 +233,8 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     if (alternativeResources.size() > 0) {
       int r = 0;
       if (ASK) {
-        r = Messages.showYesNoDialog(project, message("rename.alternate.resources.question"), message("rename.dialog.title"),
-                                     Messages.getQuestionIcon());
+        r = Messages.showDialog(project, message("rename.alternate.resources.question"), message("rename.dialog.title"),
+                                new String[]{Messages.YES_BUTTON, Messages.NO_BUTTON}, 1, Messages.getQuestionIcon());
       }
       if (r == 0) {
         for (PsiFile candidate : alternativeResources) {

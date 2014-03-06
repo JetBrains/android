@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
@@ -109,7 +110,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
     final Document document = documentManager.getDocument(layoutPsiFile);
     assertNotNull(document);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         String string = "<ImageView style=\"@style/TitleBarSeparator\" />";
