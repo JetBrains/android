@@ -217,7 +217,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
             File moduleRoot = new File(rootDir.getCanonicalPath());
             myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
             // Render the assets if necessary
-            if (myAssetSetStep != null) {
+            if (myAssetSetStep.isStepVisible()) {
               myAssetSetStep.createAssets(myModule);
             }
             // Open any new files specified by the template
