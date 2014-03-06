@@ -268,6 +268,12 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_PROJECT_LOCATION, basePath + "My \u2603 Project");
     assertValidationWarning("Your project location contains non-ASCII characters. This can cause problems on Windows. Proceed with caution.");
 
+    File nonEditableFile = new File(getProject().getBasePath(), "NotEditable");
+    nonEditableFile.mkdir();
+    nonEditableFile.setReadOnly();
+    myState.put(ATTR_PROJECT_LOCATION, new File(nonEditableFile, "myapp").getPath());
+    assertValidationError(String.format("The path '%s' is not writeable. Please choose a new location.", nonEditableFile.getPath()));
+
     resetValues();
 
     ModuleManager manager = ModuleManager.getInstance(getProject());
