@@ -231,7 +231,7 @@ public class Analyser {
     return searchForVariableAssignments(method.getBody(), PsiField.class, evaluator);
   }
 
-  private Map<PsiLocalVariable, Object> getLocalVariableBindingsFromInViewCreated(PsiClass activityClass, Evaluator evaluator) {
+  private Map<PsiLocalVariable, Object> getLocalVariableBindingsInOnViewCreated(PsiClass activityClass, Evaluator evaluator) {
     PsiMethod method = Utilities.findMethodBySignature(activityClass, "void onViewCreated(View view, Bundle bundle)");
     if (method == null) {
       return Collections.emptyMap();
@@ -359,12 +359,12 @@ public class Analyser {
 
     Map<PsiField, Object> noFields = Collections.emptyMap();
     Map<PsiLocalVariable, Object> noVars = Collections.emptyMap();
-    final Evaluator evaluator1 = getEvaluator(ids, tags, noFields, noVars);
+    Evaluator evaluator1 = getEvaluator(ids, tags, noFields, noVars);
     Map<PsiField, Object> fieldBindings =
       getFieldAssignmentsInOnCreate(activityClass, evaluator1); // todo activityClass or activityOrFragmentClass?
-    final Evaluator evaluator2 = getEvaluator(ids, tags, fieldBindings, noVars);
+    Evaluator evaluator2 = getEvaluator(ids, tags, fieldBindings, noVars);
     Map<PsiLocalVariable, Object> localVariableBindings =
-      getLocalVariableBindingsFromInViewCreated(activityOrFragmentClass, evaluator2); // todo activityClass or activityOrFragmentClass?
+      getLocalVariableBindingsInOnViewCreated(activityOrFragmentClass, evaluator2); // todo activityClass or activityOrFragmentClass?
     final Evaluator evaluator3 = getEvaluator(ids, tags, fieldBindings, localVariableBindings);
 
     // Search for 'onClick' listeners on Buttons etc.
@@ -422,7 +422,7 @@ public class Analyser {
                        final PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
                        if (implementation != null) {
                          search(implementation.getBody(),
-                                evaluator2,
+                                evaluator3,
                                 myMacros.createIntent,
                                 createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model,
                                                 fromActivityState));
@@ -440,8 +440,7 @@ public class Analyser {
     final Map<String, MenuState> menuNameToMenuState;
 
 
-    MiniModel(Map<String, ActivityState> classNameToActivityState,
-              Map<String, MenuState> menuNameToMenuState) {
+    MiniModel(Map<String, ActivityState> classNameToActivityState, Map<String, MenuState> menuNameToMenuState) {
       this.classNameToActivityState = classNameToActivityState;
       this.menuNameToMenuState = menuNameToMenuState;
     }
@@ -451,7 +450,7 @@ public class Analyser {
     }
   }
 
-  public NavigationModel deriveAllStatesAndTransitions(final NavigationModel model, final Configuration configuration) {
+  public NavigationModel deriveAllStatesAndTransitions(NavigationModel model, Configuration configuration) {
     MiniModel toDo = new MiniModel(getActivityClassNameToActivityState(readManifestFile(myProject)), new HashMap<String, MenuState>());
     MiniModel next = new MiniModel();
     MiniModel done = new MiniModel();
