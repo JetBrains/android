@@ -108,6 +108,29 @@ public class TemplateUtils {
   }
 
   /**
+   * Strips the given suffix from the given file, provided that the file name ends with
+   * the suffix.
+   *
+   * @param file the file to strip from
+   * @param suffix the suffix to strip out
+   * @return the file without the suffix at the end
+   */
+  public static File stripSuffix(@NotNull File file, @NotNull String suffix) {
+    if (file.getName().endsWith(suffix)) {
+      String name = file.getName();
+      name = name.substring(0, name.length() - suffix.length());
+      File parent = file.getParentFile();
+      if (parent != null) {
+        return new File(parent, name);
+      } else {
+        return new File(name);
+      }
+    }
+
+    return file;
+  }
+
+  /**
   * Converts a CamelCase word into an underlined_word
   *
   * @param string the CamelCase version of the word
@@ -285,16 +308,15 @@ public class TemplateUtils {
    * Opens the specified files in the editor
    *
    * @param project The project which contains the given file.
-   * @param paths   The paths to the files on disk.
+   * @param files   The files on disk.
    * @param select  If true, select the last (topmost) file in the project view
    * @return true if all files were opened
    */
-  public static boolean openEditors(@NotNull Project project, @NotNull List<String> paths, boolean select) {
-    if (paths.size() > 0) {
+  public static boolean openEditors(@NotNull Project project, @NotNull List<File> files, boolean select) {
+    if (files.size() > 0) {
       boolean result = true;
       VirtualFile last = null;
-      for (String path : paths) {
-        File file = new File(path);
+      for (File file : files) {
         if (file.exists()) {
           VirtualFile vFile = VfsUtil.findFileByIoFile(file, true /** refreshIfNeeded */);
           if (vFile != null) {
