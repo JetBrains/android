@@ -37,7 +37,7 @@ import java.util.Collection;
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject> {
   // TODO: Retrieve this information from Gradle.
   private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
-    // Note that build/exploded-bundles should *not* be excluded
+    // Note that build/exploded-bundles and build/exploded-aar should *not* be excluded
     {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp", "res"};
 
   @Override
