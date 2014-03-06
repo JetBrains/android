@@ -228,10 +228,10 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
                   ModuleManager moduleManager = ModuleManager.getInstance(project);
 
                   File projectRootDir = new File(project.getBasePath());
-                  File moduleFile = new File(projectRootDir, project.getName() + ".iml");
-
                   VirtualFile contentRoot = VfsUtil.findFileByIoFile(projectRootDir, true);
+
                   if (contentRoot != null) {
+                    File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
                     Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
 
                     // This prevents the balloon "Unsupported Modules detected".
