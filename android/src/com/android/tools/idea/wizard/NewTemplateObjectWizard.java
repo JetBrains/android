@@ -16,6 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.signing.KeystoreHelper;
+import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -36,6 +38,7 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.awt.*;
 import java.io.File;
@@ -142,6 +145,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
 
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
+
+    myWizardState.put(ATTR_DEBUG_KEYSTORE_PATH, getDebugKeystorePath(facet));
 
     myChooseTemplateStep = new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, myModule, null, this, this, myExcluded);
     mySteps.add(myChooseTemplateStep);
@@ -309,6 +314,24 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       } else {
         myAssetSetStep.setVisible(false);
       }
+    }
+  }
+
+  /**
+   * Get the debug keystore path.
+   * @return the path, or null if the debug keystore does not exist.
+   */
+  @Nullable
+  private String getDebugKeystorePath(AndroidFacet facet) {
+    JpsAndroidModuleProperties state = facet.getConfiguration().getState();
+    if (state != null && state.CUSTOM_DEBUG_KEYSTORE_PATH != null && !state.CUSTOM_DEBUG_KEYSTORE_PATH.isEmpty()) {
+      return state.CUSTOM_DEBUG_KEYSTORE_PATH;
+    }
+
+    try {
+      return KeystoreHelper.defaultDebugKeystoreLocation();
+    } catch (AndroidLocation.AndroidLocationException ale) {
+      return null;
     }
   }
 }
