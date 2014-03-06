@@ -34,6 +34,8 @@ import static java.awt.RenderingHints.*;
  */
 @SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
 public class ImageUtils {
+  public static final double EPSILON = 1e-5;
+
   /**
    * Rotates given image by given degrees which should be a multiple of 90
    * @param source image to be rotated
