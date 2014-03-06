@@ -15,8 +15,18 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ProjectStructureSanitizer {
@@ -32,5 +42,38 @@ public class ProjectStructureSanitizer {
   }
 
   public void cleanUp() {
+    ensureAllModulesHaveSdk();
+    Projects.enforceExternalBuild(myProject);
+    AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
+    generateSourcesOnly();
+  }
+
+  private void ensureAllModulesHaveSdk() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+      ModifiableRootModel model = moduleRootManager.getModifiableModel();
+      try {
+        if (model.getSdk() == null) {
+          Sdk jdk = DefaultSdks.getDefaultJdk();
+          model.setSdk(jdk);
+        }
+      }
+      finally {
+        model.commit();
+      }
+    }
+  }
+
+  private void generateSourcesOnly() {
+    Application application = ApplicationManager.getApplication();
+    if (!application.isUnitTestMode()) {
+      application.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          ProjectBuilder.getInstance(myProject).generateSourcesOnly();
+        }
+      });
+    }
   }
 }

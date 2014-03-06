@@ -209,7 +209,7 @@ public final class Projects {
    *
    * @param project the given project. This method does not do anything if the given project is not a Gradle-based project.
    */
-  public static void ensureExternalBuildIsEnabledForGradleProject(@NotNull Project project) {
+  public static void enforceExternalBuild(@NotNull Project project) {
     if (isGradleProject(project)) {
       // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
       CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
