@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.google.common.base.Objects;
@@ -52,6 +53,13 @@ public final class Projects {
   private static final Module[] NO_MODULES = new Module[0];
 
   private Projects() {
+  }
+
+  /**
+   * Indicates whether the last sync with Gradle failed.
+   */
+  public static boolean lastGradleSyncFailed(@NotNull Project project) {
+    return GradleImportNotificationListener.isInitialized() && isGradleProjectWithoutModel(project);
   }
 
   /**
