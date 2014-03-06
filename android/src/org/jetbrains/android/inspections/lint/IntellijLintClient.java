@@ -1,7 +1,11 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.res2.AbstractResourceRepository;
+import com.android.ide.common.res2.ResourceFile;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.analysis.AnalysisScope;
@@ -25,6 +29,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlElement;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -523,5 +529,87 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
   @Override
   public boolean checkForSuppressComments() {
     return false;
+  }
+
+  @Override
+  public boolean supportsProjectResources() {
+    return true;
+  }
+
+  @Nullable
+  @Override
+  public AbstractResourceRepository getProjectResources(com.android.tools.lint.detector.api.Project project, boolean includeDependencies) {
+    final Module module = findModuleForLintProject(myProject, project);
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        return includeDependencies ? facet.getProjectResources(true) : facet.getModuleResources(true);
+      }
+    }
+
+    return null;
+  }
+
+  @NonNull
+  @Override
+  public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
+    XmlTag tag = LocalResourceRepository.getItemTag(myProject, item);
+    if (tag != null) {
+      ResourceFile source = item.getSource();
+      assert source != null : item;
+      return new LocationHandle(source.getFile(), tag);
+    }
+    return super.createResourceItemHandle(item);
+  }
+
+  private static class LocationHandle implements Location.Handle, Computable<Location> {
+    private final File myFile;
+    private final XmlElement myNode;
+    private Object myClientData;
+
+    public LocationHandle(File file, XmlElement node) {
+      myFile = file;
+      myNode = node;
+    }
+
+    @NonNull
+    @Override
+    public Location resolve() {
+      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+        return ApplicationManager.getApplication().runReadAction(this);
+      }
+      TextRange textRange = myNode.getTextRange();
+
+      // For elements, don't highlight the entire element range; instead, just
+      // highlight the element name
+      if (myNode instanceof XmlTag) {
+        String tag = ((XmlTag)myNode).getName();
+        int index = myNode.getText().indexOf(tag);
+        if (index != -1) {
+          int start = textRange.getStartOffset() + index;
+          textRange = new TextRange(start, start + tag.length());
+        }
+      }
+
+      Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
+      Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());
+      return Location.create(myFile, start, end);
+    }
+
+    @Override
+    public Location compute() {
+      return resolve();
+    }
+
+    @Override
+    public void setClientData(@Nullable Object clientData) {
+      myClientData = clientData;
+    }
+
+    @Override
+    @Nullable
+    public Object getClientData() {
+      return myClientData;
+    }
   }
 }
