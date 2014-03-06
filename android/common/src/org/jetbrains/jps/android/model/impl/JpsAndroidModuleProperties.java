@@ -88,7 +88,7 @@ public class JpsAndroidModuleProperties {
 
   @Tag("resOverlayFolders")
   @AbstractCollection(surroundWithTag = false, elementTag = "path", elementValueAttribute = "")
-  public List<String> RES_OVERLAY_FOLDERS = new ArrayList<String>(Arrays.asList("/res-overlay"));
+  public List<String> RES_OVERLAY_FOLDERS = new ArrayList<String>();
 
   @Tag(AndroidCommonUtils.ADDITIONAL_NATIVE_LIBS_ELEMENT)
   @AbstractCollection(surroundWithTag = false)

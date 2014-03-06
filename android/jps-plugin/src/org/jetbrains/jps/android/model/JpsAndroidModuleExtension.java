@@ -19,6 +19,9 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   @Nullable
   File getResourceDir();
 
+  @NotNull
+  List<File> getResourceOverlayDirs();
+
   @Nullable
   File getResourceDirForCompilation();
 

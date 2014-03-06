@@ -35,12 +35,15 @@ public class AndroidResourceCachingBuildTarget extends AndroidBuildTarget {
 
     if (extension != null) {
       final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
+
+      for (File resOverlayDir : extension.getResourceOverlayDirs()) {
+        result.add(new BuildRootDescriptorImpl(this, resOverlayDir));
+      }
       final File resourceDir = AndroidJpsUtil.getResourceDirForCompilationPath(extension);
 
       if (resourceDir != null) {
         result.add(new BuildRootDescriptorImpl(this, resourceDir));
       }
-
       if (!extension.isLibrary()) {
         final Set<String> aarResDirPaths = new HashSet<String>();
         AndroidJpsUtil.collectResDirectoriesFromAarDeps(myModule, aarResDirPaths);

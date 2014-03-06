@@ -1113,6 +1113,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         configuration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
       }
     }
+    configuration.getState().RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
 
     Element resourceOverlayDirectories = getConfig(project, "resourceOverlayDirectories");
     if (resourceOverlayDirectories != null) {
