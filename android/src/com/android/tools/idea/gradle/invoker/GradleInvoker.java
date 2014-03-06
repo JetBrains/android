@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -35,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -121,6 +123,15 @@ public class GradleInvoker {
                                           @NotNull BuildMode buildMode,
                                           @NotNull GradleBuilds.TestCompileType testCompileType) {
     List<String> tasks = Lists.newArrayList();
+
+    if (BuildMode.MAKE.equals(buildMode)) {
+      Project project = modules[0].getProject();
+      if (Projects.lastGradleSyncFailed(project)) {
+        // If last Gradle sync failed, just call "assemble" at the top-level. Without a model there are no other tasks we can call.
+        return Collections.singletonList(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
+      }
+    }
+
     for (Module module : modules) {
       AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
       if (androidGradleFacet == null) {
