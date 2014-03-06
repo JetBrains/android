@@ -1,5 +1,7 @@
 package org.jetbrains.android.inspections;
 
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.codeInsight.daemon.XmlErrorMessages;
 import com.intellij.codeInspection.*;
 import com.intellij.psi.PsiFile;
@@ -79,14 +81,14 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
 
         if (descriptor instanceof AndroidAnyTagDescriptor) {
           final XmlToken startTagNameElement = XmlTagUtil.getStartTagNameElement(tag);
-          if (startTagNameElement != null) {
+          if (startTagNameElement != null && !isUnknownCustomView(tag)) {
             myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlErrorMessages.message(
               "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
 
           final XmlToken endTagNameElement = XmlTagUtil.getEndTagNameElement(tag);
-          if (endTagNameElement != null) {
+          if (endTagNameElement != null && !isUnknownCustomView(tag)) {
             myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlErrorMessages.message(
               "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
@@ -94,5 +96,17 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
         }
       }
     }
+  }
+
+  private static boolean isUnknownCustomView(XmlTag tag) {
+    PsiFile file = tag.getContainingFile();
+    if (file != null) {
+      ResourceFolderType type = ResourceHelper.getFolderType(file);
+      if (type == ResourceFolderType.LAYOUT && tag.getName().indexOf('.') != -1) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
