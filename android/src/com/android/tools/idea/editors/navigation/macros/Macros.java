@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
-import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -43,6 +42,7 @@ public class Macros {
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
   public final MultiMatch findViewById;
   private static Map<Project, Macros> ourProjectToMacros = new IdentityHashMap<Project, Macros>();
+  private final Project myProject;
 
   private static PsiMethod[] getMethodsByName(String templateName, String methodName, Project project) {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
@@ -78,7 +78,12 @@ public class Macros {
     return result;
   }
 
+  public MultiMatch createMacro(String methodDefinition) {
+    return MultiMatch.create(myProject, methodDefinition);
+  }
+
   private Macros(Project project) {
+    myProject = project;
     defineAssignment = getMethodsByName(GENERAL_TEMPLATES, "defineAssignment", project)[0];
     PsiMethod defineInnerClassMacro = getMethodsByName(GENERAL_TEMPLATES, "defineInnerClass", project)[0];
 
@@ -91,12 +96,11 @@ public class Macros {
     PsiMethod launchActivityMacro = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[0];
     PsiMethod launchActivityMacro2 = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[1];
 
-    createIntent = new MultiMatch(Utilities.createMethodFromText(project, "void macro(Context context, Class activityClass) { " +
-                                                                          "new Intent(context, activityClass); }"));
+    createIntent = createMacro("void macro(Context context, Class activityClass) { new Intent(context, activityClass); }");
     installClickAndCallMacro = new MultiMatch(installClickMacro);
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
-    findViewById = new MultiMatch(Utilities.createMethodFromText(project, "void findViewById(int $id) { findViewById(R.id.$id);}"));
+    findViewById = createMacro("void findViewById(int $id) { findViewById(R.id.$id);}");
     installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
     installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$menuItem", getMenuItemMacro);
     installMenuItemOnGetMenuItemAndLaunchActivityMacro.addSubMacro("$f", launchActivityMacro);
