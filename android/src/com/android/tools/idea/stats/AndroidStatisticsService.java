@@ -53,14 +53,11 @@ import java.util.*;
 public class AndroidStatisticsService implements StatisticsService {
 
   private static final Logger LOG = Logger.getInstance("#" + AndroidStatisticsService.class.getName());
-  private static final boolean VERBOSE = false;
 
   private static final String CONTENT_TYPE = "Content-Type";
   private static final String HTTP_POST = "POST";
   private static final int HTTP_STATUS_OK = 200;
   private static final String PROTOBUF_CONTENT = "application/x-protobuf";
-
-  private final long myNow = System.currentTimeMillis();
 
   @NonNull
   @Override
@@ -105,15 +102,24 @@ public class AndroidStatisticsService implements StatisticsService {
   @Override
   public StatisticsResult send() {
 
+    LegacySdkStatsService sdkstats = sendLegacyPing();
 
-    // --- Send legacy ping ---
+    StatisticsResult result = sendUsageStats(sdkstats);
 
-    // Legacy ADT-compatible stats service.
-    LegacySdkStatsService sdkstats = new LegacySdkStatsService();
-    sdkstats.ping("studio", ApplicationInfo.getInstance().getFullVersion());
+    result = sendBuildStats(sdkstats);
 
-    // --- Send new-style stats ---
+    return result;
+  }
 
+  /**
+   * Checks whether the statistics service has a service URL and is authorized
+   * to send statistics.
+   *
+   * @return A {@link StatisticsResult} with a
+   * {@link com.intellij.internal.statistic.connect.StatisticsResult.ResultCode#SEND} result code
+   * on success, otherwise one of the error result codes.
+   */
+  static StatisticsResult areStatisticsAuthorized() {
     // Get the redirected URL
     final StatisticsConnectionService service = new StatisticsConnectionService();
     final String serviceUrl = service.getServiceUrl();
@@ -125,21 +131,35 @@ public class AndroidStatisticsService implements StatisticsService {
     if (!service.isTransmissionPermitted()) {
       return new StatisticsResult(StatisticsResult.ResultCode.NOT_PERMITTED_SERVER, "NOT_PERMITTED");
     }
+    return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
+  }
 
-    StatsProto.LogRequest data = getData(sdkstats, service.getDisabledGroups());
+  /**
+   * Sends one LogRequests with multiple build records.
+   * Does nothing if there are no records pending.
+   */
+  private StatisticsResult sendBuildStats(LegacySdkStatsService sdkstats) {
+    StatisticsResult code = areStatisticsAuthorized();
+    if (code.getCode() != StatisticsResult.ResultCode.SEND) {
+      return code;
+    }
+
+    StudioBuildStatsPersistenceComponent records = StudioBuildStatsPersistenceComponent.getInstance();
+    if (records == null || !records.hasRecords()) {
+      return new StatisticsResult(StatisticsResult.ResultCode.NOTHING_TO_SEND, "NOTHING_TO_SEND");
+    }
+
+    StatsProto.LogRequest data = getRecordData(sdkstats, records);
 
     String error = null;
     try {
-      String error2 = sendData(data);
-      if (error2 != null) {
-        error = error2;
-      }
+      error = sendData(data);
     } catch (Exception e) {
       error = e.getClass().getSimpleName() + " " + (e.getMessage() != null ? e.getMessage() : e.toString());
     }
 
-    if (VERBOSE || error != null) {
-      LOG.debug("[SendStats/AS] Error " + (error == null ? "None" : error));
+    if (error != null) {
+      LOG.debug("[SendStats/AS-2] Error " + (error == null ? "None" : error));
     }
     if (error == null) {
       return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
@@ -148,8 +168,82 @@ public class AndroidStatisticsService implements StatisticsService {
     }
   }
 
-  private StatsProto.LogRequest getData(@NotNull LegacySdkStatsService sdkstats,
-                                        @NotNull Set<String> disabledGroups) {
+  /**
+   * Send IJ-style "usage" stats using our format. The idea is to deactivate this eventually.
+   */
+  @Deprecated
+  private StatisticsResult sendUsageStats(LegacySdkStatsService sdkstats) {
+    StatisticsResult code = areStatisticsAuthorized();
+    if (code.getCode() != StatisticsResult.ResultCode.SEND) {
+      return code;
+    }
+
+    StatisticsConnectionService service = new StatisticsConnectionService();
+    StatsProto.LogRequest data = getUsageData(sdkstats, service.getDisabledGroups());
+
+    String error = null;
+    try {
+      error = sendData(data);
+    } catch (Exception e) {
+      error = e.getClass().getSimpleName() + " " + (e.getMessage() != null ? e.getMessage() : e.toString());
+    }
+
+    if (error != null) {
+      LOG.debug("[SendStats/AS-1] Error " + (error == null ? "None" : error));
+    }
+    if (error == null) {
+      return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
+    } else {
+      return new StatisticsResult(StatisticsResult.ResultCode.SENT_WITH_ERRORS, error);
+    }
+  }
+
+  private LegacySdkStatsService sendLegacyPing() {
+    // Legacy ADT-compatible stats service.
+    LegacySdkStatsService sdkstats = new LegacySdkStatsService();
+    sdkstats.ping("studio", ApplicationInfo.getInstance().getFullVersion());
+    return sdkstats;
+  }
+
+  /**
+   * Transforms one or more BuildRecords into as many LogRequest.LogEvents as needed, each with their
+   * own timestamp. The wrapper LogRequest has a "now" timestamp.
+   */
+  private StatsProto.LogRequest getRecordData(@NotNull LegacySdkStatsService sdkstats,
+                                              @NotNull StudioBuildStatsPersistenceComponent records) {
+    StatsProto.LogRequest.Builder request = StatsProto.LogRequest.newBuilder();
+
+    request.setLogSource(StatsProto.LogRequest.LogSource.ANDROID_STUDIO);
+    request.setRequestTimeMs(System.currentTimeMillis());
+
+    String uuid = UpdateChecker.getInstallationUID(PropertiesComponent.getInstance());
+    String appVersion = ApplicationInfo.getInstance().getFullVersion();
+    request.setClientInfo(createClientInfo(sdkstats, uuid, appVersion));
+
+    while (records.hasRecords()) {
+      BuildRecord record = records.getFirstRecord();
+      if (record == null) {
+        break;
+      }
+      StatsProto.LogEvent.Builder evtBuilder = StatsProto.LogEvent.newBuilder();
+      evtBuilder.setEventTimeMs(record.getUtcTimestampMs());
+      evtBuilder.setTag("build");
+
+      for (KeyString value : record.getData()) {
+        StatsProto.LogEventKeyValues.Builder kvBuilder = StatsProto.LogEventKeyValues.newBuilder();
+        kvBuilder.setKey(value.getKey());
+        kvBuilder.setValue(value.getValue());
+        evtBuilder.addValue(kvBuilder);
+      }
+
+      request.addLogEvent(evtBuilder.build());
+    }
+
+    return request.build();
+  }
+
+  private StatsProto.LogRequest getUsageData(@NotNull LegacySdkStatsService sdkstats,
+                                             @NotNull Set<String> disabledGroups) {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
 
     Map<String, KeyString[]> usages = new LinkedHashMap<String, KeyString[]>();
@@ -179,9 +273,6 @@ public class AndroidStatisticsService implements StatisticsService {
           for (UsageDescriptor usage : usages) {
             Counter counter = new Counter(usage.getKey(), usage.getValue());
             counters.add(counter);
-            if (VERBOSE) {
-              LOG.info("[" + groupId + "] " + counter);
-            }
           }
           allUsages.put(groupId, counters.toArray(new Counter[counters.size()]));
 
@@ -194,7 +285,12 @@ public class AndroidStatisticsService implements StatisticsService {
     return allUsages;
   }
 
-  /** Sends data. Returns an error if something occurred. */
+  /**
+   * Sends data. Returns an error if something occurred.
+   *
+   * TODO: the server send a reply that tells us how long to wait before sending the next one.
+   * Capture that and report it to the caller.
+   */
   @Nullable
   public String sendData(@NotNull StatsProto.LogRequest request) throws IOException {
 
@@ -235,7 +331,7 @@ public class AndroidStatisticsService implements StatisticsService {
     StatsProto.LogRequest.Builder request = StatsProto.LogRequest.newBuilder();
 
     request.setLogSource(StatsProto.LogRequest.LogSource.ANDROID_STUDIO);
-    request.setRequestTimeMs(myNow);
+    request.setRequestTimeMs(System.currentTimeMillis());
     request.setClientInfo(createClientInfo(sdkstats, uuid, appVersion));
 
     for (Map.Entry<String, KeyString[]> entry : usages.entrySet()) {
@@ -254,7 +350,7 @@ public class AndroidStatisticsService implements StatisticsService {
   private StatsProto.LogEvent createEvent(@NotNull String groupId,
                                           @NotNull KeyString[] values) {
     StatsProto.LogEvent.Builder evtBuilder = StatsProto.LogEvent.newBuilder();
-    evtBuilder.setEventTimeMs(myNow);
+    evtBuilder.setEventTimeMs(System.currentTimeMillis());
     evtBuilder.setTag(groupId);
 
     for (KeyString value : values) {
