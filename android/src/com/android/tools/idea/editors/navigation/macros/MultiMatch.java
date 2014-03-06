@@ -79,7 +79,6 @@ public class MultiMatch {
       this(new HashMap<String, T>(), new HashMap<String, Map<String, T>>());
     }
 
-    @Nullable
     public T get(String key) {
       return bindings.get(key);
     }
@@ -88,7 +87,6 @@ public class MultiMatch {
       bindings.put(key, value);
     }
 
-    @Nullable
     public T get(String key1, String key2) {
       Map<String, T> subBinding = subBindings.get(key1);
       return subBinding == null ? null : subBinding.get(key2);
@@ -100,6 +98,14 @@ public class MultiMatch {
         subBindings.put(key1, subBinding = new HashMap<String, T>());
       }
       subBinding.put(key2, value);
+    }
+
+    @Override
+    public String toString() {
+      return "Bindings{" +
+             "bindings=" + bindings +
+             ", subBindings=" + subBindings +
+             '}';
     }
   }
 }
