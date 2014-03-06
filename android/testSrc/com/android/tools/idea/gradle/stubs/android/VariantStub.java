@@ -45,7 +45,7 @@ public class VariantStub implements Variant {
     myName = name;
     myBuildType = buildType;
     myMainArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_MAIN, buildType, fileStructure);
-    myInstrumentationTestArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_INSTRUMENT_TEST, buildType, fileStructure);
+    myInstrumentationTestArtifact = new AndroidArtifactStub(AndroidProject.ARTIFACT_ANDROID_TEST, buildType, fileStructure);
 
     myExtraAndroidArtifacts.add(myInstrumentationTestArtifact);
   }
