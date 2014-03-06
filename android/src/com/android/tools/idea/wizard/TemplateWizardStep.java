@@ -25,7 +25,6 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.actions.JoinLinesAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -76,6 +75,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   protected final Module myModule;
   private final Icon mySidePanelIcon;
   protected boolean myIgnoreUpdates = false;
+  protected boolean myFirstUpdate = true;
   protected boolean myIsValid = true;
   protected boolean myVisible = true;
   protected final UpdateListener myUpdateListener;
@@ -610,6 +610,12 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
     // First we load the updated values into our model
     updateParams();
+
+    // The first time update() is called, refresh the "suggest" attrs by ensuring *all* parameters are set.
+    if (myFirstUpdate) {
+      myIdsWithNewValues = new ConcurrentLinkedQueue<String>(myTemplateState.getParameters().keySet());
+    }
+
     // Then we calculate any values that we need to
     deriveValues();
     // Finally we make sure these new values are valid
@@ -618,7 +624,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       myUpdateListener.update();
     }
 
-
+    myFirstUpdate = false;
     myIgnoreUpdates = false;
   }
 
