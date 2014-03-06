@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.File;
@@ -48,7 +49,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
     File actual = myLocalProperties.getAndroidSdkPath();
     assertNotNull(actual);
-    assertEquals(androidSdkPath, actual.getPath());
+    assertEquals(FileUtil.toCanonicalPath(androidSdkPath), FileUtil.toCanonicalPath(actual.getPath()));
   }
 
   public void testSetAndroidSdkPathWithSdk() throws Exception {
@@ -67,6 +68,6 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
     File actual = myLocalProperties.getAndroidSdkPath();
     assertNotNull(actual);
-    assertEquals(androidSdkPath, actual.getPath());
+    assertEquals(FileUtil.toCanonicalPath(androidSdkPath), FileUtil.toCanonicalPath(actual.getPath()));
   }
 }

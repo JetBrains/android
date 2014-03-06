@@ -15,34 +15,38 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
-import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.ide.util.projectWizard.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkType;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TextBrowseFolderListener;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.Condition;
 import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,6 +142,15 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
   }
 
+  @Nullable
+  @Override
+  public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
+    if (DefaultSdks.getDefaultJdk() == null || DefaultSdks.getDefaultAndroidHome() == null) {
+      return new MyModuleWizardStep(settingsStep);
+    }
+    return null;
+  }
+
   @Override
   public void update() {
     if (!myInitializationComplete) {
@@ -166,33 +179,28 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     }
     StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
-        @Override
-        public void run() {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  if (myProject == null) {
-                    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-                    final SdkManager sdkManager = getSdkManager(ProjectRootManager.getInstance(project).getProjectSdk());
-                    final BuildToolInfo buildTool = sdkManager != null ? sdkManager.getLatestBuildTool() : null;
-
-                    if (buildTool != null) {
-                      myWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-                    }
-                    NewProjectWizard.createProject(myWizardState, project);
-                  }
-                  else {
-                    createModule();
-                  }
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            ApplicationManager.getApplication().runWriteAction(new Runnable() {
+              @Override
+              public void run() {
+                if (myProject == null) {
+                  myWizardState.putSdkDependentParams();
+                  myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+                  NewProjectWizard.createProject(myWizardState, project);
                 }
-              });
-            }
-          });
-        }
-      });
+                else {
+                  createModule();
+                }
+              }
+            });
+          }
+        });
+      }
+    });
     }
 
   @Nullable
@@ -256,5 +264,86 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     return myWizardState.myIsAndroidModule
            ? AndroidSdkType.getInstance().equals(sdkType)
            : sdkType instanceof JavaSdkType;
+  }
+
+  private class MyModuleWizardStep extends JavaSettingsStep {
+
+    private TextFieldWithBrowseButton myAndroidSdkLocationField;
+
+    public MyModuleWizardStep(@NotNull SettingsStep settingsStep) {
+      super(settingsStep, TemplateWizardModuleBuilder.this, new Condition<SdkTypeId>() {
+        @Override
+        public boolean value(SdkTypeId id) {
+          return JavaSdk.getInstance() == id;
+        }
+      });
+
+      if (DefaultSdks.getDefaultAndroidHome() == null) {
+        myAndroidSdkLocationField = new TextFieldWithBrowseButton();
+        myAndroidSdkLocationField.addBrowseFolderListener(new TextBrowseFolderListener(
+          new FileChooserDescriptor(false, true, false, false, false, false)));
+        settingsStep.addSettingsField("An\u001Bdroid SDK location:", myAndroidSdkLocationField);
+      }
+    }
+
+    @Nullable
+    private String getAndroidSdkLocation() {
+      return myAndroidSdkLocationField != null
+             ? myAndroidSdkLocationField.getText().trim()
+             : null;
+    }
+
+    @Override
+    public void updateDataModel() {
+      super.updateDataModel();
+      final String location = getAndroidSdkLocation();
+
+      if (location != null) {
+        final Sdk javaSdk = myJdk != null ? myJdk : myWizardContext.getProjectJdk();
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            DefaultSdks.setDefaultAndroidHome(new File(location), javaSdk);
+          }
+        });
+      }
+    }
+
+    @NotNull
+    protected String getSdkFieldLabel(@Nullable Project project) {
+      return "Java \u001BSDK:";
+    }
+
+    @Override
+    public boolean validate() throws ConfigurationException {
+      if (myJdkComboBox.getSelectedJdk() == null) {
+        throw new ConfigurationException("Specify Java SDK");
+      }
+      myModel.apply(null, true);
+      final String location = getAndroidSdkLocation();
+
+      if (location != null) {
+        if (location.length() == 0) {
+          throw new ConfigurationException("Specify Android SDK location");
+        }
+        if (!new File(location).isDirectory()) {
+          throw new ConfigurationException(location + " is not directory");
+        }
+        final MessageBuildingSdkLog log = new MessageBuildingSdkLog();
+        final AndroidSdkData sdkData = AndroidSdkData.parse(location, log);
+
+        if (sdkData == null) {
+          final String message = log.getErrorMessage();
+
+          if (message.length() > 0) {
+            throw new ConfigurationException("Android SDK is parsed incorrectly. Parsing log:\n" + message);
+          }
+          else {
+            throw new ConfigurationException("Invalid Android SDK");
+          }
+        }
+      }
+      return true;
+    }
   }
 }

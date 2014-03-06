@@ -15,17 +15,23 @@
  */
 package org.jetbrains.android.maven;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenConstants;
 import org.jetbrains.idea.maven.model.MavenId;
 import org.jetbrains.idea.maven.project.MavenProject;
+import org.jetbrains.idea.maven.project.MavenProjectsManager;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,6 +46,7 @@ public class AndroidMavenUtil {
   @NonNls public static final String APKLIB_DEPENDENCY_AND_PACKAGING_TYPE = "apklib";
   @NonNls public static final String SO_PACKAGING_AND_DEPENDENCY_TYPE = "so";
   @NonNls public static final String APK_PACKAGING_TYPE = "apk";
+  @NonNls public static final String AAR_DEPENDENCY_AND_PACKAGING_TYPE = "aar";
 
   @NonNls public static final String APK_LIB_ARTIFACT_SOURCE_ROOT = "src";
   @NonNls public static final String APK_LIB_ARTIFACT_RES_DIR = "res";
@@ -76,9 +83,14 @@ public class AndroidMavenUtil {
     }
     
     if (path == null) {
-      path = project.getDirectoryFile().getPath() + '/' + GEN_EXTERNAL_APKLIBS_DIRNAME;
+      path = getGenExternalApklibDirInProject(project);
     }
     return path;
+  }
+
+  @NotNull
+  public static String getGenExternalApklibDirInProject(@NotNull MavenProject project) {
+    return project.getDirectoryFile().getPath() + '/' + GEN_EXTERNAL_APKLIBS_DIRNAME;
   }
 
   private static boolean containsCompileDependency(Collection<MavenArtifact> dependencies) {
@@ -119,6 +131,27 @@ public class AndroidMavenUtil {
   public static boolean isMavenizedModule(@NotNull Module module) {
     AndroidMavenProvider mavenProxy = getMavenProvider();
     return mavenProxy != null && mavenProxy.isMavenizedModule(module);
+  }
+
+  public static boolean isMavenAarDependency(@NotNull Module module, @NotNull OrderEntry entry) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && entry.getPresentableName().equals("maven_aar_dependency")) {
+      return true;
+    }
+    if (!(entry instanceof LibraryOrderEntry) || !isMavenizedModule(module)) {
+      return false;
+    }
+    final Library library = ((LibraryOrderEntry)entry).getLibrary();
+
+    if (library == null) {
+      return false;
+    }
+    final MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);
+
+    if (mavenProject == null) {
+      return false;
+    }
+    final MavenArtifact artifact = MavenRootModelAdapter.findArtifact(mavenProject, library);
+    return artifact != null && AAR_DEPENDENCY_AND_PACKAGING_TYPE.equals(artifact.getType());
   }
 
   @Nullable

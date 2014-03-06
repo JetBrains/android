@@ -125,9 +125,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       // compile it using Gradle. We still need to create the module to display files inside it.
       return;
     }
-    IdeaGradleProject ideaGradleProject =
-      new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
-    ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
+    // create Android Facet (for android JPS builder) only if there is at least one Android module exist in the project
+    if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
+      IdeaGradleProject ideaGradleProject =
+        new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+      ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
+    }
   }
 
   @Override
