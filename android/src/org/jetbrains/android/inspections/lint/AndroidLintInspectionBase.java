@@ -366,7 +366,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   }
 
   @Nullable
-  private static HighlightDisplayLevel toHighlightDisplayLevel(@NotNull Severity severity) {
+  static HighlightDisplayLevel toHighlightDisplayLevel(@NotNull Severity severity) {
     switch (severity) {
       case ERROR:
         return HighlightDisplayLevel.ERROR;
