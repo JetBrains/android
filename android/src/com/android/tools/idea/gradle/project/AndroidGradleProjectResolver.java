@@ -48,10 +48,13 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -61,6 +64,7 @@ import java.net.URL;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService.RECOMMENDED_ACTIONS_CATEGORY;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION;
 
 /**
@@ -149,7 +153,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                          @NotNull DataNode<ProjectData> ideProject) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null) {
-      // TODO check if this dependency import differs from base impl, see org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension#populateModuleDependencies
       IdeaAndroidProject ideAndroidProject = getIdeaAndroidProject(ideModule);
       Collection<Dependency> dependencies = Collections.emptyList();
       if (ideAndroidProject != null) {
@@ -226,16 +229,39 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
-
-  // this exception will be thrown by org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored") // Studio complains that the exceptions in line 256 and 257 are never thrown.
   @NotNull
   @Override
   public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
+    // Check if the import error is due to an unsupported version of Gradle. If that is the case, the error received does not give users
+    // any hint of the real issue. Here we check the version of Gradle and show an user-friendly error message.
+    BuildEnvironment buildEnvironment = getBuildEnvironment();
+    if (buildEnvironment != null) {
+      GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
+      GradleVersion minimumGradleVersion = GradleVersion.version(GRADLE_MINIMUM_VERSION);
+      if (gradleVersion.compareTo(minimumGradleVersion) != 0) {
+        // For now we have to use an exact version of Gradle.
+        String msg = String
+          .format("You are using Gradle version %1$s, which is not supported. Please use version %2$s.", gradleVersion.getVersion(),
+                  GRADLE_MINIMUM_VERSION);
+        msg += ('\n' + AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION);
+        return new ExternalSystemException(msg);
+      }
+    }
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
     return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
+  }
+
+  @Nullable
+  private BuildEnvironment getBuildEnvironment() {
+    try {
+      return resolverCtx.getConnection().getModel(BuildEnvironment.class);
+    }
+    catch (Exception e) {
+      return null;
+    }
   }
 
   @NotNull
