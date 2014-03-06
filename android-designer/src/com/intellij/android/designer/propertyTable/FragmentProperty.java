@@ -15,7 +15,6 @@
  */
 package com.intellij.android.designer.propertyTable;
 
-import com.android.SdkConstants;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.model.PropertiesContainer;
 import com.intellij.designer.model.Property;
@@ -38,9 +37,11 @@ public class FragmentProperty extends Property<RadViewComponent> implements IXml
   private final PropertyRenderer myRenderer = new LabelPropertyRenderer(null);
   private final PropertyEditor myEditor;
   private final String myJavadocText;
+  private final String myNamespace;
 
-  public FragmentProperty(@NotNull String name, PropertyEditor editor, String javadocText) {
+  public FragmentProperty(@NotNull String name, @Nullable String namespace, PropertyEditor editor, String javadocText) {
     super(null, name);
+    myNamespace = namespace;
     myEditor = editor;
     myJavadocText = javadocText;
     setImportant(true);
@@ -54,23 +55,26 @@ public class FragmentProperty extends Property<RadViewComponent> implements IXml
 
   @Override
   public Object getValue(@NotNull RadViewComponent component) throws Exception {
-    String value = component.getTag().getAttributeValue(myAttribute, getNamespace());
+    //noinspection ConstantConditions
+    String value = component.getTag().getAttributeValue(myAttribute, myNamespace);
     return value == null ? "" : value;
   }
 
   @Override
-  public void setValue(@NotNull final RadViewComponent component, final Object value) throws Exception {
+  public void setValue(@NotNull final RadViewComponent component, @Nullable final Object value) throws Exception {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
         if (StringUtil.isEmpty((String)value)) {
-          XmlAttribute attribute = component.getTag().getAttribute(myAttribute, getNamespace());
+          //noinspection ConstantConditions
+          XmlAttribute attribute = component.getTag().getAttribute(myAttribute, myNamespace);
           if (attribute != null) {
             attribute.delete();
           }
         }
         else {
-          component.getTag().setAttribute(myAttribute, getNamespace(), (String)value);
+          //noinspection ConstantConditions
+          component.getTag().setAttribute(myAttribute, myNamespace, (String)value);
         }
       }
     });
@@ -78,12 +82,14 @@ public class FragmentProperty extends Property<RadViewComponent> implements IXml
 
   @Override
   public boolean isDefaultValue(@NotNull RadViewComponent component) throws Exception {
-    return component.getTag().getAttribute(myAttribute, getNamespace()) == null;
+    //noinspection ConstantConditions
+    return component.getTag().getAttribute(myAttribute, myNamespace) == null;
   }
 
   @Override
   public void setDefaultValue(@NotNull RadViewComponent component) throws Exception {
-    if (component.getTag().getAttribute(myAttribute, getNamespace()) != null) {
+    //noinspection ConstantConditions
+    if (component.getTag().getAttribute(myAttribute, myNamespace) != null) {
       setValue(component, null);
     }
   }
@@ -111,11 +117,8 @@ public class FragmentProperty extends Property<RadViewComponent> implements IXml
 
   @Override
   public boolean checkAttribute(RadViewComponent component, XmlAttribute attribute) {
-    return component.getTag().getAttribute(myAttribute, getNamespace()) == attribute;
+    //noinspection ConstantConditions
+    return component.getTag().getAttribute(myAttribute, myNamespace) == attribute;
   }
 
-  @Nullable
-  protected String getNamespace() {
-    return SdkConstants.NS_RESOURCES;
-  }
 }
