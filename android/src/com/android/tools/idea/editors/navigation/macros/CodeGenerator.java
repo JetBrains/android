@@ -27,12 +27,10 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 public class CodeGenerator {
   public final Module module;
   public final NavigationModel navigationModel;
-  private final Macros macros;
 
   public CodeGenerator(NavigationModel navigationModel, Module module) {
     this.navigationModel = navigationModel;
     this.module = module;
-    this.macros = new Macros(module); // todo - share this with the analysis implementation
   }
 
 
@@ -64,6 +62,7 @@ public class CodeGenerator {
     JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
     final PsiElementFactory factory = facade.getElementFactory();
     final CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
+    final Macros macros = Macros.getInstance(module.getProject());
 
     State sourceState = transition.getSource().getState();
     State destinationState = transition.getDestination().getState();
