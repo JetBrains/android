@@ -31,10 +31,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.containers.OrderedSet;
@@ -62,6 +59,16 @@ public class AndroidRootUtil {
   @NonNls public static final String DEFAULT_PROPERTIES_FILE_NAME = "default.properties";
 
   private AndroidRootUtil() {
+  }
+
+  @Nullable
+  public static VirtualFile getMergedManifestFile(@NotNull AndroidFacet facet) {
+    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+    if (androidProject != null) {
+      File mergedManifest = androidProject.getSelectedVariant().getMainArtifact().getGeneratedManifest();
+      return VfsUtil.findFileByIoFile(mergedManifest, true);
+    }
+    return null;
   }
 
   @Nullable
