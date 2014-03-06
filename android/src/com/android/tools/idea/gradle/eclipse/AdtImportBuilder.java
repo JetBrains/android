@@ -20,6 +20,7 @@ import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.ide.startup.StartupManagerEx;
+import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
@@ -70,13 +71,11 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   public void setSelectedProject(@NotNull File selectedProject) throws IOException {
     mySelectedProject = selectedProject;
     List<File> projects = Arrays.asList(mySelectedProject);
-    myImporter = null;
     myImporter = createImporter(projects);
   }
 
-  protected GradleImport createImporter(@NotNull List<File> projects) throws IOException {
+  protected GradleImport createImporter(@NotNull List<File> projects) {
     GradleImport importer = new GradleImport();
-    importer.importProjects(projects);
     File templates = TemplateManager.getTemplateRootFolder();
     if (templates != null) {
       File wrapper = TemplateManager.getWrapperLocation(templates);
@@ -87,6 +86,11 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
           importer.setSdkManager(sdkManager);
         }
       }
+    }
+    try {
+      importer.importProjects(projects);
+    } catch (IOException ioe) {
+      // pass: the errors are written into the import error list shown in the warnings panel
     }
     return importer;
   }
@@ -138,11 +142,15 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       // Re-read the project here since one of the wizard steps can have modified the importer options,
       // and that affects the imported state (for example, if you enable/disable the replace-lib-with-dependency
       // options, the set of modules can change)
-      myImporter.importProjects(Arrays.asList(mySelectedProject));
+      readProjects();
+      if (!myImporter.getErrors().isEmpty()) {
+        return null;
+      }
       myImporter.exportProject(destDir, true);
     }
     catch (IOException e) {
       Logger.getInstance(AdtImportBuilder.class).error(e);
+      return null;
     }
 
     ImportFromGradleControl control = myGradleBuilder.getControl(null);
@@ -170,10 +178,28 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     return modules;
   }
 
+  public void readProjects() {
+    try {
+      myImporter.importProjects(Arrays.asList(mySelectedProject));
+    }
+    catch (IOException e) {
+      // Ignore I/O warnings; they are also logged to the warnings panel we display
+    }
+  }
+
   private static void openSummary(Project project) {
     VirtualFile summary = project.getBaseDir().findChild(GradleImport.IMPORT_SUMMARY_TXT);
     if (summary != null) {
       TemplateUtils.openEditor(project, summary);
     }
+  }
+
+  @Nullable
+  static AdtImportBuilder getBuilder(@Nullable WizardContext context) {
+    if (context != null) {
+      return (AdtImportBuilder)context.getProjectBuilder();
+    }
+
+    return null;
   }
 }
