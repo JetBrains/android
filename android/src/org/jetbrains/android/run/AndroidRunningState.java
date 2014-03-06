@@ -313,28 +313,24 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     if (facet.getProperties().USE_CUSTOM_MANIFEST_PACKAGE) {
       return facet.getProperties().CUSTOM_MANIFEST_PACKAGE;
     }
-    else {
+    else if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
       File manifestCopy = null;
       final Manifest manifest;
       final String manifestLocalPath;
 
       try {
-        if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-          final Pair<File,String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
-          manifestCopy = pair != null ? pair.getFirst() : null;
-          VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
-          if (manifestVFile != null) {
-            manifestVFile.refresh(false, false);
-            manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
-          } else {
-            manifest = null;
-          }
-          manifestLocalPath = pair != null ? pair.getSecond() : null;
+        final Pair<File, String> pair = AndroidRunConfigurationBase.getCopyOfCompilerManifestFile(facet, getProcessHandler());
+        manifestCopy = pair != null ? pair.getFirst() : null;
+        VirtualFile manifestVFile = manifestCopy != null ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy) : null;
+        if (manifestVFile != null) {
+          manifestVFile.refresh(false, false);
+          manifest = AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
         }
         else {
-          manifest = AndroidModuleInfo.get(facet).getManifest(true);
-          manifestLocalPath = PathUtil.getLocalPath(AndroidRootUtil.getMergedManifestFile(facet));
+          manifest = null;
         }
+        manifestLocalPath = pair != null ? pair.getSecond() : null;
+
         final Module module = facet.getModule();
         final String moduleName = module.getName();
 
@@ -349,7 +345,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
             final GenericAttributeValue<String> packageAttrValue = manifest.getPackage();
             final String aPackage = packageAttrValue.getValue();
 
-            if (aPackage == null || aPackage.length() == 0) {
+            if (aPackage == null || aPackage.isEmpty()) {
               message("[" + moduleName + "] Main package is not specified in file " + manifestLocalPath, STDERR);
               //noinspection ConstantConditions
               return null;
@@ -363,6 +359,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           FileUtil.delete(manifestCopy.getParentFile());
         }
       }
+    }
+    else {
+      String pkg = AndroidModuleInfo.get(facet).getPackage(true);
+      if (pkg == null || pkg.isEmpty()) {
+        message("[" + facet.getModule().getName() + "] Unable to obtain main package from manifest.", STDERR);
+      }
+      return pkg;
     }
   }
 
