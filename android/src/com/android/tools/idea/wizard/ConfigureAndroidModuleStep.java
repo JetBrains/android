@@ -232,11 +232,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     // parameters in the template, and the super refreshUiFromParameters won't touch those elements.
     registerUiElements();
     super.refreshUiFromParameters();
-
-    AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
-    if (item != null) {
-      myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
-    }
   }
 
   @Override
@@ -340,6 +335,22 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   protected JLabel getError() {
     return myError;
+  }
+
+
+  @Override
+  public void updateParams() {
+    super.updateParams();
+
+    AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
+    if (item != null) {
+      myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
+      if (item.target != null) {
+        myTemplateState.put(ATTR_MIN_API, AndroidTargetComboBoxItem.getId(item.target));
+      } else {
+        myTemplateState.put(ATTR_MIN_API, item.apiLevel);
+      }
+    }
   }
 
   @Override
