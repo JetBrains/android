@@ -67,6 +67,7 @@ import org.jetbrains.idea.maven.server.NativeMavenProjectHolder;
 import org.jetbrains.idea.maven.utils.MavenProcessCanceledException;
 import org.jetbrains.idea.maven.utils.MavenProgressIndicator;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
+import org.jetbrains.jps.util.JpsPathUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -190,6 +191,38 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       final String aidlPath = mavenProject.getGeneratedSourcesDirectory(false) + "/aidl";
       rootModel.unregisterAll(aidlPath, false, true);
       rootModel.addExcludedFolder(aidlPath);
+    }
+
+    if (facet.getProperties().LIBRARY_PROJECT) {
+      removeAttachedJarDependency(modelsProvider, mavenTree, mavenProject);
+    }
+  }
+
+  private static void removeAttachedJarDependency(MavenModifiableModelsProvider modelsProvider,
+                                                  MavenProjectsTree mavenTree,
+                                                  MavenProject mavenProject) {
+    for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
+      final MavenProject depProject = mavenTree.findProject(depArtifact);
+
+      if (depProject == null) {
+        continue;
+      }
+      final String attachedJarsLibName = MavenModuleImporter.getAttachedJarsLibName(depArtifact);
+      final Library attachedJarsLib = modelsProvider.getLibraryByName(attachedJarsLibName);
+
+      if (attachedJarsLib != null) {
+        final Library.ModifiableModel attachedJarsLibModel = modelsProvider.getLibraryModel(attachedJarsLib);
+
+        if (attachedJarsLibModel != null) {
+          final String targetJarPath = depProject.getBuildDirectory() + "/" + depProject.getFinalName() + ".jar";
+
+          for (String url : attachedJarsLibModel.getUrls(OrderRootType.CLASSES)) {
+            if (FileUtil.pathsEqual(targetJarPath, JpsPathUtil.urlToPath(url))) {
+              attachedJarsLibModel.removeRoot(url, OrderRootType.CLASSES);
+            }
+          }
+        }
+      }
     }
   }
 

@@ -68,7 +68,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
   private PsiElement[] myCreatedElements;
 
-  protected NewAndroidComponentDialog(@NotNull final Module module, final PsiDirectory directory) {
+  public NewAndroidComponentDialog(@NotNull final Module module, final PsiDirectory directory) {
     super(module.getProject());
     myKindLabel.setLabelFor(myKindCombo);
     myKindCombo.registerUpDownHint(myNameField);
