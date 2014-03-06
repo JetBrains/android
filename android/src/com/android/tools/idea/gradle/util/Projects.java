@@ -32,6 +32,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -44,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
+import java.io.File;
 
 /**
  * Utility methods for {@link Project}s.
@@ -202,6 +204,11 @@ public final class Projects {
     // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
     // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
     // to build the whole project.
-    return Objects.equal(module.getName(), project.getName()) && AndroidGradleFacet.getInstance(module) == null;
+    File moduleFilePath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath()));
+    File moduleRootDirPath = moduleFilePath.getParentFile();
+    if (moduleRootDirPath == null) {
+      return false;
+    }
+    return FileUtil.filesEqual(moduleRootDirPath, new File(project.getBasePath())) && AndroidGradleFacet.getInstance(module) == null;
   }
 }
