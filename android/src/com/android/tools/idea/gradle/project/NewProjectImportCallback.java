@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.Module;
@@ -43,63 +42,71 @@ import java.io.File;
 public abstract class NewProjectImportCallback implements GradleProjectImporter.Callback {
   @Override
   public void importFailed(@NotNull final Project project, @NotNull String errorMessage) {
-    final Application application = ApplicationManager.getApplication();
-    application.invokeLater(new Runnable() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        application.runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            ModuleManager moduleManager = ModuleManager.getInstance(project);
-
-            File projectRootDir = new File(project.getBasePath());
-            VirtualFile contentRoot = VfsUtil.findFileByIoFile(projectRootDir, true);
-
-            if (contentRoot != null) {
-              File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
-              Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
-
-              // This prevents the balloon "Unsupported Modules detected".
-              module.setOption(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY, GradleConstants.SYSTEM_ID.getId());
-
-              ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
-              model.addContentEntry(contentRoot);
-              model.commit();
-
-              FacetManager facetManager = FacetManager.getInstance(module);
-              ModifiableFacetModel facetModel = facetManager.createModifiableModel();
-              try {
-                AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
-                if (gradleFacet == null) {
-                  // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
-                  gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-                  facetModel.addFacet(gradleFacet);
-                }
-                gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR;
-
-                // Add "android" facet to avoid the balloon "Android Framework detected".
-                AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-                if (androidFacet == null) {
-                  androidFacet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-                  facetModel.addFacet(androidFacet);
-                }
-
-                // This is what actually stops Studio from showing the balloon.
-                androidFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-              } finally {
-                facetModel.commit();
-              }
-            }
-          }
-        });
-
-        // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
-        Projects.open(project);
-
-        // Activate "Project View" so users don't get an empty window.
-        activateProjectView(project);
+        createTopLevelProjectAndOpen(project);
       }
     });
+  }
+
+  protected void createTopLevelProjectAndOpen(@NotNull final Project project) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        createTopLevelModule(project);
+      }
+    });
+
+    // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
+    Projects.open(project);
+
+    // Activate "Project View" so users don't get an empty window.
+    activateProjectView(project);
+  }
+
+  private static void createTopLevelModule(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+
+    File projectRootDir = new File(project.getBasePath());
+    VirtualFile contentRoot = VfsUtil.findFileByIoFile(projectRootDir, true);
+
+    if (contentRoot != null) {
+      File moduleFile = new File(projectRootDir, projectRootDir.getName() + ".iml");
+      Module module = moduleManager.newModule(moduleFile.getPath(), StdModuleTypes.JAVA.getId());
+
+      // This prevents the balloon "Unsupported Modules detected".
+      module.setOption(ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY, GradleConstants.SYSTEM_ID.getId());
+
+      ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
+      model.addContentEntry(contentRoot);
+      model.commit();
+
+      FacetManager facetManager = FacetManager.getInstance(module);
+      ModifiableFacetModel facetModel = facetManager.createModifiableModel();
+      try {
+        AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+        if (gradleFacet == null) {
+          // Add "gradle" facet, to avoid balloons about unsupported compilation of modules.
+          gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+          facetModel.addFacet(gradleFacet);
+        }
+        gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = SdkConstants.GRADLE_PATH_SEPARATOR;
+
+        // Add "android" facet to avoid the balloon "Android Framework detected".
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet == null) {
+          androidFacet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+          facetModel.addFacet(androidFacet);
+        }
+
+        // This is what actually stops Studio from showing the balloon.
+        androidFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
+      }
+      finally {
+        facetModel.commit();
+      }
+    }
   }
 
   protected static void activateProjectView(@NotNull Project project) {
