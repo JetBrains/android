@@ -173,7 +173,8 @@ public class AndroidUtils {
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile instanceof XmlFile) {
           return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
-        } else {
+        }
+        else {
           return null;
         }
       }
@@ -284,30 +285,53 @@ public class AndroidUtils {
   }
 
   @Nullable
+  private static Activity getDefaultLauncherActivity(@NotNull List<Activity> activities) {
+    for (Activity activity : activities) {
+      for (IntentFilter filter : activity.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
+          return activity;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static ActivityAlias getDefaultLauncherActivityAlias(@NotNull List<ActivityAlias> activityAliases) {
+    for (ActivityAlias alias : activityAliases) {
+      for (IntentFilter filter : alias.getIntentFilters()) {
+        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
+          return alias;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
   public static String getDefaultLauncherActivityName(@NotNull Manifest manifest) {
     Application application = manifest.getApplication();
     if (application == null) {
       return null;
     }
 
-    for (Activity activity : application.getActivities()) {
-      for (IntentFilter filter : activity.getIntentFilters()) {
-        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
-          PsiClass c = activity.getActivityClass().getValue();
-          return c != null ? c.getQualifiedName() : null;
-        }
+    return getDefaultLauncherActivityName(application.getActivities(), application.getActivityAliass());
+  }
+
+  @Nullable
+  public static String getDefaultLauncherActivityName(List<Activity> activities, List<ActivityAlias> activityAliases) {
+    Activity activity = getDefaultLauncherActivity(activities);
+    if (activity != null) {
+      PsiClass c = activity.getActivityClass().getValue();
+      if (c != null) {
+        return c.getQualifiedName();
       }
     }
 
-    for (ActivityAlias alias : application.getActivityAliass()) {
-      for (IntentFilter filter : alias.getIntentFilters()) {
-        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
-          return alias.getName().getStringValue();
-        }
-      }
-    }
-
-    return null;
+    ActivityAlias alias = getDefaultLauncherActivityAlias(activityAliases);
+    return  alias != null ? alias.getName().getStringValue() : null;
   }
 
   public static boolean isAbstract(@NotNull PsiClass c) {
