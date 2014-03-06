@@ -380,6 +380,9 @@ class ReflectiveHandler extends DefaultHandler {
           });
         }
         else {
+          if (stack.isEmpty()) {
+            throw new SAXException("Empty body at root");
+          }
           final ElementInfo last = stack.getLast();
           final Method getter = getGetter(last.type, qName);
           elementInfo.myValueAlreadySetInOuter = true;
@@ -438,6 +441,9 @@ class ReflectiveHandler extends DefaultHandler {
         return getClassForName(qName);
       }
       catch (ClassNotFoundException e) {
+        if (stack.isEmpty()) {
+          return null;
+        }
         Class outerType = stack.getLast().type;
         try {
           return getSetter(outerType, qName).getParameterTypes()[0];
