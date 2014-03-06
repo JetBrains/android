@@ -19,16 +19,12 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
-import com.android.util.Pair;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiFile;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,71 +69,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
 
   public List<? extends LocalResourceRepository> getChildren() {
     return myChildren;
-  }
-
-  @Nullable
-  @Override
-  public Pair<ResourceType, String> resolveResourceId(int id) {
-    Pair<ResourceType, String> pair = super.resolveResourceId(id);
-    if (pair != null) {
-      return pair;
-    }
-
-    for (int i = myChildren.size() - 1; i >= 0; i--) {
-      LocalResourceRepository resources = myChildren.get(i);
-      Pair<ResourceType, String> resolved = resources.resolveResourceId(id);
-      if (resolved != null) {
-        return resolved;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public String resolveStyleable(int[] id) {
-    String resourceName = super.resolveStyleable(id);
-    if (resourceName != null) {
-      return resourceName;
-    }
-
-    for (int i = myChildren.size() - 1; i >= 0; i--) {
-      LocalResourceRepository resources = myChildren.get(i);
-      String resolved = resources.resolveStyleable(id);
-      if (resolved != null) {
-        return resolved;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public Integer getResourceId(ResourceType type, String name) {
-    Integer id = super.getResourceId(type, name);
-    if (id != null) {
-      return id;
-    }
-
-    for (int i = myChildren.size() - 1; i >= 0; i--) {
-      LocalResourceRepository resources = myChildren.get(i);
-      Integer resolved = resources.getResourceId(type, name);
-      if (resolved != null) {
-        return resolved;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public void setCompiledResources(TIntObjectHashMap<Pair<ResourceType, String>> id2res,
-                                   Map<IntArrayWrapper, String> styleableId2name,
-                                   Map<ResourceType, TObjectIntHashMap<String>> res2id) {
-    super.setCompiledResources(id2res, styleableId2name, res2id);
-    for (int i = myChildren.size() - 1; i >= 0; i--) {
-      LocalResourceRepository resources = myChildren.get(i);
-      resources.setCompiledResources(id2res, styleableId2name, res2id);
-    }
   }
 
   @Override

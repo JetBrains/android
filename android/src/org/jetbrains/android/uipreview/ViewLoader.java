@@ -439,7 +439,7 @@ public class ViewLoader {
       final Map<IntArrayWrapper, String> styleableId2res = new HashMap<IntArrayWrapper, String>();
 
       if (parseClass(aClass, id2res, styleableId2res, res2id)) {
-        LocalResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
+        AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
         appResources.setCompiledResources(id2res, styleableId2res, res2id);
       }
     }
