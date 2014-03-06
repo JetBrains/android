@@ -15,31 +15,20 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
-import com.google.common.base.Charsets;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,8 +50,7 @@ public class ManifestInfo {
   private String myPackage;
   private String myManifestTheme;
   private Map<String, String> myActivityThemes;
-  private XmlFile myManifestFile;
-  private long myLastModified = -1;
+  private ManifestFile myManifestFile;
   private long myLastChecked;
   private String myMinSdkName;
   private int myMinSdk;
@@ -156,24 +144,18 @@ public class ManifestInfo {
 
   private void syncWithReadPermission() {
     if (myManifestFile == null) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet == null) {
-        return;
-      }
-
-      myManifestFile = getManifestFile(facet, myPreferMergedManifest);
+      myManifestFile = ManifestFile.create(myModule, myPreferMergedManifest);
       if (myManifestFile == null) {
         return;
       }
     }
 
     // Check to see if our data is up to date
-    long fileModified = myManifestFile.getModificationStamp();
-    if (fileModified == myLastModified) {
+    boolean refresh = myManifestFile.refresh();
+    if (!refresh) {
       // Already have up to date data
       return;
     }
-    myLastModified = fileModified;
 
     myActivityThemes = new HashMap<String, String>();
     myManifestTheme = null;
@@ -186,7 +168,7 @@ public class ManifestInfo {
     myApplicationSupportsRtl = false;
 
     try {
-      XmlTag root = myManifestFile.getRootTag();
+      XmlTag root = myManifestFile.getXmlFile().getRootTag();
       if (root == null) {
         return;
       }
@@ -226,48 +208,11 @@ public class ManifestInfo {
         myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
       }
 
-      myManifest = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), myManifestFile, Manifest.class);
+      myManifest = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), myManifestFile.getXmlFile(), Manifest.class);
     }
     catch (Exception e) {
       LOG.error("Could not read Manifest data", e);
     }
-  }
-
-  @Nullable
-  private XmlFile getManifestFile(@NotNull AndroidFacet facet, boolean preferMergedManifest) {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-
-    VirtualFile manifestFile = null;
-    boolean usingMergedManifest = true;
-    if (preferMergedManifest) {
-      manifestFile = AndroidRootUtil.getMergedManifestFile(facet);
-    }
-    if (manifestFile == null) {
-      manifestFile = AndroidRootUtil.getManifestFile(facet);
-      usingMergedManifest = false;
-    }
-    if (manifestFile == null) {
-      return null;
-    }
-
-    PsiFile psiFile;
-    if (usingMergedManifest) {
-      // merged manifest is present inside the build folder which is excluded
-      // so we have to manually read its contents and create a PSI file out of its contents
-      try {
-        manifestFile.setCharset(Charsets.UTF_8);
-        String contents = VfsUtilCore.loadText(manifestFile);
-        psiFile = PsiFileFactory.getInstance(myModule.getProject())
-          .createFileFromText(SdkConstants.FN_ANDROID_MANIFEST_XML, XmlFileType.INSTANCE, contents);
-      }
-      catch (IOException e) {
-        psiFile = null;
-      }
-    } else {
-      psiFile = PsiManager.getInstance(myModule.getProject()).findFile(manifestFile);
-    }
-
-    return psiFile instanceof XmlFile ? (XmlFile)psiFile : null;
   }
 
   private int getApiVersion(XmlTag usesSdk, String attribute, int defaultApiLevel) {
