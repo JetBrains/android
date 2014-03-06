@@ -57,7 +57,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   public AndroidProjectDataService() {
     //noinspection TestOnlyProblems
     this(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new RunConfigModuleCustomizer(),
-         new CompilerOutputPathModuleCustomizer());
+         new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
   }
 
   @VisibleForTesting
