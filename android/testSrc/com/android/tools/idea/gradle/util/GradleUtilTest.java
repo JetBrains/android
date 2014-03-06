@@ -43,6 +43,14 @@ public class GradleUtilTest extends TestCase {
     super.tearDown();
   }
 
+  public void testGetGradleInvocationJvmArgWithNullBuildMode() {
+    assertNull(GradleUtil.getGradleInvocationJvmArg(null));
+  }
+
+  public void testGetGradleInvocationJvmArgWithAssembleTranslateBuildMode() {
+    assertEquals("-DenableTranslation=true" ,GradleUtil.getGradleInvocationJvmArg(BuildMode.ASSEMBLE_TRANSLATE));
+  }
+
   public void testGetGradleWrapperPropertiesFilePath() throws IOException {
     myTempDir = Files.createTempDir();
     File wrapper = new File(myTempDir, "gradle-wrapper.properties");

@@ -146,7 +146,12 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
                                         @NotNull CompileContext context,
                                         @NotNull BuilderExecutionSettings executionSettings) {
     BuildMode buildMode = executionSettings.getBuildMode();
-    boolean isCleanBuildMode = buildMode.equals(BuildMode.CLEAN);
+
+    if (buildMode == BuildMode.ASSEMBLE_TRANSLATE) {
+      return new String[] { GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME };
+    }
+
+    boolean isCleanBuildMode = (buildMode == BuildMode.CLEAN);
 
     List<String> tasks = Lists.newArrayList();
 
@@ -290,6 +295,11 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       launcher.forTasks(buildTasks);
 
       List<String> jvmArgs = Lists.newArrayList();
+      BuildMode buildMode = executionSettings.getBuildMode();
+      if (BuildMode.ASSEMBLE_TRANSLATE == buildMode) {
+        String arg = AndroidGradleSettings.createJvmArg(GradleBuilds.ENABLE_TRANSLATION_JVM_ARG, true);
+        jvmArgs.add(arg);
+      }
 
       if (androidHome != null && !androidHome.isEmpty()) {
         String androidSdkArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);

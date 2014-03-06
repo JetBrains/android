@@ -42,6 +42,16 @@ public class ProjectBuilder {
     myProject = project;
   }
 
+  public void assembleTranslate() {
+    if (Projects.isGradleProject(myProject)) {
+      if (Projects.isDirectGradleInvocationEnabled(myProject)) {
+        GradleInvoker.getInstance(myProject).assembleTranslate();
+        return;
+      }
+      buildProjectWithJps(BuildMode.ASSEMBLE_TRANSLATE);
+    }
+  }
+
   public void make() {
     if (Projects.isGradleProject(myProject)) {
       if (Projects.isDirectGradleInvocationEnabled(myProject)) {
