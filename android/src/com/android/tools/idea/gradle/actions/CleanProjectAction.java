@@ -1,5 +1,6 @@
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -17,7 +18,7 @@ public class CleanProjectAction extends AnAction {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      Projects.clean(project);
+      ProjectBuilder.getInstance(project).clean();
     }
   }
 
