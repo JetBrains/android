@@ -57,7 +57,7 @@ public class DumpSysAction {
   @GuardedBy("this")
   private VirtualFile myOutputFile;
 
-  public DumpSysAction(@NotNull Project p, @NotNull IDevice device, @NotNull String service, @NotNull Client client) {
+  public DumpSysAction(@NotNull Project p, @NotNull IDevice device, @NotNull String service, @Nullable Client client) {
     myProject = p;
     myDevice = device;
     myService = service;
@@ -68,9 +68,9 @@ public class DumpSysAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver();
 
-    String description = myClient.getClientData().getClientDescription();
+    String description = myClient == null ? null : myClient.getClientData().getClientDescription();
     final String pkgName = description != null ? description : "";
-    final String command = String.format(Locale.US, "dumpsys %1$s %2$s", myService, pkgName);
+    final String command = String.format(Locale.US, "dumpsys %1$s %2$s", myService, pkgName).trim();
 
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
