@@ -120,6 +120,8 @@ public class RenderService implements IImageFactory {
 
   private final Object myCredential = new Object();
 
+  private ResourceFolderType myFolderType;
+
   /**
    * Creates a new {@link RenderService} associated with the given editor.
    *
@@ -220,6 +222,13 @@ public class RenderService implements IImageFactory {
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
     myTargetSdkVersion = moduleInfo.getTargetSdkVersion();
     myLocale = configuration.getLocale();
+
+    ApplicationManager.getApplication().runReadAction(new Runnable() {
+      @Override
+      public void run() {
+        myFolderType = ResourceHelper.getFolderType(myPsiFile);
+      }
+    });
   }
 
   @Nullable
@@ -258,7 +267,7 @@ public class RenderService implements IImageFactory {
 
   @Nullable
   public ResourceFolderType getFolderType() {
-    return ResourceHelper.getFolderType(myPsiFile);
+    return myFolderType;
   }
 
   @NotNull
@@ -590,7 +599,8 @@ public class RenderService implements IImageFactory {
 
   @Nullable
   public RenderResult render() {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
+    // During development only:
+    //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
     synchronized (RENDERING_LOCK) {
       RenderResult renderResult;
@@ -760,16 +770,33 @@ public class RenderService implements IImageFactory {
    * We don't want to do this when for example offering thumbnail previews of the various
    * layouts.
    *
-   * @param rootTag the tag, if any
+   * @param file the layout file, if any
    */
-  public void useDesignMode(@Nullable XmlTag rootTag) {
-    if (rootTag != null) {
+  public void useDesignMode(@Nullable final PsiFile file) {
+    if (file == null) {
+      return;
+    }
+    String tagName = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Nullable
+      @Override
+      public String compute() {
+        if (file instanceof XmlFile) {
+          XmlTag root = ((XmlFile)file).getRootTag();
+          if (root != null) {
+            return root.getName();
+          }
+        }
+
+        return null;
+      }
+    });
+
+    if (tagName != null) {
       // In multi configuration rendering, clip to screen bounds
       RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
       if (currentMode != RenderPreviewMode.NONE) {
         return;
       }
-      String tagName = rootTag.getName();
       if (SCROLL_VIEW.equals(tagName)) {
         setRenderingMode(RenderingMode.V_SCROLL);
         setDecorations(false);
