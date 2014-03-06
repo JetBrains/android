@@ -67,6 +67,7 @@ public class AndroidCommonUtils {
   @NonNls public static final String MANIFEST_JAVA_FILE_NAME = "Manifest.java";
   @NonNls public static final String R_JAVA_FILENAME = "R.java";
   @NonNls public static final String CLASSES_JAR_FILE_NAME = "classes.jar";
+  @NonNls public static final String AAR_DEPS_JAR_FILE_NAME = "aar_deps.jar";
   @NonNls public static final String CLASSES_FILE_NAME = "classes.dex";
   private static final Pattern WARNING_PATTERN = Pattern.compile(".*warning.*");
   private static final Pattern ERROR_PATTERN = Pattern.compile(".*error.*");
@@ -108,6 +109,7 @@ public class AndroidCommonUtils {
   @NonNls public static final String PROGUARD_CFG_OUTPUT_FILE_NAME = "proguard.txt";
 
   @NonNls public static final String MANIFEST_MERGING_BUILD_TARGET_TYPE_ID = "android-manifest-merging";
+  @NonNls public static final String AAR_DEPS_BUILD_TARGET_TYPE_ID = "android-aar-deps";
   @NonNls public static final String DEX_BUILD_TARGET_TYPE_ID = "android-dex";
   @NonNls public static final String PRE_DEX_BUILD_TARGET_TYPE_ID = "android-pre-dex";
   @NonNls public static final String PACKAGING_BUILD_TARGET_TYPE_ID = "android-packaging";
@@ -290,7 +292,7 @@ public class AndroidCommonUtils {
     }
   }
 
-  private static void packIntoJar(@NotNull JarOutputStream jar, @NotNull File file, @NotNull String path) throws IOException {
+  public static void packIntoJar(@NotNull JarOutputStream jar, @NotNull File file, @NotNull String path) throws IOException {
     final JarEntry entry = new JarEntry(path);
     entry.setTime(file.lastModified());
     jar.putNextEntry(entry);

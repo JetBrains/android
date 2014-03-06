@@ -99,6 +99,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
         AndroidCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID, Collections.singletonList("only"), forceBuild));
     }
     result.addAll(Arrays.asList(
+      CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.AAR_DEPS_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.DEX_BUILD_TARGET_TYPE_ID, appTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_CACHING_BUILD_TARGET_ID, allTargetIds, forceBuild),
       CmdlineProtoUtil.createTargetsScope(AndroidCommonUtils.RESOURCE_PACKAGING_BUILD_TARGET_ID, appTargetIds, forceBuild),

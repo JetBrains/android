@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.ModuleChunk;
+import org.jetbrains.jps.android.builder.AndroidAarDepsBuildTarget;
 import org.jetbrains.jps.android.model.*;
 import org.jetbrains.jps.android.model.impl.JpsAndroidFinalPackageElement;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
@@ -211,14 +212,16 @@ public class AndroidJpsUtil {
                                                  @NotNull JpsModule module,
                                                  @NotNull AndroidPlatform platform) {
     final BuildDataPaths paths = context.getProjectDescriptor().dataManager.getDataPaths();
-    return getExternalLibraries(paths, module, platform, true);
+    return getExternalLibraries(paths, module, platform, true, true, false);
   }
 
   @NotNull
   public static Set<String> getExternalLibraries(@NotNull BuildDataPaths paths,
                                                  @NotNull JpsModule module,
                                                  @Nullable AndroidPlatform platform,
-                                                 boolean resolveJars) {
+                                                 boolean resolveJars,
+                                                 boolean withAarDeps,
+                                                 boolean withPackagedAarDepsJar) {
     final Set<String> result = new HashSet<String>();
     final AndroidDependencyProcessor processor = new AndroidDependencyProcessor() {
       @Override
@@ -231,10 +234,13 @@ public class AndroidJpsUtil {
         return type == AndroidDependencyType.EXTERNAL_LIBRARY;
       }
     };
-    processClasspath(paths, module, processor, resolveJars);
+    processClasspath(paths, module, processor, resolveJars, withAarDeps);
 
     if (platform != null) {
       addAnnotationsJarIfNecessary(platform, result);
+    }
+    if (withPackagedAarDepsJar) {
+      result.add(AndroidAarDepsBuildTarget.getOutputFile(module, paths).getPath());
     }
     return result;
   }
@@ -250,9 +256,10 @@ public class AndroidJpsUtil {
   public static void processClasspath(@NotNull BuildDataPaths paths,
                                       @NotNull JpsModule module,
                                       @NotNull AndroidDependencyProcessor processor,
-                                      boolean resolveJars) {
+                                      boolean resolveJars,
+                                      boolean withAarDeps) {
     final boolean recursive = shouldProcessDependenciesRecursively(module);
-    processClasspath(paths, module, processor, new HashSet<String>(), false, recursive, resolveJars);
+    processClasspath(paths, module, processor, new HashSet<String>(), false, recursive, resolveJars, withAarDeps);
   }
 
   private static void processClasspath(@NotNull BuildDataPaths paths,
@@ -261,7 +268,8 @@ public class AndroidJpsUtil {
                                        @NotNull final Set<String> visitedModules,
                                        final boolean exportedLibrariesOnly,
                                        final boolean recursive,
-                                       final boolean resolveJars) {
+                                       final boolean resolveJars,
+                                       final boolean withAarDeps) {
     if (!visitedModules.add(module.getName())) {
       return;
     }
@@ -271,7 +279,8 @@ public class AndroidJpsUtil {
                                                                                              exportedLibrariesOnly)) {
         if (item instanceof JpsLibraryDependency) {
           final JpsLibrary library = ((JpsLibraryDependency)item).getLibrary();
-          if (library != null) {
+
+          if (library != null && (withAarDeps || getResDirAndClassesJarIfAar(library) == null)) {
             for (JpsLibraryRoot root : library.getRoots(JpsOrderRootType.COMPILED)) {
               final File file = JpsPathUtil.urlToFile(root.getUrl());
 
@@ -322,7 +331,7 @@ public class AndroidJpsUtil {
         if (recursive) {
           final boolean newRecursive = shouldProcessDependenciesRecursively(depModule);
           processClasspath(paths, depModule, processor, visitedModules,
-                           !depLibrary || exportedLibrariesOnly, newRecursive, resolveJars);
+                           !depLibrary || exportedLibrariesOnly, newRecursive, resolveJars, withAarDeps);
         }
       }
     }
@@ -908,7 +917,8 @@ public class AndroidJpsUtil {
       JpsJavaExtensionService.getInstance().enumerateDependencies(Collections.singletonList(module)).getLibraries();
 
     for (JpsLibrary lib : libs) {
-      final File resDir = getResDirIfAar(lib);
+      final Pair<File, File> pair = getResDirAndClassesJarIfAar(lib);
+      final File resDir = pair != null ? pair.getFirst() : null;
 
       if (resDir != null) {
         result.add(resDir.getPath());
@@ -917,14 +927,14 @@ public class AndroidJpsUtil {
   }
 
   @Nullable
-  private static File getResDirIfAar(@NotNull JpsLibrary lib) {
+  public static Pair<File, File> getResDirAndClassesJarIfAar(@NotNull JpsLibrary lib) {
     final List<File> files = lib.getFiles(JpsOrderRootType.COMPILED);
 
     if (files.size() == 1) {
       final File file = files.get(0);
 
       if (file.isDirectory() && SdkConstants.FD_RES.equals(file.getName())) {
-        return file;
+        return Pair.create(file, null);
       }
     }
     else if (files.size() == 2) {
@@ -940,7 +950,7 @@ public class AndroidJpsUtil {
         }
       }
       if (resDir != null && classesJar != null && FileUtil.pathsEqual(resDir.getParent(), classesJar.getParent())) {
-        return resDir;
+        return Pair.create(resDir, classesJar);
       }
     }
     return null;
