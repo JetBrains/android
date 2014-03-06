@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.output.GradleMessage;
@@ -26,7 +24,6 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
@@ -48,20 +45,21 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.Projects.isGradleSyncNeeded;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
+import static com.intellij.util.ThreeState.YES;
 
 /**
  * After a build is complete, this class will execute the following tasks:
@@ -179,41 +177,15 @@ public class PostProjectBuildTasksExecutor {
       // 1. The project build is doing a MAKE, has zero errors and the previous Gradle sync failed. It is likely that if the
       //    project build is successful, Gradle sync will be successful too.
       // 2. If any build.gradle files or setting.gradle file was modified *after* last Gradle sync (we check file timestamps vs the
-      //    timestamp of the last Gradle sync. We don't perform this check if project build is SOURCE_GEN because, in this case,
-      //    the project build was triggered by a Gradle sync (thus unlikely to have a stale model.)
-      if (errorCount == 0 && buildMode != null &&
-          (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) || !SOURCE_GEN.equals(buildMode) && isModelStale())) {
+      //    timestamp of the last Gradle sync.) We don't perform this check if project build is SOURCE_GEN because, in this case,
+      //    the project build was triggered by a Gradle sync (thus unlikely to have a stale model.) This sync is performed regardless the
+      //    build was successful or not. If isGradleSyncNeeded returns UNSURE, the previous sync may have failed, if this happened
+      //    an automatic sync should have been triggered already. No need to trigger a new one.
+      if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0 ||
+          !SOURCE_GEN.equals(buildMode) && isGradleSyncNeeded(myProject).equals(YES)) {
         syncProjectWithGradle();
       }
     }
-  }
-
-  private boolean isModelStale() {
-    if (GradleImportNotificationListener.isProjectImportInProgress()) {
-      return false;
-    }
-    long lastGradleSyncTimestamp = GradleImportNotificationListener.getLastGradleSyncTimestamp(myProject);
-    if (lastGradleSyncTimestamp < 0) {
-      // Previous sync may have failed. If this happened an automatic sync should have been triggered already. No need to trigger a new one.
-      return false;
-    }
-
-    File settingsFilePath = new File(myProject.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
-    if (settingsFilePath.exists() && settingsFilePath.lastModified() > lastGradleSyncTimestamp) {
-      return true;
-    }
-
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(module);
-      if (gradleBuildFile != null) {
-        File gradleBuildFilePath = VfsUtilCore.virtualToIoFile(gradleBuildFile);
-        if (gradleBuildFilePath.lastModified() > lastGradleSyncTimestamp) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   private void syncProjectWithGradle() {
