@@ -34,13 +34,13 @@ public class GradleErrorOutputParser {
   /**
    * Parses the given Gradle output and creates error/warning messages when appropriate. This parser can parse errors from java and aapt.
    *
+   *
    * @param output                     the given error output.
-   * @param displayUnhandledOutputLines indicates whether output lines that were <b>not</b> parsed should be displayed as "info" messages.
    * @return error messages created from the given output. An empty list is returned if this parser did not recognize any errors in the
    *         output or if an error occurred while parsing the given output.
    */
   @NotNull
-  public List<GradleMessage> parseErrorOutput(@NotNull String output, boolean displayUnhandledOutputLines) {
+  public List<GradleMessage> parseErrorOutput(@NotNull String output) {
     OutputLineReader outputReader = new OutputLineReader(output);
 
     if (outputReader.getLineCount() == 0) {
@@ -65,7 +65,7 @@ public class GradleErrorOutputParser {
           return ImmutableList.of();
         }
       }
-      if (!handled && displayUnhandledOutputLines) {
+      if (!handled) {
         // If none of the standard parsers recognize the input, include it as info such
         // that users don't miss potentially vital output such as gradle plugin exceptions.
         // If there is predictable useless input we don't want to appear here, add a custom
