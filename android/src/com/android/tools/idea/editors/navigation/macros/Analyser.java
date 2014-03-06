@@ -183,9 +183,9 @@ public class Analyser {
     search(input,
            evaluator,
            myMacros.createMacro("void assign(Object $lhs, Object $rhs) { $lhs = $rhs; }"),
-           new Statement() {
+           new Processor() {
              @Override
-             public void apply(MultiMatch.Bindings<PsiElement> exp) {
+             public void process(MultiMatch.Bindings<PsiElement> exp) {
                PsiElement lExpression = exp.get("$lhs");
                PsiElement rExpression = exp.get("$rhs");
                if (lExpression instanceof PsiReferenceExpression && rExpression instanceof PsiExpression) {
@@ -334,7 +334,7 @@ public class Analyser {
 
     final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityState.getClassName());
     final PsiClass activityOrFragmentClass = Utilities.getPsiClass(myModule, activityOrFragmentClassName);
-    final Evaluator evaluator3 = getEvaluator(configuration, activityClass, activityOrFragmentClass, isActivity);
+    final Evaluator evaluator = getEvaluator(configuration, activityClass, activityOrFragmentClass, isActivity);
 
     if (activityOrFragmentClass == null) {
       // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
@@ -347,9 +347,9 @@ public class Analyser {
     search(activityOrFragmentClass,
            "boolean onCreateOptionsMenu(Menu menu)",
            "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }",
-           new Statement() {
+           new Processor() {
              @Override
-             public void apply(MultiMatch.Bindings<PsiElement> args) {
+             public void process(MultiMatch.Bindings<PsiElement> args) {
                String menuIdName = args.get("id").getLastChild().getText();
                final MenuState menu = getMenuState(menuIdName, miniModel.menuNameToMenuState);
                addTransition(model, new Transition("click", new Locator(fromActivityState), new Locator(menu)));
@@ -357,9 +357,9 @@ public class Analyser {
                search(activityOrFragmentClass,
                       "boolean onPrepareOptionsMenu(Menu m)",
                       myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
-                      new Statement() {
+                      new Processor() {
                         @Override
-                        public void apply(MultiMatch.Bindings<PsiElement> args) {
+                        public void process(MultiMatch.Bindings<PsiElement> args) {
                           String className = getQualifiedName(args.get("$f", "activityClass").getFirstChild());
                           if (className != null) {
                             ActivityState activityState = getActivityState(className, miniModel.classNameToActivityState);
@@ -378,14 +378,14 @@ public class Analyser {
     search(activityOrFragmentClass,
            "void onCreate(Bundle b)",
            myMacros.installClickAndCallMacro,
-           new Statement() {
+           new Processor() {
              @Override
-             public void apply(MultiMatch.Bindings<PsiElement> args) {
+             public void process(MultiMatch.Bindings<PsiElement> args) {
                PsiElement $view = args.get("$view");
                MultiMatch.Bindings<PsiElement> bindings = myMacros.findViewById.match($view);
                if (bindings != null) {
                  String tag = bindings.get("$id").getText();
-                 search(args.get("$f"), evaluator3, myMacros.createIntent,
+                 search(args.get("$f"), evaluator, myMacros.createIntent,
                         createProcessor(tag, miniModel.classNameToActivityState, model, fromActivityState));
                }
              }
@@ -396,12 +396,12 @@ public class Analyser {
     search(activityOrFragmentClass,
            "void onViewCreated(View v, Bundle b)",
            myMacros.installItemClickAndCallMacro,
-           new Statement() {
+           new Processor() {
              @Override
-             public void apply(MultiMatch.Bindings<PsiElement> args) {
+             public void process(MultiMatch.Bindings<PsiElement> args) {
                PsiElement $listView = args.get("$listView");
                final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-               search(args.get("$f"), evaluator3, myMacros.createIntent,
+               search(args.get("$f"), evaluator, myMacros.createIntent,
                       createProcessor(viewName, miniModel.classNameToActivityState, model, fromActivityState));
              }
            });
@@ -413,9 +413,9 @@ public class Analyser {
       search(activityOrFragmentClass,
              "void onListItemClick(ListView listView, View view, int position, long id)",
              "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
-             new Statement() {
+             new Processor() {
                @Override
-               public void apply(MultiMatch.Bindings<PsiElement> args) {
+               public void process(MultiMatch.Bindings<PsiElement> args) {
                  PsiElement exp = args.get("f");
                  if (exp instanceof PsiMethodCallExpression) {
                    PsiMethodCallExpression call = (PsiMethodCallExpression)exp;
@@ -488,13 +488,13 @@ public class Analyser {
     return model;
   }
 
-  private static Statement createProcessor(@Nullable final String viewName,
+  private static Processor createProcessor(@Nullable final String viewName,
                                            final Map<String, ActivityState> activities,
                                            final NavigationModel model,
                                            final ActivityState fromState) {
-    return new Statement() {
+    return new Processor() {
       @Override
-      public void apply(MultiMatch.Bindings<PsiElement> args) {
+      public void process(MultiMatch.Bindings<PsiElement> args) {
         PsiElement activityClass = args.get("activityClass").getFirstChild();
         String qualifiedName = getQualifiedName(activityClass);
         if (qualifiedName != null) {
@@ -611,14 +611,14 @@ public class Analyser {
     return exp.get("$id").getText();
   }
 
-  public static abstract class Statement {
-    public abstract void apply(MultiMatch.Bindings<PsiElement> exp);
+  public static abstract class Processor {
+    public abstract void process(MultiMatch.Bindings<PsiElement> exp);
   }
 
   public static void search(@Nullable PsiElement input,
                             final Evaluator evaluator,
                             final MultiMatch matcher,
-                            final Statement processor) {
+                            final Processor processor) {
     if (input != null) {
       input.accept(new JavaRecursiveElementVisitor() {
         private void visitNullableExpression(@Nullable PsiExpression expression) {
@@ -653,7 +653,7 @@ public class Analyser {
           super.visitExpression(expression);
           MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
           if (exp != null) {
-            processor.apply(exp);
+            processor.process(exp);
           }
         }
 
@@ -671,31 +671,31 @@ public class Analyser {
     }
   }
 
-  public static void search(@Nullable PsiElement input, MultiMatch matcher, Statement statement) {
-    search(input, Evaluator.TRUE_OR_FALSE, matcher, statement);
+  public static void search(@Nullable PsiElement input, MultiMatch matcher, Processor processor) {
+    search(input, Evaluator.TRUE_OR_FALSE, matcher, processor);
   }
 
   public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
     final List<MultiMatch.Bindings<PsiElement>> results = new ArrayList<MultiMatch.Bindings<PsiElement>>();
-    search(element, matcher, new Statement() {
+    search(element, matcher, new Processor() {
       @Override
-      public void apply(MultiMatch.Bindings<PsiElement> exp) {
+      public void process(MultiMatch.Bindings<PsiElement> exp) {
         results.add(exp);
       }
     });
     return results;
   }
 
-  private static void search(PsiClass clazz, String methodSignature, MultiMatch matcher, Statement statement) {
+  private static void search(PsiClass clazz, String methodSignature, MultiMatch matcher, Processor processor) {
     PsiMethod method = Utilities.findMethodBySignature(clazz, methodSignature);
     if (method == null) {
       return;
     }
-    search(method.getBody(), matcher, statement);
+    search(method.getBody(), matcher, processor);
   }
 
-  private static void search(PsiClass clazz, String methodSignature, String matchMacro, Statement statement) {
-    search(clazz, methodSignature, new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro)), statement);
+  private static void search(PsiClass clazz, String methodSignature, String matchMacro, Processor processor) {
+    search(clazz, methodSignature, new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro)), processor);
   }
 
   @Nullable
