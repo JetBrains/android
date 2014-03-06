@@ -17,6 +17,8 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.*;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicates;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -112,7 +114,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         return;
       }
       if (!packageContainMavenProperty) {
-        final Activity activity = AndroidDomUtil.getActivityDomElementByClass(facet.getModule(), c);
+        Manifest manifest = AndroidModuleInfo.getManifest(facet.getModule(), true);
+        final Activity activity = AndroidDomUtil.getActivityDomElementByClass(manifest, c);
         if (activity == null) {
           throw new RuntimeConfigurationError(AndroidBundle.message("activity.not.declared.in.manifest", c.getName()));
         }
