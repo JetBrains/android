@@ -23,10 +23,6 @@ import java.io.Serializable;
 // Add "extends Serializable" so that the putExtra() call below can be resolved.
 
 public class LaunchActivityTemplates {
-    public static void createIntent(Context context, Class activityClass) {
-        new Intent(context, activityClass);
-    }
-
     public static void launchActivity(Context context, Class activityClass) {
         context.startActivity(new Intent(context, activityClass));
     }

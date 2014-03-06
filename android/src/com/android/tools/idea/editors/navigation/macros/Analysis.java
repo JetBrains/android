@@ -33,7 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.navigation.Utilities.getPropertyName;
-import static com.android.tools.idea.editors.navigation.Utilities.*;
+import static com.android.tools.idea.editors.navigation.Utilities.Statement;
+import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Analysis {
@@ -74,37 +75,42 @@ public class Analysis {
 
       if (NavigationEditor.DEBUG) System.out.println("className = " + className);
 
-      PsiClass activityClass = Utilities.getPsiClass(module, className);
+      final PsiClass activityClass = Utilities.getPsiClass(module, className);
+
       if (activityClass == null) {
         // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
         LOG.info("Class " + className + " not found");
         continue;
       }
 
-      // Look for menu inflation
-      {
-        MultiMatch.Bindings<PsiElement> exp = match(activityClass, "public boolean onCreateOptionsMenu(Menu menu)",
-                                                    "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }");
-        if (exp != null) {
-          MenuState menuState = menus.get(exp.get("id").getLastChild().getText());
-          addTransition(model, new Transition("click", new Locator(state), new Locator(menuState)));
+      // Search for menu inflation
+      search(activityClass,
+             "public boolean onCreateOptionsMenu(Menu menu)",
+             "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }",
+             new Statement() {
+               @Override
+               public void apply(MultiMatch.Bindings<PsiElement> exp) {
+                 final MenuState menu = menus.get(exp.get("id").getLastChild().getText());
+                 addTransition(model, new Transition("click", new Locator(finalState), new Locator(menu)));
 
-          // Look for menu bindings
-          {
-            PsiMethod method = Utilities.findMethodBySignature(activityClass, "public boolean onPrepareOptionsMenu(Menu m)");
-            List<MultiMatch.Bindings<PsiElement>> results =
-              search(method.getBody(), macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro);
-            for (MultiMatch.Bindings<PsiElement> result : results) {
-              ActivityState activityState = activities.get(getQualifiedName(result.get("$f", "activityClass").getFirstChild()));
-              if (activityState != null) {
-                // e.g. $id=PsiReferenceExpression:R.id.action_account
-                String menuItemName = result.get("$menuItem", "$id").getLastChild().getText();
-                addTransition(model, new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
-              }
-            }
-          }
-        }
-      }
+                 // Search for menu item bindings
+                 search(activityClass,
+                        "public boolean onPrepareOptionsMenu(Menu m)",
+                        macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
+                        new Statement() {
+                          @Override
+                          public void apply(MultiMatch.Bindings<PsiElement> exp) {
+                            ActivityState activityState = activities.get(getQualifiedName(exp.get("$f", "activityClass").getFirstChild()));
+                            if (activityState != null) {
+                              // e.g. $id=PsiReferenceExpression:R.id.action_account
+                              String menuItemName = exp.get("$menuItem", "$id").getLastChild().getText();
+                              addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
+                            }
+                          }
+                        }
+                 );
+               }
+             });
 
       // Examine fragments associated with this activity
       String xmlFileName = NavigationView.getXMLFileName(module, state);
@@ -112,28 +118,32 @@ public class Analysis {
       final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {
-        PsiMethod installListenersMethod = findMethodBySignature(module, fragment.className, "public void onViewCreated(View v, Bundle b)");
-        if (installListenersMethod != null) {
-          List<MultiMatch.Bindings<PsiElement>> results = search(installListenersMethod.getBody(), macros.installItemClickAndCallMacro);
-          for (MultiMatch.Bindings<PsiElement> result : results) {
-            final MultiMatch.Bindings<PsiElement> multiMatchResult = result;
-            multiMatchResult.get("$f").accept(new JavaRecursiveElementVisitor() {
-              @Override
-              public void visitNewExpression(PsiNewExpression expression) {
-                MultiMatch.Bindings<PsiElement> exp = macros.createIntentMacro.match(expression);
-                if (exp != null) {
-                  PsiElement activityClass = exp.get("activityClass").getFirstChild();
-                  State toState = activities.get(getQualifiedName(activityClass));
-                  if (toState != null) {
-                    PsiElement $listView = multiMatchResult.get("$listView");
-                    String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-                    addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
-                  }
-                }
-              }
-            });
-          }
+        final PsiClass fragmentClass = getPsiClass(module, fragment.className);
+        if (fragmentClass == null) {
+          // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
+          LOG.info("Class " + fragmentClass + " not found");
+          continue;
         }
+        search(fragmentClass,
+               "public void onViewCreated(View v, Bundle b)",
+               macros.installItemClickAndCallMacro,
+               new Statement() {
+                 @Override
+                 public void apply(final MultiMatch.Bindings<PsiElement> itemClickMatch) {
+                   Utilities.search(itemClickMatch.get("$f"), macros.createIntent, new Statement() {
+                     @Override
+                     public void apply(MultiMatch.Bindings<PsiElement> createIntentMatch) {
+                       PsiElement activityClass = createIntentMatch.get("activityClass").getFirstChild();
+                       State toState = activities.get(getQualifiedName(activityClass));
+                       if (toState != null) {
+                         PsiElement $listView = itemClickMatch.get("$listView");
+                         String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
+                         addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
+                       }
+                     }
+                   });
+                 }
+               });
       }
     }
     return model;
@@ -215,13 +225,16 @@ public class Analysis {
     return unqualifiedXmlName.getText();
   }
 
-  @Nullable
-  public static MultiMatch.Bindings<PsiElement> match(Module module, String className, String methodSignature, String matchMacro) {
-    PsiClass clazz = getPsiClass(module, className);
-    if (clazz == null) {
-      return null;
+  private static void search(PsiClass clazz, String methodSignature, MultiMatch matcher, Statement statement) {
+    PsiMethod method = Utilities.findMethodBySignature(clazz, methodSignature);
+    if (method == null) {
+      return;
     }
-    return match(clazz, methodSignature, matchMacro);
+    Utilities.search(method.getBody(), matcher, statement);
+  }
+
+  private static void search(PsiClass clazz, String methodSignature, String matchMacro, Statement statement) {
+    search(clazz, methodSignature, new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro)), statement);
   }
 
   private static MultiMatch.Bindings<PsiElement> match(PsiClass clazz, String methodSignature, String matchMacro) {
@@ -229,11 +242,20 @@ public class Analysis {
     if (method == null) {
       return null;
     }
-    MultiMatch matcher = new MultiMatch(Utilities.createMethod(clazz, matchMacro));
-    List<MultiMatch.Bindings<PsiElement>> results = search(method.getBody(), matcher);
+    MultiMatch matcher = new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro));
+    List<MultiMatch.Bindings<PsiElement>> results = Utilities.search(method.getBody(), matcher);
     if (results.size() != 1) {
       return null;
     }
     return results.get(0);
+  }
+
+  @Nullable
+  public static MultiMatch.Bindings<PsiElement> match(Module module, String className, String methodSignature, String matchMacro) {
+    PsiClass clazz = getPsiClass(module, className);
+    if (clazz == null) {
+      return null;
+    }
+    return match(clazz, methodSignature, matchMacro);
   }
 }
