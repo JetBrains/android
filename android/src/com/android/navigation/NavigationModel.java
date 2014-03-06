@@ -18,9 +18,7 @@ package com.android.navigation;
 import com.android.annotations.NonNull;
 import com.android.annotations.Transient;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class NavigationModel {
   public static class Event {
@@ -55,8 +53,10 @@ public class NavigationModel {
 
   private final ArrayList<State> states = new ArrayList<State>();
   private final ArrayList<Transition> transitions = new ArrayList<Transition>();
+  private final Map<State, Point> stateToLocation = new HashMap<State, Point>();
 
   // todo change return type to List<State>
+  @Transient
   public ArrayList<State> getStates() {
     return states;
   }
@@ -64,6 +64,29 @@ public class NavigationModel {
   @Transient
   public ArrayList<Transition> getTransitions() {
     return transitions;
+  }
+
+  @Transient
+  public Map<State, Point> getStateToLocation() {
+    return stateToLocation;
+  }
+
+  private static Entry<State, Point> toEntry(Map.Entry<State, Point> entry) {
+    return new Entry<State, Point>(entry.getKey(), entry.getValue());
+  }
+
+  public Collection<Entry<State,Point>> getLocations() {
+    Collection<Entry<State, Point>> result = new ArrayList<Entry<State, Point>>();
+    for (Map.Entry<State, Point> entry : stateToLocation.entrySet()) {
+      result.add(toEntry(entry));
+    }
+    return result;
+  }
+
+  public void setLocations(Collection<Entry<State,Point>> locations) {
+    for (Entry<State, Point> entry : locations) {
+      stateToLocation.put(entry.key, entry.value);
+    }
   }
 
   public void addState(State state) {

@@ -667,7 +667,7 @@ public class NavigationView extends JComponent {
     Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
     for (State state : stateToComponent.keySet()) {
       AndroidRootComponent root = stateToComponent.get(state);
-      root.setLocation(myTransform.modelToView(state.getLocation()));
+      root.setLocation(myTransform.modelToView(myNavigationModel.getStateToLocation().get(state)));
       root.setSize(root.getPreferredSize());
     }
 
@@ -849,13 +849,12 @@ public class NavigationView extends JComponent {
     setPreferredSize();
   }
 
-  private static com.android.navigation.Point getMaxLoc(ArrayList<State> states) {
+  private static com.android.navigation.Point getMaxLoc(Collection<com.android.navigation.Point> locations) {
     int maxX = 0;
     int maxY = 0;
-    for (State state : states) {
-      com.android.navigation.Point loc = state.getLocation();
-      maxX = Math.max(maxX, loc.x);
-      maxY = Math.max(maxY, loc.y);
+    for (com.android.navigation.Point location : locations) {
+      maxX = Math.max(maxX, location.x);
+      maxY = Math.max(maxY, location.y);
     }
     return new com.android.navigation.Point(maxX, maxY);
   }
@@ -863,7 +862,7 @@ public class NavigationView extends JComponent {
   private void setPreferredSize() {
     com.android.navigation.Dimension size = myRenderingParams.getDeviceScreenSize();
     com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
-    com.android.navigation.Point maxLoc = getMaxLoc(myNavigationModel.getStates());
+    com.android.navigation.Point maxLoc = getMaxLoc(myNavigationModel.getStateToLocation().values());
     Dimension max = myTransform.modelToView(new com.android.navigation.Dimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
     setPreferredSize(max);
   }
@@ -955,7 +954,7 @@ public class NavigationView extends JComponent {
                 State state = new ActivityState(qualifiedName);
                 Dimension size = myRenderingParams.getDeviceScreenSizeFor(myTransform);
                 Point dropLocation = diff(dropLoc, midPoint(size));
-                state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
+                myNavigationModel.getStateToLocation().put(state, myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
                 execute(state, execute);
                 dropLoc = Utilities.add(dropLocation, MULTIPLE_DROP_STRIDE);
               }
