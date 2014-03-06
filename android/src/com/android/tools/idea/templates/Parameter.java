@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -109,6 +110,9 @@ public class Parameter {
 
     /** The associated value should represent a valid Android application package name */
     APP_PACKAGE,
+
+    /** The associated value should represent a valid Module name */
+    MODULE,
 
     /** The associated value should represent a valid layout resource name */
     LAYOUT,
@@ -270,6 +274,9 @@ public class Parameter {
     } else if (violations.contains(Constraint.PACKAGE)) {
       return name + " is not a valid package name";
 
+    } else if (violations.contains(Constraint.MODULE)) {
+      return name + " is not a valid module name";
+
     } else if (violations.contains(Constraint.APP_PACKAGE) && value != null) {
       String message = AndroidUtils.validateAndroidPackageName(value);
       if (message != null) {
@@ -354,6 +361,12 @@ public class Parameter {
       }
       if (project != null) {
         exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
+      }
+    }
+    if (constraints.contains(Constraint.MODULE)) {
+      // TODO: validity check
+      if (project != null) {
+        exists = ModuleManager.getInstance(project).findModuleByName(value) != null;
       }
     }
     if (constraints.contains(Constraint.APP_PACKAGE)) {
