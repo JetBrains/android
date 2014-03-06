@@ -31,6 +31,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -52,15 +53,17 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidProject) {
+  protected void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries,
+                                     @NotNull IdeaAndroidProject androidProject,
+                                     @NotNull List<RootSourceFolder> orphans) {
     Variant selectedVariant = androidProject.getSelectedVariant();
 
     AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
-    addSourceFolders(contentEntries, mainArtifact, false);
+    addSourceFolders(contentEntries, mainArtifact, false, orphans);
 
     AndroidArtifact testArtifact = androidProject.findInstrumentationTestArtifactInSelectedVariant();
     if (testArtifact != null) {
-      addSourceFolders(contentEntries, testArtifact, true);
+      addSourceFolders(contentEntries, testArtifact, true, orphans);
     }
 
     AndroidProject delegate = androidProject.getDelegate();
@@ -68,68 +71,79 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     for (String flavorName : selectedVariant.getProductFlavors()) {
       ProductFlavorContainer flavor = androidProject.findProductFlavor(flavorName);
       if (flavor != null) {
-        addSourceFolder(contentEntries, flavor);
+        addSourceFolder(contentEntries, flavor, orphans);
       }
     }
 
     String buildTypeName = selectedVariant.getBuildType();
     BuildTypeContainer buildTypeContainer = androidProject.findBuildType(buildTypeName);
     if (buildTypeContainer != null) {
-      addSourceFolder(contentEntries, buildTypeContainer.getSourceProvider(), false);
+      addSourceFolder(contentEntries, buildTypeContainer.getSourceProvider(), false, orphans);
     }
 
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
-    addSourceFolder(contentEntries, defaultConfig);
+    addSourceFolder(contentEntries, defaultConfig, orphans);
 
     addExcludedOutputFolders(contentEntries, delegate);
   }
 
-  private void addSourceFolders(@NotNull Collection<ContentEntry> contentEntry, @NotNull AndroidArtifact androidArtifact, boolean isTest) {
-    addGeneratedSourceFolder(contentEntry, androidArtifact, isTest);
+  private void addSourceFolders(@NotNull Collection<ContentEntry> contentEntry,
+                                @NotNull AndroidArtifact androidArtifact,
+                                boolean isTest,
+                                @NotNull List<RootSourceFolder> orphans) {
+    addGeneratedSourceFolder(contentEntry, androidArtifact, isTest, orphans);
 
     SourceProvider variantSourceProvider = androidArtifact.getVariantSourceProvider();
     if (variantSourceProvider != null) {
-      addSourceFolder(contentEntry, variantSourceProvider, isTest);
+      addSourceFolder(contentEntry, variantSourceProvider, isTest, orphans);
     }
 
     SourceProvider multiFlavorSourceProvider = androidArtifact.getMultiFlavorSourceProvider();
     if (multiFlavorSourceProvider != null) {
-      addSourceFolder(contentEntry, multiFlavorSourceProvider, isTest);
+      addSourceFolder(contentEntry, multiFlavorSourceProvider, isTest, orphans);
     }
   }
 
-  private void addGeneratedSourceFolder(@NotNull Collection<ContentEntry> contentEntries, @NotNull AndroidArtifact androidArtifact, boolean isTest) {
+  private void addGeneratedSourceFolder(@NotNull Collection<ContentEntry> contentEntries,
+                                        @NotNull AndroidArtifact androidArtifact,
+                                        boolean isTest,
+                                        @NotNull List<RootSourceFolder> orphans) {
     JpsModuleSourceRootType sourceType = getSourceType(isTest);
-    addSourceFolders(contentEntries, sourceType, androidArtifact.getGeneratedSourceFolders(), true);
+    addSourceFolders(contentEntries, androidArtifact.getGeneratedSourceFolders(), sourceType, true, orphans);
 
     sourceType = getResourceSourceType(isTest);
-    addSourceFolders(contentEntries, sourceType, androidArtifact.getGeneratedResourceFolders(), true);
+    addSourceFolders(contentEntries, androidArtifact.getGeneratedResourceFolders(), sourceType, true, orphans);
   }
 
-  private void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries, @NotNull ProductFlavorContainer flavor) {
-    addSourceFolder(contentEntries, flavor.getSourceProvider(), false);
+  private void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries,
+                               @NotNull ProductFlavorContainer flavor,
+                               @NotNull List<RootSourceFolder> orphans) {
+    addSourceFolder(contentEntries, flavor.getSourceProvider(), false, orphans);
 
     Collection<SourceProviderContainer> extraArtifactSourceProviders = flavor.getExtraSourceProviders();
     for (SourceProviderContainer sourceProviders : extraArtifactSourceProviders) {
       String artifactName = sourceProviders.getArtifactName();
       if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(artifactName)) {
-        addSourceFolder(contentEntries, sourceProviders.getSourceProvider(), true);
+        addSourceFolder(contentEntries, sourceProviders.getSourceProvider(), true, orphans);
         break;
       }
     }
   }
 
-  private void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries, @NotNull SourceProvider sourceProvider, boolean isTest) {
+  private void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries,
+                               @NotNull SourceProvider sourceProvider,
+                               boolean isTest,
+                               @NotNull List<RootSourceFolder> orphans) {
     JpsModuleSourceRootType sourceType = getSourceType(isTest);
-    addSourceFolders(contentEntries, sourceType, sourceProvider.getAidlDirectories(), false);
-    addSourceFolders(contentEntries, sourceType, sourceProvider.getAssetsDirectories(), false);
-    addSourceFolders(contentEntries, sourceType, sourceProvider.getJavaDirectories(), false);
-    addSourceFolders(contentEntries, sourceType, sourceProvider.getJniDirectories(), false);
-    addSourceFolders(contentEntries, sourceType, sourceProvider.getRenderscriptDirectories(), false);
+    addSourceFolders(contentEntries, sourceProvider.getAidlDirectories(), sourceType, false, orphans);
+    addSourceFolders(contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
+    addSourceFolders(contentEntries, sourceProvider.getJavaDirectories(), sourceType, false, orphans);
+    addSourceFolders(contentEntries, sourceProvider.getJniDirectories(), sourceType, false, orphans);
+    addSourceFolders(contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
 
     sourceType = getResourceSourceType(isTest);
-    addSourceFolders(contentEntries, sourceType, sourceProvider.getResDirectories(), false);
-    addSourceFolders(contentEntries, sourceType, sourceProvider.getResourcesDirectories(), false);
+    addSourceFolders(contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
+    addSourceFolders(contentEntries, sourceProvider.getResourcesDirectories(), sourceType, false, orphans);
   }
 
   @NotNull
@@ -143,11 +157,12 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private void addSourceFolders(@NotNull Collection<ContentEntry> contentEntries,
-                                @NotNull JpsModuleSourceRootType sourceType,
-                                @NotNull Collection<File> dirPaths,
-                                boolean isGenerated) {
-    for (File dirPath : dirPaths) {
-      addSourceFolder(contentEntries, sourceType, dirPath, isGenerated);
+                                @NotNull Collection<File> folderPaths,
+                                @NotNull JpsModuleSourceRootType type,
+                                boolean generated,
+                                @NotNull List<RootSourceFolder> orphans) {
+    for (File folderPath : folderPaths) {
+      addSourceFolder(contentEntries, folderPath, type, generated, orphans);
     }
   }
 
