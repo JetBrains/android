@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
-import com.android.tools.idea.wizard.NewProjectWizardState;
-import com.android.tools.idea.wizard.TemplateWizardState;
+import com.android.tools.idea.wizard.*;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
@@ -41,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -96,21 +96,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    */
   private static final Set<String> KNOWN_BROKEN = Sets.newHashSet();
   static {
-    // Failing in template instantiation: It looks like the problem is that boolean variables are
-    // passed as strings instead. We should clean up type conversion; there are some hardcoded toInteger
-    // conversions, but instead we should iterate over the parameter map and enforce the declared types.
-    KNOWN_BROKEN.add("BlankFragment");
-    KNOWN_BROKEN.add("Service");
 
-    // Fails because the template expects ${isLibraryProject} to be set even in an independent creation context
-    KNOWN_BROKEN.add("CustomView");
-    KNOWN_BROKEN.add("IntentService");
-
-    // Failing for unknown reason (compilation errors; investigate)
-    KNOWN_BROKEN.add("FullscreenActivity");
-    KNOWN_BROKEN.add("Notification");
-    KNOWN_BROKEN.add("AppWidget");
-    KNOWN_BROKEN.add("ListFragment");
   }
 
   /**
@@ -126,6 +112,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static int ourCount = 0;
 
   private static boolean ourValidatedTemplateManager;
+
+  private final StringEvaluator myStringEvaluator = new StringEvaluator();
 
   public TemplateTest() {
   }
@@ -309,6 +297,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("other", "Service");
   }
 
+  public void testNewPlusOneFragment() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "PlusOneFragment");
+  }
+
   public void testCreateRemainingTemplates() throws Exception {
     ourCount = 0;
     long begin = System.currentTimeMillis();
@@ -448,7 +441,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static NewProjectWizardState createNewProjectState(boolean createWithProject, AndroidSdkData sdkData) {
     final NewProjectWizardState values = new NewProjectWizardState();
     assertNotNull(values);
-    values.convertApisToInt();
+    Template.convertApisToInt(values.getParameters());
     values.put(ATTR_CREATE_ACTIVITY, createWithProject);
     values.put(ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
     values.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
@@ -761,9 +754,27 @@ public class TemplateTest extends AndroidGradleTestCase {
             if (Template.ourMostRecentException != null) {
               fail(Template.ourMostRecentException.getMessage());
             }
+            // Add in icons if necessary
+            if (templateValues.getTemplateMetadata() != null  && templateValues.getTemplateMetadata().getIconName() != null) {
+              File drawableFolder = new File(FileUtil.join(templateValues.getString(ATTR_RES_OUT)),
+                                       FileUtil.join("drawable"));
+              drawableFolder.mkdirs();
+              String fileName = myStringEvaluator.evaluate(templateValues.getTemplateMetadata().getIconName(),
+                                                           templateValues.getParameters());
+              File iconFile = new File(drawableFolder, fileName + SdkConstants.DOT_XML);
+              File sourceFile = new File(getTestDataPath(), FileUtil.join("drawables", "progress_horizontal.xml"));
+              try {
+                FileUtil.copy(sourceFile, iconFile);
+              }
+              catch (IOException e) {
+                fail(e.getMessage());
+              }
+            }
           }
         });
       }
+
+
 
       assertNotNull(project);
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());

@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.utils.Pair;
 import com.android.utils.XmlUtils;
@@ -197,7 +198,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       return;
     }
 
-    myTemplateState.convertApisToInt();
+    Template.convertApisToInt(myTemplateState.getParameters());
 
     Component focusedComponent = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
     setDescriptionHtml("");
@@ -299,7 +300,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
 
   @Override
   public boolean validate() {
-    myTemplateState.convertApisToInt();
+    Template.convertApisToInt(myTemplateState.getParameters());
     if (!myVisible) {
       return true;
     }
@@ -355,7 +356,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
     }
     myTemplateState.setParameterDefaults();
-    myTemplateState.convertApisToInt();
+    Template.convertApisToInt(myTemplateState.getParameters());
     boolean oldIgnoreUpdates = myIgnoreUpdates;
     try {
       myIgnoreUpdates = true;

@@ -178,6 +178,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myWizardState.put(ATTR_MIN_API, minSdkName);
     myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
 
+    myWizardState.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
+
     myChooseTemplateStep = new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, myModule, null, this, this, myExcluded);
     mySteps.add(myChooseTemplateStep);
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, myModule, null, this));

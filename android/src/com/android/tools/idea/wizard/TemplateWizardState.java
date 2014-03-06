@@ -91,6 +91,7 @@ public class TemplateWizardState {
   public TemplateWizardState() {
     put(TemplateMetadata.ATTR_IS_NEW_PROJECT, false);
     put(TemplateMetadata.ATTR_IS_GRADLE, true);
+    put(TemplateMetadata.ATTR_IS_LIBRARY_MODULE, false);
 
     put(ATTR_SRC_DIR, "src/main/java");
     put(ATTR_RES_DIR, "src/main/res");
@@ -215,26 +216,6 @@ public class TemplateWizardState {
             break;
         }
       }
-    }
-  }
-
-  public void convertApisToInt() {
-    convertToInt(ATTR_MIN_API);
-    convertToInt(ATTR_BUILD_API);
-    convertToInt(ATTR_MIN_API_LEVEL);
-    convertToInt(ATTR_TARGET_API);
-  }
-
-  private void convertToInt(@NotNull String key) {
-    Object value = get(key);
-    if (value instanceof String) {
-      Integer result;
-      try {
-        result = Integer.parseInt((String)value);
-      } catch (NumberFormatException e) {
-        result = SdkVersionInfo.getApiByPreviewName((String)value, true /* Recognize Unknowns */);
-      }
-      put(key, result);
     }
   }
 }
