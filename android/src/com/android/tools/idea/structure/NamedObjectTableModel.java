@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
-import com.android.tools.idea.gradle.parser.BuildFileKey;
-import com.android.tools.idea.gradle.parser.BuildFileKeyType;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.parser.NamedObject;
+import com.android.tools.idea.gradle.parser.*;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
@@ -86,11 +83,12 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
 
   @Override
   public void setValueAt(@Nullable Object o, int row, int col) {
+    NamedObject no = myItems.get(row);
     if (col == NAME_COLUMN) {
       if (o == null) {
         return;
       }
-      myItems.get(row).setName((String)o);
+      no.setName((String)o);
     } else {
       BuildFileKey key = getKey(col);
       Class<?> type = key.getType().getNativeType();
@@ -115,9 +113,9 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
             o = null;
           }
       }
-      Object oldValue = myItems.get(row).getValue(key);
+      Object oldValue = no.getValue(key);
       if (!Objects.equal(oldValue, o)) {
-        myItems.get(row).setValue(key, o);
+        no.setValue(key, o);
       }
     }
     myModified = true;
@@ -136,11 +134,14 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
   @Override
   @Nullable
   public Object getValueAt(int row, int col) {
-    NamedObject item = myItems.get(row);
+    NamedObject no = myItems.get(row);
     if (col == NAME_COLUMN) {
-      return item.getName();
+      return no.getName();
     } else {
-      Object o = item.getValue(getKey(col));
+      Object o = no.getValue(getKey(col));
+      if (o == GradleBuildFile.UNRECOGNIZED_VALUE) {
+        return null;
+      }
       Class<?> type = getKey(col).getType().getNativeType();
       if (type == Boolean.class) {
         return NamedObjectPanel.ThreeStateBoolean.forValue((Boolean)o);
