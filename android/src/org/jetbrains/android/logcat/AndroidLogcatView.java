@@ -34,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
@@ -420,6 +421,16 @@ public abstract class AndroidLogcatView implements Disposable {
 
     selectFilter(filter, name);
     myFilterComboBoxModel.setSelectedItem(NO_FILTERS.equals(name) ? NO_FILTERS : null);
+  }
+
+  /** Returns true if there are any filters applied currently on logcat. */
+  public boolean isFiltered() {
+    return StringUtil.isNotEmpty(myCurrentFilterName) && !NO_FILTERS.equals(myCurrentFilterName);
+  }
+
+  public void createAndSelectFilterByPackage(@NotNull String packageName) {
+    AndroidConfiguredLogFilters.MyFilterEntry f = AndroidConfiguredLogFilters.getInstance(myProject).getFilterForPackage(packageName, true);
+    updateConfiguredFilters(f.getName());
   }
 
   private void updateConfiguredFilters(@NotNull String defaultSelection) {
