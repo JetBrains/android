@@ -11,6 +11,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
     if (facet == null) {
       return null;
     }
-    if (!facet.isGradleProject() && (isResourceFile(file, facet) || file.equals(AndroidRootUtil.getManifestFile(facet)))) {
+    if (!facet.isGradleProject() && (isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
       final AndroidPlatform platform = AndroidPlatform.getInstance(module);
 
       if (platform == null) {
