@@ -1,3 +1,0 @@
-include ':app'
-
-<error descr="Reassigning the projectDir property of a project will make IDEs confused">project(":AndroidNumberPicker").projectDir</error> = new File("libraries/AndroidNumberPicker/library")
