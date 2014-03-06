@@ -458,5 +458,9 @@
       <member id="442d3"/>
       <member id="e86f1"/>
     </group>
+    <group name="myGroup2">
+      <member id="3f054"/>
+      <member id="9f783"/>
+    </group>
   </buttonGroups>
 </form>

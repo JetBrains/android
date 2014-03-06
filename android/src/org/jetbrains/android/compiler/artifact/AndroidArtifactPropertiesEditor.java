@@ -2,13 +2,15 @@ package org.jetbrains.android.compiler.artifact;
 
 import com.android.annotations.NonNull;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.ui.ArtifactPropertiesEditor;
+import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.components.JBRadioButton;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUiUtil;
@@ -26,9 +28,6 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   private final AndroidApplicationArtifactProperties myProperties;
 
   private JPanel myPanel;
-  private JRadioButton myDebugRadio;
-  private JRadioButton myReleaseSignedRadio;
-  private JRadioButton myReleaseUnsignedRadio;
   private JPanel myCertificatePanel;
   private JPasswordField myKeyStorePasswordField;
   private JTextField myKeyStorePathField;
@@ -41,7 +40,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   private JPanel myKeyStoreButtonsPanel;
   private JPanel myProGuardPanel;
   private ProGuardConfigFilesPanel myProGuardConfigFilesPanel;
-  private JBRadioButton myDebugWithCustomCertificateRadio;
+  private ComboBox myTypeCombo;
 
   private final Artifact myArtifact;
   private final Project myProject;
@@ -56,16 +55,24 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     myKeyStoreButtonsPanel.setBorder(IdeBorderFactory.createEmptyBorder(0, 0, 5, 0));
     myProGuardPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-    final ActionListener listener = new ActionListener() {
+    myTypeCombo.setRenderer(new ListCellRendererWrapper() {
+      @Override
+      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+        final AndroidArtifactSigningMode mode = (AndroidArtifactSigningMode)value;
+        setText(getPresentableText(mode));
+      }
+    });
+
+    //noinspection unchecked
+    myTypeCombo.setModel(new EnumComboBoxModel<AndroidArtifactSigningMode>(AndroidArtifactSigningMode.class));
+    myTypeCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        UIUtil.setEnabled(myCertificatePanel, myReleaseSignedRadio.isSelected() || myDebugWithCustomCertificateRadio.isSelected(), true);
+        final AndroidArtifactSigningMode mode = getSigningMode();
+        UIUtil.setEnabled(myCertificatePanel, mode == AndroidArtifactSigningMode.RELEASE_SIGNED ||
+                                              mode == AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE, true);
       }
-    };
-    myDebugRadio.addActionListener(listener);
-    myDebugWithCustomCertificateRadio.addActionListener(listener);
-    myReleaseUnsignedRadio.addActionListener(listener);
-    myReleaseSignedRadio.addActionListener(listener);
+    });
 
     AndroidUiUtil.initSigningSettingsForm(project, this);
 
@@ -75,6 +82,24 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
         UIUtil.setEnabled(myProGuardConfigPanel, myProGuardCheckBox.isSelected(), true);
       }
     });
+  }
+
+  @NotNull
+  private static String getPresentableText(@Nullable AndroidArtifactSigningMode mode) {
+    if (mode == null) {
+      return "";
+    }
+    switch (mode) {
+      case DEBUG:
+        return "Debug signed with default certificate";
+      case DEBUG_WITH_CUSTOM_CERTIFICATE:
+        return "Debug signed with custom certificate";
+      case RELEASE_UNSIGNED:
+        return "Release unsigned";
+      case RELEASE_SIGNED:
+        return "Release signed";
+    }
+    return "";
   }
 
   private String getKeyStorePath() {
@@ -115,31 +140,8 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
 
   @Override
   public void reset() {
-    switch (myProperties.getSigningMode()) {
-      case RELEASE_UNSIGNED:
-        myReleaseUnsignedRadio.setSelected(true);
-        myDebugRadio.setSelected(false);
-        myReleaseSignedRadio.setSelected(false);
-        myDebugWithCustomCertificateRadio.setSelected(false);
-        break;
-      case DEBUG:
-        myReleaseUnsignedRadio.setSelected(false);
-        myDebugRadio.setSelected(true);
-        myReleaseSignedRadio.setSelected(false);
-        myDebugWithCustomCertificateRadio.setSelected(false);
-        break;
-      case RELEASE_SIGNED:
-        myReleaseUnsignedRadio.setSelected(false);
-        myDebugRadio.setSelected(false);
-        myReleaseSignedRadio.setSelected(true);
-        myDebugWithCustomCertificateRadio.setSelected(false);
-        break;
-      case DEBUG_WITH_CUSTOM_CERTIFICATE:
-        myReleaseUnsignedRadio.setSelected(false);
-        myDebugRadio.setSelected(false);
-        myReleaseSignedRadio.setSelected(false);
-        myDebugWithCustomCertificateRadio.setSelected(true);
-    }
+    myTypeCombo.setSelectedItem(myProperties.getSigningMode());
+
     final String keyStoreUrl = myProperties.getKeyStoreUrl();
     myKeyStorePathField.setText(keyStoreUrl != null ? FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(keyStoreUrl)) : "");
     myKeyStorePasswordField.setText(myProperties.getPlainKeystorePassword());
@@ -161,16 +163,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
 
   @NotNull
   private AndroidArtifactSigningMode getSigningMode() {
-    if (myDebugRadio.isSelected()) {
-      return AndroidArtifactSigningMode.DEBUG;
-    }
-    else if (myDebugWithCustomCertificateRadio.isSelected()) {
-      return AndroidArtifactSigningMode.DEBUG_WITH_CUSTOM_CERTIFICATE;
-    }
-    else if (myReleaseSignedRadio.isSelected()) {
-      return AndroidArtifactSigningMode.RELEASE_SIGNED;
-    }
-    return AndroidArtifactSigningMode.RELEASE_UNSIGNED;
+    return (AndroidArtifactSigningMode)myTypeCombo.getSelectedItem();
   }
 
   @NotNull
