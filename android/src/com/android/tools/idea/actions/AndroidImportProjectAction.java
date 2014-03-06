@@ -19,6 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.NewProjectImportCallback;
+import com.android.tools.idea.gradle.project.wizard.AndroidGradleProjectImportProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
@@ -27,14 +30,17 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.JDOMUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -43,6 +49,7 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.File;
@@ -136,7 +143,12 @@ public class AndroidImportProjectAction extends AnAction {
       ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
       return new AddModuleWizard(null, ProjectImportProvider.getDefaultPath(file),
                                  new AdtImportProvider(new AdtImportBuilder(dataManager)));
+    }
 
+    if (GradleConstants.EXTENSION.equals(target.getExtension())) {
+      // Gradle file, we handle this ourselves.
+      importGradleProject(file);
+      return null;
     }
 
     for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
@@ -216,5 +228,29 @@ public class AndroidImportProjectAction extends AnAction {
       LOG.info(String.format("Unable to get natures for Eclipse project file '%1$s", projectFile.getPath()), e);
     }
     return false;
+  }
+
+  private static void importGradleProject(@NotNull VirtualFile selectedFile) {
+    AddModuleWizard wizard = new AddModuleWizard(null, selectedFile.getPath(), new AndroidGradleProjectImportProvider());
+    if (wizard.getStepCount() > 0 && !wizard.showAndGet()) {
+      return;
+    }
+    VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
+    File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
+    try {
+      GradleProjectImporter.getInstance().importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
+        @Override
+        public void projectImported(@NotNull Project project) {
+          activateProjectView(project);
+        }
+      });
+    }
+    catch (Exception e) {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw new RuntimeException(e);
+      }
+      Messages.showErrorDialog(e.getMessage(), "Project Import");
+      LOG.error(e);
+    }
   }
 }
