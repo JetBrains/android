@@ -265,22 +265,25 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
     runCommonCreateProjectTest();
 
-    // Check quote in file path
-    baseDir = new File(getProject().getBasePath(), "test\"orama");
-    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
-    runCommonCreateProjectTest();
+    // The following characters are reserved on a Windows system
+    if (!System.getProperty("os.name").startsWith("Windows")) {
+      // Check quote in file path
+      baseDir = new File(getProject().getBasePath(), "test\"orama");
+      myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+      runCommonCreateProjectTest();
 
-    // Check unicode characters
-    baseDir = new File(getProject().getBasePath(), "test\uD83D\uDCA9orama");
-    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
-    runCommonCreateProjectTest();
+      // Check unicode characters
+      baseDir = new File(getProject().getBasePath(), "test\uD83D\uDCA9orama");
+      myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+      runCommonCreateProjectTest();
 
-    // Check < and > characters
-    baseDir = new File(getProject().getBasePath(), "test<orama");
-    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
-    runCommonCreateProjectTest();
-    baseDir = new File(getProject().getBasePath(), "test>orama");
-    myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
-    runCommonCreateProjectTest();
+      // Check < and > characters
+      baseDir = new File(getProject().getBasePath(), "test<orama");
+      myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+      runCommonCreateProjectTest();
+      baseDir = new File(getProject().getBasePath(), "test>orama");
+      myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
+      runCommonCreateProjectTest();
+    }
   }
 }
