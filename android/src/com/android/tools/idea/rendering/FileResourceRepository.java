@@ -109,7 +109,7 @@ public class FileResourceRepository extends LocalResourceRepository {
       assert false;
     }
     catch (MergingException e) {
-      LOG.error(e.getMessage());
+      LOG.warn(e);
     }
     merger.addDataSet(resourceSet);
     return merger;
