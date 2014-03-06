@@ -4,6 +4,7 @@ import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -100,19 +101,19 @@ public class AndroidLibraryProjectTest extends UsefulTestCase {
 
     // Manifest files will be recreated using createInitialStructure or other custom code in each test case
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-          try {
-            manifest.delete(this);
-            manifest2.delete(this);
-            manifest3.delete(this);
-          }
-          catch (IOException e) {
-            fail("Could not delete default manifest");
-          }
+        try {
+          manifest.delete(this);
+          manifest2.delete(this);
+          manifest3.delete(this);
         }
-      });
+        catch (IOException e) {
+          fail("Could not delete default manifest");
+        }
+      }
+    });
   }
 
   private void createInitialStructure() {

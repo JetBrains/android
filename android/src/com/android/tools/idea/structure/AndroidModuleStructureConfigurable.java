@@ -45,6 +45,7 @@ import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.Nls;
@@ -66,7 +67,7 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
   private static final Comparator<MyNode> NODE_COMPARATOR = new Comparator<MyNode>() {
     @Override
     public int compare(final MyNode o1, final MyNode o2) {
-      return o1.getConfigurable().getDisplayName().compareToIgnoreCase(o2.getConfigurable().getDisplayName());
+      return StringUtil.naturalCompare(o1.getConfigurable().getDisplayName(), o2.getConfigurable().getDisplayName());
     }
   };
 
@@ -221,7 +222,7 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
         }
         int result = Messages.showYesNoDialog(myProject, question, ProjectBundle.message("module.remove.confirmation.title"),
                                               Messages.getQuestionIcon());
-        if (result != 0) {
+        if (result != Messages.YES) {
           return false;
         }
         ApplicationManager.getApplication().runWriteAction(new Runnable() {

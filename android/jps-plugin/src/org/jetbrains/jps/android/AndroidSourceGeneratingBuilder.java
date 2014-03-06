@@ -72,7 +72,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
 
   @NonNls private static final String AIDL_EXTENSION = "aidl";
   @NonNls private static final String RENDERSCRIPT_EXTENSION = "rs";
-  @NonNls private static final String MANIFEST_TAG = "manifest";
   @NonNls private static final String PERMISSION_TAG = "permission";
   @NonNls private static final String PERMISSION_GROUP_TAG = "permission-group";
   @NonNls private static final String NAME_ATTRIBUTE = "name";
@@ -929,6 +928,8 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
             libRTextFilesAndPackages.add(Pair.create(libRTxtFilePath, libPackage));
           }
         }
+        AndroidJpsUtil.collectRTextFilesFromAarDeps(module, libRTextFilesAndPackages);
+
         final File outputDirForArtifacts = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(context, module);
         final String proguardOutputCfgFilePath;
 
@@ -1109,7 +1110,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       final File depManifestFile = AndroidJpsUtil.getManifestFileForCompilationPath(depExtension);
 
       if (depManifestFile != null && depManifestFile.exists()) {
-        final String packageName = parsePackageNameFromManifestFile(depManifestFile);
+        final String packageName = AndroidJpsUtil.parsePackageNameFromManifestFile(depManifestFile);
 
         if (packageName != null) {
           result.put(depExtension.getModule(), packageName);
@@ -1117,43 +1118,6 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       }
     }
     return result;
-  }
-
-  @Nullable
-  private static String parsePackageNameFromManifestFile(@NotNull File manifestFile) throws IOException {
-    final InputStream inputStream = new BufferedInputStream(new FileInputStream(manifestFile));
-    try {
-      final Ref<String> packageName = new Ref<String>(null);
-      FormsParsing.parse(inputStream, new FormsParsing.IXMLBuilderAdapter() {
-        boolean processingManifestTagAttrs = false;
-
-        @Override
-        public void startElement(String name, String nsPrefix, String nsURI, String systemID, int lineNr)
-          throws Exception {
-          if (MANIFEST_TAG.equals(name)) {
-            processingManifestTagAttrs = true;
-          }
-        }
-
-        @Override
-        public void addAttribute(String key, String nsPrefix, String nsURI, String value, String type)
-          throws Exception {
-          if (value != null && AndroidCommonUtils.PACKAGE_MANIFEST_ATTRIBUTE.equals(key)) {
-            packageName.set(value.trim());
-          }
-        }
-
-        @Override
-        public void elementAttributesProcessed(String name, String nsPrefix, String nsURI) throws Exception {
-          stop();
-        }
-      });
-
-      return packageName.get();
-    }
-    finally {
-      inputStream.close();
-    }
   }
 
   @NotNull
@@ -1312,7 +1276,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         continue;
       }
 
-      final String packageName = parsePackageNameFromManifestFile(manifestFile);
+      final String packageName = AndroidJpsUtil.parsePackageNameFromManifestFile(manifestFile);
       if (packageName == null || packageName.length() == 0) {
         context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, AndroidJpsBundle
           .message("android.jps.errors.package.not.specified", module.getName())));

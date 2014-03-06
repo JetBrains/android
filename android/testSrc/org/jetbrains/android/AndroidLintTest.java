@@ -3,17 +3,11 @@ package org.jetbrains.android;
 import com.android.SdkConstants;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.InspectionManager;
-import com.intellij.codeInspection.ex.GlobalInspectionContextImpl;
-import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
-import com.intellij.codeInspection.ex.InspectionManagerEx;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -317,22 +311,6 @@ public class AndroidLintTest extends AndroidTestCase {
 
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
-  }
-
-  private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection,
-                                      @NotNull String globalTestDir,
-                                      @NotNull AnalysisScope scope) {
-    final GlobalInspectionToolWrapper wrapper = new GlobalInspectionToolWrapper(inspection);
-    myFixture.enableInspections(inspection);
-
-    scope.invalidate();
-
-    final InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
-    final GlobalInspectionContextImpl globalContext =
-      CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
-
-    InspectionTestUtil.runTool(wrapper, scope, globalContext, inspectionManager);
-    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
   }
 
   private String getGlobalTestDir() {

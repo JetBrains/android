@@ -262,16 +262,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
         List<GradleMessage> compilerMessages = Collections.emptyList();
 
         try {
-          BuildLauncher launcher = connection.newBuild();
-          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, extraJvmArgs, connection);
-
-          File javaHome = DefaultSdks.getDefaultJavaHome();
-          if (javaHome != null) {
-            launcher.setJavaHome(javaHome);
-          }
-
-          launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
-
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
           List<String> commandLineOptions = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
 
@@ -281,16 +271,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
             commandLineOptions.add(PARALLEL_BUILD_OPTION);
           }
 
-          if (buildConfiguration.OFFLINE_MODE && !commandLineOptions.contains(OFFLINE_MODE_OPTION)) {
-            LOG.info("Using 'offline' mode option");
-            commandLineOptions.add(OFFLINE_MODE_OPTION);
-          }
+          BuildLauncher launcher = connection.newBuild();
+          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, extraJvmArgs, commandLineOptions, connection);
 
-          if (!commandLineOptions.isEmpty()) {
-            LOG.info("Passing command-line args to Gradle Tooling API: " + commandLineOptions);
-            launcher.withArguments(ArrayUtil.toStringArray(commandLineOptions));
+          File javaHome = DefaultSdks.getDefaultJavaHome();
+          if (javaHome != null) {
+            launcher.setJavaHome(javaHome);
           }
-
+          launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
           launcher.setStandardOutput(stdout);
           launcher.setStandardError(stderr);
           launcher.run();
