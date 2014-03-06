@@ -43,6 +43,7 @@ public class Dependency extends BuildFileStatement {
   public enum Scope {
     COMPILE("Compile", "compile"),
     PROVIDED("Provided", "provided"),
+    APK("APK", "apk"),
     INSTRUMENT_TEST_COMPILE("Test compile", "instrumentTestCompile"),
     DEBUG_COMPILE("Debug compile", "debugCompile"),
     RELEASE_COMPILE("Release compile", "releaseCompile");
