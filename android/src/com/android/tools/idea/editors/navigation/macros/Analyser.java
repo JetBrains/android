@@ -299,9 +299,27 @@ public class Analyser {
     };
   }
 
+  private Evaluator getEvaluator(Configuration configuration, PsiClass activityClass, PsiClass activityOrFragmentClass, boolean isActivity) {
+    Set<String> tags = getTags(getXmlFile(configuration, activityClass.getQualifiedName(), true));
+    Set<String> ids = getIds(getXmlFile(configuration, activityOrFragmentClass.getQualifiedName(), isActivity));
+
+    Map<PsiField, Object> noFields = Collections.emptyMap();
+    Map<PsiLocalVariable, Object> noVars = Collections.emptyMap();
+    Evaluator evaluator1 = getEvaluator(ids, tags, noFields, noVars);
+    Map<PsiField, Object> fieldBindings =
+      getFieldAssignmentsInOnCreate(activityOrFragmentClass, evaluator1);
+    Evaluator evaluator2 = getEvaluator(ids, tags, fieldBindings, noVars);
+    Map<PsiLocalVariable, Object> localVariableBindings =
+      getLocalVariableBindingsInOnViewCreated(activityOrFragmentClass, evaluator2);
+    return getEvaluator(ids, tags, fieldBindings, localVariableBindings);
+  }
+
   @Nullable
-  private XmlFile getXmlFile(ActivityState activity, Configuration configuration) {
-    String xmlFileName = NavigationView.getXMLFileName(myModule, activity);
+  private XmlFile getXmlFile(Configuration configuration, String className, boolean isActivity) {
+    String xmlFileName = getXMLFileName(myModule, className, isActivity);
+    if (xmlFileName == null) {
+      return null;
+    }
     return (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, configuration, myProject);
   }
 
@@ -309,11 +327,14 @@ public class Analyser {
                                  final MiniModel miniModel,
                                  final ActivityState fromActivityState,
                                  final String activityOrFragmentClassName,
-                                 final Configuration configuration) {
+                                 final Configuration configuration,
+                                 final boolean isActivity) {
 
     if (NavigationEditor.DEBUG) System.out.println("className = " + activityOrFragmentClassName);
 
+    final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityState.getClassName());
     final PsiClass activityOrFragmentClass = Utilities.getPsiClass(myModule, activityOrFragmentClassName);
+    final Evaluator evaluator3 = getEvaluator(configuration, activityClass, activityOrFragmentClass, isActivity);
 
     if (activityOrFragmentClass == null) {
       // Navigation file is out-of-date and refers to classes that have been deleted. That's okay.
@@ -351,21 +372,6 @@ public class Analyser {
                );
              }
            });
-
-    final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityState.getClassName());
-    XmlFile layoutFile = getXmlFile(fromActivityState, configuration);
-    Set<String> ids = getIds(layoutFile);
-    Set<String> tags = getTags(layoutFile);
-
-    Map<PsiField, Object> noFields = Collections.emptyMap();
-    Map<PsiLocalVariable, Object> noVars = Collections.emptyMap();
-    Evaluator evaluator1 = getEvaluator(ids, tags, noFields, noVars);
-    Map<PsiField, Object> fieldBindings =
-      getFieldAssignmentsInOnCreate(activityClass, evaluator1); // todo activityClass or activityOrFragmentClass?
-    Evaluator evaluator2 = getEvaluator(ids, tags, fieldBindings, noVars);
-    Map<PsiLocalVariable, Object> localVariableBindings =
-      getLocalVariableBindingsInOnViewCreated(activityOrFragmentClass, evaluator2); // todo activityClass or activityOrFragmentClass?
-    final Evaluator evaluator3 = getEvaluator(ids, tags, fieldBindings, localVariableBindings);
 
     // Search for 'onClick' listeners on Buttons etc.
 
@@ -419,10 +425,11 @@ public class Analyser {
                    PsiMethod resolvedMethod = call.resolveMethod();
                    if (resolvedMethod != null) {
                      if (activityClass != null) {
-                       final PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
+                       PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
                        if (implementation != null) {
+                         Evaluator evaluator = getEvaluator(configuration, activityClass, activityClass, true);
                          search(implementation.getBody(),
-                                evaluator3,
+                                evaluator,
                                 myMacros.createIntent,
                                 createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model,
                                                 fromActivityState));
@@ -463,15 +470,15 @@ public class Analyser {
           continue;
         }
         model.addState(sourceActivity); // covers the case of Activities that are not part of a transition (e.g. a model with one Activity)
-        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName(), configuration);
+        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName(), configuration, true);
 
         // Examine fragments associated with this activity
 
-        XmlFile layoutFile = getXmlFile(sourceActivity, configuration);
+        XmlFile layoutFile = getXmlFile(configuration, sourceActivity.getClassName(), true);
         List<FragmentEntry> fragments = getFragmentEntries(layoutFile);
 
         for (FragmentEntry fragment : fragments) {
-          deriveTransitions(model, next, sourceActivity, fragment.className, configuration);
+          deriveTransitions(model, next, sourceActivity, fragment.className, configuration, false);
         }
       }
       done.classNameToActivityState.putAll(toDo.classNameToActivityState);
@@ -591,15 +598,17 @@ public class Analyser {
   }
 
   @Nullable
-  public static String getXMLFileName(Module module, String controllerClassName) {
-    MultiMatch.Bindings<PsiElement> exp =
-      match(module, controllerClassName, "public void onCreate(Bundle bundle)", "void macro(String id) { setContentView(id); }");
+  public static String getXMLFileName(Module module, String controllerClassName, boolean isActivity) {
+    MultiMatch.Bindings<PsiElement> exp;
+    if (isActivity) {
+      exp = match(module, controllerClassName, "void onCreate(Bundle bundle)", "void macro(String $id) { setContentView(R.layout.$id); }");
+    } else {
+      exp = match(module, controllerClassName, "View onCreateView(LayoutInflater li, ViewGroup vg, Bundle b)", "void macro(Object $inflater, Object $id, Object $container) { $inflater.inflate(R.layout.$id, $container, false); }");
+    }
     if (exp == null) {
       return null;
     }
-    PsiElement id = exp.get("id");
-    PsiElement unqualifiedXmlName = id.getLastChild();
-    return unqualifiedXmlName.getText();
+    return exp.get("$id").getText();
   }
 
   public static abstract class Statement {
