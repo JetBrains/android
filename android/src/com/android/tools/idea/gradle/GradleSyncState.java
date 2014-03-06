@@ -49,21 +49,20 @@ public class GradleSyncState {
     myProject = project;
   }
 
-  public void syncStarted() {
-    if (mySyncInProgress) {
-      return;
-    }
+  public void syncStarted(boolean notifyUser) {
     mySyncInProgress = true;
-    updateUI();
+    if (notifyUser) {
+      notifyUser();
+    }
   }
 
   public void syncEnded() {
     mySyncInProgress = false;
     myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
-    updateUI();
+    notifyUser();
   }
 
-  private void updateUI() {
+  public void notifyUser() {
     Runnable notificationTask = new Runnable() {
       @Override
       public void run() {
