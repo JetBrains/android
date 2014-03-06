@@ -17,7 +17,6 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.*;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicates;
 import com.intellij.execution.ExecutionException;
@@ -49,7 +48,6 @@ import com.intellij.refactoring.listeners.RefactoringElementListener;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
@@ -122,9 +120,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       }
     }
     else if (MODE.equals(LAUNCH_DEFAULT_ACTIVITY)) {
-      Manifest manifest = facet.getManifest();
+      Manifest manifest = AndroidModuleInfo.getManifest(facet.getModule(), true);
       if (manifest != null) {
-        if (packageContainMavenProperty || AndroidUtils.getDefaultActivityName(manifest) != null) return;
+        if (packageContainMavenProperty || AndroidUtils.getDefaultLauncherActivityName(manifest) != null) return;
       }
       throw new RuntimeConfigurationError(AndroidBundle.message("default.activity.not.found.error"));
     }
@@ -302,37 +300,31 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Nullable
   private static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final ProcessHandler processHandler) {
     File manifestCopy = null;
-    final VirtualFile manifestVFile;
 
     try {
-      //if (facet.isGradleProject()) {
-      //  manifestVFile = AndroidRootUtil.getMergedManifestFile(facet);
-      //}
-      //else
+      final Manifest manifest;
       if (facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
         final Pair<File,String> pair = getCopyOfCompilerManifestFile(facet, processHandler);
         manifestCopy = pair != null ? pair.getFirst() : null;
-        manifestVFile = manifestCopy != null
+        VirtualFile manifestVFile = manifestCopy != null
                         ? LocalFileSystem.getInstance().findFileByIoFile(manifestCopy)
                         : null;
+        manifest = manifestVFile == null ? null : AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
       }
       else {
-        manifestVFile = AndroidRootUtil.getManifestFile(facet);
+        manifest = AndroidModuleInfo.get(facet).getManifest(true);
       }
+
       return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
         @Override
         public String compute() {
-          final Manifest manifest = manifestVFile != null
-                                    ? AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class)
-                                    : null;
-
           if (manifest == null) {
             if (processHandler != null) {
               processHandler.notifyTextAvailable("Cannot find " + SdkConstants.FN_ANDROID_MANIFEST_XML + " file\n", STDERR);
             }
             return null;
           }
-          return AndroidUtils.getDefaultActivityName(manifest);
+          return AndroidUtils.getDefaultLauncherActivityName(manifest);
         }
       });
     }
