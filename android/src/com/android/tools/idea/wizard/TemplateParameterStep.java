@@ -23,6 +23,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -34,7 +35,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -114,15 +114,18 @@ public class TemplateParameterStep extends TemplateWizardStep {
           c.setColumn(1);
           c.setColSpan(2);
 
-          if (parameter.constraints.contains(Parameter.Constraint.UNIQUE) &&
-              !parameter.uniquenessSatisfied(myProject, packageName, myTemplateState.getString(parameter.id))) {
-            // While uniqueness isn't satisfied, increment number and add to end
-            int i = 2;
-            String originalValue = myTemplateState.getString(parameter.id);
-            while (!parameter.uniquenessSatisfied(myProject, packageName, originalValue + Integer.toString(i))) {
-              i++;
+          if (myProject != null) {
+            // If we have existing files, ensure uniqueness is satisfied
+            if (parameter.constraints.contains(Parameter.Constraint.UNIQUE) &&
+                !parameter.uniquenessSatisfied(myProject, myModule, packageName, myTemplateState.getString(parameter.id))) {
+              // While uniqueness isn't satisfied, increment number and add to end
+              int i = 2;
+              String originalValue = myTemplateState.getString(parameter.id);
+              while (!parameter.uniquenessSatisfied(myProject, myModule, packageName, originalValue + Integer.toString(i))) {
+                i++;
+              }
+              myTemplateState.put(parameter.id, String.format("%s%d", originalValue, i));
             }
-            myTemplateState.put(parameter.id, String.format("%s%d", originalValue, i));
           }
 
           register(parameter.id, textField);

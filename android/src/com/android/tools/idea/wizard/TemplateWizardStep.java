@@ -27,6 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
@@ -285,7 +286,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       if (param != null) {
-        String error = param.validate(myProject, (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
+        String error = param.validate(myProject, myModule, (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
         if (error != null) {
           setErrorHtml(error);
           return false;
