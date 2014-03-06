@@ -17,7 +17,9 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -34,6 +36,7 @@ import javax.swing.event.ListSelectionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -103,7 +106,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
 
       metadataList.add(new MetadataListItem(template, metadata));
     }
-
+    Collections.sort(metadataList);
     return metadataList;
   }
 
@@ -205,7 +208,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     return null;
   }
 
-  protected static class MetadataListItem {
+  protected static class MetadataListItem implements Comparable<MetadataListItem> {
     private TemplateMetadata myMetadata;
     private final File myTemplate;
 
@@ -224,6 +227,13 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
      */
     public File getTemplateFile() {
       return myTemplate;
+    }
+
+    @Override
+    public int compareTo(@NotNull MetadataListItem other) {
+      return ComparisonChain.start()
+        .compare(this.myMetadata.getTitle(), other.myMetadata.getTitle())
+        .result();
     }
   }
 }
