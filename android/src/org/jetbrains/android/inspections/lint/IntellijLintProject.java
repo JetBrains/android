@@ -46,6 +46,8 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.*;
 
+import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
+
 /**
  * An {@linkplain IntellijLintProject} represents a lint project, which typically corresponds to a {@link Module},
  * but can also correspond to a library "project" such as an {@link com.android.builder.model.AndroidLibrary}.
@@ -466,6 +468,49 @@ class IntellijLintProject extends Project {
 
       return mResourceFolders;
     }
+
+    @Nullable
+    @Override
+    public Boolean dependsOn(@NonNull String artifact) {
+      if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
+        if (mSupportLib == null) {
+          final OrderEntry[] entries = ModuleRootManager.getInstance(myFacet.getModule()).getOrderEntries();
+          libraries:
+          for (int i = entries.length - 1; i >= 0; i--) {
+            final OrderEntry orderEntry = entries[i];
+            if (orderEntry instanceof LibraryOrderEntry) {
+              LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
+              VirtualFile[] classes = libraryOrderEntry.getRootFiles(OrderRootType.CLASSES);
+              if (classes != null) {
+                for (VirtualFile file : classes) {
+                  mJavaLibraries.add(VfsUtilCore.virtualToIoFile(file));
+                  if (file.getName().equals("android-support-v4.jar")) {
+                    mSupportLib = true;
+                    break libraries;
+
+                  }
+                }
+              }
+            }
+          }
+
+          for (Project dependency : getDirectLibraries()) {
+            Boolean b = dependency.dependsOn(artifact);
+            if (b != null && b) {
+              mSupportLib = true;
+              break;
+            }
+          }
+          if (mSupportLib == null) {
+            mSupportLib = false;
+          }
+        }
+
+        return mSupportLib;
+      } else {
+        return super.dependsOn(artifact);
+      }
+    }
   }
 
   private static class LintGradleProject extends LintAndroidProject {
@@ -709,6 +754,41 @@ class IntellijLintProject extends Project {
     public AndroidLibrary getGradleLibraryModel() {
       return null;
     }
+
+    @Nullable
+    @Override
+    public Boolean dependsOn(@NonNull String artifact) {
+      if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
+        if (mSupportLib == null) {
+          if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
+            IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
+            Dependencies dependencies = gradleProject.getSelectedVariant().getMainArtifact().getDependencies();
+            for (File file : dependencies.getJars()) {
+              if (file.getName().startsWith("support-v4-")) {
+                mSupportLib = true;
+                break;
+              }
+            }
+          }
+
+          for (Project dependency : getDirectLibraries()) {
+            Boolean b = dependency.dependsOn(artifact);
+            if (b != null && b) {
+              mSupportLib = true;
+              break;
+            }
+          }
+
+          if (mSupportLib == null) {
+            mSupportLib = false;
+          }
+        }
+
+        return mSupportLib;
+      } else {
+        return super.dependsOn(artifact);
+      }
+    }
   }
 
   private static class LintGradleLibraryProject extends IntellijLintProject {
@@ -819,6 +899,34 @@ class IntellijLintProject extends Project {
     @Override
     public AndroidLibrary getGradleLibraryModel() {
       return myLibrary;
+    }
+
+    @Nullable
+    @Override
+    public Boolean dependsOn(@NonNull String artifact) {
+      if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
+        if (mSupportLib == null) {
+          if (myLibrary.getJarFile().getName().startsWith("support-v4-")) {
+                mSupportLib = true;
+          }
+
+          for (Project dependency : getDirectLibraries()) {
+            Boolean b = dependency.dependsOn(artifact);
+            if (b != null && b) {
+              mSupportLib = true;
+              break;
+            }
+          }
+
+          if (mSupportLib == null) {
+            mSupportLib = false;
+          }
+        }
+
+        return mSupportLib;
+      } else {
+        return super.dependsOn(artifact);
+      }
     }
   }
 }
