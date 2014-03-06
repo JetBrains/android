@@ -121,13 +121,21 @@ public final class GradleUtil {
     return new File(projectRootDir, GRADLEW_PROPERTIES_PATH);
   }
 
-  public static void updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
+  /**
+   * Updates the 'distributionUrl' in the given Gradle wrapper properties file.
+   *
+   * @param gradleVersion  the Gradle version to update the property to.
+   * @param propertiesFile the given Gradle wrapper properties file.
+   * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
+   *         correct value.
+   * @throws IOException if something goes wrong when saving the file.
+   */
+  public static boolean updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
     Properties properties = loadGradleWrapperProperties(propertiesFile);
     String gradleDistributionUrl = getGradleDistributionUrl(gradleVersion, false);
     String property = properties.getProperty(GRADLEW_DISTRIBUTION_URL_PROPERTY_NAME);
-    if (property != null &&
-        (property.equals(gradleDistributionUrl) || property.equals(getGradleDistributionUrl(gradleVersion, true)))) {
-      return;
+    if (property != null && (property.equals(gradleDistributionUrl) || property.equals(getGradleDistributionUrl(gradleVersion, true)))) {
+      return false;
     }
     properties.setProperty(GRADLEW_DISTRIBUTION_URL_PROPERTY_NAME, gradleDistributionUrl);
     FileOutputStream out = null;
@@ -135,6 +143,7 @@ public final class GradleUtil {
       //noinspection IOResourceOpenedButNotSafelyClosed
       out = new FileOutputStream(propertiesFile);
       properties.store(out, null);
+      return true;
     }
     finally {
       Closeables.closeQuietly(out);
