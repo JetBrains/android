@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.facet;
 
+import com.android.tools.idea.structure.AndroidStudioConfigurableContributor;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
+import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurableContributor;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.util.xmlb.XmlSerializer;
@@ -36,7 +38,11 @@ public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    // No UI for configuring the Android-Gradle facet.
+    if (ProjectStructureConfigurableContributor.EP_NAME.findExtension(AndroidStudioConfigurableContributor.class) == null &&
+        GRADLE_PROJECT_PATH != null && GRADLE_PROJECT_PATH.length() > 0) {
+      // IntelliJ only
+      return new FacetEditorTab[]{new AndroidGradleFacetEditorTab(editorContext.getProject(), GRADLE_PROJECT_PATH)};
+    }
     return new FacetEditorTab[0];
   }
 

@@ -50,7 +50,22 @@ $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 -F
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/app.apk.res
 
-______ENTRY_3:0
+______ENTRY_3:
+$JAVA_PATH$
+-Xmx1024M
+-classpath
+$IDEA_RT_PATH$
+com.intellij.rt.execution.CommandLineWrapper
+$CLASSPATH_TMP$
+org.jetbrains.android.compiler.tools.AndroidDxRunner
+$ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/aar_deps.jar
+--optimize
+true
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/aar_deps.jar
+--exclude
+
+______ENTRY_4:0,3
 $JAVA_PATH$
 -Xmx1024M
 -classpath
@@ -62,13 +77,12 @@ $ANDROID_SDK_DIR$/platform-tools/lib/dx.jar
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/classes.dex
 --optimize
 true
-$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/classes.jar
+$DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/aar_deps.jar
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/pre_dexed_libs/lib/classes.jar
 $PROJECT_DIR$/out/production/app/com
-$PROJECT_DIR$/root/myaar/res
 --exclude
 
-______ENTRY_4:0,1,2,3
+______ENTRY_5:0,1,2,3,4
 apk_builder
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/app.apk.res
 $DATA_STORAGE_ROOT$/android/intermediate_artifacts/app/classes.dex
