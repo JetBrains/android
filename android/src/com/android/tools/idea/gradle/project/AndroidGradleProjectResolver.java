@@ -132,31 +132,34 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject());
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
     if (androidProject == null) {
       // This is a Java lib module.
-      JavaModel javaModel = createJavaModelFrom(gradleModule, ideModule);
+      JavaModel javaModel = createJavaModelFrom(gradleModule);
       gradleProject.setJavaModel(javaModel);
 
       List<String> unresolved = javaModel.getUnresolvedDependencyNames();
-      if (!unresolved.isEmpty()) {
-        DataNode<?> parent = ideModule.getParent();
-        if (parent != null) {
-          Object data = parent.getData();
-          // the following is always going to be true.
-          if (data instanceof ProjectData) {
-            //noinspection unchecked
-            populateUnresolvedDependencies((DataNode<ProjectData>)parent, unresolved);
-          }
-        }
-      }
+      populateUnresolvedDependencies(ideModule, unresolved);
+    }
+  }
+
+  private static void populateUnresolvedDependencies(@NotNull DataNode<ModuleData> ideModule, @NotNull List<String> unresolved) {
+    if (unresolved.isEmpty() || ideModule.getParent() == null) {
+      return;
+    }
+    DataNode<?> parent = ideModule.getParent();
+    Object data = parent.getData();
+    // the following is always going to be true.
+    if (data instanceof ProjectData) {
+      //noinspection unchecked
+      populateUnresolvedDependencies((DataNode<ProjectData>)parent, unresolved);
     }
   }
 
   @NotNull
-  private JavaModel createJavaModelFrom(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+  private JavaModel createJavaModelFrom(@NotNull IdeaModule gradleModule) {
     Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(gradleModule);
     List<? extends IdeaDependency> dependencies = getDependencies(gradleModule);
     return new JavaModel(contentRoots, dependencies);
