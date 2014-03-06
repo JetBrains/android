@@ -39,6 +39,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.xml.refactoring.XmlTagInplaceRenamer;
+import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -214,6 +215,8 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
         return "set";
       case LAYOUT:
         return AndroidUtils.TAG_LINEAR_LAYOUT;
+      case TRANSITION:
+        return TransitionDomUtil.DEFAULT_ROOT;
       default:
     }
     throw new IllegalArgumentException("Incorrect resource folder type");
