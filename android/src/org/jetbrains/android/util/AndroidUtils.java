@@ -47,8 +47,7 @@ import com.intellij.lexer.Lexer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -94,6 +93,7 @@ import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.run.AndroidRunConfiguration;
@@ -321,17 +321,22 @@ public class AndroidUtils {
   }
 
   @Nullable
-  public static String getDefaultLauncherActivityName(List<Activity> activities, List<ActivityAlias> activityAliases) {
-    Activity activity = getDefaultLauncherActivity(activities);
-    if (activity != null) {
-      PsiClass c = activity.getActivityClass().getValue();
-      if (c != null) {
-        return c.getQualifiedName();
-      }
-    }
+  public static String getDefaultLauncherActivityName(final List<Activity> activities, final List<ActivityAlias> activityAliases) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Override
+      public String compute() {
+        Activity activity = getDefaultLauncherActivity(activities);
+        if (activity != null) {
+          PsiClass c = activity.getActivityClass().getValue();
+          if (c != null) {
+            return c.getQualifiedName();
+          }
+        }
 
-    ActivityAlias alias = getDefaultLauncherActivityAlias(activityAliases);
-    return  alias != null ? alias.getName().getStringValue() : null;
+        ActivityAlias alias = getDefaultLauncherActivityAlias(activityAliases);
+        return  alias != null ? alias.getName().getStringValue() : null;
+      }
+    });
   }
 
   public static boolean isAbstract(@NotNull PsiClass c) {
