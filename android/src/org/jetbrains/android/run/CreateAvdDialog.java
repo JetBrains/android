@@ -240,9 +240,9 @@ public class CreateAvdDialog extends DialogWrapper {
     myAvdInfoLabel.setVisible(showAvdInfo);
     new ClickListener() {
       @Override
-      public boolean onClick(MouseEvent e, int clickCount) {
+      public boolean onClick(@NotNull MouseEvent e, int clickCount) {
         try {
-          BrowserUtil.launchBrowser(url);
+          BrowserUtil.browse(url);
         }
         catch (IllegalThreadStateException ex) {
           /* not a problem */
@@ -350,7 +350,7 @@ public class CreateAvdDialog extends DialogWrapper {
       boolean replace = Messages
                           .showYesNoDialog(myPanel, AndroidBundle.message("replace.avd.question", avdName),
                                            AndroidBundle.message("create.avd.dialog.title"),
-                                           Messages.getQuestionIcon()) == 0;
+                                           Messages.getQuestionIcon()) == Messages.YES;
       if (!replace) return;
     }
     File avdFolder;

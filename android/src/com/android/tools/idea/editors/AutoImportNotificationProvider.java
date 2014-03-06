@@ -68,7 +68,7 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
       createActionLabel("Open bug report", new Runnable() {
         @Override
         public void run() {
-          BrowserUtil.launchBrowser("https://code.google.com/p/android/issues/detail?id=59965");
+          BrowserUtil.browse("https://code.google.com/p/android/issues/detail?id=59965");
         }
       });
 

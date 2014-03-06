@@ -19,13 +19,15 @@ import com.android.SdkConstants;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.ActionRunner;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -58,9 +60,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetTopLevelValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "18.0.0");
       }
     });
@@ -70,9 +72,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetNestedValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         GrStatementOwner closure = file.getClosure("android/defaultConfig");
         file.setValue(closure, BuildFileKey.TARGET_SDK_VERSION, 2);
       }
@@ -83,9 +85,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "99.0.0");
       }
     });
@@ -96,9 +98,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testExistingStringValueWithQuote() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "17'0'0");
       }
     });
@@ -109,9 +111,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testNewStringValueWithQuote() throws Exception {
     final GradleBuildFile file = getTestFile("");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "17'0'0");
       }
     });
@@ -127,9 +129,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile("");
     Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILES, "abc'def");
     final List<Dependency> dependencyList = ImmutableList.of(dep);
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.DEPENDENCIES, dependencyList);
       }
     });
@@ -145,9 +147,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile("");
     Repository rep = new Repository(Repository.Type.URL, "http://www.foo.com?q=abc'def");
     final List<Repository> repositoryList = ImmutableList.of(rep);
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.LIBRARY_REPOSITORY, repositoryList);
       }
     });
@@ -161,9 +163,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.COMPILE_SDK_VERSION, 99);
       }
     });
@@ -175,9 +177,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/buildTypes/debug");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.DEBUGGABLE, false);
       }
     });
@@ -189,10 +191,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetFileValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/debug");
-    final File replacementFile = new File("abc/def/foo.keystore");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    final File replacementFile = new File("foo.keystore");
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, replacementFile);
       }
     });
@@ -205,10 +207,10 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testSetFileStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
-    final File replacementFile = new File("abc/def/foo.txt");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    final File replacementFile = new File("foo.txt");
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, replacementFile);
       }
     });
@@ -228,9 +230,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     NamedObject flavor3 = new NamedObject("flavor3");
     flavor3.setValue(BuildFileKey.PACKAGE_NAME, "flavor3.packagename");
     flavors.add(flavor3);
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.FLAVORS, flavors);
       }
     });
@@ -252,9 +254,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testCreateStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.IGNORE_ASSETS_PATTERN, "foo");
       }
     });
@@ -271,9 +273,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testCreateIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor1");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.VERSION_CODE, 199);
       }
     });
@@ -289,9 +291,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testCreateBooleanValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(BuildFileKey.INCREMENTAL, true);
       }
     });
@@ -309,9 +311,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/signingConfigs/config2");
     final File newFile = new File("foo.keystore");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.STORE_FILE, newFile);
       }
     });
@@ -329,9 +331,9 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     final GrStatementOwner closure = file.getClosure("android/productFlavors/flavor2");
     final File newFile = new File("foo.txt");
-    ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
-      public void run() throws Exception {
+      public void run() {
         file.setValue(closure, BuildFileKey.PROGUARD_FILE, newFile);
       }
     });
@@ -347,7 +349,12 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testRemoveValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
-    file.removeValue(null, BuildFileKey.COMPILE_SDK_VERSION);
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        file.removeValue(null, BuildFileKey.COMPILE_SDK_VERSION);
+      }
+    });
 
     String expected = getSimpleTestFile().replace("    compileSdkVersion 17\n", "");
     assertContents(file, expected.toString());
@@ -434,13 +441,17 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testSetsMavenRepositories() throws Exception {
-    GradleBuildFile file = getTestFile("");
-    List<Repository> newRepositories = Lists.newArrayList(
+    final GradleBuildFile file = getTestFile("");
+    final List<Repository> newRepositories = Lists.newArrayList(
       new Repository(Repository.Type.MAVEN_CENTRAL, null),
       new Repository(Repository.Type.MAVEN_LOCAL, null),
       new Repository(Repository.Type.URL, "www.foo.com"));
-    file.setValue(BuildFileKey.LIBRARY_REPOSITORY, newRepositories);
-
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.LIBRARY_REPOSITORY, newRepositories);
+      }
+    });
     String expected =
       "repositories {\n" +
       "    mavenCentral()\n" +
@@ -467,14 +478,19 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testSetsFiletreeDependencies() throws Exception {
-    GradleBuildFile file = getTestFile("");
+    final GradleBuildFile file = getTestFile("");
     ImmutableList<String> fileList = ImmutableList.of("*.jar", "*.aar");
     Map<String, Object> nvMap = ImmutableMap.of(
       "dir", "libs",
       "includes", (Object)fileList
     );
-    Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
-    file.setValue(BuildFileKey.DEPENDENCIES, ImmutableList.of(dep));
+    final Dependency dep = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.FILETREE, nvMap);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, ImmutableList.of(dep));
+      }
+    });
     String expected =
       "dependencies {\n" +
       "    compile fileTree(dir: 'libs', includes: ['*.jar', '*.aar'])\n" +
@@ -502,14 +518,19 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testWritesUnparseableDependencies() throws Exception {
-    GradleBuildFile file = getTestFile("");
-    List<BuildFileStatement> deps = ImmutableList.of(
+    final GradleBuildFile file = getTestFile("");
+    final List<BuildFileStatement> deps = ImmutableList.of(
       new UnparseableStatement("// Comment 1", getProject()),
       new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "foo.com:1.0.0"),
       new UnparseableStatement("compile random.expression", getProject()),
       new UnparseableStatement("functionCall()", getProject()), new UnparseableStatement("random.expression", getProject())
     );
-    file.setValue(BuildFileKey.DEPENDENCIES, deps);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, deps);
+      }
+    });
     String expected =
       "dependencies {\n" +
       "    // Comment 1\n" +
@@ -543,15 +564,20 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testWritesUnparseableRepositories() throws Exception {
-    GradleBuildFile file = getTestFile("");
-    List<BuildFileStatement> deps = ImmutableList.of(
+    final GradleBuildFile file = getTestFile("");
+    final List<BuildFileStatement> deps = ImmutableList.of(
       new UnparseableStatement("// Comment 1", getProject()),
       new Repository(Repository.Type.MAVEN_CENTRAL, null),
       new UnparseableStatement("maven { url random.expression }", getProject()),
       new UnparseableStatement("functionCall()", getProject()),
       new UnparseableStatement("random.expression", getProject())
     );
-    file.setValue(BuildFileKey.DEPENDENCIES, deps);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, deps);
+      }
+    });
     String expected =
       "dependencies {\n" +
       "    // Comment 1\n" +
@@ -588,7 +614,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testWritesNamedObjectsWithUnparseableValues() throws Exception {
-    GradleBuildFile file = getTestFile(
+    final GradleBuildFile file = getTestFile(
       "android {\n" +
       "    buildTypes {\n" +
       "        type1 {\n" +
@@ -602,13 +628,22 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}"
     );
-    List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    final List<NamedObject> objects = WriteCommandAction.runWriteCommandAction(myProject, new Computable<List<NamedObject>>() {
+      @Override
+      public List<NamedObject> compute() {
+        return (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+      }
+    });
     assertEquals(1, objects.size());
-    NamedObject no = objects.get(0);
-    no.setValue(BuildFileKey.DEBUGGABLE, false);
-    no.setValue(BuildFileKey.ZIP_ALIGN, false);
-    file.setValue(BuildFileKey.BUILD_TYPES, objects);
-
+    final NamedObject no = objects.get(0);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        no.setValue(BuildFileKey.DEBUGGABLE, false);
+        no.setValue(BuildFileKey.ZIP_ALIGN, false);
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
     String expected =
       "android {\n" +
       "    buildTypes {\n" +
@@ -627,7 +662,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   }
 
   public void testRemoveNamedObjectValue() throws Exception {
-    GradleBuildFile file = getTestFile(
+    final GradleBuildFile file = getTestFile(
       "android {\n" +
       "    buildTypes {\n" +
       "        type1 {\n" +
@@ -641,11 +676,16 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    }\n" +
       "}"
     );
-    List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    final List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
     assertEquals(1, objects.size());
     NamedObject no = objects.get(0);
     no.getValues().remove(BuildFileKey.DEBUGGABLE);
-    file.setValue(BuildFileKey.BUILD_TYPES, objects);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
 
     String expected =
       "android {\n" +
@@ -727,7 +767,8 @@ public class GradleBuildFileTest extends IdeaTestCase {
   private GradleBuildFile getBadGradleBuildFile() {
     // Use an intentionally invalid file path so that GradleBuildFile will remain uninitialized. This simulates the condition of
     // the PSI file not being parsed yet. GradleBuildFile will warn about the PSI file; this is expected.
-    VirtualFile vf = LocalFileSystem.getInstance().getRoot();
+    VirtualFile vf = LocalFileSystem.getInstance().findFileByPath(FileUtil.getTempDirectory());
+    assertNotNull(vf);
     return new GradleBuildFile(vf, getProject());
   }
 
