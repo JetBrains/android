@@ -60,7 +60,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     if (isOldGradleVersion(rootCause)) {
-      String msg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
+      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.",
                                  GradleUtil.GRADLE_MINIMUM_VERSION);
       msg += ('\n' + FIX_GRADLE_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.

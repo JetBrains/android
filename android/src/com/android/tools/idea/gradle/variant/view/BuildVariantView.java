@@ -200,12 +200,11 @@ public class BuildVariantView {
   }
 
   public void updateNotification() {
+    myErrorPanel.removeAll();
     VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.getInstance(myProject).getConflict();
-    if (conflict == null) {
-      myErrorPanel.removeAll();
-      return;
+    if (conflict != null) {
+      myErrorPanel.add(conflict.createNotificationPanel());
     }
-    myErrorPanel.add(conflict.createNotificationPanel());
   }
 
   public interface BuildVariantSelectionChangeListener {

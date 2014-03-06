@@ -110,10 +110,7 @@ public class VariantSelectionVerifier {
           continue;
         }
         String expected = library.getProjectVariant();
-        if (!variantName.equals(expected)) {
-          if (expected == null) {
-            expected = "<none>";
-          }
+        if (StringUtil.isNotEmpty(expected) && !variantName.equals(expected)) {
           return new Conflict(module, dependent, expected, variantName);
         }
       }
