@@ -704,6 +704,18 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   }
 
+  public void testGetsPlugins() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "apply plugin: 'android' \n" +
+      "apply plugin: 'java'\n"
+    );
+    List<String> expected = ImmutableList.of(
+      "android",
+      "java"
+    );
+    assertEquals(expected, file.getPlugins());
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +
