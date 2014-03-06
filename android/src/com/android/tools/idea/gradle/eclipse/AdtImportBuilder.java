@@ -17,17 +17,19 @@ package com.android.tools.idea.gradle.eclipse;
 
 import com.android.sdklib.SdkManager;
 import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.NewProjectImportCallback;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.projectImport.ProjectImportBuilder;
@@ -35,16 +37,12 @@ import icons.EclipseIcons;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder;
-import org.jetbrains.plugins.gradle.service.settings.ImportFromGradleControl;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,13 +52,8 @@ import java.util.List;
  * to perform the IntelliJ model import.
  * */
 public class AdtImportBuilder extends ProjectImportBuilder<String> {
-  private final GradleProjectImportBuilder myGradleBuilder;
   private File mySelectedProject;
   private GradleImport myImporter;
-
-  public AdtImportBuilder(@NotNull ProjectDataManager dataManager) {
-    myGradleBuilder = new GradleProjectImportBuilder(dataManager);
-  }
 
   @NotNull
   @Override
@@ -153,29 +146,39 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       return null;
     }
 
-    ImportFromGradleControl control = myGradleBuilder.getControl(null);
-    GradleProjectSettings settings = control.getProjectSettings();
-    settings.setExternalProjectPath(destDir.getPath());
-    settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
-
-    myGradleBuilder.setFileToImport(new File(destDir, GradleConstants.DEFAULT_SCRIPT_NAME).getPath());
-    myGradleBuilder.setOpenProjectSettingsAfter(isOpenProjectSettingsAfter());
-    myGradleBuilder.setUpdate(isUpdate());
-    List<Module> modules = myGradleBuilder.commit(project, model, modulesProvider, artifactModel);
-
-    StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);
-    if (!manager.postStartupActivityPassed()) {
-      manager.registerPostStartupActivity(new Runnable() {
+    try {
+      GradleProjectImporter.getInstance().importProject(project.getName(), destDir, new NewProjectImportCallback() {
         @Override
-        public void run() {
-          openSummary(project);
+        public void projectImported(@NotNull final Project project) {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              activateProjectView(project);
+              openSummary(project);
+            }
+          });
         }
-      });
-    } else {
-      openSummary(project);
+
+        @Override
+        public void importFailed(@NotNull final Project project, @NotNull String errorMessage) {
+          ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              createTopLevelProjectAndOpen(project);
+              openSummary(project);
+            }
+          });
+        }
+      }, project);
+    }
+    catch (ConfigurationException e) {
+      Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
+    }
+    catch (Throwable e) {
+      Messages.showErrorDialog(project, e.getMessage(), "ADT Project Import");
     }
 
-    return modules;
+    return Collections.emptyList();
   }
 
   public void readProjects() {
