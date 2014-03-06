@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.customizer.java.DependenciesJavaModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.JavaModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.util.Facets;
@@ -44,6 +46,8 @@ import java.util.Map;
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
 public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
+  private final JavaModuleCustomizer[] myCustomizers = {new DependenciesJavaModuleCustomizer()};
+
   @NotNull
   @Override
   public Key<IdeaGradleProject> getTargetDataKey() {
@@ -100,9 +104,13 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     return gradleProjectsByModuleName;
   }
 
-  private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
+  private void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
     AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
     androidGradleFacet.setGradleProject(gradleProject);
+
+    for (JavaModuleCustomizer customizer : myCustomizers) {
+      customizer.customizeModule(module, module.getProject(), gradleProject.getJavaModel());
+    }
   }
 
   /**

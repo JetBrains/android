@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -37,18 +37,18 @@ import java.io.File;
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class CompilerOutputPathModuleCustomizer implements ModuleCustomizer {
+public class CompilerOutputPathModuleCustomizer implements AndroidModuleCustomizer {
   private static final Logger LOG = Logger.getInstance(CompilerOutputPathModuleCustomizer.class);
 
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject ideaAndroidProject) {
-    if (ideaAndroidProject != null) {
-      String modelVersion = ideaAndroidProject.getDelegate().getModelVersion();
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaAndroidProject androidProject) {
+    if (androidProject != null) {
+      String modelVersion = androidProject.getDelegate().getModelVersion();
       if (Strings.isNullOrEmpty(modelVersion)) {
         // We are dealing with old model that does not have 'class' folder.
         return;
       }
-      Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
+      Variant selectedVariant = androidProject.getSelectedVariant();
       File outputFile = selectedVariant.getMainArtifact().getClassesFolder();
       setOutputPaths(module, outputFile, null);
     } else if (ModuleType.get(module) instanceof JavaModuleType) {
