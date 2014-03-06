@@ -374,7 +374,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     IntellijLintClient client = IntellijLintClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
     LintDriver driver = new LintDriver(registry, client);
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
-    LintRequest request = new IntellijLintRequest(client, project, null, modules);
+    LintRequest request = new IntellijLintRequest(client, project, null, modules, false);
     EnumSet<Scope> scope = EnumSet.allOf(Scope.class);
     scope.remove(Scope.CLASS_FILE);
     scope.remove(Scope.ALL_CLASS_FILES);
