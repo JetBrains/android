@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
-import com.android.tools.idea.gradle.project.ProjectStructureSanitizer;
+import com.android.tools.idea.gradle.project.PostProjectSyncTasksExecutor;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -132,7 +132,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
       }
     });
 
-    ProjectStructureSanitizer.getInstance(project).cleanUp();
+    PostProjectSyncTasksExecutor.getInstance(project).onProjectSetupCompletion();
   }
 
   @NotNull
