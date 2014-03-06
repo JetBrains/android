@@ -41,6 +41,7 @@ public class GutterIconCache {
   // TODO: Timestamps?
   private Map<String,Icon> myThumbnailCache = Maps.newHashMap();
   private boolean myRetina;
+  private static boolean ourRetinaEnabled = true;
 
   public GutterIconCache() {
   }
@@ -78,15 +79,28 @@ public class GutterIconCache {
       if (image != null) {
         int imageWidth = image.getWidth();
         int imageHeight = image.getHeight();
-        if (UIUtil.isRetina()) {
+        if (ourRetinaEnabled && UIUtil.isRetina()) {
           BufferedImage scaled = image;
           if (imageWidth > 2 * MAX_WIDTH || imageHeight > 2 * MAX_HEIGHT) {
             double scale = 2 * Math.min(MAX_WIDTH / (double)imageWidth, MAX_HEIGHT / (double)imageHeight);
             scaled = ImageUtils.scale(image, scale, scale);
           }
-          @SuppressWarnings("ConstantConditions")
-          Image hdpiImage = RetinaImage.createFrom(scaled, 2, null);
-          return new RetinaImageIcon(hdpiImage);
+
+          // The Retina image uses a scale of 2, and the RetinaImage class creates an
+          // image of size w/scale, h/scale. If the width or height is less than the scale,
+          // this rounds to width or height 0, which will cause exceptions to be thrown.
+          // Don't attempt to create a Retina image for images like that. See issue 65676.
+          final int scale = 2;
+          if (scaled.getWidth() >= scale && scaled.getHeight() >= scale) {
+            try {
+              @SuppressWarnings("ConstantConditions")
+              Image hdpiImage = RetinaImage.createFrom(scaled, scale, null);
+              return new RetinaImageIcon(hdpiImage);
+            } catch (Throwable t) {
+              // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
+              ourRetinaEnabled = false;
+            }
+          }
         }
 
         if (imageWidth > MAX_WIDTH || imageHeight > MAX_HEIGHT) {
