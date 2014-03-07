@@ -33,14 +33,14 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 /**
- * Notifies users that a Gradle project "import" (or "sync") is either being in progress or failed.
+ * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
-public class ProjectImportStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
   @NotNull private final Project myProject;
 
-  public ProjectImportStatusNotificationProvider(@NotNull Project project) {
+  public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
     myProject = project;
   }
 
@@ -63,7 +63,7 @@ public class ProjectImportStatusNotificationProvider extends EditorNotifications
 
   private static class ProjectImportInProgressNotificationPanel extends EditorNotificationPanel {
     ProjectImportInProgressNotificationPanel() {
-      setText("Gradle project import in progress.");
+      setText("Gradle project sync in progress.");
     }
   }
 

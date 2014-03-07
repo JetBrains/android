@@ -92,13 +92,16 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         LanguageLevel javaLangVersion = null;
 
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
-        for (Module module : ModuleManager.getInstance(project).getModules()) {
+
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        for (Module module : moduleManager.getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
           if (androidProject != null && javaLangVersion == null) {
             javaLangVersion = androidProject.getJavaLanguageLevel();
           }
         }
+
         Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
 
         if (jdk == null || !Jdks.isApplicableJdk(jdk)) {
@@ -110,7 +113,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
             LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
             String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
-            msg += "After configuring a suitable JDK in the Project Structure dia log, sync the Gradle project again.";
+            msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
             notification.showNotification(title, msg, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
           }
         }

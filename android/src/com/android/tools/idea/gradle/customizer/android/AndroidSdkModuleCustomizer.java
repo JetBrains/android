@@ -72,7 +72,7 @@ public class AndroidSdkModuleCustomizer implements AndroidModuleCustomizer {
       String format = "Unable to set the Android SDK at '%1$s', with compile target '%2$s', to module '%3$s'";
       String msg = String.format(format, androidHome, compileTarget, module.getName());
       LOG.error(msg);
-      msg += ".\n\nPlease set the Android SDK manually via the \"Project Settings\" dialog.";
+      msg += ".\n\nPlease set the Android SDK manually via the \"Project Structure\" dialog.";
       showErrorDialog(msg);
     }
   }
