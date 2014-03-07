@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.GradleImportNotificationListener;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -63,7 +63,11 @@ public class SyncProjectAction extends AnAction {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }
-    boolean enabled = !GradleImportNotificationListener.isProjectImportInProgress();
+    boolean enabled = false;
+    Project project = e.getProject();
+    if (project != null) {
+      enabled = !GradleSyncState.getInstance(project).isSyncInProgress();
+    }
     e.getPresentation().setEnabled(enabled);
   }
 }

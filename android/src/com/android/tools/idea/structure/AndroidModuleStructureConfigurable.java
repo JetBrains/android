@@ -17,10 +17,10 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.actions.AndroidNewModuleAction;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -252,7 +252,7 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
         getInstance(project).select(moduleToSelect, editorToSelect, true);
       }
     });
-    if (Projects.isGradleSyncNeeded(project, timeInMillis)) {
+    if (GradleSyncState.getInstance(project).isSyncNeeded(timeInMillis)) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
