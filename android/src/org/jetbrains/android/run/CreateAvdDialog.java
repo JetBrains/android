@@ -70,7 +70,7 @@ public class CreateAvdDialog extends DialogWrapper {
   private JSpinner mySdCardSizeSpinner;
   private JComboBox mySdCardSizeUnitCombo;
   private TextFieldWithBrowseButton mySdCardFileTextField;
-  private JComboBox myAbiCombo;
+  private JComboBox myTagAbiCombo;
   private final AvdManager myAvdManager;
   private AvdInfo myCreatedAvd;
 
@@ -202,9 +202,9 @@ public class CreateAvdDialog extends DialogWrapper {
         setText(AndroidSdkUtils.getPresentableTargetName(value));
       }
     });
-    myAbiCombo.setRenderer(new ListCellRendererWrapper<String>() {
+    myTagAbiCombo.setRenderer(new ListCellRendererWrapper<ISystemImage>() {
       @Override
-      public void customize(JList list, String value, int index, boolean selected, boolean hasFocus) {
+      public void customize(JList list, ISystemImage value, int index, boolean selected, boolean hasFocus) {
         if (value != null) {
           setText(AvdInfo.getPrettyAbiType(value));
         }
@@ -276,15 +276,10 @@ public class CreateAvdDialog extends DialogWrapper {
     final IAndroidTarget selectedTarget = (IAndroidTarget)myTargetBox.getSelectedItem();
     if (selectedTarget != null) {
       final ISystemImage[] systemImages = getSystemImages(selectedTarget);
-      final String[] abis = new String[systemImages.length];
-      
-      for (int i = 0; i < abis.length; i++) {
-        abis[i] = systemImages[i].getAbiType();
-      }
-      
-      myAbiCombo.setModel(new DefaultComboBoxModel(abis));
-      if (abis.length == 0) {
-        LOG.warn("Abis not found for target " + selectedTarget.hashString());
+
+      myTagAbiCombo.setModel(new DefaultComboBoxModel(systemImages));
+      if (systemImages.length == 0) {
+        LOG.warn("Tag/ABIs not found for target " + selectedTarget.hashString());
       }
     }
   }
@@ -365,10 +360,12 @@ public class CreateAvdDialog extends DialogWrapper {
     super.doOKAction();
     IAndroidTarget selectedTarget = (IAndroidTarget)myTargetBox.getSelectedItem();
     String skin = (String)mySkinField.getSelectedItem();
-    String abi = (String)myAbiCombo.getSelectedItem();
+    ISystemImage sysImg = (ISystemImage)myTagAbiCombo.getSelectedItem();
     String sdCard = getSdCardParameter();
     MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-    myCreatedAvd = myAvdManager.createAvd(avdFolder, avdName, selectedTarget, abi, skin, sdCard, null, true, false, false, log);
+    myCreatedAvd = myAvdManager.createAvd(avdFolder, avdName, selectedTarget,
+                                          sysImg.getTag(), sysImg.getAbiType(),
+                                          skin, sdCard, null, true, false, false, log);
     if (log.getErrorMessage().length() > 0) {
       Messages.showErrorDialog(myProject, log.getErrorMessage(), AndroidBundle.message("android.avd.error.title"));
     }
