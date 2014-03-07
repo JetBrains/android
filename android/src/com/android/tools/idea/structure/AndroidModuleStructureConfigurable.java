@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -98,7 +99,9 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
       MyNode parentNode = myRoot;
       List<String> segments = GradleUtil.getPathSegments(path);
       if (segments.isEmpty()) {
-        continue;
+        // This must be a single-module project with a settings.gradle file that includes ':'. Create a single empty-named module so we
+        // can edit the build.gradle file for it.
+        segments = Lists.newArrayList("");
       }
       String moduleName = segments.remove(segments.size() - 1);
       for (String segment : segments) {
