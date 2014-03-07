@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -55,7 +56,85 @@ public class GradleUtilTest extends TestCase {
       fileInputStream = new FileInputStream(wrapper);
       properties.load(fileInputStream);
       String distributionUrl = properties.getProperty("distributionUrl");
-      assertEquals("http://services.gradle.org/distributions/gradle-1.6-bin.zip", distributionUrl);
+      assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
+    }
+    finally {
+      Closeables.closeQuietly(fileInputStream);
+    }
+  }
+
+  public void testLeaveGradleWrapperAloneBin() throws IOException {
+    // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
+    myTempDir = Files.createTempDir();
+    File wrapper = new File(myTempDir, "gradle-wrapper.properties");
+    Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
+                "distributionBase=GRADLE_USER_HOME\n" +
+                "distributionPath=wrapper/dists\n" +
+                "zipStoreBase=GRADLE_USER_HOME\n" +
+                "zipStorePath=wrapper/dists\n" +
+                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+    GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
+
+    Properties properties = new Properties();
+    FileInputStream fileInputStream = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      fileInputStream = new FileInputStream(wrapper);
+      properties.load(fileInputStream);
+      String distributionUrl = properties.getProperty("distributionUrl");
+      assertEquals("http://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
+    }
+    finally {
+      Closeables.closeQuietly(fileInputStream);
+    }
+  }
+
+  public void testLeaveGradleWrapperAloneAll() throws IOException {
+    // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
+    myTempDir = Files.createTempDir();
+    File wrapper = new File(myTempDir, "gradle-wrapper.properties");
+    Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
+                "distributionBase=GRADLE_USER_HOME\n" +
+                "distributionPath=wrapper/dists\n" +
+                "zipStoreBase=GRADLE_USER_HOME\n" +
+                "zipStorePath=wrapper/dists\n" +
+                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
+    GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
+
+    Properties properties = new Properties();
+    FileInputStream fileInputStream = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      fileInputStream = new FileInputStream(wrapper);
+      properties.load(fileInputStream);
+      String distributionUrl = properties.getProperty("distributionUrl");
+      assertEquals("http://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
+    }
+    finally {
+      Closeables.closeQuietly(fileInputStream);
+    }
+  }
+
+  public void testReplaceGradleWrapper() throws IOException {
+    // Test that when we replace to a new version we use -all.zip
+    myTempDir = Files.createTempDir();
+    File wrapper = new File(myTempDir, "gradle-wrapper.properties");
+    Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
+                "distributionBase=GRADLE_USER_HOME\n" +
+                "distributionPath=wrapper/dists\n" +
+                "zipStoreBase=GRADLE_USER_HOME\n" +
+                "zipStorePath=wrapper/dists\n" +
+                "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
+    GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
+
+    Properties properties = new Properties();
+    FileInputStream fileInputStream = null;
+    try {
+      //noinspection IOResourceOpenedButNotSafelyClosed
+      fileInputStream = new FileInputStream(wrapper);
+      properties.load(fileInputStream);
+      String distributionUrl = properties.getProperty("distributionUrl");
+      assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
     }
     finally {
       Closeables.closeQuietly(fileInputStream);
