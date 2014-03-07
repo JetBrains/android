@@ -50,6 +50,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+import org.jetbrains.plugins.gradle.util.GradleUtil;
 
 import javax.swing.*;
 import java.io.File;
@@ -231,12 +232,25 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   private static void importGradleProject(@NotNull VirtualFile selectedFile) {
-    AddModuleWizard wizard = new AddModuleWizard(null, selectedFile.getPath(), new AndroidGradleProjectImportProvider());
-    if (wizard.getStepCount() > 0 && !wizard.showAndGet()) {
-      return;
-    }
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
     File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir.getPath()));
+
+    // Creating the wizard sets up Gradle settings. Otherwise we get an "already disposed project" error.
+    AddModuleWizard wizard = new AddModuleWizard(null, selectedFile.getPath(), new AndroidGradleProjectImportProvider());
+
+    // If we have Gradle wrapper go ahead and import the project, without showing the "Project Import" wizard.
+    boolean hasGradleWrapper = GradleUtil.isGradleDefaultWrapperFilesExist(projectDirPath.getPath());
+
+    if (!hasGradleWrapper) {
+      // If we don't have a Gradle wrapper, but we have the location of GRADLE_HOME, we import the project without showing the "Project
+      // Import" wizard.
+      String lastUsedGradleHome = GradleUtil.getLastUsedGradleHome();
+
+      if (lastUsedGradleHome.isEmpty() && wizard.getStepCount() > 0 && !wizard.showAndGet()) {
+        return;
+      }
+    }
+
     try {
       GradleProjectImporter.getInstance().importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
         @Override
