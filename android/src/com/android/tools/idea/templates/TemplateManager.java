@@ -297,7 +297,12 @@ public class TemplateManager {
     }
   }
 
-  public static boolean templateRootIsValid(File templateRootFolder) {
-    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper", "gradlew")).exists();
+  public static File getWrapperLocation(@NotNull File templateRootFolder) {
+    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper"));
+
+  }
+
+  public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
+    return new File(getWrapperLocation(templateRootFolder), "gradlew").exists();
   }
 }
