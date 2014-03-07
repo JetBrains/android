@@ -54,6 +54,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.menu.MenuElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
+import org.jetbrains.android.dom.transition.*;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.PreferenceElement;
@@ -71,6 +72,7 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static org.jetbrains.android.dom.transition.TransitionDomUtil.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -627,6 +629,9 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       else if (element instanceof DrawableDomElement || element instanceof ColorDomElement) {
         registerExtensionsForDrawable(facet, tagName, element, callback, skippedAttributes);
       }
+      else if (element instanceof TransitionDomElement) {
+        registerExtensionsForTransition(facet, tagName, (TransitionDomElement)element, callback, registeredSubtags, skippedAttributes);
+      }
       if (!processStaticallyDefinedElements) {
         Collections.addAll(registeredSubtags, AndroidDomUtil.getStaticallyDefinedSubtags(element));
       }
@@ -661,6 +666,39 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
     }
     else if (element instanceof AnimationListItem) {
       registerAttributes(facet, element, "AnimationDrawableItem", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    }
+  }
+
+  public static void registerExtensionsForTransition(final AndroidFacet facet,
+                                                   String tagName,
+                                                   TransitionDomElement element,
+                                                   MyCallback callback,
+                                                   Set<String> registeredSubTags,
+                                                   Set<XmlName> skipAttrNames) {
+    if (tagName.equals(FADE_TAG)) {
+      registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      registerAttributes(facet, element, "Fade", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
+    } else if (tagName.equals(AUTO_TRANSITION_TAG) || tagName.equals(CHANGE_BOUNDS_TAG)) {
+      registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
+    } else if (tagName.equals(TRANSITION_SET_TAG)) {
+      registerAttributes(facet, element, "Transition", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      registerAttributes(facet, element, "TransitionSet", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+      registerSubtags(TARGETS_TAG, Targets.class, callback, registeredSubTags);
+
+      registerSubtags(TRANSITION_SET_TAG, TransitionSet.class, callback, registeredSubTags);
+      registerSubtags(FADE_TAG, Fade.class, callback, registeredSubTags);
+      registerSubtags(AUTO_TRANSITION_TAG, AutoTransition.class, callback, registeredSubTags);
+      registerSubtags(CHANGE_BOUNDS_TAG, ChangeBounds.class, callback, registeredSubTags);
+    } else if (tagName.equals(TRANSITION_MANAGER_TAG)) {
+      registerSubtags(TRANSITION_TAG, TransitionTag.class, callback, registeredSubTags);
+    } else if (tagName.equals(TRANSITION_TAG)) {
+      registerAttributes(facet, element, "TransitionManager", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
+    } else if (tagName.equals(TARGETS_TAG)) {
+      registerSubtags(TARGET_TAG, Target.class, callback, registeredSubTags);
+    } else if (tagName.equals(TARGET_TAG)) {
+      registerAttributes(facet, element, "TransitionTarget", SYSTEM_RESOURCE_PACKAGE, callback, skipAttrNames);
     }
   }
 

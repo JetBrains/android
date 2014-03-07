@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
+import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -75,6 +76,14 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       @Override
       public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
         return AndroidAnimatorUtil.getPossibleChildren();
+      }
+    });
+
+    a.add(new CreateMultiRootResourceFileAction(ResourceType.TRANSITION.getDisplayName(), ResourceFolderType.TRANSITION) {
+      @NotNull
+      @Override
+      public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
+        return TransitionDomUtil.getPossibleRoots();
       }
     });
 
