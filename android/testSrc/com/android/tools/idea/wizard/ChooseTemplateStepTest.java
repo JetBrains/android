@@ -47,6 +47,11 @@ public class ChooseTemplateStepTest extends AndroidTestCase {
       assertContainsElements(templateDirFiles, listItem.getTemplateFile());
     }
 
+    // Check for sorted order
+    for (int i = 1; i < otherList.size(); i++) {
+      assertTrue(otherList.get(i).compareTo(otherList.get(i -1)) >= 0);
+    }
+
     // Now let's exclude one
     Set<String> EXCLUDED = ImmutableSet.of("Notification");
     otherList = ChooseTemplateStep.getTemplateList(state, Template.CATEGORY_OTHER, EXCLUDED);
