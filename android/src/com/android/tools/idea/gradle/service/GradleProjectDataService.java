@@ -76,21 +76,22 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
               // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
               // to delete the orphan module when Studio prompts to do so.
               Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
-            } else {
+            }
+            else {
               customizeModule(module, gradleProject);
             }
 
             // All modules should have a SDK.
             ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
             ModifiableRootModel model = moduleRootManager.getModifiableModel();
-            if (model.getSdk() == null) {
-              Sdk jdk = DefaultSdks.getDefaultJdk();
-              try {
+            try {
+              if (model.getSdk() == null) {
+                Sdk jdk = DefaultSdks.getDefaultJdk();
                 model.setSdk(jdk);
               }
-              finally {
-                model.commit();
-              }
+            }
+            finally {
+              model.commit();
             }
           }
         }
@@ -149,7 +150,8 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     try {
       facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
       model.addFacet(facet);
-    } finally {
+    }
+    finally {
       model.commit();
     }
     return facet;
