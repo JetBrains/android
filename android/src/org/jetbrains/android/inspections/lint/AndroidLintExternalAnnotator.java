@@ -181,7 +181,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         continue;
       }
       final AndroidLintInspectionBase inspection = pair.getFirst();
-      final HighlightDisplayLevel displayLevel = pair.getSecond();
+      HighlightDisplayLevel displayLevel = pair.getSecond();
 
       if (inspection != null) {
         final HighlightDisplayKey key = HighlightDisplayKey.find(inspection.getShortName());
@@ -191,6 +191,13 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
           final PsiElement endElement = file.findElementAt(range.getEndOffset() - 1);
 
           if (startElement != null && endElement != null && !inspection.isSuppressedFor(startElement)) {
+            if (problemData.getConfiguredSeverity() != null) {
+              HighlightDisplayLevel configuredLevel =
+                AndroidLintInspectionBase.toHighlightDisplayLevel(problemData.getConfiguredSeverity());
+              if (configuredLevel != null) {
+                displayLevel = configuredLevel;
+              }
+            }
             final Annotation annotation = createAnnotation(holder, message, range, displayLevel);
 
             for (AndroidLintQuickFix fix : inspection.getQuickFixes(message)) {
