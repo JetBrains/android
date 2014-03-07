@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ComparisonChain;
@@ -150,7 +151,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
 
       if (templateListItem != null) {
         myTemplateState.setTemplateLocation(templateListItem.getTemplateFile());
-        myTemplateState.convertApisToInt();
+        Template.convertApisToInt(myTemplateState.getParameters());
         String thumb = templateListItem.myMetadata.getThumbnailPath();
         if (thumb != null && !thumb.isEmpty()) {
           File file = new File(myTemplateState.myTemplate.getRootPath(), thumb.replace('/', File.separatorChar));
