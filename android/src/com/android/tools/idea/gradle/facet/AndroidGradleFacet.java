@@ -103,6 +103,6 @@ public class AndroidGradleFacet extends Facet<AndroidGradleFacetConfiguration> {
 
   public void setGradleProject(@NotNull IdeaGradleProject gradleProject) {
     myGradleProject = gradleProject;
-    getConfiguration().GRADLE_PROJECT_PATH = myGradleProject.getGradleProjectPath();
+    getConfiguration().GRADLE_PROJECT_PATH = myGradleProject.getGradlePath();
   }
 }
