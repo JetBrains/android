@@ -17,8 +17,10 @@ package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.KeyValue;
@@ -26,6 +28,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.io.File;
 import java.util.List;
 
 import static org.easymock.classextension.EasyMock.*;
@@ -41,6 +44,17 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
   public void setUp() throws Exception {
     super.setUp();
     myJdk = AndroidTestCaseHelper.createAndSetJdk(myProject);
+
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(myProject) {
+      @Override
+      public void execute() {
+        String jdkHome = myJdk.getHomePath();
+        assertNotNull(jdkHome);
+        File jdkHomePath = new File(FileUtil.toSystemDependentName(jdkHome));
+        DefaultSdks.setDefaultJavaHome(jdkHomePath);
+      }
+    });
+
     myParametersProvider = new AndroidGradleBuildProcessParametersProvider(myProject);
   }
 
