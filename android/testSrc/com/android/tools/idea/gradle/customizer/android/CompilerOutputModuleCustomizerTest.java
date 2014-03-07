@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -30,17 +29,17 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 
 /**
- * Tests for {@link com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer}.
+ * Tests for {@link CompilerOutputModuleCustomizer}.
  */
-public class CompilerOutputPathModuleCustomizerTest extends IdeaTestCase {
+public class CompilerOutputModuleCustomizerTest extends IdeaTestCase {
   private AndroidProjectStub androidProject;
-  private CompilerOutputPathModuleCustomizer customizer;
+  private CompilerOutputModuleCustomizer customizer;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     androidProject = TestProjects.createBasicProject();
-    customizer = new CompilerOutputPathModuleCustomizer();
+    customizer = new CompilerOutputModuleCustomizer();
   }
 
   @Override
