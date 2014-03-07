@@ -16,13 +16,11 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.CompilerOutputPathModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.customizer.android.AndroidModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.DependenciesAndroidModuleCustomizer;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -42,8 +40,8 @@ import org.jetbrains.annotations.Nullable;
 class BuildVariantUpdater {
   private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
 
-  private final ModuleCustomizer[] myModuleCustomizers = {
-    new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
+  private final AndroidModuleCustomizer[] myAndroidModuleCustomizers = {
+    new ContentRootModuleCustomizer(), new DependenciesAndroidModuleCustomizer(), new CompilerOutputPathModuleCustomizer()
   };
 
   /**
@@ -93,7 +91,7 @@ class BuildVariantUpdater {
     androidProject.setSelectedVariantName(buildVariantName);
     facet.syncSelectedVariant();
 
-    for (ModuleCustomizer customizer : myModuleCustomizers) {
+    for (AndroidModuleCustomizer customizer : myAndroidModuleCustomizers) {
       customizer.customizeModule(moduleToUpdate, project, androidProject);
     }
 
