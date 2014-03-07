@@ -98,7 +98,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
                type == AndroidDependencyType.ANDROID_LIBRARY_OUTPUT_DIRECTORY ||
                type == AndroidDependencyType.JAVA_MODULE_OUTPUT_DIR;
       }
-    }, false);
+    }, false, false);
 
     if (extension.isPackTestCode()) {
       final File testModuleClassesDir = new ModuleBuildTarget(
@@ -135,7 +135,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     final AndroidPlatform platform = AndroidJpsUtil.getAndroidPlatform(myModule, null, null);
 
     if (platform != null) {
-      for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false)) {
+      for (String jarOrLibDir : AndroidJpsUtil.getExternalLibraries(dataPaths, myModule, platform, false, false, true)) {
         File file = new File(jarOrLibDir);
         File preDexedFile = file;
 
@@ -174,6 +174,7 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
   public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry registry, TargetOutputIndex outputIndex) {
     final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>(
       super.computeDependencies(registry, outputIndex));
+    result.add(new AndroidAarDepsBuildTarget(myModule));
     result.add(new AndroidPreDexBuildTarget(myModule.getProject()));
     return result;
   }
