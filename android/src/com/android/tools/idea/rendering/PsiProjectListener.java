@@ -56,7 +56,7 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
   }
 
   @NotNull
-  private static PsiProjectListener getListener(@NotNull Project project) {
+  public static PsiProjectListener getListener(@NotNull Project project) {
     PsiProjectListener listener = ourListeners.get(project);
     if (listener == null) {
       listener = new PsiProjectListener(project);
