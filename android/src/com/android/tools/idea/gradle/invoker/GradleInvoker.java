@@ -168,10 +168,15 @@ public class GradleInvoker {
       @Override
       public void executionEnded(@NotNull List<String> tasks, int errorCount, int warningCount) {
         Projects.removeBuildDataFrom(myProject);
-        for (GradleTaskExecutionListener listener : original) {
-          if (listener != null) {
-            listener.executionEnded(tasks, errorCount, warningCount);
+        try {
+          for (GradleTaskExecutionListener listener : original) {
+            if (listener != null) {
+              listener.executionEnded(tasks, errorCount, warningCount);
+            }
           }
+        }
+        finally {
+          Projects.syncJavaLangLevel(myProject);
         }
       }
     };
