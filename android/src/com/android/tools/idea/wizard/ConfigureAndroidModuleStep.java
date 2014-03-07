@@ -18,9 +18,10 @@ package com.android.tools.idea.wizard;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkManager;
-import com.android.sdklib.local.LocalPkgInfo;
-import com.android.sdklib.local.LocalSdk;
 import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -561,9 +562,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   public static boolean isJdk7Supported(@Nullable SdkManager sdkManager) {
     if (sdkManager != null) {
-      LocalPkgInfo info = sdkManager.getLocalSdk().getPkgInfo(LocalSdk.PKG_PLATFORM_TOOLS);
-      if (info != null && info.hasFullRevision()) {
-        FullRevision fullRevision = info.getFullRevision();
+      LocalPkgInfo info = sdkManager.getLocalSdk().getPkgInfo(PkgType.PKG_PLATFORM_TOOLS);
+      IPkgDesc d = info == null ? null : info.getDesc();
+      if (d != null && d.hasFullRevision()) {
+        FullRevision fullRevision = d.getFullRevision();
         assert fullRevision != null;
         if (fullRevision.getMajor() >= 19) {
           JavaSdk jdk = JavaSdk.getInstance();
