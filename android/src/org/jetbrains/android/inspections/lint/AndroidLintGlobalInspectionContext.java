@@ -182,7 +182,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    LintRequest request = new IntellijLintRequest(client, project, files, modules);
+    LintRequest request = new IntellijLintRequest(client, project, files, modules, false);
     request.setScope(lintScope);
 
     lint.analyze(request);
