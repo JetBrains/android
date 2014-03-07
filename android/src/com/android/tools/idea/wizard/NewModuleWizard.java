@@ -156,7 +156,7 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
     // We're going to build up our own list of templates here
     // This is a little hacky, we should clean this up later.
     ChooseTemplateStep chooseModuleStep =
-      new ChooseTemplateStep(builder.myWizardState, null, project, AndroidIcons.Wizards.NewModuleSidePanel,
+      new ChooseTemplateStep(builder.myWizardState, null, project, null, AndroidIcons.Wizards.NewModuleSidePanel,
                              builder, listener);
 
     // Get the list of templates to offer, but exclude the NewModule and NewProject template
