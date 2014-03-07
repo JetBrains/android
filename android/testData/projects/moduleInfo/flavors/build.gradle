@@ -1,1 +1,46 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:0.8.+'
+  }
+}
+apply plugin: 'android'
+
+repositories {
+  mavenCentral()
+}
+
+android {
+  compileSdkVersion 18
+  buildToolsVersion "19.0.0"
+
+  defaultConfig {
+    minSdkVersion 9
+    targetSdkVersion 17
+    packageName "from.gradle"
+  }
+
+  buildTypes {
+    debug {
+      packageNameSuffix ".debug"
+      buildConfigField "boolean", "DEBUG2", "false"
+    }
+  }
+
+  productFlavors {
+    pro {
+      packageName "com.example.pro"
+      versionCode 20
+      flavorGroup "version"
+    }
+
+    free {
+      packageName "com.example.free"
+      minSdkVersion 14
+      flavorGroup "version"
+    }
+  }
+}
+
