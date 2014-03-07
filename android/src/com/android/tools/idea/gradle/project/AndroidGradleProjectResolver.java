@@ -53,7 +53,9 @@ import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
 import org.gradle.util.GradleVersion;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
@@ -75,7 +77,9 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSI
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-  public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
+  @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
+
+  @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
     "The project is using an unsupported version of the Android Gradle plug-in";
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
@@ -136,15 +140,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     if (androidProject == null) {
       // This is a Java lib module.
-      JavaModel javaModel = createJavaModelFrom(gradleModule);
+      JavaModel javaModel = createJavaModelFrom(gradleModule, ideModule);
       gradleProject.setJavaModel(javaModel);
     }
   }
 
   @NotNull
-  private JavaModel createJavaModelFrom(@NotNull IdeaModule module) {
-    Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(module);
-    List<? extends IdeaDependency> dependencies = getDependenciesFrom(module);
+  private JavaModel createJavaModelFrom(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(gradleModule);
+    List<? extends IdeaDependency> dependencies = resolvedDependencies(gradleModule, ideModule);
     return new JavaModel(contentRoots, dependencies);
   }
 
@@ -158,14 +162,78 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return Collections.emptyList();
   }
 
+  /**
+   * Returns all the resolved dependencies in the given module. All unresolved dependencies are added to the project {@code DataNode} and
+   * will be reported later on to the user.
+   *
+   * @param gradleModule the owner of the dependencies.
+   * @param ideModule    the module {@code DataNode} (it will ultimately converted into a real IDEA module.
+   * @return the resolved dependencies in the given module.
+   */
   @NotNull
-  private List<? extends IdeaDependency> getDependenciesFrom(@NotNull IdeaModule module) {
-    ProjectDependenciesModel model = resolverCtx.getExtraProject(module, ProjectDependenciesModel.class);
-    List<? extends IdeaDependency> dependencies = model != null ? model.getDependencies() : module.getDependencies().getAll();
-    if (dependencies != null) {
-      return dependencies;
+  private List<? extends IdeaDependency> resolvedDependencies(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    ProjectDependenciesModel model = resolverCtx.getExtraProject(gradleModule, ProjectDependenciesModel.class);
+    List<? extends IdeaDependency> dependencies = model != null ? model.getDependencies() : gradleModule.getDependencies().getAll();
+    if (dependencies == null) {
+      return Collections.emptyList();
     }
-    return Collections.emptyList();
+    List<IdeaDependency> resolved = Lists.newArrayList();
+    Set<String> unresolved = Sets.newHashSet();
+    for (IdeaDependency dependency : dependencies) {
+      if (dependency == null) {
+        continue;
+      }
+      if (dependency instanceof IdeaSingleEntryLibraryDependency) {
+        IdeaSingleEntryLibraryDependency library = (IdeaSingleEntryLibraryDependency)dependency;
+        if (checkIfResolved(library)) {
+          resolved.add(dependency);
+        }
+        else {
+          String dependencyName = getUnresolvedDependencyName(library);
+          if (dependencyName != null) {
+            unresolved.add(dependencyName);
+          }
+        }
+      }
+      else {
+        resolved.add(dependency);
+      }
+    }
+    if (!unresolved.isEmpty()) {
+      DataNode<?> parent = ideModule.getParent();
+      if (parent != null) {
+        Object data = parent.getData();
+        // the following is always going to be true.
+        if (data instanceof ProjectData) {
+          //noinspection unchecked
+          populateUnresolvedDependencies((DataNode<ProjectData>)parent, unresolved);
+        }
+      }
+    }
+    return resolved;
+  }
+
+  private static boolean checkIfResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    File binaryPath = dependency.getFile();
+    if (binaryPath == null) {
+      return false;
+    }
+
+    String libraryName = FileUtil.getNameWithoutExtension(binaryPath);
+    return !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
+  }
+
+  @Nullable
+  private static String getUnresolvedDependencyName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    File binaryPath = dependency.getFile();
+    if (binaryPath == null) {
+      return null;
+    }
+
+    String libraryName = FileUtil.getNameWithoutExtension(binaryPath);
+    // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.
+    // We report the unresolved dependency as 'commons-collections:commons-collections:3.2'
+    return libraryName.substring(UNRESOLVED_DEPENDENCY_PREFIX.length()).replace(' ', ':');
   }
 
   @Override
