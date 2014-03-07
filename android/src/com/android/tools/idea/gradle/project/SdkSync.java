@@ -32,13 +32,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
-final class SdkSync {
+public final class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
 
   private SdkSync() {
   }
 
-  static void syncIdeAndProjectAndroidHomes(@NotNull final LocalProperties localProperties) {
+  public static void syncIdeAndProjectAndroidHomes(@NotNull LocalProperties localProperties) {
     //noinspection TestOnlyProblems
     syncIdeAndProjectAndroidHomes(localProperties, new FindValidSdkPathTask());
   }
