@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 
@@ -115,9 +117,19 @@ public class NewModuleWizard extends TemplateWizard implements ChooseTemplateSte
     if (templateName.equals(LIB_NAME)) {
       myModuleBuilder.myWizardState.put(ATTR_IS_LIBRARY_MODULE, true);
       myModuleBuilder.myWizardState.put(ATTR_IS_LAUNCHER, false);
+      myModuleBuilder.myWizardState.put(ATTR_CREATE_ICONS, false);
+      // Hide the create icons checkbox
+      myModuleBuilder.myWizardState.myHidden.add(ATTR_CREATE_ICONS);
     } else if (templateName.equals(APP_NAME)) {
       myModuleBuilder.myWizardState.put(ATTR_IS_LIBRARY_MODULE, false);
       myModuleBuilder.myWizardState.put(ATTR_IS_LAUNCHER, true);
+      myModuleBuilder.myWizardState.put(ATTR_CREATE_ICONS, true);
+      // Show the create icons checkbox
+      myModuleBuilder.myWizardState.myHidden.remove(ATTR_CREATE_ICONS);
+    }
+    // Let the other elements of the wizard update
+    for (ModuleWizardStep step : mySteps) {
+      step.updateStep();
     }
   }
 
