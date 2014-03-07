@@ -414,7 +414,7 @@ class IntellijLintProject extends Project {
     @NonNull
     public List<File> getManifestFiles() {
       if (mManifestFiles == null) {
-        VirtualFile manifestFile = AndroidRootUtil.getManifestFile(myFacet);
+        VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
         if (manifestFile != null) {
           mManifestFiles = Collections.singletonList(VfsUtilCore.virtualToIoFile(manifestFile));
         } else {
