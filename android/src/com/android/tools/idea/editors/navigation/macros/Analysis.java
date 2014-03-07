@@ -85,14 +85,12 @@ public class Analysis {
               PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
               if (NavigationEditor.DEBUG) System.out.println("statements = " + Arrays.toString(statements));
               for (PsiStatement s : statements) {
-                MultiMatch.Bindings<PsiElement> multiMatchResult = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro.match(s.getFirstChild());
-                if (multiMatchResult != null) {
-                  Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
-                  ActivityState activityState =
-                    activities.get(getQualifiedName(subBindings.get("$f").get("activityClass").getFirstChild()));
+                MultiMatch.Bindings<PsiElement> result = macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro.match(s.getFirstChild());
+                if (result != null) {
+                  ActivityState activityState = activities.get(getQualifiedName(result.get("$f", "activityClass").getFirstChild()));
                   if (activityState != null) {
-                    String menuItemName = subBindings.get("$menuItem").get("$id").getLastChild()
-                      .getText(); // e.g. $id=PsiReferenceExpression:R.id.action_account
+                    // e.g. $id=PsiReferenceExpression:R.id.action_account
+                    String menuItemName = result.get("$menuItem", "$id").getLastChild().getText();
                     addTransition(model, new Transition("click", Locator.of(menuState, menuItemName), new Locator(activityState)));
                   }
                 }
@@ -108,50 +106,23 @@ public class Analysis {
       final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {
-        PsiClass fragmentClass = Utilities.getPsiClass(module, fragment.className);
-        PsiMethod[] methods = getMethodsByName(module, fragment.className, "installListeners");
+        PsiMethod[] methods = getMethodsByName(module, fragment.className, "onViewCreated");
         if (methods.length == 1) {
           PsiMethod installListenersMethod = methods[0];
           PsiStatement[] statements = installListenersMethod.getBody().getStatements();
           for (PsiStatement s : statements) {
-            MultiMatch.Bindings<PsiElement> multiMatchResult = macros.installItemClickAndCallMacro.match(s.getFirstChild());
+            final MultiMatch.Bindings<PsiElement> multiMatchResult = macros.installItemClickAndCallMacro.match(s.getFirstChild());
             if (multiMatchResult != null) {
-              final Map<String, PsiElement> bindings = multiMatchResult.bindings;
-              final Map<String, Map<String, PsiElement>> subBindings = multiMatchResult.subBindings;
-              final PsiElement $target = subBindings.get("$f").get("$target");
-              fragmentClass.accept(new JavaRecursiveElementVisitor() {
+              multiMatchResult.get("$f").accept(new JavaRecursiveElementVisitor() {
                 @Override
-                public void visitAssignmentExpression(PsiAssignmentExpression expression) {
-                  //if (DEBUG) System.out.println("$target = " + $target);
-                  //if (DEBUG) System.out.println("expression = " + expression);
-                  if (expression.getLExpression().getText().equals($target.getText())) {
-                    PsiExpression rExpression = expression.getRExpression();
-                    if (NavigationEditor.DEBUG) System.out.println("expression.getRExpression() = " + rExpression);
-                    Map<String, PsiElement> bindings3 = Unifier.match(macros.defineAssignment, rExpression);
-                    if (bindings3 != null) {
-                      if (NavigationEditor.DEBUG) System.out.println("bindings3 = " + bindings3);
-                      PsiElement fragmentLiteral = bindings3.get("$fragmentName");
-                      if (fragmentLiteral instanceof PsiLiteralExpression) {
-                        String fragmentTag = getInnerText(fragmentLiteral.getText());
-                        FragmentEntry fragment = findFragmentByTag(fragments, fragmentTag);
-                        if (fragment != null) {
-                          addTransition(model, new Transition("click", Locator.of(finalState, null),
-                                                              Locator.of(finalState, fragment.tag))); // e.g. "messageFragment"
-                          return;
-                        }
-                      }
-                    }
-                    MultiMatch.Bindings<PsiElement> multiMatchResult1 = macros.defineInnerClassToLaunchActivityMacro.match(rExpression);
-                    if (multiMatchResult1 != null) {
-                      PsiElement activityClass = multiMatchResult1.subBindings.get("$f").get("activityClass").getFirstChild();
-                      State toState = activities.get(getQualifiedName(activityClass));
-                      if (NavigationEditor.DEBUG) System.out.println("toState = " + toState);
-                      if (toState != null) {
-                        PsiElement $listView = bindings.get("$listView");
-                        String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-                        addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
-                      }
-                    }
+                public void visitNewExpression(PsiNewExpression expression) {
+                  MultiMatch.Bindings<PsiElement> exp = macros.createIntentMacro.match(expression);
+                  PsiElement activityClass = exp.get("activityClass").getFirstChild();
+                  State toState = activities.get(getQualifiedName(activityClass));
+                  if (toState != null) {
+                    PsiElement $listView = multiMatchResult.get("$listView");
+                    String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
+                    addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
                   }
                 }
               });
