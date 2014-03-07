@@ -24,7 +24,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.gradle.AndroidModuleInfo;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

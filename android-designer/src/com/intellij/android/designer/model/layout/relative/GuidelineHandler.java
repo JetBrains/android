@@ -35,7 +35,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.designer.MarginType.*;
-import static com.android.tools.idea.gradle.AndroidModuleInfo.*;
+import static com.android.tools.idea.model.AndroidModuleInfo.*;
 import static com.android.tools.idea.refactoring.rtl.RtlSupportProcessor.RTL_TARGET_SDK_START;
 import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.MAX_MATCH_DISTANCE;
 import static com.intellij.android.designer.model.layout.relative.ConstraintType.ALIGN_BASELINE;
