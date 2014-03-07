@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
@@ -97,7 +97,7 @@ public class GradleProjectImporter {
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
+    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
   private final ImporterDelegate myDelegate;
 

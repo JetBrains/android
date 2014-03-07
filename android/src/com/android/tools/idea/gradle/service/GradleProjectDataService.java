@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.CompilerOutputModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -46,7 +47,7 @@ import java.util.Map;
  */
 public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
   private final List<ModuleCustomizer<JavaModel>> myCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer());
+    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
   @NotNull
   @Override
