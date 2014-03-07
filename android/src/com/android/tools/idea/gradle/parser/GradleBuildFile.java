@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.android.SdkConstants;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -38,7 +39,7 @@ import java.util.List;
  * {@link com.intellij.util.ActionRunner#runInsideWriteAction}.
  */
 public class GradleBuildFile extends GradleGroovyFile {
-  public static final String GRADLE_PLUGIN_CLASSPATH = "com.android.tools.build:gradle:";
+  public static final String GRADLE_PLUGIN_CLASSPATH = SdkConstants.GRADLE_PLUGIN_NAME;
 
   public GradleBuildFile(@NotNull VirtualFile buildFile, @NotNull Project project) {
     super(buildFile, project);
