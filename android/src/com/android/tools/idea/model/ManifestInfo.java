@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.model;
 
-import com.android.annotations.Nullable;
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.base.Charsets;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,9 +54,10 @@ import static com.android.xml.AndroidManifest.*;
  * @see com.android.xml.AndroidManifest
  */
 public class ManifestInfo {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ManifestInfo");
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.model.ManifestInfo");
 
   private final Module myModule;
+  private final boolean myPreferMergedManifest;
   private String myPackage;
   private String myManifestTheme;
   private Map<String, String> myActivityThemes;
@@ -60,22 +70,26 @@ public class ManifestInfo {
   private String myApplicationIcon;
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
+  private Manifest myManifest;
 
-  /**
-   * Key for the per-project non-persistent property storing the {@link ManifestInfo} for
-   * this project
-   */
+  /** Key for the per-module non-persistent property storing the {@link ManifestInfo} for this module. */
   @VisibleForTesting
   final static Key<ManifestInfo> MANIFEST_FINDER = new Key<ManifestInfo>("adt-manifest-info"); //$NON-NLS-1$
+
+  /** Key for the per-module non-persistent property storing the merged {@link ManifestInfo} for this module. */
+  @VisibleForTesting
+  final static Key<ManifestInfo> MERGED_MANIFEST_FINDER = new Key<ManifestInfo>("adt-merged-manifest-info");
 
   /**
    * Constructs an {@link ManifestInfo} for the given module. Don't use this method;
    * use the {@link #get} factory method instead.
    *
    * @param module module to create an {@link ManifestInfo} for
+   * @param preferMergedManifest use the merged manifest if available, fallback to the main manifest otherwise
    */
-  private ManifestInfo(Module module) {
+  private ManifestInfo(Module module, boolean preferMergedManifest) {
     myModule = module;
+    myPreferMergedManifest = preferMergedManifest;
   }
 
   /**
@@ -87,17 +101,33 @@ public class ManifestInfo {
   }
 
   /**
-   * Returns the {@link ManifestInfo} for the given module
+   * Returns the {@link ManifestInfo} for the given module.
    *
    * @param module the module the finder is associated with
    * @return a {@ManifestInfo} for the given module, never null
+   * @deprecated Use {@link #get(com.intellij.openapi.module.Module, boolean)} which is explicit about
+   * whether a merged manifest should be used.
    */
   @NotNull
   public static ManifestInfo get(Module module) {
-    ManifestInfo finder = module.getUserData(MANIFEST_FINDER);
+    return get(module, false);
+  }
+
+  /**
+   * Returns the {@link ManifestInfo} for the given module.
+   *
+   * @param module the module the finder is associated with
+   * @param useMergedManifest if true, the merged manifest is used if available, otherwise the main sourceset's manifest
+   *                          is used
+   * @return a {@ManifestInfo} for the given module
+   */
+  public static ManifestInfo get(Module module, boolean useMergedManifest) {
+    Key<ManifestInfo> key = useMergedManifest ? MERGED_MANIFEST_FINDER : MANIFEST_FINDER;
+
+    ManifestInfo finder = module.getUserData(key);
     if (finder == null) {
-      finder = new ManifestInfo(module);
-      module.putUserData(MANIFEST_FINDER, finder);
+      finder = new ManifestInfo(module, useMergedManifest);
+      module.putUserData(key, finder);
     }
 
     return finder;
@@ -130,11 +160,8 @@ public class ManifestInfo {
       if (facet == null) {
         return;
       }
-      final VirtualFile manifestFile = AndroidRootUtil.getManifestFile(facet);
-      if (manifestFile == null) {
-        return;
-      }
-      myManifestFile = (XmlFile)PsiManager.getInstance(myModule.getProject()).findFile(manifestFile);
+
+      myManifestFile = getManifestFile(facet, myPreferMergedManifest);
       if (myManifestFile == null) {
         return;
       }
@@ -198,10 +225,49 @@ public class ManifestInfo {
         myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, 1);
         myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
       }
+
+      myManifest = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), myManifestFile, Manifest.class);
     }
     catch (Exception e) {
       LOG.error("Could not read Manifest data", e);
     }
+  }
+
+  @Nullable
+  private XmlFile getManifestFile(@NotNull AndroidFacet facet, boolean preferMergedManifest) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    VirtualFile manifestFile = null;
+    boolean usingMergedManifest = true;
+    if (preferMergedManifest) {
+      manifestFile = AndroidRootUtil.getMergedManifestFile(facet);
+    }
+    if (manifestFile == null) {
+      manifestFile = AndroidRootUtil.getManifestFile(facet);
+      usingMergedManifest = false;
+    }
+    if (manifestFile == null) {
+      return null;
+    }
+
+    PsiFile psiFile;
+    if (usingMergedManifest) {
+      // merged manifest is present inside the build folder which is excluded
+      // so we have to manually read its contents and create a PSI file out of its contents
+      try {
+        manifestFile.setCharset(Charsets.UTF_8);
+        String contents = VfsUtilCore.loadText(manifestFile);
+        psiFile = PsiFileFactory.getInstance(myModule.getProject())
+          .createFileFromText(SdkConstants.FN_ANDROID_MANIFEST_XML, XmlFileType.INSTANCE, contents);
+      }
+      catch (IOException e) {
+        psiFile = null;
+      }
+    } else {
+      psiFile = PsiManager.getInstance(myModule.getProject()).findFile(manifestFile);
+    }
+
+    return psiFile instanceof XmlFile ? (XmlFile)psiFile : null;
   }
 
   private int getApiVersion(XmlTag usesSdk, String attribute, int defaultApiLevel) {
@@ -231,6 +297,12 @@ public class ManifestInfo {
     }
 
     return defaultApiLevel;
+  }
+
+  @Nullable
+  public Manifest getManifest() {
+    sync();
+    return myManifest;
   }
 
   /**

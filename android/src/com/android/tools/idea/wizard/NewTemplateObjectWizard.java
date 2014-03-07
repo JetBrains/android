@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.gradle.AndroidModuleInfo;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
