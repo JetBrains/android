@@ -90,7 +90,9 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       String msg = rootCause.getMessage();
 
       // With this condition we cover 2 similar messages about the same problem.
-      if (msg != null && msg.contains("Could not find") && msg.contains("com.android.support:support")) {
+      if (msg != null &&
+          msg.contains("Could not find") &&
+          (msg.contains("com.android.support:support") || msg.contains("com.android.support:appcompat"))) {
         // We keep the original error message and we append a hint about how to fix the missing dependency.
         String newMsg = msg + EMPTY_LINE + INSTALL_ANDROID_SUPPORT_REPO;
         // Location of build.gradle is useless for this error. Omitting it.
