@@ -25,6 +25,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.sdklib.devices.DeviceManager.DEFAULT_DEVICES;
 import static com.android.sdklib.devices.DeviceManager.VENDOR_DEVICES;
@@ -266,26 +266,31 @@ public class ConfigurationManager implements Disposable {
 
     String activity = configuration.getActivity();
     if (activity != null) {
-      Map<String, String> activityThemes = manifest.getActivityThemes();
-      String theme = activityThemes.get(activity);
-      if (theme != null) {
-        return theme;
-      }
-
+      String activityFqcn = activity;
       if (activity.startsWith(".")) {
         AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myModule);
         if (moduleInfo != null) {
-          theme = activityThemes.get(moduleInfo.getPackage() + activity);
-          if (theme != null) {
-            return theme;
-          }
+          activityFqcn = moduleInfo.getPackage() + activity;
         }
+      }
 
-        theme = activityThemes.get(manifest.getPackage() + activity);
+      ActivityAttributes attributes = manifest.getActivityAttributes(activityFqcn);
+      if (attributes != null) {
+        String theme = attributes.getTheme();
         if (theme != null) {
           return theme;
         }
       }
+
+      // Try with the package name from the manifest.
+      attributes = manifest.getActivityAttributes(activity);
+      if (attributes != null) {
+        String theme = attributes.getTheme();
+        if (theme != null) {
+          return theme;
+        }
+      }
+
     }
 
     // Look up the default/fallback theme to use for this project (which
