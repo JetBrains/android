@@ -555,32 +555,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private boolean canRunOnDevice(@NotNull IAndroidTarget projectTarget, @Nullable AndroidVersion deviceVersion) {
-    int minSdkVersion = -1;
-    int maxSdkVersion = -1;
-    final Manifest manifest = getManifest();
-    if (manifest != null) {
-      XmlTag manifestTag = ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
-        @Override
-        public XmlTag compute() {
-          return manifest.getXmlTag();
-        }
-      });
-      if (manifestTag != null) {
-        XmlTag[] tags = manifestTag.findSubTags("uses-sdk");
-        for (XmlTag tag : tags) {
-          int candidate = AndroidUtils.getIntAttrValue(tag, "minSdkVersion");
-          if (candidate >= 0) minSdkVersion = candidate;
-          candidate = AndroidUtils.getIntAttrValue(tag, "maxSdkVersion");
-          if (candidate >= 0) maxSdkVersion = candidate;
-        }
-      }
-    }
-
+    int minSdkVersion = AndroidModuleInfo.get(this).getMinSdkVersion();
     int baseApiLevel = deviceVersion != null ? deviceVersion.getApiLevel() : 1;
     AndroidVersion targetVersion = projectTarget.getVersion();
     if (minSdkVersion < 0) minSdkVersion = targetVersion.getApiLevel();
     if (minSdkVersion > baseApiLevel) return false;
-    if (maxSdkVersion >= 0 && maxSdkVersion < baseApiLevel) return false;
     String codeName = targetVersion.getCodename();
     String baseCodeName = deviceVersion != null ? deviceVersion.getCodename() : null;
     if (codeName != null && !codeName.equals(baseCodeName)) {
