@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
+import com.android.tools.idea.gradle.facet.JavaModel;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
@@ -52,10 +53,12 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.GradleScript;
+import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ProjectDependenciesModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -108,9 +111,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
+
     File buildFile = buildScript.getSourceFile();
     File moduleRootDir = buildFile.getParentFile();
+
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
+
     if (androidProject != null) {
       Variant selectedVariant = getVariantToSelect(androidProject);
       IdeaAndroidProject ideaAndroidProject =
@@ -122,18 +128,34 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     else {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
     }
+
     File gradleSettingsFile = new File(moduleRootDir, SdkConstants.FN_SETTINGS_GRADLE);
     if (gradleSettingsFile.isFile() && androidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
       return;
     }
-    // create Android Facet (for android JPS builder) only if there is at least one Android module exist in the project
-    if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
-      IdeaGradleProject ideaGradleProject =
-        new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
-      ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, ideaGradleProject);
+
+    if (isAndroidGradleProject()) {
+      IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject().getPath());
+      ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
+
+      if (androidProject == null) {
+        // This is a Java lib module.
+        JavaModel javaModel = new JavaModel(getDependenciesFrom(gradleModule));
+        gradleProject.setJavaModel(javaModel);
+      }
     }
+  }
+
+  @NotNull
+  private List<? extends IdeaDependency> getDependenciesFrom(@NotNull IdeaModule module) {
+    ProjectDependenciesModel model = resolverCtx.getExtraProject(module, ProjectDependenciesModel.class);
+    List<? extends IdeaDependency> dependencies = model != null ? model.getDependencies() : module.getDependencies().getAll();
+    if (dependencies != null) {
+      return dependencies;
+    }
+    return Collections.emptyList();
   }
 
   @Override
@@ -155,11 +177,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
       populateUnresolvedDependencies(ideProject, Sets.newHashSet(unresolvedDependencies));
     }
-    else {
-      // We populate dependencies of Java libraries using IdeaModule. For Android modules, DependenciesModuleCustomizer will set up
-      // dependencies.
+    else if (!isAndroidGradleProject()) {
+      // For plain Java projects we let the framework populate dependencies
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
     }
+  }
+
+  // Indicates it is an "Android" project if at least one module has an AndroidProject.
+  private boolean isAndroidGradleProject() {
+    return !resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty();
   }
 
   @NotNull
