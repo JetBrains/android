@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -173,11 +174,11 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
       if (lastLine != null && lastLine.contains(FIX_GRADLE_VERSION)) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-        String gradleVersion = getSupportedGradleVersion(firstLine);
-        NotificationHyperlink fixGradleVersionHyperlink =
-          FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project, gradleVersion);
-        if (fixGradleVersionHyperlink != null) {
-          hyperlinks.add(fixGradleVersionHyperlink);
+        File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+        if (wrapperPropertiesFile != null) {
+          // It is very likely that we need to fix the model version as well. Do everything in one shot.
+          NotificationHyperlink hyperlink = new FixGradleModelVersionHyperlink("Fix Gradle wrapper and re-import project", false);
+          hyperlinks.add(hyperlink);
         }
         hyperlinks.add(new OpenGradleSettingsHyperlink());
         return createNotification(project, msg, hyperlinks);

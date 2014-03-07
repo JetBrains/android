@@ -40,13 +40,22 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_LATEST_VERSIO
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_LATEST_VERSION;
 
 class FixGradleModelVersionHyperlink extends NotificationHyperlink {
+  private final boolean myOpenMigrationGuide;
+
   FixGradleModelVersionHyperlink() {
-    super("fixGradleElements", "Open migration guide, fix plug-in version and re-import project");
+    this("Open migration guide, fix plug-in version and re-import project", true);
+  }
+
+  FixGradleModelVersionHyperlink(@NotNull String text, boolean openMigrationGuide) {
+    super("fixGradleElements", text);
+    myOpenMigrationGuide = openMigrationGuide;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    BrowserUtil.browse("http://tools.android.com/tech-docs/new-build-system/migrating_to_09");
+    if (myOpenMigrationGuide) {
+      BrowserUtil.browse("http://tools.android.com/tech-docs/new-build-system/migrating_to_09");
+    }
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     boolean atLeastOnUpdated = false;
