@@ -12,6 +12,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.persistence.database.DbImplUtil;
 import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
@@ -59,16 +60,22 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private Map<String, List<String>> myDatabaseMap;
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceListener;
 
+  private final AndroidDataSource myTempDataSource;
+
   protected AndroidDataSourcePropertiesDialog(@NotNull AndroidDbManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
 
-    myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
-    myNameField.setLabelText("Data Source Name");
-    myNameField.createComponent();
+    myTempDataSource = dataSource.copy();
 
-    final AndroidDataSource.State state = dataSource.getState();
-    myInternalStorageRadioButton.setSelected(!state.isExternal());
-    myExternalStorageRadioButton.setSelected(state.isExternal());
+    myConfigurationPanel.setBorder(IdeBorderFactory.createEmptyBorder(10, 0, 0, 0));
+    myNameField.setLabelText("Name:");
+    myNameField.createComponent();
+    myNameField.setChangeListener(new Runnable() {
+      @Override
+      public void run() {
+        fireStateChanged();
+      }
+    });
 
     myDeviceComboBox.setRenderer(new DeviceComboBoxRenderer() {
       @Override
@@ -119,24 +126,17 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myPackageNameComboBox.addActionListener(l);
     updateDbCombo();
 
-    final String name = dataSource.getName();
-    myNameField.setText(name != null ? name : "");
-
-    final String packageName = state.getPackageName();
-    myPackageNameComboBox.getEditor().setItem(packageName != null ? packageName : "");
-    final String dbName = state.getDatabaseName();
-    myDataBaseComboBox.getEditor().setItem(dbName != null ? dbName : "");
     myDeviceComboBox.setPreferredSize(new Dimension(300, myDeviceComboBox.getPreferredSize().height));
 
     myExternalStorageRadioButton.addActionListener(l);
     myInternalStorageRadioButton.addActionListener(l);
+  }
 
-    setChangeListener(myNameField);
-    setChangeListener(myPackageNameComboBox);
-    setChangeListener(myDataBaseComboBox);
-    setChangeListener(myDeviceComboBox);
-    setChangeListener(myExternalStorageRadioButton);
-    setChangeListener(myInternalStorageRadioButton);
+  @NotNull
+  @Override
+  public AndroidDataSource getTempDataSource() {
+    saveData(myTempDataSource);
+    return myTempDataSource;
   }
 
   private void addDeviceToComboBoxIfNeeded(@NotNull final IDevice device) {
@@ -214,6 +214,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   }
 
   private void updateDataBases() {
+    if (!myPanel.isShowing()) return;
     final Object selectedItem = myDeviceComboBox.getSelectedItem();
     IDevice selectedDevice = selectedItem instanceof IDevice ? (IDevice)selectedItem : null;
 
@@ -231,12 +232,12 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   }
 
   private void updateDbCombo() {
-    final String selectedPackage = getSelectedPackage();
+    if (!myPanel.isShowing()) return; // comboboxes do weird stuff when loosing focus
+    String selectedPackage = getSelectedPackage();
 
     if (myInternalStorageRadioButton.isSelected()) {
-      final List<String> dbList = myDatabaseMap.get(selectedPackage);
-      myDataBaseComboBox.setModel(new DefaultComboBoxModel(
-        dbList != null ? ArrayUtil.toStringArray(dbList) : ArrayUtil.EMPTY_STRING_ARRAY));
+      List<String> dbList = myDatabaseMap.get(selectedPackage);
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel(ArrayUtil.toStringArray(dbList)));
     }
     else {
       myDataBaseComboBox.setModel(new DefaultComboBoxModel(DEFAULT_EXTERNAL_DB_PATTERNS));
@@ -317,13 +318,12 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     return result;
   }
 
-  @NotNull
   private String getSelectedDeviceId() {
-    final Object item = myDeviceComboBox.getSelectedItem();
+    Object item = myDeviceComboBox.getSelectedItem();
+    if (item == null) return null; // "no devices" case should not throw AE
 
-    if (item instanceof String) {
-      return (String)item;
-    }
+    if (item instanceof String) return (String)item;
+
     assert item instanceof IDevice;
     final String deviceId = AndroidDbUtil.getDeviceId((IDevice)item);
     return deviceId != null ? deviceId : "";
@@ -347,28 +347,40 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     return myPanel;
   }
 
-  @Override
-  public void apply() {
-    myDataSource.setName(myNameField.getText());
-    final AndroidDataSource.State state = myDataSource.getState();
+  public void saveData(@NotNull AndroidDataSource dataSource) {
+    dataSource.setName(getNameValue());
+    AndroidDataSource.State state = dataSource.getState();
     state.setDeviceId(getSelectedDeviceId());
     state.setPackageName(getSelectedPackage());
     state.setDatabaseName(getSelectedDatabase());
     state.setExternal(myExternalStorageRadioButton.isSelected());
-    myDataSource.resetUrl();
+    dataSource.resetUrl();
+  }
 
-    AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
+  @Override
+  public void apply() {
+    saveData(myDataSource);
 
-    setModified(false);
+    boolean canConnect = StringUtil.isNotEmpty(myDataSource.getState().getDeviceId());
+    if (canConnect) {
+      AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
+    }
 
-    if (!isDataSourcePersisted()) {
+    if (isNewDataSource()) {
       myManager.processAddOrRemove(myDataSource, true);
     }
   }
 
   @Override
   public void reset() {
-    setModified(false);
+    AndroidDataSource.State state = myDataSource.getState();
+    myNameField.setText(StringUtil.notNullize(myDataSource.getName()));
+
+    myInternalStorageRadioButton.setSelected(!state.isExternal());
+    myExternalStorageRadioButton.setSelected(state.isExternal());
+
+    myPackageNameComboBox.getEditor().setItem(StringUtil.notNullize(state.getPackageName()));
+    myDataBaseComboBox.getEditor().setItem(StringUtil.notNullize(state.getDatabaseName()));
   }
 
   @Override
@@ -385,16 +397,21 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Nls
   @Override
   public String getDisplayName() {
-    return myNameField.getText();
+    return getNameValue();
+  }
+
+  private String getNameValue() {
+    return myNameField.getText().trim();
   }
 
   @Nullable
   @Override
   public String getHelpTopic() {
-    return null;
+    return null; // todo
   }
 
   private void checkDriverPresence() {
+    assert myEditController != null;
     if (!DbImplUtil.canConnectTo(myDataSource) && myDataSource.getDatabaseDriver() != null) {
       myEditController.showErrorNotification(
         "SQLite driver missing",
@@ -415,5 +432,13 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     else {
       myEditController.showErrorNotification(null);
     }
+  }
+
+  public boolean isModified() {
+    if (isNewDataSource()) return true;
+    AndroidDataSource tempDataSource = getTempDataSource();
+
+    if (!StringUtil.equals(tempDataSource.getName(), myDataSource.getName())) return true;
+    return !tempDataSource.equalConfiguration(myDataSource);
   }
 }
