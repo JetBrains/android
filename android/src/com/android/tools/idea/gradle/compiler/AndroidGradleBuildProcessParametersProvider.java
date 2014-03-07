@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -102,14 +103,15 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     List<String> jvmArgs = Lists.newArrayList();
 
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
-    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_OFFLINE_BUILD_MODE, buildConfiguration.OFFLINE_MODE));
+    //noinspection TestOnlyProblems
+    populateJvmArgs(buildConfiguration, jvmArgs);
 
     GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(myProject);
     assert executionSettings != null;
-
     //noinspection TestOnlyProblems
     populateJvmArgs(executionSettings, jvmArgs);
 
+    // Specify "build action" (generating sources, make, compile Java only, etc.)
     BuildSettings buildSettings = BuildSettings.getInstance(myProject);
     BuildMode buildMode = buildSettings.getBuildMode();
     if (buildMode == null) {
@@ -135,6 +137,21 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     return false;
   }
 
+  @VisibleForTesting
+  static void populateJvmArgs(@NotNull AndroidGradleBuildConfiguration buildConfiguration, @NotNull List<String> jvmArgs) {
+    // Indicate whether build is in "offline" mode.
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_OFFLINE_BUILD_MODE, buildConfiguration.OFFLINE_MODE));
+
+    // Add command-line options.
+    Collection<String> commandLineOptions = buildConfiguration.getCommandLineOptions();
+    jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, commandLineOptions.size()));
+    int optionCount = 0;
+    for (String option : commandLineOptions) {
+      String name = BuildProcessJvmArgs.GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + optionCount;
+      jvmArgs.add(createJvmArg(name, option));
+      optionCount++;
+    }
+  }
 
   @VisibleForTesting
   void populateJvmArgs(@NotNull GradleExecutionSettings executionSettings, @NotNull List<String> jvmArgs) {
@@ -152,7 +169,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
       serviceDirectory = FileUtil.toSystemDependentName(serviceDirectory);
       jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_SERVICE_DIR_PATH, serviceDirectory));
     }
-
 
     File javaHome = DefaultSdks.getDefaultJavaHome();
     if (javaHome != null) {
