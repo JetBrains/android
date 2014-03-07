@@ -87,6 +87,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     scan();
   }
 
+  @NotNull
+  AndroidFacet getFacet() {
+    return myFacet;
+  }
+
   VirtualFile getResourceDir() {
     return myResourceDir;
   }

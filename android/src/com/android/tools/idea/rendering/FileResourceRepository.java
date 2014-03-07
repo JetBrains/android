@@ -81,6 +81,10 @@ public class FileResourceRepository extends LocalResourceRepository {
     return repository;
   }
 
+  public static void reset() {
+    ourCache.clear();
+  }
+
   public File getResourceDirectory() {
     return myFile;
   }

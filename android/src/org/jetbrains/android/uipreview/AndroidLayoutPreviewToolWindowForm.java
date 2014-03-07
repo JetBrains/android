@@ -17,6 +17,7 @@ package org.jetbrains.android.uipreview;
 
 
 import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
 import com.android.tools.idea.rendering.ScalableImage;
@@ -464,6 +465,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
     @Override
     public void actionPerformed(AnActionEvent e) {
+      myFacet.refreshResources();
       Configuration configuration = getConfiguration();
       if (configuration != null) {
         configuration.updated(ConfigurationListener.MASK_RENDERING);
