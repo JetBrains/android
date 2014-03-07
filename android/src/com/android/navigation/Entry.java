@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,14 @@
  */
 package com.android.navigation;
 
-import com.android.annotations.NonNull;
+import com.android.annotations.Property;
 
-public abstract class State {
-  public abstract String getClassName();
+public class Entry<K, V> {
+  public final K key;
+  public final V value;
 
-  public abstract String getXmlResourceName();
-
-  @Deprecated
-  @NonNull
-  public Point getLocation() {
-    return Point.ORIGIN;
+  public Entry(@Property("key") K key, @Property("value") V value) {
+    this.key = key;
+    this.value = value;
   }
-  @Deprecated
-  public void setLocation(@NonNull Point location) {
-  }
-
-  @Override
-  public abstract boolean equals(Object o);
-
-  @Override
-  public abstract int hashCode();
 }

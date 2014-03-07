@@ -65,7 +65,6 @@ public class NavigationEditor implements FileEditor {
   private boolean myDirty;
   private boolean myNotificationsDisabled;
   private final CodeGenerator myCodeGenerator;
-  public static final com.android.navigation.Point UNSET = new com.android.navigation.Point(-1, -1);
   private Analyser myAnalyser;
 
   public NavigationEditor(Project project, VirtualFile file) {
@@ -107,6 +106,9 @@ public class NavigationEditor implements FileEditor {
         panel.add(message, BorderLayout.NORTH);
         panel.add(new JLabel(e.getMessage()), BorderLayout.CENTER);
         myComponent = new JBScrollPane(panel);
+        if (DEBUG) {
+          e.printStackTrace();
+        }
       }
     }
     myCodeGenerator = new CodeGenerator(myNavigationModel, Utilities.getModule(project, file));
@@ -221,19 +223,9 @@ public class NavigationEditor implements FileEditor {
     return myFile.isValid();
   }
 
-  private static <T extends State> void copyLocations(Map<String, T> from, Map<String, T> to) {
-    for (Map.Entry<String, T> toEntry : to.entrySet()) {
-      String toKey = toEntry.getKey();
-      State toState = toEntry.getValue();
-
-      State fromState = from.get(toKey);
-      if (fromState != null) {
-        toState.setLocation(fromState.getLocation());
-      }
-    }
-  }
-
-  private void layoutStatesWithUnsetLocations(Collection<State> states) {
+  private void layoutStatesWithUnsetLocations(NavigationModel navigationModel) {
+    Collection<State> states = navigationModel.getStates();
+    final Map<State, com.android.navigation.Point> stateToLocation = navigationModel.getStateToLocation();
     final Set<State> visited = new HashSet<State>();
     com.android.navigation.Dimension size = myRenderingParams.getDeviceScreenSize();
     com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
@@ -247,8 +239,8 @@ public class NavigationEditor implements FileEditor {
       new Object() {
         public void addChildrenFor(State source) {
           visited.add(source);
-          if (source.getLocation().equals(UNSET)) {
-            source.setLocation(new com.android.navigation.Point(location.x, location.y));
+          if (!stateToLocation.containsKey(source)) {
+            stateToLocation.put(source, new com.android.navigation.Point(location.x, location.y));
           }
           List<State> children = findDestinationsFor(source, visited);
           location.x += gridWidth;
@@ -282,17 +274,10 @@ public class NavigationEditor implements FileEditor {
   @Override
   public void selectNotify() {
     myNotificationsDisabled = true;
-    final Map<String, ActivityState> activities = myNavigationModel.getActivities();
-    final Map<String, MenuState> menus = myNavigationModel.getMenus();
     myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
     myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myRenderingParams.myConfiguration);
-    for(State state: myNavigationModel.getStates()) {
-      state.setLocation(UNSET);
-    }
-    copyLocations(activities, myNavigationModel.getActivities());
-    copyLocations(menus, myNavigationModel.getMenus());
-    layoutStatesWithUnsetLocations(myNavigationModel.getStates());
+    layoutStatesWithUnsetLocations(myNavigationModel);
     myNotificationsDisabled = false;
     //myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
   }
