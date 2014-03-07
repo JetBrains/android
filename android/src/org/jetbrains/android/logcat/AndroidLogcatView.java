@@ -264,6 +264,13 @@ public abstract class AndroidLogcatView implements Disposable {
     final JComboBox editFiltersCombo = new JComboBox();
     myFilterComboBoxModel = new DefaultComboBoxModel();
     editFiltersCombo.setModel(myFilterComboBoxModel);
+    final String configuredFilter = AndroidLogcatFiltersPreferences.
+      getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
+    updateConfiguredFilters(configuredFilter != null && configuredFilter.length() > 0
+                            ? configuredFilter
+                            : NO_FILTERS);
+    // note: the listener is added after the initial call to populate the combo
+    // boxes in the above call to updateConfiguredFilters
     editFiltersCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -295,11 +302,6 @@ public abstract class AndroidLogcatView implements Disposable {
         PropertiesComponent.getInstance().setValue(FILTER_LOGCAT_WHEN_SELECTION_CHANGES, Boolean.FALSE.toString());
       }
     });
-    final String configuredFilter = AndroidLogcatFiltersPreferences.
-      getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
-    updateConfiguredFilters(configuredFilter != null && configuredFilter.length() > 0
-                            ? configuredFilter
-                            : NO_FILTERS);
     panel.add(editFiltersCombo);
 
     final JPanel searchComponent = new JPanel();
@@ -483,7 +485,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private class MyFilterSelectedClientAction extends ToggleAction {
     public MyFilterSelectedClientAction() {
-      super("Only show logcat from selected process",
+      super("Only Show Logcat From Selected Process",
             "",
             AndroidIcons.Ddms.LogcatAutoFilterSelectedPid);
     }
