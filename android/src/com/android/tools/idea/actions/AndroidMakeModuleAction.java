@@ -16,9 +16,12 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.compiler.actions.MakeModuleAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +41,7 @@ public class AndroidMakeModuleAction extends AndroidBuildModuleAction {
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
-    GradleInvoker.getInstance(project).make(dataContext, null, null);
+    Module[] modules = Projects.getModulesToBuildFromSelection(project, dataContext);
+    GradleInvoker.getInstance(project).make(modules, GradleBuilds.TestCompileType.NONE, null);
   }
 }
