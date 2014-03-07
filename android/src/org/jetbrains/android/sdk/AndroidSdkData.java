@@ -138,7 +138,7 @@ public class AndroidSdkData {
     myLocalSdk = localSdk;
     myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_PLATFORM_TOOLS);
     mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_TOOLS);
-    myDeviceManager = DeviceManager.createInstance(localSdk.getPath(), new MessageBuildingSdkLog());
+    myDeviceManager = DeviceManager.createInstance(localSdk.getLocation(), new MessageBuildingSdkLog());
   }
 
   @NotNull
