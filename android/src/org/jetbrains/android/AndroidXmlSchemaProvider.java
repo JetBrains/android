@@ -50,6 +50,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.SdkConstants.*;
+
 /**
  * Created by IntelliJ IDEA.
  * User: Eugene.Kudelevsky
@@ -59,8 +61,6 @@ import java.util.Set;
  */
 public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
   private static final Key<Map<String, CachedValue<XmlFile>>> DESCRIPTORS_MAP_IN_MODULE = Key.create("ANDROID_DESCRIPTORS_MAP_IN_MODULE");
-
-  @NonNls private static final String NAMESPACE_PREFIX = "http://schemas.android.com/apk/res/";
 
   @Override
   public XmlFile getSchema(@NotNull @NonNls String url, @Nullable final Module module, @NotNull PsiFile baseFile) {
@@ -148,11 +148,14 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   @Override
   public String getDefaultPrefix(@NotNull @NonNls String namespace, @NotNull XmlFile context) {
-    if (SdkConstants.NS_RESOURCES.equals(namespace)) {
-      return "android";
+    if (ANDROID_URI.equals(namespace)) {
+      return ANDROID_NS_NAME;
     }
-    else if (namespace.startsWith(AndroidDomExtender.ANDROID_NS_PREFIX)) {
-      return "app";
+    else if (namespace.equals(TOOLS_URI)) {
+      return TOOLS_PREFIX;
+    }
+    else if (namespace.equals(AUTO_URI) || namespace.startsWith(URI_PREFIX)) {
+      return APP_PREFIX;
     }
     return null;
   }
@@ -172,7 +175,7 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
         }
       });
       if (aPackage != null && aPackage.length() != 0) {
-        return NAMESPACE_PREFIX + aPackage;
+        return SdkConstants.URI_PREFIX + aPackage;
       }
     }
     return null;
