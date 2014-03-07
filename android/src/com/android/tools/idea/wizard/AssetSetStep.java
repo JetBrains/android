@@ -63,7 +63,7 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   private static final int CLIPART_ICON_SIZE = 32;
   private static final int CLIPART_DIALOG_BORDER = 10;
   private static final int DIALOG_HEADER = 20;
-  private static final String ATTR_ICON_RESOURCE = "icon_resource";
+  public static final String ATTR_ICON_RESOURCE = "icon_resource";
 
   private static final String V11 = "V11";
   private static final String V9 = "V9";

@@ -110,7 +110,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
       myWizardState.myHidden.add(ATTR_MODULE_NAME);
     }
 
-    myWizardState.convertApisToInt();
+    Template.convertApisToInt(myWizardState.getParameters());
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, sidePanelIcon, this);
     myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, null, sidePanelIcon, this);
