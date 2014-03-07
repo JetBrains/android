@@ -17,6 +17,8 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
@@ -30,6 +32,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -239,9 +242,15 @@ public class Parameter {
 
   @Nullable
   public String validate(@Nullable Project project, @Nullable String packageName, @Nullable Object value) {
+    return validate(project, null, packageName, value);
+  }
+
+  @Nullable
+  public String validate(@Nullable Project project, @Nullable Module module,
+                         @Nullable String packageName, @Nullable Object value) {
     switch (type) {
       case STRING:
-        return getErrorMessageForStringType(project, packageName, value.toString());
+        return getErrorMessageForStringType(project, module, packageName, value.toString());
       case BOOLEAN:
       case ENUM:
       case SEPARATOR:
@@ -258,8 +267,9 @@ public class Parameter {
    * @return An error message detailing why the given value is invalid.
    */
   @Nullable
-  protected String getErrorMessageForStringType(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
-    Collection<Constraint> violations = validateStringType(project, packageName, value);
+  protected String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module,
+                                                @Nullable String packageName, @Nullable String value) {
+    Collection<Constraint> violations = validateStringType(project, module, packageName, value);
 
     if (violations.contains(Constraint.NONEMPTY)) {
       return "Please specify " + name;
@@ -323,7 +333,12 @@ public class Parameter {
    * @return All constraints of this parameter that are violated by the proposed value.
    */
   @NotNull
-  protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
+  protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable Module module,
+                                                      @Nullable String packageName, @Nullable String value) {
+    GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleScope(module) :
+                                    project != null ? GlobalSearchScope.projectScope(project) :
+                                    GlobalSearchScope.EMPTY_SCOPE;
+
     Set<Constraint> violations = Sets.newHashSet();
     if (value == null || value.isEmpty()) {
       if (constraints.contains(Constraint.NONEMPTY)) {
@@ -339,9 +354,8 @@ public class Parameter {
         violations.add(Constraint.ACTIVITY);
       }
       if (project != null) {
-        PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(fqName, GlobalSearchScope.projectScope(project));
-        PsiClass activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY,
-                                                                              GlobalSearchScope.allScope(project));
+        PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope);
+        PsiClass activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, searchScope);
         exists = aClass != null && activityClass != null && aClass.isInheritor(activityClass, true);
       }
     }
@@ -353,7 +367,7 @@ public class Parameter {
         violations.add(Constraint.CLASS);
       }
       if (project != null) {
-        exists = JavaPsiFacade.getInstance(project).findClass(fqName, GlobalSearchScope.projectScope(project)) != null;
+        exists = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope) != null;
       }
     }
     if (constraints.contains(Constraint.PACKAGE)) {
@@ -384,14 +398,14 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.LAYOUT);
       }
-      exists = existsResourceFile(project, SdkConstants.FD_RES_LAYOUT, value + SdkConstants.DOT_XML);
+      exists = existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.DRAWABLE);
       }
-      exists = existsResourceFile(project, "drawable", value + ".xml");
+      exists = existsResourceFile(module, ResourceType.DRAWABLE, value);
     }
     if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
@@ -415,35 +429,24 @@ public class Parameter {
   /**
    * Returns true if the given stringType is non-unique when it should be.
    */
-  public boolean uniquenessSatisfied(@Nullable Project project, @Nullable String packageName, @Nullable String value) {
-    return !validateStringType(project, packageName, value).contains(Constraint.UNIQUE);
+  public boolean uniquenessSatisfied(@Nullable Project project, @Nullable Module module,
+                                     @Nullable String packageName, @Nullable String value) {
+    return !validateStringType(project, module, packageName, value).contains(Constraint.UNIQUE);
   }
 
   private static boolean isValidFullyQualifiedJavaIdentifier(String value) {
     return AndroidUtils.isValidJavaPackageName(value) && value.indexOf('.') != -1;
   }
 
-  public static boolean existsResourceFile(@Nullable Project project, @NotNull String resourceType, @Nullable String name) {
-    if (name == null || name.isEmpty() || project == null) {
-      return false;
-    }
-    for (PsiFile file : FilenameIndex.getFilesByName(project, name, GlobalSearchScope.projectScope(project))) {
-      PsiDirectory containingDirectory = file.getContainingDirectory();
-      if (containingDirectory != null && containingDirectory.getName().startsWith(resourceType)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public static boolean existsResourceFile(@Nullable Module module, @NotNull String resourceType, @Nullable String name) {
+  public static boolean existsResourceFile(@Nullable Module module, @NotNull ResourceType resourceType, @Nullable String name) {
     if (name == null || name.isEmpty() || module == null) {
       return false;
     }
-    for (PsiFile file : FilenameIndex.getFilesByName(module.getProject(), name, GlobalSearchScope.moduleScope(module))) {
-      PsiDirectory containingDirectory = file.getContainingDirectory();
-      if (containingDirectory != null && containingDirectory.getName().startsWith(resourceType)) {
-        return true;
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      AppResourceRepository repository = facet.getAppResources(true);
+      if (repository != null) {
+        return repository.hasResourceItem(resourceType, name);
       }
     }
     return false;
