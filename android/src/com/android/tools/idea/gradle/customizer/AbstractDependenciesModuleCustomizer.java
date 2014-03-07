@@ -157,7 +157,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
   }
 
   @NotNull
-  private static String pathToUrl(@NotNull String path) {
+  public static String pathToUrl(@NotNull String path) {
     File file = new File(path);
 
     boolean isJarFile = FileUtilRt.extensionEquals(file.getName(), SdkConstants.EXT_JAR);
