@@ -61,7 +61,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
   public AndroidProjectDataService() {
     //noinspection TestOnlyProblems
     this(ImmutableList.of(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
-                          new RunConfigModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer()));
+                          new RunConfigModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer()));
   }
 
   @VisibleForTesting
