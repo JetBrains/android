@@ -456,7 +456,7 @@ public class AndroidResourceUtil {
 
   @Nullable
   public static String getDefaultResourceFileName(@NotNull ResourceType type) {
-    if (ResourceType.PLURALS == type) {
+    if (ResourceType.PLURALS == type || ResourceType.STRING == type) {
       return "strings.xml";
     }
     if (VALUE_RESOURCE_TYPES.contains(type)) {
