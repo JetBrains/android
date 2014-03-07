@@ -25,8 +25,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.search.searches.OverridingMethodsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.Processor;
+import com.intellij.util.Query;
+import com.intellij.util.xml.ModuleContentRootSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -88,8 +92,8 @@ public class Analysis {
              "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }",
              new Statement() {
                @Override
-               public void apply(MultiMatch.Bindings<PsiElement> exp) {
-                 final MenuState menu = menus.get(exp.get("id").getLastChild().getText());
+               public void apply(MultiMatch.Bindings<PsiElement> args) {
+                 final MenuState menu = menus.get(args.get("id").getLastChild().getText());
                  addTransition(model, new Transition("click", new Locator(finalState), new Locator(menu)));
 
                  // Search for menu item bindings
@@ -98,11 +102,11 @@ public class Analysis {
                         macros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
                         new Statement() {
                           @Override
-                          public void apply(MultiMatch.Bindings<PsiElement> exp) {
-                            ActivityState activityState = activities.get(getQualifiedName(exp.get("$f", "activityClass").getFirstChild()));
+                          public void apply(MultiMatch.Bindings<PsiElement> args) {
+                            ActivityState activityState = activities.get(getQualifiedName(args.get("$f", "activityClass").getFirstChild()));
                             if (activityState != null) {
                               // e.g. $id=PsiReferenceExpression:R.id.action_account
-                              String menuItemName = exp.get("$menuItem", "$id").getLastChild().getText();
+                              String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
                               addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
                             }
                           }
@@ -113,7 +117,7 @@ public class Analysis {
 
       // Examine fragments associated with this activity
       String xmlFileName = NavigationView.getXMLFileName(module, state);
-      XmlFile psiFile = (XmlFile)NavigationView.getPsiFile(false, xmlFileName, file, project);
+      XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, file, project);
       final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {
@@ -128,24 +132,60 @@ public class Analysis {
                macros.installItemClickAndCallMacro,
                new Statement() {
                  @Override
-                 public void apply(MultiMatch.Bindings<PsiElement> itemClickMatch) {
-                   PsiElement $listView = itemClickMatch.get("$listView");
+                 public void apply(MultiMatch.Bindings<PsiElement> args) {
+                   PsiElement $listView = args.get("$listView");
                    final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-                   search(itemClickMatch.get("$f"), macros.createIntent, new Statement() {
-                     @Override
-                     public void apply(MultiMatch.Bindings<PsiElement> createIntentMatch) {
-                       PsiElement activityClass = createIntentMatch.get("activityClass").getFirstChild();
-                       State toState = activities.get(getQualifiedName(activityClass));
-                       if (toState != null) {
-                         addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
-                       }
-                     }
-                   });
+                   searchForCallExpression(args.get("$f"), macros.createIntent, createProcessor(viewName, activities, model, finalState));
                  }
                });
+        PsiClassType superType = fragmentClass.getSuperTypes()[0];
+        if (superType.getClassName().equals("ListFragment")) {
+          search(fragmentClass,
+                 "public void onListItemClick(ListView listView, View view, int position, long id)",
+                 "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
+                 new Statement() {
+                   @Override
+                   public void apply(MultiMatch.Bindings<PsiElement> args) {
+                     PsiElement exp = args.get("f");
+                     if (exp instanceof PsiMethodCallExpression) {
+                       PsiMethodCallExpression call = (PsiMethodCallExpression)exp;
+                       if (call.getFirstChild().getFirstChild().getText().equals("super")) {
+                         return;
+                       }
+                       PsiMethod resolvedMethod = call.resolveMethod();
+                       Query<PsiMethod> overridingMethods = OverridingMethodsSearch.search(resolvedMethod, new ModuleContentRootSearchScope(module), true);
+                       overridingMethods.forEach(new Processor<PsiMethod>() {
+                         @Override
+                         public boolean process(PsiMethod implementation) {
+                           searchForCallExpression(implementation.getBody(),
+                                                   macros.createIntent,
+                                                   createProcessor(/*"listView"*/null, activities, model, finalState));
+                           return true;
+                         }
+                       });
+                     }
+                   }
+                 });
+        }
       }
     }
     return model;
+  }
+
+  private static Statement createProcessor(final String viewName,
+                                           final Map<String, ActivityState> activities,
+                                           final NavigationModel model,
+                                           final ActivityState finalState) {
+    return new Statement() {
+      @Override
+      public void apply(MultiMatch.Bindings<PsiElement> args) {
+        PsiElement activityClass = args.get("activityClass").getFirstChild();
+        State toState = activities.get(getQualifiedName(activityClass));
+        if (toState != null) {
+          addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
+        }
+      }
+    };
   }
 
   private static List<FragmentEntry> getFragmentEntries(@NotNull XmlFile psiFile) {
@@ -228,7 +268,7 @@ public class Analysis {
     public abstract void apply(MultiMatch.Bindings<PsiElement> exp);
   }
 
-  public static void search(@Nullable PsiElement element, final MultiMatch matcher, final Statement statement) {
+  public static void searchForCallExpression(@Nullable PsiElement element, final MultiMatch matcher, final Statement statement) {
     if (element != null) {
       element.accept(new JavaRecursiveElementVisitor() {
         @Override
@@ -242,9 +282,10 @@ public class Analysis {
       });
     }
   }
+
   public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
     final List<MultiMatch.Bindings<PsiElement>> results = new ArrayList<MultiMatch.Bindings<PsiElement>>();
-    search(element, matcher, new Statement() {
+    searchForCallExpression(element, matcher, new Statement() {
       @Override
       public void apply(MultiMatch.Bindings<PsiElement> exp) {
         results.add(exp);
@@ -258,7 +299,7 @@ public class Analysis {
     if (method == null) {
       return;
     }
-    search(method.getBody(), matcher, statement);
+    searchForCallExpression(method.getBody(), matcher, statement);
   }
 
   private static void search(PsiClass clazz, String methodSignature, String matchMacro, Statement statement) {
