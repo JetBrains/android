@@ -118,4 +118,12 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
     }
     return null;
   }
+
+  @Override
+  protected void updateStep() {
+    if (!mySteps.isEmpty()) {
+      getCurrentStepObject().updateStep();
+    }
+    super.updateStep();
+  }
 }

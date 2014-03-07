@@ -61,6 +61,7 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
     return PsiClassImplUtil.isFieldEquivalentTo(this, another);
   }
 
+  @Override
   public PsiElement getParent() {
     return myContext;
   }
@@ -158,14 +159,6 @@ class AndroidLightField extends LightElement implements PsiField, PsiVariableEx,
   @Override
   public PsiIdentifier getNameIdentifier() {
     return new LightIdentifier(getManager(), myName);
-  }
-
-  // THIS METHOD IS HERE TEMPORARILY. OUR EAP IDEA/132.1045 MERGE DOES NOT YET CONTAIN
-  // THE DEPRECATION CL, BUT OUR ANDROID PLUGIN PULL ACCIDENTALLY DID.
-  // Should be removed to re-apply 9d74c70015b9a4c95aaf7533314417f319cac662
-  @Override
-  public PsiType getTypeNoResolve() {
-    return getType();
   }
 
   @Override
