@@ -128,7 +128,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-      if (facet != null) {
+      if (facet != null && !facet.isGradleProject()) {
         final String updatePropertyFiles = facet.getProperties().UPDATE_PROPERTY_FILES;
         final boolean ask = updatePropertyFiles.isEmpty();
 
