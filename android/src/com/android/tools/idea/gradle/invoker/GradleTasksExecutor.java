@@ -358,7 +358,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
   private List<GradleMessage> handleBuildException(BuildException e, String stdErr) {
-    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr, false);
+    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
       for (GradleMessage msg : compilerMessages) {
         addMessage(msg, null);
