@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +55,15 @@ public class Analyser {
   @Nullable
   private static String qualifyClassNameIfNecessary(String packageName, String className) {
     return (className == null) ? null : !className.contains(".") ? (packageName + "." + className) : className;
+  }
+
+  @Nullable
+  public static String unQuote(String s) {
+    if (s.startsWith("\"") && s.endsWith("\"")) {
+      return s.substring(1, s.length() - 1);
+    }
+    assert false;
+    return null;
   }
 
   private static Set<String> qualifyClassNames(Set<String> classNames, String packageName) {
@@ -155,21 +165,23 @@ public class Analyser {
     return result;
   }
 
-  public static abstract class StaticEvaluator {
-    public static final StaticEvaluator TRUE_OR_FALSE = new StaticEvaluator() {
+  public static abstract class Evaluator {
+    public static final Evaluator TRUE_OR_FALSE = new Evaluator() {
       @Nullable
       @Override
-      public Boolean evaluate(@Nullable PsiExpression expression) {
+      public Object evaluate(@Nullable PsiExpression expression) {
         return null;
       }
     };
 
-    public abstract Boolean evaluate(@Nullable PsiExpression expression);
+    public abstract Object evaluate(@Nullable PsiExpression expression);
   }
 
-  public Map<PsiVariable, PsiExpression> searchForVariableAssignments(@Nullable PsiElement element, final StaticEvaluator evaluator) {
-    final Map<PsiVariable, PsiExpression> result = new HashMap<PsiVariable, PsiExpression>();
-    search(element,
+  public <T extends PsiVariable> Map<T, Object> searchForVariableAssignments(@Nullable PsiElement input,
+                                                                             final Class<T> variableType,
+                                                                             final Evaluator evaluator) {
+    final Map<T, Object> result = new HashMap<T, Object>();
+    search(input,
            evaluator,
            myMacros.createMacro("void assign(Object $lhs, Object $rhs) { $lhs = $rhs; }"),
            new Statement() {
@@ -179,9 +191,9 @@ public class Analyser {
                PsiElement rExpression = exp.get("$rhs");
                if (lExpression instanceof PsiReferenceExpression && rExpression instanceof PsiExpression) {
                  PsiReferenceExpression ref = (PsiReferenceExpression)lExpression;
-                 PsiElement resolve = ref.resolve();
-                 if (resolve instanceof PsiVariable) {
-                   result.put((PsiVariable)resolve, (PsiExpression)rExpression);
+                 PsiElement resolvedValue = ref.resolve();
+                 if (variableType.isInstance(resolvedValue)) {
+                   result.put((T)resolvedValue, evaluator.evaluate((PsiExpression)rExpression));
                  }
                }
              }
@@ -189,14 +201,46 @@ public class Analyser {
     return result;
   }
 
-  private Map<PsiVariable, PsiExpression> getVariableToValueBindings(PsiClass activityClass1, StaticEvaluator evaluator) {
-    PsiMethod onCreate = Utilities.findMethodBySignature(activityClass1, "void onCreate(Bundle bundle)");
-    if (onCreate == null) {
-      return Collections.emptyMap();
+  public Map<PsiLocalVariable, Object> searchForVariableBindings(@Nullable PsiElement input,
+                                                                 final Evaluator evaluator) {
+    final Map<PsiLocalVariable, Object> result = new HashMap<PsiLocalVariable, Object>();
+    if (input == null) {
+      return result;
     }
-    return searchForVariableAssignments(onCreate.getBody(), evaluator);
+    input.accept(new JavaRecursiveElementVisitor() {
+      @Override
+      public void visitDeclarationStatement(PsiDeclarationStatement statement) {
+        super.visitDeclarationStatement(statement);
+        PsiElement[] declaredElements = statement.getDeclaredElements();
+        for (PsiElement element : declaredElements) {
+          if (element instanceof PsiLocalVariable) {
+            PsiLocalVariable local = (PsiLocalVariable)element;
+            PsiElement rExpression = local.getInitializer();
+            result.put(local, evaluator.evaluate((PsiExpression)rExpression));
+          }
+        }
+      }
+    });
+    return result;
   }
 
+  private Map<PsiField, Object> getFieldAssignmentsInOnCreate(PsiClass activityClass, Evaluator evaluator) {
+    PsiMethod method = Utilities.findMethodBySignature(activityClass, "void onCreate(Bundle bundle)");
+    if (method == null) {
+      return Collections.emptyMap();
+    }
+    return searchForVariableAssignments(method.getBody(), PsiField.class, evaluator);
+  }
+
+  private Map<PsiLocalVariable, Object> getLocalVariableBindingsFromInViewCreated(PsiClass activityClass, Evaluator evaluator) {
+    PsiMethod method = Utilities.findMethodBySignature(activityClass, "void onViewCreated(View view, Bundle bundle)");
+    if (method == null) {
+      return Collections.emptyMap();
+    }
+    return searchForVariableBindings(method.getBody(), evaluator);
+  }
+
+  /*
   private static boolean isLiteralFor(@Nullable PsiExpression exp, @Nullable Object value) {
     if (exp instanceof PsiLiteral) {
       PsiLiteral literal = (PsiLiteral)exp;
@@ -204,11 +248,13 @@ public class Analyser {
     }
     return false;
   }
+  */
 
-  private StaticEvaluator getEvaluator(final Set<String> ids) {
+  /*
+  private StaticEvaluator getEvaluator(final Set<String> ids, final Set<String> tags) {
     return new StaticEvaluator() {
       @Override
-      public Boolean evaluate(@Nullable PsiExpression expression) {
+      public Object evaluate(@Nullable PsiExpression expression) {
         if (expression instanceof PsiBinaryExpression) {
           PsiBinaryExpression exp = (PsiBinaryExpression)expression;
           if (exp.getOperationSign().getTokenType() == JavaTokenType.NE && isLiteralFor(exp.getROperand(), null)) {
@@ -223,7 +269,9 @@ public class Analyser {
       }
     };
   }
+  */
 
+  /*
   @Nullable
   private static Object getLiteralFor(@Nullable PsiExpression exp) {
     if (exp instanceof PsiLiteral) {
@@ -232,19 +280,67 @@ public class Analyser {
     }
     return null;
   }
+  */
 
-  private static StaticEvaluator getEvaluator(final Map<PsiVariable, PsiExpression> variableToValue) {
-    return new StaticEvaluator() {
+  /*
+  private static Boolean toBoolean(@Nullable Object value) {
+    return value == Boolean.TRUE ? Boolean.TRUE : value == Boolean.FALSE ? Boolean.FALSE : BOOLEAN_UNKNOWN;
+  }
+  */
+
+  private Evaluator getEvaluator(final Set<String> ids,
+                                 final Set<String> tags,
+                                 final Map<PsiField, Object> fieldValues,
+                                 final Map<PsiLocalVariable, Object> localVariableValues) {
+    return new Evaluator() {
       @Nullable
       @Override
-      public Boolean evaluate(@Nullable PsiExpression expression) {
-        if (expression instanceof PsiReferenceExpression) {
-          PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression)expression;
+      public Object evaluate(@Nullable PsiExpression exp) {
+        if (exp == null) { // todo does this actually make any sense?
+          return null;
+        }
+        if (exp instanceof PsiLiteral) {
+          PsiLiteral literal = (PsiLiteral)exp;
+          return literal.getValue();
+        }
+        MultiMatch.Bindings<PsiElement> match1 = myMacros.findViewById.match(exp);
+        if (match1 != null) {
+          String id = match1.bindings.get("$id").getText();
+          return ids.contains(id) ? new Object() : null;
+        }
+        MultiMatch.Bindings<PsiElement> match2 = myMacros.findFragmentByTag.match(exp);
+        if (match2 != null) {
+          String tag = unQuote(match2.bindings.get("$tag").getText());
+          return tags.contains(tag) ? new Object() : null;
+        }
+        if (exp instanceof PsiTypeCastExpression) {
+          PsiTypeCastExpression castExp = (PsiTypeCastExpression)exp;
+          return evaluate(castExp.getOperand());
+        }
+        if (exp instanceof PsiBinaryExpression) {
+          PsiBinaryExpression binExp = (PsiBinaryExpression)exp;
+          IElementType op = binExp.getOperationSign().getTokenType();
+          PsiExpression lhs = binExp.getLOperand();
+          PsiExpression rhs = binExp.getROperand();
+          if (op == JavaTokenType.EQEQ) {
+            return evaluate(lhs) == evaluate(rhs);
+          }
+          if (op == JavaTokenType.NE) {
+            return evaluate(lhs) != evaluate(rhs);
+          }
+        }
+        if (exp instanceof PsiReferenceExpression) {
+          PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression)exp;
           PsiElement resolved = psiReferenceExpression.resolve();
           if (resolved instanceof PsiField) {
-            PsiField psiField = (PsiField)resolved;
-            Object value = getLiteralFor(variableToValue.get(psiField));
-            return value == Boolean.TRUE ? Boolean.TRUE : value == Boolean.FALSE ? Boolean.FALSE : BOOLEAN_UNKNOWN;
+            PsiField field = (PsiField)resolved;
+            return fieldValues.get(field);
+          }
+          else {
+            if (resolved instanceof PsiLocalVariable) {
+              PsiLocalVariable localVariable = (PsiLocalVariable)resolved;
+              return localVariableValues.get(localVariable);
+            }
           }
         }
         return BOOLEAN_UNKNOWN;
@@ -305,6 +401,21 @@ public class Analyser {
              }
            });
 
+    final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityState.getClassName());
+    XmlFile layoutFile = getXmlFile(fromActivityState, configuration);
+    Set<String> ids = getIds(layoutFile);
+    Set<String> tags = getTags(layoutFile);
+
+    Map<PsiField, Object> noFields = Collections.emptyMap();
+    Map<PsiLocalVariable, Object> noVars = Collections.emptyMap();
+    final Evaluator evaluator1 = getEvaluator(ids, tags, noFields, noVars);
+    Map<PsiField, Object> fieldBindings =
+      getFieldAssignmentsInOnCreate(activityClass, evaluator1); // todo activityClass or activityOrFragmentClass?
+    final Evaluator evaluator2 = getEvaluator(ids, tags, fieldBindings, noVars);
+    Map<PsiLocalVariable, Object> localVariableBindings =
+      getLocalVariableBindingsFromInViewCreated(activityOrFragmentClass, evaluator2); // todo activityClass or activityOrFragmentClass?
+    final Evaluator evaluator3 = getEvaluator(ids, tags, fieldBindings, localVariableBindings);
+
     // Search for 'onClick' listeners on Buttons etc.
 
     search(activityOrFragmentClass,
@@ -317,13 +428,13 @@ public class Analyser {
                MultiMatch.Bindings<PsiElement> bindings = myMacros.findViewById.match($view);
                if (bindings != null) {
                  String tag = bindings.get("$id").getText();
-                 search(args.get("$f"), myMacros.createIntent,
+                 search(args.get("$f"), evaluator3, myMacros.createIntent,
                         createProcessor(tag, miniModel.classNameToActivityState, model, fromActivityState));
                }
              }
            });
 
-    // Search for 'onItemClick' listeners is listViews
+    // Search for 'onItemClick' listeners in listViews
 
     search(activityOrFragmentClass,
            "void onViewCreated(View v, Bundle b)",
@@ -333,7 +444,7 @@ public class Analyser {
              public void apply(MultiMatch.Bindings<PsiElement> args) {
                PsiElement $listView = args.get("$listView");
                final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
-               search(args.get("$f"), myMacros.createIntent,
+               search(args.get("$f"), evaluator3, myMacros.createIntent,
                       createProcessor(viewName, miniModel.classNameToActivityState, model, fromActivityState));
              }
            });
@@ -356,13 +467,9 @@ public class Analyser {
                    }
                    PsiMethod resolvedMethod = call.resolveMethod();
                    if (resolvedMethod != null) {
-                     final PsiClass activityClass =
-                       Utilities.getPsiClass(myModule, fromActivityState.getClassName()); // todo fix efficiency
                      if (activityClass != null) {
                        final PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
                        if (implementation != null) {
-                         StaticEvaluator evaluator1 = getEvaluator(getIds(getXmlFile(fromActivityState, configuration)));
-                         StaticEvaluator evaluator2 = getEvaluator(getVariableToValueBindings(activityClass, evaluator1));
                          search(implementation.getBody(),
                                 evaluator2,
                                 myMacros.createIntent,
@@ -482,6 +589,24 @@ public class Analyser {
     return result;
   }
 
+  private static Set<String> getTags(@Nullable XmlFile psiFile) {
+    final Set<String> result = new HashSet<String>();
+    if (psiFile == null) {
+      return result;
+    }
+    psiFile.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+        String id = tag.getAttributeValue("android:tag");
+        if (id != null) {
+          result.add(id);
+        }
+      }
+    });
+    return result;
+  }
+
   private static String removeTrailingParens(String text) {
     return text.endsWith("()") ? text.substring(0, text.length() - 2) : text;
   }
@@ -532,9 +657,9 @@ public class Analyser {
   }
 
   public static void search(@Nullable PsiElement input,
-                            final StaticEvaluator branchEvaluator,
+                            final Evaluator evaluator,
                             final MultiMatch matcher,
-                            final Statement statement) {
+                            final Statement processor) {
     if (input != null) {
       input.accept(new JavaRecursiveElementVisitor() {
         private void visitNullableExpression(@Nullable PsiExpression expression) {
@@ -553,14 +678,13 @@ public class Analyser {
         public void visitIfStatement(PsiIfStatement statement) {
           PsiExpression condition = statement.getCondition();
           visitNullableExpression(condition);
-          Boolean conditionalValue = branchEvaluator.evaluate(condition);
-          // Both clauses below will be executed when conditionalValue has the value BOOLEAN_UNKNOWN (null).
-          // True branch
-          if (conditionalValue != Boolean.FALSE) {
+          Object value = evaluator.evaluate(condition);
+
+          // Both clauses below will be executed when value == BOOLEAN_UNKNOWN (null).
+          if (value != Boolean.FALSE) { // True branch
             visitNullableStatement(statement.getThenBranch());
           }
-          // False branch
-          if (conditionalValue != Boolean.TRUE) {
+          if (value != Boolean.TRUE) { // False branch
             visitNullableStatement(statement.getElseBranch());
           }
         }
@@ -570,15 +694,26 @@ public class Analyser {
           super.visitExpression(expression);
           MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
           if (exp != null) {
-            statement.apply(exp);
+            processor.apply(exp);
           }
         }
+
+        /*
+        @Override
+        public void visitStatement(PsiStatement statement) {
+          super.visitStatement(statement);
+          Map<String, PsiElement> bindings = Unifier.matchStatement(matcher.macro, statement);
+          if (bindings != null) {
+            processor.apply(new MultiMatch.Bindings<PsiElement>(bindings, Collections.EMPTY_MAP));
+          }
+        }
+        */
       });
     }
   }
 
   public static void search(@Nullable PsiElement input, MultiMatch matcher, Statement statement) {
-    search(input, StaticEvaluator.TRUE_OR_FALSE, matcher, statement);
+    search(input, Evaluator.TRUE_OR_FALSE, matcher, statement);
   }
 
   public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
