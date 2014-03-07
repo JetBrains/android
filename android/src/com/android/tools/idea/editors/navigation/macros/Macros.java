@@ -36,7 +36,6 @@ public class Macros {
   public final PsiMethod defineAssignment;
 
   public final MultiMatch createIntentMacro;
-  public final MultiMatch setContentViewMacro;
   public final MultiMatch installItemClickAndCallMacro;
   public final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro;
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
@@ -80,7 +79,6 @@ public class Macros {
   private Macros(Project project) {
     defineAssignment = getMethodsByName(GENERAL_TEMPLATES, "defineAssignment", project)[0];
     PsiMethod defineInnerClassMacro = getMethodsByName(GENERAL_TEMPLATES, "defineInnerClass", project)[0];
-    PsiMethod setContentViewMethod = getMethodsByName(GENERAL_TEMPLATES, "setContentView", project)[0];
 
     PsiMethod installMenuItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installMenuItemClick", project)[0];
     PsiMethod installItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installItemClickListener2", project)[0];
@@ -90,7 +88,6 @@ public class Macros {
     PsiMethod launchActivityMacro = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[0];
     PsiMethod launchActivityMacro2 = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[1];
 
-    setContentViewMacro = new MultiMatch(setContentViewMethod);
     createIntentMacro = new MultiMatch(createIntentMethod);
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
