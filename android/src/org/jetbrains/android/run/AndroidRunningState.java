@@ -793,6 +793,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     else if (myTargetChooser instanceof UsbDeviceTargetChooser) {
       return !device.isEmulator();
     }
+    else if (myTargetChooser instanceof ManualTargetChooser && myConfiguration.USE_LAST_SELECTED_DEVICE) {
+      Set<String> devicesUsedInLastLaunch = myConfiguration.getDevicesUsedInLastLaunch();
+      return devicesUsedInLastLaunch != null && devicesUsedInLastLaunch.contains(device.getName());
+    }
     return false;
   }
 
