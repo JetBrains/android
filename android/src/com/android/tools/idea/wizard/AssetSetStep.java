@@ -414,7 +414,8 @@ public class AssetSetStep extends TemplateWizardStep {
     }
 
 
-    if (drawableExists(resourceName)) {
+    // It's unusual to have > 1 launcher icon, don't fix the name for launcher icons.
+    if (drawableExists(resourceName) && mySelectedAssetType != AssetType.LAUNCHER) {
       // While uniqueness isn't satisfied, increment number and add to end
       int i = 2;
       while (drawableExists(resourceName + Integer.toString(i))) {
