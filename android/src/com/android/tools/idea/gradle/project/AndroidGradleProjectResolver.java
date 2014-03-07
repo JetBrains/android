@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
@@ -201,8 +200,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
       else if (localProperties.getAndroidSdkPath() == null) {
         File androidHomePath = DefaultSdks.getDefaultAndroidHome();
-        assert androidHomePath != null;
-        args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
+        // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
+        if (androidHomePath != null) {
+          args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
+        }
       }
 
       args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(this.resolverCtx.isPreviewMode())));
