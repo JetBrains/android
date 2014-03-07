@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.customizer.*;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
+import com.android.tools.idea.gradle.customizer.*;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -36,6 +36,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
@@ -98,15 +99,18 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             javaLangVersion = androidProject.getJavaLanguageLevel();
           }
         }
+        Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
 
-        Sdk jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
+        if (jdk == null || !Jdks.isApplicableJdk(jdk)) {
+          jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
+        }
         if (jdk == null) {
           ExternalSystemIdeNotificationManager notification = ServiceManager.getService(ExternalSystemIdeNotificationManager.class);
           if (notification != null) {
             String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
             LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
             String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
-            msg += "After configuring a suitable JDK in the Project Structure dialog, sync the Gradle project again.";
+            msg += "After configuring a suitable JDK in the Project Structure dia log, sync the Gradle project again.";
             notification.showNotification(title, msg, NotificationType.ERROR, project, GradleConstants.SYSTEM_ID, null);
           }
         }
