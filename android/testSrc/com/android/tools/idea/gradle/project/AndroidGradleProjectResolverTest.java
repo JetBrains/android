@@ -31,17 +31,15 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.ProjectImportAction;
+import org.jetbrains.plugins.gradle.model.ProjectImportAction;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
-import java.io.IOException;
 import java.util.Collection;
 
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
