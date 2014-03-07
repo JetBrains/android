@@ -574,10 +574,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   }
 
   @NotNull
-  private String computePackageName() {
+  @VisibleForTesting
+  String computePackageName() {
     String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
     if (!moduleName.isEmpty()) {
-      moduleName = moduleName.replaceAll("[^a-zA-Z0-9_\\-]", "");
+      moduleName = moduleName.replace('-', '_');
+      moduleName = moduleName.replaceAll("[^a-zA-Z0-9_]", "");
       moduleName = moduleName.toLowerCase();
       return SAMPLE_PACKAGE_PREFIX + moduleName;
     } else {
