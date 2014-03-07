@@ -508,6 +508,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGradleOverridesInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleOverridesInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.overrides"), ManifestDetector.GRADLE_OVERRIDES);
+    }
+  }
+
   public static class AndroidLintGrantAllUrisInspection extends AndroidLintInspectionBase {
     public AndroidLintGrantAllUrisInspection() {
       super(AndroidBundle.message("android.lint.inspections.grant.all.uris"), SecurityDetector.OPEN_PROVIDER);
