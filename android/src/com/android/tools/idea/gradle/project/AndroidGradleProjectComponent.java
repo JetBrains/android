@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.BuildRecord;
-import com.android.tools.idea.stats.KeyString;
 import com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
@@ -183,7 +182,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     MessageBusConnection connection = project.getMessageBus().connect(disposable);
     connection.subscribe(ProjectTopics.MODULES, moduleListener);
     connection.subscribe(VirtualFileManager.VFS_CHANGES, buildFileUpdater);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, buildFileUpdater);
   }
 
   @Override
