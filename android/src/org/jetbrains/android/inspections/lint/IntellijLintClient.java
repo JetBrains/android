@@ -519,4 +519,9 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
       return super.getResourceFolders(project);
     }
   }
+
+  @Override
+  public boolean checkForSuppressComments() {
+    return false;
+  }
 }
