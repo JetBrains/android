@@ -16,14 +16,14 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiType;
-import com.intellij.psi.impl.source.PsiClassReferenceType;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -35,6 +35,21 @@ public class IntellijGradleDetector extends GradleDetector {
   static final Implementation IMPLEMENTATION = new Implementation(
     IntellijGradleDetector.class,
     Scope.GRADLE_SCOPE);
+
+  @Nullable
+  protected String getClosureName(@NonNull GrClosableBlock closure) {
+    if (closure.getParent() instanceof GrMethodCall) {
+      GrMethodCall parent = (GrMethodCall)closure.getParent();
+      if (parent.getInvokedExpression() instanceof GrReferenceExpression) {
+        GrReferenceExpression invokedExpression = (GrReferenceExpression)(parent.getInvokedExpression());
+        if (invokedExpression.getDotToken() == null) {
+          return invokedExpression.getReferenceName();
+        }
+      }
+    }
+
+    return null;
+  }
 
   @Override
   public void visitBuildScript(@NonNull final Context context, Map<String, Object> sharedData) {
@@ -49,26 +64,39 @@ public class IntellijGradleDetector extends GradleDetector {
         groovyFile.accept(new GroovyRecursiveElementVisitor() {
           @Override
           public void visitClosure(GrClosableBlock closure) {
-            if (closure.getParent() instanceof GrMethodCall) {
-              GrMethodCall parent = (GrMethodCall)closure.getParent();
-              if (parent.getInvokedExpression() instanceof GrReferenceExpression) {
-                GrReferenceExpression invokedExpression = (GrReferenceExpression)(parent.getInvokedExpression());
-                if (invokedExpression.getDotToken() == null) {
-                  String parentName = invokedExpression.getReferenceName();
-                  if (parentName != null && isInterestingBlock(parentName)) {
-                    for (PsiElement element : closure.getChildren()) {
-                      if (element instanceof GrApplicationStatement) {
-                        GrApplicationStatement call = (GrApplicationStatement)element;
-                        GrExpression propertyExpression = call.getInvokedExpression();
-                        GrCommandArgumentList argumentList = call.getArgumentList();
-                        if (propertyExpression instanceof GrReferenceExpression && argumentList != null) {
-                          GrReferenceExpression propertyRef = (GrReferenceExpression)propertyExpression;
-                          String property = propertyRef.getReferenceName();
-                          if (property != null && isInterestingProperty(property, parentName)) {
-                            String value = argumentList.getText();
-                            checkDslPropertyAssignment(context, property, value, parentName, argumentList);
-                          }
-                        }
+            String parentName = getClosureName(closure);
+            String parentParentName = null;
+            if (parentName != null) {
+              GrClosableBlock block = PsiTreeUtil.getParentOfType(closure, GrClosableBlock.class, true);
+              if (block != null) {
+                parentParentName = getClosureName(block);
+              }
+            }
+            if (parentName != null && isInterestingBlock(parentName, parentParentName)) {
+              for (PsiElement element : closure.getChildren()) {
+                if (element instanceof GrApplicationStatement) {
+                  GrApplicationStatement call = (GrApplicationStatement)element;
+                  GrExpression propertyExpression = call.getInvokedExpression();
+                  GrCommandArgumentList argumentList = call.getArgumentList();
+                  if (propertyExpression instanceof GrReferenceExpression) {
+                    GrReferenceExpression propertyRef = (GrReferenceExpression)propertyExpression;
+                    String property = propertyRef.getReferenceName();
+                    if (property != null && isInterestingProperty(property, parentName, parentParentName)) {
+                      String value = argumentList.getText();
+                      checkDslPropertyAssignment(context, property, value, parentName, parentParentName, argumentList);
+                    }
+                  }
+                } else if (element instanceof GrAssignmentExpression) {
+                  GrAssignmentExpression assignment = (GrAssignmentExpression)element;
+                  GrExpression lValue = assignment.getLValue();
+                  if (lValue instanceof GrReferenceExpression) {
+                    GrReferenceExpression propertyRef = (GrReferenceExpression)lValue;
+                    String property = propertyRef.getReferenceName();
+                    if (property != null && isInterestingProperty(property, parentName, parentParentName)) {
+                      GrExpression rValue = assignment.getRValue();
+                      if (rValue != null) {
+                        String value = rValue.getText();
+                        checkDslPropertyAssignment(context, property, value, parentName, parentParentName, rValue);
                       }
                     }
                   }
@@ -76,35 +104,6 @@ public class IntellijGradleDetector extends GradleDetector {
               }
             }
             super.visitClosure(closure);
-          }
-
-          @Override
-          public void visitAssignmentExpression(GrAssignmentExpression expression) {
-            GrExpression lValue = expression.getLValue();
-            if (lValue instanceof GrReferenceExpression) {
-              GrReferenceExpression referenceExpression = (GrReferenceExpression)lValue;
-              String referenceName = referenceExpression.getReferenceName();
-              if ("projectDir".equals(referenceName)) {
-                GrExpression qualifierExpression = referenceExpression.getQualifierExpression();
-                if (qualifierExpression != null) {
-                  PsiType type = qualifierExpression.getNominalType();
-                  String className = null;
-                  if (type instanceof PsiClassReferenceType) {
-                      className = ((PsiClassReferenceType)type).getClassName();
-                  } else if (type == null && ApplicationManager.getApplication().isUnitTestMode()) {
-                    // Can't resolve types in unit test context for some reason
-                    className = "Project";
-                  }
-                  if (className != null) {
-                    if ((className.equals("Project") || className.equals("ProjectDescriptor")) && context.isEnabled(IDE_SUPPORT)) {
-                      String message = "Reassigning the projectDir property of a project will make IDEs confused";
-                      context.report(IDE_SUPPORT, createLocation(context, lValue), message, null);
-                    }
-                  }
-                }
-              }
-            }
-            super.visitAssignmentExpression(expression);
           }
         });
       }

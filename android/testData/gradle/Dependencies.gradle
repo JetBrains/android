@@ -2,7 +2,7 @@ apply plugin: 'android'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion <warning descr="Old buildToolsVersion; recommended version is 19.0.1 or later">"19.0.0"</warning>
+    buildToolsVersion <warning>"19.0.0"</warning>
 
     defaultConfig {
         minSdkVersion 7
@@ -10,10 +10,17 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
+    productFlavors {
+        free {
+        }
+        pro {
+        }
+    }
 }
 
 dependencies {
     compile <warning>'com.android.support:appcompat-v7:+'</warning>
-    compile <warning>'com.google.guava:guava:11.0.2'</warning>
+    freeCompile <warning>'com.google.guava:guava:11.0.2'</warning>
     compile <warning>'com.android.support:appcompat-v7:13.0.0'</warning>
 }
