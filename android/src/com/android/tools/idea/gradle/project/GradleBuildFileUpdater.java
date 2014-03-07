@@ -60,7 +60,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
     DependencyScope.COMPILE, Dependency.Scope.COMPILE,
     DependencyScope.PROVIDED, Dependency.Scope.PROVIDED,
     DependencyScope.RUNTIME, Dependency.Scope.APK,
-    DependencyScope.TEST, Dependency.Scope.INSTRUMENT_TEST_COMPILE
+    DependencyScope.TEST, Dependency.Scope.ANDROID_TEST_COMPILE
   );
   private static final Pattern GRADLE_CACHE_PATTERN = Pattern.compile(".*\\.gradle/caches/[^/]+/[^/]+/([^/]+)/([^/]+)/([^/]+)/[^/]+/[^/]+");
   private static final Pattern INGORE_EXPLODED_BUNDLES_PATTERN = Pattern.compile(".*exploded-bundles+/.*");
