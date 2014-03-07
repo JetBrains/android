@@ -134,7 +134,7 @@ public class NavigationModel {
     for (State state : states) {
       if (state instanceof ActivityState) {
         ActivityState activityState = (ActivityState)state;
-        activities.put(state.getClassName(), activityState);
+        activities.put(activityState.getClassName(), activityState);
       }
     }
     return activities;
@@ -146,7 +146,7 @@ public class NavigationModel {
     for (State state : states) {
       if (state instanceof MenuState) {
         MenuState menuState = (MenuState)state;
-        menus.put(state.getXmlResourceName(), menuState);
+        menus.put(menuState.getXmlResourceName(), menuState);
       }
     }
     return menus;
