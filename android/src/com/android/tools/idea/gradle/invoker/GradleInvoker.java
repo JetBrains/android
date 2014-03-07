@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
-import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
@@ -34,11 +32,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -50,7 +46,8 @@ public class GradleInvoker {
 
   @NotNull private final Project myProject;
 
-  @NotNull private Collection<TasksExecutionListener> myListeners = Sets.newLinkedHashSet();
+  @NotNull private Collection<BeforeGradleInvocationTask> myBeforeTasks = Sets.newLinkedHashSet();
+  @NotNull private Collection<AfterGradleInvocationTask> myAfterTasks = Sets.newLinkedHashSet();
 
   public static GradleInvoker getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, GradleInvoker.class);
@@ -58,60 +55,52 @@ public class GradleInvoker {
 
   public GradleInvoker(@NotNull Project project) {
     myProject = project;
-    // Register a listener that will be executed after project build (e.g. make, rebuild, generate sources) with "direct Gradle invocation."
-    //noinspection TestOnlyProblems
-    addTaskExecutionListener(new GradleInvoker.TasksExecutionListener() {
-      @Override
-      public void executionStarted(@NotNull List<String> tasks) {
-      }
-
-      @Override
-      public void executionEnded(@NotNull GradleExecutionResult result) {
-        PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
-      }
-    });
-  }
-  @VisibleForTesting
-  void addTaskExecutionListener(@NotNull TasksExecutionListener listener) {
-    myListeners.add(listener);
   }
 
   @VisibleForTesting
-  void removeAllTaskExecutionListeners() {
-    myListeners.clear();
+  void addBeforeGradleInvocationTask(@NotNull BeforeGradleInvocationTask task) {
+    myBeforeTasks.add(task);
   }
 
-  public void cleanProject(@Nullable AfterExecutionTask task) {
+  public void addAfterGradleInvocationTask(@NotNull AfterGradleInvocationTask task) {
+    myAfterTasks.add(task);
+  }
+
+  public void removeAfterGradleInvocationTask(@NotNull AfterGradleInvocationTask task) {
+    myAfterTasks.remove(task);
+  }
+
+  public void cleanProject() {
     setProjectBuildMode(BuildMode.CLEAN);
     List<String> tasks = Lists.newArrayList(GradleBuilds.CLEAN_TASK_NAME);
-    executeTasks(tasks, task);
+    executeTasks(tasks);
   }
 
-  public void generateSources(@Nullable AfterExecutionTask task) {
+  public void generateSources() {
     BuildMode buildMode = BuildMode.SOURCE_GEN;
     setProjectBuildMode(buildMode);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, GradleBuilds.TestCompileType.NONE);
 
-    executeTasks(tasks, task);
+    executeTasks(tasks);
   }
 
-  public void compileJava(@NotNull Module[] modules, @Nullable AfterExecutionTask task) {
+  public void compileJava(@NotNull Module[] modules) {
     BuildMode buildMode = BuildMode.COMPILE_JAVA;
     setProjectBuildMode(buildMode);
     List<String> tasks = findTasksToExecute(modules, buildMode, GradleBuilds.TestCompileType.NONE);
-    executeTasks(tasks, task);
+    executeTasks(tasks);
   }
 
-  public void make(@NotNull Module[] modules, @NotNull GradleBuilds.TestCompileType testCompileType, @Nullable AfterExecutionTask task) {
+  public void make(@NotNull Module[] modules, @NotNull GradleBuilds.TestCompileType testCompileType) {
     BuildMode buildMode = BuildMode.MAKE;
     setProjectBuildMode(buildMode);
     List<String> tasks = findTasksToExecute(modules, buildMode, testCompileType);
-    executeTasks(tasks, task);
+    executeTasks(tasks);
   }
 
-  public void rebuild(@Nullable AfterExecutionTask task) {
+  public void rebuild() {
     BuildMode buildMode = BuildMode.REBUILD;
     setProjectBuildMode(buildMode);
 
@@ -121,7 +110,7 @@ public class GradleInvoker {
       tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     }
 
-    executeTasks(tasks, task);
+    executeTasks(tasks);
   }
 
   private void setProjectBuildMode(@NotNull BuildMode buildMode) {
@@ -151,16 +140,14 @@ public class GradleInvoker {
     return tasks;
   }
 
-  public void executeTasks(@NotNull final List<String> gradleTasks, @Nullable final AfterExecutionTask afterTask) {
+  public void executeTasks(@NotNull final List<String> gradleTasks) {
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
     }
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      List<GradleMessage> compilerMessages = Collections.emptyList();
-      for (TasksExecutionListener listener : myListeners) {
-        listener.executionStarted(gradleTasks);
-        listener.executionEnded(new GradleExecutionResult(gradleTasks, compilerMessages));
+      for (BeforeGradleInvocationTask listener : myBeforeTasks) {
+        listener.execute(gradleTasks);
       }
       return;
     }
@@ -169,19 +156,20 @@ public class GradleInvoker {
       @Override
       public void run() {
         FileDocumentManager.getInstance().saveAllDocuments();
-        GradleTasksExecutor executor = new GradleTasksExecutor(myProject, gradleTasks, myListeners, afterTask);
+        AfterGradleInvocationTask[] afterGradleInvocationTasks =
+          myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
+        GradleTasksExecutor executor = new GradleTasksExecutor(myProject, gradleTasks, afterGradleInvocationTasks);
         executor.queue();
       }
     });
   }
 
-  interface TasksExecutionListener {
-    void executionStarted(@NotNull List<String> tasks);
-
-    void executionEnded(@NotNull GradleExecutionResult result);
+  @VisibleForTesting
+  interface BeforeGradleInvocationTask {
+    void execute(@NotNull List<String> tasks);
   }
 
-  public interface AfterExecutionTask {
-    void execute(@NotNull GradleExecutionResult result);
+  public interface AfterGradleInvocationTask {
+    void execute(@NotNull GradleInvocationResult result);
   }
 }
