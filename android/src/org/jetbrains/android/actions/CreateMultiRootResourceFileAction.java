@@ -18,7 +18,6 @@ package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
 import com.intellij.CommonBundle;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
@@ -42,21 +41,22 @@ import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
+ *
+ * Like CreateTypedResourceFileAction but prompts for a root tag
  */
-public class AndroidCreateLayoutFileAction extends CreateTypedResourceFileAction {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.AndroidCreateLayoutFileAction");
-
+public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAction {
   private String myLastRootComponentName;
 
-  public AndroidCreateLayoutFileAction() {
-    super("Layout", ResourceFolderType.LAYOUT, false, false);
+  public CreateMultiRootResourceFileAction(@NotNull String resourcePresentableName,
+                                           @NotNull ResourceFolderType resourceFolderType) {
+    super(resourcePresentableName, resourceFolderType, false, false);
   }
 
   @NotNull
   @Override
   protected PsiElement[] invokeDialog(Project project, PsiDirectory directory) {
     final AndroidFacet facet = AndroidFacet.getInstance(directory);
-    LOG.assertTrue(facet != null);
+    assert facet != null;
     InputValidator validator = createValidator(project, directory);
     final MyDialog dialog = new MyDialog(facet, validator);
     dialog.show();
@@ -73,6 +73,7 @@ public class AndroidCreateLayoutFileAction extends CreateTypedResourceFileAction
   @NotNull
   @Override
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
+    assert myResourceType == ResourceFolderType.LAYOUT; // if not, must override getAllowedTagNames
     return AndroidLayoutUtil.getPossibleRoots(facet);
   }
 
@@ -88,7 +89,7 @@ public class AndroidCreateLayoutFileAction extends CreateTypedResourceFileAction
     protected MyDialog(@NotNull AndroidFacet facet, @Nullable InputValidator validator) {
       super(facet.getModule().getProject());
       myValidator = validator;
-      setTitle(AndroidBundle.message("new.typed.resource.dialog.title", "Layout"));
+      setTitle(AndroidBundle.message("new.typed.resource.dialog.title", myResourcePresentableName));
       final List<String> tagNames = getSortedAllowedTagNames(facet);
       myRootElementField = new TextFieldWithAutoCompletion<String>(
         facet.getModule().getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(tagNames, null), true, null);
