@@ -765,22 +765,23 @@ public class Template {
     for (String key : dependencies.keySet()) {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
 
-      boolean isOurRepository = RepositoryUrls.supports(highest.getArtifactId());
+      boolean isOurRepository = RepositoryUrlManager.supports(highest.getArtifactId());
 
       if (!isOurRepository) {
         sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
       } else {
+        RepositoryUrlManager urlManager = RepositoryUrlManager.get();
         GradleCoordinate available = GradleCoordinate.parseCoordinateString(
-          RepositoryUrls.getLibraryCoordinate(highest.getArtifactId()));
+          urlManager.getLibraryCoordinate(highest.getArtifactId()));
 
-        File archiveFile = RepositoryUrls.getArchiveForCoordinate(highest);
+        File archiveFile = urlManager.getArchiveForCoordinate(highest);
 
         if (archiveFile != null && archiveFile.exists() ||
             (available != null && highest.acceptsGreaterRevisions() && COMPARE_PLUS_LOWER.compare(available, highest) > 0)) {
           sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
         } else {
           // Get the name of the repository necessary for this package
-          repositoryName = highest.getArtifactId().equals(RepositoryUrls.PLAY_SERVICES_ID) ? "Google" : "Support";
+          repositoryName = highest.getArtifactId().equals(RepositoryUrlManager.PLAY_SERVICES_ID) ? "Google" : "Support";
           // Add in a commented-out dependency with instructions.
           sb.append(String.format(
             "\n\n%3$s// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
