@@ -31,8 +31,6 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.util.io.FileUtil;
@@ -349,13 +347,11 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
       @Override
       public void appClosing() {
-        for(Project openProject : ProjectManager.getInstance().getOpenProjects()) {
-          try {
-            GradleUtil.stopAllGradleDaemons(openProject);
-          }
-          catch (IOException e) {
-            LOG.error("stopAllGradleDaemons failed for project " + openProject.getName(), e);
-          }
+        try {
+          GradleUtil.stopAllGradleDaemons(false);
+        }
+        catch (IOException e) {
+          LOG.error("Failed to stop Gradle daemons", e);
         }
       }
     });
