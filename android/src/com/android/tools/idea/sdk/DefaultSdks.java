@@ -261,7 +261,7 @@ public final class DefaultSdks {
    * default naming convention and each individual build target do not already exist. If IntelliJ SDKs do exist, they are not updated.
    */
   @NotNull
-  public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome, @Nullable Sdk javaSdk) {
+  private static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome, @Nullable Sdk javaSdk) {
     List<Sdk> sdks = Lists.newArrayList();
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHome);
     if (sdkData != null) {
@@ -269,8 +269,8 @@ public final class DefaultSdks {
       Sdk defaultJdk = javaSdk != null ? javaSdk : getDefaultJdk();
       for (IAndroidTarget target : targets) {
         if (target.isPlatform() && !doesDefaultAndroidSdkExist(target)) {
-          String sdkName = AndroidSdkUtils.chooseNameForNewLibrary(target);
-          Sdk platform = AndroidSdkUtils.createNewAndroidPlatform(target, sdkData.getPath(), sdkName, defaultJdk, true);
+          String name = AndroidSdkUtils.chooseNameForNewLibrary(target);
+          Sdk platform = AndroidSdkUtils.createNewAndroidPlatform(target, sdkData.getLocation().getPath(), name, defaultJdk, true);
           sdks.add(platform);
         }
       }
@@ -283,7 +283,7 @@ public final class DefaultSdks {
    */
   private static boolean doesDefaultAndroidSdkExist(@NotNull IAndroidTarget target) {
     for (Sdk sdk : getEligibleAndroidSdks()) {
-      IAndroidTarget platformTarget = getTargetFromEligibleSdk(sdk);
+      IAndroidTarget platformTarget = getTarget(sdk);
       if (platformTarget.getVersion().equals(target.getVersion())) {
         return true;
       }
@@ -292,8 +292,9 @@ public final class DefaultSdks {
   }
 
   @NotNull
-  private static IAndroidTarget getTargetFromEligibleSdk(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = getAdditionalDataFromEligibleSdk(sdk);
+  private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
+    assert data != null;
     AndroidPlatform androidPlatform = data.getAndroidPlatform();
     assert androidPlatform != null;
     return androidPlatform.getTarget();
@@ -447,7 +448,8 @@ public final class DefaultSdks {
     List<Sdk> androidSdks = getEligibleAndroidSdks();
     if (!androidSdks.isEmpty()) {
       Sdk androidSdk = androidSdks.get(0);
-      AndroidSdkAdditionalData data = getAdditionalDataFromEligibleSdk(androidSdk);
+      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)androidSdk.getSdkAdditionalData();
+      assert data != null;
       Sdk jdk = data.getJavaSdk();
       if (jdk != null) {
         return jdk;
@@ -490,13 +492,6 @@ public final class DefaultSdks {
       }
     }
     return sdks;
-  }
-
-  @NotNull
-  private static AndroidSdkAdditionalData getAdditionalDataFromEligibleSdk(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-    assert data != null;
-    return data;
   }
 
   /**
