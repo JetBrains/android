@@ -20,17 +20,23 @@ import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.Log;
+import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.devices.DeviceManager;
-import com.android.utils.ILogger;
+import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiClass;
@@ -43,10 +49,9 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -63,7 +68,7 @@ public class AndroidSdkData {
   private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDatas =
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
 
-  private final SdkManager mySdkManager;
+  private final LocalSdk myLocalSdk;
   private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
@@ -71,28 +76,95 @@ public class AndroidSdkData {
 
   private PsiClass myInternalRClass;
 
-  public AndroidSdkData(@NotNull SdkManager sdkManager, @NotNull String sdkDirOsPath) {
-    mySdkManager = sdkManager;
-    myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(sdkDirOsPath, SdkConstants.FD_PLATFORM_TOOLS);
-    mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(sdkDirOsPath, SdkConstants.FD_TOOLS);
-    myDeviceManager = DeviceManager.createInstance(sdkDirOsPath, new MessageBuildingSdkLog());
+  private static final List<SoftReference<AndroidSdkData>> mInstances = Lists.newArrayList();
+
+  /** Singleton access classes */
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
+    File canonicalLocation = new File(FileUtil.toCanonicalPath(sdkLocation.getPath()));
+    Iterator<SoftReference<AndroidSdkData>> it = mInstances.iterator();
+    while (it.hasNext()) {
+      AndroidSdkData sdkData = it.next().get();
+      // Lazily remove stale soft references
+      if (sdkData == null) {
+        it.remove();
+        continue;
+      }
+      if (FileUtil.filesEqual(sdkData.getLocation(), canonicalLocation)) {
+        return sdkData;
+      }
+    }
+
+    if (!DefaultSdks.validateAndroidSdkPath(canonicalLocation)) {
+      return null;
+    }
+    LocalSdk localSdk = new LocalSdk(canonicalLocation);
+    AndroidSdkData sdkData = new AndroidSdkData((localSdk));
+    mInstances.add(0, new SoftReference<AndroidSdkData>(sdkData));
+    return mInstances.get(0).get();
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
+    File file = new File(FileUtil.toSystemDependentName(sdkPath));
+    return getSdkData(file);
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull Sdk sdk) {
+    String sdkHomePath = sdk.getHomePath();
+    if (sdkHomePath != null) {
+      return getSdkData(sdk.getHomePath());
+    }
+    return null;
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull Project project) {
+    Sdk sdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    if (sdk != null) {
+      return getSdkData(sdk);
+    }
+    return null;
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull Module module) {
+    return getSdkData(module.getProject());
+  }
+
+  private AndroidSdkData(@NotNull LocalSdk localSdk) {
+    myLocalSdk = localSdk;
+    myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_PLATFORM_TOOLS);
+    mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_TOOLS);
+    myDeviceManager = DeviceManager.createInstance(localSdk.getPath(), new MessageBuildingSdkLog());
   }
 
   @NotNull
-  public String getLocation() {
-    String location = mySdkManager.getLocation();
-    if (location.length() > 0) {
-      char lastChar = location.charAt(location.length() - 1);
-      if (lastChar == '/' || lastChar == File.separatorChar) {
-        return location.substring(0, location.length() - 1);
-      }
-    }
+  public File getLocation() {
+    File location = myLocalSdk.getLocation();
+
+    // The LocalSdk should always have been initialized.
+    assert location != null;
+
     return location;
+  }
+
+  @Deprecated
+  @NotNull
+  public String getPath() {
+    return getLocation().getPath();
+  }
+
+  @NotNull
+  public BuildToolInfo getLatestBuildTool() {
+    return myLocalSdk.getLatestBuildTool();
   }
 
   @NotNull
   public IAndroidTarget[] getTargets() {
-    return mySdkManager.getTargets();
+    return myLocalSdk.getTargets();
   }
 
   // be careful! target name is NOT unique
@@ -125,7 +197,7 @@ public class AndroidSdkData {
 
   @Nullable
   public IAndroidTarget findTargetByHashString(@NotNull String hashString) {
-    return mySdkManager.getTargetFromHashString(hashString);
+    return myLocalSdk.getTargetFromHashString(hashString);
   }
 
   public int getPlatformToolsRevision() {
@@ -136,32 +208,12 @@ public class AndroidSdkData {
     return mySdkToolsRevision;
   }
 
-  @Nullable
-  public static AndroidSdkData parse(@NotNull String path, @NotNull ILogger log) {
-    final SdkManager manager = AndroidCommonUtils.createSdkManager(path, log);
-    return manager != null ? new AndroidSdkData(manager, path) : null;
-  }
-
-  @Nullable
-  public static AndroidSdkData parse(@NotNull String path, @NotNull final Component component) {
-    MessageBuildingSdkLog log = new MessageBuildingSdkLog();
-    AndroidSdkData sdkData = parse(path, log);
-    if (sdkData == null) {
-      String message = log.getErrorMessage();
-      if (message.length() > 0) {
-        message = "Android SDK is parsed incorrectly. Parsing log:\n" + message;
-        Messages.showInfoMessage(component, message, CommonBundle.getErrorTitle());
-      }
-    }
-    return sdkData;
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (obj == null) return false;
     if (obj.getClass() != getClass()) return false;
     AndroidSdkData sdkData = (AndroidSdkData)obj;
-    return FileUtil.pathsEqual(getLocation(), sdkData.getLocation());
+    return FileUtil.filesEqual(getLocation(), sdkData.getLocation());
   }
 
   @Override
@@ -343,8 +395,8 @@ public class AndroidSdkData {
   }
 
   @NotNull
-  public SdkManager getSdkManager() {
-    return mySdkManager;
+  public LocalSdk getLocalSdk() {
+    return myLocalSdk;
   }
 
   @NotNull
