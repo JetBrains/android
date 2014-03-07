@@ -28,7 +28,7 @@ class AdtImportSdkStep extends ProjectImportWizardStep {
   private JComponent myComponent;
   private AndroidHomeConfigurable myConfigurable;
 
-  public AdtImportSdkStep(WizardContext context) {
+  AdtImportSdkStep(WizardContext context) {
     super(context);
     myConfigurable = new AndroidHomeConfigurable();
   }
