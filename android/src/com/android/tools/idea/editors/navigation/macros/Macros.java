@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
+import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -35,7 +36,7 @@ public class Macros {
 
   public final PsiMethod defineAssignment;
 
-  public final MultiMatch createIntentMacro;
+  public final MultiMatch createIntent;
   public final MultiMatch installItemClickAndCallMacro;
   public final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro;
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
@@ -84,11 +85,11 @@ public class Macros {
     PsiMethod installItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installItemClickListener2", project)[0];
 
     PsiMethod getMenuItemMacro = getMethodsByName(MENU_ACCESS_TEMPLATES, "getMenuItem", project)[0];
-    PsiMethod createIntentMethod = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "createIntent", project)[0];
     PsiMethod launchActivityMacro = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[0];
     PsiMethod launchActivityMacro2 = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[1];
 
-    createIntentMacro = new MultiMatch(createIntentMethod);
+    createIntent = new MultiMatch(Utilities.createMethodFromText(project, "void macro(Context context, Class activityClass) { " +
+                                                                          "new Intent(context, activityClass); }"));
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
     installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);
