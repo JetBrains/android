@@ -31,7 +31,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 
 import java.util.Map;
 
-// TODO: Allow issues to be suppressed in Gradle files (with comments? annotations?)
 public class IntellijGradleDetector extends GradleDetector {
   static final Implementation IMPLEMENTATION = new Implementation(
     IntellijGradleDetector.class,
