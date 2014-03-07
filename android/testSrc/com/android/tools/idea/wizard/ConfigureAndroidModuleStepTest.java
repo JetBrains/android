@@ -238,6 +238,24 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_PROJECT_LOCATION, plainFileRooted.getPath());
     assertValidationError("The project location's parent directory must be a directory, not a plain file");
 
+    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My\\ApplicationProject");
+    assertValidationError("Illegal character in project location: '\\' in filename: My\\ApplicationProject");
+
+    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My>ApplicationProject");
+    assertValidationError("Illegal character in project location: '>' in filename: My>ApplicationProject");
+
+    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My?ApplicationProject");
+    assertValidationError("Illegal character in project location: '?' in filename: My?ApplicationProject");
+
+    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/MyApplication*Project");
+    assertValidationError("Illegal character in project location: '*' in filename: MyApplication*Project");
+
+    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/MyApplicationPro|ject");
+    assertValidationError("Illegal character in project location: '|' in filename: MyApplicationPro|ject");
+
+    myState.put(ATTR_PROJECT_LOCATION, getProject().getBasePath() + "/My Application Project");
+    assertValidationWarning("Your project location contains whitespace. This can cause problems on some platforms and is not recommended.");
+
     resetValues();
 
     ModuleManager manager = ModuleManager.getInstance(getProject());
