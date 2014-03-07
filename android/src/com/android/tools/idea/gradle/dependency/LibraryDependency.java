@@ -33,6 +33,8 @@ import java.util.Map;
 public class LibraryDependency extends Dependency {
   @NotNull private final Map<PathType, Collection<String>> myPathsByType = Maps.newEnumMap(PathType.class);
 
+  @NotNull private String myName;
+
   /**
    * Creates a new {@link LibraryDependency}.
    *
@@ -52,7 +54,7 @@ public class LibraryDependency extends Dependency {
    * @param name the name of the library to depend on.
    */
   LibraryDependency(@NotNull String name) {
-    super(name);
+    setName(name);
   }
 
   /**
@@ -63,7 +65,8 @@ public class LibraryDependency extends Dependency {
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   LibraryDependency(@NotNull String name, @NotNull DependencyScope scope) {
-    super(name, scope);
+    super(scope);
+    setName(name);
   }
 
   void addPath(@NotNull PathType type, @NotNull File path) {
@@ -81,10 +84,19 @@ public class LibraryDependency extends Dependency {
     return paths == null ? Collections.<String>emptyList() : paths;
   }
 
+  @NotNull
+  public String getName() {
+    return myName;
+  }
+
+  void setName(@NotNull String name) {
+    myName = name;
+  }
+
   @Override
   public String toString() {
     return getClass().getSimpleName() + "[" +
-           "name='" + getName() + '\'' +
+           "name='" + myName + '\'' +
            ", scope=" + getScope() +
            ", pathsByType=" + myPathsByType +
            "]";
