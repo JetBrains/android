@@ -63,6 +63,8 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   implements ActionListener, FocusListener, DocumentListener, ChangeListener {
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardStep.class.getName());
 
+  protected static final String LAST_USED_CLASS_PREFIX_KEY = "LAST_USED_CLASS_PREFIX";
+
   protected final TemplateWizardState myTemplateState;
   protected final BiMap<String, JComponent> myParamFields = HashBiMap.create();
   protected final Map<JRadioButton, Pair<String, Object>> myRadioButtonValues = Maps.newHashMap();
