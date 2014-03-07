@@ -20,14 +20,10 @@ import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -82,47 +78,10 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public AndroidPlatform getAndroidPlatform() {
     final Module module = myFacet.getModule();
     Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-    if (moduleSdk == null) {
-      moduleSdk = findAndSetAndroidSdk(module);
-    }
     if (moduleSdk != null && moduleSdk.getSdkType().equals(AndroidSdkType.getInstance())) {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)moduleSdk.getSdkAdditionalData();
       return data != null ? data.getAndroidPlatform() : null;
     }
-    return null;
-  }
-
-  @Nullable
-  public static Sdk findAndSetAndroidSdk(@NotNull Module module) {
-    Sdk[] sdks = ProjectJdkTable.getInstance().getAllJdks();
-    if (sdks != null) {
-      AndroidSdkType type = AndroidSdkType.getInstance();
-      final Project project = module.getProject();
-      for (final Sdk sdk : sdks) {
-        if (sdk.getSdkType() == type) {
-          if (ProjectRootManager.getInstance(project).getProjectSdk() == sdk) {
-            // Already set
-            return sdk;
-          }
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() { // Write action can only be run from dispatch thread
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  if (!project.isDisposed()) {
-                    ProjectRootManager.getInstance(project).setProjectSdk(sdk);
-                  }
-                }
-              });
-            }
-          });
-
-          return sdk;
-        }
-      }
-    }
-
     return null;
   }
 
