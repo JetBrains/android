@@ -170,6 +170,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, null, this));
     myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, this);
     mySteps.add(myAssetSetStep);
+    myAssetSetStep.setVisible(false);
 
 
     myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, myProject.getBasePath());
