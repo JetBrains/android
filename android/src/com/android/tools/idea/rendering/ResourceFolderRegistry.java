@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,17 @@ import java.util.Map;
 
 public class ResourceFolderRegistry {
   private final static Map<VirtualFile, ResourceFolderRepository> ourDirMap = new HashMap<VirtualFile, ResourceFolderRepository>();
+
+  public static void reset() {
+    for (Map.Entry<VirtualFile, ResourceFolderRepository> entry : ourDirMap.entrySet()) {
+      VirtualFile dir = entry.getKey();
+      ResourceFolderRepository repository = entry.getValue();
+      Project project = repository.getFacet().getModule().getProject();
+      PsiProjectListener.removeRoot(project, dir, repository);
+
+    }
+    ourDirMap.clear();
+  }
 
   @NotNull
   public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir) {
