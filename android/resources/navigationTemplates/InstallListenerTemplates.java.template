@@ -41,6 +41,15 @@ public class InstallListenerTemplates {
         });
     }
 
+    public static void installItemClickListener2(ListView $listView, final Statement $f) {
+        $listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
+                $f.$$();
+            }
+        });
+    }
+
     public static void installMenuItemClick(MenuItem $menuItem, final Statement $f, final boolean $consume) {
         $menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
