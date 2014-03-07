@@ -24,7 +24,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -275,15 +274,18 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         }
       }
 
-      if (changed) {
-        final List<BuildFileStatement> finalCurrentDeps = currentDeps;
-        WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
-          @Override
-          public void run() {
-            buildFile.setValue(BuildFileKey.DEPENDENCIES, finalCurrentDeps);
-          }
-        });
-      }
+      // TODO: This sometimes gets a stale version of existing dependencies and writes it back out. Investigate, fix, and re-enable.
+      // TODO: The tests still pass when this is commented out because they don't confirm the changes get written all the way out to
+      // the file. Make the tests do better testing.
+      //if (changed) {
+      //  final List<BuildFileStatement> finalCurrentDeps = currentDeps;
+      //  WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      //    @Override
+      //    public void run() {
+      //      buildFile.setValue(BuildFileKey.DEPENDENCIES, finalCurrentDeps);
+      //    }
+      //  });
+      //}
     }
   }
 
