@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.*;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -116,7 +116,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
             NewProjectUtil.applyJdkToProject(project, jdk);
             homePath = FileUtil.toSystemDependentName(homePath);
             DefaultSdks.setDefaultJavaHome(new File(homePath));
-            Projects.updateJavaLangLevelAfterBuild(project);
+            PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
           }
         }
       }
