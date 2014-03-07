@@ -26,7 +26,6 @@ public class ModuleDependencyTest extends TestCase {
     String projectName = "module1";
     String gradlePath = "abc:xyz:" + projectName;
     ModuleDependency dependency = new ModuleDependency(gradlePath, DependencyScope.TEST);
-    assertEquals(projectName, dependency.getName());
     assertEquals(gradlePath, dependency.getGradlePath());
     assertEquals(DependencyScope.TEST, dependency.getScope());
   }
