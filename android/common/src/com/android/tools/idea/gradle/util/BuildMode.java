@@ -32,7 +32,10 @@ public enum BuildMode {
   COMPILE_JAVA,
 
   /** Generate Java source only (e.g. R.java). */
-  SOURCE_GEN;
+  SOURCE_GEN,
+
+  /** Build project with translation support. */
+  ASSEMBLE_TRANSLATE;
 
   /**
    * This build mode is used when user invokes "Build" > "Make" or "Build" > "Rebuild". For these cases, Studio does not have a chance to

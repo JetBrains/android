@@ -69,6 +69,18 @@ public class GradleInvokerTest extends IdeaTestCase {
   }
 
   public void testCleanProject() throws Exception {
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertEquals(1, tasks.size());
+        assertEquals("assembleTranslate", tasks.get(0));
+        assertEquals(BuildMode.ASSEMBLE_TRANSLATE, getBuildMode());
+      }
+    });
+    myInvoker.assembleTranslate();
+  }
+
+  public void testAssembleTranslate() {
     final String taskName = "sourceGen";
     myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = taskName;
 
