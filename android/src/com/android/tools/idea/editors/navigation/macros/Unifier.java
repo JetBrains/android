@@ -37,6 +37,12 @@ public class Unifier {
     return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0].getFirstChild(), element);
   }
 
+  /*
+  public static Map<String, PsiElement> matchStatement(PsiMethod method, PsiElement element) {
+    return new Unifier().unify(method.getParameterList(), method.getBody().getStatements()[0], element);
+  }
+  */
+
   private String indent() {
     StringBuilder b = new StringBuilder();
     for (int i = 0; i < indent; i++) {
