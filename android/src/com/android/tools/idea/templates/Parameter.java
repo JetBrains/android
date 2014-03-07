@@ -178,6 +178,13 @@ public class Parameter {
   @Nullable
   public final String suggest;
 
+  /**
+   * A template expression using other template parameters for dynamically changing
+   * the visibility of this parameter to the user.
+   */
+  @Nullable
+  public final String visibility;
+
   /** Help for the parameter, if any */
   @Nullable
   public final String help;
@@ -201,6 +208,7 @@ public class Parameter {
     id = parameter.getAttribute(ATTR_ID);
     initial = parameter.getAttribute(ATTR_DEFAULT);
     suggest = parameter.getAttribute(ATTR_SUGGEST);
+    visibility = parameter.getAttribute(ATTR_VISIBILITY);
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
@@ -231,6 +239,7 @@ public class Parameter {
     element = null;
     initial = null;
     suggest = null;
+    visibility = null;
     name = id;
     help = null;
     constraints = EnumSet.noneOf(Constraint.class);

@@ -41,6 +41,8 @@ class StringEvaluator implements TemplateLoader {
   private Configuration myFreemarker;
   private String myCurrentExpression;
 
+  private static final String BOOLEAN_TEMPLATE = "<#if (%s)>true<#else>false</#if>";
+
   StringEvaluator() {
 
     myFreemarker = new Configuration();
@@ -61,6 +63,16 @@ class StringEvaluator implements TemplateLoader {
       return out.toString();
     } catch (Exception e) {
       return null;
+    }
+  }
+
+  boolean evaluateBooleanExpression(@NonNull String expression, Map<String, Object> inputs, boolean defaultValue) {
+    try {
+      myCurrentExpression = String.format(BOOLEAN_TEMPLATE, expression);
+      String result = evaluate(myCurrentExpression, inputs);
+      return Boolean.parseBoolean(result);
+    } catch (Exception e) {
+      return defaultValue;
     }
   }
 
