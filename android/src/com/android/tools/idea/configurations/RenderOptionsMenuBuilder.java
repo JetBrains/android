@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
 import org.jetbrains.annotations.NotNull;
 
@@ -85,6 +85,27 @@ public class RenderOptionsMenuBuilder {
         myContext.requestRender();
       }
     }).setAsSecondary(true);
+
+    return this;
+  }
+
+  // TODO: Remove when Retina support is complete (and has been field tested a bit)
+  @NotNull
+  public RenderOptionsMenuBuilder addRetinaOption() {
+    if (UIUtil.isRetina()) {
+      myGroup.addAction(new CheckboxAction("DEBUG: Render in Retina resolution") {
+        @Override
+        public boolean isSelected(AnActionEvent e) {
+          return mySettings.getGlobalState().isRetina();
+        }
+
+        @Override
+        public void setSelected(AnActionEvent e, boolean state) {
+          mySettings.getGlobalState().setRetina(state);
+          myContext.requestRender();
+        }
+      }).setAsSecondary(true);
+    }
 
     return this;
   }
