@@ -96,7 +96,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     Project project = module.getProject();
-    if (Projects.syncWithGradleFailed(project)) {
+    if (Projects.isGradleProjectWithoutModel(project)) {
       // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
       throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
@@ -189,7 +189,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
-    if (Projects.syncWithGradleFailed(project)) {
+    if (Projects.isGradleProjectWithoutModel(project)) {
       // This prevents user from running the app.
       throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
     }
