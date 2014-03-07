@@ -142,26 +142,26 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                @NotNull SourceProvider sourceProvider,
                                boolean isTest,
                                @NotNull List<RootSourceFolder> orphans) {
-    JpsModuleSourceRootType sourceType = getSourceType(isTest);
+    JpsModuleSourceRootType sourceType = getResourceSourceType(isTest);
+    addSourceFolders(contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
+    addSourceFolders(contentEntries, sourceProvider.getResourcesDirectories(), sourceType, false, orphans);
+
+    sourceType = getSourceType(isTest);
     addSourceFolders(contentEntries, sourceProvider.getAidlDirectories(), sourceType, false, orphans);
     addSourceFolders(contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
     addSourceFolders(contentEntries, sourceProvider.getJavaDirectories(), sourceType, false, orphans);
     addSourceFolders(contentEntries, sourceProvider.getJniDirectories(), sourceType, false, orphans);
     addSourceFolders(contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
-
-    sourceType = getResourceSourceType(isTest);
-    addSourceFolders(contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
-    addSourceFolders(contentEntries, sourceProvider.getResourcesDirectories(), sourceType, false, orphans);
-  }
-
-  @NotNull
-  private static JpsModuleSourceRootType getSourceType(boolean isTest) {
-    return isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
   }
 
   @NotNull
   private static JpsModuleSourceRootType getResourceSourceType(boolean isTest) {
     return isTest ? JavaResourceRootType.TEST_RESOURCE : JavaResourceRootType.RESOURCE;
+  }
+
+  @NotNull
+  private static JpsModuleSourceRootType getSourceType(boolean isTest) {
+    return isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE;
   }
 
   private void addSourceFolders(@NotNull Collection<ContentEntry> contentEntries,
