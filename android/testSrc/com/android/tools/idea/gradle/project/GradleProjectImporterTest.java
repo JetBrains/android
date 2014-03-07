@@ -56,14 +56,15 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     projectData.setName(myProjectName);
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
-    ModuleData moduleData
-      = new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
+    ModuleData moduleData =
+      new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
       @Override
-      void importProject(@NotNull Project project, @NotNull ExternalProjectRefreshCallback callback, @NotNull final ProgressExecutionMode progressTaskMode)
-        throws ConfigurationException {
+      void importProject(@NotNull Project project,
+                         @NotNull ExternalProjectRefreshCallback callback,
+                         @NotNull final ProgressExecutionMode progressTaskMode) throws ConfigurationException {
         assertNotNull(project);
         assertEquals(myProjectName, project.getName());
 
