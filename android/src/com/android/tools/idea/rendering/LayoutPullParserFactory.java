@@ -23,6 +23,7 @@ import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -72,12 +73,27 @@ public class LayoutPullParserFactory {
   }
 
   @Nullable
-  public static ILayoutPullParser create(@NotNull RenderService renderService) {
-    XmlFile file = renderService.getPsiFile();
-    ResourceFolderType folderType = renderService.getFolderType();
+  public static ILayoutPullParser create(@NotNull final RenderService renderService) {
+    final ResourceFolderType folderType = renderService.getFolderType();
     if (folderType == null) {
       return null;
     }
+
+    if ((folderType == ResourceFolderType.DRAWABLE || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.XML)
+        && !ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction(new Computable<ILayoutPullParser>() {
+        @Nullable
+        @Override
+        public ILayoutPullParser compute() {
+          return create(renderService);
+        }
+      });
+    }
+
+    XmlFile file = renderService.getPsiFile();
+
+    // IntelliJ bug: Claims that folderType can be null below. Suppressed.
+    //noinspection ConstantConditions
     switch (folderType) {
       case LAYOUT: {
         RenderLogger logger = renderService.getLogger();
