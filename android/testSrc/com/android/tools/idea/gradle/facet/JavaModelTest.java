@@ -54,7 +54,7 @@ public class JavaModelTest extends TestCase {
 
     replay(contentRoot, moduleDependency, resolved, unresolved);
 
-    JavaModel model = new JavaModel(allContentRoots, allDependencies);
+    JavaModel model = new JavaModel(new File("module"), allContentRoots, allDependencies, null);
     List<IdeaContentRoot> contentRoots = model.getContentRoots();
     assertEquals(1, contentRoots.size());
     assertSame(contentRoot, contentRoots.get(0));
