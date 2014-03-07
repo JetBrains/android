@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.structure;
 
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.ide.util.BrowseFilesListener;
 import com.intellij.openapi.application.ApplicationManager;
@@ -36,6 +35,7 @@ import com.intellij.ui.FieldPanel;
 import com.intellij.ui.InsertPathAction;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -191,10 +191,9 @@ public class AndroidHomeConfigurable implements Configurable {
       return allAndroidSdks.get(0);
     }
     if (!create) return null;
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    if (sdkManager == null) return null;
-    File location = new File(sdkManager.getLocation());
-    List<Sdk> sdks = DefaultSdks.createAndroidSdksForAllTargets(location);
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData == null) return null;
+    List<Sdk> sdks = DefaultSdks.createAndroidSdksForAllTargets(sdkData.getLocation());
     return !sdks.isEmpty() ? sdks.get(0) : null;
   }
 

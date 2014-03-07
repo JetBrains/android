@@ -17,9 +17,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.utils.NullLogger;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -104,7 +102,7 @@ public class DefaultSdksTest extends IdeaTestCase {
 
   private void assertOneSdkPerAvailableTarget(@NotNull List<Sdk> sdks) {
     List<IAndroidTarget> platformTargets = Lists.newArrayList();
-    AndroidSdkData sdkData = AndroidSdkData.parse(myAndroidSdkPath.getPath(), NullLogger.getLogger());
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(myAndroidSdkPath);
     assertNotNull(sdkData);
     for (IAndroidTarget target : sdkData.getTargets()) {
       if (target.isPlatform()) {
