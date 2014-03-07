@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleImportNotificationListener;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
@@ -225,6 +226,10 @@ public final class Projects {
   public static void enforceExternalBuild(@NotNull Project project) {
     if (isGradleProject(project)) {
       // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
+      if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = false;
+      }
+
       CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
       boolean wasUsingExternalMake = workspaceConfiguration.useOutOfProcessBuild();
       if (!wasUsingExternalMake) {
