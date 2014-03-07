@@ -20,6 +20,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
@@ -56,15 +57,16 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     void templateChanged(String templateName);
   }
 
-  public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Icon sidePanelIcon,
-                            UpdateListener updateListener, @Nullable TemplateChangeListener templateChangeListener) {
-    this(state, templateCategory, project, sidePanelIcon, updateListener, templateChangeListener, null);
+  public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Module module,
+                            @Nullable Icon sidePanelIcon, UpdateListener updateListener,
+                            @Nullable TemplateChangeListener templateChangeListener) {
+    this(state, templateCategory, project, module, sidePanelIcon, updateListener, templateChangeListener, null);
   }
 
-  public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Icon sidePanelIcon,
-                            UpdateListener updateListener, @Nullable TemplateChangeListener templateChangeListener,
-                            @Nullable Set<String> excluded) {
-    super(state, project, sidePanelIcon, updateListener);
+  public ChooseTemplateStep(TemplateWizardState state, String templateCategory, @Nullable Project project, @Nullable Module module,
+                            @Nullable Icon sidePanelIcon, UpdateListener updateListener,
+                            @Nullable TemplateChangeListener templateChangeListener, @Nullable Set<String> excluded) {
+    super(state, project, module, sidePanelIcon, updateListener);
     myTemplateChangeListener = templateChangeListener;
 
     if (templateCategory != null) {
