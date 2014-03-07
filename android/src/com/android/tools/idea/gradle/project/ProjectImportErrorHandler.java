@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.base.Strings;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -31,7 +30,7 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 /**
- * Provides better error messages for project import failures.
+ * Provides better error messages for android projects import failures.
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
   public static final String FAILED_TO_PARSE_SDK_ERROR = "failed to parse SDK";
@@ -61,11 +60,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
-    String location = rootCauseAndLocation.getSecond();
-    if (location == null && !Strings.isNullOrEmpty(buildFilePath)) {
-      location = String.format("Build file: '%1$s'", buildFilePath);
-    }
-
     if (isOldGradleVersion(rootCause)) {
       String msg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
                                  GradleUtil.GRADLE_MINIMUM_VERSION);
@@ -90,30 +84,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
           return createUserFriendlyError(newMsg, null);
         }
       }
-    }
-
-    if (rootCause instanceof OutOfMemoryError) {
-      // The OutOfMemoryError happens in the Gradle daemon process.
-      String originalMessage = rootCause.getMessage();
-      String msg = "Out of memory";
-      if (originalMessage != null && !originalMessage.isEmpty()) {
-        msg = msg + ": " + originalMessage;
-      }
-      if (msg.endsWith("Java heap space")) {
-        msg += ". Configure Gradle memory settings using '-Xmx' JVM option (e.g. '-Xmx2048m'.)";
-      } else if (!msg.endsWith(".")) {
-        msg += ".";
-      }
-      msg += EMPTY_LINE + OPEN_GRADLE_SETTINGS;
-      // Location of build.gradle is useless for this error. Omitting it.
-      return createUserFriendlyError(msg, null);
-    }
-
-    if (rootCause instanceof ClassNotFoundException) {
-      String msg = String.format("Unable to load class '%1$s'.", rootCause.getMessage()) + EMPTY_LINE +
-                   UNEXPECTED_ERROR_FILE_BUG;
-      // Location of build.gradle is useless for this error. Omitting it.
-      return createUserFriendlyError(msg, null);
     }
 
     if (rootCause instanceof RuntimeException) {
@@ -143,7 +113,8 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
     }
 
-    return createUserFriendlyError(rootCause.getMessage(), location);
+    // give others GradleProjectResolverExtensions a chance to handle this error
+    return null;
   }
 
   private static boolean isOldGradleVersion(@NotNull Throwable error) {

@@ -448,8 +448,9 @@ public class GradleProjectImporter {
       try {
         boolean previewMode = false; // false -> resolve dependencies for Java modules (Gradle model takes care of its own dependencies.)
         boolean reportRefreshError = true; // always report errors when importing.
+        String externalProjectPath = FileUtil.toCanonicalPath(project.getBasePath());
         ExternalSystemUtil
-          .refreshProject(project, SYSTEM_ID, project.getBasePath(), callback, previewMode, progressExecutionMode, reportRefreshError);
+          .refreshProject(project, SYSTEM_ID, externalProjectPath, callback, previewMode, progressExecutionMode, reportRefreshError);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
