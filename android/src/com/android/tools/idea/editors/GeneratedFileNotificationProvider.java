@@ -16,21 +16,22 @@
 
 package com.android.tools.idea.editors;
 
+import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer.BUILD_DIR;
 import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_BUNDLES;
 
@@ -50,46 +51,50 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
-    final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
+    AndroidProject androidProject = getAndroidProject(file);
+    if (androidProject == null) {
+      return null;
+    }
+    VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidProject.getBuildFolder(), true);
+    if (buildFolder == null || !buildFolder.isDirectory()) {
+      return null;
+    }
+    if (VfsUtilCore.isAncestor(buildFolder, file, false)) {
+      VirtualFile explodedBundled = buildFolder.findChild(EXPLODED_BUNDLES);
+      if (explodedBundled == null) {
+        // 0.8.2+
+        explodedBundled = buildFolder.findChild(EXPLODED_AAR);
+      }
+      boolean inAar = explodedBundled != null && VfsUtilCore.isAncestor(explodedBundled, file, true);
+      String text;
+      if (inAar) {
+        text = "Resource files inside Android library archive files (.aar) should not be edited";
+      }
+      else {
+        text = "Files under the build folder are generated and should not be edited.";
+      }
+
+      EditorNotificationPanel panel = new EditorNotificationPanel();
+      panel.setText(text);
+      return panel;
+    }
+    return null;
+  }
+
+  @Nullable
+  private AndroidProject getAndroidProject(@NotNull VirtualFile file) {
+    Module module = ModuleUtilCore.findModuleForFile(file, myProject);
     if (module == null) {
       return null;
     }
-
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
     }
-
-    if (!facet.isGradleProject()) {
+    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+    if (androidProject == null) {
       return null;
     }
-
-    // TODO: Look up build folder via Gradle project metadata.
-    if (!file.getPath().contains(BUILD_DIR)) { // fast fail
-      return null;
-    }
-    for (VirtualFile baseDir : ModuleRootManager.getInstance(module).getContentRoots()) {
-      VirtualFile build = baseDir.findChild(BUILD_DIR);
-      if (build != null && VfsUtilCore.isAncestor(build, file, true)) {
-        VirtualFile explodedBundled = build.findChild(EXPLODED_BUNDLES);
-        if (explodedBundled == null) {
-          // 0.8.2+
-          explodedBundled = build.findChild(EXPLODED_AAR);
-        }
-        boolean inAar = explodedBundled != null && VfsUtilCore.isAncestor(explodedBundled, file, true);
-        String text;
-        if (inAar) {
-          text = "Resource files inside Android library archive files (.aar) should not be edited";
-        } else {
-          text = "Files under the build folder are generated and should not be edited.";
-        }
-
-        EditorNotificationPanel panel = new EditorNotificationPanel();
-        panel.setText(text);
-        return panel;
-      }
-    }
-
-    return null;
+    return androidProject.getDelegate();
   }
 }
