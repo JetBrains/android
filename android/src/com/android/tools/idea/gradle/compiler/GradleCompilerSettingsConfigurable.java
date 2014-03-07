@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.compiler;
 
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
@@ -24,6 +25,7 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.RawCommandLineEditor;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,11 +48,12 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private RawCommandLineEditor myVmOptionsEditor;
   private JCheckBox myAutoMakeCheckBox;
-  private JCheckBox myUseExperimentalBuildCheckBox;
+  private JBLabel myUseInProcessBuildLabel;
+  private JCheckBox myUseInProcessBuildCheckBox;
   private JPanel myContentPanel;
   private JCheckBox myOfflineModeCheckBox;
-  private RawCommandLineEditor myCommandLineOptionsEditor;
 
+  private RawCommandLineEditor myCommandLineOptionsEditor;
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
 
@@ -58,6 +61,11 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     myGradleSettings = GradleSettings.getInstance(project);
+
+    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      myUseInProcessBuildLabel.setVisible(false);
+      myUseInProcessBuildCheckBox.setVisible(false);
+    }
   }
 
   @Override
@@ -119,7 +127,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   }
 
   private boolean isExperimentalBuildEnabled() {
-    return myUseExperimentalBuildCheckBox.isSelected();
+    return myUseInProcessBuildCheckBox.isSelected();
   }
 
   private boolean isOfflineModeEnabled() {
@@ -142,7 +150,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     String vmOptions = Strings.nullToEmpty(myGradleSettings.getGradleVmOptions());
     myVmOptionsEditor.setText(vmOptions);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
-    myUseExperimentalBuildCheckBox.setSelected(myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
+    myUseInProcessBuildCheckBox.setSelected(myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");
