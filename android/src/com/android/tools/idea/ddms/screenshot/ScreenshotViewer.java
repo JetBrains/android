@@ -17,6 +17,7 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
+import com.android.resources.ScreenOrientation;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -31,8 +32,10 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.*;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.containers.ContainerUtil;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
 import org.intellij.images.editor.ImageZoomModel;
@@ -136,7 +139,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myDropShadowCheckBox.addActionListener(l);
     myScreenGlareCheckBox.addActionListener(l);
 
-    myDeviceArtDescriptors = DeviceArtDescriptor.getDescriptors(null);
+    myDeviceArtDescriptors = getDescriptorsToFrame(image);
     String[] titles = new String[myDeviceArtDescriptors.size()];
     for (int i = 0; i < myDeviceArtDescriptors.size(); i++) {
       titles[i] = myDeviceArtDescriptors.get(i).getName();
@@ -149,6 +152,21 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     setModal(false);
     init();
+  }
+
+  // returns the list of descriptors capable of framing the given image
+  private List<DeviceArtDescriptor> getDescriptorsToFrame(final BufferedImage image) {
+    double imgAspectRatio = image.getWidth() / (double) image.getHeight();
+    final ScreenOrientation orientation =
+      imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
+
+    List<DeviceArtDescriptor> allDescriptors = DeviceArtDescriptor.getDescriptors(null);
+    return ContainerUtil.filter(allDescriptors, new Condition<DeviceArtDescriptor>() {
+      @Override
+      public boolean value(DeviceArtDescriptor descriptor) {
+        return descriptor.canFrameImage(image, orientation);
+      }
+    });
   }
 
   private static int getDefaultDescriptor(List<DeviceArtDescriptor> deviceArtDescriptors, BufferedImage image,
@@ -281,6 +299,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       } else {
         myProcessedImage = myRotatedImage;
       }
+
+      myProcessedImage = ImageUtils.cropBlank(myProcessedImage, null);
     }
 
     protected BufferedImage getProcessedImage() {
