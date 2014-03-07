@@ -111,7 +111,7 @@ public class IdeaAndroidProject implements Serializable {
   private static AndroidArtifact findInstrumentationTestArtifact(@NotNull Variant variant) {
     Collection<AndroidArtifact> extraAndroidArtifacts = variant.getExtraAndroidArtifacts();
     for (AndroidArtifact extraArtifact : extraAndroidArtifacts) {
-      if (extraArtifact.getName().equals(AndroidProject.ARTIFACT_INSTRUMENT_TEST)) {
+      if (extraArtifact.getName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
         return extraArtifact;
       }
     }

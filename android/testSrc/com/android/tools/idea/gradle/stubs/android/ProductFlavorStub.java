@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.NdkConfig;
 import com.android.builder.model.ProductFlavor;
@@ -25,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class ProductFlavorStub implements ProductFlavor {
   @NotNull private final String myName;
@@ -124,7 +124,13 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @NotNull
-  public Collection<ClassField> getBuildConfigFields() {
+  public Map<String, ClassField> getBuildConfigFields() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Map<String, ClassField> getResValues() {
     throw new UnsupportedOperationException();
   }
 

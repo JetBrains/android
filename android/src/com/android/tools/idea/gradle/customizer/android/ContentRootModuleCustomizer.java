@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer.android;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtil;
@@ -30,7 +31,6 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -45,17 +45,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model,
                                                                 @NotNull IdeaAndroidProject androidProject) {
-    ContentEntry[] contentEntries = model.getContentEntries();
     VirtualFile rootDir = androidProject.getRootDir();
-    if (contentEntries.length > 0) {
-      for (ContentEntry contentEntry : contentEntries) {
-        VirtualFile contentEntryFile = contentEntry.getFile();
-        if (rootDir.equals(contentEntryFile)) {
-          return Collections.singleton(contentEntry);
-        }
-      }
-    }
-    return Collections.singleton(model.addContentEntry(rootDir));
+    File buildFolder = androidProject.getDelegate().getBuildFolder();
+
+    return Lists.newArrayList(model.addContentEntry(rootDir), model.addContentEntry(pathToUrl(buildFolder)));
   }
 
   @Override
@@ -88,7 +81,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     ProductFlavorContainer defaultConfig = delegate.getDefaultConfig();
     addSourceFolder(contentEntries, defaultConfig);
 
-    addExcludedOutputFolders(contentEntries);
+    addExcludedOutputFolders(contentEntries, delegate);
   }
 
   private void addSourceFolders(@NotNull Collection<ContentEntry> contentEntry, @NotNull AndroidArtifact androidArtifact, boolean isTest) {
@@ -119,7 +112,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     Collection<SourceProviderContainer> extraArtifactSourceProviders = flavor.getExtraSourceProviders();
     for (SourceProviderContainer sourceProviders : extraArtifactSourceProviders) {
       String artifactName = sourceProviders.getArtifactName();
-      if (AndroidProject.ARTIFACT_INSTRUMENT_TEST.equals(artifactName)) {
+      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(artifactName)) {
         addSourceFolder(contentEntries, sourceProviders.getSourceProvider(), true);
         break;
       }
@@ -158,20 +151,20 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     }
   }
 
-  private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries) {
+  private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull AndroidProject androidProject) {
     for (ContentEntry contentEntry : contentEntries) {
       VirtualFile file = contentEntry.getFile();
-      assert file != null;
-      File rootDirPath = VfsUtilCore.virtualToIoFile(file);
-
-      for (File child : FileUtil.notNullize(rootDirPath.listFiles())) {
-        if (child.isDirectory() && child.getName().startsWith(".")) {
-          addExcludedFolder(contentEntry, child);
+      if (file != null) {
+        File rootDirPath = VfsUtilCore.virtualToIoFile(file);
+        for (File child : FileUtil.notNullize(rootDirPath.listFiles())) {
+          if (child.isDirectory() && child.getName().startsWith(".")) {
+            addExcludedFolder(contentEntry, child);
+          }
         }
       }
-      File outputDirPath = new File(rootDirPath, BUILD_DIR);
+      File buildFolder = androidProject.getBuildFolder();
       for (String childName : EXCLUDED_OUTPUT_DIR_NAMES) {
-        File child = new File(outputDirPath, childName);
+        File child = new File(buildFolder, childName);
         addExcludedFolder(contentEntry, child);
       }
     }
