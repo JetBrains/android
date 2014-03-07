@@ -19,16 +19,20 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.easymock.classextension.EasyMock.*;
 
 /**
  * Tests for {@link BuildVariantView}.
  */
 public class BuildVariantViewTest extends AndroidTestCase {
-  private boolean myExpectedListenerCalled;
   private Listener myListener;
   private BuildVariantUpdater myUpdater;
   private BuildVariantView myView;
+  private List<AndroidFacet> myAndroidFacets;
+  private String myBuildVariantName;
 
   @Override
   public void setUp() throws Exception {
@@ -38,46 +42,41 @@ public class BuildVariantViewTest extends AndroidTestCase {
     myView.setUpdater(myUpdater);
     myListener = new Listener();
     myView.addListener(myListener);
+    myAndroidFacets = Collections.singletonList(myFacet);
+    myBuildVariantName = "debug";
   }
 
   @Override
   public void tearDown() throws Exception {
     super.tearDown();
-    // After tearDown, the buildVariantSelected method is called (if expected to be called.)
-    assertEquals(myExpectedListenerCalled, myListener.myWasCalled);
   }
 
-  public void testBuildVariantSelectedWithSuccessfulUpdate() {
-    myExpectedListenerCalled = true;
-
-    String buildVariantName = "debug";
-    expect(myUpdater.updateModule(getProject(), myModule.getName(), buildVariantName)).andReturn(myFacet);
+  public void testSelectVariantWithSuccessfulUpdate() {
+    expect(myUpdater.updateModule(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(myAndroidFacets);
     replay(myUpdater);
 
-    myView.buildVariantSelected(myModule.getName(), buildVariantName);
+    myView.selectVariant(myModule, myBuildVariantName);
+    assertTrue(myListener.myWasCalled);
 
     verify(myUpdater);
   }
 
-  public void testBuildVariantSelectedWithFailedUpdate() {
-    myExpectedListenerCalled = false;
-
-    String buildVariantName = "debug";
-    expect(myUpdater.updateModule(getProject(), myModule.getName(), buildVariantName)).andReturn(null);
+  public void testSelectVariantWithFailedUpdate() {
+    List<AndroidFacet> facets = Collections.emptyList();
+    expect(myUpdater.updateModule(getProject(), myModule.getName(), myBuildVariantName)).andStubReturn(facets);
     replay(myUpdater);
 
-    myView.buildVariantSelected(myModule.getName(), buildVariantName);
+    myView.selectVariant(myModule, myBuildVariantName);
+    assertFalse(myListener.myWasCalled);
 
     verify(myUpdater);
   }
 
   private static class Listener implements BuildVariantView.BuildVariantSelectionChangeListener {
-    AndroidFacet myUpdatedFacet;
     boolean myWasCalled;
 
     @Override
-    public void buildVariantSelected(@NotNull AndroidFacet updatedFacet) {
-      myUpdatedFacet = updatedFacet;
+    public void buildVariantSelected(@NotNull List<AndroidFacet> updatedFacets) {
       myWasCalled = true;
     }
   }
