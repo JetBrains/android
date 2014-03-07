@@ -44,6 +44,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
@@ -52,10 +53,12 @@ import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import org.jetbrains.plugins.gradle.model.ProjectDependenciesModel;
+import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -64,6 +67,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService.RECOMMENDED_ACTIONS_CATEGORY;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -264,8 +268,26 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
+    String msg = error.getMessage();
+    if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+      Throwable rootCause = ExceptionUtil.getRootCause(error);
+      if (rootCause instanceof ClassNotFoundException) {
+        msg = rootCause.getMessage();
+        // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
+        if ("org.gradle.api.artifacts.result.ResolvedComponentResult".equals(msg) ||
+            "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
+          GradleVersion supported = getGradleSupportedVersion();
+          return new ExternalSystemException(getUnsupportedGradleVersionErrorMsg(supported));
+        }
+      }
+    }
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
     return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
+  }
+
+  @NotNull
+  private static GradleVersion getGradleSupportedVersion() {
+    return GradleVersion.version(GRADLE_MINIMUM_VERSION);
   }
 
   @NotNull
@@ -276,8 +298,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       builder.append(String.format(" (%1$s)", modelVersion.toString()));
     }
     builder.append(".\n\nVersion 0.9.0 introduced incompatible changes in the build language.\n")
-           .append("Please read the migration guide to learn how to update your project.");
+      .append("Please read the migration guide to learn how to update your project.");
     return builder.toString();
+  }
+
+  @NotNull
+  private static String getUnsupportedGradleVersionErrorMsg(@NotNull GradleVersion supportedVersion) {
+    String version = supportedVersion.getVersion();
+    return String.format("The project is using an unsupported version of Gradle. Please use version %1$s.\n", version) +
+           AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
   }
 
   @NotNull
