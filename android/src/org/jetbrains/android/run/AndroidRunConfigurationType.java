@@ -15,9 +15,8 @@
  */
 package org.jetbrains.android.run;
 
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -37,7 +36,13 @@ import javax.swing.*;
  * @author yole
  */
 public class AndroidRunConfigurationType implements ConfigurationType {
-  private final ConfigurationFactory myFactory = new ConfigurationFactory(this) {
+  private final ConfigurationFactory myFactory = new AndroidRunConfigurationFactory(this);
+
+  public static class AndroidRunConfigurationFactory extends ConfigurationFactory {
+    protected AndroidRunConfigurationFactory(@NotNull ConfigurationType type) {
+      super(type);
+    }
+
     @Override
     public RunConfiguration createTemplateConfiguration(Project project) {
       return new AndroidRunConfiguration(project, this);
@@ -55,11 +60,12 @@ public class AndroidRunConfigurationType implements ConfigurationType {
 
     @Override
     public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        task.setEnabled(MakeBeforeRunTaskProvider.ID.equals(providerID));
+      // Under Android Studio, disable the default Make compile step for this run configuration type
+      if (AndroidStudioSpecificInitializer.isAndroidStudio() && CompileStepBeforeRun.ID.equals(providerID)) {
+        task.setEnabled(false);
       }
     }
-  };
+  }
 
   public static AndroidRunConfigurationType getInstance() {
     return ConfigurationTypeUtil.findConfigurationType(AndroidRunConfigurationType.class);
