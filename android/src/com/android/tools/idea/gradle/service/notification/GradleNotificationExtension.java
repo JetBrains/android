@@ -95,9 +95,12 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     String msg = error.getMessage();
     if (msg != null && !msg.isEmpty()) {
       if (msg.startsWith(AndroidGradleProjectResolver.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-        FixGradleModelVersionHyperlink hyperlink = new FixGradleModelVersionHyperlink();
+        FixGradleModelVersionHyperlink fixGradleModelVersionHyperlink = new FixGradleModelVersionHyperlink();
+        OpenUrlHyperlink openDocsHyperlink = new OpenUrlHyperlink("http://tools.android.com/tech-docs/new-build-system/migrating_to_09",
+                                                                  "Read migration guide");
+
         //noinspection TestOnlyProblems
-        return createNotification(project, msg, hyperlink);
+        return createNotification(project, msg, openDocsHyperlink, fixGradleModelVersionHyperlink);
       }
 
       if (msg.contains(FAILED_TO_PARSE_SDK_ERROR)) {
