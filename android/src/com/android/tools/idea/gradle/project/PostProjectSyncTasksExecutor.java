@@ -78,6 +78,8 @@ public class PostProjectSyncTasksExecutor {
       AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
     }
 
+    VariantSelectionVerifier.getInstance(myProject).verifySelectedVariants();
+
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
     GradleSyncState.getInstance(myProject).syncEnded();

@@ -451,6 +451,8 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.PostProjectSyncTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.GradleSyncState"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.VariantSelectionVerifier"/>
+
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
@@ -459,9 +461,9 @@
     <projectService serviceInterface="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"
                     serviceImplementation="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"
-                   serviceImplementation="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"/>
+                    serviceImplementation="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"/>
     <projectService serviceInterface="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"
-                       serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
+                    serviceImplementation="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
