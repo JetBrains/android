@@ -211,10 +211,10 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return null;
     }
     if (AndroidUtils.NAMESPACE_KEY.equals(namespace)) {
-      namespace = SdkConstants.NS_RESOURCES;
+      namespace = ANDROID_URI;
     }
 
-    if (namespace.startsWith(AndroidDomExtender.ANDROID_NS_PREFIX)) {
+    if (namespace.startsWith(URI_PREFIX)) {
       final String finalNamespace = namespace;
 
       final CachedValue<String> cachedValue = CachedValuesManager.getManager(originalElement.getProject()).createCachedValue(
@@ -284,15 +284,12 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   private static AttributeDefinition findAttributeDefinitionGlobally(@NotNull AndroidFacet facet,
                                                                      @NotNull String namespace,
                                                                      @NotNull String localName) {
-    ResourceManager resourceManager = null;
-
-    if (namespace.startsWith(AndroidDomExtender.ANDROID_NS_PREFIX)) {
-      if (SdkConstants.NS_RESOURCES.equals(namespace)) {
-        resourceManager = facet.getSystemResourceManager();
-      }
-      else if (namespace.equals(AndroidDomExtender.getNamespaceKeyByResourcePackage(facet, null))) {
+    ResourceManager resourceManager;
+    if (ANDROID_URI.equals(namespace) || TOOLS_URI.equals(namespace)) {
+      resourceManager = facet.getSystemResourceManager();
+    }
+    else if (namespace.equals(AUTO_URI) || namespace.startsWith(URI_PREFIX)) {
         resourceManager = facet.getLocalResourceManager();
-      }
     }
     else {
       resourceManager = facet.getSystemResourceManager();

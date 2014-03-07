@@ -119,7 +119,11 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
 
   /**
    * TODO: There is probably an existing utility method somewhere in IntelliJ for this;
-   * find it and inline.
+   * find it and inline. Possible candidate: {@link com.intellij.xml.XmlNamespaceHelper#insertNamespaceDeclaration}.
+   * See also code in {@link com.intellij.codeInsight.completion.XmlAttributeInsertHandler} for additional useful
+   * code such as code to pick a unique prefix, look up the prefix from the schema provider etc (which presumably would
+   * consult {@link org.jetbrains.android.AndroidXmlSchemaProvider}).
+   *
    */
   @NotNull
   public static String ensureNamespaceImported(@NotNull Project project, @NotNull XmlFile file, @NotNull String namespaceUri) {
