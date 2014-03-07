@@ -654,7 +654,7 @@ public final class AndroidSdkUtils {
     return null;
   }
 
-  public static void setupAndroidPlatformInNecessary(@NotNull Module module, boolean forceImportFromProperties) {
+  public static void setupAndroidPlatformIfNecessary(@NotNull Module module, boolean forceImportFromProperties) {
     Sdk currentSdk = ModuleRootManager.getInstance(module).getSdk();
     if (currentSdk == null || !isAndroidSdk(currentSdk)) {
       setupPlatform(module);
