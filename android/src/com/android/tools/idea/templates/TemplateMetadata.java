@@ -64,6 +64,7 @@ public class TemplateMetadata {
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";
   public static final String ATTR_JAVA_VERSION = "javaVersion";
   public static final String ATTR_SDK_DIR = "sdkDir";
+  public static final String ATTR_PER_MODULE_REPOS = "perModuleRepositories";
 
   public static final String ATTR_DEPENDENCIES_LIST = "dependencyList";
   public static final String ATTR_FRAGMENTS_EXTRA = "usesFragments";
