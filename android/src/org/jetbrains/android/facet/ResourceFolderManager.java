@@ -54,6 +54,7 @@ import static com.android.tools.idea.gradle.variant.view.BuildVariantView.BuildV
  */
 public class ResourceFolderManager implements ModificationTracker {
   public static final String EXPLODED_BUNDLES = "exploded-bundles";
+  public static final String EXPLODED_AAR = "exploded-aar";
 
   private final AndroidFacet myFacet;
   private List<VirtualFile> myResDirCache;
@@ -317,8 +318,11 @@ public class ResourceFolderManager implements ModificationTracker {
       VirtualFile aar = res.getParent();
       if (aar != null) {
         VirtualFile exploded = aar.getParent();
-        if (exploded != null && exploded.getName().equals(EXPLODED_BUNDLES)) {
-          return true;
+        if (exploded != null) {
+          String name = exploded.getName();
+          if (name.equals(EXPLODED_BUNDLES) || name.equals(EXPLODED_AAR)) {
+            return true;
+          }
         }
       }
     }
