@@ -23,18 +23,22 @@ import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Iconable;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.DocumentUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -45,6 +49,7 @@ import static com.android.SdkConstants.*;
 
 /** Intention for adding a {@code @SuppressLint} annotation on the given element for the given id */
 public class SuppressLintIntentionAction implements IntentionAction, Iconable {
+  private static final String NO_INSPECTION_PREFIX = "//noinspection ";
   private final String myId;
   private final PsiElement myElement;
 
@@ -69,6 +74,8 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
       return AndroidBundle.message("android.lint.fix.suppress.lint.api.attr", id);
     } else if (file instanceof PsiJavaFile) {
       return AndroidBundle.message("android.lint.fix.suppress.lint.api.annotation", id);
+    } else if (file instanceof GroovyFile) {
+      return "Suppress: Add //noinspection " + id;
     } else {
       return "";
     }
@@ -113,6 +120,32 @@ public class SuppressLintIntentionAction implements IntentionAction, Iconable {
 
         String lintId = getLintId(myId);
         addSuppressAnnotation(project, container, container, lintId);
+      }
+    } else if (file instanceof GroovyFile) {
+      Document document = PsiDocumentManager.getInstance(myElement.getProject()).getDocument(file);
+      if (document != null) {
+        int offset = myElement.getTextOffset();
+        int line = document.getLineNumber(offset);
+        int lineStart = document.getLineStartOffset(line);
+        if (lineStart > 0) {
+          int prevLineStart = document.getLineStartOffset(line - 1);
+          int prevLineEnd = document.getLineEndOffset(line - 1);
+          String prevLine = document.getText(new TextRange(prevLineStart, prevLineEnd));
+          int index = prevLine.indexOf(NO_INSPECTION_PREFIX);
+          if (index != -1) {
+            document.insertString(prevLineStart + index + NO_INSPECTION_PREFIX.length(), getLintId(myId) + ",");
+            return;
+          }
+        }
+        String linePrefix = document.getText(new TextRange(lineStart, offset));
+        int nonSpace = 0;
+        for (; nonSpace < linePrefix.length(); nonSpace++) {
+          if (!Character.isWhitespace(linePrefix.charAt(nonSpace))) {
+            break;
+          }
+        }
+        ApplicationManager.getApplication().assertWriteAccessAllowed();
+        document.insertString(lineStart + nonSpace, NO_INSPECTION_PREFIX + getLintId(myId) + "\n" + linePrefix.substring(0, nonSpace));
       }
     }
   }
