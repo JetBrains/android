@@ -190,23 +190,17 @@ public class AndroidRootComponent extends JComponent {
     myRenderPending = true;
 
     // The rendering service takes long enough to initialise that we don't want to do this from the EDT.
-    // Further, IntelliJ's helper classes don't not allow read access from outside EDT, so we need nested runnables.
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
-          @Override
-          public void run() {
-            Module module = facet.getModule();
-            RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
-            final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
-            if (service != null) {
-              setRenderResult(service.render());
-              service.dispose();
-            }
+          Module module = facet.getModule();
+          RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
+          final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
+          if (service != null) {
+            setRenderResult(service.render());
+            service.dispose();
           }
-        });
-      }
+        }
     });
   }
 
