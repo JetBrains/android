@@ -48,6 +48,7 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
 import org.gradle.tooling.model.gradle.GradleScript;
+import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -75,10 +76,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
-  // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'projectResolve'.
-  @SuppressWarnings("UnusedDeclaration")
   public AndroidGradleProjectResolver() {
-    //noinspection TestOnlyProblems
     this(new ProjectImportErrorHandler());
   }
 
@@ -106,19 +104,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    File buildFile = buildScript.getSourceFile();
-    File moduleRootDir = buildFile.getParentFile();
+    File buildFilePath = buildScript.getSourceFile();
+    File moduleRootDirPath = buildFilePath.getParentFile();
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
     if (androidProject != null) {
       Variant selectedVariant = getVariantToSelect(androidProject);
       IdeaAndroidProject ideaAndroidProject =
-        new IdeaAndroidProject(gradleModule.getName(), moduleRootDir, androidProject, selectedVariant.getName());
+        new IdeaAndroidProject(gradleModule.getName(), moduleRootDirPath, androidProject, selectedVariant.getName());
       ideModule.createChild(AndroidProjectKeys.IDE_ANDROID_PROJECT, ideaAndroidProject);
     }
 
-    File gradleSettingsFile = new File(moduleRootDir, SdkConstants.FN_SETTINGS_GRADLE);
+    File gradleSettingsFile = new File(moduleRootDirPath, SdkConstants.FN_SETTINGS_GRADLE);
     if (gradleSettingsFile.isFile() && androidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
@@ -126,12 +124,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFile, gradleModule.getGradleProject());
+    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFilePath, gradleModule.getGradleProject());
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
     if (androidProject == null) {
       // This is a Java lib module.
-      JavaModel javaModel = createJavaModelFrom(gradleModule);
+      JavaModel javaModel = createJavaModel(gradleModule, moduleRootDirPath);
       gradleProject.setJavaModel(javaModel);
 
       List<String> unresolved = javaModel.getUnresolvedDependencyNames();
@@ -153,10 +151,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private JavaModel createJavaModelFrom(@NotNull IdeaModule gradleModule) {
+  private JavaModel createJavaModel(@NotNull IdeaModule gradleModule, @NotNull File moduleRootDirPath) {
     Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(gradleModule);
     List<? extends IdeaDependency> dependencies = getDependencies(gradleModule);
-    return new JavaModel(contentRoots, dependencies);
+    IdeaCompilerOutput compilerOutput = gradleModule.getCompilerOutput();
+    return new JavaModel(moduleRootDirPath, contentRoots, dependencies, compilerOutput);
   }
 
   @NotNull
@@ -181,7 +180,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
+    if (!isAndroidGradleProject()) {
+      nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
+    }
   }
 
   @Override
