@@ -19,8 +19,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Assoc<K, V> {
-  public final Map<K, V> keyToValue = new HashMap<K, V>();
-  public final Map<V, K> valueToKey = new HashMap<V, K>();
+  public final Map<K, V> keyToValue;
+  public final Map<V, K> valueToKey;
+
+  Assoc(Map<K, V> keyToValue, Map<V, K> valueToKey) {
+    this.keyToValue = keyToValue;
+    this.valueToKey = valueToKey;
+  }
+
+  Assoc() {
+    this(new HashMap<K, V>(), new HashMap<V, K>());
+  }
 
   public void add(K key, V value) {
     keyToValue.put(key, value);
