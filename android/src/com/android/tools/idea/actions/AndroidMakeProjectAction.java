@@ -31,6 +31,6 @@ public class AndroidMakeProjectAction extends AndroidBuildProjectAction {
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    GradleInvoker.getInstance(project).make(moduleManager.getModules(), GradleBuilds.TestCompileType.NONE, null);
+    GradleInvoker.getInstance(project).make(moduleManager.getModules(), GradleBuilds.TestCompileType.NONE);
   }
 }

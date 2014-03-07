@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.invoker.GradleExecutionResult;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -120,7 +120,7 @@ public class PostProjectBuildTasksExecutor {
     }
   }
 
-  public void onBuildCompletion(@NotNull GradleExecutionResult result) {
+  public void onBuildCompletion(@NotNull GradleInvocationResult result) {
     Iterator<String> errors = Iterators.emptyIterator();
     Collection<GradleMessage> errorMessages = result.getCompilerMessages(GradleMessage.Kind.ERROR);
     if (!errorMessages.isEmpty()) {
