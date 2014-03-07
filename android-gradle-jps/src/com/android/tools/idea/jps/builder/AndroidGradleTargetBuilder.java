@@ -99,7 +99,8 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     BuilderExecutionSettings executionSettings;
     try {
       executionSettings = new BuilderExecutionSettings();
-    } catch (RuntimeException e) {
+    }
+    catch (RuntimeException e) {
       throw new ProjectBuildException(e);
     }
 
@@ -133,10 +134,9 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   private static void checkUnsupportedModules(JpsProject project, CompileContext context) {
     for (JpsTypedModule<JpsDummyElement> module : project.getModules(JpsJavaModuleType.INSTANCE)) {
       if (AndroidGradleJps.getGradleSystemExtension(module) == null) {
-        context.processMessage(AndroidGradleJps.createCompilerMessage(
-          BuildMessage.Kind.WARNING,
-          "module '" + module.getName() + "' won't be compiled. " +
-          "Unfortunately you can't have non-Gradle Java module and Android-Gradle module in one project."));
+        context.processMessage(
+          AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.WARNING, "module '" + module.getName() + "' won't be compiled. " +
+                                                                            "Unfortunately you can't have non-Gradle Java module and Android-Gradle module in one project."));
       }
     }
   }
@@ -146,9 +146,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
                                         @NotNull CompileContext context,
                                         @NotNull BuilderExecutionSettings executionSettings) {
     BuildMode buildMode = executionSettings.getBuildMode();
-    if (buildMode.equals(BuildMode.CLEAN)) {
-      return new String[] { GradleBuilds.CLEAN_TASK_NAME };
-    }
+    boolean isCleanBuildMode = buildMode.equals(BuildMode.CLEAN);
 
     List<String> tasks = Lists.newArrayList();
 
@@ -157,16 +155,19 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       tasks.add(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
     }
     else {
+      BuildMode tempBuildMode = buildMode;
+      if (isCleanBuildMode) {
+        // "Clean" also generates sources.
+        tempBuildMode = BuildMode.SOURCE_GEN;
+      }
       for (JpsModule module : modulesToBuild) {
-        populateBuildTasks(module, executionSettings, tasks, context);
+        populateBuildTasks(module, tempBuildMode, tasks, context);
       }
     }
 
-    if (!tasks.isEmpty()) {
-      boolean rebuild = JavaBuilderUtil.isForcedRecompilationAllJavaModules(context);
-      if (rebuild) {
-        tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
-      }
+    // Add 'clean' task first if build mode is 'clean' or 'rebuild'.
+    if (isCleanBuildMode || (!tasks.isEmpty() && JavaBuilderUtil.isForcedRecompilationAllJavaModules(context))) {
+      tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     }
 
     return ArrayUtil.toStringArray(tasks);
@@ -208,7 +209,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   }
 
   private static void populateBuildTasks(@NotNull JpsModule module,
-                                         @NotNull BuilderExecutionSettings executionSettings,
+                                         @NotNull BuildMode buildMode,
                                          @NotNull List<String> tasks,
                                          CompileContext context) {
     JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
@@ -218,8 +219,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     String gradleProjectPath = androidGradleFacet.getProperties().GRADLE_PROJECT_PATH;
     JpsAndroidModuleProperties properties = getAndroidModuleProperties(module);
 
-    GradleBuilds.findAndAddBuildTask(module.getName(), executionSettings.getBuildMode(), gradleProjectPath, properties, tasks,
-                                     getTestCompileType(context));
+    GradleBuilds.findAndAddBuildTask(module.getName(), buildMode, gradleProjectPath, properties, tasks, getTestCompileType(context));
   }
 
   private static TestCompileType getTestCompileType(CompileContext context) {
