@@ -214,7 +214,7 @@ public class GradleProjectImporter {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
-      removeAllLibraries(project);
+      resetProject(project);
       doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, callback);
     }
     else {
@@ -245,7 +245,7 @@ public class GradleProjectImporter {
   }
 
   // See issue: https://code.google.com/p/android/issues/detail?id=64508
-  private static void removeAllLibraries(@NotNull final Project project) {
+  private static void resetProject(@NotNull final Project project) {
     ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
@@ -258,6 +258,16 @@ public class GradleProjectImporter {
         }
         finally {
           model.commit();
+        }
+
+        // Remove all AndroidProjects from module. Otherwise, if re-import/sync fails, editors will not show the proper notification of
+        // the failure.
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        for (Module module : moduleManager.getModules()) {
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet != null) {
+            facet.setIdeaAndroidProject(null);
+          }
         }
       }
     });
