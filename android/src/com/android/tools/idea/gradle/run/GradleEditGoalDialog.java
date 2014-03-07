@@ -1,0 +1,85 @@
+/*
+ * Copyright (C) 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.run;
+
+import com.android.SdkConstants;
+import com.google.common.collect.Lists;
+import com.intellij.codeInsight.completion.CompletionParameters;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.ui.TextFieldWithAutoCompletion;
+import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
+import org.gradle.tooling.model.GradleTask;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.Collection;
+import java.util.List;
+
+public class GradleEditGoalDialog extends DialogWrapper {
+  private JPanel myContentPanel;
+  private JPanel myTaskPanel;
+  private TextFieldWithAutoCompletion myTaskField;
+  private List<String> myAvailableTasks = Lists.newArrayList();
+
+  protected GradleEditGoalDialog(@Nullable Project project) {
+    super(project);
+
+    setTitle("Select Gradle Goal");
+    setModal(true);
+
+    TextFieldWithAutoCompletionListProvider<String> provider = new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
+      @NotNull
+      @Override
+      public Collection<String> getItems(String prefix, boolean cached, CompletionParameters parameters) {
+        setItems(myAvailableTasks);
+        return super.getItems(prefix, cached, parameters);
+      }
+    };
+    myTaskField = new TextFieldWithAutoCompletion<String>(project, provider, true, null);
+    myTaskPanel.add(myTaskField);
+
+    init();
+  }
+
+  @Nullable
+  @Override
+  protected JComponent createCenterPanel() {
+    return myContentPanel;
+  }
+
+  public String getGoal() {
+    return myTaskField.getText();
+  }
+
+  @Nullable
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return myTaskField;
+  }
+
+  public void setGoal(@Nullable String goal) {
+    myTaskField.setText(goal);
+  }
+
+  public void setAvailableGoals(List<GradleTask> availableTasks) {
+    myAvailableTasks.clear();
+    for (GradleTask task : availableTasks) {
+      myAvailableTasks.add(task.getProject().getPath() + SdkConstants.GRADLE_PATH_SEPARATOR + task.getName());
+    }
+  }
+}
