@@ -426,6 +426,17 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       setErrorHtml("Select a minimum SDK version");
       return false;
     }
+
+    if (myTemplateState.get(ATTR_BUILD_API) == null) {
+      setErrorHtml("Select a compile target");
+      return false;
+    }
+
+    if (myTemplateState.get(ATTR_TARGET_API) == null) {
+      setErrorHtml("Select a target SDK");
+      return false;
+    }
+
     // TODO: Properly handle preview versions
     int minLevel = myTemplateState.getInt(ATTR_MIN_API_LEVEL);
     int buildLevel = myTemplateState.getInt(ATTR_BUILD_API);

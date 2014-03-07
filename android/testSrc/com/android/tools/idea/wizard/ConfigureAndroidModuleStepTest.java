@@ -175,6 +175,21 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
 
     resetValues();
 
+    myState.put(ATTR_TARGET_API, null);
+    assertValidationError("Select a target SDK");
+
+    resetValues();
+
+    myState.put(ATTR_BUILD_API, null);
+    assertValidationError("Select a compile target");
+
+    resetValues();
+
+    myState.myParameters.remove(ATTR_BUILD_API);
+    assertValidationError("Select a compile target");
+
+    resetValues();
+
     myState.put(ATTR_MIN_API_LEVEL, 15);
     myState.put(ATTR_TARGET_API, 10);
     assertValidationError("The target SDK version should be at least as high as the minimum SDK version");
