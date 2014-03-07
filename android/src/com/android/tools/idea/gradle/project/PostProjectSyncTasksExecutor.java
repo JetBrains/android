@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
@@ -26,18 +27,23 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.StandardFileSystems;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -60,6 +66,7 @@ public class PostProjectSyncTasksExecutor {
   }
 
   public void onProjectSetupCompletion() {
+    attachSourcesToLibraries();
     ensureAllModulesHaveSdk();
     Projects.enforceExternalBuild(myProject);
 
@@ -99,6 +106,87 @@ public class PostProjectSyncTasksExecutor {
       }
     }
   }
+
+  private void attachSourcesToLibraries() {
+    LibraryTable libraryTable = ProjectLibraryTable.getInstance(myProject);
+    for (Library library : libraryTable.getLibraries()) {
+      if (library.getFiles(OrderRootType.SOURCES).length > 0) {
+        // has sources already.
+        continue;
+      }
+
+      VirtualFile[] classes = library.getFiles(OrderRootType.CLASSES);
+      if (classes.length == 1 && SdkConstants.EXT_JAR.equals(classes[0].getExtension())) {
+        VirtualFile sourceJar = findSourceJarFor(classes[0]);
+        if (sourceJar != null) {
+          Library.ModifiableModel model = library.getModifiableModel();
+          try {
+            String url = AbstractDependenciesModuleCustomizer.pathToUrl(sourceJar.getPath());
+            model.addRoot(url, OrderRootType.SOURCES);
+          }
+          finally {
+            model.commit();
+          }
+        }
+      }
+    }
+  }
+
+  @Nullable
+  private static VirtualFile findSourceJarFor(@NotNull VirtualFile jarFile) {
+    String sourceFileName = jarFile.getNameWithoutExtension() + "-sources.jar";
+
+    // We need to get the real jar file. The one that we received is just a wrapper around a URL. Getting the parent from this file returns
+    // null.
+    String jarFilePath = extractPath(jarFile.getUrl());
+    File temp = new File(FileUtil.toSystemDependentName(jarFilePath));
+    VirtualFile realJarFile = VfsUtil.findFileByIoFile(temp, true);
+
+    if (realJarFile == null) {
+      // Unlikely to happen. At this point the jar file should exist.
+      return null;
+    }
+
+    VirtualFile parent = realJarFile.getParent();
+    if (parent != null) {
+      // Try finding sources in the same folder as the jar file. This is the layout of Maven repositories.
+      VirtualFile sourceJar = parent.findChild(sourceFileName);
+      if (sourceJar != null) {
+        return sourceJar;
+      }
+
+      // Try the parent's parent. This is the layout of the repository cache in .gradle folder.
+      parent = parent.getParent();
+      if (parent != null) {
+        for (VirtualFile child : parent.getChildren()) {
+          if (!child.isDirectory()) {
+            continue;
+          }
+          sourceJar = child.findChild(sourceFileName);
+          if (sourceJar != null) {
+            return sourceJar;
+          }
+        }
+      }
+    }
+
+    // Try IDEA's own cache.
+    File librarySourceDirPath = InternetAttachSourceProvider.getLibrarySourceDir();
+    File sourceJar = new File(librarySourceDirPath, sourceFileName);
+    return VfsUtil.findFileByIoFile(sourceJar, true);
+  }
+
+  @NotNull
+  private static String extractPath(@NotNull String url) {
+    // URLs for jar file start with "jar://" and end with "!/".
+    if (!url.startsWith(StandardFileSystems.JAR_PROTOCOL_PREFIX)) {
+      return url;
+    }
+    String path = url.substring(StandardFileSystems.JAR_PROTOCOL_PREFIX.length());
+    int index = path.lastIndexOf(StandardFileSystems.JAR_SEPARATOR);
+    return index < 0 ? path : path.substring(0, index);
+  }
+
 
   private void removeModulesNotInGradleSettingsFile() {
     GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(myProject);
