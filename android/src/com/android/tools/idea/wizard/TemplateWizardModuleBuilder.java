@@ -224,6 +224,14 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   }
 
   public void createModule() {
+    createModule(true);
+  }
+
+  /**
+   * Inflate the chosen template to create the module.
+   * @param performGradleSync if set to true, a sync will be triggered after the template has been created.
+   */
+  public void createModule(boolean performGradleSync) {
     try {
       myWizardState.populateDirectoryParameters();
       File projectRoot = new File(myProject.getBasePath());
@@ -242,7 +250,9 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         assert template != null;
         template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
       }
-      GradleProjectImporter.getInstance().reImportProject(myProject, null);
+      if (performGradleSync) {
+        GradleProjectImporter.getInstance().reImportProject(myProject, null);
+      }
     } catch (Exception e) {
       Messages.showErrorDialog(e.getMessage(), "New Module");
       LOG.error(e);
