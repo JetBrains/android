@@ -22,6 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.event.HyperlinkEvent;
 
 public abstract class NotificationHyperlink {
+  protected static final String ERROR_MSG_TITLE = "Quick Fix Failed";
+
   @NotNull private final String myUrl;
   @NotNull private final String myValue;
 

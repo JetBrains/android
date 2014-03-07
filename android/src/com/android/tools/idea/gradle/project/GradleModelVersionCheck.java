@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class GradleModelVersionCheck {
   private static final Logger LOG = Logger.getInstance(GradleModelVersionCheck.class);
@@ -32,20 +33,28 @@ final class GradleModelVersionCheck {
   }
 
   static boolean isSupportedVersion(@NotNull AndroidProject androidProject, @NotNull FullRevision minimumSupportedVersion) {
+    FullRevision version = getModelVersion(androidProject);
+    if (version != null) {
+      return version.compareTo(minimumSupportedVersion) >= 0;
+    }
+    return false;
+  }
+
+  @Nullable
+  static FullRevision getModelVersion(@NotNull AndroidProject androidProject) {
     String modelVersion = androidProject.getModelVersion();
     if (Strings.isNullOrEmpty(modelVersion)) {
-      return false;
+      return null;
     }
     int snapshotIndex = modelVersion.indexOf("-");
     if (snapshotIndex != -1) {
       modelVersion = modelVersion.substring(0, snapshotIndex);
     }
     try {
-      FullRevision modelRevision = FullRevision.parseRevision(modelVersion);
-      return modelRevision.compareTo(minimumSupportedVersion) >= 0;
+      return FullRevision.parseRevision(modelVersion);
     } catch (NumberFormatException e) {
       LOG.info(String.format("Unable to parse Gradle model version '%1$s'", modelVersion), e);
-      return false;
+      return null;
     }
   }
 
