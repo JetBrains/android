@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -25,6 +26,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * GradleBuildFile uses PSI to parse build.gradle files and provides high-level methods to read and mutate the file. For many things in
@@ -150,5 +152,29 @@ public class GradleBuildFile extends GradleGroovyFile {
       }
     }
     return false;
+  }
+
+  /**
+   * Returns a list of all the plugins used by the build file.
+   */
+  @NotNull
+  public List<String> getPlugins() {
+    List<String> plugins = Lists.newArrayListWithExpectedSize(1);
+    for (GrMethodCall methodCall : getMethodCalls(myGroovyFile, "apply")) {
+      Map<String,Object> values = getNamedArgumentValues(methodCall);
+      Object plugin = values.get("plugin");
+      if (plugin != null) {
+        plugins.add(plugin.toString());
+      }
+    }
+    return plugins;
+  }
+
+  /**
+   * Returns true if the build file uses the android or android-library plugin.
+   */
+  public boolean hasAndroidPlugin() {
+    List<String> plugins = getPlugins();
+    return plugins.contains("android") || plugins.contains("android-library");
   }
 }
