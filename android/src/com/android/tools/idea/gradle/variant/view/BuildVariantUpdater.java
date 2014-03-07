@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.project.VariantSelectionVerifier;
@@ -49,7 +49,7 @@ class BuildVariantUpdater {
   private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
 
   private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
+    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
