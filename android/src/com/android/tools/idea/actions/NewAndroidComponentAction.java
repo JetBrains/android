@@ -20,10 +20,18 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
+import org.jetbrains.android.actions.NewAndroidComponentDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.util.Set;
 
@@ -54,11 +62,28 @@ public class NewAndroidComponentAction extends AnAction {
 
     if (module == null ||
         view == null ||
-        view.getDirectories().length == 0 ||
-        AndroidFacet.getInstance(module) == null) {
+        view.getDirectories().length == 0) {
       return false;
     }
-    return true;
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+
+    if (facet == null) {
+      return false;
+    }
+    if (facet.isGradleProject()) {
+      return true;
+    }
+    // check if we are under source root for old-style IntelliJ Android projects
+    final ProjectFileIndex projectIndex = ProjectRootManager.getInstance(module.getProject()).getFileIndex();
+    final JavaDirectoryService dirService = JavaDirectoryService.getInstance();
+
+    for (PsiDirectory dir : view.getDirectories()) {
+      if (projectIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) &&
+          dirService.getPackage(dir) != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -73,7 +98,26 @@ public class NewAndroidComponentAction extends AnAction {
     final Module module = LangDataKeys.MODULE.getData(dataContext);
 
     if (module == null) return;
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    assert facet != null;
 
+    if (!facet.isGradleProject()) {
+      // show old-style dialog for classic IntelliJ Android projects
+      final PsiDirectory dir = view.getOrChooseDirectory();
+      if (dir == null) return;
+
+      NewAndroidComponentDialog dialog = new NewAndroidComponentDialog(module, dir);
+      dialog.show();
+      if (dialog.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
+        return;
+      }
+      final PsiElement[] createdElements = dialog.getCreatedElements();
+
+      for (PsiElement createdElement : createdElements) {
+        view.selectElement(createdElement);
+      }
+      return;
+    }
     VirtualFile targetFile = null;
     if (JavaSourceAction.isAvailable(dataContext)) {
       targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
