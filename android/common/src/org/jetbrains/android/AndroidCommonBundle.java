@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.intellij.CommonBundle;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
 import java.lang.ref.Reference;
@@ -16,8 +17,7 @@ public class AndroidCommonBundle {
   private static Reference<ResourceBundle> ourBundle;
 
   private static ResourceBundle getBundle() {
-    ResourceBundle bundle = null;
-    if (ourBundle != null) bundle = ourBundle.get();
+    ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
     if (bundle == null) {
       bundle = ResourceBundle.getBundle(BUNDLE_NAME);
       ourBundle = new SoftReference<ResourceBundle>(bundle);
@@ -28,7 +28,7 @@ public class AndroidCommonBundle {
   private AndroidCommonBundle() {
   }
 
-  public static String message(@PropertyKey(resourceBundle = BUNDLE_NAME) String key, Object... params) {
+  public static String message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
     return CommonBundle.message(getBundle(), key, params);
   }
 }

@@ -51,7 +51,12 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
 
   @Override
   public Icon getGroupIcon(String group) {
-    return AndroidIcons.Android;
+    return AndroidIcons.Android24;
+  }
+
+  @Override
+  public String getParentGroup(String group) {
+    return "Java";
   }
 
   @NotNull

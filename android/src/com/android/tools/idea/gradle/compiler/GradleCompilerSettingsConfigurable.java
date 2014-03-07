@@ -51,7 +51,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private JBLabel myUseInProcessBuildLabel;
   private JCheckBox myUseInProcessBuildCheckBox;
   private JPanel myContentPanel;
-  private JCheckBox myOfflineModeCheckBox;
 
   private RawCommandLineEditor myCommandLineOptionsEditor;
   @SuppressWarnings("UnusedDeclaration")
@@ -104,7 +103,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
            !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions()) ||
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
            myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
-           myBuildConfiguration.OFFLINE_MODE != isOfflineModeEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
 
@@ -114,7 +112,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myGradleSettings.setGradleVmOptions(getVmOptions());
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
-    myBuildConfiguration.OFFLINE_MODE = isOfflineModeEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
   }
 
@@ -128,10 +125,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isExperimentalBuildEnabled() {
     return myUseInProcessBuildCheckBox.isSelected();
-  }
-
-  private boolean isOfflineModeEnabled() {
-    return myOfflineModeCheckBox.isSelected();
   }
 
   @Nullable
@@ -154,7 +147,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");
-    myOfflineModeCheckBox.setSelected(myBuildConfiguration.OFFLINE_MODE);
     String commandLineOptions = Strings.nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myCommandLineOptionsEditor.setText(commandLineOptions);
   }

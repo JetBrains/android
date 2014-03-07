@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+  <problem>
+    <file>MyActivity.java</file>
+    <line>3</line>
+    <entry_point TYPE="class" FQNAME="p1.p2.MyActivity" />
+    <problem_class>unused declaration</problem_class>
+    <description>Class is not instantiated.</description>
+  </problem>
+</problems>
+

@@ -37,7 +37,7 @@ import java.util.List;
  * The logcat console is just another instance of a {@link ConsoleView}. As such it comes with a default
  * set of actions. This class customizes that list of actions to be relevant for logcat.
  */
-public class LogcatConsoleActionsPostProcessor implements ConsoleActionsPostProcessor {
+public class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostProcessor {
   @NotNull
   @Override
   public AnAction[] postProcess(@NotNull ConsoleView console, @NotNull AnAction[] actions) {
