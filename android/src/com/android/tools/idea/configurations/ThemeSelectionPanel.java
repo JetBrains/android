@@ -23,6 +23,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -272,7 +273,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         break;
       case MANIFEST: {
         ManifestInfo manifest = ManifestInfo.get(myConfiguration.getModule());
-        Map<String, String> activityThemes = manifest.getActivityThemes();
+        Map<String, ActivityAttributes> activityAttributesMap = manifest.getActivityAttributesMap();
         /*
         TODO: Until we don't sort the theme lists automatically, no need to call out the preferred one first
         String activity = myConfiguration.getActivity();
@@ -285,16 +286,19 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         */
 
         String manifestTheme = manifest.getManifestTheme();
-        if (activityThemes.size() > 0 || manifestTheme != null) {
-          Set<String> allThemes = new HashSet<String>(activityThemes.values());
-          if (manifestTheme != null) {
-            allThemes.add(manifestTheme);
+        Set<String> allThemes = new HashSet<String>();
+        if (manifestTheme != null) {
+          allThemes.add(manifestTheme);
+        }
+        for (ActivityAttributes info : activityAttributesMap.values()) {
+          if (info.getTheme() != null) {
+            allThemes.add(info.getTheme());
           }
-          List<String> sorted = new ArrayList<String>(allThemes);
-          Collections.sort(sorted);
-          for (String theme : sorted) {
-            themes.add(theme);
-          }
+        }
+        List<String> sorted = new ArrayList<String>(allThemes);
+        Collections.sort(sorted);
+        for (String theme : sorted) {
+          themes.add(theme);
         }
         break;
       }

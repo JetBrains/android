@@ -20,9 +20,9 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.repository.descriptors.IdDisplay;
-import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.ResourceHelper;
-import junit.framework.Assert;
+
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
@@ -39,7 +39,7 @@ public class ManifestInfoTest extends AndroidTestCase {
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='3' android:targetSdkVersion='4'/>\n" +
                                         "</manifest>\n");
-    Map<String, String> map = info.getActivityThemes();
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
     assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL)));
@@ -52,7 +52,7 @@ public class ManifestInfoTest extends AndroidTestCase {
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='3' android:targetSdkVersion='11'/>\n" +
                                         "</manifest>\n");
-    Map<String, String> map = info.getActivityThemes();
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
     assertEquals("Theme.Holo", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE)));
@@ -64,7 +64,7 @@ public class ManifestInfoTest extends AndroidTestCase {
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='11'/>\n" +
                                         "</manifest>\n");
-    Map<String, String> map = info.getActivityThemes();
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
     assertEquals("Theme.Holo", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE)));
@@ -93,10 +93,10 @@ public class ManifestInfoTest extends AndroidTestCase {
     assertEquals("com.android.unittest", info.getPackage());
     assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE)));
 
-    Map<String, String> map = info.getActivityThemes();
-    assertEquals(map.toString(), 1, map.size());
-    assertNull(map.get("com.android.unittest.prefs.PrefsActivity"));
-    assertEquals("@android:style/Theme.Dialog", map.get("com.android.unittest.app.IntroActivity"));
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
+    assertEquals(map.toString(), 2, map.size());
+    assertNull(map.get("com.android.unittest.prefs.PrefsActivity").getTheme());
+    assertEquals("@android:style/Theme.Dialog", map.get("com.android.unittest.app.IntroActivity").getTheme());
   }
 
   public void testGetActivityThemes5() throws Exception {
@@ -124,10 +124,10 @@ public class ManifestInfoTest extends AndroidTestCase {
     assertEquals("@style/NoBackground", info.getDefaultTheme(null, NORMAL));
     assertEquals("NoBackground", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL)));
 
-    Map<String, String> map = info.getActivityThemes();
-    assertEquals(map.toString(), 1, map.size());
-    assertNull(map.get("com.android.unittest.prefs.PrefsActivity"));
-    assertEquals("@android:style/Theme.Dialog", map.get("com.android.unittest.app.IntroActivity"));
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
+    assertEquals(map.toString(), 2, map.size());
+    assertNull(map.get("com.android.unittest.prefs.PrefsActivity").getTheme());
+    assertEquals("@android:style/Theme.Dialog", map.get("com.android.unittest.app.IntroActivity").getTheme());
   }
 
   public void testGetActivityThemes6() throws Exception {
@@ -137,7 +137,7 @@ public class ManifestInfoTest extends AndroidTestCase {
                                         "    package='com.android.unittest'>\n" +
                                         "    <uses-sdk android:minSdkVersion='3' android:targetSdkVersion='11'/>\n" +
                                         "</manifest>\n");
-    Map<String, String> map = info.getActivityThemes();
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
     assertEquals("Theme.Holo", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE)));
@@ -156,7 +156,7 @@ public class ManifestInfoTest extends AndroidTestCase {
                                         "    </application>\n" +
                                         "" +
                                         "</manifest>\n");
-    Map<String, String> map = info.getActivityThemes();
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
 
@@ -172,7 +172,7 @@ public class ManifestInfoTest extends AndroidTestCase {
                                         "    </application>\n" +
                                         "" +
                                         "</manifest>\n");
-    Map<String, String> map = info.getActivityThemes();
+    Map<String, ActivityAttributes> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
 
