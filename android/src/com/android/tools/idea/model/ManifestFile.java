@@ -98,7 +98,7 @@ public class ManifestFile {
 
   public boolean refresh() {
     long lastModified = getLastModified();
-    if (myLastModified < lastModified) {
+    if (myXmlFile == null || myLastModified < lastModified) {
       myXmlFile = parseManifest();
       myLastModified = lastModified;
       return true;
@@ -108,7 +108,13 @@ public class ManifestFile {
   }
 
   private long getLastModified() {
-    return myIsMerged ? myIoFile.lastModified() : myXmlFile.getModificationStamp();
+    if (myIsMerged) {
+      return myIoFile.lastModified();
+    } else if (myXmlFile != null) {
+      return myXmlFile.getModificationStamp();
+    } else {
+      return 0;
+    }
   }
 
   public XmlFile getXmlFile() {
