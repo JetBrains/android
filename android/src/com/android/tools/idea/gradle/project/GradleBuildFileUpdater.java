@@ -160,12 +160,11 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
   private void findAndAddAllBuildFiles() {
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
     for (Module module : modules) {
-      VirtualFile vf;
-      if ((vf = module.getModuleFile()) != null &&
-          (vf = vf.getParent()) != null &&
-          (vf = vf.findChild(SdkConstants.FN_BUILD_GRADLE)) != null) {
-        put(module, new GradleBuildFile(vf, myProject));
-      } else {
+      VirtualFile file = GradleUtil.getGradleBuildFile(module);
+      if (file != null) {
+        put(module, new GradleBuildFile(file, myProject));
+      }
+      else {
         LOG.warn("Unable to find build.gradle file for module " + module.getName());
       }
     }
