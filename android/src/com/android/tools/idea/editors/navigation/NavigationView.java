@@ -16,13 +16,14 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.navigation.*;
+import com.android.navigation.State;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
-import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.rendering.ShadowPainter;
+import com.android.tools.idea.rendering.*;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
@@ -31,13 +32,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.Gray;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +50,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
@@ -76,13 +78,12 @@ public class NavigationView extends JComponent {
   public static final int LINE_WIDTH = 12;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final String ID_PREFIX = "@+id/";
-  private static final Color TRANSITION_LINE_COLOR = new Color(80, 80, 255);
+  private static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 127));
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
   private static final Condition<Component> EDITORS = not(SCREENS);
   private static final boolean DRAW_DESTINATION_RECTANGLES = false;
 
-  private final RenderingParameters myMyRenderingParams;
-  private final VirtualFile myFile;
+  private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
 
   private final Assoc<State, AndroidRootComponent> myStateComponentAssociation = new Assoc<State, AndroidRootComponent>();
@@ -115,9 +116,8 @@ public class NavigationView extends JComponent {
     return null;
   }
 
-  public NavigationView(Project project, VirtualFile file, NavigationModel model) {
-    myMyRenderingParams = getRenderingParams(project, file);
-    myFile = file;
+  public NavigationView(RenderingParameters renderingParams, NavigationModel model) {
+    myRenderingParams = renderingParams;
     myNavigationModel = model;
 
     setFocusable(true);
@@ -572,7 +572,7 @@ public class NavigationView extends JComponent {
     // draw destination rect
     if (DRAW_DESTINATION_RECTANGLES) {
       Color oldColor = g.getColor();
-      g.setColor(Color.CYAN);
+      g.setColor(JBColor.CYAN);
       drawRectangle(g, dst);
       g.setColor(oldColor);
     }
@@ -621,8 +621,8 @@ public class NavigationView extends JComponent {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       RenderedView leaf = getRenderedView(androidRootComponent, myMouseLocation);
       RenderedView namedLeaf = getNamedParent(leaf);
-      paintLeaf(lineGraphics, leaf, Color.RED, androidRootComponent);
-      paintLeaf(lineGraphics, namedLeaf, Color.BLUE, androidRootComponent);
+      paintLeaf(lineGraphics, leaf, JBColor.RED, androidRootComponent);
+      paintLeaf(lineGraphics, namedLeaf, JBColor.BLUE, androidRootComponent);
       lineGraphics.setStroke(oldStroke);
     }
   }
@@ -735,11 +735,17 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
+  public static VirtualFile virtualFile(File file) {
+    return LocalFileSystem.getInstance().findFileByIoFile(file);
+  }
+
+  /*
+  @Nullable
   private static VirtualFile getFile(VirtualFileSystem fileSystem, String path, String dir, @Nullable String xmlResourceName) {
     return xmlResourceName == null ? null : fileSystem.findFileByPath(path + dir + xmlResourceName + ".xml");
   }
 
-  private static Map<String, String> getLayoutAliases(@Nullable XmlFile psiFile) {
+  private static Map<String, String> getLayoutAliases(@Nullable XmlFile psiFile) { // todo cache this
     if (psiFile == null) {
       return Collections.emptyMap();
     }
@@ -769,29 +775,61 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String xmlFileName, VirtualFile navFile, Project project) {
-    VirtualFileSystem fileSystem = navFile.getFileSystem();
-    String resourceRoot = navFile.getParent().getParent().getPath();
-    String directoryName = navFile.getParent().getName();
-    String resourceType = menu ? ResourceType.MENU.getName() : ResourceType.LAYOUT.getName();
-    int index = directoryName.indexOf('-');
-    String qualifier = index == -1 ? "" : directoryName.substring(index);
-    VirtualFile layoutAliasesFile = getFile(fileSystem, resourceRoot, "/" + "values" + qualifier + "/", "refs");
+  private ResourceFile getMatchingFile(String layoutFileBaseName, LocalResourceRepository resources, FolderConfiguration folderConfig) {
+    ResourceFile result = resources.getMatchingFile(layoutFileBaseName, ResourceType.LAYOUT, folderConfig);
+    if (result == null) {
+      return null;
+    }
+    File file = result.getFile();
+    if (file.getName().equals("refs.xml")) {
+      VirtualFile layoutAliasesFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+      PsiManager psiManager = PsiManager.getInstance(myMyRenderingParams.myProject);
+      Map<String, String> layoutAliases = getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
+      String unAliased = applyAliases(layoutFileBaseName, layoutAliases);
+      return resources.getMatchingFile(unAliased, ResourceType.LAYOUT, folderConfig);
+    }
+    return result;
+  }
+
+  void foo(String layoutFileBaseName) {
+    System.out.println("layoutFileBaseName = " + layoutFileBaseName);
+    Module module = myMyRenderingParams.myFacet.getModule();
+    ConfigurationManager manager = ConfigurationManager.create(module);
+    LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+
+    for (Device device : manager.getDevices()) {
+      com.android.sdklib.devices.State portrait = device.getDefaultState().deepCopy();
+      com.android.sdklib.devices.State landscape = device.getDefaultState().deepCopy();
+      portrait.setOrientation(ScreenOrientation.PORTRAIT);
+      landscape.setOrientation(ScreenOrientation.LANDSCAPE);
+
+
+
+      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(portrait)));
+      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(landscape)));
+    }
+  }
+  */
+
+  @Nullable
+  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String resourceName, Configuration configuration, Project project) {
+    ResourceType resourceType = menu ? ResourceType.MENU : ResourceType.LAYOUT;
     PsiManager psiManager = PsiManager.getInstance(project);
-    Map<String, String> layoutAliases =
-      getLayoutAliases(layoutAliasesFile == null ? null : (XmlFile)psiManager.findFile(layoutAliasesFile));
-    xmlFileName = applyAliases(xmlFileName, layoutAliases);
-    VirtualFile qualifiedFile = getFile(fileSystem, resourceRoot, "/" + resourceType + qualifier + "/", xmlFileName);
-    VirtualFile file = qualifiedFile != null ? qualifiedFile : getFile(fileSystem, resourceRoot, "/" + resourceType + "/", xmlFileName);
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    if (resourceResolver == null) {
+      return null;
+    }
+    ResourceValue projectResource = resourceResolver.getProjectResource(resourceType, resourceName);
+    VirtualFile file = virtualFile(new File(projectResource.getValue()));
     return file == null ? null : psiManager.findFile(file);
   }
 
   private AndroidRootComponent createRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
-    Module module = myMyRenderingParams.myFacet.getModule();
+    Module module = myRenderingParams.myFacet.getModule();
     String xmlFileName = getXMLFileName(module, state);
-    PsiFile psiFile = xmlFileName == null ? null : getLayoutXmlFile(isMenu, xmlFileName, myFile, myMyRenderingParams.myProject);
-    AndroidRootComponent result = new AndroidRootComponent(myMyRenderingParams, psiFile, isMenu);
+    PsiFile psiFile = xmlFileName == null ? null : getLayoutXmlFile(isMenu, xmlFileName, myRenderingParams.myConfiguration, myRenderingParams.myProject);
+    AndroidRootComponent result = new AndroidRootComponent(myRenderingParams, psiFile, isMenu);
     result.setScale(myTransform.myScale);
     return result;
   }
@@ -823,7 +861,7 @@ public class NavigationView extends JComponent {
   }
 
   private void setPreferredSize() {
-    com.android.navigation.Dimension size = myMyRenderingParams.getDeviceScreenSize();
+    com.android.navigation.Dimension size = myRenderingParams.getDeviceScreenSize();
     com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
     com.android.navigation.Point maxLoc = getMaxLoc(myNavigationModel.getStates());
     Dimension max = myTransform.modelToView(new com.android.navigation.Dimension(maxLoc.x + gridSize.width, maxLoc.y + gridSize.height));
@@ -915,7 +953,7 @@ public class NavigationView extends JComponent {
               String qualifiedName = namedElement.getQualifiedName();
               if (qualifiedName != null) {
                 State state = new ActivityState(qualifiedName);
-                Dimension size = myMyRenderingParams.getDeviceScreenSizeFor(myTransform);
+                Dimension size = myRenderingParams.getDeviceScreenSizeFor(myTransform);
                 Point dropLocation = diff(dropLoc, midPoint(size));
                 state.setLocation(myTransform.viewToModel(snap(dropLocation, MIDDLE_SNAP_GRID)));
                 execute(state, execute);
