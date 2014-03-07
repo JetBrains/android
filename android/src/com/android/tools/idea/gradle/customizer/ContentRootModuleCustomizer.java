@@ -26,7 +26,6 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.roots.impl.SourceFolderImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -120,7 +119,7 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
           storePath(url, JavaSourceRootType.TEST_SOURCE, false);
         }
         else if (sourceType.equals(ExternalSystemSourceType.TEST_GENERATED)) {
-          storePath(url, JavaSourceRootType.TEST_SOURCE, false);
+          storePath(url, JavaSourceRootType.TEST_SOURCE, true);
         }
         else if (sourceType.equals(ExternalSystemSourceType.TEST_RESOURCE)) {
           storePath(url, JavaResourceRootType.TEST_RESOURCE, false);
@@ -130,8 +129,8 @@ public class ContentRootModuleCustomizer implements ModuleCustomizer {
       private void storePath(@NotNull String url, @NotNull JpsModuleSourceRootType sourceRootType, boolean isGenerated) {
         SourceFolder sourceFolder = contentEntry.addSourceFolder(url, sourceRootType);
 
-        if (isGenerated && sourceFolder instanceof SourceFolderImpl) {
-          JpsModuleSourceRoot sourceRoot = ((SourceFolderImpl)sourceFolder).getJpsElement();
+        if (isGenerated) {
+          JpsModuleSourceRoot sourceRoot = sourceFolder.getJpsElement();
           JpsElement properties = sourceRoot.getProperties();
           if (properties instanceof JavaSourceRootProperties) {
             ((JavaSourceRootProperties)properties).setForGeneratedSources(true);
