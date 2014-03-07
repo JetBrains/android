@@ -32,26 +32,27 @@ import java.io.IOException;
  */
 class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @NotNull private final File myWrapperPropertiesFile;
+  @NotNull private final String myGradleVersion;
 
   @Nullable
-  static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project) {
+  static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @NotNull String supportedGradleVersion) {
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
-      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile);
+      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, supportedGradleVersion);
     }
     return null;
   }
 
-  private FixGradleVersionInWrapperHyperlink(@NotNull File wrapperPropertiesFile) {
+  private FixGradleVersionInWrapperHyperlink(@NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
     super("fixGradleVersionInWrapper", "Fix Gradle wrapper and re-import project");
     myWrapperPropertiesFile = wrapperPropertiesFile;
+    myGradleVersion = gradleVersion;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    String gradleVersion = GradleUtil.GRADLE_MINIMUM_VERSION;
     try {
-      GradleUtil.updateGradleDistributionUrl(gradleVersion, myWrapperPropertiesFile);
+      GradleUtil.updateGradleDistributionUrl(myGradleVersion, myWrapperPropertiesFile);
       try {
         GradleProjectImporter.getInstance().reImportProject(project, null);
       }
@@ -61,7 +62,7 @@ class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
       }
     }
     catch (IOException e) {
-      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersion);
+      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", myGradleVersion);
       msg += e.getMessage();
       Messages.showErrorDialog(project, msg, "Quick Fix Failed");
     }

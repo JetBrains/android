@@ -53,11 +53,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.*;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
   private static final Logger LOG = Logger.getInstance(GradleNotificationExtension.class);
 
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
+  private static final Pattern ERROR_WRONG_GRADLE_VERSION =
+    Pattern.compile("You are using Gradle version (.*)\\. Please use version (.*)\\.");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
@@ -94,7 +97,8 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
         hyperlinks.add(new SearchInBuildFilesHyperlink("com.android.tools.build:gradle"));
         if (msg.contains(FIX_GRADLE_VERSION)) {
-          NotificationHyperlink fixGradleVersionHyperlink = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project);
+          NotificationHyperlink fixGradleVersionHyperlink =
+            FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project, GRADLE_MINIMUM_VERSION);
           if (fixGradleVersionHyperlink != null) {
             hyperlinks.add(fixGradleVersionHyperlink);
           }
@@ -184,7 +188,9 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
       if (lastLine != null && lastLine.contains(FIX_GRADLE_VERSION)) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
-        NotificationHyperlink fixGradleVersionHyperlink = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project);
+        String gradleVersion = getSupportedGradleVersion(firstLine);
+        NotificationHyperlink fixGradleVersionHyperlink =
+          FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project, gradleVersion);
         if (fixGradleVersionHyperlink != null) {
           hyperlinks.add(fixGradleVersionHyperlink);
         }
@@ -248,6 +254,15 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       }
     }
     return null;
+  }
+
+  private static String getSupportedGradleVersion(String errorMsg) {
+    String suggestedGradleVersion = GRADLE_MINIMUM_VERSION;
+    Matcher matcher = ERROR_WRONG_GRADLE_VERSION.matcher(errorMsg);
+    if (matcher.matches()) {
+      suggestedGradleVersion = matcher.group(2);
+    }
+    return suggestedGradleVersion;
   }
 
   @Nullable
