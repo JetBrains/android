@@ -57,6 +57,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
   @VisibleForTesting NewProjectWizardState myWizardState;
 
+  @VisibleForTesting AssetStudioAssetGenerator myAssetGenerator;
+
   @VisibleForTesting AssetSetStep myAssetSetStep;
 
   @VisibleForTesting ChooseTemplateStep myChooseActivityStep;
@@ -101,8 +103,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
     myConfigureAndroidModuleStep.updateStep();
-    myAssetSetStep = new AssetSetStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
-    myAssetSetStep.finalizeAssetType(AssetStudioWizardState.AssetType.LAUNCHER);
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, NewProjectSidePanel, this);
+    myAssetGenerator = new AssetStudioAssetGenerator(myWizardState);
+    myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
     myChooseActivityStep =
       new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, NewProjectSidePanel, this, null);
     myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, NewProjectSidePanel, this);
@@ -131,12 +134,13 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        createProject(myWizardState, null);
+        createProject(myWizardState, null, myAssetGenerator);
       }
     });
   }
 
-  public static void createProject(@NotNull final NewModuleWizardState wizardState, @Nullable Project project) {
+  public static void createProject(@NotNull final NewModuleWizardState wizardState, @Nullable Project project,
+                                   @Nullable AssetStudioAssetGenerator assetGenerator) {
     List<String> errors = Lists.newArrayList();
     try {
       wizardState.populateDirectoryParameters();
@@ -148,7 +152,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         errors.add(String.format(UNABLE_TO_CREATE_DIR_FORMAT, projectRoot.getPath()));
       }
       if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
-        wizardState.getLauncherIconState().outputImagesIntoDefaultVariant(moduleRoot);
+        assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
       }
       wizardState.updateParameters();
       wizardState.updateDependencies();
