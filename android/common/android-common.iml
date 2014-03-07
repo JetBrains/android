@@ -32,7 +32,6 @@
     <orderEntry type="module" module-name="ninepatch" exported="" />
     <orderEntry type="module" module-name="sdk-common" exported="" />
     <orderEntry type="module" module-name="sdklib" exported="" />
-    <orderEntry type="module" module-name="lint-cli" exported="" />
   </component>
 </module>
 
