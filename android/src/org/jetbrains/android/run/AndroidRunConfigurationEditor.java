@@ -257,7 +257,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     selectItemCaseInsensitively(myNetworkLatencyCombo, configuration.NETWORK_LATENCY);
     myClearLogCheckBox.setSelected(configuration.CLEAR_LOGCAT);
     myShowLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
-    myFilterLogcatCheckBox.setSelected(configuration.SHOW_LOGCAT_AUTOMATICALLY);
+    myFilterLogcatCheckBox.setSelected(configuration.FILTER_LOGCAT_AUTOMATICALLY);
   }
 
   private static void selectItemCaseInsensitively(@NotNull JComboBox comboBox, @Nullable String item) {
