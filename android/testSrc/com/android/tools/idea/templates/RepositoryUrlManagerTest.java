@@ -34,6 +34,8 @@ public class RepositoryUrlManagerTest extends TestCase {
   private RepositoryUrlManager myRepositoryUrlManager;
   private AndroidSdkData mockSdkData;
   private String myFileText;
+  private boolean myFileExists = true;
+
 
   @Override
   public void setUp() throws Exception {
@@ -56,7 +58,7 @@ public class RepositoryUrlManagerTest extends TestCase {
 
       @Override
       public boolean fileExists(@NotNull File file) {
-        return true;
+        return myFileExists;
       }
     };
   }
@@ -72,6 +74,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     mockSdkData = oldMockSdk;
 
     // Check repository doesn't exist
+    myFileExists = false;
     String expectedCoordinate = "com.android.support:support-v4:0.0.+";
     assertEquals(expectedCoordinate, myRepositoryUrlManager.getLibraryCoordinate("support-v4"));
 
@@ -80,6 +83,7 @@ public class RepositoryUrlManagerTest extends TestCase {
     myFileText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><versioning>" +
                  "<version>13.0.0</version> <version>19.0.1</version>" +
                  "</versioning>";
+    myFileExists = true;
 
     // Check support library
     assertEquals("com.android.support:support-v4:19.0.1", myRepositoryUrlManager.getLibraryCoordinate("support-v4"));
