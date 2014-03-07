@@ -26,6 +26,7 @@ import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
@@ -72,6 +73,8 @@ import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final String SAMPLE_PACKAGE_PREFIX = "com.example.";
   private static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
+  private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(INVALID_FILENAME_CHARS);
+
   @VisibleForTesting
   static final Set<String> INVALID_MSFT_FILENAMES = ImmutableSet
     .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
@@ -512,6 +515,17 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       if (projectLocation.isEmpty()) {
         setErrorHtml("Please specify a project location");
         return false;
+      }
+      // Check the individual components for not allowed characters.
+      for (String s : projectLocation.split(File.separator)) {
+        if (ILLEGAL_CHARACTER_MATCHER.matchesAnyOf(s)) {
+          char illegalChar = s.charAt(ILLEGAL_CHARACTER_MATCHER.indexIn(s));
+          setErrorHtml(String.format(Locale.getDefault(), "Illegal character in project location path: '%c' in filename: %s", illegalChar, s));
+          return false;
+        }
+        if (CharMatcher.WHITESPACE.matchesAnyOf(s)) {
+          setErrorHtml("Your project location contains whitespace. This can cause problems on some platforms and is not recommended.");
+        }
       }
       File file = new File(projectLocation);
       if (file.exists()) {
