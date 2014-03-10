@@ -86,6 +86,11 @@ public class TemplateParameterStep extends TemplateWizardStep {
       Object value = myTemplateState.get(parameter.id) != null ? myTemplateState.get(parameter.id) : parameter.initial;
       myTemplateState.put(parameter.id, value);
       switch(parameter.type) {
+        case SEPARATOR:
+          c.setColSpan(3);
+          JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+          myParamContainer.add(separator, c);
+          break;
         case BOOLEAN:
           c.setColumn(1);
           JCheckBox checkBox = new JCheckBox(parameter.name);
@@ -105,9 +110,6 @@ public class TemplateParameterStep extends TemplateWizardStep {
           if (myPreferredFocusComponent == null) {
             myPreferredFocusComponent = comboBox;
           }
-          break;
-        case SEPARATOR:
-          myParamContainer.add(new JSeparator());
           break;
         case STRING:
           myParamContainer.add(label, c);
