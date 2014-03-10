@@ -34,12 +34,12 @@ public class AndroidAptStateStorage extends AbstractStateStorage<String, Android
   private static class MyDataExternalizer implements DataExternalizer<AndroidAptValidityState> {
 
     @Override
-    public void save(DataOutput out, AndroidAptValidityState value) throws IOException {
+    public void save(@NotNull DataOutput out, AndroidAptValidityState value) throws IOException {
       value.save(out);
     }
 
     @Override
-    public AndroidAptValidityState read(DataInput in) throws IOException {
+    public AndroidAptValidityState read(@NotNull DataInput in) throws IOException {
       return new AndroidAptValidityState(in);
     }
   }
