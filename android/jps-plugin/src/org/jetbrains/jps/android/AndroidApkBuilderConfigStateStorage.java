@@ -22,12 +22,12 @@ public class AndroidApkBuilderConfigStateStorage extends AbstractStateStorage<St
   private static class MyDataExternalizer implements DataExternalizer<AndroidApkBuilderConfigState> {
 
     @Override
-    public void save(DataOutput out, AndroidApkBuilderConfigState value) throws IOException {
+    public void save(@NotNull DataOutput out, AndroidApkBuilderConfigState value) throws IOException {
       value.save(out);
     }
 
     @Override
-    public AndroidApkBuilderConfigState read(DataInput in) throws IOException {
+    public AndroidApkBuilderConfigState read(@NotNull DataInput in) throws IOException {
       return new AndroidApkBuilderConfigState(in);
     }
   }
