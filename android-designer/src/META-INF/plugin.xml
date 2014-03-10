@@ -1,15 +1,22 @@
-<idea-plugin version="2">
+<idea-plugin version="2" xmlns:xi="http://www.w3.org/2001/XInclude">
   <name>Android Designer</name>
   <id>com.intellij.android-designer</id>
   <description>
-    Provides visual editing support for Android layout files.
-  </description>
+      <![CDATA[
+      This plugin provides visual editing support for Android layout files.
+      The following features are available:
+        <ul>
+        <li>Android Layout Preview tool window.</li>
+        <li>Ability to create user interface of Android applications.</li>
+        <li>Ability to toggle between modes.</li>
+        <li>Navigation between activities and their layout definition files.</li>
+        </ul>
+      ]]>
+   </description>
   <vendor>JetBrains</vendor>
 
-  <resource-bundle>messages.AndroidDesignerBundle</resource-bundle>
-
   <depends>org.jetbrains.android</depends>
-  <depends>com.intellij.ui-designer-new</depends>
+  <xi:include href="/META-INF/DesignerCorePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <extensions defaultExtensionNs="com.intellij">
     <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
