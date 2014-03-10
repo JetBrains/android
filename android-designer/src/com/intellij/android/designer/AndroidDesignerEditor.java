@@ -63,12 +63,6 @@ public final class AndroidDesignerEditor extends DesignerEditor {
     return new AndroidDesignerEditorPanel(this, project, module, file);
   }
 
-  @NotNull
-  @Override
-  public String getName() {
-    return AndroidDesignerBundle.message("editor.tab.title");
-  }
-
   @Override
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
     if (myHighlighter == null) {
