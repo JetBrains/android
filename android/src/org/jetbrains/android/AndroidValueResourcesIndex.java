@@ -155,14 +155,14 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
 
   private final KeyDescriptor<ResourceEntry> myKeyDescriptor = new KeyDescriptor<ResourceEntry>() {
     @Override
-    public void save(DataOutput out, ResourceEntry value) throws IOException {
+    public void save(@NotNull DataOutput out, ResourceEntry value) throws IOException {
       out.writeUTF(value.getType());
       out.writeUTF(value.getName());
       out.writeUTF(value.getContext());
     }
 
     @Override
-    public ResourceEntry read(DataInput in) throws IOException {
+    public ResourceEntry read(@NotNull DataInput in) throws IOException {
       final String resType = in.readUTF();
       final String resName = in.readUTF();
       final String resContext = in.readUTF();
@@ -182,7 +182,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
   
   private final DataExternalizer<Set<MyResourceInfo>> myValueExternalizer = new DataExternalizer<Set<MyResourceInfo>>() {
     @Override
-    public void save(DataOutput out, Set<MyResourceInfo> value) throws IOException {
+    public void save(@NotNull DataOutput out, Set<MyResourceInfo> value) throws IOException {
       out.writeInt(value.size());
 
       for (MyResourceInfo entry : value) {
@@ -195,7 +195,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
 
     @Nullable
     @Override
-    public Set<MyResourceInfo> read(DataInput in) throws IOException {
+    public Set<MyResourceInfo> read(@NotNull DataInput in) throws IOException {
       final int size = in.readInt();
 
       if (size == 0) {
@@ -226,21 +226,24 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
     return myIndexer;  
   }
 
+  @NotNull
   @Override
   public KeyDescriptor<ResourceEntry> getKeyDescriptor() {
     return myKeyDescriptor;
   }
 
+  @NotNull
   @Override
   public DataExternalizer<Set<MyResourceInfo>> getValueExternalizer() {
     return myValueExternalizer;
   }
 
+  @NotNull
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
     return new DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
       @Override
-      public boolean acceptInput(final VirtualFile file) {
+      public boolean acceptInput(@NotNull final VirtualFile file) {
         return file.isInLocalFileSystem();
       }
     };

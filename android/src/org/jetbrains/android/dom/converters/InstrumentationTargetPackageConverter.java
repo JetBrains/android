@@ -57,9 +57,9 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
     @Override
     public PsiElement resolve() {
       return ResolveCache.getInstance(myElement.getProject())
-        .resolveWithCaching(this, new ResolveCache.AbstractResolver<MyReference, PsiElement>() {
+        .resolveWithCaching(this, new ResolveCache.Resolver() {
           @Override
-          public PsiElement resolve(@NotNull MyReference reference, boolean incompleteCode) {
+          public PsiElement resolve(@NotNull PsiReference reference, boolean incompleteCode) {
             return resolveInner();
           }
         }, false, false);
