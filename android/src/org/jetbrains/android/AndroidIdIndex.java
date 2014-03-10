@@ -81,7 +81,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
 
   private static final DataExternalizer<Set<String>> DATA_EXTERNALIZER = new DataExternalizer<Set<String>>() {
     @Override
-    public void save(DataOutput out, Set<String> value) throws IOException {
+    public void save(@NotNull DataOutput out, Set<String> value) throws IOException {
       out.writeInt(value.size());
       for (String s : value) {
         out.writeUTF(s);
@@ -89,7 +89,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
     }
 
     @Override
-    public Set<String> read(DataInput in) throws IOException {
+    public Set<String> read(@NotNull DataInput in) throws IOException {
       final int size = in.readInt();
       final Set<String> result = new HashSet<String>(size);
 
@@ -113,21 +113,24 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
     return INDEXER;
   }
 
+  @NotNull
   @Override
   public KeyDescriptor<String> getKeyDescriptor() {
     return new EnumeratorStringDescriptor();
   }
 
+  @NotNull
   @Override
   public DataExternalizer<Set<String>> getValueExternalizer() {
     return DATA_EXTERNALIZER;
   }
 
+  @NotNull
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
     return new DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
       @Override
-      public boolean acceptInput(final VirtualFile file) {
+      public boolean acceptInput(@NotNull final VirtualFile file) {
         return file.isInLocalFileSystem();
       }
     };
