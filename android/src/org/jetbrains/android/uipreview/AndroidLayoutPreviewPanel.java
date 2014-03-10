@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
+import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -80,7 +81,7 @@ public class AndroidLayoutPreviewPanel extends JPanel implements Disposable {
   private CaretModel myCaretModel;
   private RenderErrorPanel myErrorPanel;
   private int myErrorPanelHeight = -1;
-  private CaretListener myCaretListener = new CaretListener() {
+  private CaretListener myCaretListener = new CaretAdapter() {
     @Override
     public void caretPositionChanged(CaretEvent e) {
       updateCaret();
