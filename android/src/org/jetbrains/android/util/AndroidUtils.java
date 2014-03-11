@@ -40,6 +40,7 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
@@ -171,15 +172,25 @@ public class AndroidUtils {
       public T compute() {
         if (project.isDisposed()) return null;
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        if (psiFile == null || !(psiFile instanceof XmlFile)) {
+        if (psiFile instanceof XmlFile) {
+          return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
+        } else {
           return null;
         }
-        DomManager domManager = DomManager.getDomManager(project);
-        DomFileElement<T> element = domManager.getFileElement((XmlFile)psiFile, aClass);
-        if (element == null) return null;
-        return element.getRootElement();
       }
     });
+  }
+
+  /** This method should be called under a read action. */
+  @Nullable
+  public static <T extends DomElement> T loadDomElementWithReadPermission(@NotNull Project project,
+                                                                          @NotNull XmlFile xmlFile,
+                                                                          @NotNull Class<T> aClass) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    DomManager domManager = DomManager.getDomManager(project);
+    DomFileElement<T> element = domManager.getFileElement(xmlFile, aClass);
+    if (element == null) return null;
+    return element.getRootElement();
   }
 
   @Nullable
