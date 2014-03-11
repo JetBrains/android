@@ -26,13 +26,19 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.AsyncResult;
+import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Listens for Gradle project import start/end events and updates the "Build Variant" tool window when necessary.
  */
 public class GradleImportNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
   private static GradleImportNotificationListener ourInstance;
+
+  static {
+    attachToManager();
+  }
 
   /**
    * Attaches a singleton instance of itself to the IDE's {@link ExternalSystemProgressNotificationManager} service.
@@ -45,33 +51,22 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
    * <li>When importing an existing Android-Gradle project.</li>
    * </ul>
    */
-  public static void attachToManager() {
-    if (ourInstance != null) {
-      return;
-    }
+  private static void attachToManager() {
     ourInstance = new GradleImportNotificationListener();
-    ExternalSystemProgressNotificationManager progressNotificationManager = getExternalSystemProgressNotificationManager();
-    progressNotificationManager.addNotificationListener(ourInstance);
+    ExternalSystemProgressNotificationManager notificationManager =
+      ServiceManager.getService(ExternalSystemProgressNotificationManager.class);
+    notificationManager.addNotificationListener(ourInstance);
   }
 
   private volatile boolean myProjectImportInProgress;
-
-  public static void detachFromManager() {
-    if (ourInstance == null) {
-      return;
-    }
-    ExternalSystemProgressNotificationManager progressNotificationManager = getExternalSystemProgressNotificationManager();
-    progressNotificationManager.removeNotificationListener(ourInstance);
-    ourInstance = null;
-  }
+  private volatile boolean myInitialized;
 
   public static boolean isProjectImportInProgress() {
     return ourInstance != null && ourInstance.myProjectImportInProgress;
   }
 
-  @NotNull
-  private static ExternalSystemProgressNotificationManager getExternalSystemProgressNotificationManager() {
-    return ServiceManager.getService(ExternalSystemProgressNotificationManager.class);
+  public static boolean isInitialized() {
+    return ourInstance != null && ourInstance.myInitialized;
   }
 
   @Override
@@ -81,6 +76,7 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
         return;
       }
       myProjectImportInProgress = true;
+      myInitialized = true;
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
         public void run() {
@@ -90,16 +86,13 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
           Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
             @Override
             public void run(Project project) {
+              EditorNotifications.getInstance(project).updateAllNotifications();
               BuildVariantView.getInstance(project).projectImportStarted();
             }
           });
         }
       });
     }
-  }
-
-  private static boolean resolvingProject(ExternalSystemTaskId id) {
-    return ExternalSystemTaskType.RESOLVE_PROJECT.equals(id.getType());
   }
 
   @Override
@@ -115,6 +108,7 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
           Projects.applyToCurrentGradleProject(new AsyncResult.Handler<Project>() {
             @Override
             public void run(Project project) {
+              EditorNotifications.getInstance(project).updateAllNotifications();
               BuildVariantView.getInstance(project).updateContents();
               ProjectResourceRepository.moduleRootsChanged(project);
             }
@@ -122,5 +116,10 @@ public class GradleImportNotificationListener extends ExternalSystemTaskNotifica
         }
       });
     }
+  }
+
+  private static boolean resolvingProject(ExternalSystemTaskId id) {
+    return GradleConstants.SYSTEM_ID.getId().equals(id.getProjectSystemId().getId()) &&
+           id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT;
   }
 }

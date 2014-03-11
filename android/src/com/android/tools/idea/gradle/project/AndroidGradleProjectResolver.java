@@ -365,9 +365,4 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     ContainerUtil.addIfNotNull(PathUtil.getJarPathForClass(AndroidProject.class), classPath);
     parameters.getClassPath().addAll(classPath);
   }
-
-  @Override
-  public void enhanceLocalProcessing(@NotNull List<URL> urls) {
-    GradleImportNotificationListener.attachToManager();
-  }
 }
