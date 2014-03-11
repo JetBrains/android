@@ -254,4 +254,14 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
       assertFalse(ConfigureAndroidModuleStep.isValidModuleName(s));
     }
   }
+
+  public void testVisibility() throws Exception {
+    myState.myHidden.add(ATTR_CREATE_ICONS);
+    myStep.updateStep();
+    assertFalse(myStep.myCreateCustomLauncherIconCheckBox.isVisible());
+
+    myState.myHidden.remove(ATTR_CREATE_ICONS);
+    myStep.updateStep();
+    assertTrue(myStep.myCreateCustomLauncherIconCheckBox.isVisible());
+  }
 }
