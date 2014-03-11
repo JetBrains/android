@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
 import com.android.tools.idea.wizard.NewProjectWizardState;
@@ -36,6 +35,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.fixtures.*;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -46,12 +46,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.FD_TEMPLATES;
-import static com.android.SdkConstants.FD_TOOLS;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_LATEST_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
@@ -147,14 +146,14 @@ public class TemplateTest extends AndroidGradleTestCase {
       ourValidatedTemplateManager = true;
       File templateRootFolder = TemplateManager.getTemplateRootFolder();
       if (templateRootFolder == null) {
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager == null) {
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData == null) {
           fail("Couldn't find SDK manager");
         } else {
           System.out.println("recentSDK required= " + requireRecentSdk());
           System.out.println("getTestSdkPath= " + getTestSdkPath());
           System.out.println("getPlatformDir=" + getPlatformDir());
-          String location = sdkManager.getLocation();
+          String location = sdkData.getPath();
           System.out.println("Using SDK at " + location);
           VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(location);
           System.out.println("Version check=" + result.getRevision());
@@ -336,15 +335,15 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testJdk7() throws Exception {
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assertNotNull(sdkManager);
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assertNotNull(sdkData);
 
-    if (ConfigureAndroidModuleStep.isJdk7Supported(sdkManager)) {
-      IAndroidTarget[] targets = sdkManager.getTargets();
+    if (ConfigureAndroidModuleStep.isJdk7Supported(sdkData)) {
+      IAndroidTarget[] targets = sdkData.getTargets();
       IAndroidTarget target = targets[targets.length - 1];
       Map<String,Object> overrides = Maps.newHashMap();
       overrides.put(ATTR_JAVA_VERSION, "1.7");
-      NewProjectWizardState state = createNewProjectState(true, sdkManager);
+      NewProjectWizardState state = createNewProjectState(true, sdkData);
 
       // TODO: Allow null activity state!
       File activity = findTemplate("activities", "BlankActivity");
@@ -359,14 +358,14 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testJdk5() throws Exception {
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assertNotNull(sdkManager);
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assertNotNull(sdkData);
 
-    IAndroidTarget[] targets = sdkManager.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets();
     IAndroidTarget target = targets[targets.length - 1];
     Map<String,Object> overrides = Maps.newHashMap();
     overrides.put(ATTR_JAVA_VERSION, "1.5");
-    NewProjectWizardState state = createNewProjectState(true, sdkManager);
+    NewProjectWizardState state = createNewProjectState(true, sdkData);
 
     // TODO: Allow null activity state!
     File activity = findTemplate("activities", "BlankActivity");
@@ -446,7 +445,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     return file;
   }
 
-  private static NewProjectWizardState createNewProjectState(boolean createWithProject, SdkManager sdkManager) {
+  private static NewProjectWizardState createNewProjectState(boolean createWithProject, AndroidSdkData sdkData) {
     final NewProjectWizardState values = new NewProjectWizardState();
     assertNotNull(values);
     values.convertApisToInt();
@@ -460,7 +459,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // TODO: Test the icon generator too
     values.put(ATTR_CREATE_ICONS, false);
 
-    final BuildToolInfo buildTool = sdkManager.getLatestBuildTool();
+    final BuildToolInfo buildTool = sdkData.getLatestBuildTool();
     if (buildTool != null) {
       values.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
@@ -472,10 +471,10 @@ public class TemplateTest extends AndroidGradleTestCase {
       return;
     }
 
-    SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-    assertNotNull(sdkManager);
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    assertNotNull(sdkData);
 
-    final NewProjectWizardState values = createNewProjectState(createWithProject, sdkManager);
+    final NewProjectWizardState values = createNewProjectState(createWithProject, sdkData);
 
     String projectNameBase = "TestProject" + templateFile.getName();
 
@@ -485,7 +484,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // Iterate over all (valid) combinations of build target, minSdk and targetSdk
     // TODO: Assert that the SDK manager has a minimum set of SDKs installed needed to be certain
     // the test is comprehensive
-    IAndroidTarget[] targets = sdkManager.getTargets();
+    IAndroidTarget[] targets = sdkData.getTargets();
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
       if (!target.isPlatform()) {

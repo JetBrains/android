@@ -53,7 +53,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
       public ProcessingItem[] compute() {
         final Module[] modules = ModuleManager.getInstance(context.getProject()).getModules();
         final List<ProcessingItem> items = new ArrayList<ProcessingItem>();
-        
+
         for (final Module module : modules) {
           final AndroidFacet facet = AndroidFacet.getInstance(module);
 
@@ -133,7 +133,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
           final Set<VirtualFile> libClassFilesDirs = new HashSet<VirtualFile>();
 
           AndroidDexCompiler.addModuleOutputDir(classFilesDirs, classFilesDir);
-          
+
           for (VirtualFile file : AndroidRootUtil.getDependentModules(module, classFilesDir)) {
             if (file.isDirectory()) {
               AndroidDexCompiler.addModuleOutputDir(classFilesDirs, file);
@@ -143,7 +143,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
             }
           }
 
-          final String sdkPath = FileUtil.toSystemDependentName(platform.getSdkData().getLocation());
+          final String sdkPath = platform.getSdkData().getPath();
 
           final VirtualFile outputDir = AndroidDexCompiler.getOutputDirectoryForDex(module);
           final String outputJarOsPath = FileUtil.toSystemDependentName(outputDir.getPath() + '/' + AndroidCommonUtils.PROGUARD_OUTPUT_JAR_NAME);
@@ -182,10 +182,10 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
   @Override
   public ProcessingItem[] process(CompileContext context, ProcessingItem[] items) {
     final List<ProcessingItem> processedItems = new ArrayList<ProcessingItem>();
-    
+
     for (ProcessingItem item : items) {
       final MyProcessingItem processingItem = (MyProcessingItem)item;
-      
+
       if (!AndroidCompileUtil.isModuleAffected(context, processingItem.myModule)) {
         continue;
       }
@@ -202,7 +202,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
       final String[] classFilesDirOsPaths = AndroidCompileUtil.toOsPaths(processingItem.getClassFilesDirs());
       final String[] libClassFilesDirOsPaths = AndroidCompileUtil.toOsPaths(processingItem.getLibClassFilesDirs());
       final String[] externalJarOsPaths = AndroidCompileUtil.toOsPaths(processingItem.getExternalJars());
- 
+
       try {
         final String inputJarOsPath = AndroidCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
         final String logsDirOsPath = processingItem.getLogsDirectoryOsPath();
@@ -215,7 +215,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
         CompilerUtil.refreshIOFile(new File(processingItem.getOutputJarOsPath()));
 
         AndroidCompileUtil.addMessages(context, messages, processingItem.myModule);
-        
+
         if (messages.get(CompilerMessageCategory.ERROR).isEmpty()) {
           processedItems.add(item);
         }
@@ -230,7 +230,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
         }
       }
     }
-    
+
     return processedItems.toArray(new ProcessingItem[processedItems.size()]);
   }
 
@@ -256,8 +256,8 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
     private final int mySdkToolsRevision;
     private final String myOutputJarOsPath;
     private final VirtualFile myMainClassFilesDir;
-    private final VirtualFile[] myClassFilesDirs; 
-    private final VirtualFile[] myLibClassFilesDirs; 
+    private final VirtualFile[] myClassFilesDirs;
+    private final VirtualFile[] myLibClassFilesDirs;
     private final VirtualFile[] myExternalJars;
     private final String myLogsDirectoryOsPath;
     private final List<VirtualFile> myProguardConfigFiles;
@@ -345,7 +345,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
 
     @Override
     public ValidityState getValidityState() {
-      return new MyValidityState(myTarget, mySdkOsPath, myOutputJarOsPath, myClassFilesDirs, myExternalJars, 
+      return new MyValidityState(myTarget, mySdkOsPath, myOutputJarOsPath, myClassFilesDirs, myExternalJars,
                                  myProguardConfigFiles, myIncludeSystemProguardFile, myLogsDirectoryOsPath);
     }
 
@@ -364,7 +364,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
     private final Map<String, Long> myExternalJarsMap;
     private final Map<String, Long> myConfigFileTimestamps;
     private final boolean myIncludeSystemProguardCfg;
-  
+
     public MyValidityState(@NotNull IAndroidTarget target,
                            @NotNull String sdkOsPath,
                            @NotNull String outputJarOsPath,
@@ -383,7 +383,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
       for (VirtualFile dir : classFilesDirs) {
         fillClassFilesMap(dir, visited);
       }
-  
+
       myExternalJarsMap = new HashMap<String, Long>();
       for (VirtualFile jar : externalJars) {
         myExternalJarsMap.put(jar.getPath(), jar.getTimeStamp());
@@ -395,7 +395,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
       }
       myLogsDirectoryPath = logsDirectoryOsPath != null ? logsDirectoryOsPath : "";
     }
-  
+
     private void fillClassFilesMap(VirtualFile file, Set<VirtualFile> visited) {
       if (file.isDirectory() && visited.add(file)) {
         for (VirtualFile child : file.getChildren()) {
@@ -406,30 +406,30 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
         myClassFilesMap.put(file.getPath(), file.getTimeStamp());
       }
     }
-  
+
     public MyValidityState(@NotNull DataInput in) throws IOException {
       myTargetHashString = in.readUTF();
-      
+
       mySdkPath = CompilerIOUtil.readString(in);
       myOutputDirPath = CompilerIOUtil.readString(in);
 
       myClassFilesMap = new HashMap<String, Long>();
       final int classFilesCount = in.readInt();
-      
+
       for (int i = 0; i < classFilesCount; i++) {
         final String path = CompilerIOUtil.readString(in);
         final long timestamp = in.readLong();
-        
+
         myClassFilesMap.put(path, timestamp);
       }
-      
+
       myExternalJarsMap = new HashMap<String, Long>();
       final int externalJarsCount = in.readInt();
-      
+
       for (int i = 0; i < externalJarsCount; i++) {
         final String path = CompilerIOUtil.readString(in);
         final long timestamp = in.readLong();
-        
+
         myExternalJarsMap.put(path, timestamp);
       }
 
@@ -444,7 +444,7 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
       myIncludeSystemProguardCfg = in.readBoolean();
       myLogsDirectoryPath = CompilerIOUtil.readString(in);
     }
-  
+
     @Override
     public boolean equalsTo(ValidityState otherState) {
       if (!(otherState instanceof MyValidityState)) {
@@ -453,28 +453,28 @@ public class AndroidProguardCompiler implements ClassPostProcessingCompiler {
 
       final MyValidityState other = (MyValidityState)otherState;
 
-      return myTargetHashString.equals(other.myTargetHashString) && 
-             mySdkPath.equals(other.mySdkPath) && 
-             myOutputDirPath.equals(other.myOutputDirPath) && 
-             myClassFilesMap.equals(other.myClassFilesMap) && 
-             myExternalJarsMap.equals(other.myExternalJarsMap) && 
+      return myTargetHashString.equals(other.myTargetHashString) &&
+             mySdkPath.equals(other.mySdkPath) &&
+             myOutputDirPath.equals(other.myOutputDirPath) &&
+             myClassFilesMap.equals(other.myClassFilesMap) &&
+             myExternalJarsMap.equals(other.myExternalJarsMap) &&
              myConfigFileTimestamps.equals(other.myConfigFileTimestamps) &&
              myIncludeSystemProguardCfg == other.myIncludeSystemProguardCfg &&
              myLogsDirectoryPath.equals(other.myLogsDirectoryPath);
     }
-  
+
     @Override
     public void save(DataOutput out) throws IOException {
       out.writeUTF(myTargetHashString);
       CompilerIOUtil.writeString(mySdkPath, out);
       CompilerIOUtil.writeString(myOutputDirPath, out);
-      
+
       out.writeInt(myClassFilesMap.size());
       for (String path : myClassFilesMap.keySet()) {
         CompilerIOUtil.writeString(path, out);
         out.writeLong(myClassFilesMap.get(path));
       }
-      
+
       out.writeInt(myExternalJarsMap.size());
       for (String path : myExternalJarsMap.keySet()) {
         CompilerIOUtil.writeString(path, out);

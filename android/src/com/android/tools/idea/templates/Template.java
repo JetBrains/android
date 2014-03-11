@@ -28,7 +28,6 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
@@ -51,6 +50,7 @@ import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.TemplateException;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1065,9 +1065,9 @@ public class Template {
       try {
         AndroidVersion version = new AndroidVersion(codename);
         String hashString = AndroidTargetHash.getPlatformHashString(version);
-        SdkManager sdkManager = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkManager != null) {
-          IAndroidTarget t = sdkManager.getTargetFromHashString(hashString);
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData != null) {
+          IAndroidTarget t = sdkData.getLocalSdk().getTargetFromHashString(hashString);
           if (t != null) {
             return t.getVersion().getApiLevel();
           }

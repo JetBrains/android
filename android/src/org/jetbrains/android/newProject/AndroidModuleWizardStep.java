@@ -17,9 +17,9 @@
 package org.jetbrains.android.newProject;
 
 import com.android.prefs.AndroidLocation;
-import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -147,7 +147,8 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
           return;
         }
 
-        RunAndroidAvdManagerAction.runAvdManager(platform.getSdkData().getLocation(), new ComponentBasedErrorReporter(myPanel),
+        RunAndroidAvdManagerAction.runAvdManager(platform.getSdkData().getLocation().getPath(),
+                                                 new ComponentBasedErrorReporter(myPanel),
                                                  ModalityState.stateForComponent(myPanel));
       }
     });
@@ -274,11 +275,11 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
       assert myTestPropertiesEditor != null;
       myModuleBuilder.setTestedModule(myTestPropertiesEditor.getModule());
     }
-    
+
     if (myProjectType == ProjectType.APPLICATION || myProjectType == ProjectType.TEST) {
       String preferredAvdName = null;
       TargetSelectionMode targetSelectionMode = null;
-      
+
       if (myEmulatorRadioButton.isSelected()) {
         preferredAvdName = (String)myAvdCombo.getComboBox().getSelectedItem();
         targetSelectionMode = TargetSelectionMode.EMULATOR;
@@ -289,10 +290,10 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
       else if (myUSBDeviceRadioButton.isSelected()) {
         targetSelectionMode = TargetSelectionMode.USB_DEVICE;
       }
-      
+
       myModuleBuilder.setTargetSelectionMode(targetSelectionMode);
       myModuleBuilder.setPreferredAvd(preferredAvdName);
-      
+
       properties.setValue(TARGET_SELECTION_MODE_FOR_NEW_MODULE_PROPERTY, targetSelectionMode != null ? targetSelectionMode.name() : "");
       properties.setValue(TARGET_AVD_FOR_NEW_MODULE_PROPERTY, preferredAvdName != null ? preferredAvdName : "");
     }
@@ -350,9 +351,9 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
   @NotNull
   private static String[] getAvds(@NotNull AndroidPlatform androidPlatform) {
     final AndroidSdkData sdkData = androidPlatform.getSdkData();
-    final SdkManager sdkManager = sdkData.getSdkManager();
+    final LocalSdk localSdk = sdkData.getLocalSdk();
     try {
-      final AvdManager avdManager = AvdManager.getInstance(sdkManager, new MessageBuildingSdkLog());
+      final AvdManager avdManager = AvdManager.getInstance(localSdk, new MessageBuildingSdkLog());
       final AvdInfo[] validAvds = avdManager.getValidAvds();
 
       final String[] avdNames = new String[validAvds.length];
