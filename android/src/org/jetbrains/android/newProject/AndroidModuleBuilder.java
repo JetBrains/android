@@ -63,6 +63,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.DocumentUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -160,15 +161,10 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
+              DocumentUtil.writeInRunUndoTransparentAction(new Runnable() {
                 @Override
                 public void run() {
-                  ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                    @Override
-                    public void run() {
-                      createProject(contentRoot, sourceRoot, facet);
-                    }
-                  });
+                  createProject(contentRoot, sourceRoot, facet);
                 }
               });
             }
@@ -380,42 +376,37 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
             if (!manifestGenerated) {
               return;
             }
-            CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
+            DocumentUtil.writeInRunUndoTransparentAction(new Runnable() {
               @Override
               public void run() {
-                ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                  @Override
-                  public void run() {
-                    try {
-                      if (project.isDisposed()) {
-                        return;
-                      }
-                      if (myProjectType == ProjectType.APPLICATION) {
-                        assignApplicationName(facet);
-                        configureManifest(facet, target);
-                        createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_ASSETS);
-                        createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_NATIVE_LIBS);
-                      }
-                      else if (myProjectType == ProjectType.LIBRARY && myPackageName != null) {
-                        final String[] dirs = myPackageName.split("\\.");
-                        VirtualFile file = sourceRoot;
+                try {
+                  if (project.isDisposed()) {
+                    return;
+                  }
+                  if (myProjectType == ProjectType.APPLICATION) {
+                    assignApplicationName(facet);
+                    configureManifest(facet, target);
+                    createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_ASSETS);
+                    createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_NATIVE_LIBS);
+                  }
+                  else if (myProjectType == ProjectType.LIBRARY && myPackageName != null) {
+                    final String[] dirs = myPackageName.split("\\.");
+                    VirtualFile file = sourceRoot;
 
-                        for (String dir : dirs) {
-                          if (file == null || dir.length() == 0) {
-                            break;
-                          }
-                          final VirtualFile childDir = file.findChild(dir);
-                          file = childDir != null
-                                 ? childDir
-                                 : file.createChildDirectory(project, dir);
-                        }
+                    for (String dir : dirs) {
+                      if (file == null || dir.length() == 0) {
+                        break;
                       }
-                    }
-                    catch (IOException e) {
-                      LOG.error(e);
+                      final VirtualFile childDir = file.findChild(dir);
+                      file = childDir != null
+                             ? childDir
+                             : file.createChildDirectory(project, dir);
                     }
                   }
-                });
+                }
+                catch (IOException e) {
+                  LOG.error(e);
+                }
               }
             });
 
@@ -548,7 +539,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       }
     }
 
-  private void createManifestFileAndAntFiles(Project project, VirtualFile contentRoot, Module module) {
+  private static void createManifestFileAndAntFiles(Project project, VirtualFile contentRoot, Module module) {
     VirtualFile existingManifestFile = contentRoot.findChild(FN_ANDROID_MANIFEST_XML);
     if (existingManifestFile != null) {
       return;
