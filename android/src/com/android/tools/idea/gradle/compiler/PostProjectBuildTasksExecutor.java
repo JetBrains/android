@@ -47,7 +47,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -184,7 +183,13 @@ public class PostProjectBuildTasksExecutor {
       if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0 ||
           !SOURCE_GEN.equals(buildMode) && isGradleSyncNeeded(myProject).equals(YES)) {
         syncProjectWithGradle();
+        //return;
       }
+
+      //if (errorCount == 0) {
+      //  TODO: uncomment this call when we implement project structure checks.
+      //  ProjectStructureSanitizer.getInstance(myProject).cleanUp();
+      //}
     }
   }
 
