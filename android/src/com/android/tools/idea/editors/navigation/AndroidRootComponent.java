@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.JBColor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -149,6 +150,11 @@ public class AndroidRootComponent extends JComponent {
     return myScaledImage;
   }
 
+  private void center(Graphics g, String message, Font font, int height) {
+    int messageWidth = getFontMetrics(font).stringWidth(message);
+    g.drawString(message, (getWidth() - messageWidth) / 2, height);
+  }
+
   @Override
   public void paintComponent(Graphics g) {
     Image scaledImage = getScaledImage();
@@ -162,13 +168,15 @@ public class AndroidRootComponent extends JComponent {
       }
     }
     else {
-      g.setColor(Color.WHITE);
+      g.setColor(JBColor.WHITE);
       g.fillRect(0, 0, getWidth(), getHeight());
-      g.setColor(Color.GRAY);
-      String message = "Initialising[" + (myPsiFile == null ? "no file" : myPsiFile.getName()) + "]...";
+      g.setColor(JBColor.GRAY);
       Font font = g.getFont();
-      int messageWidth = getFontMetrics(font).stringWidth(message);
-      g.drawString(message, (getWidth() - messageWidth) / 2, getHeight() / 2);
+      int vCenter = getHeight() / 2;
+      //center(g, "Initialising...", font, vCenter);
+      String message = "[" + (myPsiFile == null ? "no xml resource" : myPsiFile.getName()) + "]";
+      center(g, message, font, vCenter);
+      //center(g, message, font, vCenter + font.getSize() * 2);
       render();
     }
   }
