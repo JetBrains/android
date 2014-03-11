@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,20 +50,25 @@ class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
+    updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
+  }
+
+  static boolean updateGradleVersion(@NotNull Project project, @NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
     try {
-      GradleUtil.updateGradleDistributionUrl(myGradleVersion, myWrapperPropertiesFile);
-      try {
-        GradleProjectImporter.getInstance().reImportProject(project, null);
-      }
-      catch (ConfigurationException e) {
-        Messages.showErrorDialog(e.getMessage(), e.getTitle());
-        Logger.getInstance(FixGradleVersionInWrapperHyperlink.class).info(e);
+      boolean updated = GradleUtil.updateGradleDistributionUrl(gradleVersion, wrapperPropertiesFile);
+      if (updated) {
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(wrapperPropertiesFile, true);
+        if (virtualFile != null) {
+          virtualFile.refresh(false, false);
+        }
+        return true;
       }
     }
     catch (IOException e) {
-      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", myGradleVersion);
+      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersion);
       msg += e.getMessage();
-      Messages.showErrorDialog(project, msg, "Quick Fix Failed");
+      Messages.showErrorDialog(project, msg, ERROR_MSG_TITLE);
     }
+    return false;
   }
 }

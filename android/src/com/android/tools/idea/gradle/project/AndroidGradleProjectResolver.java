@@ -74,11 +74,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.*;
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-
-  private static final String UNSUPPORTED_MODEL_VERSION_ERROR = String.format(
-    "Project is using an old version of the Android Gradle plug-in. The minimum supported version is %1$s.\n" +
-    "Please update the version of the dependency 'com.android.tools.build:gradle' in your build.gradle files.",
-    GRADLE_PLUGIN_MINIMUM_VERSION);
+  public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
+    "The project is using an unsupported version of the Android Gradle plug-in";
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
@@ -99,17 +96,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public ModuleData createModule(@NotNull IdeaModule gradleModule, @NotNull ProjectData projectData) {
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !GradleModelVersionCheck.isSupportedVersion(androidProject)) {
-      String msg = UNSUPPORTED_MODEL_VERSION_ERROR;
-
-      // Check that the Gradle version is correct, so we notify users about all wrong versions in one shot.
-      GradleVersion gradleVersion = getGradleVersion();
-      if (gradleVersion != null) {
-        GradleVersion minimumGradleVersion = getGradleMinimumSupportedVersion();
-        if (gradleVersion.compareTo(minimumGradleVersion) != 0) {
-          msg += "\n\n" + getUnsupportedGradleVersionErrorMsg(gradleVersion, minimumGradleVersion);
-        }
+      StringBuilder msg = new StringBuilder();
+      msg.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
+      FullRevision modelVersion = GradleModelVersionCheck.getModelVersion(androidProject);
+      if (modelVersion != null) {
+        msg.append(String.format(" (%1$s)", modelVersion.toString()));
       }
-      throw new IllegalStateException(msg);
+      throw new IllegalStateException(msg.toString());
     }
     return nextResolver.createModule(gradleModule, projectData);
   }
@@ -250,7 +243,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     // Check if the import error is due to an unsupported version of Gradle. If that is the case, the error received does not give users
     // any hint of the real issue. Here we check the version of Gradle and show an user-friendly error message.
     String msg = error.getMessage();
-    if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR)) {
+    if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
       Throwable rootCause = ExceptionUtil.getRootCause(error);
       if (rootCause instanceof ClassNotFoundException) {
         msg = rootCause.getMessage();
@@ -312,8 +305,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   private static String getUnsupportedGradleVersionErrorMsg(@NotNull GradleVersion currentVersion,
                                                             @NotNull GradleVersion supportedVersion) {
-    String msg = String.format("You are using Gradle version %1$s, which is not supported. Please use version %2$s.",
-                               currentVersion.getVersion(), supportedVersion.getVersion());
+    String msg = String
+      .format("You are using Gradle version %1$s, which is not supported. Please use version %2$s.", currentVersion.getVersion(),
+              supportedVersion.getVersion());
     msg += ('\n' + AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION);
     return msg;
   }
