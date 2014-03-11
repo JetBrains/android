@@ -437,8 +437,8 @@ public class MenuPreviewRenderer extends LayoutPullParserFactory {
         if (hasPopupTextAppearance) {
           setAndroidAttr(shortCut, ATTR_TEXT_APPEARANCE, "?android:attr/textAppearanceSmallPopupMenu");
         } else {
-          setAndroidAttr(itemView, ATTR_TEXT_SIZE, "14sp");
-          setAndroidAttr(itemView, ATTR_TEXT_COLOR, "?android:attr/textColorSecondary");
+          setAndroidAttr(shortCut, ATTR_TEXT_SIZE, "14sp");
+          setAndroidAttr(shortCut, ATTR_TEXT_COLOR, "?android:attr/textColorSecondary");
         }
 
         setAndroidAttr(shortCut, ATTR_SINGLE_LINE, VALUE_TRUE);
