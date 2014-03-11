@@ -25,13 +25,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
-import com.intellij.psi.search.searches.OverridingMethodsSearch;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.Processor;
-import com.intellij.util.Query;
-import com.intellij.util.xml.ModuleContentRootSearchScope;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -45,6 +40,7 @@ public class Analyser {
   private final Project myProject;
   private Module myModule;
   private Macros myMacros;
+  private static final String ID_PREFIX = "@+id/";
 
   public Analyser(Project project, Module module) {
     myProject = project;
@@ -174,10 +170,125 @@ public class Analyser {
     return result;
   }
 
+  public static abstract class StaticEvaluator {
+    public abstract boolean evaluate(@Nullable PsiExpression expression);
+  }
+
+  public static void searchForCallExpression2(@Nullable PsiElement element,
+                                              final StaticEvaluator evaluator,
+                                              final MultiMatch matcher,
+                                              final Statement statement) {
+    if (element != null) {
+      element.accept(new JavaRecursiveElementVisitor() {
+        @Override
+        public void visitIfStatement(PsiIfStatement statement) {
+          if (evaluator.evaluate(statement.getCondition())) {
+            super.visitIfStatement(statement);
+          }
+        }
+
+        @Override
+        public void visitCallExpression(PsiCallExpression expression) {
+          super.visitCallExpression(expression);
+          MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
+          if (exp != null) {
+            statement.apply(exp);
+          }
+        }
+      });
+    }
+  }
+
+  public static Map<PsiVariable, PsiExpression> searchForFieldAssignments(@Nullable PsiElement element, final StaticEvaluator evaluator) {
+    final Map<PsiVariable, PsiExpression> result = new HashMap<PsiVariable, PsiExpression>();
+    if (element != null) {
+      element.accept(new JavaRecursiveElementVisitor() {
+        @Override
+        public void visitIfStatement(PsiIfStatement statement) {
+          if (evaluator.evaluate(statement.getCondition())) {
+            super.visitIfStatement(statement);
+          }
+        }
+
+        @Override
+        public void visitAssignmentExpression(PsiAssignmentExpression expression) {
+          super.visitAssignmentExpression(expression);
+          PsiExpression lExpression = expression.getLExpression();
+          if (lExpression instanceof PsiReferenceExpression) {
+            PsiReferenceExpression ref = (PsiReferenceExpression)lExpression;
+            PsiElement resolve = ref.resolve();
+            if (resolve instanceof PsiField) {
+              result.put((PsiField)resolve, expression.getRExpression());
+            }
+          }
+        }
+      });
+    }
+    return result;
+  }
+
+  private static Map<PsiVariable, PsiExpression> getVariableToValueBindings(PsiClass activityClass1, StaticEvaluator evaluator) {
+    PsiMethod onCreate = Utilities.findMethodBySignature(activityClass1, "void onCreate(Bundle bundle)");
+    if (onCreate == null) {
+      return Collections.emptyMap();
+    }
+    return searchForFieldAssignments(onCreate.getBody(), evaluator);
+  }
+
+  private StaticEvaluator getEvaluator(final Set<String> ids) {
+    return new StaticEvaluator() {
+      @Override
+      public boolean evaluate(@Nullable PsiExpression expression) {
+        if (expression instanceof PsiBinaryExpression) {
+          PsiBinaryExpression bin = (PsiBinaryExpression)expression;
+          if (bin.getOperationSign().getText().equals("!=") &&
+              bin.getROperand().getText().equals("null")) { // todo use appropriate types
+            MultiMatch.Bindings<PsiElement> match = myMacros.findViewById.match(bin.getLOperand());
+            if (match != null) {
+              String id = match.bindings.get("$id").getText();
+              if (ids.contains(id)) {
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      }
+    };
+  }
+
+  private static StaticEvaluator getEvaluator(final Map<PsiVariable, PsiExpression> variableToValue) {
+    return new StaticEvaluator() {
+      @Override
+      public boolean evaluate(@Nullable PsiExpression expression) {
+        if (expression instanceof PsiReferenceExpression) {
+          PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression)expression;
+          PsiElement resolved = psiReferenceExpression.resolve();
+          if (resolved instanceof PsiField) {
+            PsiField psiField = (PsiField)resolved;
+            PsiExpression value = variableToValue.get(psiField);
+            if (value instanceof PsiLiteral) {
+              PsiLiteral literal = (PsiLiteral)value;
+              return literal.getValue() == Boolean.TRUE;
+            }
+          }
+        }
+        return false;
+      }
+    };
+  }
+
+  @Nullable
+  private XmlFile getXmlFile(ActivityState activity, VirtualFile modelFile) {
+    String xmlFileName = NavigationView.getXMLFileName(myModule, activity);
+    return (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, myProject);
+  }
+
   private void deriveTransitions(final NavigationModel model,
                                  final MiniModel miniModel,
                                  final ActivityState fromActivityState,
-                                 final String activityOrFragmentClassName) {
+                                 final String activityOrFragmentClassName,
+                                 final VirtualFile navigationModelFile) {
 
     if (NavigationEditor.DEBUG) System.out.println("className = " + activityOrFragmentClassName);
 
@@ -251,7 +362,7 @@ public class Analyser {
              }
            });
 
-    // Accommodate Master-Detail template idioms - todo rework this
+    // Accommodate idioms from Master-Detail template
 
     PsiClassType superType = activityOrFragmentClass.getSuperTypes()[0];
     if (superType.getClassName().equals("ListFragment")) {
@@ -268,18 +379,22 @@ public class Analyser {
                      return;
                    }
                    PsiMethod resolvedMethod = call.resolveMethod();
-                   Query<PsiMethod> overridingMethods =
-                     OverridingMethodsSearch.search(resolvedMethod, new ModuleContentRootSearchScope(myModule), true);
-                   overridingMethods.forEach(new Processor<PsiMethod>() {
-                     @Override
-                     public boolean process(PsiMethod implementation) {
-                       searchForCallExpression(implementation.getBody(),
-                                               myMacros.createIntent,
-                                               createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model,
-                                                               fromActivityState));
-                       return true;
+                   if (resolvedMethod != null) {
+                     final PsiClass activityClass =
+                       Utilities.getPsiClass(myModule, fromActivityState.getClassName()); // todo fix efficiency
+                     if (activityClass != null) {
+                       final PsiMethod implementation = activityClass.findMethodBySignature(resolvedMethod, false);
+                       if (implementation != null) {
+                         StaticEvaluator evaluator1 = getEvaluator(getIds(getXmlFile(fromActivityState, navigationModelFile)));
+                         StaticEvaluator evaluator2 = getEvaluator(getVariableToValueBindings(activityClass, evaluator1));
+                         searchForCallExpression2(implementation.getBody(),
+                                                  evaluator2,
+                                                  myMacros.createIntent,
+                                                  createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model,
+                                                                  fromActivityState));
+                       }
                      }
-                   });
+                   }
                  }
                }
              });
@@ -314,15 +429,16 @@ public class Analyser {
         if (done.classNameToActivityState.containsKey(sourceActivity.getClassName())) {
           continue;
         }
-        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName());
+        model.addState(sourceActivity); // covers the case of Activities that are not part of a transition (e.g. a model with one Activity)
+        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName(), modelFile);
 
         // Examine fragments associated with this activity
-        String xmlFileName = NavigationView.getXMLFileName(myModule, sourceActivity);
-        XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, myProject);
-        List<FragmentEntry> fragments = getFragmentEntries(psiFile);
+
+        XmlFile layoutFile = getXmlFile(sourceActivity, modelFile);
+        List<FragmentEntry> fragments = getFragmentEntries(layoutFile);
 
         for (FragmentEntry fragment : fragments) {
-          deriveTransitions(model, next, sourceActivity, fragment.className);
+          deriveTransitions(model, next, sourceActivity, fragment.className, modelFile);
         }
       }
       done.classNameToActivityState.putAll(toDo.classNameToActivityState);
@@ -346,8 +462,11 @@ public class Analyser {
     };
   }
 
-  private static List<FragmentEntry> getFragmentEntries(@NotNull XmlFile psiFile) {
-    final List<FragmentEntry> fragments = new ArrayList<FragmentEntry>();
+  private static List<FragmentEntry> getFragmentEntries(@Nullable XmlFile psiFile) {
+    final List<FragmentEntry> result = new ArrayList<FragmentEntry>();
+    if (psiFile == null) {
+      return result;
+    }
     psiFile.accept(new XmlRecursiveElementVisitor() {
       @Override
       public void visitXmlTag(XmlTag tag) {
@@ -356,11 +475,30 @@ public class Analyser {
           String fragmentTag = tag.getAttributeValue("android:tag");
           String fragmentClassName = tag.getAttributeValue("android:name");
           if (NavigationEditor.DEBUG) System.out.println("fragmentClassName = " + fragmentClassName);
-          fragments.add(new FragmentEntry(fragmentTag, fragmentClassName));
+          result.add(new FragmentEntry(fragmentTag, fragmentClassName));
         }
       }
     });
-    return fragments;
+    return result;
+  }
+
+  private static Set<String> getIds(@Nullable XmlFile psiFile) {
+    final Set<String> result = new HashSet<String>();
+    if (psiFile == null) {
+      return result;
+    }
+    psiFile.accept(new XmlRecursiveElementVisitor() {
+      @Override
+      public void visitXmlTag(XmlTag tag) {
+        super.visitXmlTag(tag);
+        String id = tag.getAttributeValue("android:id");
+        if (id != null) {
+          assert id.startsWith(ID_PREFIX);
+          result.add(id.substring(ID_PREFIX.length()));
+        }
+      }
+    });
+    return result;
   }
 
   private static String removeTrailingParens(String text) {
