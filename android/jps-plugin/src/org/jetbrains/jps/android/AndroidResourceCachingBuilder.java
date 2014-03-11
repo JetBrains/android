@@ -23,6 +23,7 @@ import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -87,17 +88,17 @@ public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRoo
 
     final List<BuildRootDescriptor> roots = context.getProjectDescriptor().
       getBuildRootIndex().getTargetRoots(target, context);
-    assert roots.size() == 0 || roots.size() == 1;
 
     if (roots.size() == 0) {
       return true;
     }
-    final BuildRootDescriptor root = roots.get(0);
-    final File inputDir = root.getRootFile();
-    final String inputDirPath = inputDir.getPath();
+    final List<String> inputDirs = new ArrayList<String>();
 
+    for (BuildRootDescriptor root : roots) {
+      inputDirs.add(root.getRootFile().getPath());
+    }
     final Map<AndroidCompilerMessageKind, List<String>> messages =
-      AndroidApt.crunch(androidTarget, Collections.singletonList(inputDirPath),resCacheDir.getPath());
+      AndroidApt.crunch(androidTarget, inputDirs,resCacheDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, module.getName());
     final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
@@ -121,8 +122,11 @@ public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRoo
       for (Map.Entry<String, File> entry : outputFiles.entrySet()) {
         final String relativePath = entry.getKey();
         final File outputFile = entry.getValue();
-        final File srcFile = new File(inputDir, relativePath);
-        outputConsumer.registerOutputFile(outputFile, Collections.singletonList(srcFile.getPath()));
+
+        for (String inputDir : inputDirs) {
+          final File srcFile = new File(inputDir, relativePath);
+          outputConsumer.registerOutputFile(outputFile, Collections.singletonList(srcFile.getPath()));
+        }
       }
     }
     return success;

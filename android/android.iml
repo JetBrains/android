@@ -70,6 +70,7 @@
     </orderEntry>
     <orderEntry type="library" name="android-builder" level="project" />
     <orderEntry type="module" module-name="gradle-import" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
   </component>
 </module>
 
