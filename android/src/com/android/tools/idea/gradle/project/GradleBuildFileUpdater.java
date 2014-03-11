@@ -65,13 +65,17 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
     }
 
     // The module has probably already been added to the settings file but let's call this to be safe.
-    mySettingsFile.addModule(module);
+    if (mySettingsFile != null) {
+      mySettingsFile.addModule(module);
+    }
   }
 
   @Override
   public void moduleRemoved(@NotNull Project project, @NotNull final Module module) {
     remove(module);
-    mySettingsFile.removeModule(module);
+    if (mySettingsFile != null) {
+      mySettingsFile.removeModule(module);
+    }
   }
 
   @Override
