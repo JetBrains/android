@@ -16,6 +16,8 @@ import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.android.dom.resources.Style;
 
+import static com.android.SdkConstants.*;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -225,9 +227,15 @@ public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
             return true;
           }
 
+          boolean inItem = false;
           while (tag != null) {
-            if ("string".equals(tag.getName())) {
+            String tagName = tag.getName();
+            if (TAG_ITEM.equals(tagName)) {
+              inItem = true;
+            } else if (TAG_STRING.equals(tagName)) {
               return true;
+            } else if (TAG_STRING_ARRAY.equals(tagName) || TAG_PLURALS.equals(tagName)) {
+              return inItem;
             }
             tag = tag.getParentTag();
           }
