@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Primitives;
 import org.jetbrains.android.AndroidTestCase;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
 import java.io.File;
-import java.io.FilenameFilter;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Tests for the {@link ChooseTemplateStep} wizard step.
@@ -52,7 +48,7 @@ public class ChooseTemplateStepTest extends AndroidTestCase {
     }
 
     // Now let's exclude one
-    Set<String> EXCLUDED = ImmutableSet.of("New Notification");
+    Set<String> EXCLUDED = ImmutableSet.of("Notification");
     otherList = ChooseTemplateStep.getTemplateList(state, Template.CATEGORY_OTHER, EXCLUDED);
     expectedCount -= 1;
 
