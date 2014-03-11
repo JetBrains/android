@@ -48,7 +48,7 @@ public class TemplateParameterStepTest extends AndroidTestCase {
     myTemplate = mock(Template.class);
 
     myState = spy(new TemplateWizardState());
-    myStep = new TemplateParameterStep(myState, getProject(), null, TemplateWizardStep.NONE);
+    myStep = new TemplateParameterStep(myState, getProject(), null, null, TemplateWizardStep.NONE);
 
     when(myState.getTemplateMetadata()).thenReturn(myTemplateMetadata);
     when(myState.getTemplate()).thenReturn(myTemplate);
