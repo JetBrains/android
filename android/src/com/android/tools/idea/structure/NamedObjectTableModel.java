@@ -88,6 +88,15 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
       if (o == null) {
         return;
       }
+      String name = o.toString();
+      // Names are Groovy identifiers and must be valid. This also weeds out empty names.
+      if (!StringUtil.isJavaIdentifier(name)) {
+        return;
+      }
+      // Names must be unique.
+      if (hasObjectNamed(name)) {
+        return;
+      }
       no.setName((String)o);
     } else {
       BuildFileKey key = getKey(col);
@@ -178,5 +187,19 @@ public class NamedObjectTableModel extends AbstractTableModel implements ItemRem
   public void removeRow(int idx) {
     myItems.remove(idx);
     myModified = true;
+  }
+
+  @Nullable
+  public NamedObject getObjectByName(@NotNull String name) {
+    for (NamedObject item : myItems) {
+      if (item.getName().equals(name)) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  public boolean hasObjectNamed(@NotNull String name) {
+    return getObjectByName(name) != null;
   }
 }
