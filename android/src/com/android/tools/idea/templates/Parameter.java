@@ -409,7 +409,7 @@ public class Parameter {
     return AndroidUtils.isValidJavaPackageName(value) && value.indexOf('.') != -1;
   }
 
-  private static boolean existsResourceFile(@Nullable Project project, @NotNull String resourceType, @Nullable String name) {
+  public static boolean existsResourceFile(@Nullable Project project, @NotNull String resourceType, @Nullable String name) {
     if (name == null || name.isEmpty() || project == null) {
       return false;
     }

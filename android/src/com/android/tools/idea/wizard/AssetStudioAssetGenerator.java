@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
-public class AssetStudioWizardState extends TemplateWizardState implements GraphicGeneratorContext {
+public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public static final String ATTR_TEXT = "text";
   public static final String ATTR_SCALING = "scaling";
   public static final String ATTR_SHAPE = "shape";
@@ -55,13 +55,15 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
   public static final String ATTR_ASSET_THEME = "assetTheme";
   public static final String ATTR_ASSET_NAME = "assetName";
 
-  private static final Logger LOG = Logger.getInstance("#" + AssetStudioWizardState.class.getName());
+  private static final Logger LOG = Logger.getInstance("#" + AssetStudioAssetGenerator.class.getName());
   private static final String OUTPUT_DIRECTORY = "src/main/";
   private static Cache<String, BufferedImage> ourImageCache = CacheBuilder.newBuilder().build();
 
   private final ActionBarIconGenerator myActionBarIconGenerator;
   private final NotificationIconGenerator myNotificationIconGenerator;
   private final LauncherIconGenerator myLauncherIconGenerator;
+
+  private TemplateWizardState myWizardState;
 
   public static class ImageGeneratorException extends Exception {
     public ImageGeneratorException(String message) {
@@ -179,32 +181,34 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
     }
   }
 
-  public AssetStudioWizardState() {
-    this(new ActionBarIconGenerator(), new NotificationIconGenerator(), new LauncherIconGenerator());
+  public AssetStudioAssetGenerator(TemplateWizardState state) {
+    this(state, new ActionBarIconGenerator(), new NotificationIconGenerator(), new LauncherIconGenerator());
   }
 
   /**
    * Allows dependency injection for testing
    */
   @SuppressWarnings("UseJBColor") // These colors are for the graphics generator, not the plugin UI
-  public AssetStudioWizardState(@Nullable ActionBarIconGenerator actionBarIconGenerator,
-                                @Nullable NotificationIconGenerator notificationIconGenerator,
-                                @Nullable LauncherIconGenerator launcherIconGenerator) {
+  public AssetStudioAssetGenerator(@NotNull TemplateWizardState state,
+                                   @Nullable ActionBarIconGenerator actionBarIconGenerator,
+                                   @Nullable NotificationIconGenerator notificationIconGenerator,
+                                   @Nullable LauncherIconGenerator launcherIconGenerator) {
+    myWizardState = state;
     myActionBarIconGenerator = actionBarIconGenerator != null ? actionBarIconGenerator : new ActionBarIconGenerator();
     myNotificationIconGenerator = notificationIconGenerator != null ? notificationIconGenerator : new NotificationIconGenerator();
     myLauncherIconGenerator = launcherIconGenerator != null ? launcherIconGenerator : new LauncherIconGenerator();
 
-    put(ATTR_TEXT, "Aa");
-    put(ATTR_FONT, "Arial Black");
-    put(ATTR_SCALING, Scaling.CROP);
-    put(ATTR_SHAPE, GraphicGenerator.Shape.NONE);
-    put(ATTR_FONT_SIZE, 144);
-    put(ATTR_SOURCE_TYPE, AssetStudioWizardState.SourceType.IMAGE);
-    put(ATTR_CLIPART_NAME, "android.png");
-    put(ATTR_FOREGROUND_COLOR, Color.BLUE);
-    put(ATTR_BACKGROUND_COLOR, Color.WHITE);
-    put(ATTR_TRIM, false);
-    put(ATTR_PADDING, 0);
+    myWizardState.put(ATTR_TEXT, "Aa");
+    myWizardState.put(ATTR_FONT, "Arial Black");
+    myWizardState.put(ATTR_SCALING, Scaling.CROP);
+    myWizardState.put(ATTR_SHAPE, GraphicGenerator.Shape.NONE);
+    myWizardState.put(ATTR_FONT_SIZE, 144);
+    myWizardState.put(ATTR_SOURCE_TYPE, AssetStudioAssetGenerator.SourceType.IMAGE);
+    myWizardState.put(ATTR_CLIPART_NAME, "android.png");
+    myWizardState.put(ATTR_FOREGROUND_COLOR, Color.BLUE);
+    myWizardState.put(ATTR_BACKGROUND_COLOR, Color.WHITE);
+    myWizardState.put(ATTR_TRIM, false);
+    myWizardState.put(ATTR_PADDING, 0);
   }
 
   @Override
@@ -234,24 +238,24 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
   public Map<String, Map<String, BufferedImage>> generateImages(boolean previewOnly) throws ImageGeneratorException {
     Map<String, Map<String, BufferedImage>> categoryMap = new LinkedHashMap<String, Map<String, BufferedImage>>();
 
-    if (!hasAttr(ATTR_ASSET_TYPE)) {
+    if (!myWizardState.hasAttr(ATTR_ASSET_TYPE)) {
       // If we don't know what we're building, don't do it yet.
       return categoryMap;
     }
 
 
-    AssetType type = AssetType.valueOf(getString(ATTR_ASSET_TYPE));
-    boolean trim = (Boolean)get(ATTR_TRIM);
-    int padding = (Integer)get(ATTR_PADDING);
+    AssetType type = AssetType.valueOf(myWizardState.getString(ATTR_ASSET_TYPE));
+    boolean trim = myWizardState.getBoolean(ATTR_TRIM);
+    int padding = myWizardState.getInt(ATTR_PADDING);
 
     if (type == null) {
       return categoryMap;
     }
 
     BufferedImage sourceImage = null;
-    switch ((AssetStudioWizardState.SourceType)get(ATTR_SOURCE_TYPE)) {
+    switch ((AssetStudioAssetGenerator.SourceType)myWizardState.get(ATTR_SOURCE_TYPE)) {
       case IMAGE: {
-        String path = (String)get(ATTR_IMAGE_PATH);
+        String path = (String)myWizardState.get(ATTR_IMAGE_PATH);
         if (path == null || path.isEmpty()) {
           throw new ImageGeneratorException("Path to image is empty.");
         }
@@ -269,7 +273,7 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
       }
 
       case CLIPART: {
-        String clipartName = (String)get(ATTR_CLIPART_NAME);
+        String clipartName = (String)myWizardState.get(ATTR_CLIPART_NAME);
         try {
           sourceImage = GraphicGenerator.getClipartImage(clipartName);
         }
@@ -278,7 +282,7 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
         }
 
         if (type.needsColors()) {
-          Paint paint = (Color)get(ATTR_FOREGROUND_COLOR);
+          Paint paint = (Color)myWizardState.get(ATTR_FOREGROUND_COLOR);
           sourceImage = Util.filledImage(sourceImage, paint);
         }
         break;
@@ -286,9 +290,9 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
 
       case TEXT: {
         TextRenderUtil.Options options = new TextRenderUtil.Options();
-        options.font = Font.decode(getString(ATTR_FONT) + " " + getInt(ATTR_FONT_SIZE));
-        options.foregroundColor = type.needsColors() ? ((Color)get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
-        sourceImage = TextRenderUtil.renderTextImage((String)get(ATTR_TEXT), 1, options);
+        options.font = Font.decode(myWizardState.getString(ATTR_FONT) + " " + myWizardState.getInt(ATTR_FONT_SIZE));
+        options.foregroundColor = type.needsColors() ? ((Color)myWizardState.get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
+        sourceImage = TextRenderUtil.renderTextImage(myWizardState.getString(ATTR_TEXT), 1, options);
 
         break;
       }
@@ -306,18 +310,18 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
     GraphicGenerator.Options options = null;
     String baseName = "";
 
-    if (hasAttr(ATTR_ASSET_NAME)) {
-      baseName = getString(ATTR_ASSET_NAME);
+    if (myWizardState.hasAttr(ATTR_ASSET_NAME)) {
+      baseName = myWizardState.getString(ATTR_ASSET_NAME);
     }
 
     switch (type) {
       case LAUNCHER: {
         generator = myLauncherIconGenerator;
           LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
-          launcherOptions.shape = (GraphicGenerator.Shape)get(ATTR_SHAPE);
-          launcherOptions.crop = Scaling.CROP.equals(get(ATTR_SCALING));
+          launcherOptions.shape = (GraphicGenerator.Shape)myWizardState.get(ATTR_SHAPE);
+          launcherOptions.crop = Scaling.CROP.equals(myWizardState.get(ATTR_SCALING));
           launcherOptions.style = GraphicGenerator.Style.SIMPLE;
-          launcherOptions.backgroundColor = ((Color)get(ATTR_BACKGROUND_COLOR)).getRGB();
+          launcherOptions.backgroundColor = ((Color)myWizardState.get(ATTR_BACKGROUND_COLOR)).getRGB();
           launcherOptions.isWebGraphic = !previewOnly;
           options = launcherOptions;
         }
@@ -326,8 +330,8 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
           generator = myActionBarIconGenerator;
           ActionBarIconGenerator.ActionBarOptions actionBarOptions =
             new ActionBarIconGenerator.ActionBarOptions();
-          if (hasAttr(ATTR_ASSET_THEME)) {
-            ActionBarIconGenerator.Theme theme = ActionBarIconGenerator.Theme.valueOf(getString(ATTR_ASSET_THEME));
+          if (myWizardState.hasAttr(ATTR_ASSET_THEME)) {
+            ActionBarIconGenerator.Theme theme = ActionBarIconGenerator.Theme.valueOf(myWizardState.getString(ATTR_ASSET_THEME));
             if (theme != null) {
               switch (theme) {
                 case HOLO_DARK:
@@ -338,12 +342,12 @@ public class AssetStudioWizardState extends TemplateWizardState implements Graph
                   break;
                 case CUSTOM:
                   actionBarOptions.theme = ActionBarIconGenerator.Theme.CUSTOM;
-                  actionBarOptions.customThemeColor = ((Color)get(ATTR_FOREGROUND_COLOR)).getRGB();
+                  actionBarOptions.customThemeColor = ((Color)myWizardState.get(ATTR_FOREGROUND_COLOR)).getRGB();
                   break;
               }
             }
           }
-          actionBarOptions.sourceIsClipart = (get(ATTR_SOURCE_TYPE) == SourceType.CLIPART);
+          actionBarOptions.sourceIsClipart = (myWizardState.get(ATTR_SOURCE_TYPE) == SourceType.CLIPART);
 
           options = actionBarOptions;
         }
