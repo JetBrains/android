@@ -26,7 +26,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
- * is derived from a combination of gradle files and manifest files.
+ * is derived from a combination of gradle files and manifest files. For non-Gradle projects, it falls back
+ * to just using the manifest.
  * <p>
  * NOTE: The build process allows for specifying and overriding different components in either the Gradle build scripts,
  * the main manifest file, or a variant specific manifest file. These values should always be obtained from the final
@@ -193,16 +194,7 @@ public class AndroidModuleInfo {
 
   @Nullable
   public static Manifest getManifest(@Nullable Module module, boolean preferMergedManifest) {
-    if (module == null) {
-      return null;
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-
-    AndroidModuleInfo moduleInfo = get(facet.getModule());
+    AndroidModuleInfo moduleInfo = module == null ? null : get(module);
     return moduleInfo == null ? null : moduleInfo.getManifest(preferMergedManifest);
   }
 }
