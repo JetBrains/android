@@ -86,7 +86,22 @@ public class IdeaModuleStub implements IdeaModule {
 
   @Override
   public IdeaCompilerOutput getCompilerOutput() {
-    throw new UnsupportedOperationException();
+    return new IdeaCompilerOutput() {
+      @Override
+      public boolean getInheritOutputDirs() {
+        return false;
+      }
+
+      @Override
+      public File getOutputDir() {
+        return new File("build", "output");
+      }
+
+      @Override
+      public File getTestOutputDir() {
+        return new File("build", "test-output");
+      }
+    };
   }
 
   public void addDependency(@NotNull IdeaDependency dependency) {
