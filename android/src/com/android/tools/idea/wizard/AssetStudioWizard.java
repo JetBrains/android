@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -43,6 +44,7 @@ public class AssetStudioWizard extends TemplateWizard implements TemplateWizardS
   @Override
   protected void init() {
     myIconStep = new AssetSetStep(myWizardState, myProject, myModule, null, this);
+    Disposer.register(getDisposable(), myIconStep);
     myOutputStep = new ChooseOutputLocationStep(myWizardState, myProject, null, NONE, myModule);
     addStep(myIconStep);
     addStep(myOutputStep);
