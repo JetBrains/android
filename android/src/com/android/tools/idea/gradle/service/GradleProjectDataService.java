@@ -17,10 +17,13 @@ package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.customizer.java.DependenciesJavaModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.JavaModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.ContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.customizer.java.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaModel;
 import com.android.tools.idea.gradle.util.Facets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -35,13 +38,15 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
 public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
-  private final JavaModuleCustomizer[] myCustomizers = {new DependenciesJavaModuleCustomizer()};
+  private final List<ModuleCustomizer<JavaModel>> myCustomizers =
+    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer());
 
   @NotNull
   @Override
@@ -92,7 +97,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
     androidGradleFacet.setGradleProject(gradleProject);
 
-    for (JavaModuleCustomizer customizer : myCustomizers) {
+    for (ModuleCustomizer<JavaModel> customizer : myCustomizers) {
       customizer.customizeModule(module, module.getProject(), gradleProject.getJavaModel());
     }
   }
