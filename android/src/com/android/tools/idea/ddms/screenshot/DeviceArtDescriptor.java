@@ -212,7 +212,7 @@ public class DeviceArtDescriptor {
 
   @Nullable
   public File getFrame(@NotNull ScreenOrientation orientation) {
-    return getArtDescriptor(orientation).getBackroundFile();
+    return getArtDescriptor(orientation).getBackgroundFile();
   }
 
   @Nullable
@@ -351,7 +351,7 @@ public class DeviceArtDescriptor {
     }
 
     @Nullable
-    public File getBackroundFile() {
+    public File getBackgroundFile() {
       return myBackgroundName != null ? new File(myDevice.getBaseFolder(), myBackgroundName) : null;
     }
 
