@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.SdkManager;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -70,6 +71,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
   TemplateParameterStep myActivityParameterStep;
 
   @VisibleForTesting
+  ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
+
+  @VisibleForTesting
   boolean myInitializationComplete = false;
 
   public NewProjectWizard() {
@@ -80,7 +84,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       getWindow().setMinimumSize(new Dimension(1000, 640));
     } else {
       // We should always have a window unless we're in test mode
-      ApplicationManager.getApplication().isUnitTestMode();
+      assert(ApplicationManager.getApplication().isUnitTestMode());
     }
     init();
   }
@@ -101,16 +105,16 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_V4_SUPPORT_LIBRARY_VERSION, TemplateMetadata.V4_SUPPORT_LIBRARY_VERSION);
 
-    ConfigureAndroidModuleStep configureAndroidModuleStep =
+    myConfigureAndroidModuleStep =
       new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
-    configureAndroidModuleStep.updateStep();
+    myConfigureAndroidModuleStep.updateStep();
     myAssetSetStep = new AssetSetStep(myWizardState.getLauncherIconState(), myProject, NewProjectSidePanel, this);
     myAssetSetStep.finalizeAssetType(AssetStudioWizardState.AssetType.LAUNCHER);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject,
                                                   NewProjectSidePanel, this, null);
     myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, NewProjectSidePanel, this);
 
-    mySteps.add(configureAndroidModuleStep);
+    mySteps.add(myConfigureAndroidModuleStep);
     mySteps.add(myAssetSetStep);
     mySteps.add(myChooseActivityStep);
     mySteps.add(myActivityParameterStep);
@@ -202,11 +206,12 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         }
 
         @Override
-        public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
+        public void importFailed(@NotNull final Project project, @NotNull final String errorMessage) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-              Messages.showErrorDialog(errorMessage, ERROR_MSG_TITLE);
+              // Just by opening the project, Studio will show the error message in a balloon notification, automatically.
+              Projects.open(project);
             }
           });
         }

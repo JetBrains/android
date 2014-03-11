@@ -19,7 +19,10 @@ import com.android.SdkConstants;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.objectTree.ObjectTree;
 
 import java.io.File;
 import java.util.Map;
@@ -51,7 +54,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
   @Override
   public void tearDown() throws Exception {
-    myWizard.getDisposable().dispose();
+    Disposer.dispose(myWizard.getDisposable());
     super.tearDown();
   }
 
