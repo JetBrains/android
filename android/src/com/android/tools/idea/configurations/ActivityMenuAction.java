@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Iterator;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 
@@ -256,11 +256,13 @@ public class ActivityMenuAction extends FlatComboAction {
 
         // Consider switching themes if the given activity has an implied theme
         ManifestInfo manifestInfo = ManifestInfo.get(module);
-        Map<String,String> activityThemes = manifestInfo.getActivityThemes();
-        String theme = activityThemes.get(myActivity);
-        if (theme != null) {
-          assert theme.startsWith(PREFIX_RESOURCE_REF) : theme;
-          configuration.setTheme(theme);
+        ActivityAttributes attributes = manifestInfo.getActivityAttributes(myActivity);
+        if (attributes != null) {
+          String theme = attributes.getTheme();
+          if (theme != null) {
+            assert theme.startsWith(PREFIX_RESOURCE_REF) : theme;
+            configuration.setTheme(theme);
+          }
         }
       }
     }
