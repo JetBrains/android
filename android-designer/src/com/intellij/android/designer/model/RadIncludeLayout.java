@@ -53,7 +53,7 @@ public class RadIncludeLayout extends RadViewComponent implements IConfigurableC
     return "<include android:layout_width=\"wrap_content\"\n" +
            "android:layout_height=\"wrap_content\"\n" +
            "layout=\"" +
-           extractClientProperty(IncludeLayoutProperty.NAME) +
+           getClientProperty(IncludeLayoutProperty.NAME) +
            "\"/>";
   }
 

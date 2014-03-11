@@ -48,7 +48,7 @@ public class RadCustomViewComponent extends RadViewComponent implements IConfigu
     return "<view android:layout_width=\"wrap_content\"\n" +
            "android:layout_height=\"wrap_content\"\n" +
            "class=\"" +
-           extractClientProperty(NAME_KEY) +
+           getClientProperty(NAME_KEY) +
            "\"/>";
   }
 
