@@ -167,6 +167,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (myWizardContext == null) {
       computeUniqueProjectLocation();
     }
+    if (!myTemplateState.hasAttr(ATTR_APP_TITLE) && myProject != null) {
+      myTemplateState.put(ATTR_APP_TITLE, myProject.getName());
+    }
     preselectTargetAndBuildApi();
     registerUiElements();
 
@@ -268,6 +271,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   public void refreshUiFromParameters() {
+    if (!myVisible) {
+      return;
+    }
     // It's easier to just re-register the UI elements instead of trying to set their values manually. Not all of the elements have
     // parameters in the template, and the super refreshUiFromParameters won't touch those elements.
     registerUiElements();
