@@ -97,7 +97,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         PsiProjectListener.getListener(project);
       }
     }
-    else if (fileType != StdFileTypes.JAVA) {
+    else if (fileType != StdFileTypes.JAVA && fileType != StdFileTypes.PROPERTIES) {
       return null;
     }
 
@@ -130,6 +130,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         scope = EnumSet.of(Scope.PROGUARD_FILE);
       } else if (fileType == GroovyFileType.GROOVY_FILE_TYPE) {
         scope = Scope.GRADLE_SCOPE;
+      } else if (fileType == StdFileTypes.PROPERTIES) {
+        scope = Scope.PROPERTY_SCOPE;
       } else {
         // #collectionInformation above should have prevented this
         assert false;
