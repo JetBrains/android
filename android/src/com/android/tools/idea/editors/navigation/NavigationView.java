@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.editors.navigation.macros.Macros;
+import com.android.tools.idea.editors.navigation.macros.MultiMatch;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ShadowPainter;
@@ -47,6 +49,7 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 
@@ -762,8 +765,35 @@ public class NavigationView extends JComponent {
 
   @Nullable
   public static String getXMLFileName(Module module, String controllerClassName) {
-    PsiJavaCodeReferenceElement referenceElement = Utilities.getReferenceElement(module, controllerClassName, "onCreate");
-    return referenceElement != null ? referenceElement.getLastChild().getText() : null;
+    PsiClass aClass = getPsiClass(module, controllerClassName);
+    if (aClass == null) {
+      return null;
+    }
+    PsiMethod onCreateMethod = Utilities.getMethodBySignature(aClass, "public void onCreate(Bundle bundle)");
+    if (onCreateMethod == null) {
+      return null;
+    }
+
+    final Macros macros = Macros.getInstance(module.getProject());
+    final List<String> results = new ArrayList<String>();
+
+    JavaRecursiveElementVisitor visitor = new JavaRecursiveElementVisitor() {
+      @Override
+      public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+        MultiMatch.Bindings<PsiElement> exp = macros.setContentViewMacro.match(expression);
+        if (exp == null) {
+          super.visitMethodCallExpression(expression);
+        }
+        else {
+          PsiElement id = exp.get("id");
+          PsiElement unqualifiedXmlName = id.getLastChild();
+          results.add(unqualifiedXmlName.getText());
+        }
+      }
+    };
+
+    onCreateMethod.accept(visitor);
+    return results.size() == 1 ? results.get(0) : null;
   }
 
   @Nullable
@@ -845,7 +875,8 @@ public class NavigationView extends JComponent {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       if (!shiftDown) {
         return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, mouseDownLocation, transition,
-                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent), myTransform);
+                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent),
+                                                            myTransform);
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
