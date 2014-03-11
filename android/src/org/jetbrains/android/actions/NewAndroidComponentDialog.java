@@ -20,6 +20,8 @@ import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -241,9 +243,9 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     final PsiElement lastBodyElement = body.getLastBodyElement();
 
     if (lastBodyElement != null) {
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      new WriteCommandAction(project, body.getContainingFile()) {
         @Override
-        public void run() {
+        protected void run(@NotNull Result result) throws Throwable {
           final PsiStatement newStatement = PsiElementFactory.SERVICE.getInstance(project).createStatementFromText(
             "setContentView(" + layoutFieldRef + ");", body);
           body.addAfter(newStatement, lastBodyElement);
@@ -251,7 +253,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
           JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
           CodeStyleManager.getInstance(project).reformat(body);
         }
-      });
+      }.execute();
     }
   }
 
