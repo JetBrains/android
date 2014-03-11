@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.model;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
@@ -52,21 +53,17 @@ import static com.android.tools.idea.rendering.LayoutMetadata.KEY_FRAGMENT_LAYOU
 public class RadFragment extends RadViewComponent implements IConfigurableComponent {
   private static final Property NAME_PROPERTY =
     new FragmentProperty("name",
+                         SdkConstants.ANDROID_URI,
                          new MyResourceEditor(),
                          JavadocParser.build("name", "Supply the name of the fragment class to instantiate."));
 
   private static final Property CLASS_PROPERTY = new FragmentProperty("class",
+                                                                      null,
                                                                       new MyResourceEditor(),
                                                                       JavadocParser.build("class",
-                                                                                          "Supply the name of the fragment class to instantiate.")) {
-    @Nullable
-    @Override
-    protected String getNamespace() {
-      return null;
-    }
-  };
+                                                                                          "Supply the name of the fragment class to instantiate."));
 
-  private static final Property TAG_PROPERTY = new FragmentProperty("tag", new TextEditorWrapper(),
+  private static final Property TAG_PROPERTY = new FragmentProperty("tag", SdkConstants.ANDROID_URI, new TextEditorWrapper(),
                                                                     JavadocParser.build(
                                                                       "tag",
                                                                       "Use <code>device-admin</code> as the root tag of the XML resource that\n" +
