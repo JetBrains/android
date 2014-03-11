@@ -43,10 +43,16 @@ public class AndroidLibraryStub implements AndroidLibrary {
     myProject = project;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String getProject() {
     return myProject;
+  }
+
+  @Override
+  @Nullable
+  public String getProjectVariant() {
+    return null;
   }
 
   @Override
