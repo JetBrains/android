@@ -1,60 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.structure.MavenDependencyLookupDialog">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="500" height="400"/>
+      <xy x="20" y="20" width="500" height="397"/>
     </constraints>
-    <properties/>
-    <border type="none"/>
+    <properties>
+      <background color="-1118482"/>
+      <enabled value="true"/>
+    </properties>
+    <border type="none">
+      <color color="-52429"/>
+    </border>
     <children>
-      <grid id="c48e0" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-        <margin top="0" left="0" bottom="15" right="0"/>
+      <component id="c6cfa" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="mySearchField">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
+      </component>
+      <component id="9b6f0" class="com.intellij.util.ui.AsyncProcessIcon" binding="myProgressIcon" custom-create="true">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="e17fc" class="com.intellij.ui.components.JBLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <componentStyle value="SMALL"/>
+          <fontColor value="BRIGHTER"/>
+          <text value="&lt;html&gt;Enter keyword, pattern or class name to search by or Maven coordinates, i.e. 'guava', 'com.google.code.gson:gson:2.2.4':&lt;/html&gt;"/>
+        </properties>
+      </component>
+      <scrollpane id="dfc80" class="com.intellij.ui.components.JBScrollPane">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <horizontalScrollBarPolicy value="31"/>
+          <verticalScrollBarPolicy value="22"/>
+        </properties>
         <border type="none"/>
         <children>
-          <component id="4a8ee" class="com.intellij.ui.ComboboxWithBrowseButton" binding="myComboComponent">
-            <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties/>
-          </component>
-          <component id="9b6f0" class="com.intellij.util.ui.AsyncProcessIcon" binding="myProgressIcon" custom-create="true">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties/>
-          </component>
-          <component id="466f1" class="com.intellij.ui.components.JBLabel" binding="myInfoLabel">
-            <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
+          <component id="a2b08" class="com.intellij.ui.components.JBList" binding="myResultList">
+            <constraints/>
             <properties>
-              <componentStyle value="MINI"/>
-              <fontColor value="BRIGHTER"/>
-              <text value="Info"/>
+              <selectionMode value="0"/>
             </properties>
           </component>
-          <component id="e17fc" class="com.intellij.ui.components.JBLabel" binding="myCaptionLabel">
-            <constraints>
-              <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <componentStyle value="SMALL"/>
-              <fontColor value="BRIGHTER"/>
-              <text value="Description"/>
-            </properties>
-          </component>
-          <vspacer id="edee6">
-            <constraints>
-              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-            </constraints>
-          </vspacer>
         </children>
-      </grid>
+      </scrollpane>
     </children>
   </grid>
 </form>

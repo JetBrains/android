@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.*;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -26,6 +27,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.roots.ui.CellAppearanceEx;
@@ -43,6 +45,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ActionRunner;
 import com.intellij.util.PlatformIcons;
 import icons.MavenIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -183,7 +186,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
       @Override
       public void run(AnActionButton button) {
         ImmutableList<PopupAction> popupActions = ImmutableList.of(
-          new PopupAction(MavenIcons.MavenLogo, 1, "Maven dependency") {
+          new PopupAction(MavenIcons.MavenLogo, 1, "Library dependency") {
             @Override
             public void run() {
               addExternalDependency();
@@ -260,11 +263,13 @@ public class ModuleDependenciesPanel extends EditorPanel {
   }
 
   private void addExternalDependency() {
-    MavenDependencyLookupDialog dialog = new MavenDependencyLookupDialog(myProject, null);
-    dialog.setTitle("Choose Maven Dependency");
+    Module module = GradleUtil.findModuleByGradlePath(myProject, myModulePath);
+    boolean isAndroidModule = module != null && AndroidFacet.getInstance(module) != null;
+    MavenDependencyLookupDialog dialog = new MavenDependencyLookupDialog(myProject, isAndroidModule);
+    dialog.setTitle("Choose Library Dependency");
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-      String coordinateText = dialog.getCoordinateText();
+      String coordinateText = dialog.getSearchText();
       myModel.addItem(new ModuleDependenciesTableItem(
           new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, coordinateText)));
     }
