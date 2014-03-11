@@ -571,19 +571,8 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       final RenderLogger logger = new RenderLogger(layoutXmlFile.getName(), module);
       final RenderService service = RenderService.create(facet, module, psiFile, configuration, logger, toolWindowForm);
       if (service != null) {
-        // Prefetch outside of read lock
-        service.getResourceResolver();
-
-        result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
-          @Nullable
-          @Override
-          public RenderResult compute() {
-            if (psiFile instanceof XmlFile) {
-              service.useDesignMode(((XmlFile)psiFile).getRootTag());
-            }
-            return service.render();
-          }
-        });
+        service.useDesignMode(psiFile);
+        result = service.render();
         service.dispose();
       }
       if (result == null) {
