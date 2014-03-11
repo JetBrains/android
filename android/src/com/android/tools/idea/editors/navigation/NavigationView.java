@@ -19,11 +19,13 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.navigation.*;
-import com.android.navigation.State;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
-import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.RenderedView;
+import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.rendering.ShadowPainter;
+import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
@@ -31,8 +33,9 @@ import com.intellij.ide.dnd.TransferableWrapper;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.xml.XmlFileImpl;
@@ -54,6 +57,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
+import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 
 public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
@@ -747,11 +751,6 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static VirtualFile virtualFile(File file) {
-    return LocalFileSystem.getInstance().findFileByIoFile(file);
-  }
-
-  @Nullable
   public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String resourceName, Configuration configuration, Project project) {
     ResourceType resourceType = menu ? ResourceType.MENU : ResourceType.LAYOUT;
     PsiManager psiManager = PsiManager.getInstance(project);
@@ -760,6 +759,9 @@ public class NavigationView extends JComponent {
       return null;
     }
     ResourceValue projectResource = resourceResolver.getProjectResource(resourceType, resourceName);
+    if (projectResource == null) { /// seems to happen when we create a new resource
+      return null;
+    }
     VirtualFile file = virtualFile(new File(projectResource.getValue()));
     return file == null ? null : psiManager.findFile(file);
   }
@@ -831,8 +833,34 @@ public class NavigationView extends JComponent {
   }
 
   private class MyMouseListener extends MouseAdapter {
+    private void showPopup(MouseEvent e) {
+      JPopupMenu menu = new JBPopupMenu();
+      JMenuItem anItem = new JBMenuItem("New Activity...");
+      anItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+          Project project = myRenderingParams.myProject;
+          Module module = myRenderingParams.myFacet.getModule();
+          NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(project, module, null, CATEGORY_ACTIVITIES);
+          dialog.show();
+          if (dialog.isOK()) {
+            dialog.createTemplateObject(false);
+          }
+        }
+      });
+      menu.add(anItem);
+      menu.show(e.getComponent(), e.getX(), e.getY());
+    }
+
     @Override
     public void mousePressed(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        showPopup(e);
+        return;
+      }
+      if (e.getButton() != MouseEvent.BUTTON1) {
+        return;
+      }
       Point location = e.getPoint();
       boolean modified = (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
       setSelection(createSelection(location, modified));
@@ -841,17 +869,30 @@ public class NavigationView extends JComponent {
 
     @Override
     public void mouseMoved(MouseEvent e) {
+      if (e.getButton() != MouseEvent.BUTTON1) {
+        return;
+      }
       setMouseLocation(e.getPoint());
     }
 
     @Override
-    public void mouseDragged(MouseEvent mouseEvent) {
-      moveSelection(mouseEvent.getPoint());
+    public void mouseDragged(MouseEvent e) {
+      if (e.getButton() != MouseEvent.BUTTON1) {
+        return;
+      }
+      moveSelection(e.getPoint());
     }
 
     @Override
-    public void mouseReleased(MouseEvent mouseEvent) {
-      finaliseSelectionLocation(mouseEvent.getPoint());
+    public void mouseReleased(MouseEvent e) {
+      if (e.isPopupTrigger()) {
+        showPopup(e);
+        return;
+      }
+      if (e.getButton() != MouseEvent.BUTTON1) {
+        return;
+      }
+      finaliseSelectionLocation(e.getPoint());
     }
   }
 
