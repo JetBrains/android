@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -40,11 +41,13 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_LATEST
 
 class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   FixGradleModelVersionHyperlink() {
-    super("fixGradleElements", "Fix plug-in version and re-import project");
+    super("fixGradleElements", "Open migration guide, fix plug-in version and re-import project");
   }
 
   @Override
   protected void execute(@NotNull Project project) {
+    BrowserUtil.browse("http://tools.android.com/tech-docs/new-build-system/migrating_to_09");
+
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     boolean atLeastOnUpdated = false;
     for (Module module : moduleManager.getModules()) {
