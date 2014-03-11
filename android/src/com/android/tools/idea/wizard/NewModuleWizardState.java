@@ -17,6 +17,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -29,7 +30,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.tools.idea.templates.RepositoryUrls.*;
+import static com.android.tools.idea.templates.RepositoryUrlManager.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -116,20 +117,22 @@ public class NewModuleWizardState extends TemplateWizardState {
       dependencySet.addAll((Collection<String>)get(ATTR_DEPENDENCIES_LIST));
     }
 
+    RepositoryUrlManager urlManager = RepositoryUrlManager.get();
+
     // Support Library
     if ((get(ATTR_FRAGMENTS_EXTRA) != null && Boolean.parseBoolean(get(ATTR_FRAGMENTS_EXTRA).toString())) ||
         (get(ATTR_NAVIGATION_DRAWER_EXTRA) != null && Boolean.parseBoolean(get(ATTR_NAVIGATION_DRAWER_EXTRA).toString()))) {
-      dependencySet.add(getLibraryCoordinate(SUPPORT_ID_V4));
+      dependencySet.add(urlManager.getLibraryCoordinate(SUPPORT_ID_V4));
     }
 
     // AppCompat Library
     if (get(ATTR_ACTION_BAR_EXTRA) != null && Boolean.parseBoolean(get(ATTR_ACTION_BAR_EXTRA).toString())) {
-      dependencySet.add(getLibraryCoordinate(APP_COMPAT_ID_V7));
+      dependencySet.add(urlManager.getLibraryCoordinate(APP_COMPAT_ID_V7));
     }
 
     // GridLayout Library
     if (get(ATTR_GRID_LAYOUT_EXTRA) != null && Boolean.parseBoolean(get(ATTR_GRID_LAYOUT_EXTRA).toString())) {
-      dependencySet.add(getLibraryCoordinate(GRID_LAYOUT_ID_V7));
+      dependencySet.add(urlManager.getLibraryCoordinate(GRID_LAYOUT_ID_V7));
     }
 
     put(ATTR_DEPENDENCIES_LIST, new LinkedList<String>(dependencySet));
