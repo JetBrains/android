@@ -64,7 +64,6 @@ public class ProjectStructureSanitizer {
     else {
       AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
     }
-    generateSourcesOnly();
   }
 
   private void ensureAllModulesHaveSdk() {
@@ -81,18 +80,6 @@ public class ProjectStructureSanitizer {
       finally {
         model.commit();
       }
-    }
-  }
-
-  private void generateSourcesOnly() {
-    Application application = ApplicationManager.getApplication();
-    if (!application.isUnitTestMode()) {
-      application.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          ProjectBuilder.getInstance(myProject).generateSourcesOnly();
-        }
-      });
     }
   }
 
