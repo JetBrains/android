@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
@@ -29,6 +30,8 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -37,6 +40,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkTypeId;
+import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.AsyncResult;
 import com.intellij.openapi.util.Key;
@@ -48,6 +52,7 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -64,6 +69,7 @@ import java.io.File;
 public final class Projects {
   private static final Key<BuildMode> PROJECT_BUILD_MODE_KEY = Key.create("android.gradle.project.build.mode");
   private static final Key<String[]> SELECTED_MODULE_NAMES_KEY = Key.create("android.gradle.project.selected.module.names");
+  private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
 
   private static final Logger LOG = Logger.getInstance(Projects.class);
   private static final Module[] NO_MODULES = new Module[0];
@@ -316,5 +322,51 @@ public final class Projects {
     if (rootDir != null && rootDir.isDirectory()) {
       rootDir.refresh(true, true);
     }
+  }
+
+  public static void updateJavaLangLevelAfterBuild(@NotNull Project project) {
+    project.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, true);
+  }
+
+  public static void syncJavaLangLevel(@NotNull final Project project) {
+    Boolean updateJavaLangLevel = project.getUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD);
+    if (updateJavaLangLevel == null || !updateJavaLangLevel.booleanValue()) {
+      return;
+    }
+
+    project.putUserData(UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD, null);
+
+    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
+      @Override
+      public void execute() {
+        if (project.isOpen() && isGradleProject(project)) {
+          LanguageLevel langLevel = getJavaLangLevel(project);
+          if (langLevel != null) {
+            LanguageLevelProjectExtension ext = LanguageLevelProjectExtension.getInstance(project);
+            if (langLevel != ext.getLanguageLevel()) {
+              ext.setLanguageLevel(langLevel);
+            }
+          }
+        }
+      }
+
+      @Nullable
+      private LanguageLevel getJavaLangLevel(@NotNull Project project) {
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet == null) {
+            continue;
+          }
+          IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+          if (androidProject != null) {
+            LanguageLevel langLevel = androidProject.getJavaLanguageLevel();
+            if (langLevel != null) {
+              return langLevel;
+            }
+          }
+        }
+        return null;
+      }
+    });
   }
 }
