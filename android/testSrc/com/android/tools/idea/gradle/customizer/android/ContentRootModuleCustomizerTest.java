@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.customizer;
+package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.ContentRootSourcePaths;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
+import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,7 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Tests for {@link ContentRootModuleCustomizer}.
+ * Tests for {@link com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer}.
  */
 public class ContentRootModuleCustomizerTest extends IdeaTestCase {
   private AndroidProjectStub myAndroidProject;
