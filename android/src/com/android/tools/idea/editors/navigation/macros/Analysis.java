@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.navigation.Utilities.getPropertyName;
-import static com.android.tools.idea.editors.navigation.Utilities.getMethodBySignature;
+import static com.android.tools.idea.editors.navigation.Utilities.findMethodBySignature;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Analysis {
@@ -84,14 +84,21 @@ public class Analysis {
 
       // Look for menu inflation
       {
-        PsiJavaCodeReferenceElement menu = Utilities.getReferenceElement(module, className, "onCreateOptionsMenu");
+        PsiClass aClass = Utilities.getPsiClass(module, className);
+        if (aClass == null) {
+          return null;
+        }
+        PsiJavaCodeReferenceElement[] referenceElements =
+                                  Utilities.getReferenceElementsBySignature(aClass, "public boolean onCreateOptionsMenu(Menu menu)");
+       PsiJavaCodeReferenceElement menu = referenceElements.length == 1 ? referenceElements[0] : null;
+
         if (menu != null) {
           MenuState menuState = menus.get(menu.getLastChild().getText());
           addTransition(model, new Transition("click", new Locator(state), new Locator(menuState)));
 
           // Look for menu bindings
           {
-            PsiMethod onPrepareOptionsMenuMethod = getMethodBySignature(psiClass, "public boolean onPrepareOptionsMenu(Menu m)");
+            PsiMethod onPrepareOptionsMenuMethod = Utilities.findMethodBySignature(psiClass, "public boolean onPrepareOptionsMenu(Menu m)");
             PsiStatement[] statements = onPrepareOptionsMenuMethod.getBody().getStatements();
             if (NavigationEditor.DEBUG) System.out.println("statements = " + Arrays.toString(statements));
             for (PsiStatement s : statements) {
@@ -115,7 +122,7 @@ public class Analysis {
       final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
       for (FragmentEntry fragment : fragments) {
-        PsiMethod installListenersMethod = getMethodBySignature(module, fragment.className, "public void onViewCreated(View v, Bundle b)");
+        PsiMethod installListenersMethod = findMethodBySignature(module, fragment.className, "public void onViewCreated(View v, Bundle b)");
         PsiStatement[] statements = installListenersMethod.getBody().getStatements();
         for (PsiStatement s : statements) {
           final MultiMatch.Bindings<PsiElement> multiMatchResult = macros.installItemClickAndCallMacro.match(s.getFirstChild());
