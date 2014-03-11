@@ -34,12 +34,12 @@ public class AndroidBuildConfigStateStorage extends AbstractStateStorage<String,
   private static class MyDataExternalizer implements DataExternalizer<AndroidBuildConfigState> {
 
     @Override
-    public void save(DataOutput out, AndroidBuildConfigState value) throws IOException {
+    public void save(@NotNull DataOutput out, AndroidBuildConfigState value) throws IOException {
       value.save(out);
     }
 
     @Override
-    public AndroidBuildConfigState read(DataInput in) throws IOException {
+    public AndroidBuildConfigState read(@NotNull DataInput in) throws IOException {
       return new AndroidBuildConfigState(in);
     }
   }
