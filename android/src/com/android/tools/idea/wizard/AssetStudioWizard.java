@@ -30,9 +30,10 @@ import static com.android.tools.idea.wizard.TemplateWizardStep.NONE;
 /**
  * Wizard that allows the user to create various density-scaled assets.
  */
-public class AssetStudioWizard extends TemplateWizard {
+public class AssetStudioWizard extends TemplateWizard implements TemplateWizardStep.UpdateListener {
   protected Module myModule;
   protected AssetStudioWizardState myState = new AssetStudioWizardState();
+  protected ChooseOutputLocationStep myOutputStep;
 
   public AssetStudioWizard(@Nullable Project project, @Nullable Module module) {
     super("Asset Studio", project);
@@ -43,12 +44,20 @@ public class AssetStudioWizard extends TemplateWizard {
 
   @Override
   protected void init() {
-    AssetSetStep iconStep = new AssetSetStep(myState, myProject, null, NONE);
-    ChooseOutputLocationStep outputStep = new ChooseOutputLocationStep(myState, myProject, null, NONE, myModule);
+    AssetSetStep iconStep = new AssetSetStep(myState, myProject, null, this);
+    myOutputStep = new ChooseOutputLocationStep(myState, myProject, null, NONE, myModule);
     addStep(iconStep);
-    addStep(outputStep);
+    addStep(myOutputStep);
 
     super.init();
+  }
+
+  @Override
+  public void update() {
+    super.update();
+    if (myOutputStep != null) {
+      myOutputStep.updateStep();
+    }
   }
 
   public void createAssets() {
