@@ -17,10 +17,9 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -59,15 +58,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Aug 27, 2009
- * Time: 2:20:54 PM
- * To change this template use File | Settings | File Templates.
- */
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidRunConfigurationBase");
+
+  private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
   /**
    * A map from launch configuration name to set of devices used in that launch configuration.
@@ -96,7 +90,17 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     configurationModule.checkForWarning();
     Module module = configurationModule.getModule();
-    if (module == null) return;
+
+    if (module == null) {
+      return;
+    }
+
+    Project project = module.getProject();
+    if (Projects.syncWithGradleFailed(project)) {
+      // This only shows an error message on the "Run Configuration" dialog, but does not prevent user from running app.
+      throw new RuntimeConfigurationException(GRADLE_SYNC_FAILED_ERR_MSG);
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       throw new RuntimeConfigurationError(AndroidBundle.message("android.no.facet.error"));
@@ -185,6 +189,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     Project project = env.getProject();
 
+    if (Projects.syncWithGradleFailed(project)) {
+      // This prevents user from running the app.
+      throw new ExecutionException(GRADLE_SYNC_FAILED_ERR_MSG);
+    }
+
     AndroidFacetConfiguration configuration = facet.getConfiguration();
     AndroidPlatform platform = configuration.getAndroidPlatform();
     if (platform == null) {
@@ -253,6 +262,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       tmpDir = FileUtil.createTempDirectory("android_manifest_file_for_execution", "tmp");
       final File manifestCopy = new File(tmpDir, manifestFile.getName());
       FileUtil.copy(new File(manifestFile.getPath()), manifestCopy);
+      //noinspection ConstantConditions
       return Pair.create(manifestCopy, PathUtil.getLocalPath(manifestFile));
     }
     catch (IOException e) {
