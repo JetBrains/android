@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -224,13 +225,13 @@ public final class GradleUtil {
   }
 
   @NotNull
-  public static List<String> getGradleInvocationJvmArgs(@NotNull File projectDir) {
+  public static List<String> getGradleInvocationJvmArgs(@NotNull File projectDir, @Nullable BuildMode buildMode) {
     if (ExternalSystemApiUtil.isInProcessMode(SYSTEM_ID)) {
       List<String> args = Lists.newArrayList();
       if (!AndroidGradleSettings.isAndroidSdkDirInLocalPropertiesFile(projectDir)) {
         AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
         if (sdkData != null) {
-          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(sdkData.getPath());
+          String arg = AndroidGradleSettings.createAndroidHomeJvmArg(sdkData.getLocation().getPath());
           args.add(arg);
         }
       }
@@ -239,9 +240,22 @@ public final class GradleUtil {
         String arg = AndroidGradleSettings.createJvmArg(proxyProperty.getKey(), proxyProperty.getValue());
         args.add(arg);
       }
+      String arg = getGradleInvocationJvmArg(buildMode);
+      if (arg != null) {
+        args.add(arg);
+      }
       return args;
     }
     return Collections.emptyList();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static String getGradleInvocationJvmArg(@Nullable BuildMode buildMode) {
+    if (BuildMode.ASSEMBLE_TRANSLATE == buildMode) {
+      return AndroidGradleSettings.createJvmArg(GradleBuilds.ENABLE_TRANSLATION_JVM_ARG, true);
+    }
+    return null;
   }
 
   public static void stopAllGradleDaemons(boolean interactive) throws IOException {
