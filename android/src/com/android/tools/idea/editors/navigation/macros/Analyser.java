@@ -175,8 +175,7 @@ public class Analyser {
   }
 
   private void deriveTransitions(final NavigationModel model,
-                                 final Map<String, ActivityState> classNameToActivityState,
-                                 final Map<String, MenuState> menuNameToMenuState,
+                                 final MiniModel miniModel,
                                  final ActivityState fromActivityState,
                                  final String activityOrFragmentClassName) {
 
@@ -193,23 +192,23 @@ public class Analyser {
     // Search for menu inflation
 
     search(activityOrFragmentClass,
-           "public boolean onCreateOptionsMenu(Menu menu)",
+           "boolean onCreateOptionsMenu(Menu menu)",
            "void macro(Object target, String id, Menu menu) { target.inflate(id, menu); }",
            new Statement() {
              @Override
              public void apply(MultiMatch.Bindings<PsiElement> args) {
                String menuIdName = args.get("id").getLastChild().getText();
-               final MenuState menu = getMenuState(menuIdName, menuNameToMenuState);
+               final MenuState menu = getMenuState(menuIdName, miniModel.menuNameToMenuState);
                addTransition(model, new Transition("click", new Locator(fromActivityState), new Locator(menu)));
                // Search for menu item bindings
                search(activityOrFragmentClass,
-                      "public boolean onPrepareOptionsMenu(Menu m)",
+                      "boolean onPrepareOptionsMenu(Menu m)",
                       myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro,
                       new Statement() {
                         @Override
                         public void apply(MultiMatch.Bindings<PsiElement> args) {
                           String className = getQualifiedName(args.get("$f", "activityClass").getFirstChild());
-                          ActivityState activityState = getActivityState(className, classNameToActivityState);
+                          ActivityState activityState = getActivityState(className, miniModel.classNameToActivityState);
                           // e.g. $id=PsiReferenceExpression:R.id.action_account
                           String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
                           addTransition(model, new Transition("click", Locator.of(menu, menuItemName), new Locator(activityState)));
@@ -222,22 +221,25 @@ public class Analyser {
     // Search for 'onClick' listeners on Buttons etc.
 
     search(activityOrFragmentClass,
-           "public void onViewCreated(View v, Bundle b)",
-           myMacros.installItemClickAndCallMacro,
+           "void onCreate(Bundle b)",
+           myMacros.installClickAndCallMacro,
            new Statement() {
              @Override
              public void apply(MultiMatch.Bindings<PsiElement> args) {
                PsiElement $view = args.get("$view");
-               final String viewName = $view == null ? null : getPropertyName(removeTrailingParens($view.getText()));
-               searchForCallExpression(args.get("$f"), myMacros.createIntent,
-                                       createProcessor(viewName, classNameToActivityState, model, fromActivityState));
+               MultiMatch.Bindings<PsiElement> bindings = myMacros.findViewById.match($view);
+               if (bindings != null) {
+                 String tag = bindings.get("$id").getText();
+                 searchForCallExpression(args.get("$f"), myMacros.createIntent,
+                                         createProcessor(tag, miniModel.classNameToActivityState, model, fromActivityState));
+               }
              }
            });
 
     // Search for 'onItemClick' listeners is listViews
 
     search(activityOrFragmentClass,
-           "public void onViewCreated(View v, Bundle b)",
+           "void onViewCreated(View v, Bundle b)",
            myMacros.installItemClickAndCallMacro,
            new Statement() {
              @Override
@@ -245,7 +247,7 @@ public class Analyser {
                PsiElement $listView = args.get("$listView");
                final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
                searchForCallExpression(args.get("$f"), myMacros.createIntent,
-                                       createProcessor(viewName, classNameToActivityState, model, fromActivityState));
+                                       createProcessor(viewName, miniModel.classNameToActivityState, model, fromActivityState));
              }
            });
 
@@ -254,7 +256,7 @@ public class Analyser {
     PsiClassType superType = activityOrFragmentClass.getSuperTypes()[0];
     if (superType.getClassName().equals("ListFragment")) {
       search(activityOrFragmentClass,
-             "public void onListItemClick(ListView listView, View view, int position, long id)",
+             "void onListItemClick(ListView listView, View view, int position, long id)",
              "void macro(Object f) { f.$(); }", // this obscure term matches 'any method call'
              new Statement() {
                @Override
@@ -273,7 +275,8 @@ public class Analyser {
                      public boolean process(PsiMethod implementation) {
                        searchForCallExpression(implementation.getBody(),
                                                myMacros.createIntent,
-                                               createProcessor(/*"listView"*/null, classNameToActivityState, model, fromActivityState));
+                                               createProcessor(/*"listView"*/null, miniModel.classNameToActivityState, model,
+                                                               fromActivityState));
                        return true;
                      }
                    });
@@ -283,24 +286,48 @@ public class Analyser {
     }
   }
 
+  static class MiniModel {
+    final Map<String, ActivityState> classNameToActivityState;
+    final Map<String, MenuState> menuNameToMenuState;
+
+
+    MiniModel(Map<String, ActivityState> classNameToActivityState,
+              Map<String, MenuState> menuNameToMenuState) {
+      this.classNameToActivityState = classNameToActivityState;
+      this.menuNameToMenuState = menuNameToMenuState;
+    }
+
+    MiniModel() {
+      this(new HashMap<String, ActivityState>(), new HashMap<String, MenuState>());
+    }
+  }
+
   public NavigationModel deriveAllStatesAndTransitions(final NavigationModel model, final VirtualFile modelFile) {
-    Set<String> rootActivityClassNamesFromManifest = readManifestFile(myProject);
-    Map<String, ActivityState> classNameToActivityState = getActivityClassNameToActivityState(rootActivityClassNamesFromManifest);
-    Map<String, MenuState> menuNameToMenuState = new HashMap<String, MenuState>();
+    MiniModel toDo = new MiniModel(getActivityClassNameToActivityState(readManifestFile(myProject)), new HashMap<String, MenuState>());
+    MiniModel next = new MiniModel();
+    MiniModel done = new MiniModel();
 
-    if (NavigationEditor.DEBUG) System.out.println("activityStates = " + classNameToActivityState.values());
+    if (NavigationEditor.DEBUG) System.out.println("activityStates = " + toDo.classNameToActivityState.values());
 
-    for (ActivityState sourceActivity : classNameToActivityState.values()) {
-      deriveTransitions(model, classNameToActivityState, menuNameToMenuState, sourceActivity, sourceActivity.getClassName());
+    while (!toDo.classNameToActivityState.isEmpty()) {
+      for (ActivityState sourceActivity : toDo.classNameToActivityState.values()) {
+        if (done.classNameToActivityState.containsKey(sourceActivity.getClassName())) {
+          continue;
+        }
+        deriveTransitions(model, next, sourceActivity, sourceActivity.getClassName());
 
-      // Examine fragments associated with this activity
-      String xmlFileName = NavigationView.getXMLFileName(myModule, sourceActivity);
-      XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, myProject);
-      final List<FragmentEntry> fragments = getFragmentEntries(psiFile);
+        // Examine fragments associated with this activity
+        String xmlFileName = NavigationView.getXMLFileName(myModule, sourceActivity);
+        XmlFile psiFile = (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, modelFile, myProject);
+        List<FragmentEntry> fragments = getFragmentEntries(psiFile);
 
-      for (FragmentEntry fragment : fragments) {
-        deriveTransitions(model, classNameToActivityState, menuNameToMenuState, sourceActivity, fragment.className);
+        for (FragmentEntry fragment : fragments) {
+          deriveTransitions(model, next, sourceActivity, fragment.className);
+        }
       }
+      done.classNameToActivityState.putAll(toDo.classNameToActivityState);
+      toDo = next;
+      next = new MiniModel();
     }
     return model;
   }

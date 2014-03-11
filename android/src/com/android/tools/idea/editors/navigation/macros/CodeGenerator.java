@@ -111,7 +111,7 @@ public class CodeGenerator {
         new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
           @Override
           protected void run(Result<Void> result) {
-            PsiMethod signature = factory.createMethodFromText("public boolean onCreateOptionsMenu(Menu menu){}", psiClass);
+            PsiMethod signature = factory.createMethodFromText("boolean onCreateOptionsMenu(Menu menu){}", psiClass);
             PsiMethod method = psiClass.findMethodBySignature(signature, false);
             if (method == null) {
               method = factory.createMethodFromText("@Override public boolean onCreateOptionsMenu(Menu menu) { return true;}", psiClass);
@@ -127,6 +127,42 @@ public class CodeGenerator {
             newStatementText = newStatementText.replace("$parameterName", parameterName);
             PsiStatement newStatement = factory.createStatementFromText(newStatementText, body);
             body.addBefore(newStatement, lastStatement);
+            codeStyleManager.reformat(method);
+          }
+        }.execute();
+      }
+    }
+    if (sourceState instanceof ActivityState && destinationState instanceof ActivityState) {
+      final ActivityState sourceActivityState = (ActivityState)sourceState;
+      final ActivityState newActivity = (ActivityState)destinationState;
+      final PsiClass psiClass = Utilities.getPsiClass(module, sourceActivityState.getClassName());
+      if (psiClass != null) {
+        new WriteCommandAction<Void>(project, "Add navigation transition", psiClass.getContainingFile()) {
+          @Override
+          protected void run(Result<Void> result) {
+            PsiMethod signature = factory.createMethodFromText("void onCreate(Bundle savedInstanceState){}", psiClass);
+            PsiMethod method = psiClass.findMethodBySignature(signature, false);
+            if (method == null) {
+              method = factory.createMethodFromText("@Override " +
+                                                    "public void onCreate(Bundle savedInstanceState) {" +
+                                                    "super.onCreate(savedInstanceState);}", psiClass);
+              psiClass.add(method);
+              method = psiClass.findMethodBySignature(signature, false); // // the previously assigned method is not resolved somehow
+            }
+            PsiCodeBlock body = method.getBody();
+            PsiStatement[] statements = body.getStatements();
+            PsiStatement lastStatement = statements[statements.length - 1];
+            String newCode = "findViewById($id).setOnClickListener(new View.OnClickListener() { " +
+                             "  @Override" +
+                             "  public void onClick(View v) {" +
+                             "    $context.startActivity(new Intent($context, $activityClass));" +
+                             "  }" +
+                             "})";
+            newCode = newCode.replaceAll("\\$id", "R.id." + transition.getSource().getViewName()); // todo improve
+            newCode = newCode.replaceAll("\\$context", sourceActivityState.getClassName() + ".this");
+            newCode = newCode.replaceAll("\\$activityClass", newActivity.getClassName() + ".class");
+            PsiStatement newStatement = factory.createStatementFromText(newCode + ";", body);
+            body.addAfter(newStatement, lastStatement);
             codeStyleManager.reformat(method);
           }
         }.execute();
