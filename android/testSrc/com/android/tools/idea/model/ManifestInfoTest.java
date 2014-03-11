@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
+import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.ResourceHelper;
 import junit.framework.Assert;
@@ -252,7 +253,7 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public ISystemImage getSystemImage(String abiType) {
+    public ISystemImage getSystemImage(IdDisplay tag, String abiType) {
       return null;
     }
 
