@@ -284,33 +284,4 @@ public class Utilities {
   public static Module getModule(Project project, VirtualFile file) {
     return NavigationView.getRenderingParams(project, file).myConfiguration.getModule();
   }
-
-  public static abstract class Statement {
-    public abstract void apply(MultiMatch.Bindings<PsiElement> exp);
-  }
-
-  public static void search(@Nullable PsiElement element, final MultiMatch matcher, final Statement statement) {
-    if (element != null) {
-      element.accept(new JavaRecursiveElementVisitor() {
-        @Override
-        public void visitCallExpression(PsiCallExpression expression) {
-          super.visitCallExpression(expression);
-          MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
-          if (exp != null) {
-            statement.apply(exp);
-          }
-        }
-      });
-    }
-  }
-  public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
-    final List<MultiMatch.Bindings<PsiElement>> results = new ArrayList<MultiMatch.Bindings<PsiElement>>();
-    search(element, matcher, new Statement() {
-      @Override
-      public void apply(MultiMatch.Bindings<PsiElement> exp) {
-        results.add(exp);
-      }
-    });
-    return results;
-  }
 }

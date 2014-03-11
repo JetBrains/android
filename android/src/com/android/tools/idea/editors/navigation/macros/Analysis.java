@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.navigation.Utilities.getPropertyName;
-import static com.android.tools.idea.editors.navigation.Utilities.Statement;
 import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
@@ -129,15 +128,15 @@ public class Analysis {
                macros.installItemClickAndCallMacro,
                new Statement() {
                  @Override
-                 public void apply(final MultiMatch.Bindings<PsiElement> itemClickMatch) {
-                   Utilities.search(itemClickMatch.get("$f"), macros.createIntent, new Statement() {
+                 public void apply(MultiMatch.Bindings<PsiElement> itemClickMatch) {
+                   PsiElement $listView = itemClickMatch.get("$listView");
+                   final String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
+                   search(itemClickMatch.get("$f"), macros.createIntent, new Statement() {
                      @Override
                      public void apply(MultiMatch.Bindings<PsiElement> createIntentMatch) {
                        PsiElement activityClass = createIntentMatch.get("activityClass").getFirstChild();
                        State toState = activities.get(getQualifiedName(activityClass));
                        if (toState != null) {
-                         PsiElement $listView = itemClickMatch.get("$listView");
-                         String viewName = $listView == null ? null : getPropertyName(removeTrailingParens($listView.getText()));
                          addTransition(model, new Transition("click", Locator.of(finalState, viewName), new Locator(toState)));
                        }
                      }
@@ -225,12 +224,41 @@ public class Analysis {
     return unqualifiedXmlName.getText();
   }
 
+  public static abstract class Statement {
+    public abstract void apply(MultiMatch.Bindings<PsiElement> exp);
+  }
+
+  public static void search(@Nullable PsiElement element, final MultiMatch matcher, final Statement statement) {
+    if (element != null) {
+      element.accept(new JavaRecursiveElementVisitor() {
+        @Override
+        public void visitCallExpression(PsiCallExpression expression) {
+          super.visitCallExpression(expression);
+          MultiMatch.Bindings<PsiElement> exp = matcher.match(expression);
+          if (exp != null) {
+            statement.apply(exp);
+          }
+        }
+      });
+    }
+  }
+  public static List<MultiMatch.Bindings<PsiElement>> search(@Nullable PsiElement element, final MultiMatch matcher) {
+    final List<MultiMatch.Bindings<PsiElement>> results = new ArrayList<MultiMatch.Bindings<PsiElement>>();
+    search(element, matcher, new Statement() {
+      @Override
+      public void apply(MultiMatch.Bindings<PsiElement> exp) {
+        results.add(exp);
+      }
+    });
+    return results;
+  }
+
   private static void search(PsiClass clazz, String methodSignature, MultiMatch matcher, Statement statement) {
     PsiMethod method = Utilities.findMethodBySignature(clazz, methodSignature);
     if (method == null) {
       return;
     }
-    Utilities.search(method.getBody(), matcher, statement);
+    search(method.getBody(), matcher, statement);
   }
 
   private static void search(PsiClass clazz, String methodSignature, String matchMacro, Statement statement) {
@@ -243,7 +271,7 @@ public class Analysis {
       return null;
     }
     MultiMatch matcher = new MultiMatch(Utilities.createMethodFromText(clazz, matchMacro));
-    List<MultiMatch.Bindings<PsiElement>> results = Utilities.search(method.getBody(), matcher);
+    List<MultiMatch.Bindings<PsiElement>> results = search(method.getBody(), matcher);
     if (results.size() != 1) {
       return null;
     }
