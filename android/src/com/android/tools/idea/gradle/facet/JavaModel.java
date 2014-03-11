@@ -16,10 +16,8 @@
 package com.android.tools.idea.gradle.facet;
 
 import com.google.common.collect.Lists;
-import org.gradle.tooling.model.idea.IdeaContentRoot;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaModuleDependency;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
+import com.intellij.openapi.util.io.FileUtil;
+import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,8 +33,13 @@ public class JavaModel {
   @NotNull private final List<IdeaModuleDependency> myModuleDependencies = Lists.newArrayList();
   @NotNull private final List<IdeaSingleEntryLibraryDependency> myLibraryDependencies = Lists.newArrayList();
   @NotNull private final List<String> myUnresolvedDependencyNames = Lists.newArrayList();
+  @NotNull private final File myOutputDirPath;
+  @NotNull private final File myTestOutputDirPath;
 
-  public JavaModel(@NotNull Collection<? extends IdeaContentRoot> contentRoots, @NotNull List<? extends IdeaDependency> dependencies) {
+  public JavaModel(@NotNull File moduleRootDirPath,
+                   @NotNull Collection<? extends IdeaContentRoot> contentRoots,
+                   @NotNull List<? extends IdeaDependency> dependencies,
+                   @Nullable IdeaCompilerOutput compilerOutput) {
     for (IdeaContentRoot contentRoot : contentRoots) {
       if (contentRoot != null) {
         myContentRoots.add(contentRoot);
@@ -59,6 +62,20 @@ public class JavaModel {
         }
       }
     }
+    File outputDirPath = null;
+    File testOutputDirPath = null;
+    if (compilerOutput != null) {
+      outputDirPath = compilerOutput.getOutputDir();
+      testOutputDirPath = compilerOutput.getTestOutputDir();
+    }
+    if (outputDirPath == null) {
+      outputDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "main"));
+    }
+    if (testOutputDirPath == null) {
+      testOutputDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "test"));
+    }
+    myOutputDirPath = outputDirPath;
+    myTestOutputDirPath = testOutputDirPath;
   }
 
   private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
@@ -101,5 +118,15 @@ public class JavaModel {
   @NotNull
   public List<String> getUnresolvedDependencyNames() {
     return myUnresolvedDependencyNames;
+  }
+
+  @NotNull
+  public File getOutputDirPath() {
+    return myOutputDirPath;
+  }
+
+  @NotNull
+  public File getTestOutputDirPath() {
+    return myTestOutputDirPath;
   }
 }
