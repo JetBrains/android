@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -154,7 +154,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     }
 
 
-    File javaHome = Projects.getJavaHome(myProject);
+    File javaHome = DefaultSdks.getDefaultJavaHome();
     if (javaHome != null) {
       jvmArgs.add(createJvmArg(BuildProcessJvmArgs.GRADLE_JAVA_HOME_DIR_PATH, javaHome.getPath()));
     }
