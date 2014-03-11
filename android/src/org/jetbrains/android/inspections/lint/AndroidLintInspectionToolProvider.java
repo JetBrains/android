@@ -673,7 +673,7 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
-  private static class AndroidLintTypographyInspectionBase extends AndroidLintInspectionBase {
+  private abstract static class AndroidLintTypographyInspectionBase extends AndroidLintInspectionBase {
     public AndroidLintTypographyInspectionBase(String displayName, Issue issue) {
       super(displayName, issue);
     }
@@ -908,9 +908,19 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.packaged.private.key"), PrivateKeyDetector.ISSUE);
     }
   }
+  public static class AndroidLintPropertyEscapeInspection extends AndroidLintInspectionBase {
+    public AndroidLintPropertyEscapeInspection() {
+      super(AndroidBundle.message("android.lint.inspections.property.escape"), PropertyFileDetector.ISSUE);
+    }
+  }
   public static class AndroidLintProtectedPermissionsInspection extends AndroidLintInspectionBase {
     public AndroidLintProtectedPermissionsInspection() {
       super(AndroidBundle.message("android.lint.inspections.protected.permissions"), SystemPermissionsDetector.ISSUE);
+    }
+  }
+  public static class AndroidLintReferenceTypeInspection extends AndroidLintInspectionBase {
+    public AndroidLintReferenceTypeInspection() {
+      super(AndroidBundle.message("android.lint.inspections.reference.type"), DuplicateResourceDetector.TYPE_MISMATCH);
     }
   }
   public static class AndroidLintRegisteredInspection extends AndroidLintInspectionBase {
