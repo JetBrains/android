@@ -25,6 +25,9 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralString;
+import static com.android.tools.idea.gradle.parser.GradleBuildFile.UNRECOGNIZED_VALUE;
+
 /**
  * Enumerates the type information for build file parameters located by {@linkplain BuildFileKey}. The individual types have code to
  * actually set, get, and determine validity of values.
@@ -35,37 +38,38 @@ public enum BuildFileKeyType {
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
       arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createLiteralFromValue(value.toString()));
     }
+
+    @Override
+    @NotNull
+    public String convertValueToExpression(@NotNull Object value) {
+      return "'" + escapeLiteralString(value.toString()) + "'";
+    }
   },
   INTEGER(Integer.class, "0"),
   BOOLEAN(Boolean.class, "false"),
-  CLOSURE(List.class, "{}"),
-  FILE(File.class, Constants.FILE_METHOD_CALL + "('')") { // Represented in Groovy as file('/path/to/file')
+  CLOSURE(List.class, "{}") {
     @Override
-    public boolean canParseValue(@NotNull GroovyPsiElement arg) {
-      if (!(arg instanceof GrMethodCall)) {
-        return false;
-      }
-      GrMethodCall call = (GrMethodCall)arg;
-      if (!Constants.FILE_METHOD_CALL.equals(GradleGroovyFile.getMethodCallName(call))) {
-        return false;
-      }
-      Object path = GradleGroovyFile.getFirstLiteralArgumentValue(call);
-      return path != null && path instanceof String;
+    @NotNull
+    public String convertValueToExpression(@NotNull Object value) {
+      // Just create an empty closure. Don't try to populate it; that will be done elsewhere.
+      return "{\n}";
     }
+  },
+  FILE(File.class, Constants.FILE_METHOD_CALL + "('')") { // Represented in Groovy as file('/path/to/file')
 
     @Nullable
     @Override
     public Object getValue(@NotNull GroovyPsiElement arg) {
       if (!(arg instanceof GrMethodCall)) {
-        return null;
+        return UNRECOGNIZED_VALUE;
       }
       GrMethodCall call = (GrMethodCall)arg;
       if (!(Constants.FILE_METHOD_CALL.equals(GradleGroovyFile.getMethodCallName(call)))) {
-        return null;
+        return UNRECOGNIZED_VALUE;
       }
       Object path = GradleGroovyFile.getFirstLiteralArgumentValue(call);
       if (path == null) {
-        return null;
+        return UNRECOGNIZED_VALUE;
       }
       return new File(path.toString());
     }
@@ -73,18 +77,23 @@ public enum BuildFileKeyType {
     @Override
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
       arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject())
-                    .createStatementFromText(Constants.FILE_METHOD_CALL + "('" + ((File)value).getPath() + "')"));
+                    .createStatementFromText(Constants.FILE_METHOD_CALL + "('" + escapeLiteralString(((File)value).getPath()) + "')"));
+    }
+
+    @Override
+    @NotNull
+    public String convertValueToExpression(@NotNull Object value) {
+      return Constants.FILE_METHOD_CALL + "('" + escapeLiteralString(value.toString()) + "')";
     }
   },
   FILE_AS_STRING(File.class, "''") { // Represented in Groovy as '/path/to/file'
-    @Override
-    public boolean canParseValue(@NotNull GroovyPsiElement arg) {
-      return isParseableAs(arg, String.class);
-    }
 
     @Nullable
     @Override
     public Object getValue(@NotNull GroovyPsiElement arg) {
+      if (!(arg instanceof GrLiteral)) {
+        return UNRECOGNIZED_VALUE;
+      }
       Object value = ((GrLiteral) arg).getValue();
       return value != null ? new File(value.toString()) : null;
     }
@@ -92,6 +101,12 @@ public enum BuildFileKeyType {
     @Override
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
       arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createLiteralFromValue(((File)value).getPath()));
+    }
+
+    @Override
+    @NotNull
+    public String convertValueToExpression(@NotNull Object value) {
+      return "'" + escapeLiteralString(value.toString()) + "'";
     }
   },
   REFERENCE(String.class, "reference") { // TODO: for reference types, encode the BuildFileKey of the target being referred to.
@@ -116,32 +131,20 @@ public enum BuildFileKeyType {
   }
 
   @NotNull
-  public String getDefaultValue() {
-    return myDefaultValue;
-  }
-
-  public boolean canParseValue(@NotNull GroovyPsiElement arg) {
-    return isParseableAs(arg, myNativeType);
+  public String convertValueToExpression(@NotNull Object value) {
+    return value.toString();
   }
 
   @Nullable
   public Object getValue(@NotNull GroovyPsiElement arg) {
     if (!(arg instanceof GrLiteral)) {
-      return null;
+      return UNRECOGNIZED_VALUE;
     }
     return ((GrLiteral) arg).getValue();
   }
 
   public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
     arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createExpressionFromText(value.toString()));
-  }
-
-  private static boolean isParseableAs(@NotNull GroovyPsiElement arg, @NotNull Class<?> clazz) {
-    if (!(arg instanceof GrLiteral)) {
-      return false;
-    }
-    Object value = ((GrLiteral)arg).getValue();
-    return value != null && clazz.isAssignableFrom(value.getClass());
   }
 
   private static class Constants {
