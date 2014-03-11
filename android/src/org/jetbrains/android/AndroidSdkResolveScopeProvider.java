@@ -8,6 +8,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.SdkResolveScopeProvider;
 import com.intellij.psi.search.GlobalSearchScope;
+import org.jetbrains.android.augment.AndroidInternalRClass;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,11 +32,11 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
   }
 
   public static class MyJdkScope extends JdkScope {
-    private final JdkOrderEntry myJdkOrderEntry;
+    private final Sdk mySdk;
 
     private MyJdkScope(Project project, @NotNull JdkOrderEntry jdkOrderEntry) {
       super(project, jdkOrderEntry);
-      myJdkOrderEntry = jdkOrderEntry;
+      mySdk = jdkOrderEntry.getJdk();
     }
 
     @Nullable
@@ -66,9 +67,9 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
       return super.compare(file1, file2);
     }
 
-    @NotNull
-    public JdkOrderEntry getJdkOrderEntry() {
-      return myJdkOrderEntry;
+    @Override
+    public boolean contains(@NotNull VirtualFile file) {
+      return super.contains(file) || AndroidInternalRClass.isAndroidInternalR(file, mySdk);
     }
   }
 }

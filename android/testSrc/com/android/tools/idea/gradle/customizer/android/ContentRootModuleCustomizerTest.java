@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -75,7 +75,7 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
     assertNotNull(moduleFile);
     final VirtualFile moduleDir = moduleFile.getParent();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);

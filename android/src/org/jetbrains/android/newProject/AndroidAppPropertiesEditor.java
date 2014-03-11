@@ -48,14 +48,16 @@ public class AndroidAppPropertiesEditor {
 
   private final ModulesProvider myModulesProvider;
   private boolean myApp;
+  private boolean myPackageNameFieldChangedByUser;
 
   public AndroidAppPropertiesEditor(String moduleName, ModulesProvider modulesProvider) {
     myModulesProvider = modulesProvider;
 
-    if (moduleName != null) {
-      myApplicationNameField.setText(moduleName);
-      myPackageNameField.setText(getDefaultPackageNameByModuleName(moduleName));
-    }
+    String defaultAppName = moduleName != null ? moduleName : "myapp";
+    myApplicationNameField.setText(defaultAppName);
+    myApplicationNameField.selectAll();
+    myPackageNameField.setText(getDefaultPackageNameByModuleName(defaultAppName));
+
     myHelloAndroidCheckBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -65,6 +67,7 @@ public class AndroidAppPropertiesEditor {
     myPackageNameField.getDocument().addDocumentListener(new DocumentAdapter() {
       @Override
       protected void textChanged(DocumentEvent e) {
+        myPackageNameFieldChangedByUser = true;
         String message = validatePackageName(!myApp);
         myErrorLabel.setText(message);
       }
@@ -76,6 +79,23 @@ public class AndroidAppPropertiesEditor {
         myErrorLabel.setText(message);
       }
     });
+    myApplicationNameField.getDocument().addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        if (!myPackageNameFieldChangedByUser) {
+          updatePackageNameField();
+          myPackageNameFieldChangedByUser = false;
+        }
+      }
+    });
+  }
+
+  private void updatePackageNameField() {
+    final String appName = myApplicationNameField.getText().trim();
+
+    if (appName.length() > 0) {
+      myPackageNameField.setText(getDefaultPackageNameByModuleName(appName));
+    }
   }
 
   public void update(boolean app) {
