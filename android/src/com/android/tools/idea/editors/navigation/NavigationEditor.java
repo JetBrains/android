@@ -60,7 +60,6 @@ public class NavigationEditor implements FileEditor {
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private final Listener<NavigationModel.Event> myNavigationModelListener;
-  private Project myProject;
   private VirtualFile myFile;
   private JComponent myComponent;
   private boolean myDirty;
@@ -83,14 +82,12 @@ public class NavigationEditor implements FileEditor {
       }
     };
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
-    myProject = project;
     myFile = file;
     myRenderingParams = NavigationView.getRenderingParams(project, file);
-    myAnalyser = new Analyser(myProject, Utilities.getModule(myProject, file));
+    myAnalyser = new Analyser(project, Utilities.getModule(project, file));
     try {
       myNavigationModel = read(file);
-      // component = new NavigationModelEditorPanel1(project, file, read(file));
-      NavigationView editor = new NavigationView(project, file, myNavigationModel);
+      NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel);
       JBScrollPane scrollPane = new JBScrollPane(editor);
       scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
       JPanel p = new JPanel(new BorderLayout());
@@ -289,7 +286,7 @@ public class NavigationEditor implements FileEditor {
     final Map<String, MenuState> menus = myNavigationModel.getMenus();
     myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
-    myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myFile);
+    myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myRenderingParams.myConfiguration);
     for(State state: myNavigationModel.getStates()) {
       state.setLocation(UNSET);
     }
