@@ -91,8 +91,15 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     String msg = error.getMessage();
     if (msg != null && !msg.isEmpty()) {
       if (msg.startsWith("Project is using an old version of the Android Gradle plug-in")) {
-        //noinspection TestOnlyProblems
-        return createNotification(project, msg, new SearchInBuildFilesHyperlink("com.android.tools.build:gradle"));
+        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        hyperlinks.add(new SearchInBuildFilesHyperlink("com.android.tools.build:gradle"));
+        if (msg.contains(FIX_GRADLE_VERSION)) {
+          NotificationHyperlink fixGradleVersionHyperlink = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project);
+          if (fixGradleVersionHyperlink != null) {
+            hyperlinks.add(fixGradleVersionHyperlink);
+          }
+        }
+        return createNotification(project, msg, hyperlinks);
       }
 
       if (msg.contains(FAILED_TO_PARSE_SDK_ERROR)) {
@@ -182,8 +189,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
           hyperlinks.add(fixGradleVersionHyperlink);
         }
         hyperlinks.add(new OpenGradleSettingsHyperlink());
-        //noinspection TestOnlyProblems
-        return createNotification(project, msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+        return createNotification(project, msg, hyperlinks);
       }
 
       Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
@@ -286,6 +292,13 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   @NotNull
   private static List<String> splitLines(@NotNull String s) {
     return Lists.newArrayList(Splitter.on('\n').split(s));
+  }
+
+  private static CustomizationResult createNotification(@NotNull Project project,
+                                                        @NotNull String errorMsg,
+                                                        @NotNull List<NotificationHyperlink> hyperlinks) {
+    //noinspection TestOnlyProblems
+    return createNotification(project, errorMsg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
   }
 
   @NotNull
