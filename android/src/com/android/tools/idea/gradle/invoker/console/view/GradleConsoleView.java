@@ -26,6 +26,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -92,7 +94,20 @@ public class GradleConsoleView implements Disposable {
   }
 
   public void clear() {
-    myConsoleView.clear();
+    if (myConsoleView.isShowing()) {
+      myConsoleView.clear();
+    }
+    else {
+      // "clear" does not work when the console is not visible. We need to flush the text from previous sessions. It has to be done in the
+      // UI thread, but we cannot call "invokeLater" because it will delete text belonging to the current session.
+      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+        @Override
+        public void run() {
+          // "flushDeferredText" is really "delete text from previous sessions and leave the text of the current session untouched."
+          myConsoleView.flushDeferredText();
+        }
+      }, ModalityState.NON_MODAL);
+    }
   }
 
   public void print(@NotNull String text, @NotNull ConsoleViewContentType contentType) {
