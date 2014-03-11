@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -25,6 +27,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashSet;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
@@ -152,6 +155,16 @@ public class RenderLogger extends LayoutLog {
       tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
+
+    if (LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
+        && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null && facet.isGradleProject()) {
+        description = "Still building project; theme resources from libraries may be missing. Layout should refresh when the " +
+                      "build is complete.\n\n" + description;
+      }
+    }
+
     addMessage(RenderProblem.createPlain(ERROR, description).tag(tag));
   }
 
