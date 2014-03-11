@@ -68,6 +68,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
@@ -762,7 +763,7 @@ public class Template {
     sb.append(contents.substring(0, dependencyBlockStart));
     String repositoryName;
     for (String key : dependencies.keySet()) {
-      GradleCoordinate highest = Collections.max(dependencies.get(key));
+      GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
 
       boolean isOurRepository = RepositoryUrls.supports(highest.getArtifactId());
 
@@ -775,7 +776,7 @@ public class Template {
         File archiveFile = RepositoryUrls.getArchiveForCoordinate(highest);
 
         if (archiveFile != null && archiveFile.exists() ||
-            (available != null && highest.acceptsGreaterRevisions() && available.compareTo(highest) > 0)) {
+            (available != null && highest.acceptsGreaterRevisions() && COMPARE_PLUS_LOWER.compare(available, highest) > 0)) {
           sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
         } else {
           // Get the name of the repository necessary for this package
