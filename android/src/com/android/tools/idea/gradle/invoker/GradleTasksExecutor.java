@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.invoker.GradleInvoker.TasksExecutionListener;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.output.GradleMessage;
@@ -90,7 +89,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -123,8 +121,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
   @NotNull private final List<String> myGradleTasks;
-  @NotNull private final Collection<TasksExecutionListener> myExecutionListeners;
-  @Nullable private final GradleInvoker.AfterExecutionTask myAfterTask;
+  @NotNull private final GradleInvoker.AfterGradleInvocationTask[] myAfterGradleInvocationTasks;
 
   private volatile int myErrorCount;
   private volatile int myWarningCount;
@@ -137,12 +134,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   GradleTasksExecutor(@NotNull Project project,
                       @NotNull List<String> gradleTasks,
-                      @NotNull Collection<TasksExecutionListener> executionListeners,
-                      @Nullable GradleInvoker.AfterExecutionTask afterTask) {
+                      @NotNull GradleInvoker.AfterGradleInvocationTask[] afterGradleInvocationTasks) {
     super(project, String.format("Gradle: Executing Tasks %1$s", gradleTasks.toString()), false /* Gradle does not support cancellation of task execution */);
     myGradleTasks = gradleTasks;
-    myExecutionListeners = executionListeners;
-    myAfterTask = afterTask;
+    myAfterGradleInvocationTasks = afterGradleInvocationTasks;
   }
 
   @Override
@@ -243,10 +238,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
       @Override
       public Void fun(ProjectConnection connection) {
-        for (TasksExecutionListener listener : myExecutionListeners) {
-          listener.executionStarted(myGradleTasks);
-        }
-
         final Stopwatch stopwatch = new Stopwatch();
         stopwatch.start();
 
@@ -322,13 +313,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
             }
           });
 
-          GradleExecutionResult result = new GradleExecutionResult(myGradleTasks, compilerMessages);
-          for (TasksExecutionListener listener : myExecutionListeners) {
-            listener.executionEnded(result);
-          }
-
-          if (myAfterTask != null) {
-            myAfterTask.execute(result);
+          GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, compilerMessages);
+          for (GradleInvoker.AfterGradleInvocationTask task : myAfterGradleInvocationTasks) {
+            task.execute(result);
           }
         }
         return null;

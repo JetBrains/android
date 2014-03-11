@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.customizer.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.util.Facets;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -99,7 +100,7 @@ class BuildVariantUpdater {
     // We changed the way we build projects: now we build only the selected variant. If user changes variant, we need to re-generate sources
     // since the generated sources may not be there.
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      Projects.generateSourcesOnly(project);
+      ProjectBuilder.getInstance(project).generateSourcesOnly();
     }
 
     return facet;
