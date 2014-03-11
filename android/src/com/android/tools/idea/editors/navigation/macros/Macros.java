@@ -37,6 +37,7 @@ public class Macros {
   public final PsiMethod defineAssignment;
 
   public final MultiMatch createIntent;
+  public final MultiMatch installClickAndCallMacro;
   public final MultiMatch installItemClickAndCallMacro;
   public final MultiMatch installMenuItemOnGetMenuItemAndLaunchActivityMacro;
   public final MultiMatch defineInnerClassToLaunchActivityMacro;
@@ -82,7 +83,8 @@ public class Macros {
     PsiMethod defineInnerClassMacro = getMethodsByName(GENERAL_TEMPLATES, "defineInnerClass", project)[0];
 
     PsiMethod installMenuItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installMenuItemClick", project)[0];
-    PsiMethod installItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installItemClickListener2", project)[0];
+    PsiMethod installClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installClickListener", project)[0];
+    PsiMethod installItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installItemClickListener", project)[0];
 
     PsiMethod getMenuItemMacro = getMethodsByName(MENU_ACCESS_TEMPLATES, "getMenuItem", project)[0];
     PsiMethod launchActivityMacro = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[0];
@@ -90,6 +92,7 @@ public class Macros {
 
     createIntent = new MultiMatch(Utilities.createMethodFromText(project, "void macro(Context context, Class activityClass) { " +
                                                                           "new Intent(context, activityClass); }"));
+    installClickAndCallMacro = new MultiMatch(installClickMacro);
     installItemClickAndCallMacro = new MultiMatch(installItemClickMacro);
 
     installMenuItemOnGetMenuItemAndLaunchActivityMacro = new MultiMatch(installMenuItemClickMacro);

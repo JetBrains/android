@@ -17,7 +17,7 @@
 package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.*;
-import com.android.tools.idea.editors.navigation.macros.Analysis;
+import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
@@ -67,6 +67,7 @@ public class NavigationEditor implements FileEditor {
   private boolean myNotificationsDisabled;
   private final CodeGenerator myCodeGenerator;
   public static final com.android.navigation.Point UNSET = new com.android.navigation.Point(-1, -1);
+  private Analyser myAnalyser;
 
   public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
@@ -85,6 +86,7 @@ public class NavigationEditor implements FileEditor {
     myProject = project;
     myFile = file;
     myRenderingParams = NavigationView.getRenderingParams(project, file);
+    myAnalyser = new Analyser(myProject, Utilities.getModule(myProject, file));
     try {
       myNavigationModel = read(file);
       // component = new NavigationModelEditorPanel1(project, file, read(file));
@@ -287,7 +289,7 @@ public class NavigationEditor implements FileEditor {
     final Map<String, MenuState> menus = myNavigationModel.getMenus();
     myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
-    Analysis.deriveAllStatesAndTransitions(myNavigationModel, myProject, myFile);
+    myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myFile);
     for(State state: myNavigationModel.getStates()) {
       state.setLocation(UNSET);
     }
