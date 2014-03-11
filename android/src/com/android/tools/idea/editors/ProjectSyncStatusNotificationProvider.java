@@ -17,6 +17,7 @@ package com.android.tools.idea.editors;
 
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.VariantSelectionVerifier;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
@@ -73,6 +74,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     ThreeState gradleSyncNeeded = syncState.isSyncNeeded();
     if (gradleSyncNeeded == ThreeState.YES) {
       return new StaleGradleModelNotificationPanel();
+    }
+    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.getInstance(myProject).getConflict();
+    if (conflict != null) {
+      return conflict.createNotificationPanel();
     }
     return null;
   }
