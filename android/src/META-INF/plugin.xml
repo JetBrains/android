@@ -502,6 +502,7 @@
     <externalAnnotator language="XML" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator"/>
     <externalAnnotator language="TEXT" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator"/>
     <externalAnnotator language="Groovy" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator"/>
+    <externalAnnotator language="Properties" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator"/>
 
     <usageTargetProvider implementation="org.jetbrains.android.AndroidUsagesTargetProvider"/>
     <renameHandler implementation="org.jetbrains.android.AndroidRenameHandler" order="first"/>
