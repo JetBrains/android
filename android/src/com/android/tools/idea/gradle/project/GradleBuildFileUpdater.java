@@ -306,8 +306,15 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
       }
     } else if (orderEntry instanceof ModuleOrderEntry) {
       ModuleOrderEntry moe = (ModuleOrderEntry)orderEntry;
-      return new Dependency(SCOPE_CONVERSIONS.get(moe.getScope()), Dependency.Type.MODULE,
-                            GradleSettingsFile.getModuleGradlePath(moe.getModule()));
+      Module module = moe.getModule();
+      if (module == null) {
+        return null;
+      }
+      String modulePath = GradleSettingsFile.getModuleGradlePath(module);
+      if (modulePath == null) {
+        return null;
+      }
+      return new Dependency(SCOPE_CONVERSIONS.get(moe.getScope()), Dependency.Type.MODULE, modulePath);
     }
     return null;
   }
