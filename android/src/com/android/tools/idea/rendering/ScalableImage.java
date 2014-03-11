@@ -20,6 +20,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,6 +128,28 @@ public class ScalableImage {
    */
   @Nullable
   public Rectangle getImageBounds() {
+    if (myImageBounds == null && myScaledImage == null) {
+      // Haven't painted and computed the image bounds yet, but need computation such that we can
+      if (myScale <= 1 && myDeviceFrameEnabled) {
+        DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+        Device device = myConfiguration.getDevice();
+        if (device != null) {
+          AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
+            AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+          if (settings.isShowDeviceFrames()) {
+            State deviceState = myConfiguration.getDeviceState();
+            if (deviceState != null) {
+              double scale = myScale;
+              ScreenOrientation orientation = deviceState.getOrientation();
+              double frameFactor = framePainter.getFrameMaxOverhead(device, orientation);
+              scale /= frameFactor;
+              myImageBounds = framePainter.computeBounds(myImage.getWidth(), myImage.getHeight(), device, orientation, scale);
+              myThumbnailHasFrame = true;
+            }
+          }
+        }
+      }
+    }
     return myImageBounds;
   }
 
@@ -188,7 +213,11 @@ public class ScalableImage {
   }
 
   public void zoomActual() {
-    setScale(1);
+    if (SystemInfo.isMac && UIUtil.isRetina()) {
+      setScale(0.5);
+    } else {
+      setScale(1);
+    }
   }
 
   /** Returns the original full size rendered image */
@@ -220,7 +249,9 @@ public class ScalableImage {
   /** Returns the required width to show the scaled image, including drop shadows if applicable */
   public int getRequiredWidth() {
     int width = (int)(myScale * myImage.getWidth());
-    if (myThumbnailHasFrame) {
+    if (myThumbnailHasFrame || myImageBounds == null && myScaledImage == null && myDeviceFrameEnabled &&
+        AndroidLayoutPreviewToolWindowSettings.getInstance(
+          myConfiguration.getModule().getProject()).getGlobalState().isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
       if (device != null) {
@@ -243,7 +274,9 @@ public class ScalableImage {
   /** Returns the required height to show the scaled image, including drop shadows if applicable */
   public int getRequiredHeight() {
     int height = (int)(myScale * myImage.getHeight());
-    if (myThumbnailHasFrame) {
+    if (myThumbnailHasFrame || myImageBounds == null && myScaledImage == null && myDeviceFrameEnabled &&
+        AndroidLayoutPreviewToolWindowSettings.getInstance(
+          myConfiguration.getModule().getProject()).getGlobalState().isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
       if (device != null) {
@@ -269,6 +302,10 @@ public class ScalableImage {
   }
 
   public void paint(@NotNull Graphics g, int x, int y) {
+    if (UIUtil.isRetina() && paintRetina(g, x, y)) {
+      return;
+    }
+
     if (myScaledImage == null) {
       // Special cases myScale=1 to be fast
       myImageBounds = null;
@@ -313,7 +350,8 @@ public class ScalableImage {
           int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
           myScaledImage = ShadowPainter.createDropShadow(myImage, shadowSize);
         }
-        g.drawImage(myScaledImage, x, y, null);
+        //noinspection ConstantConditions
+        UIUtil.drawImage(g, myScaledImage, x, y, null);
       } else if (myScale < 1) {
         // When scaling down we need to do an expensive scaling to ensure that
         // the thumbnails look good
@@ -336,7 +374,8 @@ public class ScalableImage {
         } else {
           myScaledImage = ImageUtils.scale(myImage, myScale, myScale);
         }
-        g.drawImage(myScaledImage, x, y, null);
+        //noinspection ConstantConditions
+        UIUtil.drawImage(g, myScaledImage, x, y, null);
       } else {
         // Do a direct scaled paint when scaling up; we don't want to create giant internal images
         // for a zoomed in version of the canvas, since only a small portion is typically shown on the screen
@@ -381,14 +420,99 @@ public class ScalableImage {
         }
       }
     } else {
-      g.drawImage(myScaledImage, x, y, null);
+      //noinspection ConstantConditions
+      UIUtil.drawImage(g, myScaledImage, x, y, null);
     }
+  }
+
+  public boolean paintRetina(@NotNull Graphics g, int x, int y) {
+    if (!ImageUtils.supportsRetina()) {
+      return false;
+    }
+
+    Project project = myConfiguration.getModule().getProject();
+    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
+      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    if (!settings.isRetina()) {
+      return false;
+    }
+
+    if (myScale > 1.01) {
+      // When scaling up significantly, use normal painting logic; no need to pixel double into a
+      // double res image buffer!
+      return false;
+    }
+
+    if (myScaledImage == null) {
+      myImageBounds = null;
+      myThumbnailHasFrame = false;
+
+      BufferedImage image = null;
+      ShadowType shadowType = myShadowType;
+      if (myScale <= 1 && myDeviceFrameEnabled) {
+        DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+        Device device = myConfiguration.getDevice();
+        if (device != null) {
+          if (settings.isShowDeviceFrames()) {
+            boolean showEffects = settings.isShowEffects();
+            State deviceState = myConfiguration.getDeviceState();
+            if (deviceState != null) {
+              double scale = myScale;
+              ScreenOrientation orientation = deviceState.getOrientation();
+              double frameFactor = framePainter.getFrameMaxOverhead(device, orientation);
+              scale /= frameFactor;
+              myImageBounds = new Rectangle();
+              image = framePainter.createFrame(myImage, device, orientation, showEffects, 2 * scale, myImageBounds);
+              myImageBounds.x /= 2;
+              myImageBounds.y /= 2;
+              myImageBounds.width /= 2;
+              myImageBounds.height /= 2;
+              myThumbnailHasFrame = true;
+              shadowType = ShadowType.NONE;
+            }
+          }
+        }
+      }
+
+      if (image == null) {
+        image = myImage;
+
+        // No scaling if very close to 1.0
+        double retinaScale = 2 * myScale;
+        if (Math.abs(myScale - 1.0) > 0.01) {
+          image = ImageUtils.scale(myImage, retinaScale, retinaScale);
+        }
+      }
+
+      myScaledImage = ImageUtils.convertToRetina(image);
+      if (myScaledImage == null) {
+        return false;
+      }
+
+      if (shadowType == ShadowType.RECTANGULAR) {
+        // Just need to draw drop shadows
+        if (myUseLargeShadows) {
+          myScaledImage = ShadowPainter.createRectangularDropShadow(myScaledImage);
+        }
+        else {
+          myScaledImage = ShadowPainter.createSmallRectangularDropShadow(myScaledImage);
+        }
+      }
+      else if (shadowType == ShadowType.ARBITRARY) {
+        int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
+        myScaledImage = ShadowPainter.createDropShadow(myScaledImage, shadowSize);
+      }
+    }
+
+    //noinspection ConstantConditions
+    UIUtil.drawImage(g, myScaledImage, x, y, null);
+    return true;
   }
 
   public void setMaxSize(int width, int height) {
     myMaxWidth = width;
     myMaxHeight = height;
-    setScale(1);
+    zoomActual();
   }
 
   public int getMaxWidth() {
