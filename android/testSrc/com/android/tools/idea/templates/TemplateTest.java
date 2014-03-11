@@ -613,11 +613,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     Collection<Parameter> parameters = template.getParameters();
 
     if (!createActivity) {
-      for (Parameter parameter : parameters) {
-        if (parameter.id != null) {
-          values.put(parameter.id, parameter.initial);
-        }
-      }
+      values.setParameterDefaults();
     }
 
     if (overrides != null) {
