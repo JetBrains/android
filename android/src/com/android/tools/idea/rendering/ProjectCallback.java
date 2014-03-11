@@ -70,7 +70,7 @@ public final class ProjectCallback extends LegacyCallback {
   private static final int MAX_PARSER_INCLUDES = 50;
 
   @NotNull private final Module myModule;
-  @NotNull private final LocalResourceRepository myProjectRes;
+  @NotNull private final AppResourceRepository myProjectRes;
   @NotNull final private LayoutLibrary myLayoutLib;
   @Nullable private final Object myCredential;
   @Nullable private String myNamespace;
@@ -93,7 +93,7 @@ public final class ProjectCallback extends LegacyCallback {
    * @param logger     the render logger
    * @param credential the sandbox credential
    */
-  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull LocalResourceRepository projectRes, @NotNull Module module,
+  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull AppResourceRepository projectRes, @NotNull Module module,
                          @NotNull AndroidFacet facet, @NotNull RenderLogger logger, @Nullable Object credential) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
