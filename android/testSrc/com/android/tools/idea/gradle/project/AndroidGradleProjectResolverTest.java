@@ -136,7 +136,7 @@ public class AndroidGradleProjectResolverTest extends IdeaTestCase {
     assertEquals(1, gradleProjects.size());
     DataNode<IdeaGradleProject> gradleProjectNode = ContainerUtil.getFirstItem(gradleProjects);
     assertNotNull(gradleProjectNode);
-    assertEquals(myAndroidModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradleProjectPath());
+    assertEquals(myAndroidModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
   }
 
   public void testPopulateModuleContentRootsWithJavaProject() {
@@ -158,6 +158,6 @@ public class AndroidGradleProjectResolverTest extends IdeaTestCase {
     assertEquals(1, gradleProjects.size());
     DataNode<IdeaGradleProject> gradleProjectNode = ContainerUtil.getFirstItem(gradleProjects);
     assertNotNull(gradleProjectNode);
-    assertEquals(myUtilModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradleProjectPath());
+    assertEquals(myUtilModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
   }
 }
