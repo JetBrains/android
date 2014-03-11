@@ -107,7 +107,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
         Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();
 
-        if (jdk == null || !Jdks.isApplicableJdk(jdk)) {
+        if (jdk == null || !Jdks.isApplicableJdk(jdk, javaLangVersion)) {
           jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
         }
         if (jdk == null) {
