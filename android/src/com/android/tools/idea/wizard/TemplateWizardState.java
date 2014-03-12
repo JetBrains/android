@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.builder.model.SourceProvider;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
@@ -73,6 +74,9 @@ public class TemplateWizardState {
   /** Template handler responsible for instantiating templates and reading resources */
   protected Template myTemplate;
 
+  /** Targeted source set */
+  protected SourceProvider mySourceProvider;
+
   /** Configured parameters, by id */
   protected final Map<String, Object> myParameters = new HashMap<String, Object>();
 
@@ -108,25 +112,38 @@ public class TemplateWizardState {
     File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
 
-    File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
-    File javaSourcePackageRoot;
-    if (myParameters.containsKey(TemplateMetadata.ATTR_PACKAGE_ROOT)) {
-      javaSourcePackageRoot = new File(getString(TemplateMetadata.ATTR_PACKAGE_ROOT));
-      String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
-      String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
-      put(TemplateMetadata.ATTR_PACKAGE_NAME, javaPackage);
-    } else {
-      javaSourcePackageRoot = new File(javaSourceRoot, getString(TemplateMetadata.ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
+    // Set Res directory if we don't have one
+    if (!myParameters.containsKey(ATTR_RES_OUT)) {
+      File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
+      put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     }
-    File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
+
+    // Set Src directory if we don't have one
+    if (!myParameters.containsKey(ATTR_SRC_OUT)) {
+      File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
+      File javaSourcePackageRoot;
+      if (myParameters.containsKey(ATTR_PACKAGE_ROOT)) {
+        javaSourcePackageRoot = new File(getString(ATTR_PACKAGE_ROOT));
+        String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
+        String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
+        put(ATTR_PACKAGE_NAME, javaPackage);
+      } else {
+        javaSourcePackageRoot = new File(javaSourceRoot, getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
+      }
+      put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(javaSourcePackageRoot.getPath()));
+    }
+
+    // Set Manifest directory if we don't have one
+    if (!myParameters.containsKey(ATTR_MANIFEST_OUT)) {
+      put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
+    }
+
+    put(ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
+    put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getPath()));
+
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-    put(TemplateMetadata.ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
-    put(TemplateMetadata.ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getPath()));
-    put(TemplateMetadata.ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
-    put(TemplateMetadata.ATTR_SRC_OUT, FileUtil.toSystemIndependentName(javaSourcePackageRoot.getPath()));
-    put(TemplateMetadata.ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     if (mavenUrl != null) {
-      put(TemplateMetadata.ATTR_MAVEN_URL, mavenUrl);
+      put(ATTR_MAVEN_URL, mavenUrl);
     }
   }
 
@@ -137,6 +154,15 @@ public class TemplateWizardState {
   @Nullable
   public Template getTemplate() {
     return myTemplate;
+  }
+
+  @Nullable
+  public SourceProvider getSourceProvider() {
+    return mySourceProvider;
+  }
+
+  public void setSourceProvider(@Nullable SourceProvider provider) {
+    mySourceProvider = provider;
   }
 
   @Nullable
