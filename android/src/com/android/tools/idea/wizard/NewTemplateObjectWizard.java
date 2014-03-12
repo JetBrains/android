@@ -68,7 +68,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
                                  @Nullable Module module,
                                  @Nullable VirtualFile invocationTarget,
                                  String templateCategory) {
-   this(project, module, invocationTarget, templateCategory, null);
+    this(project, module, invocationTarget, templateCategory, null);
   }
 
   public NewTemplateObjectWizard(@Nullable Project project,
@@ -82,9 +82,11 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     myTemplateCategory = templateCategory;
     if (invocationTarget == null) {
       myTargetFolder = null;
-    } else if (invocationTarget.isDirectory()) {
+    }
+    else if (invocationTarget.isDirectory()) {
       myTargetFolder = invocationTarget;
-    } else {
+    }
+    else {
       myTargetFolder = invocationTarget.getParent();
     }
 
@@ -116,7 +118,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       findManifestDirectory(facet, gradleProject, myWizardState);
 
       // Calculate package name
-      String applicationPackageName =  gradleProject.computePackageName();
+      String applicationPackageName = gradleProject.computePackageName();
       if (myTargetFolder != null) {
         packageName = getPackageFromDirectory(myTargetFolder, facet, gradleProject, myModule, myWizardState);
         if (packageName != null && !packageName.equals(applicationPackageName)) {
@@ -129,7 +131,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       if (packageName == null) {
         // Fall back to the application package but allow the user to edit
         packageName = applicationPackageName;
-      } else {
+      }
+      else {
         myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
         myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_NAME);
         myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
@@ -179,7 +182,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   @VisibleForTesting
   @Nullable
   static VirtualFile findSrcDirectory(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject gradleProject,
-                               @Nullable TemplateWizardState wizardState) {
+                                      @Nullable TemplateWizardState wizardState) {
     IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
     VirtualFile moduleDir = gradleProject.getRootDir();
     Set<VirtualFile> javaDirectories = sourceSet.getJavaDirectories();
@@ -254,7 +257,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     if (javaDir == null) {
       javaSourceRoot = new File(AndroidRootUtil.getModuleDirPath(module),
                                 FileUtil.toSystemDependentName(wizardState.getString(ATTR_SRC_DIR)));
-    } else {
+    }
+    else {
       javaSourceRoot = new File(javaDir.getPath());
     }
 
@@ -271,10 +275,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
    * Exclude the given template name from the selection presented to the user
    */
   public void exclude(String templateName) {
-     myExcluded.add(templateName);
+    myExcluded.add(templateName);
   }
 
-  public void createTemplateObject() {
+  public void createTemplateObject(final boolean openEditors) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
@@ -293,7 +297,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
               myAssetSetStep.createAssets(myModule);
             }
             // Open any new files specified by the template
-            TemplateUtils.openEditors(myProject, myWizardState.myTemplate.getFilesToOpen(), true);
+            if (openEditors) {
+              TemplateUtils.openEditors(myProject, myWizardState.myTemplate.getFilesToOpen(), true);
+            }
           }
         }
         catch (Exception e) {
@@ -301,6 +307,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
         }
       }
     });
+  }
+
+  public void createTemplateObject() {
+    createTemplateObject(true);
   }
 
   @Override
@@ -311,7 +321,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
         myAssetSetStep.finalizeAssetType(chosenTemplateMetadata.getIconType());
         myWizardState.put(ATTR_ICON_NAME, chosenTemplateMetadata.getIconName());
         myAssetSetStep.setVisible(true);
-      } else {
+      }
+      else {
         myAssetSetStep.setVisible(false);
       }
     }
@@ -319,6 +330,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
   /**
    * Get the debug keystore path.
+   *
    * @return the path, or null if the debug keystore does not exist.
    */
   @Nullable
@@ -331,7 +343,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     try {
       String folder = AndroidLocation.getFolder();
       return folder + "debug.keystore";
-    } catch (AndroidLocation.AndroidLocationException e) {
+    }
+    catch (AndroidLocation.AndroidLocationException e) {
       LOG.info(String.format("Failed to get debug keystore path for module '%1$s'", facet.getModule().getName()), e);
       return null;
     }
