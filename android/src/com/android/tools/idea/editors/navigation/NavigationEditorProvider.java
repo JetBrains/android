@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class NavigationEditorProvider implements FileEditorProvider, DumbAware {
-  @NonNls private static final String ID = "navigationeditor";
+  @NonNls public static final String ID = "navigationeditor";
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {

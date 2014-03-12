@@ -20,8 +20,11 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.Utilities;
+import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -29,8 +32,11 @@ import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.*;
 
 import static com.android.navigation.Utilities.getPropertyName;
@@ -40,6 +46,7 @@ import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 public class Analyser {
   private static final Logger LOG = Logger.getInstance("#" + Analyser.class.getName());
   private static final String ID_PREFIX = "@+id/";
+  private static final boolean DEBUG = false;
 
   private final Project myProject;
   private final Module myModule;
@@ -53,7 +60,16 @@ public class Analyser {
 
   @Nullable
   private static String qualifyClassNameIfNecessary(String packageName, String className) {
-    return (className == null) ? null : !className.contains(".") ? (packageName + "." + className) : className;
+    if (className == null) {
+      return null;
+    }
+    else {
+      if (className.startsWith(".")) { // in Android Manifest files a leading "." represents the default package
+        className = className.substring(1);
+      }
+      // what is the rule for AndroidManifest.xml when there is no "." preceding an unqualified class name?
+      return !className.contains(".") ? (packageName + "." + className) : className;
+    }
   }
 
   @Nullable
@@ -80,11 +96,11 @@ public class Analyser {
     Set<String> launcherActivities = new HashSet<String>();
   }
 
-  private static Set<String> getActivityClassNamesFromManifestFile(@Nullable XmlFile manifest) {
-    if (manifest == null) {
-      return Collections.emptySet();
-    }
+  private static Results getActivityClassNamesFromManifestFile(@Nullable XmlFile manifest) {
     final Results results = new Results();
+    if (manifest == null) {
+      return results;
+    }
     manifest.accept(new XmlRecursiveElementVisitor() {
       @Nullable
       private String processFilter(XmlTag tag, String filterName, String parentName) {
@@ -127,9 +143,40 @@ public class Analyser {
     results.mainActivities = qualifyClassNames(results.mainActivities, packageName);
     results.launcherActivities = qualifyClassNames(results.launcherActivities, packageName);
 
-    Set<String> result = new HashSet<String>(results.activities);
-    result.retainAll(results.mainActivities);
-    result.retainAll(results.launcherActivities);
+    return results;
+  }
+
+  public static void commit(Project project, @Nullable PsiFile file) {
+    if (file == null) {
+      return;
+    }
+    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
+    Document document1 = documentManager.getDocument(file);
+    if (DEBUG) {
+      Document document2 = documentManager.getCachedDocument(file);
+      if (!document1.getText().equals(document2.getText())) {
+        System.out.println("document2 = " + document2);
+      }
+    }
+    if (document1 != null) {
+      documentManager.commitDocument(document1);
+    }
+  }
+
+  private static Set<String> readManifestFile2(Project project) {
+    Set<String> result = new HashSet<String>();
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    for (Module module : modules) {
+      ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+      String packageName = manifestInfo.getPackage();
+      List<Activity> activities = manifestInfo.getActivities();
+      for (Activity activity : activities) {
+        AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
+        String className = activityClass.getRawText();
+        String qualifiedName = qualifyClassNameIfNecessary(packageName, className);
+        result.add(qualifiedName);
+      }
+    }
     return result;
   }
 
@@ -140,12 +187,25 @@ public class Analyser {
       manifestFile = baseDir.findFileByRelativePath("app/src/main/AndroidManifest.xml");
     }
     if (manifestFile == null) {
-      if (NavigationEditor.DEBUG) System.out.println("Can't find Manifest"); // todo generalize
+      if (DEBUG) System.out.println("Can't find Manifest"); // todo generalize
       return Collections.emptySet();
+    }
+    if (DEBUG) {
+      try {
+        String s = new String(manifestFile.contentsToByteArray());
+        System.out.println("read vf contents = " + s);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
     PsiManager psiManager = PsiManager.getInstance(project);
     XmlFile manifestPsiFile = (XmlFile)psiManager.findFile(manifestFile);
-    return getActivityClassNamesFromManifestFile(manifestPsiFile);
+    commit(project, manifestPsiFile);
+    if (DEBUG) {
+      System.out.println("manifestPsiFile = " + new String(manifestPsiFile.textToCharArray()));
+    }
+    return getActivityClassNamesFromManifestFile(manifestPsiFile).activities;
   }
 
   private static ActivityState getActivityState(String className, Map<String, ActivityState> classNameToActivityState) {
@@ -224,6 +284,9 @@ public class Analyser {
   }
 
   private Map<PsiField, Object> getFieldAssignmentsInOnCreate(PsiClass activityClass, Evaluator evaluator) {
+    if (activityClass == null) {
+      return Collections.emptyMap();
+    }
     PsiMethod method = Utilities.findMethodBySignature(activityClass, "void onCreate(Bundle bundle)");
     if (method == null) {
       return Collections.emptyMap();
@@ -232,6 +295,9 @@ public class Analyser {
   }
 
   private Map<PsiLocalVariable, Object> getLocalVariableBindingsInOnViewCreated(PsiClass activityClass, Evaluator evaluator) {
+    if (activityClass == null) {
+      return Collections.emptyMap();
+    }
     PsiMethod method = Utilities.findMethodBySignature(activityClass, "void onViewCreated(View view, Bundle bundle)");
     if (method == null) {
       return Collections.emptyMap();
@@ -299,9 +365,17 @@ public class Analyser {
     };
   }
 
-  private Evaluator getEvaluator(Configuration configuration, PsiClass activityClass, PsiClass activityOrFragmentClass, boolean isActivity) {
-    Set<String> tags = getTags(getXmlFile(configuration, activityClass.getQualifiedName(), true));
-    Set<String> ids = getIds(getXmlFile(configuration, activityOrFragmentClass.getQualifiedName(), isActivity));
+  @Nullable
+  private static String getQualifiedName(@Nullable PsiClass psiClass) {
+    return psiClass == null ? null : psiClass.getQualifiedName();
+  }
+
+  private Evaluator getEvaluator(Configuration configuration,
+                                 PsiClass activityClass,
+                                 PsiClass activityOrFragmentClass,
+                                 boolean isActivity) {
+    Set<String> tags = getTags(getXmlFile(configuration, getQualifiedName(activityClass), true));
+    Set<String> ids = getIds(getXmlFile(configuration, getQualifiedName(activityOrFragmentClass), isActivity));
 
     Map<PsiField, Object> noFields = Collections.emptyMap();
     Map<PsiLocalVariable, Object> noVars = Collections.emptyMap();
@@ -315,7 +389,10 @@ public class Analyser {
   }
 
   @Nullable
-  private XmlFile getXmlFile(Configuration configuration, String className, boolean isActivity) {
+  private XmlFile getXmlFile(Configuration configuration, @Nullable String className, boolean isActivity) {
+    if (className == null) {
+      return null;
+    }
     String xmlFileName = getXMLFileName(myModule, className, isActivity);
     if (xmlFileName == null) {
       return null;
@@ -458,11 +535,17 @@ public class Analyser {
   }
 
   public NavigationModel deriveAllStatesAndTransitions(NavigationModel model, Configuration configuration) {
-    MiniModel toDo = new MiniModel(getActivityClassNameToActivityState(readManifestFile(myProject)), new HashMap<String, MenuState>());
+    Set<String> activityClassNames = readManifestFile(myProject);
+    if (DEBUG) {
+      System.out.println("deriveAllStatesAndTransitions = " + activityClassNames);
+    }
+    MiniModel toDo = new MiniModel(getActivityClassNameToActivityState(activityClassNames), new HashMap<String, MenuState>());
     MiniModel next = new MiniModel();
     MiniModel done = new MiniModel();
 
-    if (NavigationEditor.DEBUG) System.out.println("activityStates = " + toDo.classNameToActivityState.values());
+    if (DEBUG) {
+      System.out.println("activityStates = " + toDo.classNameToActivityState.values());
+    }
 
     while (!toDo.classNameToActivityState.isEmpty()) {
       for (ActivityState sourceActivity : toDo.classNameToActivityState.values()) {
@@ -580,10 +663,7 @@ public class Analyser {
       PsiType type1 = psiTypeElement.getType();
       if (type1 instanceof PsiClassReferenceType) {
         PsiClassReferenceType type = (PsiClassReferenceType)type1;
-        PsiClass resolve = type.resolve();
-        if (resolve != null) {
-          return resolve.getQualifiedName();
-        }
+        return getQualifiedName(type.resolve());
       }
     }
     return null;
@@ -601,9 +681,12 @@ public class Analyser {
   public static String getXMLFileName(Module module, String controllerClassName, boolean isActivity) {
     MultiMatch.Bindings<PsiElement> exp;
     if (isActivity) {
-      exp = match(module, controllerClassName, "void onCreate(Bundle bundle)", "void macro(Object $R, Object $id) { setContentView($R.layout.$id); }"); // Use $R because we sometimes see e.g.: com.example.simplemail.activity.R.layout.compose_activity
-    } else {
-      exp = match(module, controllerClassName, "View onCreateView(LayoutInflater li, ViewGroup vg, Bundle b)", "void macro(Object $inflater, Object $R, Object $id, Object $container) { $inflater.inflate($R.layout.$id, $container, false); }");
+      exp = match(module, controllerClassName, "void onCreate(Bundle bundle)",
+                  "void macro(Object $R, Object $id) { setContentView($R.layout.$id); }"); // Use $R because we sometimes see e.g.: com.example.simplemail.activity.R.layout.compose_activity
+    }
+    else {
+      exp = match(module, controllerClassName, "View onCreateView(LayoutInflater li, ViewGroup vg, Bundle b)",
+                  "void macro(Object $inflater, Object $R, Object $id, Object $container) { $inflater.inflate($R.layout.$id, $container, false); }");
     }
     if (exp == null) {
       return null;
