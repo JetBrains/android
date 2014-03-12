@@ -28,6 +28,8 @@ import com.intellij.testFramework.TestActionEvent;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidBundle;
 
+import javax.swing.*;
+
 /**
  * @author Dmitry Avdeev
  *         Date: 12/5/12
@@ -65,7 +67,7 @@ public class AndroidSdkTypeTest extends NewProjectWizardTestCase {
 
   private static AnAction getAddAction(ProjectSdksModel model) {
     DefaultActionGroup group = new DefaultActionGroup();
-    model.createAddActions(group, null, null, new Condition<SdkTypeId>() {
+    model.createAddActions(group, new JPanel(), null, new Condition<SdkTypeId>() {
       @Override
       public boolean value(SdkTypeId id) {
         return id == AndroidSdkType.getInstance();
