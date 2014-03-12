@@ -429,6 +429,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintViewHolderInspection extends AndroidLintInspectionBase {
+    public AndroidLintViewHolderInspection() {
+      super(AndroidBundle.message("android.lint.inspections.view.holder"), ViewHolderDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintWebViewLayoutInspection extends AndroidLintInspectionBase {
     public AndroidLintWebViewLayoutInspection() {
       super(AndroidBundle.message("android.lint.inspections.web.view.layout"), WebViewDetector.ISSUE);
