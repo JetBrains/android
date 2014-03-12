@@ -167,7 +167,9 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     newSize.height = Math.max(newSize.height, preferredHeight);
     label.setMinimumSize(newSize);
     label.setPreferredSize(newSize);
-    getComponent().revalidate();
+    if (getComponent() != null) {
+      getComponent().revalidate();
+    }
   }
 
   /** Override this to provide help text for a parameter that does not have its own help text in the template. */
@@ -313,7 +315,8 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       }
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       if (param != null) {
-        String error = param.validate(myProject, myModule, (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
+        String error = param.validate(myProject, myModule, myTemplateState.getSourceProvider(),
+                                      (String)myTemplateState.get(ATTR_PACKAGE_NAME), myTemplateState.get(paramName));
         if (error != null) {
           setErrorHtml(error);
           return false;
