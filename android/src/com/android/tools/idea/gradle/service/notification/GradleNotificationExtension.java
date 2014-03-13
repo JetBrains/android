@@ -55,14 +55,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
   private static final Logger LOG = Logger.getInstance(GradleNotificationExtension.class);
 
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
-  private static final Pattern ERROR_WRONG_GRADLE_VERSION =
-    Pattern.compile("You are using Gradle version (.*)\\. Please use version (.*)\\.");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
@@ -118,14 +115,13 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       }
 
       List<String> lines = splitLines(msg);
-      String firstLine = lines.get(0);
       String lastLine = lines.get(lines.size() - 1);
 
-      if (lastLine != null && lastLine.equals(OPEN_GRADLE_SETTINGS)) {
+      if (OPEN_GRADLE_SETTINGS.equals(lastLine)) {
         return createNotification(project, msg, new OpenGradleSettingsHyperlink());
       }
 
-      if (lastLine != null && lastLine.equals(FIX_SDK_DIR_PROPERTY)) {
+      if (FIX_SDK_DIR_PROPERTY.equals(lastLine)) {
         File file = new File(project.getBasePath(), SdkConstants.FN_LOCAL_PROPERTIES);
         if (file.isFile()) {
           // If we got this far, local.properties exists.
@@ -154,10 +150,9 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return null;
       }
 
-      if (lastLine != null &&
-          (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) ||
-           lastLine.contains(INSTALL_MISSING_PLATFORM) ||
-           lastLine.contains(INSTALL_MISSING_BUILD_TOOLS))) {
+      if (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) ||
+          lastLine.contains(INSTALL_MISSING_PLATFORM) ||
+          lastLine.contains(INSTALL_MISSING_BUILD_TOOLS)) {
         List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
         if (!facets.isEmpty()) {
           // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
@@ -166,13 +161,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg);
       }
 
-      if (lastLine != null && lastLine.contains(SET_UP_HTTP_PROXY)) {
-        return createNotification(project, msg, new OpenHttpSettingsHyperlink(), new OpenUrlHyperlink(
-          "http://www.gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy",
-          "Open Gradle documentation"));
-      }
-
-      if (lastLine != null && lastLine.contains(FIX_GRADLE_VERSION)) {
+      if (lastLine.contains(FIX_GRADLE_VERSION)) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
         File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
         if (wrapperPropertiesFile != null) {
@@ -184,10 +173,41 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return createNotification(project, msg, hyperlinks);
       }
 
+      String firstLine = lines.get(0);
+
+      if (firstLine.startsWith("Unknown host '")) {
+        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        NotificationHyperlink enableOfflineMode = ToggleOfflineModeHyperlink.enableOfflineMode(project);
+        if (enableOfflineMode != null) {
+          hyperlinks.add(enableOfflineMode);
+        }
+        String gradleDocsUrl = "http://www.gradle.org/docs/current/userguide/userguide_single.html#sec:accessing_the_web_via_a_proxy";
+        hyperlinks.add(new OpenUrlHyperlink(gradleDocsUrl, "Learn about configuring HTTP proxies in Gradle"));
+        return createNotification(project, msg, hyperlinks);
+      }
+
+      if (isInternetConnectionError(firstLine)) {
+        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        NotificationHyperlink enableOfflineMode = ToggleOfflineModeHyperlink.enableOfflineMode(project);
+        if (enableOfflineMode != null) {
+          hyperlinks.add(enableOfflineMode);
+        }
+        return createNotification(project, msg, hyperlinks);
+      }
+
+      if (firstLine.startsWith("No cached version of ") && firstLine.contains("available for offline mode.")) {
+        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        NotificationHyperlink disableOfflineMode = ToggleOfflineModeHyperlink.disableOfflineMode(project);
+        if (disableOfflineMode != null) {
+          hyperlinks.add(disableOfflineMode);
+        }
+        return createNotification(project, firstLine, hyperlinks);
+      }
+
       Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
       if (matcher.matches()) {
         String dependency = matcher.group(1);
-        return createNotification(project, firstLine, new SearchInBuildFilesHyperlink(dependency));
+        return createMissingDependencyNotification(project, firstLine, dependency);
       }
 
       matcher = MISSING_DEPENDENCY_PATTERN.matcher(firstLine);
@@ -200,11 +220,10 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
               // We have a location in file, show the "Open File" hyperlink.
               String filePath = errorLocation.getFirst();
               int line = errorLocation.getSecond();
-              return createNotification(project, msg, new OpenFileHyperlink(filePath, line - 1),
-                                        new SearchInBuildFilesHyperlink(dependency));
+              return createMissingDependencyNotification(project, msg, dependency, new OpenFileHyperlink(filePath, line - 1));
             }
           }
-          return createNotification(project, msg, new SearchInBuildFilesHyperlink(dependency));
+          return createMissingDependencyNotification(project, msg, dependency);
         }
       }
 
@@ -216,7 +235,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(line);
         if (matcher.matches()) {
           String dependency = matcher.group(1);
-          return createNotification(project, line, new SearchInBuildFilesHyperlink(dependency));
+          return createMissingDependencyNotification(project, line, dependency);
         }
       }
 
@@ -236,13 +255,18 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     return null;
   }
 
-  private static String getSupportedGradleVersion(String errorMsg) {
-    String suggestedGradleVersion = GRADLE_MINIMUM_VERSION;
-    Matcher matcher = ERROR_WRONG_GRADLE_VERSION.matcher(errorMsg);
-    if (matcher.matches()) {
-      suggestedGradleVersion = matcher.group(2);
+  @NotNull
+  private static CustomizationResult createMissingDependencyNotification(@NotNull Project project,
+                                                                         @NotNull String msg,
+                                                                         @NotNull String dependency,
+                                                                         @NotNull NotificationHyperlink...additionalHyperlinks) {
+    List<NotificationHyperlink> hyperlinks = Lists.newArrayList(additionalHyperlinks);
+    ToggleOfflineModeHyperlink disableOfflineMode = ToggleOfflineModeHyperlink.disableOfflineMode(project);
+    if (disableOfflineMode != null) {
+      hyperlinks.add(0, disableOfflineMode);
     }
-    return suggestedGradleVersion;
+    hyperlinks.add(new SearchInBuildFilesHyperlink(dependency));
+    return createNotification(project, msg, hyperlinks);
   }
 
   @Nullable
@@ -293,6 +317,10 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                                         @NotNull String errorMsg,
                                                         @NotNull List<NotificationHyperlink> hyperlinks) {
     return createNotification(project, errorMsg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+  }
+
+  private static boolean isInternetConnectionError(@NotNull String msg) {
+    return msg.startsWith("Could not GET ") || msg.startsWith("Could not HEAD ") || msg.startsWith("Network is unreachable");
   }
 
   @NotNull
