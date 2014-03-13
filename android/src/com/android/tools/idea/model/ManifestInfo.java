@@ -28,6 +28,7 @@ import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.android.dom.manifest.ActivityAlias;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -193,6 +194,11 @@ public abstract class ManifestInfo {
 
     ManifestInfo finder = module.getUserData(key);
     if (finder == null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        throw new IllegalArgumentException("Manifest information can only be obtained on modules with the Android facet.");
+      }
+
       finder = useMergedManifest ? new MergedManifestInfo(module) : new PrimaryManifestInfo(module);
       module.putUserData(key, finder);
     }
