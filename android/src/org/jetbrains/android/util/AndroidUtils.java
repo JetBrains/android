@@ -323,6 +323,7 @@ public class AndroidUtils {
   @Nullable
   public static String getDefaultLauncherActivityName(final List<Activity> activities, final List<ActivityAlias> activityAliases) {
     return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+      @Nullable
       @Override
       public String compute() {
         Activity activity = getDefaultLauncherActivity(activities);
@@ -334,7 +335,39 @@ public class AndroidUtils {
         }
 
         ActivityAlias alias = getDefaultLauncherActivityAlias(activityAliases);
-        return  alias != null ? alias.getName().getStringValue() : null;
+        if (alias == null) {
+          return null;
+        }
+
+        // The activity alias names obtained from the manifest merger are fully qualified.
+        // Without the manifest merger (i.e. if directly looking at manifests), then it is possible
+        // that they aren't qualified. This leads to problems if the package name itself is then
+        // customized using gradle (package name in the manifest defining the activity alias won't
+        // match the application package). So we need to fully qualify activity aliases if possible.
+        String name = alias.getName().getStringValue();
+        if (name == null) {
+          return null;
+        }
+
+        int dotIndex = name.indexOf('.');
+        if (dotIndex > 0) { // fully qualified
+          return name;
+        }
+
+        // attempt to retrieve the package name from the manifest in which
+        // this alias was defined
+        String pkg = null;
+        DomElement parent = alias.getParent();
+        if (parent instanceof Application) {
+          parent = parent.getParent();
+          if (parent instanceof Manifest) {
+            Manifest manifest = (Manifest)parent;
+            pkg = manifest.getPackage().getStringValue();
+          }
+        }
+
+        // if we have a package name, prepend that to the activity alias
+        return pkg == null ? name : pkg + (dotIndex == -1 ? "." : "") + name;
       }
     });
   }
