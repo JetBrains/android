@@ -103,13 +103,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
-    if (buildScript == null || buildScript.getSourceFile() == null || !isAndroidGradleProject()) {
+    if (buildScript == null || !isAndroidGradleProject()) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
 
-    File buildFilePath = buildScript.getSourceFile();
-    File moduleRootDirPath = buildFilePath.getParentFile();
+    File moduleFilePath = new File(FileUtil.toSystemDependentName(ideModule.getData().getModuleFilePath()));
+    File moduleRootDirPath = moduleFilePath.getParentFile();
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
@@ -128,7 +128,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       return;
     }
 
-    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), buildFilePath, gradleModule.getGradleProject());
+    File buildFilePath = buildScript.getSourceFile();
+    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), gradleModule.getGradleProject(), buildFilePath);
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
     if (androidProject == null) {
