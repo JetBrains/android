@@ -46,6 +46,7 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
 import com.intellij.lexer.Lexer;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.*;
@@ -987,9 +988,13 @@ public class AndroidUtils {
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project) {
+    reportImportErrorToEventLog(message, modName, project, null);
+  }
+
+  public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
     Notifications.Bus.notify(new Notification(AndroidBundle.message("android.facet.importing.notification.group"),
                                               AndroidBundle.message("android.facet.importing.title", modName),
-                                              message, NotificationType.ERROR, null), project);
+                                              message, NotificationType.ERROR, listener), project);
     LOG.debug(message);
   }
 

@@ -27,6 +27,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
 import org.jdom.Element;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -142,7 +143,10 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     IAndroidTarget[] targets = sdkData.getTargets();
 
     if (targets.length == 0) {
-      Messages.showErrorDialog(AndroidBundle.message("no.android.targets.error"), CommonBundle.getErrorTitle());
+      if (Messages.showOkCancelDialog(AndroidBundle.message("no.android.targets.error"), CommonBundle.getErrorTitle(),
+                                      "Open SDK Manager", Messages.CANCEL_BUTTON, Messages.getErrorIcon()) == Messages.OK) {
+        RunAndroidSdkManagerAction.runSpecificSdkManager(null, sdkData.getLocation());
+      }
       return false;
     }
 
