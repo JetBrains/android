@@ -21,10 +21,12 @@ import com.android.navigation.*;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
+import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
@@ -40,6 +42,8 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +71,7 @@ public class NavigationEditor implements FileEditor {
   private static final int SCROLL_UNIT_INCREMENT = 20;
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
+  private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private final Listener<NavigationModel.Event> myNavigationModelListener;
@@ -152,25 +157,7 @@ public class NavigationEditor implements FileEditor {
             throw new RuntimeException(e);
           }
         }
-          /*
-          VirtualFileManager.getInstance().asyncRefresh(new Runnable() {
-            @Override
-            public void run() {
-              updateNavigationModel();
-            }
-          });
-          */
-        // Batch up all the changes and post to the event queue to re-analyse when they're all
-        if (!myPendingFileSystemChanges) {
-          myPendingFileSystemChanges = true;
-          SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              updateNavigationModel();
-              myPendingFileSystemChanges = false;
-            }
-          });
-        }
+        invokeDelayedRefresh();
       }
 
       @Override
@@ -188,8 +175,44 @@ public class NavigationEditor implements FileEditor {
         somethingChanged("fileDeleted", event);
       }
     };
+
+    myResourceFolderListener = new ResourceFolderManager.ResourceFolderListener() {
+      @Override
+      public void resourceFoldersChanged(@NotNull AndroidFacet facet,
+                                         @NotNull List<VirtualFile> folders,
+                                         @NotNull Collection<VirtualFile> added,
+                                         @NotNull Collection<VirtualFile> removed) {
+        invokeDelayedRefresh();
+      }
+    };
   }
 
+  private ResourceFolderManager getResourceFolderManager() {
+    AndroidFacet facet = myRenderingParams.myFacet;
+    //if (facet.isGradleProject()) {
+      // Ensure that the app resources have been initialized first, since
+      // we want it to add its own variant listeners before ours (such that
+      // when the variant changes, the project resources get notified and updated
+      // before our own update listener attempts a re-render)
+      ModuleResourceRepository.getModuleResources(facet, true /*createIfNecessary*/);
+      return facet.getResourceFolderManager();
+    //}
+    //return null;
+  }
+
+  private void invokeDelayedRefresh() {
+    // Post to the event queue to coalesce events and effect re-parse when they're all in
+    if (!myPendingFileSystemChanges) {
+      myPendingFileSystemChanges = true;
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          updateNavigationModel();
+          myPendingFileSystemChanges = false;
+        }
+      });
+    }
+  }
 
   // See  AndroidDesignerActionPanel
 
@@ -401,11 +424,13 @@ public class NavigationEditor implements FileEditor {
   public void selectNotify() {
     updateNavigationModel();
     VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
+    getResourceFolderManager().addListener(myResourceFolderListener);
   }
 
   @Override
   public void deselectNotify() {
     VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileListener);
+    getResourceFolderManager().removeListener(myResourceFolderListener);
   }
 
   @Override
