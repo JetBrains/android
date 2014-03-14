@@ -37,7 +37,7 @@ public class AndroidAarDepsBuildTarget extends AndroidBuildTarget {
                                                                IgnoredFileIndex ignoredFileIndex,
                                                                BuildDataPaths dataPaths) {
     final Set<JpsLibrary> libraries = JpsJavaExtensionService.getInstance().enumerateDependencies(
-      Collections.singleton(myModule)).compileOnly().getLibraries();
+      Collections.singleton(myModule)).runtimeOnly().productionOnly().getLibraries();
     final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
 
     for (JpsLibrary library : libraries) {
