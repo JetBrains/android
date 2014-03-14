@@ -349,6 +349,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         manifestVFile == null ? null : AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Nullable
         @Override
         public String compute() {
           if (manifest == null) {
