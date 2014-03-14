@@ -25,7 +25,6 @@ import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
-import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
@@ -37,7 +36,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.android.util.ModuleListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -140,7 +138,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
           myErrorLabel.setText("<html><body><font color=\"red\">" + e.getMessage() + "</font></body></html>");
           myDirectoryNameTextField.setText("");
         }
-        setOKActionEnabled(myDirectoryNameTextField.getText().length() > 0);
+        updateOkAction();
       }
     };
     if (predefinedConfig != null) {
@@ -198,7 +196,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
 
     myDeviceConfiguratorPanel.updateAll();
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);
-    setOKActionEnabled(myDirectoryNameTextField.getText().length() > 0);
+    updateOkAction();
     updateRootElementTextField();
 
     if (predefinedRootElement != null) {
@@ -224,6 +222,12 @@ public class CreateResourceFileDialog extends DialogWrapper {
     });
   }
 
+  private void updateOkAction() {
+    boolean enabled = myDirectoryNameTextField.getText().length() > 0;
+    enabled = enabled && getNameError(myFileNameField.getText()) == null;
+    setOKActionEnabled(enabled);
+  }
+
   @Nullable
   private String getNameError(@NotNull String fileName) {
     String typeName = myResourceTypeCombo.getSelectedName();
@@ -240,6 +244,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
 
   private void validateName() {
     setErrorText(getNameError(myFileNameField.getText()));
+    updateOkAction();
   }
 
   private void updateRootElementTextField() {
