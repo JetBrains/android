@@ -558,13 +558,11 @@ public class LombokPsiConverter {
         KeywordModifier keyword = KeywordModifier.PUBLIC();
         bind(keyword, null);
         keywords.addToEnd(keyword);
-      }
-      if (list.hasExplicitModifier(PsiModifier.PROTECTED)) {
+      } else if (list.hasExplicitModifier(PsiModifier.PROTECTED)) {
         KeywordModifier keyword = KeywordModifier.PROTECTED();
         bind(keyword, null);
         keywords.addToEnd(keyword);
-      }
-      if (list.hasExplicitModifier(PsiModifier.PRIVATE)) {
+      } else if (list.hasExplicitModifier(PsiModifier.PRIVATE)) {
         KeywordModifier keyword = KeywordModifier.PRIVATE();
         bind(keyword, null);
         keywords.addToEnd(keyword);
@@ -580,7 +578,7 @@ public class LombokPsiConverter {
         keywords.addToEnd(keyword);
       }
       if (list.hasExplicitModifier(PsiModifier.FINAL)) {
-        KeywordModifier keyword = new KeywordModifier().astName("final");
+        KeywordModifier keyword = KeywordModifier.FINAL();
         bind(keyword, null);
         keywords.addToEnd(keyword);
       }
