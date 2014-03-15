@@ -20,6 +20,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.codeInsight.navigation.NavigationUtil;
@@ -63,6 +64,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -131,6 +133,7 @@ public class AndroidUtils {
   @NonNls public static final String MANIFEST_CLASS_NAME = "Manifest";
   @NonNls public static final String LAUNCH_ACTION_NAME = "android.intent.action.MAIN";
   @NonNls public static final String LAUNCH_CATEGORY_NAME = "android.intent.category.LAUNCHER";
+  @NonNls public static final String DEFAULT_CATEGORY_NAME = "android.intent.category.DEFAULT";
   @NonNls public static final String INSTRUMENTATION_RUNNER_BASE_CLASS = "android.app.Instrumentation";
   @NonNls public static final String SERVICE_CLASS_NAME = "android.app.Service";
   @NonNls public static final String RECEIVER_CLASS_NAME = "android.content.BroadcastReceiver";
@@ -284,30 +287,20 @@ public class AndroidUtils {
     }
   }
 
-  @Nullable
-  private static Activity getDefaultLauncherActivity(@NotNull List<Activity> activities) {
-    for (Activity activity : activities) {
-      for (IntentFilter filter : activity.getIntentFilters()) {
-        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
-          return activity;
+  @NotNull
+  private static List<ActivityWrapper> getLaunchableActivities(@NotNull List<ActivityWrapper> allActivities) {
+    return ContainerUtil.filter(allActivities, new Condition<ActivityWrapper>() {
+      @Override
+      public boolean value(ActivityWrapper activity) {
+        for (IntentFilter filter : activity.getIntentFilters()) {
+          if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
+            return true;
+          }
         }
+
+        return false;
       }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static ActivityAlias getDefaultLauncherActivityAlias(@NotNull List<ActivityAlias> activityAliases) {
-    for (ActivityAlias alias : activityAliases) {
-      for (IntentFilter filter : alias.getIntentFilters()) {
-        if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
-          return alias;
-        }
-      }
-    }
-
-    return null;
+    });
   }
 
   @Nullable
@@ -322,54 +315,54 @@ public class AndroidUtils {
 
   @Nullable
   public static String getDefaultLauncherActivityName(final List<Activity> activities, final List<ActivityAlias> activityAliases) {
+    final List<ActivityWrapper> activityWrappers = merge(activities, activityAliases);
+
+    // Note: We need to return fully qualified names. Unqualified names will result in errors if
+    // the package name as defined in the manifest doesn't match the package name of the eventual application
     return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
       @Nullable
       @Override
       public String compute() {
-        Activity activity = getDefaultLauncherActivity(activities);
-        if (activity != null) {
-          PsiClass c = activity.getActivityClass().getValue();
-          if (c != null) {
-            return c.getQualifiedName();
-          }
-        }
-
-        ActivityAlias alias = getDefaultLauncherActivityAlias(activityAliases);
-        if (alias == null) {
+        List<ActivityWrapper> launcherActivities = getLaunchableActivities(activityWrappers);
+        if (launcherActivities.isEmpty()) {
           return null;
         }
 
-        // The activity alias names obtained from the manifest merger are fully qualified.
-        // Without the manifest merger (i.e. if directly looking at manifests), then it is possible
-        // that they aren't qualified. This leads to problems if the package name itself is then
-        // customized using gradle (package name in the manifest defining the activity alias won't
-        // match the application package). So we need to fully qualify activity aliases if possible.
-        String name = alias.getName().getStringValue();
-        if (name == null) {
-          return null;
+        if (launcherActivities.size() == 1) {
+          return launcherActivities.get(0).getQualifiedName();
         }
 
-        int dotIndex = name.indexOf('.');
-        if (dotIndex > 0) { // fully qualified
-          return name;
-        }
-
-        // attempt to retrieve the package name from the manifest in which
-        // this alias was defined
-        String pkg = null;
-        DomElement parent = alias.getParent();
-        if (parent instanceof Application) {
-          parent = parent.getParent();
-          if (parent instanceof Manifest) {
-            Manifest manifest = (Manifest)parent;
-            pkg = manifest.getPackage().getStringValue();
+        // If we have more than one launchable activity, then prefer then one with CATEGORY_DEFAULT.
+        // There is no such rule, but since Context.startActivity() prefers such activities, we do the same.
+        List<ActivityWrapper> launchersWithDefaultCategory = ContainerUtil.filter(launcherActivities, new Condition<ActivityWrapper>() {
+          @Override
+          public boolean value(ActivityWrapper adapter) {
+            for (IntentFilter filter : adapter.getIntentFilters()) {
+              if (AndroidDomUtil.containsCategory(filter, DEFAULT_CATEGORY_NAME)) {
+                return true;
+              }
+            }
+            return false;
           }
-        }
+        });
 
-        // if we have a package name, prepend that to the activity alias
-        return pkg == null ? name : pkg + (dotIndex == -1 ? "." : "") + name;
+
+        ActivityWrapper launcherActivity =
+          launchersWithDefaultCategory.isEmpty() ? launcherActivities.get(0) : launchersWithDefaultCategory.get(0);
+        return launcherActivity.getQualifiedName();
       }
     });
+  }
+
+  private static List<ActivityWrapper> merge(List<Activity> activities, List<ActivityAlias> activityAliases) {
+    final List<ActivityWrapper> activityWrappers = Lists.newArrayListWithExpectedSize(activities.size() + activityAliases.size());
+    for (Activity a : activities) {
+      activityWrappers.add(ActivityWrapper.get(a));
+    }
+    for (ActivityAlias a : activityAliases) {
+      activityWrappers.add(ActivityWrapper.get(a));
+    }
+    return activityWrappers;
   }
 
   public static boolean isAbstract(@NotNull PsiClass c) {
@@ -1074,5 +1067,85 @@ public class AndroidUtils {
       }
     }
     return false;
+  }
+
+  /** {@link org.jetbrains.android.util.AndroidUtils.ActivityWrapper} is a simple adapter class that allows {@link Activity} and {@link ActivityAlias} to be treated uniformly */
+  private static abstract class ActivityWrapper {
+    @NotNull
+    public abstract List<IntentFilter> getIntentFilters();
+
+    @Nullable
+    public abstract String getQualifiedName();
+
+    public static ActivityWrapper get(Activity activity) {
+      return new RealActivityWrapper(activity);
+    }
+
+    public static ActivityWrapper get(ActivityAlias activityAlias) {
+      return new ActivityAliasWrapper(activityAlias);
+    }
+  };
+
+  private static class RealActivityWrapper extends ActivityWrapper {
+    private final Activity myActivity;
+
+    public RealActivityWrapper(Activity activity) {
+      myActivity = activity;
+    }
+
+    @NotNull
+    @Override
+    public List<IntentFilter> getIntentFilters() {
+      return myActivity.getIntentFilters();
+    }
+
+    @Override
+    public String getQualifiedName() {
+      PsiClass c = myActivity.getActivityClass().getValue();
+      return c == null ? null : c.getQualifiedName();
+    }
+  }
+
+  private static class ActivityAliasWrapper extends ActivityWrapper {
+    private final ActivityAlias myAlias;
+
+    public ActivityAliasWrapper(ActivityAlias activityAlias) {
+      myAlias = activityAlias;
+    }
+
+    @NotNull
+    @Override
+    public List<IntentFilter> getIntentFilters() {
+      return myAlias.getIntentFilters();
+    }
+
+    @Nullable
+    @Override
+    public String getQualifiedName() {
+      String name = myAlias.getName().getStringValue();
+      if (name == null) {
+        return null;
+      }
+
+      int dotIndex = name.indexOf('.');
+      if (dotIndex > 0) { // fully qualified
+        return name;
+      }
+
+      // attempt to retrieve the package name from the manifest in which
+      // this alias was defined
+      String pkg = null;
+      DomElement parent = myAlias.getParent();
+      if (parent instanceof Application) {
+        parent = parent.getParent();
+        if (parent instanceof Manifest) {
+          Manifest manifest = (Manifest)parent;
+          pkg = manifest.getPackage().getStringValue();
+        }
+      }
+
+      // if we have a package name, prepend that to the activity alias
+      return pkg == null ? name : pkg + (dotIndex == -1 ? "." : "") + name;
+    }
   }
 }
