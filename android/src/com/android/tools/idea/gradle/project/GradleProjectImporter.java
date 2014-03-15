@@ -18,12 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -84,7 +79,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
@@ -95,9 +89,6 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrappe
 public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
-
-  private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
   private final ImporterDelegate myDelegate;
 
@@ -448,9 +439,6 @@ public class GradleProjectImporter {
               if (newProject) {
                 Projects.open(project);
               }
-              else {
-                updateStructureAccordingToBuildVariants(project);
-              }
               if (!isTest) {
                 project.save();
               }
@@ -516,26 +504,6 @@ public class GradleProjectImporter {
             });
           }
         });
-      }
-    });
-  }
-
-  private void updateStructureAccordingToBuildVariants(final Project project) {
-    // Update module dependencies, content roots and output paths. This needs to be done in case the selected variant is not
-    // the same one as the default (an by "default" we mean the first in the drop-down.)
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
-      @Override
-      public void execute() {
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        for (Module module : moduleManager.getModules()) {
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet != null) {
-            IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-            for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
-              customizer.customizeModule(module, project, ideaAndroidProject);
-            }
-          }
-        }
       }
     });
   }
