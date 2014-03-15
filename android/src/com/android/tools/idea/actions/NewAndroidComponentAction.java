@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -52,7 +53,13 @@ public class NewAndroidComponentAction extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    e.getPresentation().setVisible(isAvailable(e.getDataContext()));
+    final Presentation presentation = e.getPresentation();
+    final DataContext dataContext = e.getDataContext();
+    presentation.setVisible(isAvailable(dataContext));
+    final Project project = CommonDataKeys.PROJECT.getData(dataContext);
+    presentation.setText(project != null && Projects.isGradleProject(project)
+                         ? AndroidBundle.message("android.new.component.action.title")
+                         : AndroidBundle.message("android.new.component.action.title.non.gradle"));
   }
 
   private static boolean isAvailable(DataContext dataContext) {
