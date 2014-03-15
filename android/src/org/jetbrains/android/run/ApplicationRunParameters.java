@@ -37,6 +37,7 @@ import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.packaging.impl.run.BuildArtifactsBeforeRunTaskProvider;
@@ -58,9 +59,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -225,15 +224,17 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     myActivityField.setEnabled(launchSpecificActivity);
     myActivityField.getChildComponent().setText(configuration.ACTIVITY_CLASS);
 
-    final Collection<? extends Artifact> artifacts = ArtifactManager.getInstance(myProject).
-      getArtifactsByType(AndroidApplicationArtifactType.getInstance());
+    final ArtifactManager artifactManager = ArtifactManager.getInstance(myProject);
+    final Collection<? extends Artifact> artifacts = artifactManager == null
+                                                     ? Collections.<Artifact>emptyList()
+                                                     : artifactManager.getArtifactsByType(AndroidApplicationArtifactType.getInstance());
     final String artifactName = configuration.ARTIFACT_NAME;
     Artifact artifactToSelect = null;
 
     if (configuration.DEPLOY) {
       myDoNotDeployRadio.setSelected(false);
 
-      if (artifactName.length() > 0) {
+      if (!StringUtil.isEmpty(artifactName)) {
         final Module module = getModule();
 
         for (Artifact artifact : artifacts) {
