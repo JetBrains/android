@@ -202,12 +202,13 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
   }
 
   @Override
-  public IDomParser getDomParser() {
+  public XmlParser getXmlParser() {
     return new DomPsiParser(this);
   }
 
+  @Nullable
   @Override
-  public IJavaParser getJavaParser() {
+  public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
     return new LombokPsiParser(this);
   }
 
@@ -229,7 +230,6 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
   @NonNull
   public String readFile(@NonNull final File file) {
     final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
-
     if (vFile == null) {
       LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
       return "";
