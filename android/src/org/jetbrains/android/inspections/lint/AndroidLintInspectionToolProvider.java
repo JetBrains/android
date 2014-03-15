@@ -853,6 +853,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.illegal.resource.ref"), ManifestDetector.ILLEGAL_REFERENCE);
     }
   }
+  public static class AndroidLintInflateParamsInspection extends AndroidLintInspectionBase {
+    public AndroidLintInflateParamsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.inflate.params"), LayoutInflationDetector.ISSUE);
+    }
+  }
   public static class AndroidLintInOrMmUsageInspection extends AndroidLintInspectionBase {
     public AndroidLintInOrMmUsageInspection() {
       super(AndroidBundle.message("android.lint.inspections.in.or.mm.usage"), PxUsageDetector.IN_MM_ISSUE);
