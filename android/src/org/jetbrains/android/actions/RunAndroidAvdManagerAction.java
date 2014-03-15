@@ -21,6 +21,7 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +54,10 @@ public class RunAndroidAvdManagerAction extends AndroidRunSdkToolAction {
   public static void runAvdManager(@NotNull final String sdkPath,
                                    @NotNull final ErrorReporter errorReporter,
                                    @NotNull final ModalityState modalityState) {
+    final ProgressWindow p = new ProgressWindow(false, true, null);
+    p.setIndeterminate(false);
+    p.setDelayInMillis(0);
+
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
@@ -65,6 +70,26 @@ public class RunAndroidAvdManagerAction extends AndroidRunSdkToolAction {
         try {
           if (AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(1000)) ==
               ExecutionStatus.TIMEOUT) {
+
+            // It takes about 2 seconds to start the AVD Manager on Windows. Display a small
+            // progress indicator otherwise it seems like the action wasn't invoked and users tend
+            // to click multiple times on it, ending up with several instances of the manager
+            // window.
+            try {
+              p.start();
+              p.setText("Starting AVD Manager...");
+              for (double d = 0; d < 1; d += 1.0 / 20) {
+                p.setFraction(d);
+                //noinspection BusyWait
+                Thread.sleep(100);
+              }
+            }
+            catch (InterruptedException ignore) {
+            }
+            finally {
+              p.stop();
+            }
+
             return;
           }
         }
