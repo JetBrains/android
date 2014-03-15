@@ -52,9 +52,7 @@ public class MergedManifestInfo extends ManifestInfo {
 
   MergedManifestInfo(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      throw new IllegalArgumentException("Merged manifest information can only be obtained on modules with the Android facet.");
-    }
+    assert facet != null;
 
     myModule = module;
     myFacet = facet;
