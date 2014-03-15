@@ -210,38 +210,37 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return !resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty();
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Set<Class> getExtraProjectModelClasses() {
     return Collections.<Class>singleton(AndroidProject.class);
   }
 
-  /**
-   * This method is meant to be used just to return any extra JVM args we'd like to pass to Gradle. Given that we need to do some checks
-   * (e.g. ensure that we only use one Android SDK) before the actual project import, and the IDEA's Gradle 'project import' framework does
-   * not currently provide a place for such checks, we need to perform them here.
-   * This method has a side effect: it checks that Android Studio and the project (local.properties) point to the same Android SDK home. If
-   * they are not the same, it asks the user to choose one and updates either the IDE's default SDK or project's SDK based on the user's
-   * choice.
-   * TODO: Ask JetBrains to provide a method in GradleProjectResolverExtension where we can perform this check.
-   */
-  @NotNull
+
   @Override
+  public void preImportCheck() {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      LocalProperties localProperties = getLocalProperties();
+      // Ensure that Android Studio and the project (local.properties) point to the same Android SDK home. If they are not the same, we'll
+      // ask the user to choose one and updates either the IDE's default SDK or project's SDK based on the user's choice.
+      SdkSync.syncIdeAndProjectAndroidHomes(localProperties);
+    }
+  }
+
+  @Override
+  @NotNull
   public List<KeyValue<String, String>> getExtraJvmArgs() {
     if (ExternalSystemApiUtil.isInProcessMode(GradleConstants.SYSTEM_ID)) {
       List<KeyValue<String, String>> args = Lists.newArrayList();
 
-      File projectDir = new File(FileUtil.toSystemDependentName(resolverCtx.getProjectPath()));
-      LocalProperties localProperties = getLocalProperties(projectDir);
-
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        SdkSync.syncIdeAndProjectAndroidHomes(localProperties);
-      }
-      else if (localProperties.getAndroidSdkPath() == null) {
-        File androidHomePath = DefaultSdks.getDefaultAndroidHome();
-        // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
-        if (androidHomePath != null) {
-          args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
+      if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        LocalProperties localProperties = getLocalProperties();
+        if (localProperties.getAndroidSdkPath() == null) {
+          File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+          // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
+          if (androidHomePath != null) {
+            args.add(KeyValue.create(AndroidGradleSettings.ANDROID_HOME_JVM_ARG, androidHomePath.getPath()));
+          }
         }
       }
 
@@ -252,7 +251,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private static LocalProperties getLocalProperties(@NotNull File projectDir) {
+  private LocalProperties getLocalProperties() {
+    File projectDir = new File(FileUtil.toSystemDependentName(resolverCtx.getProjectPath()));
     try {
       return new LocalProperties(projectDir);
     }
