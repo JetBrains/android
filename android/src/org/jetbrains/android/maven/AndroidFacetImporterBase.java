@@ -17,6 +17,8 @@ package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -753,9 +755,11 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private static void reportCannotFindAndroidPlatformError(String moduleName, @Nullable String apiLevel, Project project) {
-    AndroidUtils
-      .reportImportErrorToEventLog("Cannot find appropriate Android platform" + (apiLevel != null ? " for API level " + apiLevel : ""),
-                                   moduleName, project);
+    final OpenAndroidSdkManagerHyperlink hyperlink = new OpenAndroidSdkManagerHyperlink();
+    AndroidUtils.reportImportErrorToEventLog(
+      "Cannot find appropriate Android platform" + (apiLevel != null ? " for API level " + apiLevel : "") +
+      ". " + hyperlink.toString(),
+      moduleName, project, new CustomNotificationListener(project, hyperlink));
   }
 
   @Override
@@ -1109,6 +1113,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         configuration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK = true;
       }
     }
+    configuration.getState().RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
 
     Element resourceOverlayDirectories = getConfig(project, "resourceOverlayDirectories");
     if (resourceOverlayDirectories != null) {

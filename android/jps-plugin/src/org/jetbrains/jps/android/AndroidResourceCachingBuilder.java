@@ -95,7 +95,11 @@ public class AndroidResourceCachingBuilder extends AndroidTargetBuilder<BuildRoo
     final List<String> inputDirs = new ArrayList<String>();
 
     for (BuildRootDescriptor root : roots) {
-      inputDirs.add(root.getRootFile().getPath());
+      final File f = root.getRootFile();
+
+      if (f.exists()) {
+        inputDirs.add(f.getPath());
+      }
     }
     final Map<AndroidCompilerMessageKind, List<String>> messages =
       AndroidApt.crunch(androidTarget, inputDirs,resCacheDir.getPath());
