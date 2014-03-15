@@ -16,7 +16,9 @@
 
 package com.android.tools.idea.editors.navigation;
 
+import com.android.navigation.Dimension;
 import com.android.navigation.*;
+import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.intellij.AppTopics;
@@ -25,10 +27,15 @@ import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileAdapter;
+import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -39,9 +46,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
@@ -60,12 +70,14 @@ public class NavigationEditor implements FileEditor {
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private final Listener<NavigationModel.Event> myNavigationModelListener;
-  private VirtualFile myFile;
+  private final VirtualFile myFile;
   private JComponent myComponent;
   private boolean myDirty;
+  private boolean myPendingFileSystemChanges;
   private boolean myNotificationsDisabled;
   private final CodeGenerator myCodeGenerator;
   private Analyser myAnalyser;
+  private VirtualFileAdapter myVirtualFileListener;
 
   public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
@@ -83,7 +95,6 @@ public class NavigationEditor implements FileEditor {
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
     myFile = file;
     myRenderingParams = NavigationView.getRenderingParams(project, file);
-    myAnalyser = new Analyser(project, Utilities.getModule(project, file));
     try {
       myNavigationModel = read(file);
       NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel);
@@ -111,7 +122,9 @@ public class NavigationEditor implements FileEditor {
         }
       }
     }
-    myCodeGenerator = new CodeGenerator(myNavigationModel, Utilities.getModule(project, file));
+    Module module = myRenderingParams.myConfiguration.getModule();
+    myAnalyser = new Analyser(project, module);
+    myCodeGenerator = new CodeGenerator(myNavigationModel, module);
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
@@ -126,20 +139,116 @@ public class NavigationEditor implements FileEditor {
       }
     };
     myNavigationModel.getListeners().add(myNavigationModelListener);
+    myVirtualFileListener = new VirtualFileAdapter() {
+      private void somethingChanged(String changeType, @NotNull VirtualFileEvent event) {
+        if (DEBUG) {
+          System.out.println(changeType + ": " + event);
+          try {
+            VirtualFile file1 = event.getFile();
+            System.out.println("NavigationEditor: somethingChanged file: " + file1);
+            System.out.println("NavigationEditor: contents: " + new String(file1.contentsToByteArray()));
+          }
+          catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+          /*
+          VirtualFileManager.getInstance().asyncRefresh(new Runnable() {
+            @Override
+            public void run() {
+              updateNavigationModel();
+            }
+          });
+          */
+        // Batch up all the changes and post to the event queue to re-analyse when they're all
+        if (!myPendingFileSystemChanges) {
+          myPendingFileSystemChanges = true;
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              updateNavigationModel();
+              myPendingFileSystemChanges = false;
+            }
+          });
+        }
+      }
+
+      @Override
+      public void contentsChanged(@NotNull VirtualFileEvent event) {
+        somethingChanged("contentsChanged", event);
+      }
+
+      @Override
+      public void fileCreated(@NotNull VirtualFileEvent event) {
+        somethingChanged("fileCreated", event);
+      }
+
+      @Override
+      public void fileDeleted(@NotNull VirtualFileEvent event) {
+        somethingChanged("fileDeleted", event);
+      }
+    };
   }
 
 
   // See  AndroidDesignerActionPanel
+
   protected JComponent createToolbar(NavigationView myDesigner) {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    // the UI below is a temporary hack to show UX / dev. rel
+    {
+      final String dirName = myFile.getParent().getName();
 
-    ActionManager actionManager = ActionManager.getInstance();
-    ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
-    JPanel bottom = new JPanel(new BorderLayout());
-    //bottom.add(layoutToolBar.getComponent(), BorderLayout.WEST);
-    bottom.add(zoomToolBar.getComponent(), BorderLayout.EAST);
-    panel.add(bottom, BorderLayout.SOUTH);
+      JPanel combos = new JPanel(new FlowLayout());
+      //combos.add(new JLabel(dirName));
+      {
+        final String phone = "phone";
+        final String phablet = "phablet";
+        final String tablet = "tablet";
+        final ComboBox deviceSelector = new ComboBox(new Object[]{phone, phablet, tablet});
+        final String portrait = "portrait";
+        final String landscape = "landscape";
+        final ComboBox orientationSelector = new ComboBox(new Object[]{portrait, landscape});
+        deviceSelector.setSelectedItem(dirName.contains("-sw600dp") ? tablet : phone);
+        orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
+        ActionListener actionListener = new ActionListener() {
+          boolean disabled = false;
+          @Override
+          public void actionPerformed(ActionEvent actionEvent) {
+            if (disabled) {
+              return;
+            }
+            Object device = deviceSelector.getSelectedItem();
+            Object deviceQualifier = (device == tablet) ? "-sw600dp" : "";
+            Object orientation = orientationSelector.getSelectedItem();
+            Object orientationQualifier = (orientation == landscape) ? "-land" : "";
+            new AndroidShowNavigationEditor().showNavigationEditor(myRenderingParams.myProject,
+                                                                   "raw" + deviceQualifier + orientationQualifier, "main.nvg.xml");
+            disabled = true;
+            deviceSelector.setSelectedItem(dirName.contains("-sw600dp") ? tablet : phone);
+            orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
+            disabled = false;
+
+          }
+        };
+        {
+          deviceSelector.addActionListener(actionListener);
+          combos.add(deviceSelector);
+        }
+        {
+          orientationSelector.addActionListener(actionListener);
+          combos.add(orientationSelector);
+        }
+      }
+      panel.add(combos, BorderLayout.CENTER);
+    }
+
+    {
+      ActionManager actionManager = ActionManager.getInstance();
+      ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
+      panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
+    }
 
     return panel;
   }
@@ -178,7 +287,11 @@ public class NavigationEditor implements FileEditor {
 
   private static NavigationModel read(VirtualFile file) throws FileReadException {
     try {
-      return (NavigationModel)new XMLReader(file.getInputStream()).read();
+      InputStream inputStream = file.getInputStream();
+      if (inputStream.available() == 0) {
+        return new NavigationModel();
+      }
+      return (NavigationModel)new XMLReader(inputStream).read();
     }
     catch (Exception e) {
       throw new FileReadException(e);
@@ -227,8 +340,8 @@ public class NavigationEditor implements FileEditor {
     Collection<State> states = navigationModel.getStates();
     final Map<State, com.android.navigation.Point> stateToLocation = navigationModel.getStateToLocation();
     final Set<State> visited = new HashSet<State>();
-    com.android.navigation.Dimension size = myRenderingParams.getDeviceScreenSize();
-    com.android.navigation.Dimension gridSize = new com.android.navigation.Dimension(size.width + GAP.width, size.height + GAP.height);
+    Dimension size = myRenderingParams.getDeviceScreenSize();
+    Dimension gridSize = new Dimension(size.width + GAP.width, size.height + GAP.height);
     final Point location = new Point(GAP.width, GAP.height);
     final int gridWidth = gridSize.width;
     final int gridHeight = gridSize.height;
@@ -271,19 +384,25 @@ public class NavigationEditor implements FileEditor {
     return result;
   }
 
-  @Override
-  public void selectNotify() {
+  private void updateNavigationModel() {
     myNotificationsDisabled = true;
     myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
     myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myRenderingParams.myConfiguration);
     layoutStatesWithUnsetLocations(myNavigationModel);
     myNotificationsDisabled = false;
-    //myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
+    myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
+  }
+
+  @Override
+  public void selectNotify() {
+    updateNavigationModel();
+    VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
   }
 
   @Override
   public void deselectNotify() {
+    VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileListener);
   }
 
   @Override
