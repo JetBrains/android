@@ -42,10 +42,12 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiPackage;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
+import com.intellij.refactoring.listeners.RefactoringElementAdapter;
+import com.intellij.refactoring.listeners.RefactoringElementListener;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -65,7 +67,7 @@ import java.io.IOException;
  * Date: Aug 27, 2009
  * Time: 2:23:56 PM
  */
-public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
+public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.testing.AndroidTestRunConfiguration");
 
   public static final int TEST_ALL_IN_MODULE = 0;
@@ -311,6 +313,102 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase {
           }
         }
       }
+    }
+    return null;
+  }
+
+  /**
+   * Returns a refactoring listener that listens to changes in either the package, class or method names
+   * depending on the current {@link #TESTING_TYPE}.
+   */
+  @Nullable
+  @Override
+  public RefactoringElementListener getRefactoringElementListener(PsiElement element) {
+    if (element instanceof PsiPackage) {
+      String pkgName = ((PsiPackage)element).getQualifiedName();
+      if (TESTING_TYPE == TEST_ALL_IN_PACKAGE && !StringUtil.equals(pkgName, PACKAGE_NAME)) {
+        // testing package, but the refactored package does not match our package
+        return null;
+      } else if (TESTING_TYPE != TEST_ALL_IN_PACKAGE && !StringUtil.equals(pkgName, StringUtil.getPackageName(CLASS_NAME))) {
+        // testing a class or a method, but the refactored package doesn't match our containing package
+        return null;
+      }
+
+      return new RefactoringElementAdapter() {
+        @Override
+        protected void elementRenamedOrMoved(@NotNull PsiElement newElement) {
+          if (newElement instanceof PsiPackage) {
+            String newPkgName = ((PsiPackage)newElement).getQualifiedName();
+            if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
+              PACKAGE_NAME = newPkgName;
+            } else {
+              CLASS_NAME = CLASS_NAME.replace(StringUtil.getPackageName(CLASS_NAME), newPkgName);
+            }
+          }
+        }
+
+        @Override
+        public void undoElementMovedOrRenamed(@NotNull PsiElement newElement, @NotNull String oldQualifiedName) {
+          if (newElement instanceof PsiPackage) {
+            if (TESTING_TYPE == TEST_ALL_IN_PACKAGE) {
+              PACKAGE_NAME = oldQualifiedName;
+            } else {
+              CLASS_NAME = CLASS_NAME.replace(StringUtil.getPackageName(CLASS_NAME), oldQualifiedName);
+            }
+          }
+        }
+      };
+    } else if ((TESTING_TYPE == TEST_CLASS || TESTING_TYPE == TEST_METHOD) && element instanceof PsiClass) {
+      if (!StringUtil.equals(JavaExecutionUtil.getRuntimeQualifiedName((PsiClass)element), CLASS_NAME)) {
+        return null;
+      }
+
+      return new RefactoringElementAdapter() {
+        @Override
+        protected void elementRenamedOrMoved(@NotNull PsiElement newElement) {
+          if (newElement instanceof PsiClass) {
+            CLASS_NAME = JavaExecutionUtil.getRuntimeQualifiedName((PsiClass)newElement);
+          }
+        }
+
+        @Override
+        public void undoElementMovedOrRenamed(@NotNull PsiElement newElement, @NotNull String oldQualifiedName) {
+          if (newElement instanceof PsiClass) {
+            CLASS_NAME = oldQualifiedName;
+          }
+        }
+      };
+    } else if (TESTING_TYPE == TEST_METHOD && element instanceof PsiMethod) {
+      PsiMethod psiMethod = (PsiMethod)element;
+      if (!StringUtil.equals(psiMethod.getName(), METHOD_NAME)) {
+        return null;
+      }
+
+      PsiClass psiClass = psiMethod.getContainingClass();
+      if (psiClass == null) {
+        return null;
+      }
+
+      String fqName = psiClass.getQualifiedName();
+      if (fqName != null && !StringUtil.equals(fqName, CLASS_NAME)) {
+        return null;
+      }
+
+      return new RefactoringElementAdapter() {
+        @Override
+        protected void elementRenamedOrMoved(@NotNull PsiElement newElement) {
+          if (newElement instanceof PsiMethod) {
+            METHOD_NAME = ((PsiMethod)newElement).getName();
+          }
+        }
+
+        @Override
+        public void undoElementMovedOrRenamed(@NotNull PsiElement newElement, @NotNull String oldQualifiedName) {
+          if (newElement instanceof PsiMethod) {
+            METHOD_NAME = oldQualifiedName;
+          }
+        }
+      };
     }
     return null;
   }
