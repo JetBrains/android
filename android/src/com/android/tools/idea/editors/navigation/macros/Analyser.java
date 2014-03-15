@@ -26,7 +26,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.tree.IElementType;
@@ -34,9 +33,9 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Activity;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
 
 import static com.android.navigation.Utilities.getPropertyName;
@@ -81,71 +80,6 @@ public class Analyser {
     return null;
   }
 
-  private static Set<String> qualifyClassNames(Set<String> classNames, String packageName) {
-    Set<String> result = new HashSet<String>();
-    for (String name : classNames) {
-      result.add(qualifyClassNameIfNecessary(packageName, name));
-    }
-    return result;
-  }
-
-  private static class Results {
-    String packageName;
-    Set<String> activities = new HashSet<String>();
-    Set<String> mainActivities = new HashSet<String>();
-    Set<String> launcherActivities = new HashSet<String>();
-  }
-
-  private static Results getActivityClassNamesFromManifestFile(@Nullable XmlFile manifest) {
-    final Results results = new Results();
-    if (manifest == null) {
-      return results;
-    }
-    manifest.accept(new XmlRecursiveElementVisitor() {
-      @Nullable
-      private String processFilter(XmlTag tag, String filterName, String parentName) {
-        if (tag.getName().equals(parentName) && filterName.equals(tag.getAttributeValue("android:name"))) {
-          XmlTag parent = (XmlTag)tag.getParent();
-          if (parent.getName().equals("intent-filter")) {
-            XmlTag grandparent = (XmlTag)parent.getParent();
-            if (grandparent.getName().equals("activity")) {
-              return grandparent.getAttributeValue("android:name");
-            }
-          }
-        }
-        return null;
-      }
-
-      @Override
-      public void visitXmlTag(XmlTag tag) {
-        super.visitXmlTag(tag);
-        if (tag.getName().equals("manifest")) {
-          results.packageName = tag.getAttributeValue("package");
-        }
-        if (tag.getName().equals("activity")) {
-          String name = tag.getAttributeValue("android:name");
-          if (name != null) {
-            results.activities.add(name);
-          }
-        }
-        String mainActivity = processFilter(tag, "android.intent.action.MAIN", "action");
-        if (mainActivity != null) {
-          results.mainActivities.add(mainActivity);
-        }
-        String launcherActivity = processFilter(tag, "android.intent.category.LAUNCHER", "category");
-        if (launcherActivity != null) {
-          results.launcherActivities.add(launcherActivity);
-        }
-      }
-    });
-    String packageName = results.packageName;
-    results.activities = qualifyClassNames(results.activities, packageName);
-    results.mainActivities = qualifyClassNames(results.mainActivities, packageName);
-    results.launcherActivities = qualifyClassNames(results.launcherActivities, packageName);
-
-    return results;
-  }
-
   public static void commit(Project project, @Nullable PsiFile file) {
     if (file == null) {
       return;
@@ -163,10 +97,14 @@ public class Analyser {
     }
   }
 
-  private static Set<String> readManifestFile2(Project project) {
+  private static Set<String> readManifestFile(Project project) {
     Set<String> result = new HashSet<String>();
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
+      if (AndroidFacet.getInstance(module) == null) {
+        continue;
+      }
+
       ManifestInfo manifestInfo = ManifestInfo.get(module, false);
       String packageName = manifestInfo.getPackage();
       List<Activity> activities = manifestInfo.getActivities();
@@ -178,34 +116,6 @@ public class Analyser {
       }
     }
     return result;
-  }
-
-  private static Set<String> readManifestFile(Project project) {
-    VirtualFile baseDir = project.getBaseDir();
-    VirtualFile manifestFile = baseDir.findFileByRelativePath("AndroidManifest.xml");
-    if (manifestFile == null) {
-      manifestFile = baseDir.findFileByRelativePath("app/src/main/AndroidManifest.xml");
-    }
-    if (manifestFile == null) {
-      if (DEBUG) System.out.println("Can't find Manifest"); // todo generalize
-      return Collections.emptySet();
-    }
-    if (DEBUG) {
-      try {
-        String s = new String(manifestFile.contentsToByteArray());
-        System.out.println("read vf contents = " + s);
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    PsiManager psiManager = PsiManager.getInstance(project);
-    XmlFile manifestPsiFile = (XmlFile)psiManager.findFile(manifestFile);
-    commit(project, manifestPsiFile);
-    if (DEBUG) {
-      System.out.println("manifestPsiFile = " + new String(manifestPsiFile.textToCharArray()));
-    }
-    return getActivityClassNamesFromManifestFile(manifestPsiFile).activities;
   }
 
   private static ActivityState getActivityState(String className, Map<String, ActivityState> classNameToActivityState) {
