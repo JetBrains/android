@@ -192,7 +192,7 @@ class PrimaryManifestInfo extends ManifestInfo {
   @Override
   protected List<Manifest> getManifests() {
     sync();
-    return Collections.singletonList(myManifest);
+    return myManifest != null ? Collections.singletonList(myManifest) : Collections.<Manifest>emptyList();
   }
 
   /**
@@ -242,7 +242,12 @@ class PrimaryManifestInfo extends ManifestInfo {
     myApplicationSupportsRtl = false;
 
     try {
-      XmlTag root = myManifestFile.getXmlFile().getRootTag();
+      XmlFile xmlFile = myManifestFile.getXmlFile();
+      if (xmlFile == null) {
+        return;
+      }
+
+      XmlTag root = xmlFile.getRootTag();
       if (root == null) {
         return;
       }
@@ -273,7 +278,7 @@ class PrimaryManifestInfo extends ManifestInfo {
         myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
       }
 
-      myManifest = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), myManifestFile.getXmlFile(), Manifest.class);
+      myManifest = AndroidUtils.loadDomElementWithReadPermission(myModule.getProject(), xmlFile, Manifest.class);
     }
     catch (Exception e) {
       LOG.error("Could not read Manifest data", e);
@@ -321,7 +326,7 @@ class PrimaryManifestInfo extends ManifestInfo {
     }
 
     @Nullable
-    public static ManifestFile create(@NotNull Module module) {
+    public static synchronized ManifestFile create(@NotNull Module module) {
       ApplicationManager.getApplication().assertReadAccessAllowed();
 
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -343,7 +348,7 @@ class PrimaryManifestInfo extends ManifestInfo {
       return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
     }
 
-    public boolean refresh() {
+    public synchronized boolean refresh() {
       long lastModified = getLastModified();
       if (myXmlFile == null || myLastModified < lastModified) {
         myXmlFile = parseManifest();
@@ -365,7 +370,8 @@ class PrimaryManifestInfo extends ManifestInfo {
       }
     }
 
-    public XmlFile getXmlFile() {
+    @Nullable
+    public synchronized XmlFile getXmlFile() {
       return myXmlFile;
     }
   }
