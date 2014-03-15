@@ -490,12 +490,16 @@ public class AndroidJpsUtil {
         result.add(resourcesCacheDir.getPath());
       }
     }
-
+    for (File resOverlayDir : extension.getResourceOverlayDirs()) {
+      if (resOverlayDir != null && (!checkExistence || resOverlayDir.exists())) {
+        result.add(resOverlayDir.getPath());
+      }
+    }
     final File resDir = getResourceDirForCompilationPath(extension);
+
     if (resDir != null && (!checkExistence || resDir.exists())) {
       result.add(resDir.getPath());
     }
-
     final File generatedResourcesStorage = getGeneratedResourcesStorage(extension.getModule(), dataPaths);
     if (!checkExistence || generatedResourcesStorage.exists()) {
       result.add(generatedResourcesStorage.getPath());
