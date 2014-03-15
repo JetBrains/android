@@ -17,6 +17,8 @@ package org.jetbrains.jps.android.model.impl;
 
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.Function;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidNativeLibData;
@@ -117,6 +119,23 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
   public File getResourceDir() {
     File resDir = findFileByRelativeModulePath(myProperties.RES_FOLDER_RELATIVE_PATH, false);
     return resDir != null ? canonizeFilePath(resDir) : null;
+  }
+
+  @NotNull
+  @Override
+  public List<File> getResourceOverlayDirs() {
+    final List<String> paths = myProperties.RES_OVERLAY_FOLDERS;
+
+    if (paths == null || paths.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return ContainerUtil.mapNotNull(paths, new Function<String, File>() {
+      @Override
+      public File fun(String s) {
+        final File resDir = findFileByRelativeModulePath(s, false);
+        return resDir != null ? canonizeFilePath(resDir) : null;
+      }
+    });
   }
 
   @Override
