@@ -713,6 +713,20 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     checkMakeUpToDate(executor);
   }
 
+  public void testResOverlay() throws Exception {
+    final MyExecutor executor = new MyExecutor("com.example.simple");
+    final JpsModule module = setUpSimpleAndroidStructure(ArrayUtil.EMPTY_STRING_ARRAY, executor, null).getFirst();
+    final JpsAndroidModuleProperties props = ((JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module)).getProperties();
+    props.RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
+    rebuildAll();
+    checkBuildLog(executor, "expected_log");
+    checkMakeUpToDate(executor);
+
+    props.RES_OVERLAY_FOLDERS = Collections.emptyList();
+    makeAll().assertSuccessful();
+    checkBuildLog(executor, "expected_log_1");
+  }
+
   public void testChangeDexSettings() throws Exception {
     final MyExecutor executor = new MyExecutor("com.example.simple");
     setUpSimpleAndroidStructure(new String[]{"src"}, executor, null).getFirst();
