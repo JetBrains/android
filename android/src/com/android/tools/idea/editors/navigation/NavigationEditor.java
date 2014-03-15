@@ -385,6 +385,9 @@ public class NavigationEditor implements FileEditor {
   }
 
   private void updateNavigationModel() {
+    if (myRenderingParams.myProject.isDisposed()) {
+      return;
+    }
     myNotificationsDisabled = true;
     myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
