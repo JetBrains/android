@@ -17,8 +17,8 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.lint.client.api.IDomParser;
 import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.client.api.XmlParser;
 import com.android.tools.lint.detector.api.DefaultPosition;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
@@ -37,7 +37,7 @@ import java.io.File;
 /**
  * Lint parser which reads in a DOM from a given file, by mapping to the underlying XML PSI structure
  */
-class DomPsiParser implements IDomParser {
+class DomPsiParser extends XmlParser {
   private final LintClient myClient;
   private AccessToken myReadLock;
 
