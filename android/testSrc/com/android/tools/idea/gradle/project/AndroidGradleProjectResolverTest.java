@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,149 +15,60 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.AndroidProjectKeys;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
-import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
-import com.intellij.openapi.externalSystem.model.DataNode;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.ModuleData;
-import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.IdeaTestCase;
-import com.intellij.util.containers.ContainerUtil;
-import org.gradle.tooling.ProjectConnection;
-import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
-import org.jetbrains.plugins.gradle.model.ProjectImportAction;
-import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
+import com.google.common.collect.Lists;
+import junit.framework.TestCase;
+import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
-import java.util.Collection;
+import java.io.File;
 
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.*;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
  */
-public class AndroidGradleProjectResolverTest extends IdeaTestCase {
-  private IdeaProjectStub myIdeaProject;
-  private AndroidProjectStub myAndroidProject;
+public class AndroidGradleProjectResolverTest extends TestCase {
+  public void testModuleDirPathWithFoundProject() {
+    GradleBuild build = createMock(GradleBuild.class);
+    BasicGradleProject project1 = createMock(BasicGradleProject.class);
+    BasicGradleProject project2 = createMock(BasicGradleProject.class);
 
-  private ProjectResolverContext myResolverCtx;
-  private AndroidGradleProjectResolver myProjectResolver;
+    ImmutableDomainObjectSet<? extends BasicGradleProject> projects =
+      new ImmutableDomainObjectSet<BasicGradleProject>(Lists.newArrayList(project1, project2));
 
-  private IdeaModuleStub myAndroidModule;
-  private IdeaModuleStub myUtilModule;
+    build.getProjects();
+    expectLastCall().andStubReturn(projects);
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myIdeaProject = new IdeaProjectStub("multiProject");
-    myAndroidProject = TestProjects.createBasicProject(myIdeaProject.getRootDir());
+    expect(project1.getPath()).andStubReturn(":project1");
+    expect(project2.getPath()).andStubReturn(":project2");
 
-    myAndroidModule = myIdeaProject.addModule(myAndroidProject.getName(), "androidTask");
-    myUtilModule = myIdeaProject.addModule("util", "compileJava", "jar", "classes");
-    myIdeaProject.addModule("notReallyAGradleProject");
+    File moduleDirPath = new File("project2");
+    expect(project2.getProjectDirectory()).andStubReturn(moduleDirPath);
 
-    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myIdeaProject);
-    allModels.addExtraProject(myAndroidProject, AndroidProject.class, myAndroidModule);
+    replay(build, project1, project2);
 
-    ExternalSystemTaskId id = ExternalSystemTaskId.create(SYSTEM_ID, RESOLVE_PROJECT, myIdeaProject.getName());
-    String projectPath = FileUtil.toSystemDependentName(myIdeaProject.getBuildFile().getParent());
-    ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {};
-    myResolverCtx = new ProjectResolverContext(id, projectPath, null, createMock(ProjectConnection.class), notificationListener, true);
-    myResolverCtx.setModels(allModels);
+    assertSame(moduleDirPath, AndroidGradleProjectResolver.getModuleDirPath(build, ":project2"));
 
-    myProjectResolver = new AndroidGradleProjectResolver(createMock(ProjectImportErrorHandler.class));
-    myProjectResolver.setProjectResolverContext(myResolverCtx);
-
-    GradleProjectResolverExtension next = new BaseGradleProjectResolverExtension();
-    next.setProjectResolverContext(myResolverCtx);
-    myProjectResolver.setNext(next);
+    verify(build, project1, project2);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    if (myIdeaProject != null) {
-      myIdeaProject.dispose();
-    }
-    super.tearDown();
-  }
+  public void testModuleDirPathWithNotFoundProject() {
+    GradleBuild build = createMock(GradleBuild.class);
+    BasicGradleProject project1 = createMock(BasicGradleProject.class);
 
-  public void testCreateModuleWithOldModelVersion() {
-    AndroidProject androidProject = createMock(AndroidProject.class);
-    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myIdeaProject);
-    allModels.addExtraProject(androidProject, AndroidProject.class, myAndroidModule);
-    myResolverCtx.setModels(allModels);
+    ImmutableDomainObjectSet<? extends BasicGradleProject> projects =
+      new ImmutableDomainObjectSet<BasicGradleProject>(Lists.newArrayList(project1));
 
-    expect(androidProject.getModelVersion()).andStubReturn("0.0.1");
-    replay(androidProject);
+    build.getProjects();
+    expectLastCall().andStubReturn(projects);
 
-    try {
-      ProjectData project = myProjectResolver.createProject();
-      myProjectResolver.createModule(myAndroidModule, project);
-      fail();
-    } catch (IllegalStateException e) {
-    }
+    expect(project1.getPath()).andStubReturn(":project1");
 
-    verify(androidProject);
-  }
+    replay(build, project1);
 
-  public void testPopulateModuleContentRootsWithAndroidProject() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    ModuleData module = myProjectResolver.createModule(myAndroidModule, project);
-    DataNode<ModuleData> moduleDataNode = projectNode.createChild(ProjectKeys.MODULE, module);
+    assertNull(AndroidGradleProjectResolver.getModuleDirPath(build, ":project2"));
 
-    myProjectResolver.populateModuleContentRoots(myAndroidModule, moduleDataNode);
-
-    // Verify module has IdeaAndroidProject.
-    Collection<DataNode<IdeaAndroidProject>> androidProjects =
-      ExternalSystemApiUtil.getChildren(moduleDataNode, AndroidProjectKeys.IDE_ANDROID_PROJECT);
-    assertEquals(1, androidProjects.size());
-    DataNode<IdeaAndroidProject> androidProjectNode = ContainerUtil.getFirstItem(androidProjects);
-    assertNotNull(androidProjectNode);
-    assertSame(myAndroidProject, androidProjectNode.getData().getDelegate());
-
-    // Verify module has IdeaGradleProject.
-    Collection<DataNode<IdeaGradleProject>> gradleProjects =
-      ExternalSystemApiUtil.getChildren(moduleDataNode, AndroidProjectKeys.IDE_GRADLE_PROJECT);
-    assertEquals(1, gradleProjects.size());
-    DataNode<IdeaGradleProject> gradleProjectNode = ContainerUtil.getFirstItem(gradleProjects);
-    assertNotNull(gradleProjectNode);
-    assertEquals(myAndroidModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
-  }
-
-  public void testPopulateModuleContentRootsWithJavaProject() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<ProjectData>(ProjectKeys.PROJECT, project, null);
-    ModuleData module = myProjectResolver.createModule(myUtilModule, project);
-    DataNode<ModuleData> moduleDataNode = projectNode.createChild(ProjectKeys.MODULE, module);
-
-    myProjectResolver.populateModuleContentRoots(myUtilModule, moduleDataNode);
-
-    // Verify module does not have IdeaAndroidProject.
-    Collection<DataNode<IdeaAndroidProject>> androidProjects =
-      ExternalSystemApiUtil.getChildren(moduleDataNode, AndroidProjectKeys.IDE_ANDROID_PROJECT);
-    assertEquals(0, androidProjects.size());
-
-    // Verify module has IdeaGradleProject.
-    Collection<DataNode<IdeaGradleProject>> gradleProjects =
-      ExternalSystemApiUtil.getChildren(moduleDataNode, AndroidProjectKeys.IDE_GRADLE_PROJECT);
-    assertEquals(1, gradleProjects.size());
-    DataNode<IdeaGradleProject> gradleProjectNode = ContainerUtil.getFirstItem(gradleProjects);
-    assertNotNull(gradleProjectNode);
-    assertEquals(myUtilModule.getGradleProject().getPath(), gradleProjectNode.getData().getGradlePath());
+    verify(build, project1);
   }
 }
