@@ -1,5 +1,6 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
 import com.intellij.analysis.AnalysisScope;
@@ -25,7 +26,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,6 +47,9 @@ import static com.android.tools.lint.detector.api.Issue.OutputFormat;
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool implements BatchSuppressableTool {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AndroidLintInspectionBase");
 
+  private static final Object ISSUE_MAP_LOCK = new Object();
+
+  @GuardedBy("ISSUE_MAP_LOCK")
   private static volatile Map<Issue, String> ourIssue2InspectionShortName;
 
   protected final Issue myIssue;
@@ -252,25 +255,27 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
     ourIssue2InspectionShortName = null;
   }
 
-  public synchronized static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
-    if (ourIssue2InspectionShortName == null) {
-      ourIssue2InspectionShortName = new HashMap<Issue, String>();
+  public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
+    synchronized (ISSUE_MAP_LOCK) {
+      if (ourIssue2InspectionShortName == null) {
+        ourIssue2InspectionShortName = new HashMap<Issue, String>();
 
-      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
+        final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
 
-      for (InspectionToolWrapper e : (InspectionToolWrapper[])profile.getInspectionTools(null)) {
-        final String shortName = e.getShortName();
+        for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
+          final String shortName = e.getShortName();
 
-        if (shortName.startsWith("AndroidLint")) {
-          final InspectionProfileEntry entry = e.getTool();
-          if (entry instanceof AndroidLintInspectionBase) {
-            final Issue s = ((AndroidLintInspectionBase)entry).getIssue();
-            ourIssue2InspectionShortName.put(s, shortName);
+          if (shortName.startsWith("AndroidLint")) {
+            final InspectionProfileEntry entry = e.getTool();
+            if (entry instanceof AndroidLintInspectionBase) {
+              final Issue s = ((AndroidLintInspectionBase)entry).getIssue();
+              ourIssue2InspectionShortName.put(s, shortName);
+            }
           }
         }
       }
+      return ourIssue2InspectionShortName.get(issue);
     }
-    return ourIssue2InspectionShortName.get(issue);
   }
 
   @NotNull
