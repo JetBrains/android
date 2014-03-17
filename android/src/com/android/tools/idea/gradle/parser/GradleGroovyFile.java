@@ -156,6 +156,10 @@ class GradleGroovyFile {
     return myFile;
   }
 
+  public PsiFile getPsiFile() {
+    return myGroovyFile;
+  }
+
   /**
    * @throws IllegalStateException if the instance has not parsed its PSI file yet in a
    * {@link StartupManager#runWhenProjectIsInitialized(Runnable)} callback. To resolve this, wait until {@link #onPsiFileAvailable()}
