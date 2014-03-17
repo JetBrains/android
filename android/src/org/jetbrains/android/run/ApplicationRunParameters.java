@@ -58,9 +58,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -225,8 +223,11 @@ class ApplicationRunParameters implements ConfigurationSpecificEditor<AndroidRun
     myActivityField.setEnabled(launchSpecificActivity);
     myActivityField.getChildComponent().setText(configuration.ACTIVITY_CLASS);
 
-    final Collection<? extends Artifact> artifacts = ArtifactManager.getInstance(myProject).
-      getArtifactsByType(AndroidApplicationArtifactType.getInstance());
+    final ArtifactManager artifactManager = ArtifactManager.getInstance(myProject);
+    final Collection<? extends Artifact> artifacts =
+      artifactManager != null
+      ? artifactManager.getArtifactsByType(AndroidApplicationArtifactType.getInstance())
+      : Collections.<Artifact>emptyList();
     final String artifactName = configuration.ARTIFACT_NAME;
     Artifact artifactToSelect = null;
 
