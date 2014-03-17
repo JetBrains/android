@@ -40,7 +40,13 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     myPanel.add(myUseCustomSettings, BorderLayout.NORTH);
 
     myCodeStylePanels = new ArrayList<MyFileSpecificPanel>();
-    myFileSpecificCodeStylesPanel = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, false));
+
+    myCodeStylePanels.add(new ManifestCodeStylePanel());
+    myCodeStylePanels.add(new LayoutCodeStylePanel());
+    myCodeStylePanels.add(new ValueResourcesCodeStylePanel());
+    myCodeStylePanels.add(new OtherCodeStylePanel());
+
+    myFileSpecificCodeStylesPanel = new JPanel(new GridLayout((myCodeStylePanels.size() + 1) / 2, 2, 15, 0));
     centerPanel.add(myFileSpecificCodeStylesPanel);
 
     myUseCustomSettings.addActionListener(new ActionListener() {
@@ -49,11 +55,6 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
         UIUtil.setEnabled(myFileSpecificCodeStylesPanel, myUseCustomSettings.isSelected(), true);
       }
     });
-
-    myCodeStylePanels.add(new ManifestCodeStylePanel());
-    myCodeStylePanels.add(new LayoutCodeStylePanel());
-    myCodeStylePanels.add(new ValueResourcesCodeStylePanel());
-    myCodeStylePanels.add(new OtherCodeStylePanel());
 
     for (MyFileSpecificPanel panel : myCodeStylePanels) {
       final JPanel titledPanel = new JPanel(new BorderLayout());
@@ -331,8 +332,6 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     public OtherCodeStylePanel() {
       super("Other XML resource files", ContextSpecificSettingsProviders.OTHER);
       init();
-      myInsertLineBreakBeforeFirstAttributeCheckBox.setVisible(false);
-      myInsertLineBreakAfterLastAttributeCheckbox.setVisible(false);
     }
   }
 }
