@@ -94,6 +94,12 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     SourceFolder[] sourceFolders = contentEntry.getSourceFolders();
     List<String> sourcePaths = Lists.newArrayListWithExpectedSize(sourceFolders.length);
+
+    for (SourceFolder folder : sourceFolders) {
+      if (!folder.isTestSource()) {
+        System.out.println("url: " + folder.getUrl() + "; file:" + folder.getFile());
+      }
+    }
     for (SourceFolder folder : sourceFolders) {
       if (!folder.isTestSource()) {
         VirtualFile file = folder.getFile();
