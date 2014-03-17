@@ -47,6 +47,7 @@ import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.navigation.Place;
+import com.intellij.util.DocumentUtil;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -225,7 +226,7 @@ public class AndroidModuleStructureConfigurable extends BaseStructureConfigurabl
         if (result != Messages.YES) {
           return false;
         }
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        DocumentUtil.writeInRunUndoTransparentAction(new Runnable() {
           @Override
           public void run() {
             mySettingsFile.removeModule(moduleName);

@@ -17,19 +17,14 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ui.configuration.DefaultModulesProvider;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -37,8 +32,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -48,37 +41,26 @@ import java.util.List;
 public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileListener {
   private static final Logger LOG = Logger.getInstance(GradleBuildFileUpdater.class);
 
-  // Module doesn't implement hashCode(); we can't use a map
-  private final Collection<Pair<Module, GradleBuildFile>> myBuildFiles = Lists.newArrayList();
-  private final GradleSettingsFile mySettingsFile;
   private final Project myProject;
-  private final ModulesProvider myModulesProvider;
 
   public GradleBuildFileUpdater(@NotNull Project project) {
     myProject = project;
-    myModulesProvider = DefaultModulesProvider.createForProject(myProject);
-    mySettingsFile = GradleSettingsFile.get(project);
-    findAndAddAllBuildFiles();
   }
 
   @Override
   public void moduleAdded(@NotNull final Project project, @NotNull final Module module) {
-    VirtualFile vBuildFile = GradleUtil.getGradleBuildFile(module);
-    if (vBuildFile != null) {
-      put(module, new GradleBuildFile(vBuildFile, project));
-    }
-
     // The module has probably already been added to the settings file but let's call this to be safe.
-    if (mySettingsFile != null) {
-      mySettingsFile.addModule(module);
+    GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
+    if (settingsFile != null) {
+      settingsFile.addModule(module);
     }
   }
 
   @Override
   public void moduleRemoved(@NotNull Project project, @NotNull final Module module) {
-    remove(module);
-    if (mySettingsFile != null) {
-      mySettingsFile.removeModule(module);
+    GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
+    if (settingsFile != null) {
+      settingsFile.removeModule(module);
     }
   }
 
@@ -100,7 +82,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         continue;
       }
       VFilePropertyChangeEvent propChangeEvent = (VFilePropertyChangeEvent) event;
-      if (!(VirtualFile.PROP_NAME.equals(propChangeEvent.getPropertyName())) || propChangeEvent.getFile() == null) {
+      if (!(VirtualFile.PROP_NAME.equals(propChangeEvent.getPropertyName()))) {
         continue;
       }
 
@@ -109,34 +91,23 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         continue;
       }
 
-      // If this listener is installed, it is because that the project is a Gradle-based project. If we don't have any build.gradle files
-      // registered, it is because this listener was created before a project was fully created. This is common during creation of new
-      // Gradle-based Android projects. ProjectComponent#projectOpened is called when the project is created, instead of when the project
-      // is actually opened. It may be a bug in IJ.
-      if (myBuildFiles.isEmpty()) {
-        findAndAddAllBuildFiles();
-      }
-
       // Dig through our modules and find the one that matches the change event's path (the module will already have its path updated by
       // now).
       Module module = null;
-      for (Pair<Module, GradleBuildFile> pair : myBuildFiles) {
-        VirtualFile moduleFile = pair.first.getModuleFile();
-        if (moduleFile == null || moduleFile.getParent() == null) {
-          continue;
-        }
-
-        VirtualFile moduleDir = moduleFile.getParent();
-        if (FileUtil.pathsEqual(eventFile.getPath(), moduleDir.getPath())) {
-          module = pair.first;
-          break;
+      Module[] modules = ModuleManager.getInstance(myProject).getModules();
+      for (Module m : modules) {
+        VirtualFile file = GradleUtil.getGradleBuildFile(m);
+        if (file != null) {
+          VirtualFile moduleDir = file.getParent();
+          if (FileUtil.pathsEqual(eventFile.getPath(), moduleDir.getPath())) {
+            module = m;
+            break;
+          }
         }
       }
 
-      // If we found the module, then remove the old reference from the settings.gradle file and from our data structures, and put in new
-      // references.
+      // If we found the module, then remove the old reference from the settings.gradle file and put in a new one.
       if (module != null) {
-        remove(module);
         AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
         if (androidGradleFacet == null) {
           continue;
@@ -148,28 +119,11 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
           continue;
         }
 
-        mySettingsFile.removeModule(oldPath);
-
-        File modulePath = new File(newPath);
-        VirtualFile vBuildFile = GradleUtil.getGradleBuildFile(modulePath);
-        if (vBuildFile != null) {
-          put(module, new GradleBuildFile(vBuildFile, myProject));
+        GradleSettingsFile settingsFile = GradleSettingsFile.get(myProject);
+        if (settingsFile != null) {
+          settingsFile.removeModule(oldPath);
+          settingsFile.addModule(newPath);
         }
-
-        mySettingsFile.addModule(newPath);
-      }
-    }
-  }
-
-  private void findAndAddAllBuildFiles() {
-    Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    for (Module module : modules) {
-      VirtualFile file = GradleUtil.getGradleBuildFile(module);
-      if (file != null) {
-        put(module, new GradleBuildFile(file, myProject));
-      }
-      else {
-        LOG.warn("Unable to find build.gradle file for module " + module.getName());
       }
     }
   }
@@ -188,19 +142,5 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
     String newPath = Joiner.on(SdkConstants.GRADLE_PATH_SEPARATOR).join(pathSegments);
     androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH = newPath;
     return newPath;
-  }
-
-  private void put(@NotNull Module module, @NotNull GradleBuildFile file) {
-    remove(module);
-    myBuildFiles.add(new Pair<Module, GradleBuildFile>(module, file));
-  }
-
-  private void remove(@NotNull Module module) {
-    for (Pair<Module, GradleBuildFile> pair : myBuildFiles) {
-      if (pair.first == module) {
-        myBuildFiles.remove(pair);
-        return;
-      }
-    }
   }
 }
