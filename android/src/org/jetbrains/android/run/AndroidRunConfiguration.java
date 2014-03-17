@@ -331,7 +331,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @VisibleForTesting
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final ProcessHandler processHandler) {
     if (!facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-      final ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), true);
+      final boolean useMergedManifest = facet.isGradleProject() || facet.getProperties().ENABLE_MANIFEST_MERGING;
+      final ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), useMergedManifest);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
         @Override
