@@ -99,7 +99,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         VirtualFile file = GradleUtil.getGradleBuildFile(m);
         if (file != null) {
           VirtualFile moduleDir = file.getParent();
-          if (FileUtil.pathsEqual(eventFile.getPath(), moduleDir.getPath())) {
+          if (moduleDir != null && FileUtil.pathsEqual(eventFile.getPath(), moduleDir.getPath())) {
             module = m;
             break;
           }
