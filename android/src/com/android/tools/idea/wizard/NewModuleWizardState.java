@@ -58,7 +58,6 @@ public class NewModuleWizardState extends TemplateWizardState {
 
     myHidden.add(ATTR_PROJECT_LOCATION);
     myHidden.remove(ATTR_IS_LIBRARY_MODULE);
-    myHidden.add(ATTR_APP_TITLE);
 
     put(ATTR_IS_LAUNCHER, false);
     put(ATTR_CREATE_ICONS, false);
