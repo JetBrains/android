@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.service.resolve;
 
-import com.android.builder.model.ProductFlavor;
 import org.jetbrains.plugins.gradle.service.resolve.GradleSimpleContributor;
 
 public class AndroidProductFlavorContributor extends GradleSimpleContributor {
   public AndroidProductFlavorContributor() {
-    super("defaultConfig", ProductFlavor.class.getCanonicalName());
+    super("defaultConfig", AndroidVariantContributor.PRODUCT_FLAVOR_FQCN);
   }
 }
