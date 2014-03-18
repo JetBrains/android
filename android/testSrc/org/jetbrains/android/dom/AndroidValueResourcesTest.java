@@ -41,6 +41,7 @@ import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -262,6 +263,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   // see getPathToCopy()
   public void testResOverlay() throws Throwable {
+    myFacet.getProperties().RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
     doTestCompletionVariants("styles1.xml", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
   }
 
