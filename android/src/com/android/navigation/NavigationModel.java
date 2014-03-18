@@ -27,12 +27,12 @@ public class NavigationModel {
     public final Operation operation;
     public final Class<?> operandType;
 
-    private Event(@NonNull Operation operation, @NonNull Class operandType) {
+    public Event(@NonNull Operation operation, @NonNull Class operandType) {
       this.operation = operation;
       this.operandType = operandType;
     }
 
-    private static Event of(@NonNull Operation operation, @NonNull Class operandType) {
+    public static Event of(@NonNull Operation operation, @NonNull Class operandType) {
       return new Event(operation, operandType);
     }
 
