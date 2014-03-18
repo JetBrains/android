@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.navigation.macros;
 
 import com.android.navigation.*;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.editors.navigation.NavigationEditor;
 import com.android.tools.idea.editors.navigation.NavigationView;
 import com.android.tools.idea.editors.navigation.Utilities;
 import com.android.tools.idea.model.ManifestInfo;
@@ -317,7 +316,7 @@ public class Analyser {
                                  final Configuration configuration,
                                  final boolean isActivity) {
 
-    if (NavigationEditor.DEBUG) System.out.println("className = " + activityOrFragmentClassName);
+    if (DEBUG) System.out.println("Analyser: className = " + activityOrFragmentClassName);
 
     final PsiClass activityClass = Utilities.getPsiClass(myModule, fromActivityState.getClassName());
     final PsiClass activityOrFragmentClass = Utilities.getPsiClass(myModule, activityOrFragmentClassName);
@@ -510,7 +509,7 @@ public class Analyser {
         if (tag.getName().equals("fragment")) {
           String fragmentTag = tag.getAttributeValue("android:tag");
           String fragmentClassName = tag.getAttributeValue("android:name");
-          if (NavigationEditor.DEBUG) System.out.println("fragmentClassName = " + fragmentClassName);
+          if (DEBUG) System.out.println("Analyser: fragmentClassName = " + fragmentClassName);
           if (fragmentClassName != null) {
             result.add(new FragmentEntry(fragmentClassName, fragmentTag));
           }
@@ -562,7 +561,7 @@ public class Analyser {
   }
 
   private static boolean addTransition(NavigationModel model, Transition transition) {
-    if (NavigationEditor.DEBUG) System.out.println("Adding transition: " + transition);
+    if (DEBUG) System.out.println("Analyser: Adding transition: " + transition);
     return model.add(transition);
   }
 

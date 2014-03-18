@@ -18,6 +18,8 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.navigation.Dimension;
 import com.android.navigation.*;
+import com.android.navigation.NavigationModel.Event;
+import com.android.navigation.NavigationModel.Event.Operation;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
@@ -26,6 +28,7 @@ import com.intellij.AppTopics;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
@@ -63,25 +66,25 @@ import static com.android.tools.idea.editors.navigation.NavigationView.GAP;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationEditor implements FileEditor {
-  public static final String TOOLBAR = "NavigationEditorToolbar";
+  private static final String TOOLBAR = "NavigationEditorToolbar";
   private static final Logger LOG = Logger.getInstance("#" + NavigationEditor.class.getName());
-  public static final boolean DEBUG = false;
+  private static final boolean DEBUG = false;
   private static final String NAME = "Navigation";
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
   private static final int SCROLL_UNIT_INCREMENT = 20;
+  private static final NavigationModel.Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
-  private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
-  private final Listener<NavigationModel.Event> myNavigationModelListener;
   private final VirtualFile myFile;
   private JComponent myComponent;
-  private boolean myDirty;
-  private boolean myPendingFileSystemChanges;
-  private boolean myNotificationsDisabled;
   private final CodeGenerator myCodeGenerator;
+  private boolean myModified;
+  private boolean myPendingFileSystemChanges;
   private Analyser myAnalyser;
+  private final Listener<NavigationModel.Event> myNavigationModelListener;
+  private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private VirtualFileAdapter myVirtualFileListener;
 
   public NavigationEditor(Project project, VirtualFile file) {
@@ -133,31 +136,21 @@ public class NavigationEditor implements FileEditor {
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
-        if (!myNotificationsDisabled &&
-            event.operation == NavigationModel.Event.Operation.INSERT &&
-            event.operandType == Transition.class) {
+        if (event.operation == Operation.INSERT && event.operandType == Transition.class) {
           ArrayList<Transition> transitions = myNavigationModel.getTransitions();
           Transition transition = transitions.get(transitions.size() - 1); // todo don't rely on this being the last
           myCodeGenerator.implementTransition(transition);
         }
-        myDirty = true;
+        if (event != PROJECT_READ) { // exempt the case when we are updating the model ourselves (because of a file read)
+          myModified = true;
+        }
       }
     };
     myNavigationModel.getListeners().add(myNavigationModelListener);
     myVirtualFileListener = new VirtualFileAdapter() {
       private void somethingChanged(String changeType, @NotNull VirtualFileEvent event) {
-        if (DEBUG) {
-          System.out.println(changeType + ": " + event);
-          try {
-            VirtualFile file1 = event.getFile();
-            System.out.println("NavigationEditor: somethingChanged file: " + file1);
-            System.out.println("NavigationEditor: contents: " + new String(file1.contentsToByteArray()));
-          }
-          catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
-        invokeDelayedRefresh();
+        if (DEBUG) System.out.println("NavigationEditor: fileListener:: " + changeType + ": " + event);
+        postDelayedRefresh();
       }
 
       @Override
@@ -182,7 +175,8 @@ public class NavigationEditor implements FileEditor {
                                          @NotNull List<VirtualFile> folders,
                                          @NotNull Collection<VirtualFile> added,
                                          @NotNull Collection<VirtualFile> removed) {
-        invokeDelayedRefresh();
+        if (DEBUG) System.out.println("NavigationEditor: resourceFoldersChanged" + folders);
+        postDelayedRefresh();
       }
     };
   }
@@ -190,25 +184,39 @@ public class NavigationEditor implements FileEditor {
   private ResourceFolderManager getResourceFolderManager() {
     AndroidFacet facet = myRenderingParams.myFacet;
     //if (facet.isGradleProject()) {
-      // Ensure that the app resources have been initialized first, since
-      // we want it to add its own variant listeners before ours (such that
-      // when the variant changes, the project resources get notified and updated
-      // before our own update listener attempts a re-render)
-      ModuleResourceRepository.getModuleResources(facet, true /*createIfNecessary*/);
-      return facet.getResourceFolderManager();
+    // Ensure that the app resources have been initialized first, since
+    // we want it to add its own variant listeners before ours (such that
+    // when the variant changes, the project resources get notified and updated
+    // before our own update listener attempts a re-render)
+    ModuleResourceRepository.getModuleResources(facet, true /*createIfNecessary*/);
+    return facet.getResourceFolderManager();
     //}
     //return null;
   }
 
-  private void invokeDelayedRefresh() {
+  private void postDelayedRefresh() {
+    if (DEBUG) System.out.println("NavigationEditor: postDelayedRefresh");
     // Post to the event queue to coalesce events and effect re-parse when they're all in
     if (!myPendingFileSystemChanges) {
       myPendingFileSystemChanges = true;
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
+      final Application app = ApplicationManager.getApplication();
+      app.invokeLater(new Runnable() {
         @Override
         public void run() {
-          updateNavigationModel();
-          myPendingFileSystemChanges = false;
+          app.executeOnPooledThread(new Runnable() {
+            @Override
+            public void run() {
+              app.runReadAction(new Runnable() {
+                @Override
+                public void run() {
+                  myPendingFileSystemChanges = false;
+                  long l = System.currentTimeMillis();
+                  updateNavigationModelFromProject();
+                  if (DEBUG) System.out.println("Navigation Editor: model read took: " + (System.currentTimeMillis() - l)/1000.0);
+                }
+              });
+            }
+          });
         }
       });
     }
@@ -351,7 +359,7 @@ public class NavigationEditor implements FileEditor {
 
   @Override
   public boolean isModified() {
-    return myDirty;
+    return myModified;
   }
 
   @Override
@@ -407,22 +415,27 @@ public class NavigationEditor implements FileEditor {
     return result;
   }
 
-  private void updateNavigationModel() {
+  private void updateNavigationModelFromProject() {
+    if (DEBUG) System.out.println("NavigationEditor: updateNavigationModelFromProject...");
     if (myRenderingParams.myProject.isDisposed()) {
       return;
     }
-    myNotificationsDisabled = true;
+    EventDispatcher<NavigationModel.Event> listeners = myNavigationModel.getListeners();
+    boolean notificationWasEnabled = listeners.isNotificationEnabled();
+    listeners.setNotificationEnabled(false);
     myNavigationModel.clear();
     myNavigationModel.getTransitions().clear();
     myAnalyser.deriveAllStatesAndTransitions(myNavigationModel, myRenderingParams.myConfiguration);
     layoutStatesWithUnsetLocations(myNavigationModel);
-    myNotificationsDisabled = false;
-    myNavigationModel.getListeners().notify(NavigationModel.Event.update(Object.class));
+    listeners.setNotificationEnabled(notificationWasEnabled);
+
+    myModified = false;
+    listeners.notify(PROJECT_READ);
   }
 
   @Override
   public void selectNotify() {
-    updateNavigationModel();
+    updateNavigationModelFromProject();
     VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
     getResourceFolderManager().addListener(myResourceFolderListener);
   }
@@ -460,11 +473,11 @@ public class NavigationEditor implements FileEditor {
   }
 
   private void saveFile() throws IOException {
-    if (myDirty) {
+    if (myModified) {
       ByteArrayOutputStream stream = new ByteArrayOutputStream(INITIAL_FILE_BUFFER_SIZE);
       new XMLWriter(stream).write(myNavigationModel);
       myFile.setBinaryContent(stream.toByteArray());
-      myDirty = false;
+      myModified = false;
     }
   }
 

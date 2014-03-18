@@ -20,10 +20,22 @@ import com.android.annotations.NonNull;
 import java.util.ArrayList;
 
 public class EventDispatcher<E> extends ArrayList<Listener<E>> implements Listener<E> {
+  private boolean myNotificationEnabled = true;
+
+  public boolean isNotificationEnabled() {
+    return myNotificationEnabled;
+  }
+
+  public void setNotificationEnabled(boolean notificationEnabled) {
+    this.myNotificationEnabled = notificationEnabled;
+  }
+
   @Override
   public void notify(@NonNull E event) {
-    for (Listener<E> listener : this) {
-      listener.notify(event);
+    if (myNotificationEnabled) {
+      for (Listener<E> listener : this) {
+        listener.notify(event);
+      }
     }
   }
 }
