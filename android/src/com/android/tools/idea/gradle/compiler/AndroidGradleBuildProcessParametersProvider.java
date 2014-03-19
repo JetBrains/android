@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -228,7 +227,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @Nullable
   private String[] getModulesToBuild(@NotNull BuildMode buildMode) {
-    if (buildMode.equals(BuildMode.ASSEMBLE_TRANSLATE) || (buildMode.equals(BuildMode.MAKE) && Projects.lastGradleSyncFailed(myProject))) {
+    if (buildMode.equals(BuildMode.ASSEMBLE_TRANSLATE) || (buildMode.equals(BuildMode.ASSEMBLE) && Projects.lastGradleSyncFailed(myProject))) {
       return null;
     }
     BuildSettings buildSettings = BuildSettings.getInstance(myProject);
