@@ -44,12 +44,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Provides the "Gradle-aware Make" task for Run Configurations, which
+ * Provides the "Run Gradle Task" task for Run Configurations, which
  * <ul>
  *   <li>is only available in Android Studio</li>
  *   <li>delegates to the regular "Make" if the project is not an Android Gradle project</li>
@@ -60,7 +59,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull public static final Key<MakeBeforeRunTask> ID = Key.create("Android.Gradle.BeforeRunTask");
 
   private static final Logger LOG = Logger.getInstance(MakeBeforeRunTask.class);
-  private static final String TASK_NAME = "Gradle-aware Make";
+  private static final String TASK_NAME = "Run Gradle Task";
 
   @NotNull private final Project myProject;
 
@@ -114,7 +113,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @Override
   public boolean configureTask(RunConfiguration runConfiguration, MakeBeforeRunTask task) {
-    GradleEditGoalDialog dialog = new GradleEditGoalDialog(myProject);
+    GradleEditTaskDialog dialog = new GradleEditTaskDialog(myProject);
     dialog.setGoal(task.getGoal());
     dialog.setAvailableGoals(getAvailableTasks());
     dialog.show();
@@ -202,7 +201,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
             gradleInvoker.addAfterGradleInvocationTask(afterTask);
             String goal = task.getGoal();
             if (StringUtil.isEmpty(goal)) {
-              gradleInvoker.make(modules, testCompileType);
+              gradleInvoker.assemble(modules, testCompileType);
             } else {
               gradleInvoker.executeTasks(Lists.newArrayList(goal));
             }
