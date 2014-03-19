@@ -15,16 +15,25 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.tools.idea.actions.NewAndroidComponentAction;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
+import com.google.common.collect.TreeBasedTable;
 import com.google.common.io.Files;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
 
@@ -51,12 +61,21 @@ public class TemplateManager {
   private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
   private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates"};
 
+  public static final String CATEGORY_OTHER = "Other";
+  private static final String ACTION_ID_PREFIX = "template.create.";
+  private static final boolean USE_SDK_TEMPLATES = false;
+  private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
+
   /**
    * Cache for {@link #getTemplate()}
    */
   private Map<File, TemplateMetadata> myTemplateMap;
 
+  /** Table mapping (Category, Template Name) -> Template File */
+  private Table<String, String, File> myCategoryTable;
+
   private static TemplateManager ourInstance = new TemplateManager();
+  private DefaultActionGroup myTopGroup;
 
   private TemplateManager() {
   }
@@ -104,13 +123,34 @@ public class TemplateManager {
   }
 
   /**
-   * @return the root folder containing extra templates
+   * @return A list of root folders containing extra templates
    */
   @NotNull
   public static List<File> getExtraTemplateRootFolders() {
     List<File> folders = new ArrayList<File>();
-    String location = null;
-    if (location != null) {
+
+    // Check in various locations in the SDK
+    AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (sdkData != null) {
+      File location = sdkData.getLocation();
+
+      if (USE_SDK_TEMPLATES) {
+        // Look in SDK/tools/templates
+        File toolsTemplatesFolder = new File(location, FileUtil.join(FD_TOOLS, FD_TEMPLATES));
+        if (toolsTemplatesFolder.isDirectory()) {
+          File[] templateRoots = toolsTemplatesFolder.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File pathname) {
+              return pathname.isDirectory();
+            }
+          });
+          if (templateRoots != null) {
+            Collections.addAll(folders, templateRoots);
+          }
+        }
+      }
+
+      // Look in SDK/extras/*
       File extras = new File(location, FD_EXTRAS);
       if (extras.isDirectory()) {
         for (File vendor : TemplateUtils.listFiles(extras)) {
@@ -133,8 +173,23 @@ public class TemplateManager {
           folders.add(folder);
         }
       }
+
+      // Look in SDK/add-ons
+      File addOns = new File(location, FD_ADDONS);
+      if (addOns.isDirectory()) {
+        for (File addOn : TemplateUtils.listFiles(addOns)) {
+          if (!addOn.isDirectory()) {
+            continue;
+          }
+          File folder = new File(addOn, FD_TEMPLATES);
+          if (folder.isDirectory()) {
+            folders.add(folder);
+          }
+        }
+      }
     }
 
+    // Look for source tree files
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
     // Release build?
     VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(homePath + BUNDLED_TEMPLATE_PATH));
@@ -187,26 +242,23 @@ public class TemplateManager {
 
     // Add in templates from extras/ as well.
     for (File extra : getExtraTemplateRootFolders()) {
-      File[] files = new File(extra, folder).listFiles();
-      if (files != null) {
-        for (File file : files) {
-          if (file.isDirectory() && (new File(file, TEMPLATE_XML_NAME)).exists()) {
-            File replaces = templateNames.get(file.getName());
-            if (replaces != null) {
-              int compare = compareTemplates(replaces, file);
-              if (compare > 0) {
-                int index = templates.indexOf(replaces);
-                if (index != -1) {
-                  templates.set(index, file);
-                }
-                else {
-                  templates.add(file);
-                }
+      for (File file : TemplateUtils.listFiles(new File(extra, folder))) {
+        if (file.isDirectory() && (new File(file, TEMPLATE_XML_NAME)).exists()) {
+          File replaces = templateNames.get(file.getName());
+          if (replaces != null) {
+            int compare = compareTemplates(replaces, file);
+            if (compare > 0) {
+              int index = templates.indexOf(replaces);
+              if (index != -1) {
+                templates.set(index, file);
+              }
+              else {
+                templates.add(file);
               }
             }
-            else {
-              templates.add(file);
-            }
+          }
+          else {
+            templates.add(file);
           }
         }
       }
@@ -223,6 +275,79 @@ public class TemplateManager {
     }
 
     return templates;
+  }
+
+  @Nullable
+  public ActionGroup getTemplateCreationMenu() {
+    refreshDynamicTemplateMenu();
+    return myTopGroup;
+  }
+
+  public void refreshDynamicTemplateMenu() {
+    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      return;
+    }
+
+    if (myTopGroup == null) {
+      myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
+    } else {
+      myTopGroup.removeAll();
+    }
+    ActionManager am = ActionManager.getInstance();
+    for (String category : getCategoryTable(true).rowKeySet()) {
+      if (EXCLUDED_CATEGORIES.contains(category)) {
+        continue;
+      }
+      DefaultActionGroup categoryGroup = new DefaultActionGroup(category, true);
+      categoryGroup.getTemplatePresentation().setIcon(AndroidIcons.Android);
+      Map<String, File> categoryRow = myCategoryTable.row(category);
+      for (String templateName : categoryRow.keySet()) {
+        NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName);
+        String actionId = ACTION_ID_PREFIX + category + templateName;
+        am.unregisterAction(actionId);
+        am.registerAction(actionId, templateAction);
+        categoryGroup.add(templateAction);
+      }
+      myTopGroup.add(categoryGroup);
+    }
+  }
+
+  private Table<String, String, File> getCategoryTable(boolean forceReload) {
+    if (myCategoryTable== null || forceReload) {
+      myCategoryTable = TreeBasedTable.create();
+      for (File categoryDirectory : TemplateUtils.listFiles(getTemplateRootFolder())) {
+        for (File newTemplate : TemplateUtils.listFiles(categoryDirectory)) {
+          addTemplateToTable(newTemplate);
+        }
+      }
+
+      for (File rootDirectory : getExtraTemplateRootFolders()) {
+        for (File newTemplate : TemplateUtils.listFiles(rootDirectory)) {
+          addTemplateToTable(newTemplate);
+        }
+      }
+    }
+
+    return myCategoryTable;
+  }
+
+  private void addTemplateToTable(@NotNull File newTemplate) {
+    TemplateMetadata newMetadata = getTemplate(newTemplate);
+    if (newMetadata != null) {
+      String title = newMetadata.getTitle();
+      if (title == null || (newMetadata.getCategory() == null &&
+          myCategoryTable.columnKeySet().contains(title) &&
+          myCategoryTable.get(CATEGORY_OTHER, title) == null)) {
+        // If this template is uncategorized, and we already have a template of this name that has a category,
+        // that is NOT "Other," then ignore this new template since it's undoubtedly older.
+        return;
+      }
+      String category = newMetadata.getCategory() != null ? newMetadata.getCategory() : CATEGORY_OTHER;
+      File existingTemplate = myCategoryTable.get(category, title);
+      if (existingTemplate == null || compareTemplates(existingTemplate, newTemplate) > 0) {
+        myCategoryTable.put(category, title, newTemplate);
+      }
+    }
   }
 
   /**
@@ -246,6 +371,17 @@ public class TemplateManager {
       }
       return delta;
     }
+  }
+
+  @Nullable
+  public File getTemplateFile(@Nullable String category, @Nullable String templateName) {
+    return getCategoryTable(false).get(category, templateName);
+  }
+
+  @Nullable
+  public TemplateMetadata getTemplate(@Nullable String category, @Nullable String templateName) {
+    File templateDir = getTemplateFile(category, templateName);
+    return templateDir != null ? getTemplate(templateDir) : null;
   }
 
   @Nullable

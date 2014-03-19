@@ -78,11 +78,15 @@ public class TemplateMetadata {
   public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
+  public static final String TAG_CATEGORY = "category";
+
+
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
 
   private final AssetStudioAssetGenerator.AssetType myIconType;
   private final String myIconName;
+  private String myCategory = null;
 
   @VisibleForTesting
   public TemplateMetadata(@NotNull Document document) {
@@ -112,6 +116,14 @@ public class TemplateMetadata {
       myIconType = null;
       myIconName = null;
     }
+
+    NodeList categories = myDocument.getElementsByTagName(TAG_CATEGORY);
+    if (categories.getLength() > 0) {
+      Element element = (Element) categories.item(0);
+      if (element.hasAttribute(Template.ATTR_VALUE)) {
+        myCategory = element.getAttribute(Template.ATTR_VALUE);
+      }
+    }
   }
 
   @Nullable
@@ -134,6 +146,11 @@ public class TemplateMetadata {
 
   public int getRevision() {
     return getInteger(ATTR_REVISION, 1);
+  }
+
+  @Nullable
+  public String getCategory() {
+    return myCategory;
   }
 
   @Nullable
