@@ -38,7 +38,7 @@ public class AndroidRootComponent extends JComponent {
   public static final boolean DEBUG = false;
 
   private final RenderingParameters myRenderingParameters;
-  private final PsiFile myPsiFile;
+  private final PsiFile myLayoutFile;
   private final boolean myIsMenu;
 
   @NotNull Transform transform = createTransform(1);
@@ -46,10 +46,10 @@ public class AndroidRootComponent extends JComponent {
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
 
-  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
-    this.myRenderingParameters = renderingParameters;
-    this.myPsiFile = psiFile;
-    this.myIsMenu = isMenu;
+  public AndroidRootComponent(@NotNull RenderingParameters renderingParameters, @Nullable PsiFile layoutFile, boolean isMenu) {
+    myRenderingParameters = renderingParameters;
+    myLayoutFile = layoutFile;
+    myIsMenu = isMenu;
   }
 
   @Nullable
@@ -179,7 +179,7 @@ public class AndroidRootComponent extends JComponent {
       Font font = g.getFont();
       int vCenter = getHeight() / 2;
       //center(g, "Initialising...", font, vCenter);
-      String message = "[" + (myPsiFile == null ? "no xml resource" : myPsiFile.getName()) + "]";
+      String message = "[" + (myLayoutFile == null ? "no xml resource" : myLayoutFile.getName()) + "]";
       center(g, message, font, vCenter);
       //center(g, message, font, vCenter + font.getSize() * 2);
       render();
@@ -187,7 +187,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   private void render() {
-    if (myPsiFile == null) {
+    if (myLayoutFile == null) {
       return;
     }
     Project project = myRenderingParameters.myProject;
@@ -206,25 +206,25 @@ public class AndroidRootComponent extends JComponent {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-          Module module = facet.getModule();
-          RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
-          final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
-          if (service != null) {
-            RenderResult renderedResult = service.render();
-            if (renderedResult != null) {
-              RenderSession session = renderedResult.getSession();
-              if (session != null) {
-                Result result = session.getResult();
-                if (result.isSuccess()) {
-                  setRenderResult(renderedResult);
-                  service.dispose();
-                  return;
-                }
+        Module module = facet.getModule();
+        RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
+        final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
+        if (service != null) {
+          RenderResult renderedResult = service.render();
+          if (renderedResult != null) {
+            RenderSession session = renderedResult.getSession();
+            if (session != null) {
+              Result result = session.getResult();
+              if (result.isSuccess()) {
+                setRenderResult(renderedResult);
+                service.dispose();
+                return;
               }
             }
-            if (DEBUG) System.out.println("AndroidRootComponent: rendering failed ");
           }
+          if (DEBUG) System.out.println("AndroidRootComponent: rendering failed ");
         }
+      }
     });
   }
 
