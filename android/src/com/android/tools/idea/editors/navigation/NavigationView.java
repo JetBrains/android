@@ -62,10 +62,10 @@ import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
   public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
-  private static final Color BACKGROUND_COLOR = Gray.get(192);
-  private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
-  private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = Gray.get(170);
-  private static final Color SNAP_GRID_LINE_COLOR_MAJOR = Gray.get(160);
+  private static final Color BACKGROUND_COLOR            = new JBColor(Gray.get(192), Gray.get(70));
+  private static final Color SNAP_GRID_LINE_COLOR_MINOR  = new JBColor(Gray.get(180), Gray.get(60));
+  private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = new JBColor(Gray.get(170), Gray.get(50));
+  private static final Color SNAP_GRID_LINE_COLOR_MAJOR  = new JBColor(Gray.get(160), Gray.get(40));
 
   private static final float ZOOM_FACTOR = 1.1f;
 
@@ -82,7 +82,7 @@ public class NavigationView extends JComponent {
   public static final int LINE_WIDTH = 12;
   private static final Point MULTIPLE_DROP_STRIDE = point(MAJOR_SNAP_GRID);
   private static final String ID_PREFIX = "@+id/";
-  private static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 127));
+  private static final Color TRANSITION_LINE_COLOR = new JBColor(new Color(80, 80, 255), new Color(40, 40, 255));
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
   private static final Condition<Component> EDITORS = not(SCREENS);
   private static final boolean DRAW_DESTINATION_RECTANGLES = false;
@@ -145,7 +145,6 @@ public class NavigationView extends JComponent {
     myNavigationModel = model;
 
     setFocusable(true);
-    setBackground(BACKGROUND_COLOR);
     setLayout(null);
 
     // Mouse listener
