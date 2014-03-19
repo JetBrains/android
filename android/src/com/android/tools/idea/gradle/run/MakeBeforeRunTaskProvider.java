@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Provides the "Run Gradle Task" task for Run Configurations, which
+ * Provides the "Gradle-aware Make" task for Run Configurations, which
  * <ul>
  *   <li>is only available in Android Studio</li>
  *   <li>delegates to the regular "Make" if the project is not an Android Gradle project</li>
@@ -59,7 +59,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull public static final Key<MakeBeforeRunTask> ID = Key.create("Android.Gradle.BeforeRunTask");
 
   private static final Logger LOG = Logger.getInstance(MakeBeforeRunTask.class);
-  private static final String TASK_NAME = "Run Gradle Task";
+  private static final String TASK_NAME = "Gradle-aware Make";
 
   @NotNull private final Project myProject;
 
