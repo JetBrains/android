@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.Result;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,14 +58,17 @@ public class AndroidRootComponent extends JComponent {
   }
 
   private void setRenderResult(@Nullable RenderResult renderResult) {
-    if (DEBUG) System.out.println("setRenderResult " + renderResult);
+    Container parent = getParent();
+    if (parent == null) { // this is coming in of a different thread - we may have been detached form the view hierarchy in the meantime
+      return;
+    }
     myRenderResult = renderResult;
     if (myIsMenu) {
       revalidate();
     }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
     //repaint();
-    getParent().repaint();
+    parent.repaint();
   }
 
   public float getScale() {
@@ -205,8 +210,19 @@ public class AndroidRootComponent extends JComponent {
           RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
           final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
           if (service != null) {
-            setRenderResult(service.render());
-            service.dispose();
+            RenderResult renderedResult = service.render();
+            if (renderedResult != null) {
+              RenderSession session = renderedResult.getSession();
+              if (session != null) {
+                Result result = session.getResult();
+                if (result.isSuccess()) {
+                  setRenderResult(renderedResult);
+                  service.dispose();
+                  return;
+                }
+              }
+            }
+            if (DEBUG) System.out.println("AndroidRootComponent: rendering failed ");
           }
         }
     });
