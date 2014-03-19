@@ -21,6 +21,7 @@ import com.android.navigation.*;
 import com.android.navigation.NavigationModel.Event;
 import com.android.navigation.NavigationModel.Event.Operation;
 import com.android.tools.idea.actions.AndroidShowNavigationEditor;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.editors.navigation.macros.CodeGenerator;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
@@ -79,7 +80,7 @@ public class NavigationEditor implements FileEditor {
   private NavigationModel myNavigationModel;
   private final VirtualFile myFile;
   private JComponent myComponent;
-  private final CodeGenerator myCodeGenerator;
+  private CodeGenerator myCodeGenerator;
   private boolean myModified;
   private boolean myPendingFileSystemChanges;
   private Analyser myAnalyser;
@@ -103,6 +104,14 @@ public class NavigationEditor implements FileEditor {
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
     myFile = file;
     myRenderingParams = NavigationView.getRenderingParams(project, file);
+    if (myRenderingParams != null) {
+      Configuration configuration = myRenderingParams.myConfiguration;
+      Module module = configuration.getModule();
+      myAnalyser = new Analyser(project, module);
+      myCodeGenerator = new CodeGenerator(myNavigationModel, module);
+    } else {
+      setErrorState("No navigation file");
+    }
     try {
       myNavigationModel = read(file);
       NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel);
@@ -116,23 +125,11 @@ public class NavigationEditor implements FileEditor {
       myComponent = p;
     }
     catch (FileReadException e) {
-      myNavigationModel = new NavigationModel();
-      {
-        JPanel panel = new JPanel(new BorderLayout());
-        JLabel message = new JLabel("Invalid Navigation File");
-        Font font = message.getFont();
-        message.setFont(font.deriveFont(30f));
-        panel.add(message, BorderLayout.NORTH);
-        panel.add(new JLabel(e.getMessage()), BorderLayout.CENTER);
-        myComponent = new JBScrollPane(panel);
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+      setErrorState(e.getMessage());
+      if (DEBUG) {
+        e.printStackTrace();
       }
     }
-    Module module = myRenderingParams.myConfiguration.getModule();
-    myAnalyser = new Analyser(project, module);
-    myCodeGenerator = new CodeGenerator(myNavigationModel, module);
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
       public void notify(@NotNull NavigationModel.Event event) {
@@ -181,6 +178,19 @@ public class NavigationEditor implements FileEditor {
     };
   }
 
+  private void setErrorState(String errorMessage) {
+    myNavigationModel = new NavigationModel();
+    {
+      JPanel panel = new JPanel(new BorderLayout());
+      JLabel message = new JLabel("Invalid Navigation File");
+      Font font = message.getFont();
+      message.setFont(font.deriveFont(30f));
+      panel.add(message, BorderLayout.NORTH);
+      panel.add(new JLabel(errorMessage), BorderLayout.CENTER);
+      myComponent = new JBScrollPane(panel);
+    }
+  }
+
   private ResourceFolderManager getResourceFolderManager() {
     AndroidFacet facet = myRenderingParams.myFacet;
     //if (facet.isGradleProject()) {
@@ -212,7 +222,7 @@ public class NavigationEditor implements FileEditor {
                   myPendingFileSystemChanges = false;
                   long l = System.currentTimeMillis();
                   updateNavigationModelFromProject();
-                  if (DEBUG) System.out.println("Navigation Editor: model read took: " + (System.currentTimeMillis() - l)/1000.0);
+                  if (DEBUG) System.out.println("Navigation Editor: model read took: " + (System.currentTimeMillis() - l) / 1000.0);
                 }
               });
             }
@@ -245,6 +255,7 @@ public class NavigationEditor implements FileEditor {
         orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
         ActionListener actionListener = new ActionListener() {
           boolean disabled = false;
+
           @Override
           public void actionPerformed(ActionEvent actionEvent) {
             if (disabled) {
