@@ -134,12 +134,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("ImportProject", new AndroidImportProjectAction());
     replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
-    hideActionForAndroidGradle("ImportModule", "Import Module...");
+    hideAction("ImportModule", "Import Module...");
 
-    hideActionForAndroidGradle(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
-    hideActionForAndroidGradle("AddFrameworkSupport", "Add Framework Support...");
-    hideActionForAndroidGradle("BuildArtifact", "Build Artifacts...");
-    hideActionForAndroidGradle("RunTargetAction", "Run Ant Target");
+    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
+    hideAction("AddFrameworkSupport", "Add Framework Support...");
+    hideAction("BuildArtifact", "Build Artifacts...");
+    hideAction("RunTargetAction", "Run Ant Target");
 
     replaceProjectPopupActions();
   }
@@ -155,7 +155,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction(IdeActions.ACTION_COMPILE_PROJECT, new AndroidRebuildProjectAction());
 
     // 'Build' > 'Compile Modules' action
-    replaceAction(IdeActions.ACTION_COMPILE, new AndroidCompileModuleAction());
+    hideAction(IdeActions.ACTION_COMPILE, "Compile Module(s)");
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
@@ -168,7 +168,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     am.registerAction(actionId, newAction);
   }
 
-  private static void hideActionForAndroidGradle(String actionId, String backupText) {
+  private static void hideAction(@NotNull String actionId, @NotNull String backupText) {
     AnAction oldAction = ActionManager.getInstance().getAction(actionId);
     if (oldAction != null) {
       AnAction newAction = new AndroidActionRemover(oldAction, backupText);
@@ -184,8 +184,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       DefaultActionGroup parent = entry.getFirst();
       AnAction action = entry.getSecond();
       if (action instanceof DefaultActionGroup) {
-        for (AnAction child : ((DefaultActionGroup)action).getChildActionsOrStubs()) {
-          stack.push(Pair.of((DefaultActionGroup)action, child));
+        DefaultActionGroup actionGroup = (DefaultActionGroup)action;
+        for (AnAction child : actionGroup.getChildActionsOrStubs()) {
+          stack.push(Pair.of(actionGroup, child));
         }
       }
 
