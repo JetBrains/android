@@ -558,9 +558,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidRootContributor"/>
-    <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidProductFlavorContributor"/>
-    <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidVariantContributor" />
+    <resolve.contributor implementation="com.android.tools.idea.gradle.service.resolve.AndroidDslContributor"/>
   </extensions>
 
   <extensionPoints>
