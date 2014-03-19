@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
@@ -90,6 +91,8 @@ public class PostProjectSyncTasksExecutor {
       // set default value back.
       myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
     }
+
+    TemplateManager.getInstance().refreshDynamicTemplateMenu();
   }
 
   private void ensureAllModulesHaveSdk() {
