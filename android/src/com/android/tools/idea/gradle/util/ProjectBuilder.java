@@ -52,14 +52,14 @@ public class ProjectBuilder {
     }
   }
 
-  public void make() {
+  public void compileJava() {
     if (Projects.isGradleProject(myProject)) {
       if (Projects.isDirectGradleInvocationEnabled(myProject)) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        GradleInvoker.getInstance(myProject).make(modules, GradleBuilds.TestCompileType.NONE);
+        GradleInvoker.getInstance(myProject).compileJava(modules);
         return;
       }
-      buildProjectWithJps(BuildMode.MAKE);
+      buildProjectWithJps(BuildMode.COMPILE_JAVA);
     }
   }
 
