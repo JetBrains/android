@@ -70,11 +70,11 @@ public final class GradleBuilds {
         case SOURCE_GEN:
           assembleTaskName = androidFacetProperties.SOURCE_GEN_TASK_NAME;
           break;
-        case COMPILE_JAVA:
-          assembleTaskName = androidFacetProperties.COMPILE_JAVA_TASK_NAME;
+        case ASSEMBLE:
+          assembleTaskName = androidFacetProperties.ASSEMBLE_TASK_NAME;
           break;
         default:
-          assembleTaskName = androidFacetProperties.ASSEMBLE_TASK_NAME;
+          assembleTaskName = androidFacetProperties.COMPILE_JAVA_TASK_NAME;
       }
     }
 
