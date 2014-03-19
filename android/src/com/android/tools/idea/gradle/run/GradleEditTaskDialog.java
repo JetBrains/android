@@ -30,16 +30,16 @@ import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 
-public class GradleEditGoalDialog extends DialogWrapper {
+public class GradleEditTaskDialog extends DialogWrapper {
   private JPanel myContentPanel;
   private JPanel myTaskPanel;
   private TextFieldWithAutoCompletion myTaskField;
   private List<String> myAvailableTasks = Lists.newArrayList();
 
-  protected GradleEditGoalDialog(@Nullable Project project) {
+  protected GradleEditTaskDialog(@Nullable Project project) {
     super(project);
 
-    setTitle("Select Gradle Goal");
+    setTitle("Select Gradle Task");
     setModal(true);
 
     TextFieldWithAutoCompletionListProvider<String> provider = new TextFieldWithAutoCompletion.StringsCompletionProvider(null, null) {
