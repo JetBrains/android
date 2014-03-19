@@ -37,14 +37,8 @@
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
-    <action id="NewActivity" class="com.android.tools.idea.actions.AndroidNewActivityAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
-    </action>
-    <action id="NewAndroidComponent" class="com.android.tools.idea.actions.NewAndroidComponentAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewActivity"/>
-    </action>
     <action id="NewAndroidAssetImage" class="com.android.tools.idea.actions.AndroidAssetStudioAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewAndroidComponent"/>
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
     <action id="Android.CreateResourcesActionGroup" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>

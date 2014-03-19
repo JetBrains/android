@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -32,23 +30,25 @@ import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.NewAndroidComponentDialog;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.util.Set;
 
-import static com.android.tools.idea.templates.Template.CATEGORY_OTHER;
-
 /**
- *
+ * An action to launch a wizard to create a component from a template.
  */
 public class NewAndroidComponentAction extends AnAction {
 
   private static final Set<String> EXCLUDED = ImmutableSet.of();
 
-  protected NewAndroidComponentAction() {
-    super(AndroidBundle.message("android.new.component.action.title"), AndroidBundle.message("android.new.component.action.description"),
-          AndroidIcons.Android);
+  private final String myTemplateCategory;
+  private final String myTemplateName;
+
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName) {
+    super(templateName, "Create a new " + templateName, AndroidIcons.Android);
+    myTemplateCategory = templateCategory;
+    myTemplateName = templateName;
   }
 
   @Override
@@ -56,10 +56,6 @@ public class NewAndroidComponentAction extends AnAction {
     final Presentation presentation = e.getPresentation();
     final DataContext dataContext = e.getDataContext();
     presentation.setVisible(isAvailable(dataContext));
-    final Project project = CommonDataKeys.PROJECT.getData(dataContext);
-    presentation.setText(project != null && Projects.isGradleProject(project)
-                         ? AndroidBundle.message("android.new.component.action.title")
-                         : AndroidBundle.message("android.new.component.action.title.non.gradle"));
   }
 
   private static boolean isAvailable(DataContext dataContext) {
@@ -132,7 +128,7 @@ public class NewAndroidComponentAction extends AnAction {
     NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
                                                                  LangDataKeys.MODULE.getData(dataContext),
                                                                  targetFile,
-                                                                 CATEGORY_OTHER, EXCLUDED);
+                                                                 myTemplateCategory, myTemplateName, EXCLUDED);
 
     dialog.show();
     if (dialog.isOK()) {
