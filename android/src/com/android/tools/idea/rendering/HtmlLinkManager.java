@@ -302,7 +302,7 @@ public class HtmlLinkManager {
 
   private static void handleCompileModuleUrl(@NotNull String url, @NotNull Module module) {
     assert url.equals(URL_BUILD) : url;
-    ProjectBuilder.getInstance(module.getProject()).make();
+    ProjectBuilder.getInstance(module.getProject()).compileJava();
   }
 
   public String createEditClassPathUrl() {

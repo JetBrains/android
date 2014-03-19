@@ -53,7 +53,7 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
     BuildSettings buildSettings = BuildSettings.getInstance(project);
     if (baseScope instanceof ProjectCompileScope) {
       // Make or Rebuild project
-      BuildMode buildMode = forceBuild ? BuildMode.REBUILD : BuildMode.MAKE;
+      BuildMode buildMode = forceBuild ? BuildMode.REBUILD : BuildMode.ASSEMBLE;
       if (buildSettings.getBuildMode() == null) {
         buildSettings.setBuildMode(buildMode);
       }
@@ -73,7 +73,7 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
         modulesToBuild = Projects.getModulesToBuildFromSelection(project, null);
       }
       buildSettings.setModulesToBuild(modulesToBuild);
-      buildSettings.setBuildMode(BuildMode.MAKE);
+      buildSettings.setBuildMode(BuildMode.ASSEMBLE);
     }
     else if (baseScope instanceof CompositeScope) {
       // Compile selected modules

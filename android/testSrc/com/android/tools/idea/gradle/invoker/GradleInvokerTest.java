@@ -135,10 +135,10 @@ public class GradleInvokerTest extends IdeaTestCase {
       public void execute(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
         assertEquals(qualifiedTaskName(taskName), tasks.get(0));
-        assertEquals(BuildMode.MAKE, getBuildMode());
+        assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
-    myInvoker.make(new Module[] { myModule }, GradleBuilds.TestCompileType.NONE);
+    myInvoker.assemble(new Module[]{myModule}, GradleBuilds.TestCompileType.NONE);
   }
 
   public void testRebuild() throws Exception {
