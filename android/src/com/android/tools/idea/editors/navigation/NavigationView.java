@@ -30,7 +30,9 @@ import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -59,8 +61,9 @@ import java.util.*;
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationView extends JComponent {
-  //private static final Logger LOG = Logger.getInstance("#" + NavigationEditorPanel.class.getName());
+  private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
   public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
   private static final Color BACKGROUND_COLOR = Gray.get(192);
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = Gray.get(180);
@@ -125,19 +128,34 @@ public class NavigationView extends JComponent {
   }
   */
 
+  /* In projects with one module with an AndroidFacet, return that AndroidFacet. */
   @Nullable
-  public static RenderingParameters getRenderingParams(Project project, VirtualFile file) {
-    if (file != null) {
-      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-      if (psiFile != null) {
-        AndroidFacet facet = AndroidFacet.getInstance(psiFile);
-        if (facet != null) {
-          Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
-          return new RenderingParameters(project, configuration, facet);
-        }
+  private static AndroidFacet getAndroidFacet(@NotNull Project project) {
+    AndroidFacet result = null;
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        continue;
+      }
+      if (result == null) {
+        result = facet;
+      }
+      else {
+        LOG.error("Navigation Editor does not yet support multiple module projects");
+        return null;
       }
     }
-    return null;
+    return result;
+  }
+
+  @Nullable
+  public static RenderingParameters getRenderingParams(@NotNull Project project, @NotNull VirtualFile file) {
+    AndroidFacet facet = getAndroidFacet(project);
+    if (facet == null) {
+      return null;
+    }
+    Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
+    return new RenderingParameters(project, configuration, facet);
   }
 
   public NavigationView(RenderingParameters renderingParams, NavigationModel model) {
@@ -870,7 +888,7 @@ public class NavigationView extends JComponent {
         return;
       }
       Point location = e.getPoint();
-      boolean modified = (e.isShiftDown() || e.isControlDown() || e.isMetaDown()) && !e.isPopupTrigger();
+      boolean modified = (e.isShiftDown() || e.isControlDown() || e.isMetaDown());
       setSelection(createSelection(location, modified));
       requestFocus();
     }
