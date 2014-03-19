@@ -86,6 +86,7 @@ public class NavigationView extends JComponent {
   private static final Condition<Component> SCREENS = instanceOf(AndroidRootComponent.class);
   private static final Condition<Component> EDITORS = not(SCREENS);
   private static final boolean DRAW_DESTINATION_RECTANGLES = false;
+  private static final boolean DEBUG = false;
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
@@ -193,13 +194,12 @@ public class NavigationView extends JComponent {
       myNavigationModel.getListeners().add(new Listener<NavigationModel.Event>() {
         @Override
         public void notify(@NotNull NavigationModel.Event event) {
-          if (event.operation != NavigationModel.Event.Operation.UPDATE) {
-            if (event.operandType.isAssignableFrom(State.class)) {
-              myStateCacheIsValid = false;
-            }
-            if (event.operandType.isAssignableFrom(Transition.class)) {
-              myTransitionEditorCacheIsValid = false;
-            }
+          if (DEBUG) System.out.println("NavigationView:: <listener> " + myStateCacheIsValid + " " + myTransitionEditorCacheIsValid);
+          if (event.operandType.isAssignableFrom(State.class)) {
+            myStateCacheIsValid = false;
+          }
+          if (event.operandType.isAssignableFrom(Transition.class)) {
+            myTransitionEditorCacheIsValid = false;
           }
           revalidate();
           repaint();
@@ -685,6 +685,7 @@ public class NavigationView extends JComponent {
 
   @Override
   public void doLayout() {
+    if (DEBUG) System.out.println("NavigationView: doLayout");
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
@@ -698,6 +699,9 @@ public class NavigationView extends JComponent {
       String gesture = transition.getType();
       if (gesture != null) {
         Component editor = transitionToEditor.get(transition);
+        if (editor == null) { // if model is changed on another thread we may see null here (with new notification system)
+          continue;
+        }
         Dimension preferredSize = editor.getPreferredSize();
         Point[] points = getControlPoints(transition);
         Point location = diff(midPoint(points[1], points[2]), midPoint(preferredSize));
@@ -738,6 +742,7 @@ public class NavigationView extends JComponent {
   }
 
   private void syncTransitionCache(Assoc<Transition, Component> assoc) {
+    if (DEBUG) System.out.println("NavigationView: syncTransitionCache");
     // add anything that is in the model but not in our cache
     for (Transition transition : myNavigationModel.getTransitions()) {
       if (!assoc.keyToValue.containsKey(transition)) {
@@ -777,6 +782,11 @@ public class NavigationView extends JComponent {
   }
 
   private void syncStateCache(Assoc<State, AndroidRootComponent> assoc) {
+    if (DEBUG) System.out.println("NavigationView: syncStateCache");
+    assoc.clear();
+    removeAll();
+    //repaint();
+
     // add anything that is in the model but not in our cache
     for (State state : myNavigationModel.getStates()) {
       if (!assoc.keyToValue.containsKey(state)) {
@@ -785,8 +795,6 @@ public class NavigationView extends JComponent {
         add(root);
       }
     }
-    // remove anything that is in our cache but not in the model
-    removeLeftovers(assoc, myNavigationModel.getStates());
 
     setPreferredSize();
   }
