@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Strings;
@@ -59,6 +60,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   private Project myProject;
   private Module myModule;
   private String myTemplateCategory;
+  private String myTemplateName;
   private VirtualFile myTargetFolder;
   private Set<String> myExcluded;
   @VisibleForTesting AssetSetStep myAssetSetStep;
@@ -67,19 +69,29 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
                                  @Nullable VirtualFile invocationTarget,
-                                 String templateCategory) {
-    this(project, module, invocationTarget, templateCategory, null);
+                                 @Nullable String templateCategory) {
+    this(project, module, invocationTarget, templateCategory, null, null);
   }
 
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
                                  @Nullable VirtualFile invocationTarget,
-                                 String templateCategory,
+                                 @Nullable String templateCategory,
+                                 @Nullable String templateName) {
+    this(project, module, invocationTarget, templateCategory, templateName, null);
+  }
+
+  public NewTemplateObjectWizard(@Nullable Project project,
+                                 @Nullable Module module,
+                                 @Nullable VirtualFile invocationTarget,
+                                 @Nullable String templateCategory,
+                                 @Nullable String templateName,
                                  @Nullable Set<String> excluded) {
     super("New " + templateCategory, project);
     myProject = project;
     myModule = module;
     myTemplateCategory = templateCategory;
+    myTemplateName = templateName;
     if (invocationTarget == null) {
       myTargetFolder = null;
     }
@@ -151,8 +163,13 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
     myWizardState.put(ATTR_DEBUG_KEYSTORE_PATH, getDebugKeystorePath(facet));
 
-    myChooseTemplateStep = new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, myModule, null, this, this, myExcluded);
-    mySteps.add(myChooseTemplateStep);
+    File templateFile = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
+    if (myTemplateName == null || templateFile == null) {
+      myChooseTemplateStep = new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, myModule, null, this, this, myExcluded);
+      mySteps.add(myChooseTemplateStep);
+    } else {
+      myWizardState.setTemplateLocation(templateFile);
+    }
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, myModule, null, this));
     myAssetSetStep = new AssetSetStep(myWizardState, myProject, myModule, null, this);
     Disposer.register(getDisposable(), myAssetSetStep);
