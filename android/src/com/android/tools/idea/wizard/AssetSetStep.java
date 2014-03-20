@@ -18,25 +18,29 @@ package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.ActionBarIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
+import com.android.builder.model.SourceProvider;
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.collect.Iterators;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorPanel;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +71,7 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
 
   private static final String V11 = "V11";
   private static final String V9 = "V9";
+  private SourceProvider mySourceProvider = null;
 
   private AssetStudioAssetGenerator myAssetGenerator;
   private JPanel myPanel;
@@ -127,9 +132,15 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public AssetSetStep(TemplateWizardState state, @Nullable Project project, @Nullable Module module,
-                      @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
+                      @Nullable Icon sidePanelIcon, UpdateListener updateListener, @Nullable VirtualFile invocationTarget) {
     super(state, project, module, sidePanelIcon, updateListener);
     myAssetGenerator = new AssetStudioAssetGenerator(state);
+    if (invocationTarget != null && module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null) {
+        mySourceProvider = Iterators.getNext(IdeaSourceProvider.getSourceProvidersForFile(facet, invocationTarget, null).iterator(), null);
+      }
+    }
 
     myUpdateQueue = new MergingUpdateQueue("asset.studio", 200, true, null, this, null, false);
 
@@ -468,7 +479,7 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
    * Must be run inside a write action. Creates the asset files on disk.
    */
   public void createAssets(@Nullable Module module) {
-    File targetResDir = (File)myTemplateState.get(ChooseOutputLocationStep.ATTR_OUTPUT_FOLDER);
+    File targetResDir = (File)myTemplateState.get(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER);
     if (targetResDir == null) {
       if (myTemplateState.hasAttr(TemplateMetadata.ATTR_RES_DIR)) {
         assert module != null;
@@ -496,6 +507,9 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
   }
 
   private boolean drawableExists(String resourceName) {
+    if (mySourceProvider != null) {
+      return Parameter.existsResourceFile(mySourceProvider, ResourceFolderType.DRAWABLE, resourceName);
+    }
     return Parameter.existsResourceFile(myModule, ResourceType.DRAWABLE, resourceName);
   }
 

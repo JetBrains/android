@@ -120,10 +120,7 @@ public class NewAndroidComponentAction extends AnAction {
       }
       return;
     }
-    VirtualFile targetFile = null;
-    if (JavaSourceAction.isAvailable(dataContext)) {
-      targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
-    }
+    VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
     NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
                                                                  LangDataKeys.MODULE.getData(dataContext),
