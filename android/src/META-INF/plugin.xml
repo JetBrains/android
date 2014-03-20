@@ -453,10 +453,11 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.PostProjectSyncTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.VariantSelectionVerifier"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSetupMessages"/>
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
     <projectService serviceInterface="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"
