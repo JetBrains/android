@@ -41,11 +41,12 @@ import java.util.*;
  * This step allows the user to select a build variant and provides a preview
  * of the assets that are about to be created.
  */
-public class ChooseOutputLocationStep extends TemplateWizardStep {
+public class ChooseOutputResDirStep extends TemplateWizardStep {
 
   public static final String ATTR_TARGET_MODULE = "targetModule";
   public static final String ATTR_TARGET_VARIANT = "targetVariant";
   public static final String ATTR_OUTPUT_FOLDER = "outputFolder";
+  private final VirtualFile myTargetFile;
 
   private JComboBox myModuleComboBox;
   private JLabel myDescription;
@@ -64,19 +65,33 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
 
   private AssetStudioAssetGenerator myAssetGenerator;
 
-  public ChooseOutputLocationStep(@NotNull TemplateWizardState state,
-                                  @NotNull Project project,
-                                  @Nullable Icon sidePanelIcon,
-                                  UpdateListener updateListener,
-                                  @Nullable Module module) {
+  public ChooseOutputResDirStep(@NotNull TemplateWizardState state,
+                                @NotNull Project project,
+                                @Nullable Icon sidePanelIcon,
+                                UpdateListener updateListener,
+                                @Nullable Module module,
+                                @Nullable VirtualFile invocationTarget) {
     super(state, project, module, sidePanelIcon, updateListener);
 
     myAssetGenerator = new AssetStudioAssetGenerator(state);
+    myTargetFile = invocationTarget;
 
     init();
   }
 
   public void init() {
+    if (myTargetFile != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      if (facet != null) {
+        Iterator<SourceProvider> sourceProvidersIter = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFile, null).iterator();
+        if (sourceProvidersIter.hasNext()) {
+          File resDir = NewTemplateObjectWizard.findResDirectory(sourceProvidersIter.next());
+          if (resDir != null) {
+            myTemplateState.put(ATTR_OUTPUT_FOLDER, FileUtil.toSystemIndependentName(resDir.getPath()));
+          }
+        }
+      }
+    }
     setUpUiComponents();
   }
 
@@ -130,6 +145,13 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
   }
 
   @Override
+  public void update() {
+    if (myVisible) {
+      super.update();
+    }
+  }
+
+  @Override
   public void updateParams() {
     super.updateParams();
     mySelectedModule = myModuleArray[myModuleComboBox.getSelectedIndex()];
@@ -154,20 +176,24 @@ public class ChooseOutputLocationStep extends TemplateWizardStep {
         DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
         String moduleRoot = FileUtil.toSystemIndependentName(AndroidRootUtil.getModuleDirPath(facet.getModule()));
 
-        Set<String> knownResPaths = Sets.newHashSet();
-
+        File resDir = new File(FileUtil.toSystemDependentName(myTemplateState.getString(ATTR_OUTPUT_FOLDER)));
+        int index = 0;
+        int selectedIndex = 0;
         // Offer all source sets
         for (SourceProvider sourceProvider : IdeaSourceProvider.getAllSourceProviders(facet)) {
           for (File f : sourceProvider.getResDirectories()) {
             String resPath = FileUtil.getRelativePath(moduleRoot,
                                                       FileUtil.toSystemIndependentName(f.getPath()), '/');
             comboBoxModel.addElement(new ComboBoxItem(f, resPath, 1, 1));
-            knownResPaths.add(resPath);
+            if (resDir != null && resDir.equals(f)) {
+              selectedIndex = index;
+            }
+            index++;
           }
         }
 
         myVariantComboBox.setModel(comboBoxModel);
-        myVariantComboBox.setSelectedIndex(0);
+        myVariantComboBox.setSelectedIndex(selectedIndex);
       } else {
         hide(myVariantComboBox, myResDirLabel);
         VirtualFile resourceDir = facet.getPrimaryResourceDir();
