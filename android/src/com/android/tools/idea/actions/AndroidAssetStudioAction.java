@@ -22,9 +22,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 
 /**
  * Action to invoke the Asset Studio. This action is visible
@@ -70,13 +72,20 @@ public class AndroidAssetStudioAction extends AnAction {
       return;
     }
 
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return;
+    }
+
     final PsiDirectory dir = view.getOrChooseDirectory();
     if (dir == null) {
       return;
     }
 
     Project project = CommonDataKeys.PROJECT.getData(dataContext);
-    AssetStudioWizard dialog = new AssetStudioWizard(project, module);
+    VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+
+    AssetStudioWizard dialog = new AssetStudioWizard(project, module, targetFile);
 
     dialog.show();
     if (!dialog.isOK()) {
