@@ -34,8 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -56,21 +54,17 @@ public class AndroidRootComponent extends JComponent {
     myRenderingParameters = renderingParameters;
     myLayoutFile = psiFile;
     myIsMenu = isMenu;
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          if (myLayoutFile != null) {
-            Project project = myRenderingParameters.myProject;
-            VirtualFile virtualFile = myLayoutFile.getVirtualFile();
-            OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
-            FileEditorManager manager = FileEditorManager.getInstance(project);
-            manager.openEditor(descriptor, true);
-            manager.setSelectedEditor(virtualFile, AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID);
-          }
-        }
-      }
-    });
+  }
+
+  public void launchLayoutEditor() {
+    if (myLayoutFile != null) {
+      Project project = myRenderingParameters.myProject;
+      VirtualFile virtualFile = myLayoutFile.getVirtualFile();
+      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
+      FileEditorManager manager = FileEditorManager.getInstance(project);
+      manager.openEditor(descriptor, true);
+      manager.setSelectedEditor(virtualFile, AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID);
+    }
   }
 
   @Nullable
