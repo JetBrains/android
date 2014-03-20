@@ -331,8 +331,14 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @VisibleForTesting
   static String computeDefaultActivity(@NotNull final AndroidFacet facet, @Nullable final ProcessHandler processHandler) {
     if (!facet.getProperties().USE_CUSTOM_COMPILER_MANIFEST) {
-      ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), true);
-      return AndroidUtils.getDefaultLauncherActivityName(manifestInfo.getActivities(), manifestInfo.getActivityAliases());
+      final ManifestInfo manifestInfo = ManifestInfo.get(facet.getModule(), true);
+
+      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Override
+        public String compute() {
+          return AndroidUtils.getDefaultLauncherActivityName(manifestInfo.getActivities(), manifestInfo.getActivityAliases());
+        }
+      });
     }
 
     File manifestCopy = null;
