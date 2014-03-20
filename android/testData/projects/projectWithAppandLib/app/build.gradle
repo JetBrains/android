@@ -16,6 +16,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    productFlavors {
+        basic {
+          packageName "com.example.projectwithappandlib.app"
+        }
+        paid {
+            packageName "com.example.projectwithappandlib.app.paid"
+        }
+    }
 }
 
 dependencies {
