@@ -103,6 +103,7 @@ public class ChooseSourceSetStep extends TemplateWizardStep {
       sourceProviderListItemList.add(new SourceProviderListItem(provider, provider.getName()));
     }
     mySourceSetList.setModel(JBList.createDefaultListModel(ArrayUtil.toObjectArray(sourceProviderListItemList)));
+    mySourceSetList.setSelectedIndex(0);
   }
 
   private static class SourceProviderListItem {

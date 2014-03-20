@@ -159,7 +159,6 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     if (mySourceProviders.size() != 1) {
       mySteps.add(new ChooseSourceSetStep(myWizardState, myProject, myModule, null, this, this, mySourceProviders));
     }
-    mySteps.add(myChooseTemplateStep);
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, myModule, null, this));
     myAssetSetStep = new AssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFolder);
     Disposer.register(getDisposable(), myAssetSetStep);
