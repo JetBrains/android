@@ -1,0 +1,14 @@
+<html>
+<body>
+<font face="verdana" size="-1">
+  Reports two types of problems:
+  <ul>
+    <li>Supplying the wrong type of resource identifier. For example, when calling Resources.getString(int id),
+        you should be passing R.string.something, not R.drawable.something.</li>
+    <li>Passing the wrong constant to a method which expects one of a specific set of constants.
+        For example, when calling View#setLayoutDirection, the parameter must be android.view.View.LAYOUT_DIRECTION_LTR
+        or android.view.View.LAYOUT_DIRECTION_RTL.</li>
+  </ul>
+</font>
+</body>
+</html>

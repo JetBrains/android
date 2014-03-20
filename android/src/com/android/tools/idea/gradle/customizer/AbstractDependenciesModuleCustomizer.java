@@ -38,6 +38,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_RES;
+import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static java.io.File.separatorChar;
+
 public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
@@ -117,6 +121,19 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     updateLibrarySourcesIfAbsent(library, sourcePaths, OrderRootType.SOURCES);
     updateLibrarySourcesIfAbsent(library, documentationPaths, OrderRootType.DOCUMENTATION);
 
+    // Add external annotations.
+    // TODO: Add this to the model instead!
+    for (String binaryPath : binaryPaths) {
+      if (binaryPath.endsWith(FD_RES) && binaryPath.length() > FD_RES.length() &&
+        binaryPath.charAt(binaryPath.length() - FD_RES.length() - 1) == separatorChar) {
+        File annotations = new File(binaryPath.substring(0, binaryPath.length() - FD_RES.length()),
+                                    FN_ANNOTATIONS_ZIP);
+        if (annotations.isFile()) {
+          updateLibrarySourcesIfAbsent(library, Collections.singletonList(annotations.getPath()), AnnotationOrderRootType.getInstance());
+        }
+      }
+    }
+
     LibraryOrderEntry orderEntry = model.addLibraryEntry(library);
     orderEntry.setScope(scope);
     orderEntry.setExported(true);
@@ -157,7 +174,9 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
   public static String pathToUrl(@NotNull String path) {
     File file = new File(path);
 
-    boolean isJarFile = FileUtilRt.extensionEquals(file.getName(), SdkConstants.EXT_JAR);
+    String name = file.getName();
+    boolean isJarFile = FileUtilRt.extensionEquals(name, SdkConstants.EXT_JAR) ||
+                        FileUtilRt.extensionEquals(name, SdkConstants.EXT_ZIP);
     // .jar files require an URL with "jar" protocol.
     String protocol = isJarFile ? StandardFileSystems.JAR_PROTOCOL : StandardFileSystems.FILE_PROTOCOL;
     String filePath = FileUtil.toSystemIndependentName(file.getPath());
