@@ -35,6 +35,7 @@ import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -69,8 +70,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.templates.Parameter.Constraint;
+import static com.android.tools.idea.templates.Parameter.existsResourceFile;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
@@ -804,12 +807,24 @@ public class Template {
       }
     }
 
+    // Check to see if all our dependencies are satisfied. If so, we're done
+    boolean needsUpdate = false;
+
     // Now load the new ones in
     for (String coordinateString : dependencyList) {
       GradleCoordinate coord = GradleCoordinate.parseCoordinateString(coordinateString);
       if (coord != null) {
-        dependencies.put(coord.getId(), coord);
+        Collection<GradleCoordinate> existingDependencies = dependencies.get(coord.getId());
+        if (existingDependencies == null || !existingDependencies.iterator().hasNext() ||
+            COMPARE_PLUS_HIGHER.compare(existingDependencies.iterator().next(), coord) < 0) {
+          dependencies.put(coord.getId(), coord);
+          needsUpdate = true;
+        }
       }
+    }
+
+    if (!needsUpdate) {
+      return;
     }
 
     List<String> unresolvedDependencies = Lists.newLinkedList();

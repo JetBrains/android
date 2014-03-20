@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.builder.model.SourceProvider;
+import com.android.ide.common.res2.SourceSet;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.annotations.VisibleForTesting;
@@ -152,6 +154,8 @@ public class TemplateParameterStep extends TemplateWizardStep {
     if (myProject == null || myTemplateState.getTemplateMetadata() == null) {
       return;
     }
+
+    SourceProvider provider = myTemplateState.getSourceProvider();
     for (String paramName : myParamFields.keySet()) {
       Parameter parameter = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       // For the moment, only string types can be checked for uniqueness
@@ -161,11 +165,11 @@ public class TemplateParameterStep extends TemplateWizardStep {
       JComponent component = myParamFields.get(paramName);
       // If we have existing files, ensure uniqueness is satisfied
       if (parameter.constraints.contains(Parameter.Constraint.UNIQUE) &&
-          !parameter.uniquenessSatisfied(myProject, myModule, packageName, myTemplateState.getString(parameter.id))) {
+          !parameter.uniquenessSatisfied(myProject, myModule, provider, packageName, myTemplateState.getString(parameter.id))) {
         // While uniqueness isn't satisfied, increment number and add to end
         int i = 2;
         String originalValue = myTemplateState.getString(parameter.id);
-        while (!parameter.uniquenessSatisfied(myProject, myModule, packageName, originalValue + Integer.toString(i))) {
+        while (!parameter.uniquenessSatisfied(myProject, myModule, provider, packageName, originalValue + Integer.toString(i))) {
           i++;
         }
         String derivedValue = String.format("%s%d", originalValue, i);
