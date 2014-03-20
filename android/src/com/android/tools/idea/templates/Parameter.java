@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
+import com.android.builder.model.SourceProvider;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -26,18 +27,23 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.templates.Template.*;
@@ -251,15 +257,20 @@ public class Parameter {
 
   @Nullable
   public String validate(@Nullable Project project, @Nullable String packageName, @Nullable Object value) {
-    return validate(project, null, packageName, value);
+    return validate(project, null, null, packageName, value);
   }
 
   @Nullable
-  public String validate(@Nullable Project project, @Nullable Module module,
+  public String validate(@Nullable Project project, @Nullable Module module, @Nullable String packageName, @Nullable Object value) {
+    return validate(project, module, null, packageName, value);
+  }
+
+  @Nullable
+  public String validate(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                          @Nullable String packageName, @Nullable Object value) {
     switch (type) {
       case STRING:
-        return getErrorMessageForStringType(project, module, packageName, value.toString());
+        return getErrorMessageForStringType(project, module, provider, packageName, value.toString());
       case BOOLEAN:
       case ENUM:
       case SEPARATOR:
@@ -276,9 +287,9 @@ public class Parameter {
    * @return An error message detailing why the given value is invalid.
    */
   @Nullable
-  protected String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module,
+  protected String getErrorMessageForStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                                                 @Nullable String packageName, @Nullable String value) {
-    Collection<Constraint> violations = validateStringType(project, module, packageName, value);
+    Collection<Constraint> violations = validateStringType(project, module, provider, packageName, value);
 
     if (violations.contains(Constraint.NONEMPTY)) {
       return "Please specify " + name;
@@ -342,9 +353,9 @@ public class Parameter {
    * @return All constraints of this parameter that are violated by the proposed value.
    */
   @NotNull
-  protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable Module module,
+  protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                                                       @Nullable String packageName, @Nullable String value) {
-    GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleScope(module) :
+    GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) :
                                     project != null ? GlobalSearchScope.projectScope(project) :
                                     GlobalSearchScope.EMPTY_SCOPE;
 
@@ -364,7 +375,7 @@ public class Parameter {
       }
       if (project != null) {
         PsiClass aClass = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope);
-        PsiClass activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, searchScope);
+        PsiClass activityClass = JavaPsiFacade.getInstance(project).findClass(SdkConstants.CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
         exists = aClass != null && activityClass != null && aClass.isInheritor(activityClass, true);
       }
     }
@@ -376,7 +387,7 @@ public class Parameter {
         violations.add(Constraint.CLASS);
       }
       if (project != null) {
-        exists = JavaPsiFacade.getInstance(project).findClass(fqName, searchScope) != null;
+        exists = existsClassFile(project, searchScope, provider, fqName);
       }
     }
     if (constraints.contains(Constraint.PACKAGE)) {
@@ -384,7 +395,7 @@ public class Parameter {
         violations.add(Constraint.PACKAGE);
       }
       if (project != null) {
-        exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
+        exists = existsPackage(project, searchScope, provider, value);
       }
     }
     if (constraints.contains(Constraint.MODULE)) {
@@ -399,7 +410,7 @@ public class Parameter {
         violations.add(Constraint.APP_PACKAGE);
       }
       if (project != null) {
-        exists = JavaPsiFacade.getInstance(project).findPackage(value) != null;
+        exists = existsPackage(project, searchScope, provider, value);
       }
     }
     if (constraints.contains(Constraint.LAYOUT)) {
@@ -407,14 +418,16 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.LAYOUT);
       }
-      exists = existsResourceFile(module, ResourceType.LAYOUT, value);
+      exists = provider != null ? existsResourceFile(provider, ResourceFolderType.LAYOUT, value) :
+                                  existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
       String resourceNameError = ResourceNameValidator.create(false, ResourceFolderType.DRAWABLE).getErrorText(value);
       if (resourceNameError != null) {
         violations.add(Constraint.DRAWABLE);
       }
-      exists = existsResourceFile(module, ResourceType.DRAWABLE, value);
+      exists = provider != null ? existsResourceFile(provider, ResourceFolderType.DRAWABLE, value) :
+                                  existsResourceFile(module, ResourceType.DRAWABLE, value);
     }
     if (constraints.contains(Constraint.ID)) {
       // TODO: validity and existence check
@@ -438,9 +451,9 @@ public class Parameter {
   /**
    * Returns true if the given stringType is non-unique when it should be.
    */
-  public boolean uniquenessSatisfied(@Nullable Project project, @Nullable Module module,
+  public boolean uniquenessSatisfied(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                                      @Nullable String packageName, @Nullable String value) {
-    return !validateStringType(project, module, packageName, value).contains(Constraint.UNIQUE);
+    return !validateStringType(project, module, provider, packageName, value).contains(Constraint.UNIQUE);
   }
 
   private static boolean isValidFullyQualifiedJavaIdentifier(String value) {
@@ -459,5 +472,68 @@ public class Parameter {
       }
     }
     return false;
+  }
+
+  public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider,
+                                           @NotNull ResourceFolderType resourceType, @Nullable String name) {
+    if (name == null || name.isEmpty() || sourceProvider == null) {
+      return false;
+    }
+    for (File resDir : sourceProvider.getResDirectories()) {
+      File[] resTypes = resDir.listFiles();
+      if (resTypes == null) {
+        continue;
+      }
+      for (File resTypeDir : resTypes) {
+        if (resTypeDir.isDirectory() && resourceType.equals(ResourceFolderType.getFolderType(resTypeDir.getName()))) {
+          File[] files = resTypeDir.listFiles();
+          if (files == null) {
+            continue;
+          }
+          for (File f : files) {
+            if (FileUtil.getNameWithoutExtension(f).equalsIgnoreCase(name)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  public static boolean existsClassFile(@Nullable Project project, @NotNull GlobalSearchScope searchScope,
+                                        @Nullable SourceProvider sourceProvider, @NotNull String fullyQualifiedClassName) {
+    if (project == null) {
+      return false;
+    }
+    if (sourceProvider != null) {
+      for (File javaDir : sourceProvider.getJavaDirectories()) {
+        File classFile = new File(javaDir, fullyQualifiedClassName.replace('.', File.separatorChar) + SdkConstants.DOT_JAVA);
+        if (classFile.exists()) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return JavaPsiFacade.getInstance(project).findClass(fullyQualifiedClassName, searchScope) != null;
+    }
+  }
+
+  public static boolean existsPackage(@Nullable Project project, @NotNull GlobalSearchScope searchScope,
+                                        @Nullable SourceProvider sourceProvider, @NotNull String packageName) {
+    if (project == null) {
+      return false;
+    }
+    if (sourceProvider != null) {
+      for (File javaDir : sourceProvider.getJavaDirectories()) {
+        File classFile = new File(javaDir, packageName.replace('.', File.separatorChar));
+        if (classFile.exists() && classFile.isDirectory()) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return JavaPsiFacade.getInstance(project).findPackage(packageName) != null;
+    }
   }
 }
