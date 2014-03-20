@@ -20,16 +20,22 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -46,10 +52,25 @@ public class AndroidRootComponent extends JComponent {
   private RenderResult myRenderResult = null;
   private boolean myRenderPending = false;
 
-  public AndroidRootComponent(@NotNull RenderingParameters renderingParameters, @Nullable PsiFile layoutFile, boolean isMenu) {
+  public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
     myRenderingParameters = renderingParameters;
-    myLayoutFile = layoutFile;
+    myLayoutFile = psiFile;
     myIsMenu = isMenu;
+    addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) {
+          if (myLayoutFile != null) {
+            Project project = myRenderingParameters.myProject;
+            VirtualFile virtualFile = myLayoutFile.getVirtualFile();
+            OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
+            FileEditorManager manager = FileEditorManager.getInstance(project);
+            manager.openEditor(descriptor, true);
+            manager.setSelectedEditor(virtualFile, AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID);
+          }
+        }
+      }
+    });
   }
 
   @Nullable
