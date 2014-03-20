@@ -65,10 +65,10 @@ import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 public class NavigationView extends JComponent {
   private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
   public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
-  private static final Color BACKGROUND_COLOR            = new JBColor(Gray.get(192), Gray.get(70));
-  private static final Color SNAP_GRID_LINE_COLOR_MINOR  = new JBColor(Gray.get(180), Gray.get(60));
+  private static final Color BACKGROUND_COLOR = new JBColor(Gray.get(192), Gray.get(70));
+  private static final Color SNAP_GRID_LINE_COLOR_MINOR = new JBColor(Gray.get(180), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = new JBColor(Gray.get(170), Gray.get(50));
-  private static final Color SNAP_GRID_LINE_COLOR_MAJOR  = new JBColor(Gray.get(160), Gray.get(40));
+  private static final Color SNAP_GRID_LINE_COLOR_MAJOR = new JBColor(Gray.get(160), Gray.get(40));
 
   private static final float ZOOM_FACTOR = 1.1f;
 
@@ -906,6 +906,17 @@ public class NavigationView extends JComponent {
         return;
       }
       moveSelection(e.getPoint());
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+      if (e.getClickCount() == 2) {
+        Component child = getComponentAt(e.getPoint());
+        if (child instanceof AndroidRootComponent) {
+          AndroidRootComponent androidRootComponent = (AndroidRootComponent)child;
+          androidRootComponent.launchLayoutEditor();
+        }
+      }
     }
 
     @Override
