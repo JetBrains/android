@@ -16,6 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.SourceProvider;
+import com.android.ide.common.res2.SourceSet;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -43,6 +45,8 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.awt.*;
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -53,7 +57,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * parameter page and run the template against the source tree.
  */
 public class NewTemplateObjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener,
-                                                                       ChooseTemplateStep.TemplateChangeListener {
+                                                                       ChooseTemplateStep.TemplateChangeListener,
+                                                                       ChooseSourceSetStep.SourceProviderSelectedListener {
   private static final Logger LOG = Logger.getInstance("#" + NewTemplateObjectWizard.class.getName());
 
   @VisibleForTesting TemplateWizardState myWizardState;
@@ -65,6 +70,8 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   private Set<String> myExcluded;
   @VisibleForTesting AssetSetStep myAssetSetStep;
   @VisibleForTesting ChooseTemplateStep myChooseTemplateStep;
+  private List<SourceProvider> mySourceProviders;
+  private IdeaAndroidProject myGradleProject;
 
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
@@ -120,37 +127,16 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     int minSdkVersion;
     String minSdkName;
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-    String packageName = null;
     IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
 
-    // Look up the default resource directories
-    if (gradleProject != null) {
-      findSrcDirectory(facet, gradleProject, myWizardState);
-      findResDirectory(facet, gradleProject, myWizardState);
-      findManifestDirectory(facet, gradleProject, myWizardState);
 
-      // Calculate package name
-      String applicationPackageName = gradleProject.computePackageName();
-      if (myTargetFolder != null) {
-        packageName = getPackageFromDirectory(myTargetFolder, facet, gradleProject, myModule, myWizardState);
-        if (packageName != null && !packageName.equals(applicationPackageName)) {
-          // If we have selected a folder, make sure we pass along the application package
-          // so that we can do proper imports
-          myWizardState.put(ATTR_APPLICATION_PACKAGE, applicationPackageName);
-          myWizardState.myFinal.add(ATTR_APPLICATION_PACKAGE);
-        }
-      }
-      if (packageName == null) {
-        // Fall back to the application package but allow the user to edit
-        packageName = applicationPackageName;
-      }
-      else {
-        myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
-        myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_NAME);
-        myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, myTargetFolder.getPath());
-        myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
-      }
-      myWizardState.put(ATTR_PACKAGE_NAME, packageName);
+    if (gradleProject != null) {
+      myGradleProject = gradleProject;
+      // Select the source set that we're targeting
+      mySourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceSet());
+      SourceProvider sourceProvider = mySourceProviders.get(0);
+
+      selectSourceProvider(sourceProvider, gradleProject);
     }
 
     minSdkVersion = moduleInfo.getMinSdkVersion();
@@ -170,8 +156,12 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     } else {
       myWizardState.setTemplateLocation(templateFile);
     }
+    if (mySourceProviders.size() != 1) {
+      mySteps.add(new ChooseSourceSetStep(myWizardState, myProject, myModule, null, this, this, mySourceProviders));
+    }
+    mySteps.add(myChooseTemplateStep);
     mySteps.add(new TemplateParameterStep(myWizardState, myProject, myModule, null, this));
-    myAssetSetStep = new AssetSetStep(myWizardState, myProject, myModule, null, this);
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFolder);
     Disposer.register(getDisposable(), myAssetSetStep);
     mySteps.add(myAssetSetStep);
     myAssetSetStep.setVisible(false);
@@ -183,79 +173,109 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();
     myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
 
-    super.init();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      super.init();
       // Ensure that the window is large enough to accommodate the contents without clipping the validation error label
       Dimension preferredSize = getContentPanel().getPreferredSize();
       getContentPanel().setPreferredSize(new Dimension(Math.max(800, preferredSize.width), Math.max(640, preferredSize.height)));
     }
   }
 
-  /**
-   * Finds and returns the main src directory for the given project or null if one cannot be found.
-   * If given a TemplateWizardState it will also set the ATTR_SRC_DIR property in that state.
-   */
-  @VisibleForTesting
-  @Nullable
-  static VirtualFile findSrcDirectory(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject gradleProject,
-                                      @Nullable TemplateWizardState wizardState) {
-    IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
+  private void selectSourceProvider(@NotNull SourceProvider sourceProvider, @NotNull IdeaAndroidProject gradleProject) {
+    // Look up the resource directories inside this source set
     VirtualFile moduleDir = gradleProject.getRootDir();
-    Set<VirtualFile> javaDirectories = sourceSet.getJavaDirectories();
-    VirtualFile javaDir = null;
-    if (!javaDirectories.isEmpty()) {
-      javaDir = javaDirectories.iterator().next();
-      String relativePath = VfsUtilCore.getRelativePath(javaDir, moduleDir, '/'); // templates use / not File.separatorChar
-      if (relativePath != null && wizardState != null) {
-        wizardState.put(ATTR_SRC_DIR, relativePath);
+    File ioModuleDir = VfsUtilCore.virtualToIoFile(moduleDir);
+    File javaDir = findSrcDirectory(sourceProvider);
+    if (javaDir != null) {
+      String javaPath = FileUtil.getRelativePath(ioModuleDir, javaDir);
+      if (javaPath != null) {
+        javaPath = FileUtil.toSystemIndependentName(javaPath);
+      }
+      myWizardState.put(ATTR_SRC_DIR, javaPath);
+    }
+
+    File resDir = findResDirectory(sourceProvider);
+    if (resDir != null) {
+      String resPath = FileUtil.getRelativePath(ioModuleDir, resDir);
+      if (resPath != null) {
+        resPath = FileUtil.toSystemIndependentName(resPath);
+      }
+      myWizardState.put(ATTR_RES_DIR, resPath);
+      myWizardState.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));
+    }
+    File manifestDir = findManifestDirectory(sourceProvider);
+    if (manifestDir != null) {
+      String manifestPath = FileUtil.getRelativePath(ioModuleDir, manifestDir);
+      myWizardState.put(ATTR_MANIFEST_DIR, manifestPath);
+      myWizardState.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
+    }
+
+    // Calculate package name
+    String applicationPackageName = gradleProject.computePackageName();
+    String packageName = null;
+    if (myTargetFolder != null && IdeaSourceProvider.containsFile(sourceProvider, VfsUtilCore.virtualToIoFile(myTargetFolder))) {
+      packageName = getPackageFromDirectory(VfsUtilCore.virtualToIoFile(myTargetFolder), sourceProvider, myModule, myWizardState);
+      if (packageName != null && !packageName.equals(applicationPackageName)) {
+        // If we have selected a folder, make sure we pass along the application package
+        // so that we can do proper imports
+        myWizardState.put(ATTR_APPLICATION_PACKAGE, applicationPackageName);
+        myWizardState.myFinal.add(ATTR_APPLICATION_PACKAGE);
       }
     }
-    return javaDir;
+    if (packageName == null) {
+      // Fall back to the application package but allow the user to edit
+      packageName = applicationPackageName;
+    } else {
+      myWizardState.myHidden.add(TemplateMetadata.ATTR_PACKAGE_NAME);
+      myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_NAME);
+      if (javaDir != null) {
+        String packagePath = FileUtil.toSystemDependentName(packageName.replace('.', '/'));
+        File packageRoot = new File(javaDir, packagePath);
+        myWizardState.put(TemplateMetadata.ATTR_PACKAGE_ROOT, FileUtil.toSystemIndependentName(packageRoot.getPath()));
+        myWizardState.myFinal.add(TemplateMetadata.ATTR_PACKAGE_ROOT);
+      }
+    }
+    if (javaDir != null) {
+      File srcOut = new File(javaDir, packageName.replace('.', File.separatorChar));
+      myWizardState.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getPath()));
+    }
+    myWizardState.put(ATTR_PACKAGE_NAME, packageName);
+
+    myWizardState.setSourceProvider(sourceProvider);
+  }
+
+  /**
+   * Finds and returns the main src directory for the given project or null if one cannot be found.
+   */
+  @Nullable
+  public static File findSrcDirectory(@NotNull SourceProvider sourceProvider) {
+    Collection<File> javaDirectories = sourceProvider.getJavaDirectories();
+    return javaDirectories.isEmpty() ? null : javaDirectories.iterator().next();
   }
 
   /**
    * Finds and returns the main res directory for the given project or null if one cannot be found.
-   * If given a TemplateWizardState it will also set the ATTR_RES_DIR property in that state.
    */
-  @VisibleForTesting
   @Nullable
-  static VirtualFile findResDirectory(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject gradleProject,
-                                      @Nullable TemplateWizardState wizardState) {
-    IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
-    VirtualFile moduleDir = gradleProject.getRootDir();
-    Set<VirtualFile> resDirectories = sourceSet.getResDirectories();
-    VirtualFile resDir = null;
+  public static File findResDirectory(@NotNull SourceProvider sourceProvider) {
+    Collection<File> resDirectories = sourceProvider.getResDirectories();
+    File resDir = null;
     if (!resDirectories.isEmpty()) {
       resDir = resDirectories.iterator().next();
-      String relativePath = VfsUtilCore.getRelativePath(resDir, moduleDir, '/');
-      if (relativePath != null && wizardState != null) {
-        wizardState.put(ATTR_RES_DIR, relativePath);
-      }
     }
     return resDir;
   }
 
   /**
    * Finds and returns the main manifest directory for the given project or null if one cannot be found.
-   * If given a TemplateWizardState it will also set the ATTR_MANIFEST_DIR property in that state.
    */
-  @VisibleForTesting
   @Nullable
-  static VirtualFile findManifestDirectory(@NotNull AndroidFacet facet, @NotNull IdeaAndroidProject gradleProject,
-                                           @Nullable TemplateWizardState wizardState) {
-    IdeaSourceProvider sourceSet = facet.getMainIdeaSourceSet();
-    VirtualFile moduleDir = gradleProject.getRootDir();
-    VirtualFile manifestFile = sourceSet.getManifestFile();
-    if (manifestFile != null) {
-      VirtualFile manifestDir = manifestFile.getParent();
-      if (manifestDir != null) {
-        String relativePath = VfsUtilCore.getRelativePath(manifestDir, moduleDir, '/');
-        if (relativePath != null && wizardState != null) {
-          wizardState.put(ATTR_MANIFEST_DIR, relativePath);
-        }
-        return manifestDir;
-      }
+  public static File findManifestDirectory(@NotNull SourceProvider sourceProvider) {
+    File manifestFile = sourceProvider.getManifestFile();
+    File manifestDir = manifestFile.getParentFile();
+    if (manifestDir != null) {
+      return manifestDir;
     }
     return null;
   }
@@ -264,13 +284,11 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
    * Calculate the package name from the given target directory. Returns the package name or null if no package name could
    * be calculated.
    */
-  @VisibleForTesting
   @Nullable
-  static String getPackageFromDirectory(@NotNull VirtualFile directory,
-                                        @NotNull AndroidFacet facet, @NotNull IdeaAndroidProject gradleProject,
+  public static String getPackageFromDirectory(@NotNull File directory, @NotNull SourceProvider sourceProvider,
                                         @NotNull Module module, @NotNull TemplateWizardState wizardState) {
     File javaSourceRoot;
-    VirtualFile javaDir = findSrcDirectory(facet, gradleProject, null);
+    File javaDir = findSrcDirectory(sourceProvider);
     if (javaDir == null) {
       javaSourceRoot = new File(AndroidRootUtil.getModuleDirPath(module),
                                 FileUtil.toSystemDependentName(wizardState.getString(ATTR_SRC_DIR)));
@@ -280,6 +298,10 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     }
 
     File javaSourcePackageRoot = new File(directory.getPath());
+    if (!FileUtil.isAncestor(javaSourceRoot, javaSourcePackageRoot, true)) {
+      return null;
+    }
+
     String relativePath = FileUtil.getRelativePath(javaSourceRoot, javaSourcePackageRoot);
     String packageName = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
     if (packageName == null || !AndroidUtils.isValidJavaPackageName(packageName)) {
@@ -364,6 +386,13 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     catch (AndroidLocation.AndroidLocationException e) {
       LOG.info(String.format("Failed to get debug keystore path for module '%1$s'", facet.getModule().getName()), e);
       return null;
+    }
+  }
+
+  @Override
+  public void sourceProviderSelected(@NotNull SourceProvider sourceProvider) {
+    if (myGradleProject != null) {
+      selectSourceProvider(sourceProvider, myGradleProject);
     }
   }
 }

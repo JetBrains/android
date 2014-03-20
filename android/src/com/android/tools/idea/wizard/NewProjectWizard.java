@@ -104,7 +104,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
     myConfigureAndroidModuleStep.updateStep();
-    myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, NewProjectSidePanel, this);
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, NewProjectSidePanel, this, null);
     Disposer.register(getDisposable(), myAssetSetStep);
     myAssetGenerator = new AssetStudioAssetGenerator(myWizardState);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);

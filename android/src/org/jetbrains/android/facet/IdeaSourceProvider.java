@@ -22,6 +22,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
@@ -268,6 +269,124 @@ public abstract class IdeaSourceProvider {
     return providers;
   }
 
+  private Collection<VirtualFile> getAllSourceFolders() {
+    List<VirtualFile> srcDirectories = Lists.newArrayList();
+    srcDirectories.addAll(getJavaDirectories());
+    srcDirectories.addAll(getResDirectories());
+    srcDirectories.addAll(getAidlDirectories());
+    srcDirectories.addAll(getRenderscriptDirectories());
+    srcDirectories.addAll(getAssetsDirectories());
+    srcDirectories.addAll(getJniDirectories());
+    return srcDirectories;
+  }
+
+  private static Collection<File> getAllSourceFolders(SourceProvider provider) {
+    List<File> srcDirectories = Lists.newArrayList();
+    srcDirectories.addAll(provider.getJavaDirectories());
+    srcDirectories.addAll(provider.getResDirectories());
+    srcDirectories.addAll(provider.getAidlDirectories());
+    srcDirectories.addAll(provider.getRenderscriptDirectories());
+    srcDirectories.addAll(provider.getAssetsDirectories());
+    srcDirectories.addAll(provider.getJniDirectories());
+    return srcDirectories;
+  }
+
+  /**
+   * Returns true iff this SourceProvider provides the source folder that contains the given file.
+   */
+  public boolean containsFile(@NotNull VirtualFile file) {
+    Collection<VirtualFile> srcDirectories = getAllSourceFolders();
+    if (file.equals(getManifestFile())) {
+      return true;
+    }
+
+    for (VirtualFile container : srcDirectories) {
+      if (!container.exists()) {
+        continue;
+      }
+
+      if (VfsUtilCore.isAncestor(container, file, false /* allow them to be the same */)) {
+        return true;
+      }
+
+      // Check the flavor root directories
+      if (file.equals(container.getParent())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  /**
+   * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
+   * the given folder.
+   */
+  public static boolean isContainedBy(@NotNull SourceProvider provider, @NotNull File targetFolder) {
+    Collection<File> srcDirectories = getAllSourceFolders(provider);
+    for (File container : srcDirectories) {
+      if (FileUtil.isAncestor(targetFolder, container, false)) {
+        return true;
+      }
+
+      if (!container.exists()) {
+        continue;
+      }
+
+      if (VfsUtilCore.isAncestor(targetFolder, container, false /* allow them to be the same */)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true iff this SourceProvider provides the source folder that contains the given file.
+   */
+  public static boolean containsFile(@NotNull SourceProvider provider, @NotNull File file) {
+    Collection<File> srcDirectories = getAllSourceFolders(provider);
+    if (FileUtil.filesEqual(provider.getManifestFile(), file)) {
+      return true;
+    }
+
+    for (File container : srcDirectories) {
+      // Check the flavor root directories
+      File parent = container.getParentFile();
+      if (parent != null && parent.isDirectory() && FileUtil.filesEqual(parent, file)) {
+        return true;
+      }
+
+      // Don't do ancestry checking if this file doesn't exist
+      if (!container.exists()) {
+        continue;
+      }
+
+      if (VfsUtilCore.isAncestor(container, file, false /* allow them to be the same */)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  /**
+   * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
+   * the given folder.
+   */
+  public boolean isContainedBy(@NotNull VirtualFile targetFolder) {
+    Collection<VirtualFile> srcDirectories = getAllSourceFolders();
+    for (VirtualFile container : srcDirectories) {
+      if (!container.exists()) {
+        continue;
+      }
+
+      if (VfsUtilCore.isAncestor(targetFolder, container, false /* allow them to be the same */)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Returns an iterable of all source providers, for the given facet,
    * in the overlay order (meaning that later providers
@@ -278,7 +397,7 @@ public abstract class IdeaSourceProvider {
    * The overlay source order is defined by the Android Gradle plugin.
    */
   @NotNull
-  public static Iterable<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
+  public static List<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
     if (!facet.isGradleProject() || facet.getIdeaAndroidProject() == null) {
       return Collections.singletonList(facet.getMainSourceSet());
     }
@@ -334,12 +453,56 @@ public abstract class IdeaSourceProvider {
    * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).
    */
   @NotNull
-  public static Iterable<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
+  public static List<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
     List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayList();
     for (SourceProvider sourceProvider : getAllSourceProviders(facet)) {
       ideaSourceProviders.add(create(sourceProvider));
     }
     return ideaSourceProviders;
+  }
+
+  @NotNull
+  public static List<IdeaSourceProvider> getIdeaSourceProvidersForFile(@NotNull AndroidFacet facet,
+                                                                       @Nullable VirtualFile targetFolder,
+                                                                       @Nullable IdeaSourceProvider defaultIdeaSourceProvider) {
+    List<IdeaSourceProvider> sourceProviderList = Lists.newArrayList();
+
+
+    if (targetFolder != null) {
+      // Add source providers that contain the file (if any) and any that have files under the given folder
+      for (IdeaSourceProvider provider : getAllIdeaSourceProviders(facet)) {
+        if (provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder)) {
+          sourceProviderList.add(provider);
+        }
+      }
+    }
+
+    if (sourceProviderList.isEmpty() && defaultIdeaSourceProvider != null) {
+      sourceProviderList.add(defaultIdeaSourceProvider);
+    }
+    return sourceProviderList;
+  }
+
+  @NotNull
+  public static List<SourceProvider> getSourceProvidersForFile(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFolder,
+                                                               @Nullable SourceProvider defaultSourceProvider) {
+    List<SourceProvider> sourceProviderList = Lists.newArrayList();
+
+
+    if (targetFolder != null) {
+      File targetIoFolder = VfsUtilCore.virtualToIoFile(targetFolder);
+      // Add source providers that contain the file (if any) and any that have files under the given folder
+      for (SourceProvider provider : getAllSourceProviders(facet)) {
+        if (containsFile(provider, targetIoFolder) || isContainedBy(provider, targetIoFolder)) {
+          sourceProviderList.add(provider);
+        }
+      }
+    }
+
+    if (sourceProviderList.isEmpty() && defaultSourceProvider != null) {
+      sourceProviderList.add(defaultSourceProvider);
+    }
+    return sourceProviderList;
   }
 
   /** Returns true if the given candidate file is a manifest file in the given module */
