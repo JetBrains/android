@@ -114,7 +114,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, sidePanelIcon, this);
     myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, null, sidePanelIcon, this);
-    myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, sidePanelIcon, this);
+    myAssetSetStep = new AssetSetStep(myWizardState, myProject, null, sidePanelIcon, this, null);
     Disposer.register(disposable, myAssetSetStep);
     myChooseActivityStep = new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null,
                                                   sidePanelIcon, this, null);
