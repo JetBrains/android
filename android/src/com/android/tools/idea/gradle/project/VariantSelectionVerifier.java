@@ -197,6 +197,11 @@ public class VariantSelectionVerifier {
       };
     }
 
+    @NotNull
+    public Module getSource() {
+      return mySource;
+    }
+
     @Nullable
     public EditorNotificationPanel createNotificationPanel() {
       return new NotificationPanel(this);
