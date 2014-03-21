@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.ProjectImportEventMessage;
+import com.android.tools.idea.gradle.messages.ProjectSetupMessages;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -419,6 +420,9 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
+    ProjectSetupMessages messages = ProjectSetupMessages.getInstance(project);
+    messages.clearView();
+
     PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
