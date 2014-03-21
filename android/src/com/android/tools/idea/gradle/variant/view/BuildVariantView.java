@@ -29,6 +29,7 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
@@ -37,6 +38,7 @@ import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,12 +145,7 @@ public class BuildVariantView {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     Module[] modules = moduleManager.getModules();
-    Arrays.sort(modules, new Comparator<Module>() {
-      @Override
-      public int compare(Module o1, Module o2) {
-        return Collator.getInstance().compare(o1.getName(), o2.getName());
-      }
-    });
+    Arrays.sort(modules, ModulesAlphaComparator.INSTANCE);
     for (Module module : modules) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet == null || !androidFacet.isGradleProject()) {
