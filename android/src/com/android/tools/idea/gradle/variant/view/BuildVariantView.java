@@ -30,8 +30,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
@@ -50,6 +52,7 @@ import java.awt.event.ItemListener;
 import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -57,6 +60,8 @@ import java.util.List;
  */
 public class BuildVariantView {
   private static final Object[] TABLE_COLUMN_NAMES = new Object[]{"Module", "Build Variant"};
+
+  private static final int MODULE_COLUMN_INDEX = 0;
   private static final int VARIANT_COLUMN_INDEX = 1;
 
   private final Project myProject;
@@ -99,6 +104,7 @@ public class BuildVariantView {
 
   private void createUIComponents() {
     myVariantsTable = new BuildVariantTable();
+    new TableSpeedSearch(myVariantsTable);
     myErrorPanel = new JPanel() {
       @Override
       public Color getBackground() {
@@ -136,7 +142,14 @@ public class BuildVariantView {
     final List<BuildVariantItem[]> variantNamesPerRow = Lists.newArrayList();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
+    Module[] modules = moduleManager.getModules();
+    Arrays.sort(modules, new Comparator<Module>() {
+      @Override
+      public int compare(Module o1, Module o2) {
+        return Collator.getInstance().compare(o1.getName(), o2.getName());
+      }
+    });
+    for (Module module : modules) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet == null || !androidFacet.isGradleProject()) {
         continue;
@@ -264,8 +277,21 @@ public class BuildVariantView {
           Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
           if (c instanceof JComponent) {
             // add some padding to table cells. It is hard to read text of combo box.
-            ((JComponent)c).setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));
+            JComponent component = (JComponent)c;
+            VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.getInstance(myProject).getConflict();
+            if (conflict != null) {
+              Module source = conflict.getSource();
+              Object moduleName = table.getValueAt(row, MODULE_COLUMN_INDEX);
+              if (source.getName().equals(moduleName)) {
+                component.setBackground(MessageType.ERROR.getPopupBackground());
+              }
+              else {
+                component.setBackground(JBColor.background());
+              }
+            }
+            component.setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));
           }
+
           return c;
         }
       });
@@ -332,7 +358,7 @@ public class BuildVariantView {
 
     @Override
     public TableCellEditor getCellEditor(int row, int column) {
-      if (column == 1 && row >= 0 && row < myCellEditors.size()) {
+      if (column == VARIANT_COLUMN_INDEX && row >= 0 && row < myCellEditors.size()) {
         return myCellEditors.get(row);
       }
       return super.getCellEditor(row, column);
