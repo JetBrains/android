@@ -35,7 +35,6 @@ import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -391,8 +390,7 @@ public class Template {
           } else if (TAG_GLOBAL.equals(name)) {
             String id = attributes.getValue(ATTR_ID);
             if (!paramMap.containsKey(id)) {
-              String value = attributes.getValue(ATTR_VALUE);
-              paramMap.put(id, value);
+              paramMap.put(id, TypedVariable.parseGlobal(attributes));
             }
           } else if (TAG_GLOBALS.equals(name)) {
             // Handle evaluation of variables
