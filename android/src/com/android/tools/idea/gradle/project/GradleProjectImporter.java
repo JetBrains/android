@@ -420,8 +420,12 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
-    ProjectSetupMessages messages = ProjectSetupMessages.getInstance(project);
-    messages.clearView();
+    final Application application = ApplicationManager.getApplication();
+    final boolean isTest = application.isUnitTestMode();
+    if (!isTest) {
+      ProjectSetupMessages messages = ProjectSetupMessages.getInstance(project);
+      messages.clearView();
+    }
 
     PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
 
@@ -433,12 +437,10 @@ public class GradleProjectImporter {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
         assert projectInfo != null;
-        final Application application = ApplicationManager.getApplication();
         Runnable runnable = new Runnable() {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            boolean isTest = application.isUnitTestMode();
             if (!isTest || !ourSkipSetupFromTest) {
               if (newProject) {
                 Projects.open(project);
