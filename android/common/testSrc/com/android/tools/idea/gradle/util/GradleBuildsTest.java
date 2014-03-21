@@ -75,11 +75,11 @@ public class GradleBuildsTest extends TestCase {
   public void testFindAndAddBuildTaskWithRebuildBuildMode() {
     List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
-    properties.ASSEMBLE_TASK_NAME = "assembleDebug";
+    properties.COMPILE_JAVA_TASK_NAME = "compileJava";
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.REBUILD, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
 
     assertEquals(1, tasks.size());
-    assertEquals(":basic:assembleDebug", tasks.get(0));
+    assertEquals(":basic:compileJava", tasks.get(0));
   }
 
   public void testFindAndAddBuildTaskWithMakeBuildModeAndNullAndroidFacet() {
