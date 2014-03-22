@@ -70,6 +70,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     assertEquals("com.foo.bar", myState.getString(ATTR_PACKAGE_NAME));
 
     // Test 2: put the package location in and let the package name be calculated
+    myState.myParameters.remove(ATTR_SRC_OUT);
     packageRoot = new File(javaSourceRoot, FileUtil.toSystemDependentName("org/bar/foo"));
     // The java source root must exist in order for getRelativePath to work
     assertTrue(packageRoot.mkdirs());
