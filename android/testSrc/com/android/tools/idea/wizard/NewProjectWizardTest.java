@@ -263,6 +263,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     baseDir = new File(getProject().getBasePath(), "test'orama");
     myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
     runCommonCreateProjectTest();
+    resetDirectoryParams();
 
     // The following characters are reserved on a Windows system
     if (!System.getProperty("os.name").startsWith("Windows")) {
@@ -270,19 +271,30 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
       baseDir = new File(getProject().getBasePath(), "test\"orama");
       myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
       runCommonCreateProjectTest();
+      resetDirectoryParams();
 
       // Check unicode characters
       baseDir = new File(getProject().getBasePath(), "test\uD83D\uDCA9orama");
       myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
       runCommonCreateProjectTest();
+      resetDirectoryParams();
 
       // Check < and > characters
       baseDir = new File(getProject().getBasePath(), "test<orama");
       myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
       runCommonCreateProjectTest();
+      resetDirectoryParams();
+
       baseDir = new File(getProject().getBasePath(), "test>orama");
       myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
       runCommonCreateProjectTest();
+      resetDirectoryParams();
     }
+  }
+
+  private void resetDirectoryParams() {
+    myWizardState.myParameters.remove(ATTR_RES_OUT);
+    myWizardState.myParameters.remove(ATTR_SRC_OUT);
+    myWizardState.myParameters.remove(ATTR_MANIFEST_OUT);
   }
 }
