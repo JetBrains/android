@@ -491,7 +491,7 @@ public class Parameter {
             continue;
           }
           for (File f : files) {
-            if (FileUtil.getNameWithoutExtension(f).equalsIgnoreCase(name)) {
+            if (getNameWithoutExtensions(f).equalsIgnoreCase(name)) {
               return true;
             }
           }
@@ -499,6 +499,15 @@ public class Parameter {
       }
     }
     return false;
+  }
+
+  @Nullable
+  private static String getNameWithoutExtensions(@NotNull File f) {
+    if (f.getName().indexOf('.') == -1) {
+      return f.getName();
+    } else {
+      return f.getName().substring(0, f.getName().indexOf('.'));
+    }
   }
 
   public static boolean existsClassFile(@Nullable Project project, @NotNull GlobalSearchScope searchScope,
