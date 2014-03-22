@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+import com.android.tools.idea.gradle.messages.navigatable.ProjectSyncErrorNavigatable;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.compiler.impl.CompilerErrorTreeView;
@@ -26,6 +27,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.pom.Navigatable;
 import com.intellij.ui.content.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -37,12 +39,12 @@ import java.util.Collection;
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
  */
-public class ProjectSetupMessages {
-  private static final Key<Key<?>> CONTENT_ID_KEY = Key.create("PROJECT_SETUP_MESSAGES_CONTENT_ID");
-  private static final Key<Multimap<String, Message>> PROJECT_SETUP_MESSAGES_KEY = Key.create("android.project.setup.messages.key");
+public class ProjectSyncMessages {
+  private static final Key<Key<?>> CONTENT_ID_KEY = Key.create("PROJECT_SYNC_MESSAGES_CONTENT_ID");
+  private static final Key<Multimap<String, Message>> PROJECT_SYNC_MESSAGES_KEY = Key.create("android.project.sync.messages.key");
   private static final Content[] EMPTY_CONTENTS = new Content[0];
 
-  @NonNls public static final String CONTENT_NAME = "Project Setup";
+  @NonNls public static final String CONTENT_NAME = "Gradle Sync";
 
   @NotNull private final Key<Key<?>> myContentIdKey = CONTENT_ID_KEY;
   @NotNull private final Key<Key<?>> myContentId = Key.create("project_setup_content");
@@ -52,32 +54,39 @@ public class ProjectSetupMessages {
   @NotNull private final Object myMessageViewLock = new Object();
   @Nullable private NewErrorTreeViewPanel myErrorTreeView;
 
-  private volatile boolean myMessageViewIsPrepared;
-  private volatile boolean myMessagesAutoActivated;
+  private boolean myMessageViewIsPrepared;
+  private boolean myMessagesAutoActivated;
+
+  private boolean hasMessages;
 
   @NotNull
-  public static ProjectSetupMessages getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectSetupMessages.class);
+  public static ProjectSyncMessages getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, ProjectSyncMessages.class);
   }
 
   public boolean isEmpty() {
-    return getMessagesByGroup().isEmpty();
+    return !hasMessages;
   }
 
-  public ProjectSetupMessages(@NotNull Project project) {
+  public ProjectSyncMessages(@NotNull Project project) {
     myProject = project;
   }
 
   public void add(@NotNull Message message) {
+    Navigatable navigatable = message.getNavigatable();
+    if (navigatable instanceof ProjectSyncErrorNavigatable) {
+      ((ProjectSyncErrorNavigatable)navigatable).setProject(myProject);
+    }
     getMessagesByGroup().put(message.getGroupName(), message);
+    hasMessages = true;
   }
 
   @NotNull
   private Multimap<String, Message> getMessagesByGroup() {
-    Multimap<String, Message> messages = myProject.getUserData(PROJECT_SETUP_MESSAGES_KEY);
+    Multimap<String, Message> messages = myProject.getUserData(PROJECT_SYNC_MESSAGES_KEY);
     if (messages == null) {
       messages = ArrayListMultimap.create();
-      myProject.putUserData(PROJECT_SETUP_MESSAGES_KEY, messages);
+      myProject.putUserData(PROJECT_SYNC_MESSAGES_KEY, messages);
     }
     return messages;
   }
@@ -93,6 +102,7 @@ public class ProjectSetupMessages {
     for (Message msg : getMessagesByGroup().values()) {
       show(msg);
     }
+    getMessagesByGroup().clear();
   }
 
   private void prepareMessageView() {
@@ -154,7 +164,8 @@ public class ProjectSetupMessages {
 
   public void clearView() {
     removeAllContents(null);
-    myProject.putUserData(PROJECT_SETUP_MESSAGES_KEY, null);
+    myProject.putUserData(PROJECT_SYNC_MESSAGES_KEY, null);
+    hasMessages = false;
   }
 
   private void removeAllContents(@Nullable Content toKeep) {
