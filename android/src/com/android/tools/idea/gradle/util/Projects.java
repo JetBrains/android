@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
@@ -61,7 +62,8 @@ public final class Projects {
    * Indicates whether the last sync with Gradle failed.
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
-    return !GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project);
+    return (!GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project)) ||
+           !ProjectSyncMessages.getInstance(project).isEmpty();
   }
 
   /**
