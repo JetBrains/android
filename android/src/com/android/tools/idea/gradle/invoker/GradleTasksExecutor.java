@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
@@ -131,7 +130,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull private volatile ProgressIndicator myIndicator = new EmptyProgressIndicator();
 
-  private volatile boolean myMessageViewWasPrepared;
+  private volatile boolean myMessageViewIsPrepared;
   private volatile boolean myMessagesAutoActivated;
 
   private CloseListener myCloseListener;
@@ -407,10 +406,10 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   private void prepareMessageView() {
-    if (!myIndicator.isRunning() || myMessageViewWasPrepared) {
+    if (!myIndicator.isRunning() || myMessageViewIsPrepared) {
       return;
     }
-    myMessageViewWasPrepared = true;
+    myMessageViewIsPrepared = true;
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -487,12 +486,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
     content.putUserData(myContentIdKey, myContentId);
 
     MessageView messageView = getMessageView();
-    messageView.getContentManager().addContent(content);
+    ContentManager contentManager = messageView.getContentManager();
+    contentManager.addContent(content);
 
-    myCloseListener.setContent(messageView.getContentManager(), content);
+    myCloseListener.setContent(contentManager, content);
 
     removeAllContents(content);
-    messageView.getContentManager().setSelectedContent(content);
+    contentManager.setSelectedContent(content);
   }
 
   private void activateGradleConsole() {
@@ -539,7 +539,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @Nullable
   private static VirtualFile findFileFrom(@NotNull GradleMessage message) {
     String sourcePath = message.getSourcePath();
-    if (Strings.isNullOrEmpty(sourcePath)) {
+    if (StringUtil.isEmpty(sourcePath)) {
       return null;
     }
     return VfsUtil.findFileByIoFile(new File(sourcePath), true);
@@ -720,7 +720,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
         myContentManager.removeContentManagerListener(this);
-        myContent.release();
+        if (myContent != null) {
+          myContent.release();
+        }
         myContent = null;
       }
     }
