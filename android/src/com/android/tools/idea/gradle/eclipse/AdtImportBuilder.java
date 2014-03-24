@@ -54,6 +54,11 @@ import java.util.List;
 public class AdtImportBuilder extends ProjectImportBuilder<String> {
   private File mySelectedProject;
   private GradleImport myImporter;
+  private final boolean myCreateProject;
+
+  public AdtImportBuilder(boolean createProject) {
+    myCreateProject = createProject;
+  }
 
   @NotNull
   @Override
@@ -61,7 +66,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     return "ADT (Eclipse Android)";
   }
 
-  public void setSelectedProject(@NotNull File selectedProject) throws IOException {
+  public void setSelectedProject(@NotNull File selectedProject) {
     mySelectedProject = selectedProject;
     List<File> projects = Arrays.asList(mySelectedProject);
     myImporter = createImporter(projects);
@@ -69,14 +74,17 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
 
   protected GradleImport createImporter(@NotNull List<File> projects) {
     GradleImport importer = new GradleImport();
-    File templates = TemplateManager.getTemplateRootFolder();
-    if (templates != null) {
-      File wrapper = TemplateManager.getWrapperLocation(templates);
-      if (wrapper.exists()) {
-        importer.setGradleWrapperLocation(wrapper);
-        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
-        if (sdkData != null) {
-          importer.setSdkLocation(sdkData.getLocation());
+    importer.setImportIntoExisting(!myCreateProject);
+    if (myCreateProject) {
+      File templates = TemplateManager.getTemplateRootFolder();
+      if (templates != null) {
+        File wrapper = TemplateManager.getWrapperLocation(templates);
+        if (wrapper.exists()) {
+          importer.setGradleWrapperLocation(wrapper);
+          AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+          if (sdkData != null) {
+            importer.setSdkLocation(sdkData.getLocation());
+          }
         }
       }
     }
@@ -140,6 +148,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         return null;
       }
       myImporter.exportProject(destDir, true);
+      project.getBaseDir().refresh(false, true);
     }
     catch (IOException e) {
       Logger.getInstance(AdtImportBuilder.class).error(e);
@@ -147,7 +156,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
 
     try {
-      GradleProjectImporter.getInstance().importProject(project.getName(), destDir, new NewProjectImportCallback() {
+      final NewProjectImportCallback callback = new NewProjectImportCallback() {
         @Override
         public void projectImported(@NotNull final Project project) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -169,7 +178,13 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
             }
           });
         }
-      }, project);
+      };
+      final GradleProjectImporter importer = GradleProjectImporter.getInstance();
+      if (myCreateProject) {
+        importer.importProject(project.getName(), destDir, callback, project);
+      } else {
+        importer.reImportProject(project, true, callback);
+      }
     }
     catch (ConfigurationException e) {
       Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
