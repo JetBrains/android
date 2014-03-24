@@ -22,11 +22,9 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.ProjectImportEventMessage;
 import com.android.tools.idea.gradle.facet.JavaModel;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
-import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.navigatable.SearchInBuildFilesNavigatable;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -73,7 +71,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService.RECOMMENDED_ACTIONS_CATEGORY;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 /**
@@ -124,9 +123,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     ModuleExtendedModel moduleExtendedModel = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
     if (moduleExtendedModel != null) {
+      moduleData.setArtifacts(moduleExtendedModel.getArtifacts());
       moduleData.setGroup(moduleExtendedModel.getGroup());
       moduleData.setVersion(moduleExtendedModel.getVersion());
-      moduleData.setArtifacts(moduleExtendedModel.getArtifacts());
     }
     return moduleData;
   }
@@ -351,7 +350,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         }
       }
 
-      args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, String.valueOf(this.resolverCtx.isPreviewMode())));
+      args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, "true"));
       return args;
     }
     return Collections.emptyList();
@@ -443,27 +442,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
                                                      @NotNull Collection<String> unresolvedDependencies) {
-    boolean promptToInstallSupportRepository = false;
     for (String dep : unresolvedDependencies) {
-      if (dep.startsWith("com.android.support:")) {
-        promptToInstallSupportRepository = true;
-      }
-      NotificationHyperlink hyperlink = createSearchInBuildFileHyperlink(dep);
-      ProjectImportEventMessage msg = new ProjectImportEventMessage("Unresolved dependencies:", dep, hyperlink);
+      String group = dep.startsWith("com.android.support:") ? UNRESOLVED_ANDROID_DEPENDENCIES : UNRESOLVED_DEPENDENCIES;
+      String text = dep + " (double-click here to find usages.)";
+      Message msg = new Message(group, Message.Type.ERROR, new SearchInBuildFilesNavigatable(dep), text);
       projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, msg);
     }
-    if (promptToInstallSupportRepository) {
-      NotificationHyperlink hyperlink = new OpenAndroidSdkManagerHyperlink();
-      ProjectImportEventMessage msg =
-        new ProjectImportEventMessage(RECOMMENDED_ACTIONS_CATEGORY, "Install the Android Support Repository.", hyperlink);
-      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, msg);
-    }
-  }
-
-  @NotNull
-  private static NotificationHyperlink createSearchInBuildFileHyperlink(@NotNull String dependency) {
-    String url = "search:" + dependency;
-    return new SearchInBuildFilesHyperlink(url, "Search", dependency);
   }
 
   @Override

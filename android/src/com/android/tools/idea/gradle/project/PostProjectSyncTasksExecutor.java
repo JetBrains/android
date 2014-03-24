@@ -18,11 +18,10 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.AndroidSdkModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.NullNavigatable;
-import com.android.tools.idea.gradle.messages.ProjectSetupMessages;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.messages.navigatable.OpenAndroidSdkNavigatable;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
@@ -52,9 +51,7 @@ import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
-import com.intellij.ui.content.ContentManager;
 import com.intellij.util.io.URLUtil;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -63,13 +60,13 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+
 public class PostProjectSyncTasksExecutor {
   @NotNull private final Project myProject;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
-
-  private ContentManager myContentManager;
 
   @NotNull
   public static PostProjectSyncTasksExecutor getInstance(@NotNull Project project) {
@@ -325,28 +322,16 @@ public class PostProjectSyncTasksExecutor {
   }
 
   private void displayProjectSetupMessages() {
-    final ProjectSetupMessages messages = ProjectSetupMessages.getInstance(myProject);
+    final ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
     if (!messages.isEmpty()) {
-      String skdErrorGroupName = AndroidSdkModuleCustomizer.ERROR_GROUP_NAME;
-      Collection<Message> sdkErrors = messages.getMessages(skdErrorGroupName);
+      Collection<Message> sdkErrors = messages.getMessages(FAILED_TO_SET_UP_SDK);
       if (!sdkErrors.isEmpty()) {
         // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
         // install any missing platforms.
-        Navigatable quickFix = new NullNavigatable() {
-          @Override
-          public void navigate(boolean requestFocus) {
-            RunAndroidSdkManagerAction action = new RunAndroidSdkManagerAction();
-            action.doAction(myProject);
-          }
-
-          @Override
-          public boolean canNavigate() {
-            return true;
-          }
-        };
+        Navigatable quickFix = new OpenAndroidSdkNavigatable(myProject);
         String text = "Double-click here to open Android SDK Manager and install all missing platforms.";
-        Message quickFixMsg = new Message(skdErrorGroupName, Message.Type.INFO, quickFix, text);
+        Message quickFixMsg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, quickFix, text);
         messages.add(quickFixMsg);
       }
 
@@ -359,7 +344,7 @@ public class PostProjectSyncTasksExecutor {
         }
       };
       String text = String.format("You can find all errors in the 'Messages' window, under the '%1$s' tab.\n",
-                                  ProjectSetupMessages.CONTENT_NAME);
+                                  ProjectSyncMessages.CONTENT_NAME);
       text+= hyperlink.toString();
       NotificationListener listener = new CustomNotificationListener(myProject, hyperlink);
       AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, listener);

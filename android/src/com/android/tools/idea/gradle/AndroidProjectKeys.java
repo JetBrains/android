@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.messages.Message;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * <ol>
  * <li>{@link com.android.tools.idea.gradle.service.GradleProjectDataService}</li>
  * <li>{@link com.android.tools.idea.gradle.service.AndroidProjectDataService}</li>
- * <li>{@link com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService}</li>
+ * <li>{@link com.android.tools.idea.gradle.service.ProjectSyncMessageDataService}</li>
  * </ol>
  * <br/>
  * The reason for following this order is that we need to add the {@code AndroidGradleFacet} to each of the modules. This facet contains the
@@ -37,8 +38,7 @@ public class AndroidProjectKeys {
   @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT =
     Key.create(IdeaAndroidProject.class, IDE_GRADLE_PROJECT.getProcessingWeight() + 5);
 
-  @NotNull public static final Key<ProjectImportEventMessage> IMPORT_EVENT_MSG =
-    Key.create(ProjectImportEventMessage.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 5);
+  @NotNull public static final Key<Message> IMPORT_EVENT_MSG = Key.create(Message.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 5);
 
   private AndroidProjectKeys() {
   }
