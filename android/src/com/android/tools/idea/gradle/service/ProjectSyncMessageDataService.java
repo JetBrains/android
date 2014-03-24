@@ -44,6 +44,10 @@ public class ProjectSyncMessageDataService implements ProjectDataService<Message
 
   @Override
   public void importData(@NotNull Collection<DataNode<Message>> toImport, @NotNull final Project project, boolean synchronous) {
+    if (toImport.isEmpty()) {
+      return;
+    }
+
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
 
     for (DataNode<Message> node : toImport) {
@@ -53,8 +57,6 @@ public class ProjectSyncMessageDataService implements ProjectDataService<Message
       String text = Joiner.on("\n").join(message.getText());
       LOG.info(text);
     }
-
-    messages.showInView();
   }
 
   @Override

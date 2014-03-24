@@ -57,15 +57,13 @@ public class ProjectSyncMessages {
   private boolean myMessageViewIsPrepared;
   private boolean myMessagesAutoActivated;
 
-  private boolean hasMessages;
-
   @NotNull
   public static ProjectSyncMessages getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, ProjectSyncMessages.class);
   }
 
   public boolean isEmpty() {
-    return !hasMessages;
+    return getMessagesByGroup().isEmpty();
   }
 
   public ProjectSyncMessages(@NotNull Project project) {
@@ -78,7 +76,6 @@ public class ProjectSyncMessages {
       ((ProjectSyncErrorNavigatable)navigatable).setProject(myProject);
     }
     getMessagesByGroup().put(message.getGroupName(), message);
-    hasMessages = true;
   }
 
   @NotNull
@@ -102,7 +99,6 @@ public class ProjectSyncMessages {
     for (Message msg : getMessagesByGroup().values()) {
       show(msg);
     }
-    getMessagesByGroup().clear();
   }
 
   private void prepareMessageView() {
@@ -165,7 +161,6 @@ public class ProjectSyncMessages {
   public void clearView() {
     removeAllContents(null);
     myProject.putUserData(PROJECT_SYNC_MESSAGES_KEY, null);
-    hasMessages = false;
   }
 
   private void removeAllContents(@Nullable Content toKeep) {
