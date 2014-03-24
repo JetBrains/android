@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.google.common.collect.Lists;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +44,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     if (model == null) {
       return;
     }
-    List<String> errorsFound = Lists.newArrayList();
+    List<Message> errorsFound = Lists.newArrayList();
 
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
     ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
@@ -57,18 +58,14 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     notifyUser(errorsFound, module);
   }
 
-  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model, @NotNull List<String> errorsFound);
+  protected abstract void setUpDependencies(@NotNull ModifiableRootModel rootModel, @NotNull T model, @NotNull List<Message> errorsFound);
 
-
-  private static void notifyUser(@NotNull List<String> errorsFound, @NotNull Module module) {
+  private static void notifyUser(@NotNull List<Message> errorsFound, @NotNull Module module) {
     if (!errorsFound.isEmpty()) {
-      StringBuilder msgBuilder = new StringBuilder();
-      for (String error : errorsFound) {
-        msgBuilder.append("  - ").append(error).append("\n");
+      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(module.getProject());
+      for (Message error : errorsFound) {
+        messages.add(error);
       }
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(module.getProject());
-      String title = String.format("Error(s) found while populating dependencies of module '%1$s'.", module.getName());
-      notification.showBalloon(title, msgBuilder.toString(), NotificationType.ERROR);
     }
   }
 
@@ -166,7 +163,7 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
     String filePath = FileUtil.toSystemIndependentName(file.getPath());
     String url = VirtualFileManager.constructUrl(protocol, filePath);
     if (isJarFile) {
-      url += StandardFileSystems.JAR_SEPARATOR;
+      url += URLUtil.JAR_SEPARATOR;
     }
     return url;
   }
