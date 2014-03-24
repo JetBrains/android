@@ -78,6 +78,12 @@ public class PostProjectSyncTasksExecutor {
   }
 
   public void onProjectSetupCompletion() {
+    if (!ProjectSyncMessages.getInstance(myProject).isEmpty()) {
+      displayProjectSetupMessages();
+      GradleSyncState.getInstance(myProject).syncEnded();
+      return;
+    }
+
     attachSourcesToLibraries();
     ensureAllModulesHaveSdk();
     Projects.enforceExternalBuild(myProject);
@@ -102,8 +108,6 @@ public class PostProjectSyncTasksExecutor {
       // set default value back.
       myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
     }
-
-    displayProjectSetupMessages();
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu();
   }
@@ -324,33 +328,31 @@ public class PostProjectSyncTasksExecutor {
   private void displayProjectSetupMessages() {
     final ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
-    if (!messages.isEmpty()) {
-      Collection<Message> sdkErrors = messages.getMessages(FAILED_TO_SET_UP_SDK);
-      if (!sdkErrors.isEmpty()) {
-        // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
-        // install any missing platforms.
-        Navigatable quickFix = new OpenAndroidSdkNavigatable(myProject);
-        String text = "Double-click here to open Android SDK Manager and install all missing platforms.";
-        Message quickFixMsg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, quickFix, text);
-        messages.add(quickFixMsg);
-      }
-
-      // Now we only show one balloon, telling user that errors can be found in the "Messages" window.
-      String title = String.format("Failed to set up project '%1$s':\n", myProject.getName());
-      NotificationHyperlink hyperlink = new NotificationHyperlink("open.messages.view", "Open Messages Window") {
-        @Override
-        protected void execute(@NotNull Project project) {
-          messages.activateView();
-        }
-      };
-      String text = String.format("You can find all errors in the 'Messages' window, under the '%1$s' tab.\n",
-                                  ProjectSyncMessages.CONTENT_NAME);
-      text+= hyperlink.toString();
-      NotificationListener listener = new CustomNotificationListener(myProject, hyperlink);
-      AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, listener);
-
-      messages.showInView();
+    Collection<Message> sdkErrors = messages.getMessages(FAILED_TO_SET_UP_SDK);
+    if (!sdkErrors.isEmpty()) {
+      // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
+      // install any missing platforms.
+      Navigatable quickFix = new OpenAndroidSdkNavigatable(myProject);
+      String text = "Double-click here to open Android SDK Manager and install all missing platforms.";
+      Message quickFixMsg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, quickFix, text);
+      messages.add(quickFixMsg);
     }
+
+    // Now we only show one balloon, telling user that errors can be found in the "Messages" window.
+    String title = String.format("Failed to set up project '%1$s':\n", myProject.getName());
+    NotificationHyperlink hyperlink = new NotificationHyperlink("open.messages.view", "Open Messages Window") {
+      @Override
+      protected void execute(@NotNull Project project) {
+        messages.activateView();
+      }
+    };
+    String text = String.format("You can find all errors in the 'Messages' window, under the '%1$s' tab.\n",
+                                ProjectSyncMessages.CONTENT_NAME);
+    text+= hyperlink.toString();
+    NotificationListener listener = new CustomNotificationListener(myProject, hyperlink);
+    AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, listener);
+
+    messages.showInView();
   }
 
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
