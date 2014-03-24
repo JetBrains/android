@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.messages;
+package com.android.tools.idea.gradle.messages.navigatable;
 
-import com.intellij.pom.Navigatable;
+import com.android.tools.idea.gradle.messages.AbstractNavigatable;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 /**
-* An implementation of {@link com.intellij.pom.Navigatable} that does nothing.
-*/
-public class NullNavigatable implements Navigatable {
-  @Override
-  public void navigate(boolean requestFocus) {}
+ * Base class for {@link com.intellij.pom.Navigatable}s that are created during project sync.
+ */
+public class ProjectSyncErrorNavigatable extends AbstractNavigatable {
+  protected Project myProject;
 
-  @Override
-  public boolean canNavigate() {
-    return false;
-  }
-
-  @Override
-  public boolean canNavigateToSource() {
-    return false;
+  public void setProject(@NotNull Project project) {
+    myProject = project;
   }
 }
