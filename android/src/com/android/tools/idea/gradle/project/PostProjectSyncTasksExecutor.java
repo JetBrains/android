@@ -78,7 +78,7 @@ public class PostProjectSyncTasksExecutor {
   }
 
   public void onProjectSetupCompletion() {
-    if (!ProjectSyncMessages.getInstance(myProject).isEmpty()) {
+    if (!ProjectSyncMessages.getInstance(myProject).hasErrors()) {
       displayProjectSetupMessages();
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
