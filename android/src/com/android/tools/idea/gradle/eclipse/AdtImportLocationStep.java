@@ -116,12 +116,7 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
 
     AdtImportBuilder builder = (AdtImportBuilder)context.getProjectBuilder();
     if (builder != null) {
-      try {
-        builder.setSelectedProject(mySourceProject);
-      }
-      catch (IOException e) {
-        Logger.getInstance(AdtImportLocationStep.class).error(e);
-      }
+      builder.setSelectedProject(mySourceProject);
     }
   }
 
