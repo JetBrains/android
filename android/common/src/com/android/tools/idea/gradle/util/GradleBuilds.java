@@ -40,6 +40,8 @@ public final class GradleBuilds {
   @NonNls public static final String OFFLINE_MODE_OPTION = "--offline";
   @NonNls public static final String PARALLEL_BUILD_OPTION = "--parallel";
 
+  @NonNls public static final String BUILD_SRC_FOLDER_NAME = "buildSrc";
+
   public enum TestCompileType {
     NONE,            // don't compile any tests
     ANDROID_TESTS,   // compile tests that are part of an Android Module
