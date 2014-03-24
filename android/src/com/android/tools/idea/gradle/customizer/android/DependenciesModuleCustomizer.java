@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.dependency.DependencySet;
 import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.messages.CommonMessageGroupNames;
+import com.android.tools.idea.gradle.messages.Message;
 import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -33,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_DEPENDENCIES;
+
 /**
  * Sets the dependencies of a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
@@ -42,7 +46,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
   @Override
   protected void setUpDependencies(@NotNull ModifiableRootModel model,
                                    @NotNull IdeaAndroidProject androidProject,
-                                   @NotNull List<String> errorsFound) {
+                                   @NotNull List<Message> errorsFound) {
     DependencySet dependencies = Dependency.extractFrom(androidProject);
     for (LibraryDependency dependency : dependencies.onLibraries()) {
       updateDependency(model, dependency);
@@ -59,7 +63,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
   private void updateDependency(@NotNull ModifiableRootModel model,
                                 @NotNull ModuleDependency dependency,
-                                @NotNull List<String> errorsFound) {
+                                @NotNull List<Message> errorsFound) {
     ModuleManager moduleManager = ModuleManager.getInstance(model.getProject());
     Module moduleDependency = null;
     for (Module module : moduleManager.getModules()) {
@@ -85,7 +89,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       msg += String.format(" Linking to library '%1$s' instead.", backup.getName());
     }
     LOG.info(msg);
-    errorsFound.add(msg);
+    errorsFound.add(new Message(FAILED_TO_SET_UP_DEPENDENCIES, Message.Type.WARNING, msg));
 
     // fall back to library dependency, if available.
     if (hasLibraryBackup) {
