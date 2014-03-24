@@ -20,15 +20,13 @@ import com.intellij.util.ui.MessageCategory;
 import org.jetbrains.annotations.NotNull;
 
 public class Message {
-  private static final Navigatable NULL_NAVIGATABLE = new AbstractNavigatable() {};
-
   @NotNull private final String myGroupName;
   @NotNull private final Type myType;
   @NotNull private final String[] myText;
   @NotNull private final Navigatable myNavigatable;
 
   public Message(@NotNull String groupName, @NotNull Type type, @NotNull String... text) {
-    this(groupName, type, NULL_NAVIGATABLE, text);
+    this(groupName, type, AbstractNavigatable.NOT_NAVIGATABLE, text);
   }
 
   public Message(@NotNull String groupName, @NotNull Type type, @NotNull Navigatable navigatable, @NotNull String... text) {

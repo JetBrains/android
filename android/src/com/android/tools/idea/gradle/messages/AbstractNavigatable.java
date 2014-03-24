@@ -16,11 +16,14 @@
 package com.android.tools.idea.gradle.messages;
 
 import com.intellij.pom.Navigatable;
+import org.jetbrains.annotations.NotNull;
 
 /**
 * Base class for implementations of {@link com.intellij.pom.Navigatable}.
 */
 public abstract class AbstractNavigatable implements Navigatable {
+  @NotNull public static final Navigatable NOT_NAVIGATABLE = new AbstractNavigatable() {};
+
   @Override
   public void navigate(boolean requestFocus) {}
 
