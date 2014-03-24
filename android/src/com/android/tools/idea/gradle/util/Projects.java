@@ -62,7 +62,7 @@ public final class Projects {
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
     return (!GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project)) ||
-           !ProjectSyncMessages.getInstance(project).hasErrors();
+           !ProjectSyncMessages.getInstance(project).hasProjectStructureErrors();
   }
 
   /**
