@@ -19,6 +19,10 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.messages.AbstractNavigatable;
+import com.android.tools.idea.gradle.messages.CommonMessageGroupNames;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
@@ -32,11 +36,14 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.pom.Navigatable;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 
 public class VariantSelectionVerifier {
   private static final Key<Conflict> VARIANT_SELECTION_CONFLICT_KEY = Key.create("android.variant.selection.conflict");
@@ -137,18 +144,24 @@ public class VariantSelectionVerifier {
   }
 
   private void reportConflict(@NotNull final Conflict conflict) {
-    NotificationHyperlink quickFix = new NotificationHyperlink("fix.variant.selection", "Fix Now") {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+    String msg = conflict.myMessage + " (double-click here to fix.)";
+    Navigatable quickFix = new AbstractNavigatable() {
       @Override
-      protected void execute(@NotNull Project project) {
+      public void navigate(boolean requestFocus) {
         conflict.myQuickFix.run();
       }
+
+      @Override
+      public boolean canNavigate() {
+        return true;
+      }
     };
-    NotificationListener notificationListener = new CustomNotificationListener(myProject, quickFix);
-    AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
-    String msg = conflict.myMessage + ". " + quickFix.toString();
-    notification.showBalloon("Variant Selection Conflict", msg, NotificationType.ERROR, notificationListener);
+
+    messages.add(new Message(VARIANT_SELECTION_CONFLICTS, Message.Type.ERROR, quickFix, msg));
 
     storeConflict(conflict);
+
     EditorNotifications.getInstance(myProject).updateAllNotifications();
     BuildVariantView.getInstance(myProject).updateNotification();
   }
