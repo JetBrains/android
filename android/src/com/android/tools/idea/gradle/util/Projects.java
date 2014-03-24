@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.ide.DataManager;
@@ -63,7 +62,7 @@ public final class Projects {
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
     return (!GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project)) ||
-           !ProjectSyncMessages.getInstance(project).isEmpty();
+           !ProjectSyncMessages.getInstance(project).hasErrors();
   }
 
   /**
