@@ -36,6 +36,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collection;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
  */
@@ -57,15 +59,19 @@ public class ProjectSyncMessages {
   private boolean myMessageViewIsPrepared;
   private boolean myMessagesAutoActivated;
 
-  private int errorCount;
+  private int projectStructureErrorCount;
 
   @NotNull
   public static ProjectSyncMessages getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, ProjectSyncMessages.class);
   }
 
-  public boolean hasErrors() {
-    return errorCount > 0;
+  public boolean hasProjectStructureErrors() {
+    return projectStructureErrorCount > 0;
+  }
+
+  public boolean isEmpty() {
+    return getMessagesByGroup().isEmpty();
   }
 
   public ProjectSyncMessages(@NotNull Project project) {
@@ -77,9 +83,10 @@ public class ProjectSyncMessages {
     if (navigatable instanceof ProjectSyncErrorNavigatable) {
       ((ProjectSyncErrorNavigatable)navigatable).setProject(myProject);
     }
-    getMessagesByGroup().put(message.getGroupName(), message);
-    if (message.getType() == Message.Type.ERROR) {
-      errorCount++;
+    String groupName = message.getGroupName();
+    getMessagesByGroup().put(groupName, message);
+    if (message.getType() == Message.Type.ERROR && !VARIANT_SELECTION_CONFLICTS.equals(groupName)) {
+      projectStructureErrorCount++;
     }
   }
 
@@ -166,7 +173,7 @@ public class ProjectSyncMessages {
   public void clearView() {
     removeAllContents(null);
     myProject.putUserData(PROJECT_SYNC_MESSAGES_KEY, null);
-    errorCount = 0;
+    projectStructureErrorCount = 0;
   }
 
   private void removeAllContents(@Nullable Content toKeep) {

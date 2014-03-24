@@ -78,7 +78,7 @@ public class PostProjectSyncTasksExecutor {
   }
 
   public void onProjectSetupCompletion() {
-    if (!ProjectSyncMessages.getInstance(myProject).hasErrors()) {
+    if (!ProjectSyncMessages.getInstance(myProject).isEmpty()) {
       displayProjectSetupMessages();
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
@@ -97,6 +97,9 @@ public class PostProjectSyncTasksExecutor {
     }
 
     VariantSelectionVerifier.getInstance(myProject).verifySelectedVariants();
+    if (!ProjectSyncMessages.getInstance(myProject).isEmpty()) {
+      displayProjectSetupMessages();
+    }
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
