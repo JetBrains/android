@@ -142,6 +142,10 @@ public class GradleInvoker {
     }
 
     for (Module module : modules) {
+      if (GradleBuilds.BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
+        // "buildSrc" is a special case handled automatically by Gradle.
+        continue;
+      }
       AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
       if (androidGradleFacet == null) {
         continue;
