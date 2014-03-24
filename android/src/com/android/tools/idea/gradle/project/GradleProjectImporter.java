@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.android.tools.idea.gradle.messages.ProjectSetupMessages;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -423,7 +423,7 @@ public class GradleProjectImporter {
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
     if (!isTest) {
-      ProjectSetupMessages messages = ProjectSetupMessages.getInstance(project);
+      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
       messages.clearView();
     }
 
@@ -503,7 +503,7 @@ public class GradleProjectImporter {
                 Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
                 dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */ );
 
-                Collection<DataNode<ProjectImportEventMessage>> eventMessages =
+                Collection<DataNode<Message>> eventMessages =
                   ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
                 dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */ );
               }
