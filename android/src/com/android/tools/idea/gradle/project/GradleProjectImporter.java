@@ -161,7 +161,17 @@ public class GradleProjectImporter {
         chooseGradleHomeDialog.storeLastUsedGradleHome();
       }
     }
+    importModule(selectedFile);
+  }
 
+  /**
+   * Imports Gradle project and Android Studio project module.
+   *
+   * @param selectedFile <code>build.gradle</code> in the module folder.
+   */
+  public void importModule(@NotNull VirtualFile selectedFile) {
+    VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
+    File projectDirPath = VfsUtilCore.virtualToIoFile(projectDir);
     try {
       importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
         @Override
