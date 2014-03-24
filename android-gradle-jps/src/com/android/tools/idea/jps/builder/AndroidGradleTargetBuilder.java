@@ -190,6 +190,10 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     }
     List<JpsModule> modulesToBuild = Lists.newArrayList();
     for (JpsModule module : modules) {
+      if (GradleBuilds.BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
+        // "buildSrc" is a special case handled automatically by Gradle.
+        continue;
+      }
       if (moduleNames.contains(module.getName())) {
         modulesToBuild.add(module);
       }
