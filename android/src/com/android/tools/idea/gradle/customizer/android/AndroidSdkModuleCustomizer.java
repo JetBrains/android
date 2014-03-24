@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.customizer.android;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSetupMessages;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -31,12 +31,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidProject> {
-  public static final String ERROR_GROUP_NAME = "Failed to set SDK";
-
   private static final Logger LOG = Logger.getInstance(AndroidSdkModuleCustomizer.class);
 
   /**
@@ -73,7 +73,7 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
     String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
     LOG.info(text);
 
-    Message msg = new Message(ERROR_GROUP_NAME, Message.Type.ERROR, text);
-    ProjectSetupMessages.getInstance(project).add(msg);
+    Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);
+    ProjectSyncMessages.getInstance(project).add(msg);
   }
 }

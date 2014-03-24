@@ -137,7 +137,7 @@
     <buildProcess.parametersProvider implementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildProcessParametersProvider"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.AndroidProjectDataService" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.service.GradleProjectDataService" />
-    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.service.ProjectSyncMessageDataService" />
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
@@ -454,7 +454,7 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.GradleSyncState"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.VariantSelectionVerifier"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSetupMessages"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
