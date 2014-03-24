@@ -73,6 +73,7 @@ import java.util.*;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
+import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 /**
@@ -208,7 +209,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
-    if (buildScript == null || !isAndroidGradleProject()) {
+    if (buildScript == null || !isAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
@@ -290,7 +291,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    if (!isAndroidGradleProject()) {
+    if (!isAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
     }
   }
@@ -299,7 +300,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
-    if (!isAndroidGradleProject()) {
+    if (!isAndroidGradleProject(gradleModule)) {
       // For plain Java projects (non-Gradle) we let the framework populate dependencies
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
       return;
@@ -312,8 +313,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
-  private boolean isAndroidGradleProject() {
-    return !resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty();
+  private boolean isAndroidGradleProject(@NotNull IdeaModule gradleModule) {
+    if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
+      return true;
+    }
+    if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName()) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      // For now, we will "buildSrc" to be considered part of an Android project. We need changes in IDEA to make this distinction better.
+      // Currently, when processing "buildSrc" we don't have access to the rest of modules in the project, making it impossible to tell
+      // if the project has at least one Android module.
+      return true;
+    }
+    return false;
   }
 
   @Override
