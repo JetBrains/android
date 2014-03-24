@@ -500,12 +500,12 @@ public class GradleProjectImporter {
               public void run() {
                 ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
 
-                Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
-                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */ );
-
                 Collection<DataNode<Message>> eventMessages =
                   ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
                 dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */ );
+
+                Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
+                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */ );
               }
             });
           }
