@@ -20,6 +20,7 @@ public final class CommonMessageGroupNames {
   public static final String FAILED_TO_SET_UP_SDK = "Failed to set up SDK";
   public static final String UNRESOLVED_ANDROID_DEPENDENCIES = "Unresolved Android dependencies";
   public static final String UNRESOLVED_DEPENDENCIES = "Unresolved dependencies";
+  public static final String VARIANT_SELECTION_CONFLICTS = "Variant selection conflicts";
 
   private CommonMessageGroupNames() {
   }
