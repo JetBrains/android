@@ -918,7 +918,8 @@ public class AndroidJpsUtil {
 
   public static void collectResDirectoriesFromAarDeps(@NotNull JpsModule module, @NotNull Collection<String> result) {
     final Set<JpsLibrary> libs =
-      JpsJavaExtensionService.getInstance().enumerateDependencies(Collections.singletonList(module)).getLibraries();
+      JpsJavaExtensionService.getInstance().enumerateDependencies(Collections.singletonList(module)).
+        runtimeOnly().productionOnly().getLibraries();
 
     for (JpsLibrary lib : libs) {
       final Pair<File, File> pair = getResDirAndClassesJarIfAar(lib);
