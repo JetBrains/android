@@ -41,17 +41,24 @@ public abstract class ValueFactory<E> {
   }
 
   /**
-   * This implementation of setValues calls {@link #setValue(org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner, Object)},
+   * <p>This implementation of setValues calls {@link #setValue(org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner, Object)},
    * which is suitable for cases where the value uniquely identifies a statement in the buildfile, such as a "named object" that consists
    * of a method call whose name is the name of the object, and a closure consisting of key/value statements; examples of named objects
    * include build types and flavors. In other cases, such as repositories and dependencies, we can't tell by looking at an individual
    * value what statement in the build file it corresponds to: there's no name or other information that makes it unique. setValue
    * won't work for writing those types of objects into build files, and for those types, this class will need to be subclassed and this
-   * method overridden to work a different way.
+   * method overridden to work a different way.</p>
+   * <p>It also calls {@link #removeValue(org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner, Object)} to remove objects
+   * that aren't in the passed-in list.</p>
    */
   public void setValues(@NotNull GrStatementOwner closure, @NotNull List<E> values) {
     for (E value : values) {
       setValue(closure, value);
+    }
+    for (E existingValue : getValues(closure)) {
+      if (!values.contains(existingValue)) {
+        removeValue(closure, existingValue);
+      }
     }
     GradleGroovyFile.reformatClosure(closure);
   }
@@ -68,4 +75,11 @@ public abstract class ValueFactory<E> {
    */
   @Nullable
   abstract protected List<E> getValues(@NotNull PsiElement statement);
+
+  /**
+   * If your subclass supports removal of individual objects, override this method to implement that functionality.
+   */
+  protected void removeValue(@NotNull GrStatementOwner closure, @NotNull E value) {
+    throw new UnsupportedOperationException("removeValue not implemented");
+  }
 }
