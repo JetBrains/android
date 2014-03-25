@@ -22,9 +22,10 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.CompilerOutputModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.project.VariantSelectionVerifier;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.gradle.variant.SelectionConflict;
+import com.android.tools.idea.gradle.variant.VariantSelectionVerifier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -67,7 +68,7 @@ class BuildVariantUpdater {
       public void execute() {
         Module updatedModule = doUpdate(project, moduleName, buildVariantName, facets);
         if (updatedModule != null) {
-          VariantSelectionVerifier.getInstance(project).verifySelectedVariant(updatedModule);
+          VariantSelectionVerifier.getInstance(project).findAndShowSelectionConflicts();
         }
 
         if (!facets.isEmpty()) {
