@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -33,6 +34,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -161,15 +163,66 @@ public class GradleProjectImporter {
         chooseGradleHomeDialog.storeLastUsedGradleHome();
       }
     }
-    importModule(selectedFile);
+    createProjectFileForGradleProject(selectedFile, null);
+  }
+
+  public void importModule(@NotNull final VirtualFile file, @NotNull final Project project, @Nullable final Callback callback)
+      throws IOException, ConfigurationException {
+    // TODO: Remove this check when module import location is customizable
+    if (project.getBaseDir().findChild(file.getName()) != null) {
+      throw new IOException("Target directory already exists");
+    }
+    Throwable throwable = new WriteCommandAction.Simple(project) {
+      @Override
+      protected void run() throws Throwable {
+        copyAndRegisterModule(file, project, callback);
+      }
+
+      @Override
+      public boolean isSilentExecution() {
+        return true;
+      }
+    }.execute().getThrowable();
+    rethrowAsProperlyTypedException(throwable);
+  }
+
+  private static void rethrowAsProperlyTypedException(Throwable throwable) throws IOException {
+    if (throwable != null) {
+      if (throwable instanceof IOException) {
+        throw (IOException)throwable;
+      }
+      else if (throwable instanceof Error) {
+        throw (Error)throwable;
+      }
+      else if (throwable instanceof RuntimeException) {
+        throw (RuntimeException)throwable;
+      }
+      else {
+        throw new IllegalStateException(throwable);
+      }
+    }
+  }
+
+  private void copyAndRegisterModule(@NotNull VirtualFile file, @NotNull Project project, @Nullable Callback callback)
+      throws IOException, ConfigurationException {
+    VirtualFile projectRoot = project.getBaseDir();
+    file.copy(this, projectRoot, file.getName());
+    if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
+      projectRoot.createChildData(this, SdkConstants.FN_SETTINGS_GRADLE);
+    }
+    GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
+    assert  gradleSettingsFile != null : "File should've been created";
+    gradleSettingsFile.addModule(file.getName());
+    reImportProject(project, false, callback);
   }
 
   /**
-   * Imports Gradle project and Android Studio project module.
+   * Creates IntelliJ project file in the root of the project directory.
    *
    * @param selectedFile <code>build.gradle</code> in the module folder.
+   * @param parentProject existing parent project or <code>null</code> if a new one should be created.
    */
-  public void importModule(@NotNull VirtualFile selectedFile) {
+  private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project parentProject) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
     File projectDirPath = VfsUtilCore.virtualToIoFile(projectDir);
     try {
@@ -178,7 +231,7 @@ public class GradleProjectImporter {
         public void projectImported(@NotNull Project project) {
           activateProjectView(project);
         }
-      });
+      }, parentProject);
     }
     catch (Exception e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -212,7 +265,7 @@ public class GradleProjectImporter {
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void reImportProject(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable Callback callback)
-    throws ConfigurationException {
+      throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
@@ -322,7 +375,7 @@ public class GradleProjectImporter {
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
-    throws IOException, ConfigurationException {
+      throws IOException, ConfigurationException {
     importProject(projectName, projectRootDir, callback, null);
   }
 
