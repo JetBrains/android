@@ -25,12 +25,15 @@ import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("javadoc")
-public class FmKeystoreSha1MethodTest extends TestCase {
+public class KeystoreUtilsTest extends TestCase {
 
-  private void check(String certPath, String expected) throws TemplateModelException {
-    FmKeystoreSha1Method method = new FmKeystoreSha1Method();
-    List list = Collections.singletonList(new SimpleScalar(certPath));
-    assertEquals(expected, ((SimpleScalar)method.exec(list)).getAsString());
+  private static void check(String certPath, String expected) throws TemplateModelException {
+    try {
+      assertEquals(expected, KeystoreUtils.sha1(new File(certPath)));
+    }
+    catch (Exception e) {
+      fail("Unexpected exception.");
+    }
   }
 
   public void testSha1() throws Exception {
