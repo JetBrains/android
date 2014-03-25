@@ -1338,9 +1338,11 @@ public class LombokPsiConverter {
                 f.astExpressionInits().addToEnd(toExpression(expression));
               }
             }
+          } else if (initialization instanceof PsiEmptyStatement) {
+            // Do nothing; we don't need an explicit lombok.ast.EmptyStatement here
           } else {
             // Unexpected type of initializer
-            assert false : initialization;
+            assert false : initialization + " for code " + initialization.getText();
           }
         }
         PsiStatement body = p.getBody();
