@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+/**
+ * Common group names used to group Gradle-sync-related messages (by type/category) in the "Messages" tool window. These groups are also
+ * displayed in the tool window.
+ */
 public final class CommonMessageGroupNames {
   public static final String FAILED_TO_SET_UP_DEPENDENCIES = "Failed to set up dependencies";
   public static final String FAILED_TO_SET_UP_SDK = "Failed to set up SDK";
