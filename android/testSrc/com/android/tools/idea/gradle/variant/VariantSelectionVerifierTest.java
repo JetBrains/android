@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.gradle.variant;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
+import com.android.tools.idea.gradle.variant.VariantSelectionVerifier;
+import com.google.common.collect.ImmutableList;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Tests for {@link VariantSelectionVerifier}
@@ -41,9 +44,13 @@ public class VariantSelectionVerifierTest extends IdeaTestCase {
   private IdeaAndroidProject myLib;
   private String myLibGradlePath;
 
+  private VariantSelectionVerifier myVerifier;
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    myVerifier = new VariantSelectionVerifier(myProject);
 
     myLibModule = createModule("lib");
     myLibGradlePath = ":lib";
@@ -74,6 +81,7 @@ public class VariantSelectionVerifierTest extends IdeaTestCase {
     File moduleFilePath = new File(myLibModule.getModuleFilePath());
 
     AndroidProjectStub project = new AndroidProjectStub("lib");
+    project.setIsLibrary(true);
     VariantStub variant = project.addVariant("debug");
 
     myLib = new IdeaAndroidProject(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
@@ -132,30 +140,37 @@ public class VariantSelectionVerifierTest extends IdeaTestCase {
 
   public void testFindFirstConflictWithoutConflict() {
     setUpDependencyOnLibrary("debug");
-    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.findFirstConflict(myLibModule);
-    assertNull(conflict);
+    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    assertTrue(conflicts.isEmpty());
   }
 
   public void testFindFirstConflictWithoutEmptyVariantDependency() {
     setUpDependencyOnLibrary("");
-    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.findFirstConflict(myLibModule);
-    assertNull(conflict);
+    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    assertTrue(conflicts.isEmpty());
   }
 
   public void testFindFirstConflictWithoutNullVariantDependency() {
     setUpDependencyOnLibrary(null);
-    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.findFirstConflict(myLibModule);
-    assertNull(conflict);
+    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    assertTrue(conflicts.isEmpty());
   }
 
   public void testFindFirstConflictWithConflict() {
     setUpDependencyOnLibrary("release");
-    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.findFirstConflict(myLibModule);
-    assertNotNull(conflict);
-    assertSame(myLibModule, conflict.mySource);
-    assertSame(myModule, conflict.myAffected);
-    assertSame("release", conflict.myExpectedVariant);
-    assertSame("debug", conflict.mySelectedVariant);
+    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    assertEquals(1, conflicts.size());
+
+    SelectionConflict conflict = conflicts.get(0);
+    assertSame(myLibModule, conflict.getSource());
+    assertSame("debug", conflict.getSelectedVariant());
+
+    List<SelectionConflict.AffectedModule> affectedModules = conflict.getAffectedModules();
+    assertEquals(1, affectedModules.size());
+
+    SelectionConflict.AffectedModule affectedModule = affectedModules.get(0);
+    assertSame(myModule, affectedModule.getTarget());
+    assertSame("release", affectedModule.getExpectedVariant());
   }
 
   private void setUpDependencyOnLibrary(@Nullable String projectVariant) {
