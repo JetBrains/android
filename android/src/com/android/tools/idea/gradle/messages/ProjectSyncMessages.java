@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.messages.navigatable.ProjectSyncErrorNavigatable;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.intellij.compiler.impl.CompilerErrorTreeView;
+import com.intellij.ide.errorTreeView.ErrorViewStructure;
+import com.intellij.ide.errorTreeView.GroupingElement;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -34,16 +36,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collection;
-
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
  */
 public class ProjectSyncMessages {
   private static final Key<Key<?>> CONTENT_ID_KEY = Key.create("PROJECT_SYNC_MESSAGES_CONTENT_ID");
-  private static final Key<Multimap<String, Message>> PROJECT_SYNC_MESSAGES_KEY = Key.create("android.project.sync.messages.key");
   private static final Content[] EMPTY_CONTENTS = new Content[0];
 
   @NonNls public static final String CONTENT_NAME = "Gradle Sync";
@@ -53,64 +51,76 @@ public class ProjectSyncMessages {
 
   @NotNull private final Project myProject;
 
-  @NotNull private final Object myMessageViewLock = new Object();
+  @NotNull private final Object myErrorTreeViewLock = new Object();
+
+  @GuardedBy("myErrorTreeViewLock")
   @Nullable private NewErrorTreeViewPanel myErrorTreeView;
 
   private boolean myMessageViewIsPrepared;
   private boolean myMessagesAutoActivated;
 
-  private int projectStructureErrorCount;
+  private int myErrorCount;
+  private int myMessageCount;
 
   @NotNull
   public static ProjectSyncMessages getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, ProjectSyncMessages.class);
   }
 
-  public boolean hasProjectStructureErrors() {
-    return projectStructureErrorCount > 0;
-  }
-
-  public boolean isEmpty() {
-    return getMessagesByGroup().isEmpty();
+  public int getErrorCount() {
+    return myErrorCount;
   }
 
   public ProjectSyncMessages(@NotNull Project project) {
     myProject = project;
   }
 
-  public void add(@NotNull Message message) {
+  public int getMessageCount(@NotNull String groupName) {
+    synchronized (myErrorTreeViewLock) {
+      // Clear messages from the previous session.
+      if (myErrorTreeView != null) {
+        ErrorViewStructure errorViewStructure = myErrorTreeView.getErrorViewStructure();
+        GroupingElement grouping = errorViewStructure.lookupGroupingElement(groupName);
+        if (grouping != null) {
+          return errorViewStructure.getChildCount(grouping);
+        }
+      }
+    }
+    return 0;
+  }
+
+  public void add(@NotNull final Message message) {
     Navigatable navigatable = message.getNavigatable();
     if (navigatable instanceof ProjectSyncErrorNavigatable) {
       ((ProjectSyncErrorNavigatable)navigatable).setProject(myProject);
     }
-    String groupName = message.getGroupName();
-    getMessagesByGroup().put(groupName, message);
-    if (message.getType() == Message.Type.ERROR && !VARIANT_SELECTION_CONFLICTS.equals(groupName)) {
-      projectStructureErrorCount++;
+    if (message.getType() == Message.Type.ERROR) {
+      myErrorCount++;
+    }
+    myMessageCount++;
+    Runnable showMessageTask = new Runnable() {
+      @Override
+      public void run() {
+        openMessageView();
+        show(message);
+      }
+    };
+
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      showMessageTask.run();
+    }
+    else {
+      ApplicationManager.getApplication().invokeLater(showMessageTask, ModalityState.NON_MODAL);
     }
   }
 
-  @NotNull
-  private Multimap<String, Message> getMessagesByGroup() {
-    Multimap<String, Message> messages = myProject.getUserData(PROJECT_SYNC_MESSAGES_KEY);
-    if (messages == null) {
-      messages = ArrayListMultimap.create();
-      myProject.putUserData(PROJECT_SYNC_MESSAGES_KEY, messages);
-    }
-    return messages;
-  }
-
-  @NotNull
-  public Collection<Message> getMessages(@NotNull String groupName) {
-    return getMessagesByGroup().get(groupName);
-  }
-
-  public void showInView() {
+  public void clearView() {
     prepareMessageView();
-    openMessageView();
-    for (Message msg : getMessagesByGroup().values()) {
-      show(msg);
+    if (getMessageViewContents().length > 0) {
+      removeAllContents(null);
     }
+    myErrorCount = 0;
+    myMessageCount = 0;
   }
 
   private void prepareMessageView() {
@@ -122,11 +132,11 @@ public class ProjectSyncMessages {
       @Override
       public void run() {
         if (!myProject.isDisposed()) {
-          synchronized (myMessageViewLock) {
+          synchronized (myErrorTreeViewLock) {
             // Clear messages from the previous session.
             if (myErrorTreeView == null) {
               // If message view != null, the contents has already been cleared.
-              clearView();
+              removeAllContents(null);
             }
           }
         }
@@ -136,7 +146,7 @@ public class ProjectSyncMessages {
 
   private void openMessageView() {
     JComponent component;
-    synchronized (myMessageViewLock) {
+    synchronized (myErrorTreeViewLock) {
       if (myErrorTreeView != null) {
         return;
       }
@@ -168,12 +178,6 @@ public class ProjectSyncMessages {
 
     removeAllContents(content);
     messageViewContentManager.setSelectedContent(content);
-  }
-
-  public void clearView() {
-    removeAllContents(null);
-    myProject.putUserData(PROJECT_SYNC_MESSAGES_KEY, null);
-    projectStructureErrorCount = 0;
   }
 
   private void removeAllContents(@Nullable Content toKeep) {
@@ -215,7 +219,7 @@ public class ProjectSyncMessages {
   }
 
   private void show(@NotNull Message message) {
-    synchronized (myMessageViewLock) {
+    synchronized (myErrorTreeViewLock) {
       if (myErrorTreeView != null && !myProject.isDisposed()) {
         myErrorTreeView.addMessage(message.getType().getValue(), message.getText(), message.getGroupName(), message.getNavigatable(), null,
                                    null, null);
@@ -231,7 +235,7 @@ public class ProjectSyncMessages {
   }
 
   public void activateView() {
-    synchronized (myMessageViewLock) {
+    synchronized (myErrorTreeViewLock) {
       if (myErrorTreeView != null) {
         MessageView messageView = getMessageView();
         Content[] contents = messageView.getContentManager().getContents();
@@ -252,6 +256,10 @@ public class ProjectSyncMessages {
     return ToolWindowManager.getInstance(myProject).getToolWindow(ToolWindowId.MESSAGES_WINDOW);
   }
 
+  public boolean isEmpty() {
+    return myMessageCount == 0;
+  }
+
   private class MessagesContentManager extends ContentManagerAdapter {
     @NotNull private ContentManager myContentManager;
     @Nullable private Content myContent;
@@ -265,7 +273,7 @@ public class ProjectSyncMessages {
     @Override
     public void contentRemoved(ContentManagerEvent event) {
       if (event.getContent() == myContent) {
-        synchronized (myMessageViewLock) {
+        synchronized (myErrorTreeViewLock) {
           if (myErrorTreeView != null && !myProject.isDisposed()) {
             myErrorTreeView.dispose();
             myErrorTreeView = null;
