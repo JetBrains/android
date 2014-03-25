@@ -209,7 +209,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
-    if (buildScript == null || !isAndroidGradleProject(gradleModule)) {
+    if (buildScript == null || !inAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
     }
@@ -291,7 +291,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    if (!isAndroidGradleProject(gradleModule)) {
+    if (!inAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleCompileOutputSettings(gradleModule, ideModule);
     }
   }
@@ -300,7 +300,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
-    if (!isAndroidGradleProject(gradleModule)) {
+    if (!inAndroidGradleProject(gradleModule)) {
       // For plain Java projects (non-Gradle) we let the framework populate dependencies
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
       return;
@@ -313,7 +313,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
-  private boolean isAndroidGradleProject(@NotNull IdeaModule gradleModule) {
+  private boolean inAndroidGradleProject(@NotNull IdeaModule gradleModule) {
     if (!resolverCtx.findModulesWithModel(AndroidProject.class).isEmpty()) {
       return true;
     }

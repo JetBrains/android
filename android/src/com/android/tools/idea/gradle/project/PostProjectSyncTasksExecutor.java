@@ -57,7 +57,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
@@ -78,7 +77,7 @@ public class PostProjectSyncTasksExecutor {
   }
 
   public void onProjectSetupCompletion() {
-    if (!ProjectSyncMessages.getInstance(myProject).isEmpty()) {
+    if (ProjectSyncMessages.getInstance(myProject).getErrorCount() > 0) {
       displayProjectSetupMessages();
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
@@ -331,8 +330,8 @@ public class PostProjectSyncTasksExecutor {
   private void displayProjectSetupMessages() {
     final ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
-    Collection<Message> sdkErrors = messages.getMessages(FAILED_TO_SET_UP_SDK);
-    if (!sdkErrors.isEmpty()) {
+    int sdkErrorCount = messages.getMessageCount(FAILED_TO_SET_UP_SDK);
+    if (sdkErrorCount > 0) {
       // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
       // install any missing platforms.
       Navigatable quickFix = new OpenAndroidSdkNavigatable(myProject);
@@ -354,8 +353,6 @@ public class PostProjectSyncTasksExecutor {
     text+= hyperlink.toString();
     NotificationListener listener = new CustomNotificationListener(myProject, hyperlink);
     AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, listener);
-
-    messages.showInView();
   }
 
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {

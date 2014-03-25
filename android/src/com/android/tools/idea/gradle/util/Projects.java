@@ -47,6 +47,8 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import javax.swing.*;
 import java.io.File;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+
 /**
  * Utility methods for {@link Project}s.
  */
@@ -62,7 +64,13 @@ public final class Projects {
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
     return (!GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project)) ||
-           !ProjectSyncMessages.getInstance(project).hasProjectStructureErrors();
+           hasProjectStructureErrors(project);
+  }
+
+  private static boolean hasProjectStructureErrors(@NotNull Project project) {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+    // Variant selection conflicts are not considered project structure errors.
+    return messages.getErrorCount() > messages.getMessageCount(VARIANT_SELECTION_CONFLICTS);
   }
 
   /**
