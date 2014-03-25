@@ -266,6 +266,13 @@ public final class DefaultSdks {
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHome);
     if (sdkData != null) {
       IAndroidTarget[] targets = sdkData.getTargets();
+
+      if (targets.length == 0) {
+        String msg = String.format("Android SDK at '%1$s' does not have any platforms installed. Please fix using the SDK Manager.",
+                                   androidHome.getPath());
+        throw new IllegalStateException(msg);
+      }
+
       Sdk defaultJdk = javaSdk != null ? javaSdk : getDefaultJdk();
       for (IAndroidTarget target : targets) {
         if (target.isPlatform() && !doesDefaultAndroidSdkExist(target)) {
