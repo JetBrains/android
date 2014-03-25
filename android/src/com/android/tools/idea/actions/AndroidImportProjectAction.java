@@ -37,6 +37,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
@@ -44,7 +45,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
@@ -93,20 +93,35 @@ public class AndroidImportProjectAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = !myIsProjectImport ? getEventProject(e) : null;
-    AddModuleWizard wizard = selectFileAndCreateWizard(project);
-    if (wizard != null) {
-      if (wizard.getStepCount() > 0) {
-        if (!wizard.showAndGet()) {
-          return;
+    try {
+      AddModuleWizard wizard = selectFileAndCreateWizard(project);
+      if (wizard != null) {
+        if (wizard.getStepCount() > 0) {
+          if (!wizard.showAndGet()) {
+            return;
+          }
+          //noinspection ConstantConditions
+          NewProjectUtil.createFromWizard(wizard, null);
         }
-        //noinspection ConstantConditions
-        NewProjectUtil.createFromWizard(wizard, null);
       }
+    }
+    catch (IOException exception) {
+      handleImportException(project, exception);
+    }
+    catch (ConfigurationException exception) {
+      handleImportException(project, exception);
     }
   }
 
+  private void handleImportException(@Nullable Project project, @NotNull Exception e1) {
+    String projectOrModule = myIsProjectImport ? "Project" : "Module";
+    String message = String.format("%s import failed: %s", projectOrModule, e1.getMessage());
+    Messages.showErrorDialog(project, message, String.format("Import %s", projectOrModule));
+    LOG.error(e1);
+  }
+
   @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project) {
+  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project) throws IOException, ConfigurationException {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false) {
       FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
 
@@ -124,7 +139,8 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project, @NotNull FileChooserDescriptor descriptor) {
+  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project, @NotNull FileChooserDescriptor descriptor)
+      throws IOException, ConfigurationException {
     FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null);
     VirtualFile toSelect = null;
     String lastLocation = PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION);
@@ -141,7 +157,8 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private static AddModuleWizard createImportWizard(@Nullable Project project, @NotNull VirtualFile file) {
+  private static AddModuleWizard createImportWizard(@Nullable Project project, @NotNull VirtualFile file)
+    throws IOException, ConfigurationException {
     //noinspection TestOnlyProblems
     VirtualFile target = findImportTarget(file);
     if (target == null) {
@@ -175,7 +192,7 @@ public class AndroidImportProjectAction extends AnAction {
       if (project == null) {
         gradleImporter.importProject(file);
       } else {
-        gradleImporter.importModule(file);
+        gradleImporter.importModule(file, project, null);
       }
       return null;
     }
