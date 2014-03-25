@@ -94,12 +94,15 @@ public class NamedObject {
     }
 
     @Override
-    protected void setValue(GrStatementOwner closure, NamedObject object) {
+    protected void setValue(@NotNull GrStatementOwner closure, @NotNull NamedObject object) {
       GrClosableBlock subclosure = GradleGroovyFile.getMethodClosureArgument(closure, object.myName);
       GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(closure.getProject());
       if (subclosure == null) {
         closure.addBefore(factory.createStatementFromText(object.getName() + " {\n}\n"), closure.getLastChild());
         subclosure = GradleGroovyFile.getMethodClosureArgument(closure, object.myName);
+        if (subclosure == null) {
+          return;
+        }
       }
       for (BuildFileKey property : myProperties) {
         Object value = object.getValue(property);
@@ -131,6 +134,14 @@ public class NamedObject {
           }
         }
       return ImmutableList.of(item);
+    }
+
+    @Override
+    protected void removeValue(@NotNull GrStatementOwner closure, @NotNull NamedObject value) {
+      GrMethodCall call = GradleGroovyFile.getMethodCall(closure, value.getName());
+      if (call != null) {
+        call.removeStatement();
+      }
     }
 
     @NotNull
