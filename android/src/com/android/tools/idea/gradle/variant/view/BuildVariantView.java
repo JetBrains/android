@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.project.VariantSelectionVerifier;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.variant.SelectionConflict;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -33,8 +34,10 @@ import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.TableUtil;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
@@ -72,6 +75,7 @@ public class BuildVariantView {
   private JPanel myErrorPanel;
 
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
+  private final List<String> myConflictSources = Lists.newArrayList();
 
   public BuildVariantView(@NotNull Project project) {
     myProject = project;
@@ -207,11 +211,36 @@ public class BuildVariantView {
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
-  public void updateNotification() {
+  public void updateNotification(ImmutableList<SelectionConflict> conflicts) {
     myErrorPanel.removeAll();
-    VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.getInstance(myProject).getConflict();
-    if (conflict != null) {
-      myErrorPanel.add(conflict.createNotificationPanel());
+    myConflictSources.clear();
+
+    if (!conflicts.isEmpty()) {
+      EditorNotificationPanel notification = new EditorNotificationPanel();
+      notification.setText("Variant selection conflicts found.");
+      notification.createActionLabel("See conflicts", new Runnable() {
+        @Override
+        public void run() {
+          ProjectSyncMessages.getInstance(myProject).activateView();
+        }
+      });
+      myErrorPanel.add(notification);
+    }
+
+    for (SelectionConflict conflict : conflicts) {
+      myConflictSources.add(conflict.getSource().getName());
+    }
+  }
+
+  public void selectAndScrollTo(@NotNull Module module) {
+    String name = module.getName();
+    for (int row = 0; row < myVariantsTable.getRowCount() - 1; row++) {
+      if (name.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
+        myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
+        myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(MODULE_COLUMN_INDEX, MODULE_COLUMN_INDEX);
+        TableUtil.scrollSelectionToVisible(myVariantsTable);
+        break;
+      }
     }
   }
 
@@ -271,19 +300,19 @@ public class BuildVariantView {
                                                        int column) {
           Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
           if (c instanceof JComponent) {
-            // add some padding to table cells. It is hard to read text of combo box.
             JComponent component = (JComponent)c;
-            VariantSelectionVerifier.Conflict conflict = VariantSelectionVerifier.getInstance(myProject).getConflict();
-            if (conflict != null) {
-              Module source = conflict.getSource();
+            boolean hasConflict = false;
+            for (String source : myConflictSources) {
               Object moduleName = table.getValueAt(row, MODULE_COLUMN_INDEX);
-              if (source.getName().equals(moduleName)) {
-                component.setBackground(MessageType.ERROR.getPopupBackground());
-              }
-              else {
-                component.setBackground(JBColor.background());
+              if (source.equals(moduleName)) {
+                hasConflict = true;
+                break;
               }
             }
+            Color background = hasConflict ? MessageType.ERROR.getPopupBackground() : JBColor.background();
+            component.setBackground(background);
+
+            // add some padding to table cells. It is hard to read text of combo box.
             component.setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));
           }
 
