@@ -75,9 +75,17 @@ public class ProjectSyncMessages {
     myProject = project;
   }
 
+  public void removeMessages(@NotNull String groupName) {
+    synchronized (myErrorTreeViewLock) {
+      if (myErrorTreeView != null) {
+        ErrorViewStructure errorViewStructure = myErrorTreeView.getErrorViewStructure();
+        errorViewStructure.removeGroup(groupName);
+      }
+    }
+  }
+
   public int getMessageCount(@NotNull String groupName) {
     synchronized (myErrorTreeViewLock) {
-      // Clear messages from the previous session.
       if (myErrorTreeView != null) {
         ErrorViewStructure errorViewStructure = myErrorTreeView.getErrorViewStructure();
         GroupingElement grouping = errorViewStructure.lookupGroupingElement(groupName);
