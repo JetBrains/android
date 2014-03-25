@@ -15,27 +15,34 @@
  */
 package com.android.tools.idea.gradle.service.resolve;
 
+import com.google.common.base.Joiner;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.NotNullFunction;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.GradleBuildClasspathManager;
 import org.jetbrains.plugins.gradle.service.resolve.GradleMethodContextContributor;
 import org.jetbrains.plugins.gradle.service.resolve.GradleResolverUtil;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiManager;
-import org.jetbrains.plugins.groovy.lang.psi.impl.statements.expressions.GrReferenceExpressionImpl;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightParameter;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyPropertyUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 public class AndroidDslContributor implements GradleMethodContextContributor {
+  private static final Logger LOG = Logger.getInstance(AndroidDslContributor.class);
+
   @NonNls private static final String DSL_ANDROID = "android";
   @NonNls private static final String DSL_DEFAULT_CONFIG = "defaultConfig";
   @NonNls private static final String DSL_LINT_OPTIONS = "lintOptions";
@@ -49,6 +56,8 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   @NonNls private static final String BUILD_TYPE_FQCN = "com.android.build.gradle.internal.dsl.BuildTypeDsl";
   @NonNls private static final String PRODUCT_FLAVOR_FQCN = "com.android.build.gradle.internal.dsl.ProductFlavorDsl";
   @NonNls private static final String SIGNING_CONFIG_FQCN = "com.android.build.gradle.internal.dsl.SigningConfigDsl";
+
+  @NonNls private List<VirtualFile> myLastClassPath = Collections.emptyList();
 
   @Override
   public void process(@NotNull List<String> callStack,
@@ -95,6 +104,8 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     if (!DSL_ANDROID.equals(topLevel)) {
       return;
     }
+
+    logClassPath(place.getProject());
 
     GroovyPsiManager psiManager = GroovyPsiManager.getInstance(place.getProject());
 
@@ -214,5 +225,23 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     // if we couldn't narrow down by # of arguments, just use the first one
     builder.setNavigationElement(methodsByName[0]);
+  }
+
+  private void logClassPath(@NotNull Project project) {
+    List<VirtualFile> files = GradleBuildClasspathManager.getInstance(project).getAllClasspathEntries();
+    if (ContainerUtil.equalsIdentity(files, myLastClassPath)) {
+      return;
+    }
+    myLastClassPath = files;
+
+    List<String> paths = ContainerUtil.map(files, new NotNullFunction<VirtualFile, String>() {
+      @NotNull
+      @Override
+      public String fun(VirtualFile vf) {
+        return vf.getPath();
+      }
+    });
+    String classPath = Joiner.on(':').join(paths);
+    LOG.info(String.format("Android DSL resolver classpath (project %1$s): %2$s", project.getName(), classPath));
   }
 }
