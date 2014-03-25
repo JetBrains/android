@@ -21,6 +21,7 @@ import com.android.ide.common.res2.SourceSet;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -49,6 +50,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.templates.KeystoreUtils.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -147,7 +149,13 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
 
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
 
-    myWizardState.put(ATTR_DEBUG_KEYSTORE_PATH, getDebugKeystorePath(facet));
+    try {
+      myWizardState.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(getDebugKeystore(facet)));
+    }
+    catch (Exception e) {
+      LOG.error("Could not compute SHA1 hash of debug keystore.", e);
+      myWizardState.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
+    }
 
     File templateFile = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
     if (myTemplateName == null || templateFile == null) {
@@ -363,28 +371,6 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       else {
         myAssetSetStep.setVisible(false);
       }
-    }
-  }
-
-  /**
-   * Get the debug keystore path.
-   *
-   * @return the path, or null if the debug keystore does not exist.
-   */
-  @Nullable
-  private static String getDebugKeystorePath(@NotNull AndroidFacet facet) {
-    JpsAndroidModuleProperties state = facet.getConfiguration().getState();
-    if (state != null && !Strings.isNullOrEmpty(state.CUSTOM_DEBUG_KEYSTORE_PATH)) {
-      return state.CUSTOM_DEBUG_KEYSTORE_PATH;
-    }
-
-    try {
-      String folder = AndroidLocation.getFolder();
-      return folder + "debug.keystore";
-    }
-    catch (AndroidLocation.AndroidLocationException e) {
-      LOG.info(String.format("Failed to get debug keystore path for module '%1$s'", facet.getModule().getName()), e);
-      return null;
     }
   }
 
