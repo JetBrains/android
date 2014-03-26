@@ -21,14 +21,15 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.AccessToken;
+import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -129,6 +130,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
   }
 
   private static class CreateGradleLibraryFromFilesDialog extends DialogWrapper {
+    public static final String COMMAND_TITLE = "Create Library";
     private final ModulesCombobox myModulesCombobox;
     private final Project myProject;
     private final JPanel myPanel;
@@ -137,7 +139,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
     public CreateGradleLibraryFromFilesDialog(@NotNull Project project, @NotNull List<OrderRoot> roots) {
       super(project, true);
-      setTitle("Create Library");
+      setTitle(COMMAND_TITLE);
       myProject = project;
       myRoots = roots;
       mySettingsFile = GradleSettingsFile.get(myProject);
@@ -184,11 +186,9 @@ public class CreateLibraryFromFilesAction extends AnAction {
         if (module == null) { return; }
         String moduleGradlePath = GradleSettingsFile.getModuleGradlePath(module);
         if (moduleGradlePath == null) { return; }
-        GradleBuildFile buildFile = mySettingsFile.getModuleBuildFile(moduleGradlePath);
-        List<Dependency> dependencies = (List<Dependency>)buildFile.getValue(BuildFileKey.DEPENDENCIES);
-        if (dependencies == null) {
-          dependencies = Lists.newArrayList();
-        }
+        final GradleBuildFile buildFile = mySettingsFile.getModuleBuildFile(moduleGradlePath);
+        List<Dependency> value = (List<Dependency>)buildFile.getValue(BuildFileKey.DEPENDENCIES);
+        final List<Dependency> dependencies = value != null ? value : new ArrayList<Dependency>();
         boolean added = false;
         for (OrderRoot root : myRoots) {
           VirtualFile parent = buildFile.getFile().getParent();
@@ -205,7 +205,12 @@ public class CreateLibraryFromFilesAction extends AnAction {
             }
           }
           if (added) {
-            buildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+            new WriteCommandAction<Void>(myProject, COMMAND_TITLE, buildFile.getPsiFile()) {
+              @Override
+              protected void run(@NotNull Result<Void> result) throws Throwable {
+                buildFile.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+              }
+            }.execute();
           }
         }
       }

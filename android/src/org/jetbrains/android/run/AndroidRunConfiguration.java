@@ -26,6 +26,7 @@ import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.*;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
@@ -47,6 +48,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
+import com.intellij.util.xmlb.Accessor;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -240,20 +242,23 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   @Nullable
   public RefactoringElementListener getRefactoringElementListener(PsiElement element) {
-    if (element instanceof PsiClass && Comparing.strEqual(((PsiClass)element).getQualifiedName(), ACTIVITY_CLASS, true)) {
-      return new RefactoringElementAdapter() {
-        @Override
-        public void elementRenamedOrMoved(@NotNull PsiElement newElement) {
-          ACTIVITY_CLASS = ((PsiClass)newElement).getQualifiedName();
-        }
+    return RefactoringListeners.getClassOrPackageListener(element, new RefactoringListeners.Accessor<PsiClass>() {
+      @Override
+      public void setName(String qualifiedName) {
+        ACTIVITY_CLASS = qualifiedName;
+      }
 
-        @Override
-        public void undoElementMovedOrRenamed(@NotNull PsiElement newElement, @NotNull String oldQualifiedName) {
-          ACTIVITY_CLASS = oldQualifiedName;
-        }
-      };
-    }
-    return null;
+      @Nullable
+      @Override
+      public PsiClass getPsiElement() {
+        return getConfigurationModule().findClass(ACTIVITY_CLASS);
+      }
+
+      @Override
+      public void setPsiElement(PsiClass psiClass) {
+        ACTIVITY_CLASS = JavaExecutionUtil.getRuntimeQualifiedName(psiClass);
+      }
+    });
   }
 
   @NotNull
@@ -351,6 +356,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
         manifestVFile == null ? null : AndroidUtils.loadDomElement(facet.getModule(), manifestVFile, Manifest.class);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Nullable
         @Override
         public String compute() {
           if (manifest == null) {

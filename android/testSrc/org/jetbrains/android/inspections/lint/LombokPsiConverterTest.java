@@ -402,6 +402,26 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     check(file, testClass);
   }
 
+  public void test() {
+    String testClass =
+      "package test.pkg;\n" +
+      "\n" +
+      "import android.annotation.SuppressLint;\n" +
+      "import android.annotation.TargetApi;\n" +
+      "import android.os.Build;\n" +
+      "\n" +
+      "public class EmptyStatementTest {\n" +
+      "    public final View test(View start, Predicate<View> predicate) {\n" +
+      "        View childToSkip = null;\n" +
+      "        for (;;) {\n" +
+      "            View view = start.findViewByPredicateTraversal(predicate, childToSkip);\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n";
+    PsiFile file = myFixture.addFileToProject("src/test/pkg/SuppressTest.java", testClass);
+    check(file, testClass);
+  }
+
   public void testPsiToLombokConversion11() {
     // Test Polyadic Expression
     String testClass =

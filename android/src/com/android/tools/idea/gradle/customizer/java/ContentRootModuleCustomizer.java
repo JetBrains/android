@@ -22,7 +22,6 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
@@ -35,47 +34,34 @@ import org.jetbrains.plugins.gradle.model.ExtIdeaContentRoot;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<JavaModel> {
   @Override
   @NotNull
   protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull JavaModel model) {
     List<ContentEntry> allEntries = Lists.newArrayList();
-    ContentEntry[] currentEntries = rootModel.getContentEntries();
     for (IdeaContentRoot contentRoot : model.getContentRoots()) {
-      boolean added = false;
       File rootDirPath = contentRoot.getRootDirectory();
-      for (ContentEntry contentEntry : currentEntries) {
-        VirtualFile contentEntryFile = contentEntry.getFile();
-        if (contentEntryFile == null) {
-          continue;
-        }
-        String path = FileUtil.toSystemDependentName(contentEntryFile.getPath());
-        if (FileUtil.pathsEqual(rootDirPath.getPath(), path)) {
-          allEntries.add(contentEntry);
-          added = true;
-          break;
-        }
-      }
-      if (!added) {
-        ContentEntry contentEntry = rootModel.addContentEntry(pathToUrl(rootDirPath));
-        allEntries.add(contentEntry);
-      }
+      ContentEntry contentEntry = rootModel.addContentEntry(pathToUrl(rootDirPath));
+      allEntries.add(contentEntry);
     }
     return allEntries;
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries, @NotNull JavaModel model) {
+  protected void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries,
+                                     @NotNull JavaModel model,
+                                     @NotNull List<RootSourceFolder> orphans) {
     List<IdeaContentRoot> contentRoots = model.getContentRoots();
     for (IdeaContentRoot contentRoot : contentRoots) {
-      addSourceFolders(contentEntries, JavaSourceRootType.SOURCE, contentRoot.getSourceDirectories());
-      addSourceFolders(contentEntries, JavaSourceRootType.TEST_SOURCE, contentRoot.getTestDirectories());
+      addSourceFolders(contentEntries, contentRoot.getSourceDirectories(), JavaSourceRootType.SOURCE, orphans);
+      addSourceFolders(contentEntries, contentRoot.getTestDirectories(), JavaSourceRootType.TEST_SOURCE, orphans);
 
       if (contentRoot instanceof ExtIdeaContentRoot) {
         ExtIdeaContentRoot extContentRoot = (ExtIdeaContentRoot)contentRoot;
-        addSourceFolders(contentEntries, JavaResourceRootType.RESOURCE, extContentRoot.getResourceDirectories());
-        addSourceFolders(contentEntries, JavaResourceRootType.TEST_RESOURCE, extContentRoot.getTestResourceDirectories());
+        addSourceFolders(contentEntries, extContentRoot.getResourceDirectories(), JavaResourceRootType.RESOURCE, orphans);
+        addSourceFolders(contentEntries, extContentRoot.getTestResourceDirectories(), JavaResourceRootType.TEST_RESOURCE, orphans);
       }
 
       for (File excluded : contentRoot.getExcludeDirectories()) {
@@ -90,14 +76,15 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private void addSourceFolders(@NotNull Collection<ContentEntry> contentEntries,
-                                @NotNull JpsModuleSourceRootType sourceType,
-                                @Nullable DomainObjectSet<? extends IdeaSourceDirectory> sourceDirectories) {
-    if (sourceDirectories == null) {
+                                @Nullable Set<? extends IdeaSourceDirectory> sourceFolders,
+                                @NotNull JpsModuleSourceRootType type,
+                                @NotNull List<RootSourceFolder> orphans) {
+    if (sourceFolders == null) {
       return;
     }
-    for (IdeaSourceDirectory dir : sourceDirectories) {
+    for (IdeaSourceDirectory dir : sourceFolders) {
       File path = dir.getDirectory();
-      addSourceFolder(contentEntries, sourceType, path, false);
+      addSourceFolder(contentEntries, path, type, false, orphans);
     }
   }
 }

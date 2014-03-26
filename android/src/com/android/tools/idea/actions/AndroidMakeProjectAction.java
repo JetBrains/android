@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.compiler.actions.CompileDirtyAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,6 +30,6 @@ public class AndroidMakeProjectAction extends AndroidBuildProjectAction {
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
-    GradleInvoker.getInstance(project).make(moduleManager.getModules(), GradleBuilds.TestCompileType.NONE);
+    GradleInvoker.getInstance(project).compileJava(moduleManager.getModules());
   }
 }

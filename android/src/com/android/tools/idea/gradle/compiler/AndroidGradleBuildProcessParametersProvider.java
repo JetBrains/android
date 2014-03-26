@@ -106,28 +106,16 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     List<String> jvmArgs = Lists.newArrayList();
 
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(myProject);
-    //noinspection TestOnlyProblems
     populateJvmArgs(buildConfiguration, jvmArgs, myProject);
 
     GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(myProject);
     if (executionSettings != null) {
-      //noinspection TestOnlyProblems
       populateJvmArgs(executionSettings, jvmArgs);
     }
 
-    // Specify "build action" (generating sources, make, compile Java only, etc.)
-    BuildSettings buildSettings = BuildSettings.getInstance(myProject);
-    BuildMode buildMode = buildSettings.getBuildMode();
-    if (buildMode == null) {
-      buildMode = BuildMode.DEFAULT_BUILD_MODE;
-    }
-    jvmArgs.add(createJvmArg(BUILD_ACTION, buildMode.name()));
+    populateJvmArgs(BuildSettings.getInstance(myProject), jvmArgs);
 
     addHttpProxySettings(jvmArgs);
-
-    //noinspection TestOnlyProblems
-    populateModulesToBuild(buildMode, jvmArgs);
-
     return jvmArgs;
   }
 
@@ -202,7 +190,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   private static void addHttpProxySettings(@NotNull List<String> jvmArgs) {
     List<KeyValue<String, String>> proxyProperties = HttpConfigurable.getJvmPropertiesList(false, null);
-    //noinspection TestOnlyProblems
     populateHttpProxyProperties(jvmArgs, proxyProperties);
   }
 
@@ -219,6 +206,14 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     }
   }
 
+  private void populateJvmArgs(@NotNull BuildSettings buildSettings, @NotNull List<String> jvmArgs) {
+    BuildMode buildMode = buildSettings.getBuildMode();
+    if (buildMode == null) {
+      buildMode = BuildMode.DEFAULT_BUILD_MODE;
+    }
+    populateModulesToBuild(buildMode, jvmArgs);
+  }
+
   @VisibleForTesting
   void populateModulesToBuild(@NotNull BuildMode buildMode, @NotNull List<String> jvmArgs) {
     String[] modulesToBuild = getModulesToBuild(buildMode);
@@ -232,7 +227,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @Nullable
   private String[] getModulesToBuild(@NotNull BuildMode buildMode) {
-    if (buildMode.equals(BuildMode.MAKE) && Projects.lastGradleSyncFailed(myProject)) {
+    if (buildMode.equals(BuildMode.ASSEMBLE_TRANSLATE) || (buildMode.equals(BuildMode.ASSEMBLE) && Projects.lastGradleSyncFailed(myProject))) {
       return null;
     }
     BuildSettings buildSettings = BuildSettings.getInstance(myProject);

@@ -33,6 +33,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiExpression;
 import com.sun.jdi.*;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +55,7 @@ public class ArrayMapRenderer extends NodeRendererImpl {
   private final LabelRenderer myLabelRenderer = new LabelRenderer();
   private final MyArrayMapSizeEvaluator mySizeEvaluator = new MyArrayMapSizeEvaluator();
 
-  public ArrayMapRenderer(String mapFqn) {
+  public ArrayMapRenderer(@NotNull String mapFqn) {
     myProperties.setEnabled(true);
     myProperties.setName(mapFqn);
 
@@ -127,8 +129,8 @@ public class ArrayMapRenderer extends NodeRendererImpl {
   }
 
   @Override
-  public boolean isApplicable(Type type) {
-    return myFqn.equals(type.name());
+  public boolean isApplicable(@Nullable Type type) {
+    return type != null && myFqn.equals(type.name());
   }
 
   private boolean getArrayMapIsEmpty(Value arrayMapValue, EvaluationContext context) {

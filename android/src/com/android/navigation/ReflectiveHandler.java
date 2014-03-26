@@ -249,7 +249,7 @@ class ReflectiveHandler extends DefaultHandler {
     private void installAttributes(MyErrorHandler errorHandler, String[] constructorParameterNames) throws SAXException {
       for (Map.Entry<String, String> entry : attributes.entrySet()) {
         String attributeName = entry.getKey();
-        if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || Utilities.contains(constructorParameterNames, attributeName)) {
+        if (Utilities.RESERVED_ATTRIBUTES.contains(attributeName) || Utilities.contains(constructorParameterNames, attributeName) || "class".equals(attributeName)) {
           continue;
         }
         try {
@@ -279,11 +279,14 @@ class ReflectiveHandler extends DefaultHandler {
         }
         try {
           Object outerValue = getValue();
-          if (!(Collection.class.isAssignableFrom(type))) { // todo remove Collection check
-            getSetter(outerValue.getClass(), element.name).invoke(outerValue, element.getValue());
+          if ((Collection.class.isAssignableFrom(type))) { // todo remove Collection check
+            applyMethod(outerValue, "add", element.getValue());
+          }
+          else if ((Map.class.isAssignableFrom(type))) { // todo remove Collection check
+            //applyMethod(outerValue, "put", ???);
           }
           else {
-            applyMethod(outerValue, "add", element.getValue());
+            getSetter(outerValue.getClass(), element.name).invoke(outerValue, element.getValue());
           }
         }
         catch (NoSuchMethodException e) {

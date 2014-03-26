@@ -39,7 +39,7 @@ public class GradleBuildsTest extends TestCase {
     List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
     properties.ASSEMBLE_TASK_NAME = "";
-    GradleBuilds.findAndAddBuildTask("basic", BuildMode.MAKE, ":", properties, tasks, GradleBuilds.TestCompileType.NONE);
+    GradleBuilds.findAndAddBuildTask("basic", BuildMode.ASSEMBLE, ":", properties, tasks, GradleBuilds.TestCompileType.NONE);
 
     assertEquals(1, tasks.size());
     assertEquals(":assemble", tasks.get(0));
@@ -66,7 +66,7 @@ public class GradleBuildsTest extends TestCase {
     List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
     properties.ASSEMBLE_TASK_NAME = "assembleDebug";
-    GradleBuilds.findAndAddBuildTask("basic", BuildMode.MAKE, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
+    GradleBuilds.findAndAddBuildTask("basic", BuildMode.ASSEMBLE, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
 
     assertEquals(1, tasks.size());
     assertEquals(":basic:assembleDebug", tasks.get(0));
@@ -75,16 +75,16 @@ public class GradleBuildsTest extends TestCase {
   public void testFindAndAddBuildTaskWithRebuildBuildMode() {
     List<String> tasks = Lists.newArrayList();
     JpsAndroidModuleProperties properties = new JpsAndroidModuleProperties();
-    properties.ASSEMBLE_TASK_NAME = "assembleDebug";
+    properties.COMPILE_JAVA_TASK_NAME = "compileJava";
     GradleBuilds.findAndAddBuildTask("basic", BuildMode.REBUILD, ":basic", properties, tasks, GradleBuilds.TestCompileType.NONE);
 
     assertEquals(1, tasks.size());
-    assertEquals(":basic:assembleDebug", tasks.get(0));
+    assertEquals(":basic:compileJava", tasks.get(0));
   }
 
   public void testFindAndAddBuildTaskWithMakeBuildModeAndNullAndroidFacet() {
     List<String> tasks = Lists.newArrayList();
-    GradleBuilds.findAndAddBuildTask("basic", BuildMode.MAKE, ":basic", null, tasks, GradleBuilds.TestCompileType.NONE);
+    GradleBuilds.findAndAddBuildTask("basic", BuildMode.ASSEMBLE, ":basic", null, tasks, GradleBuilds.TestCompileType.NONE);
 
     assertEquals(1, tasks.size());
     assertEquals(":basic:assemble", tasks.get(0));

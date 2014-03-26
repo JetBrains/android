@@ -1,6 +1,8 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.LintOptions;
 import com.android.ide.common.res2.AbstractResourceRepository;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
@@ -33,6 +35,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -92,8 +95,57 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     myModuleMap = moduleMap;
   }
 
+  private static boolean ourTryLintOptions = true;
+
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project) {
+    if (ourTryLintOptions && project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
+      AndroidProject model = project.getGradleProjectModel();
+      if (model != null) {
+        try {
+          LintOptions lintOptions = model.getLintOptions();
+          final Map<String, Integer> overrides = lintOptions.getSeverityOverrides();
+          if (overrides != null && !overrides.isEmpty()) {
+            return new DefaultConfiguration(this, project, null) {
+              @NonNull
+              @Override
+              public Severity getSeverity(@NonNull Issue issue) {
+                if (!getIssues().contains(issue)) {
+                  return Severity.IGNORE;
+                }
+                Integer severity = overrides.get(issue.getId());
+                if (severity != null) {
+                  switch (severity.intValue()) {
+                    case LintOptions.SEVERITY_FATAL:
+                      return Severity.FATAL;
+                    case LintOptions.SEVERITY_ERROR:
+                      return Severity.ERROR;
+                    case LintOptions.SEVERITY_WARNING:
+                      return Severity.WARNING;
+                    case LintOptions.SEVERITY_INFORMATIONAL:
+                      return Severity.INFORMATIONAL;
+                    case LintOptions.SEVERITY_IGNORE:
+                    default:
+                      return Severity.IGNORE;
+                  }
+                }
+
+                return Severity.IGNORE;
+              }
+            };
+          }
+        } catch (UnsupportedMethodException e) {
+          // This happens if we're talking to an older model than 0.8 (should not happen). Ignore; fall through to
+          // normal handling.
+          //noinspection AssignmentToStaticFieldFromInstanceMethod
+          ourTryLintOptions = false;
+        } catch (Exception e) {
+          //noinspection AssignmentToStaticFieldFromInstanceMethod
+          ourTryLintOptions = false;
+          LOG.error(e);
+        }
+      }
+    }
     return new DefaultConfiguration(this, project, null) {
       @Override
       public boolean isEnabled(@NonNull Issue issue) {
@@ -150,12 +202,13 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
   }
 
   @Override
-  public IDomParser getDomParser() {
+  public XmlParser getXmlParser() {
     return new DomPsiParser(this);
   }
 
+  @Nullable
   @Override
-  public IJavaParser getJavaParser() {
+  public JavaParser getJavaParser(@Nullable com.android.tools.lint.detector.api.Project project) {
     return new LombokPsiParser(this);
   }
 
@@ -177,7 +230,6 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
   @NonNull
   public String readFile(@NonNull final File file) {
     final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
-
     if (vFile == null) {
       LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
       return "";

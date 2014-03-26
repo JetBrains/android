@@ -17,8 +17,10 @@ package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.ChooseElementsDialog;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -32,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.openapi.roots.ui.util.SimpleTextCellAppearance;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComboBoxTableRenderer;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -56,6 +59,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -105,7 +109,16 @@ public class ModuleDependenciesPanel extends EditorPanel {
 
     myEntryTable.setDefaultRenderer(ModuleDependenciesTableItem.class, new TableItemRenderer());
 
-    JComboBox scopeEditor = new JComboBox(new EnumComboBoxModel<Dependency.Scope>(Dependency.Scope.class));
+    final boolean isAndroid = myGradleBuildFile.hasAndroidPlugin();
+    List<Dependency.Scope> scopes = Lists.newArrayList(
+      Sets.filter(EnumSet.allOf(Dependency.Scope.class), new Predicate<Dependency.Scope>() {
+        @Override
+        public boolean apply(Dependency.Scope input) {
+          return isAndroid ? input.isAndroidScope() : input.isJavaScope();
+        }
+      }));
+    ComboBoxModel boxModel = new CollectionComboBoxModel(scopes, null);
+    JComboBox scopeEditor = new ComboBox(boxModel);
     myEntryTable.setDefaultEditor(Dependency.Scope.class, new DefaultCellEditor(scopeEditor));
     myEntryTable.setDefaultRenderer(Dependency.Scope.class, new ComboBoxTableRenderer<Dependency.Scope>(Dependency.Scope.values()) {
         @Override

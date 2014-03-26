@@ -19,6 +19,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -30,22 +31,24 @@ import static com.android.tools.idea.wizard.TemplateWizardStep.NONE;
  */
 public class AssetStudioWizard extends TemplateWizard implements TemplateWizardStep.UpdateListener {
   protected Module myModule;
+  protected VirtualFile myTargetFile;
   protected TemplateWizardState myWizardState = new TemplateWizardState();
-  protected ChooseOutputLocationStep myOutputStep;
+  protected ChooseOutputResDirStep myOutputStep;
   protected AssetSetStep myIconStep;
 
-  public AssetStudioWizard(@Nullable Project project, @Nullable Module module) {
+  public AssetStudioWizard(@Nullable Project project, @Nullable Module module, @Nullable VirtualFile targetFile) {
     super("Asset Studio", project);
     myModule = module;
+    myTargetFile = targetFile;
     getWindow().setMinimumSize(new Dimension(800, 640));
     init();
   }
 
   @Override
   protected void init() {
-    myIconStep = new AssetSetStep(myWizardState, myProject, myModule, null, this);
+    myIconStep = new AssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFile);
     Disposer.register(getDisposable(), myIconStep);
-    myOutputStep = new ChooseOutputLocationStep(myWizardState, myProject, null, NONE, myModule);
+    myOutputStep = new ChooseOutputResDirStep(myWizardState, myProject, null, NONE, myModule, myTargetFile);
     addStep(myIconStep);
     addStep(myOutputStep);
 
