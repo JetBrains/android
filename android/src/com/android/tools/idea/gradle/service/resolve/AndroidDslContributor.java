@@ -211,7 +211,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     int argsCount = GradleResolverUtil.getGrMethodArumentsCount(args);
 
     final PsiMethod[] methodsByName = contributorClass.findMethodsByName(methodName, true);
-    if (methodName.length() == 0) {
+    if (methodsByName.length == 0) {
       return;
     }
 
