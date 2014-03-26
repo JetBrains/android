@@ -29,7 +29,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.ui.PathEditor;
 import com.intellij.openapi.ui.DetailsComponent;
 import com.intellij.openapi.util.EmptyRunnable;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.FieldPanel;
@@ -118,21 +117,15 @@ public class AndroidHomeConfigurable implements Configurable {
 
   @Override
   public void apply() throws ConfigurationException {
-    ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<Void, ConfigurationException>() {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
-      public Void compute() throws ConfigurationException {
-        try {
-          File androidHomeLocation = getAndroidHomeLocation();
-          DefaultSdks.setDefaultAndroidHome(androidHomeLocation);
-        } catch (IllegalStateException e) {
-          throw new ConfigurationException(e.getMessage());
-        }
+      public void run() {
+        DefaultSdks.setDefaultAndroidHome(getAndroidHomeLocation());
         DefaultSdks.setDefaultJavaHome(getJavaHomeLocation());
 
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
         }
-        return null;
       }
     });
   }
