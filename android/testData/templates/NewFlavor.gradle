@@ -1,0 +1,7 @@
+android {
+  productFlavors {
+    newFlavor {
+      packageName "com.example.projectwithappandlib.app.newflavor"
+    }
+  }
+}
