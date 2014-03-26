@@ -39,6 +39,11 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testIncompatiblePlugin() throws Exception {
+    AndroidLintGradleCompatiblePluginInspection inspection = new AndroidLintGradleCompatiblePluginInspection();
+    doTest(inspection, null);
+  }
+
   public void testPaths() throws Exception {
     if (SystemInfo.isWindows) {
       // This test doesn't work on Windows; the data file supplies what looks like an absolute elsewhere,
