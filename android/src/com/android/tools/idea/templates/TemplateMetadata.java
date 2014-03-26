@@ -62,7 +62,7 @@ public class TemplateMetadata {
   public static final String ATTR_SRC_DIR = "srcDir";
   public static final String ATTR_RES_DIR = "resDir";
   public static final String ATTR_MANIFEST_DIR = "manifestDir";
-  public static final String ATTR_DEBUG_KEYSTORE_PATH = "debugKeystorePath";
+  public static final String ATTR_DEBUG_KEYSTORE_SHA1 = "debugKeystoreSha1";
   public static final String ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion";
   public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";

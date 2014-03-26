@@ -284,7 +284,6 @@ public class Template {
     paramMap.put("escapeXmlString", new FmEscapeXmlStringMethod());
     paramMap.put("escapePropertyValue", new FmEscapePropertyValueMethod());
     paramMap.put("extractLetters", new FmExtractLettersMethod());
-    paramMap.put("keystoreSha1", new FmKeystoreSha1Method());
 
     // Dependency list
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
