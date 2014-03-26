@@ -21,6 +21,8 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -79,6 +81,7 @@ public final class ProjectCallback extends LegacyCallback {
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
+  @NotNull private ActionBarHandler myActionBarHandler;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
@@ -100,6 +103,7 @@ public final class ProjectCallback extends LegacyCallback {
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
+    myActionBarHandler = new ActionBarHandler(ManifestInfo.get(myModule, false));
   }
 
   /** Resets the callback state for another render */
@@ -261,7 +265,7 @@ public final class ProjectCallback extends LegacyCallback {
   @Nullable
   @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
-    return getParser(layoutResource.getName(), new File(layoutResource.getValue()));
+    return getParser(layoutResource.getName(), new File(layoutResource.getName()));
   }
 
   @Nullable
@@ -612,4 +616,10 @@ public final class ProjectCallback extends LegacyCallback {
   public void loadAndParseRClass() {
     myClassLoader.loadAndParseRClassSilently();
   }
+
+  @Override
+  public ActionBarHandler getActionBarCallback() {
+    return myActionBarHandler;
+  }
+
 }

@@ -44,7 +44,7 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     mySourceProvider = new SourceProviderStub(fileStructure);
     myInstrumentationTestSourceProvider = new SourceProviderStub(fileStructure);
     myExtraArtifactSourceProviders.add(
-      new SourceProviderContainerStub(AndroidProject.ARTIFACT_INSTRUMENT_TEST, myInstrumentationTestSourceProvider));
+      new SourceProviderContainerStub(AndroidProject.ARTIFACT_ANDROID_TEST, myInstrumentationTestSourceProvider));
     setUpPaths(flavorName);
   }
 

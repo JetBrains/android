@@ -1176,6 +1176,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private class LegacySourceProvider implements SourceProvider {
     @NonNull
     @Override
+    public String getName() {
+      return "main";
+    }
+
+    @NonNull
+    @Override
     public File getManifestFile() {
       Module module = getModule();
       VirtualFile manifestFile = AndroidRootUtil.getFileByRelativeModulePath(module, getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
@@ -1252,6 +1258,12 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       final VirtualFile dir = AndroidRootUtil.getAssetsDir(AndroidFacet.this);
       assert dir != null;
       return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+    }
+
+    @NonNull
+    @Override
+    public Collection<File> getJniLibsDirectories() {
+      return Collections.emptyList();
     }
   }
 

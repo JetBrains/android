@@ -43,24 +43,31 @@ import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralStr
  */
 public class Dependency extends BuildFileStatement {
   private static final Logger LOG = Logger.getInstance(Dependency.class);
-  public static final String APPCOMPAT_V7 = "com.android.support:appcompat-v7";
   public static final String FILETREE_BASE_DIR_PROPERTY = "dir";
   public static final String FILETREE_INCLUDE_PATTERN_PROPERTY = "include";
 
   public enum Scope {
-    COMPILE("Compile", "compile"),
-    PROVIDED("Provided", "provided"),
-    APK("APK", "apk"),
-    INSTRUMENT_TEST_COMPILE("Test compile", "instrumentTestCompile"),
-    DEBUG_COMPILE("Debug compile", "debugCompile"),
-    RELEASE_COMPILE("Release compile", "releaseCompile");
+    COMPILE("Compile", "compile", true, true),
+    PROVIDED("Provided", "provided", true, false),
+    APK("APK", "apk", true, false),
+    ANDROID_TEST_COMPILE("Test compile", "androidTestCompile", true, false),
+    DEBUG_COMPILE("Debug compile", "debugCompile", true, false),
+    RELEASE_COMPILE("Release compile", "releaseCompile", true, false),
+    RUNTIME("Runtime", "runtime", false, true),
+    TEST_COMPILE("Test compile", "testCompile", false, true),
+    TEST_RUNTIME("Test runtime", "testRuntime", false, true);
 
     private final String myGroovyMethodCall;
     private final String myDisplayName;
 
-    Scope(@NotNull String displayName, @NotNull String groovyMethodCall) {
+    private final boolean myAndroidScope; // True if this is used in Android modules
+    private final boolean myJavaScope; // True if this is used in plain Java modules
+
+    Scope(@NotNull String displayName, @NotNull String groovyMethodCall, boolean androidScope, boolean javaScope) {
       myDisplayName = displayName;
       myGroovyMethodCall = groovyMethodCall;
+      myAndroidScope = androidScope;
+      myJavaScope = javaScope;
     }
 
     public String getGroovyMethodCall() {
@@ -80,6 +87,14 @@ public class Dependency extends BuildFileStatement {
     @NotNull
     public String getDisplayName() {
       return myDisplayName;
+    }
+
+    public boolean isAndroidScope() {
+      return myAndroidScope;
+    }
+
+    public boolean isJavaScope() {
+      return myJavaScope;
     }
 
     @Override
@@ -176,7 +191,7 @@ public class Dependency extends BuildFileStatement {
         }
 
         // Special hardcoded case: com.android.support:appcompat-v7 includes com.android.support:support-v4
-        if (s1.startsWith(APPCOMPAT_V7) && s2.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT)) {
+        if (s1.startsWith(SdkConstants.APPCOMPAT_LIB_ARTIFACT) && s2.startsWith(SdkConstants.SUPPORT_LIB_ARTIFACT)) {
           return true;
         }
 

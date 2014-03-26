@@ -30,6 +30,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -513,6 +514,20 @@ public class RenderService implements IImageFactory {
       try {
         params.setAppLabel(manifestInfo.getApplicationLabel());
         params.setAppIcon(manifestInfo.getApplicationIcon());
+        String activity = myConfiguration.getActivity();
+        if (activity != null) {
+          params.setActivityName(activity);
+          myProjectCallback.getActionBarCallback().setActivityName(activity);
+          ActivityAttributes attributes = manifestInfo.getActivityAttributes(activity);
+          if (attributes != null) {
+            if (attributes.getLabel() != null) {
+              params.setAppLabel(attributes.getLabel());
+            }
+            if (attributes.getIcon() != null) {
+              params.setAppIcon(attributes.getIcon());
+            }
+          }
+        }
       }
       catch (Exception e) {
         // ignore.

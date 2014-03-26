@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.navigation.*;
 import com.android.navigation.Dimension;
-import com.android.navigation.NavigationModel;
-import com.android.navigation.State;
-import com.android.navigation.Transition;
 import com.android.tools.idea.rendering.RenderedView;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.Point;
+import java.util.Map;
 
+import com.android.navigation.NavigationModel.Event;
 import static com.android.tools.idea.editors.navigation.NavigationView.Line;
 import static com.android.tools.idea.editors.navigation.Utilities.diff;
 
 class Selections {
-  private static final Color SELECTION_COLOR = Color.BLUE;
+  private static final Color SELECTION_COLOR = JBColor.BLUE;
   private static final int SELECTION_RECTANGLE_LINE_WIDTH = 4;
 
   public static Selection NULL = new EmptySelection();
@@ -138,8 +140,8 @@ class Selections {
         newLocation = Utilities.snap(newLocation, myTransform.modelToView(Dimension.create(NavigationView.MIDDLE_SNAP_GRID)));
       }
       myComponent.setLocation(newLocation);
-      myState.setLocation(myTransform.viewToModel(newLocation));
-      myNavigationModel.getListeners().notify(NavigationModel.Event.update(State.class));
+      myNavigationModel.getStateToLocation().put(myState, myTransform.viewToModel(newLocation));
+      myNavigationModel.getListeners().notify(Event.update(Map.class)); // just avoid State.class, which would trigger reload
     }
 
     @Override

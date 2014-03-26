@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.tools.idea.gradle.messages.Message;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import org.jetbrains.annotations.NotNull;
@@ -22,23 +23,22 @@ import org.jetbrains.annotations.NotNull;
 /**
  * These keys determine the order in which the {@code ProjectDataService}s are invoked. The order is:
  * <ol>
+ * <li>{@link com.android.tools.idea.gradle.service.ProjectSyncMessageDataService}</li>
  * <li>{@link com.android.tools.idea.gradle.service.GradleProjectDataService}</li>
  * <li>{@link com.android.tools.idea.gradle.service.AndroidProjectDataService}</li>
- * <li>{@link com.android.tools.idea.gradle.service.ProjectImportEventMessageDataService}</li>
  * </ol>
  * <br/>
  * The reason for following this order is that we need to add the {@code AndroidGradleFacet} to each of the modules. This facet contains the
  * "Gradle path" of each project module. This path is necessary when setting up inter-module dependencies.
  */
 public class AndroidProjectKeys {
+  @NotNull public static final Key<Message> IMPORT_EVENT_MSG = Key.create(Message.class, ProjectKeys.PROJECT.getProcessingWeight() + 5);
+
   @NotNull public static final Key<IdeaGradleProject> IDE_GRADLE_PROJECT =
-    Key.create(IdeaGradleProject.class, ProjectKeys.PROJECT.getProcessingWeight() + 5);
+    Key.create(IdeaGradleProject.class, IMPORT_EVENT_MSG.getProcessingWeight() + 10);
 
   @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT =
-    Key.create(IdeaAndroidProject.class, IDE_GRADLE_PROJECT.getProcessingWeight() + 5);
-
-  @NotNull public static final Key<ProjectImportEventMessage> IMPORT_EVENT_MSG =
-    Key.create(ProjectImportEventMessage.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 5);
+    Key.create(IdeaAndroidProject.class, IDE_GRADLE_PROJECT.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }

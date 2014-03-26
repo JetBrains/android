@@ -86,6 +86,13 @@ public class TemplateTest extends AndroidGradleTestCase {
     Boolean.parseBoolean(System.getProperty("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE")) ||
     Boolean.TRUE.toString().equals(System.getenv("com.android.tools.idea.templates.TemplateTest.COMPREHENSIVE"));
 
+  /**
+   * Whether we should run these tests or not.
+   */
+  private static final boolean DISABLED =
+    Boolean.parseBoolean(System.getProperty("DISABLE_STUDIO_TEMPLATE_TESTS")) ||
+    Boolean.TRUE.toString().equals(System.getenv("DISABLE_STUDIO_TEMPLATE_TESTS"));
+
   /** Whether we should enforce that lint passes cleanly on the projects */
   private static final boolean CHECK_LINT = false; // Needs work on closing projects cleanly
   private static final boolean ALLOW_WARNINGS = true; // TODO: Provide finer granularity
@@ -303,6 +310,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testCreateRemainingTemplates() throws Exception {
+    if (DISABLED) {
+      return;
+    }
     ourCount = 0;
     long begin = System.currentTimeMillis();
     TemplateManager manager = TemplateManager.getInstance();
@@ -328,6 +338,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testJdk7() throws Exception {
+    if (DISABLED) {
+      return;
+    }
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
@@ -351,6 +364,9 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testJdk5() throws Exception {
+    if (DISABLED) {
+      return;
+    }
     AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     assertNotNull(sdkData);
 
@@ -413,6 +429,9 @@ public class TemplateTest extends AndroidGradleTestCase {
    * @throws Exception
    */
   private void checkCreateTemplate(String category, String name, boolean createWithProject) throws Exception {
+    if (DISABLED) {
+      return;
+    }
     File templateFile = findTemplate(category, name);
     assertNotNull(templateFile);
     if (haveChecked(templateFile, createWithProject)) {

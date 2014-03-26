@@ -701,7 +701,163 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "}";
 
     assertContents(file, expected);
+  }
 
+  public void testCreatesNamedObjects() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "}"
+    );
+    NamedObject no = new NamedObject("buildType1");
+    no.setValue(BuildFileKey.DEBUGGABLE, true);
+    final List<NamedObject> objects = ImmutableList.of(no);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        buildType1 {\n" +
+      "            debuggable true\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+
+    assertContents(file, expected);
+  }
+
+  public void testDeletesNamedObjects() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        buildType1 {\n" +
+      "            debuggable true\n" +
+      "        }\n" +
+      "        buildType2 {\n" +
+      "            debuggable false\n" +
+      "        }\n" +
+      "    }\n" +
+      "}"
+    );
+    final List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertNotNull(objects);
+    assertEquals(2, objects.size());
+    objects.remove(0);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        buildType2 {\n" +
+      "            debuggable false\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+
+    assertContents(file, expected);
+  }
+
+  public void testCreatesNamedObjectsWithUnparseableStatements() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        // I am a comment\n" +
+      "        buildType1 {\n" +
+      "            debuggable true\n" +
+      "        }\n" +
+      "        // I am another comment\n" +
+      "    }\n" +
+      "}"
+    );
+    final List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertNotNull(objects);
+    assertEquals(1, objects.size());
+    NamedObject no = new NamedObject("buildType2");
+    no.setValue(BuildFileKey.DEBUGGABLE, false);
+    objects.add(no);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        // I am a comment\n" +
+      "        buildType1 {\n" +
+      "            debuggable true\n" +
+      "        }\n" +
+      "        // I am another comment\n" +
+      "        buildType2 {\n" +
+      "            debuggable false\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+
+    assertContents(file, expected);
+  }
+
+  public void testDeletesNamedObjectsWithUnparseableStatements() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        // I am a comment\n" +
+      "        buildType1 {\n" +
+      "            debuggable true\n" +
+      "        }\n" +
+      "        // I am another comment\n" +
+      "        buildType2 {\n" +
+      "            debuggable false\n" +
+      "        }\n" +
+      "    }\n" +
+      "}"
+    );
+    final List<NamedObject> objects = (List<NamedObject>)file.getValue(BuildFileKey.BUILD_TYPES);
+    assertNotNull(objects);
+    assertEquals(2, objects.size());
+    objects.remove(0);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, objects);
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        // I am a comment\n" +
+      "        // I am another comment\n" +
+      "        buildType2 {\n" +
+      "            debuggable false\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+
+    assertContents(file, expected);
+  }
+
+  public void testGetsPlugins() throws Exception {
+    GradleBuildFile file = getTestFile(
+      "apply plugin: 'android' \n" +
+      "apply plugin: 'java'\n"
+    );
+    List<String> expected = ImmutableList.of(
+      "android",
+      "java"
+    );
+    assertEquals(expected, file.getPlugins());
   }
 
   private static String getSimpleTestFile() throws IOException {

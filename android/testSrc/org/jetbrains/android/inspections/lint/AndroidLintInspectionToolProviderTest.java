@@ -18,6 +18,7 @@ package org.jetbrains.android.inspections.lint;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.Sets;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInspection.InspectionProfile;
@@ -26,33 +27,44 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.AndroidTestCase;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   public void testAllLintChecksRegistered() throws Exception {
-    // For some reason, when running as unit tests, IntellijLintRegistry does
-    // not return any of the registered lint checks, so the call below
-    // can't find the issues that are missing. Therefore, I instead
-    // modified AndroidLintExternalAnnotator to call
-    //  testAllLintChecksRegistered(file.getProject());
-    // at runtime instead and captured the output.
-
-    //assertTrue(testAllLintChecksRegistered(myFixture.getProject()));
+    assertTrue(checkAllLintChecksRegistered(getProject()));
   }
 
   private static boolean sDone;
-  public static boolean testAllLintChecksRegistered(Project project) throws Exception {
+  public static boolean checkAllLintChecksRegistered(Project project) throws Exception {
     if (sDone) {
       return true;
     }
     sDone = true;
+
+    // For some reason, I can't just use
+    //   AndroidLintInspectionBase.getInspectionShortNameByIssue
+    // to iterate the available inspections from unit tests; at runtime this will enumerate all
+    // the available inspections, but from unit tests (even when extending IdeaTestCase) it's empty.
+    // So instead we take advantage of the knowledge that all our inspections are declared as inner classes
+    // of AndroidLintInspectionToolProvider and we iterate these instead. This won't catch cases if
+    // we declare a class there and forget to register in the plugin, but it's better than nothing.
+    Set<String> registered = Sets.newHashSetWithExpectedSize(200);
+    for (Class<?> c : AndroidLintInspectionToolProvider.class.getDeclaredClasses()) {
+      if (AndroidLintInspectionBase.class.isAssignableFrom(c) && ((c.getModifiers() & Modifier.ABSTRACT) == 0)) {
+        AndroidLintInspectionBase provider = (AndroidLintInspectionBase)c.newInstance();
+        registered.add(provider.getIssue().getId());
+      }
+    }
+
     final List<Issue> missing = new ArrayList<Issue>();
     final IntellijLintIssueRegistry fullRegistry = new IntellijLintIssueRegistry();
 
     List<Issue> allIssues = fullRegistry.getIssues();
     for (Issue issue : allIssues) {
-      if (!isRelevant(issue)) {
+      if (!isRelevant(issue) || registered.contains(issue.getId())) {
         continue;
       }
 
@@ -125,7 +137,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
       StringBuilder sb = new StringBuilder(1000);
       sb.append("Missing registration for " + missing.size() + " issues (out of a total issue count of " + allIssues.size() + ")");
-      sb.append("\nAdd to plugin.xml:\n");
+      sb.append("\nAdd to plugin.xml (and please try to preserve the alphabetical order):\n");
       for (Issue issue : missing) {
         sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLint");
         String id = issue.getId();
@@ -134,7 +146,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         sb.append(XmlUtils.toXmlAttributeValue(issue.getBriefDescription(Issue.OutputFormat.TEXT)));
         sb.append("\" groupKey=\"android.lint.inspections.group.name\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
         sb.append(issue.isEnabledByDefault());
-        sb.append("\"  level=\"");
+        sb.append("\" level=\"");
         sb.append(issue.getDefaultSeverity() == Severity.ERROR || issue.getDefaultSeverity() == Severity.FATAL ?
                   "ERROR" : "WARNING");
         sb.append("\" implementationClass=\"org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLint");
@@ -173,9 +185,24 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
   private static String getIssueFieldName(Issue issue) {
     Class<? extends Detector> detectorClass = issue.getImplementation().getDetectorClass();
-    //PsiManager.getInstance(myFixture.getProject())
 
-    //return "ISSUE"; // TODO: Figure out a better way to do it
+    // Use reflection on the detector class, check all field instances and compare id's to locate the right one
+    for (Field field : detectorClass.getDeclaredFields()) {
+      if ((field.getModifiers() & Modifier.STATIC) != 0) {
+        try {
+          Object o = field.get(null);
+          if (o instanceof Issue) {
+            if (issue.getId().equals(((Issue)o).getId())) {
+              return field.getName();
+            }
+          }
+        }
+        catch (IllegalAccessException e) {
+          // pass; use default instead
+        }
+      }
+    }
+
     return "/*findFieldFor: " + issue.getId() + "*/TODO";
   }
 

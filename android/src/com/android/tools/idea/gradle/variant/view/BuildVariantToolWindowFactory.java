@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -22,7 +23,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 /**
  * Creates the contents of the "Build Variants" tool window.
  */
-public class BuildVariantToolWindowFactory implements ToolWindowFactory {
+public class BuildVariantToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String ID = "Build Variants";
 
   @Override

@@ -17,16 +17,27 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.variant.SelectionConflict;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.TableUtil;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
@@ -52,6 +63,8 @@ import java.util.List;
  */
 public class BuildVariantView {
   private static final Object[] TABLE_COLUMN_NAMES = new Object[]{"Module", "Build Variant"};
+
+  private static final int MODULE_COLUMN_INDEX = 0;
   private static final int VARIANT_COLUMN_INDEX = 1;
 
   private final Project myProject;
@@ -59,8 +72,10 @@ public class BuildVariantView {
 
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
+  private JPanel myErrorPanel;
 
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
+  private final List<String> myConflictSources = Lists.newArrayList();
 
   public BuildVariantView(@NotNull Project project) {
     myProject = project;
@@ -72,6 +87,7 @@ public class BuildVariantView {
     myUpdater = updater;
   }
 
+  @NotNull
   public static BuildVariantView getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, BuildVariantView.class);
   }
@@ -92,6 +108,16 @@ public class BuildVariantView {
 
   private void createUIComponents() {
     myVariantsTable = new BuildVariantTable();
+    new TableSpeedSearch(myVariantsTable);
+    myErrorPanel = new JPanel() {
+      @Override
+      public Color getBackground() {
+        // Same color as the editor notification panel (EditorComposite.TopBottomPanel.)
+        Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.GUTTER_BACKGROUND);
+        return color == null ? JBColor.GRAY : color;
+      }
+    };
+    myErrorPanel.setLayout(new BoxLayout(myErrorPanel, BoxLayout.Y_AXIS));
   }
 
   public void projectImportStarted() {
@@ -120,7 +146,9 @@ public class BuildVariantView {
     final List<BuildVariantItem[]> variantNamesPerRow = Lists.newArrayList();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
+    Module[] modules = moduleManager.getModules();
+    Arrays.sort(modules, ModulesAlphaComparator.INSTANCE);
+    for (Module module : modules) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet == null || !androidFacet.isGradleProject()) {
         continue;
@@ -183,6 +211,39 @@ public class BuildVariantView {
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
+  public void updateNotification(ImmutableList<SelectionConflict> conflicts) {
+    myErrorPanel.removeAll();
+    myConflictSources.clear();
+
+    if (!conflicts.isEmpty()) {
+      EditorNotificationPanel notification = new EditorNotificationPanel();
+      notification.setText("Variant selection conflicts found.");
+      notification.createActionLabel("See conflicts", new Runnable() {
+        @Override
+        public void run() {
+          ProjectSyncMessages.getInstance(myProject).activateView();
+        }
+      });
+      myErrorPanel.add(notification);
+    }
+
+    for (SelectionConflict conflict : conflicts) {
+      myConflictSources.add(conflict.getSource().getName());
+    }
+  }
+
+  public void selectAndScrollTo(@NotNull Module module) {
+    String name = module.getName();
+    for (int row = 0; row < myVariantsTable.getRowCount() - 1; row++) {
+      if (name.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
+        myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
+        myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(MODULE_COLUMN_INDEX, MODULE_COLUMN_INDEX);
+        TableUtil.scrollSelectionToVisible(myVariantsTable);
+        break;
+      }
+    }
+  }
+
   public interface BuildVariantSelectionChangeListener {
     /**
      * Indicates that a user selected a build variant from the "Build Variants" tool window.
@@ -195,9 +256,9 @@ public class BuildVariantView {
      * <p/>
      * This listener will not be invoked if the project structure update fails.
      *
-     * @param facet the Android facet containing the selected build variant.
+     * @param facets the facets affected by the variant selection.
      */
-    void buildVariantSelected(@NotNull AndroidFacet facet);
+    void buildVariantSelected(@NotNull List<AndroidFacet> facets);
   }
 
   private static class BuildVariantItem implements Comparable<BuildVariantItem> {
@@ -210,7 +271,7 @@ public class BuildVariantView {
     }
 
     @Override
-    public int compareTo(BuildVariantItem o) {
+    public int compareTo(@Nullable BuildVariantItem o) {
       return o != null ? Collator.getInstance().compare(myBuildVariantName, o.myBuildVariantName) : 1;
     }
 
@@ -239,9 +300,22 @@ public class BuildVariantView {
                                                        int column) {
           Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
           if (c instanceof JComponent) {
+            JComponent component = (JComponent)c;
+            boolean hasConflict = false;
+            for (String source : myConflictSources) {
+              Object moduleName = table.getValueAt(row, MODULE_COLUMN_INDEX);
+              if (source.equals(moduleName)) {
+                hasConflict = true;
+                break;
+              }
+            }
+            Color background = hasConflict ? MessageType.ERROR.getPopupBackground() : JBColor.background();
+            component.setBackground(background);
+
             // add some padding to table cells. It is hard to read text of combo box.
-            ((JComponent)c).setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));
+            component.setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));
           }
+
           return c;
         }
       });
@@ -270,10 +344,7 @@ public class BuildVariantView {
       }
 
       boolean hasVariants = !variantNamesPerRow.isEmpty();
-      List<String[]> content = ImmutableList.of();
-      if (hasVariants) {
-        content = rows;
-      }
+      List<String[]> content = hasVariants ? rows : ImmutableList.<String[]>of();
 
       setModel(new BuildVariantTableModel(content));
       addBuildVariants(variantNamesPerRow);
@@ -290,7 +361,7 @@ public class BuildVariantView {
           }
         }
 
-        JComboBox editor = new JComboBox(items);
+        ComboBox editor = new ComboBox(items);
         if (selected != null) {
           editor.setSelectedItem(selected);
         }
@@ -301,7 +372,6 @@ public class BuildVariantView {
           public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() == ItemEvent.SELECTED) {
               BuildVariantItem selected = (BuildVariantItem)e.getItem();
-              //noinspection TestOnlyProblems
               buildVariantSelected(selected.myModuleName, selected.myBuildVariantName);
             }
           }
@@ -312,26 +382,39 @@ public class BuildVariantView {
 
     @Override
     public TableCellEditor getCellEditor(int row, int column) {
-      if (column == 1 && row >= 0 && row < myCellEditors.size()) {
+      if (column == VARIANT_COLUMN_INDEX && row >= 0 && row < myCellEditors.size()) {
         return myCellEditors.get(row);
       }
       return super.getCellEditor(row, column);
     }
   }
 
-  @VisibleForTesting
-  void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
-    final AndroidFacet updatedFacet = myUpdater.updateModule(myProject, moduleName, variantName);
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+  public void selectVariant(@NotNull Module module, @NotNull String variantName) {
+    buildVariantSelected(module.getName(), variantName);
+  }
+
+  private void buildVariantSelected(@NotNull String moduleName, @NotNull String variantName) {
+    final List<AndroidFacet> facets = myUpdater.updateModule(myProject, moduleName, variantName);
+    if (facets.isEmpty()) {
+      return;
+    }
+    Runnable invokeListenersTask = new Runnable() {
       @Override
       public void run() {
-        if (updatedFacet != null) {
-          for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
-            listener.buildVariantSelected(updatedFacet);
-          }
+        updateContents();
+        for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
+          listener.buildVariantSelected(facets);
         }
-      }
-    });
+     }
+    };
+
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode()) {
+      invokeListenersTask.run();
+    }
+    else {
+      application.invokeLater(invokeListenersTask);
+    }
   }
 
   private static class BuildVariantTableModel extends DefaultTableModel {

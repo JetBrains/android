@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.Result;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.JBColor;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +42,7 @@ public class AndroidRootComponent extends JComponent {
   public static final boolean DEBUG = false;
 
   private final RenderingParameters myRenderingParameters;
-  private final PsiFile myPsiFile;
+  private final PsiFile myLayoutFile;
   private final boolean myIsMenu;
 
   @NotNull Transform transform = createTransform(1);
@@ -44,9 +51,20 @@ public class AndroidRootComponent extends JComponent {
   private boolean myRenderPending = false;
 
   public AndroidRootComponent(@NotNull final RenderingParameters renderingParameters, @Nullable final PsiFile psiFile, boolean isMenu) {
-    this.myRenderingParameters = renderingParameters;
-    this.myPsiFile = psiFile;
-    this.myIsMenu = isMenu;
+    myRenderingParameters = renderingParameters;
+    myLayoutFile = psiFile;
+    myIsMenu = isMenu;
+  }
+
+  public void launchLayoutEditor() {
+    if (myLayoutFile != null) {
+      Project project = myRenderingParameters.myProject;
+      VirtualFile virtualFile = myLayoutFile.getVirtualFile();
+      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
+      FileEditorManager manager = FileEditorManager.getInstance(project);
+      manager.openEditor(descriptor, true);
+      manager.setSelectedEditor(virtualFile, AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID);
+    }
   }
 
   @Nullable
@@ -55,14 +73,17 @@ public class AndroidRootComponent extends JComponent {
   }
 
   private void setRenderResult(@Nullable RenderResult renderResult) {
-    if (DEBUG) System.out.println("setRenderResult " + renderResult);
+    Container parent = getParent();
+    if (parent == null) { // this is coming in of a different thread - we may have been detached form the view hierarchy in the meantime
+      return;
+    }
     myRenderResult = renderResult;
     if (myIsMenu) {
       revalidate();
     }
     // once we have finished rendering we know where our internal views are and our parent needs to repaint (arrows etc.)
     //repaint();
-    getParent().repaint();
+    parent.repaint();
   }
 
   public float getScale() {
@@ -149,6 +170,11 @@ public class AndroidRootComponent extends JComponent {
     return myScaledImage;
   }
 
+  private void center(Graphics g, String message, Font font, int height) {
+    int messageWidth = getFontMetrics(font).stringWidth(message);
+    g.drawString(message, (getWidth() - messageWidth) / 2, height);
+  }
+
   @Override
   public void paintComponent(Graphics g) {
     Image scaledImage = getScaledImage();
@@ -162,19 +188,21 @@ public class AndroidRootComponent extends JComponent {
       }
     }
     else {
-      g.setColor(Color.WHITE);
+      g.setColor(JBColor.WHITE);
       g.fillRect(0, 0, getWidth(), getHeight());
-      g.setColor(Color.GRAY);
-      String message = "Initialising... ";
+      g.setColor(JBColor.GRAY);
       Font font = g.getFont();
-      int messageWidth = getFontMetrics(font).stringWidth(message);
-      g.drawString(message, (getWidth() - messageWidth) / 2, getHeight() / 2);
+      int vCenter = getHeight() / 2;
+      //center(g, "Initialising...", font, vCenter);
+      String message = "[" + (myLayoutFile == null ? "no xml resource" : myLayoutFile.getName()) + "]";
+      center(g, message, font, vCenter);
+      //center(g, message, font, vCenter + font.getSize() * 2);
       render();
     }
   }
 
   private void render() {
-    if (myPsiFile == null) {
+    if (myLayoutFile == null) {
       return;
     }
     Project project = myRenderingParameters.myProject;
@@ -193,14 +221,25 @@ public class AndroidRootComponent extends JComponent {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override
       public void run() {
-          Module module = facet.getModule();
-          RenderLogger logger = new RenderLogger(myPsiFile.getName(), module);
-          final RenderService service = RenderService.create(facet, module, myPsiFile, configuration, logger, null);
-          if (service != null) {
-            setRenderResult(service.render());
-            service.dispose();
+        Module module = facet.getModule();
+        RenderLogger logger = new RenderLogger(myLayoutFile.getName(), module);
+        final RenderService service = RenderService.create(facet, module, myLayoutFile, configuration, logger, null);
+        if (service != null) {
+          RenderResult renderedResult = service.render();
+          if (renderedResult != null) {
+            RenderSession session = renderedResult.getSession();
+            if (session != null) {
+              Result result = session.getResult();
+              if (result.isSuccess()) {
+                setRenderResult(renderedResult);
+                service.dispose();
+                return;
+              }
+            }
           }
+          if (DEBUG) System.out.println("AndroidRootComponent: rendering failed ");
         }
+      }
     });
   }
 

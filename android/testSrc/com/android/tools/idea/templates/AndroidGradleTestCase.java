@@ -306,9 +306,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
     projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
     final BuildToolInfo buildTool = sdkData.getLatestBuildTool();
-    if (buildTool != null) {
-      projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-    }
+    projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     IAndroidTarget[] targets = sdkData.getTargets();
     projectWizardState.put(ATTR_BUILD_API, targets[targets.length - 1].getVersion().getApiLevel());
   }
