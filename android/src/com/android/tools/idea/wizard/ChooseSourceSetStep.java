@@ -81,6 +81,9 @@ public class ChooseSourceSetStep extends TemplateWizardStep {
     mySourceSetList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
+        if (mySourceSetList.getSelectedIndex() == -1) {
+          mySourceSetList.setSelectedIndex(0);
+        }
         SourceProviderListItem selectedItem = (SourceProviderListItem)mySourceSetList.getModel().getElementAt(mySourceSetList.getSelectedIndex());
         mySelectionListener.sourceProviderSelected(selectedItem.myProvider);
       }
