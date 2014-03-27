@@ -17,10 +17,6 @@ package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.DataManager;
@@ -38,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * @author Eugene.Kudelevsky
@@ -90,32 +85,6 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
       }
     }
     else {
-      Project project = e.getData(CommonDataKeys.PROJECT);
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        // The concept of "default SDK" exists only in Android Studio.
-        File androidHome = DefaultSdks.getDefaultAndroidHome();
-        if (androidHome != null) {
-          doRunTool(project, androidHome.getPath());
-          return;
-        }
-      }
-
-      if (project != null) {
-        // We don't check Projects.isGradleProject(project) because it may return false if the last sync failed, even if it is a
-        // Gradle project.
-        try {
-          LocalProperties localProperties = new LocalProperties(project);
-          File androidSdkPath = localProperties.getAndroidSdkPath();
-          if (androidSdkPath != null) {
-            doRunTool(project, androidSdkPath.getPath());
-            return;
-          }
-        }
-        catch (IOException ignored) {
-          LOG.info(String.format("Unable to read local.properties file from project '%1$s'", project.getName()), ignored);
-        }
-      }
-
       // Invoked from a project context
       super.actionPerformed(e);
     }
