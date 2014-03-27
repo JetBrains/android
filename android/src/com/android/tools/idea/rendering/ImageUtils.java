@@ -159,12 +159,15 @@ public class ImageUtils {
     int destWidth = source.getWidth() + 2 * marginSize;
     int destHeight = source.getHeight() + 2 * marginSize;
 
-    BufferedImage expanded = new BufferedImage(destWidth, destHeight, source.getType());
+    // since we are adding a transparent margin, make sure destination image has an alpha channel
+    int type = source.getColorModel().hasAlpha() ? source.getType() : BufferedImage.TYPE_INT_ARGB;
+
+    BufferedImage expanded = new BufferedImage(destWidth, destHeight, type);
     Graphics2D g2 = expanded.createGraphics();
     //noinspection UseJBColor
     g2.setColor(new Color(0, true));
     g2.fillRect(0, 0, destWidth, destHeight);
-    g2.drawImage(source, 1, 1, null);
+    g2.drawImage(source, marginSize, marginSize, null);
     g2.dispose();
 
     return expanded;
