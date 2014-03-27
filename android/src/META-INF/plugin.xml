@@ -1,4 +1,4 @@
-<idea-plugin version="2">
+<idea-plugin version="2" xmlns:xi="http://www.w3.org/2001/XInclude">
   <name>Android Support</name>
   <id>org.jetbrains.android</id>
   <description>
@@ -567,4 +567,30 @@
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint name="refactoringContextProvider" interface="org.jetbrains.android.refactoring.AndroidRefactoringContextProvider"/>
   </extensionPoints>
+
+  <!-- Layout editor -->
+
+  <xi:include href="/META-INF/DesignerCorePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>
+
+    <projectService serviceInterface="com.intellij.android.designer.model.ViewsMetaManager"
+                    serviceImplementation="com.intellij.android.designer.model.ViewsMetaManager"/>
+  </extensions>
+
+  <project-components>
+    <component>
+      <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
+    </component>
+  </project-components>
+
+  <extensions defaultExtensionNs="org.jetbrains.android">
+    <refactoringContextProvider implementation="com.intellij.android.designer.AndroidDesignerRefactoringContextProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="Designer">
+    <customizations implementation="com.intellij.android.designer.AndroidDesignerCustomizations" />
+  </extensions>
+
 </idea-plugin>
