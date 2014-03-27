@@ -1,5 +1,6 @@
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.CommonBundle;
@@ -7,6 +8,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ArrayUtil;
@@ -17,6 +19,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +27,8 @@ import java.util.Set;
  * @author Eugene.Kudelevsky
  */
 public abstract class AndroidRunSdkToolAction extends AnAction {
+  private static final Logger LOG = Logger.getInstance(AndroidRunSdkToolAction.class);
+
   public AndroidRunSdkToolAction(String text) {
     super(text);
   }
@@ -49,6 +54,21 @@ public abstract class AndroidRunSdkToolAction extends AnAction {
         return;
       }
     }
+
+    // We don't check Projects.isGradleProject(project) because it may return false if the last sync failed, even if it is a
+    // Gradle project.
+    try {
+      LocalProperties localProperties = new LocalProperties(project);
+      File androidSdkPath = localProperties.getAndroidSdkPath();
+      if (androidSdkPath != null) {
+        doRunTool(project, androidSdkPath.getPath());
+        return;
+      }
+    }
+    catch (IOException ignored) {
+      LOG.info(String.format("Unable to read local.properties file from project '%1$s'", project.getName()), ignored);
+    }
+
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     assert facets.size() > 0;
     Set<String> sdkSet = new HashSet<String>();
