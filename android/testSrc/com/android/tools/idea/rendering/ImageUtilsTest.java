@@ -26,6 +26,7 @@ import java.io.IOException;
 
 public class ImageUtilsTest extends TestCase {
   public void testScaleImage() throws Exception {
+    @SuppressWarnings("UndesirableClassUsage")
     BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB_PRE);
     Graphics g = image.getGraphics();
     g.setColor(new Color(0xFF00FF00, true));
@@ -84,18 +85,49 @@ public class ImageUtilsTest extends TestCase {
     assertEqualsImage(srcImage, img);
   }
 
+  public void testAddMargin() {
+    BufferedImage image = createTestImage(100, 200, BufferedImage.TYPE_INT_ARGB, Color.RED);
+
+    BufferedImage zeroMargin = ImageUtils.addMargin(image, 0);
+    assertEqualsImage(image, zeroMargin);
+
+    BufferedImage margin1 = ImageUtils.addMargin(image, 1);
+    assertEquals(margin1.getWidth(), image.getWidth() + 2);
+    assertEquals(margin1.getHeight(), image.getHeight() + 2);
+
+    image = createTestImage(50, 50, BufferedImage.TYPE_INT_RGB, Color.BLUE);
+    margin1 = ImageUtils.addMargin(image, 1);
+    assertFalse(image.getColorModel().hasAlpha());
+    assertTrue(margin1.getColorModel().hasAlpha());
+    assertEqualsImageExcludingMargin(image, margin1, 1);
+  }
+
+  private static BufferedImage createTestImage(int w, int h, int imageType, Color fill) {
+    @SuppressWarnings("UndesirableClassUsage")
+    BufferedImage image = new BufferedImage(w, h, imageType);
+    Graphics g = image.getGraphics();
+    g.setColor(fill);
+    g.fillRect(0, 0, image.getWidth(), image.getHeight());
+    g.dispose();
+    return image;
+  }
+
   private static BufferedImage readImage(String folder, String fileName) throws IOException {
     File f = new File(folder, fileName);
     return ImageIO.read(f);
   }
 
   private static void assertEqualsImage(BufferedImage expected, BufferedImage actual) {
-    assertEquals(expected.getWidth(), actual.getWidth());
-    assertEquals(expected.getHeight(), actual.getHeight());
+    assertEqualsImageExcludingMargin(expected, actual, 0);
+  }
+
+  private static void assertEqualsImageExcludingMargin(BufferedImage expected, BufferedImage actual, int margin) {
+    assertEquals(expected.getWidth(), actual.getWidth() - 2 * margin);
+    assertEquals(expected.getHeight(), actual.getHeight() - 2 * margin);
 
     for (int x = 0; x < expected.getWidth(); x++) {
       for (int y = 0; y < expected.getHeight(); y++) {
-        assertEquals(expected.getRGB(x, y), actual.getRGB(x, y));
+        assertEquals(expected.getRGB(x, y), actual.getRGB(x + margin, y + margin));
       }
     }
   }
