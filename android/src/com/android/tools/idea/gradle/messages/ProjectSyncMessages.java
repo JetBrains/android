@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.messages;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.messages.navigatable.ProjectSyncErrorNavigatable;
 import com.intellij.compiler.impl.CompilerErrorTreeView;
+import com.intellij.ide.errorTreeView.ErrorTreeElement;
 import com.intellij.ide.errorTreeView.ErrorViewStructure;
 import com.intellij.ide.errorTreeView.GroupingElement;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Arrays;
 
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
@@ -98,6 +100,10 @@ public class ProjectSyncMessages {
   }
 
   public void add(@NotNull final Message message) {
+    if (contains(message)) {
+      return;
+    }
+
     Navigatable navigatable = message.getNavigatable();
     if (navigatable instanceof ProjectSyncErrorNavigatable) {
       ((ProjectSyncErrorNavigatable)navigatable).setProject(myProject);
@@ -120,6 +126,24 @@ public class ProjectSyncMessages {
     else {
       ApplicationManager.getApplication().invokeLater(showMessageTask, ModalityState.NON_MODAL);
     }
+  }
+
+  private boolean contains(@NotNull Message message) {
+    synchronized (myErrorTreeViewLock) {
+      if (myErrorTreeView != null) {
+        ErrorViewStructure errorViewStructure = myErrorTreeView.getErrorViewStructure();
+        GroupingElement grouping = errorViewStructure.lookupGroupingElement(message.getGroupName());
+        if (grouping != null) {
+          ErrorTreeElement[] children = errorViewStructure.getChildElements(grouping);
+          for (ErrorTreeElement msg : children) {
+            if (Arrays.equals(message.getText(), msg.getText())) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   public void clearView() {
