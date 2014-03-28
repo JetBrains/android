@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.Template;
@@ -25,11 +26,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -93,8 +99,6 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/app");
     assertNotNull(javaSrcFile);
-
-
 
     // Test invocation with null invocation target
     NewTemplateObjectWizard wizard = new NewTemplateObjectWizard(myAppModule.getProject(), myAppModule, null,
@@ -197,94 +201,133 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     verify(mockAssetSetStep).setVisible(false);
   }
 
-  public void testFindSrcDirectory() {
+  public void testFindSrcDirectory() throws Exception {
     TemplateWizardState wizardState = new TemplateWizardState();
     String expectedPath = "src/main/java";
 
     // Test with primary module
     assertNotNull(myAppFacet.getIdeaAndroidProject());
-    VirtualFile srcDir = NewTemplateObjectWizard.findSrcDirectory(myAppFacet, myAppFacet.getIdeaAndroidProject(), wizardState);
+    SourceProvider provider = getFirstSourceProvider(myAppFacet, null);
+    File srcDir = NewTemplateObjectWizard.findSrcDirectory(provider);
 
     VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
 
-    assertEquals(expectedFile, srcDir);
-    assertEquals(expectedPath, wizardState.getString(ATTR_SRC_DIR));
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), srcDir);
+
+    // Test with primary module, different source set
+    VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app");
+    assertNotNull(javaSrcFile);
+    provider = getFirstSourceProvider(myAppFacet, javaSrcFile);
+    srcDir = NewTemplateObjectWizard.findSrcDirectory(provider);
+
+    expectedPath = "src/paid/java";
+    expectedFile = moduleFile.findFileByRelativePath(expectedPath);
+    assertNotNull(expectedFile);
+
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), srcDir);
 
     // Test with lib module
     assertNotNull(myLibFacet.getIdeaAndroidProject());
-    srcDir = NewTemplateObjectWizard.findSrcDirectory(myLibFacet, myLibFacet.getIdeaAndroidProject(), wizardState);
+    provider = getFirstSourceProvider(myLibFacet, null);
+    srcDir = NewTemplateObjectWizard.findSrcDirectory(provider);
 
+    expectedPath = "src/main/java";
     moduleFile = myLibFacet.getIdeaAndroidProject().getRootDir();
     assertNotNull(moduleFile);
     expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
 
-    assertEquals(expectedFile, srcDir);
-    assertEquals(expectedPath, wizardState.getString(ATTR_SRC_DIR));
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), srcDir);
   }
 
-  public void testFindResDirectory() {
+  public void testFindResDirectory() throws Exception {
     TemplateWizardState wizardState = new TemplateWizardState();
     String expectedPath = "src/main/res";
 
     // Test with primary module
     assertNotNull(myAppFacet.getIdeaAndroidProject());
-    VirtualFile resDir = NewTemplateObjectWizard.findResDirectory(myAppFacet, myAppFacet.getIdeaAndroidProject(), wizardState);
+    SourceProvider provider = getFirstSourceProvider(myAppFacet, null);
+    File resDir = NewTemplateObjectWizard.findResDirectory(provider);
 
     VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
 
-    assertEquals(expectedFile, resDir);
-    assertEquals(expectedPath, wizardState.getString(ATTR_RES_DIR));
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), resDir);
+
+    // Test with primary module, different source set
+    VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app");
+    assertNotNull(javaSrcFile);
+    provider = getFirstSourceProvider(myAppFacet, javaSrcFile);
+    resDir = NewTemplateObjectWizard.findResDirectory(provider);
+
+    expectedPath = "src/paid/res";
+    expectedFile = moduleFile.findFileByRelativePath(expectedPath);
+    assertNotNull(expectedFile);
+
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), resDir);
 
     // Test with lib module
     assertNotNull(myLibFacet.getIdeaAndroidProject());
-    resDir = NewTemplateObjectWizard.findResDirectory(myLibFacet, myLibFacet.getIdeaAndroidProject(), wizardState);
+    provider = getFirstSourceProvider(myLibFacet, null);
+    resDir = NewTemplateObjectWizard.findResDirectory(provider);
 
+    expectedPath = "src/main/res";
     moduleFile = myLibFacet.getIdeaAndroidProject().getRootDir();
     assertNotNull(moduleFile);
     expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
 
-    assertEquals(expectedFile, resDir);
-    assertEquals(expectedPath, wizardState.getString(ATTR_RES_DIR));
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), resDir);
   }
 
-  public void testFindManifestDirectory() {
+  public void testFindManifestDirectory() throws Exception {
     TemplateWizardState wizardState = new TemplateWizardState();
     String expectedPath = "src/main";
 
-    // Test with primary module
+    // Test with primary module, main source set
     assertNotNull(myAppFacet.getIdeaAndroidProject());
-    VirtualFile manifestDir = NewTemplateObjectWizard.findManifestDirectory(myAppFacet, myAppFacet.getIdeaAndroidProject(), wizardState);
+    SourceProvider provider = getFirstSourceProvider(myAppFacet, null);
+    File manifestDir = NewTemplateObjectWizard.findManifestDirectory(provider);
 
     VirtualFile moduleFile = myAppFacet.getIdeaAndroidProject().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
 
-    assertEquals(expectedFile, manifestDir);
-    assertEquals(expectedPath, wizardState.getString(ATTR_MANIFEST_DIR));
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), manifestDir);
+
+    // Test with primary module, different source set
+    VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app");
+    assertNotNull(javaSrcFile);
+    provider = getFirstSourceProvider(myAppFacet, javaSrcFile);
+    manifestDir = NewTemplateObjectWizard.findManifestDirectory(provider);
+
+    expectedPath = "src/paid";
+    expectedFile = moduleFile.findFileByRelativePath(expectedPath);
+    assertNotNull(expectedFile);
+
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), manifestDir);
 
     // Test with lib module
     assertNotNull(myLibFacet.getIdeaAndroidProject());
-    manifestDir = NewTemplateObjectWizard.findManifestDirectory(myLibFacet, myLibFacet.getIdeaAndroidProject(), wizardState);
+    provider = getFirstSourceProvider(myLibFacet, null);
+    manifestDir = NewTemplateObjectWizard.findManifestDirectory(provider);
 
+    expectedPath = "src/main";
     moduleFile = myLibFacet.getIdeaAndroidProject().getRootDir();
     assertNotNull(moduleFile);
     expectedFile = moduleFile.findFileByRelativePath(expectedPath);
     assertNotNull(expectedFile);
 
-    assertEquals(expectedFile, manifestDir);
-    assertEquals(expectedPath, wizardState.getString(ATTR_MANIFEST_DIR));
+    assertEquals(VfsUtilCore.virtualToIoFile(expectedFile), manifestDir);
   }
 
-  public void testGetPackageFromDirectory() {
+  public void testGetPackageFromDirectory() throws Exception {
     TemplateWizardState wizardState = new TemplateWizardState();
     wizardState.put(ATTR_PACKAGE_NAME, "wizard.state.default.value");
 
@@ -299,11 +342,26 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertTrue(directory.mkdirs());
     VirtualFile virtualDirectory = VfsUtil.findFileByIoFile(directory, true);
     assertNotNull(virtualDirectory);
-    assertEquals("com.example.foo", NewTemplateObjectWizard.getPackageFromDirectory(virtualDirectory, myAppFacet,
-                                                                                    myAppFacet.getIdeaAndroidProject(),
-                                                                                    myAppModule, wizardState));
+    SourceProvider provider = getFirstSourceProvider(myAppFacet, virtualDirectory);
+    assertEquals("com.example.foo",
+                 NewTemplateObjectWizard.getPackageFromDirectory(VfsUtilCore.virtualToIoFile(virtualDirectory), provider,
+                                                                 myAppModule, wizardState));
     // Test null result on failure
-    assertNull(
-      NewTemplateObjectWizard.getPackageFromDirectory(moduleFile, myAppFacet, myAppFacet.getIdeaAndroidProject(), myAppModule, wizardState));
+    assertNull(NewTemplateObjectWizard.getPackageFromDirectory(VfsUtilCore.virtualToIoFile(moduleFile), provider, myAppModule, wizardState));
+
+    // Test package in another srcSet
+    VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
+    assertNotNull(javaSrcFile);
+    provider = getFirstSourceProvider(myAppFacet, javaSrcFile);
+    assertEquals("com.example.projectwithappandlib.app.paid",
+                 NewTemplateObjectWizard.getPackageFromDirectory(VfsUtilCore.virtualToIoFile(javaSrcFile), provider, myAppModule,
+                                                                 wizardState));
+  }
+
+  @NotNull
+  private static SourceProvider getFirstSourceProvider(AndroidFacet facet, @Nullable VirtualFile file) {
+    Iterator<SourceProvider> sourceProviderIterator =
+     IdeaSourceProvider.getSourceProvidersForFile(facet, file, facet.getMainSourceSet()).iterator();
+    return sourceProviderIterator.next();
   }
 }

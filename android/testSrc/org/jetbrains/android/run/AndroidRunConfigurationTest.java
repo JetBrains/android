@@ -27,4 +27,11 @@ public class AndroidRunConfigurationTest extends AndroidGradleTestCase {
     loadProject("projects/runConfig/alias");
     assertEquals("LauncherAlias", AndroidRunConfiguration.computeDefaultActivity(myAndroidFacet, null));
   }
+
+  // tests that when there are multiple activities that with action MAIN and category LAUNCHER, then give
+  // preference to the one that also has category DEFAULT
+  public void testPreferDefaultCategoryActivity() throws Exception {
+    loadProject("projects/runConfig/default");
+    assertEquals("com.example.unittest.LauncherAlias", AndroidRunConfiguration.computeDefaultActivity(myAndroidFacet, null));
+  }
 }

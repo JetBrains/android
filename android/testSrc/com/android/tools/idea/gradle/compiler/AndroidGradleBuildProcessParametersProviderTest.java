@@ -106,18 +106,26 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
 
   public void testPopulateModulesToBuildWithModuleNames() {
     BuildSettings.getInstance(myProject).setModulesToBuild(new Module[] {myModule});
-    List<String> jvmArgs= Lists.newArrayList();
+    List<String> jvmArgs = Lists.newArrayList();
     myParametersProvider.populateModulesToBuild(BuildMode.CLEAN, jvmArgs);
     assertEquals(2, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.modules.count=1", jvmArgs.get(0));
     assertEquals("-Dcom.android.studio.gradle.modules.0=" + myModule.getName(), jvmArgs.get(1));
   }
 
+  public void testPopulateModulesToBuildWithAssembleTranslate() {
+    BuildSettings.getInstance(myProject).setModulesToBuild(new Module[] {myModule});
+    List<String> jvmArgs = Lists.newArrayList();
+    myParametersProvider.populateModulesToBuild(BuildMode.ASSEMBLE_TRANSLATE, jvmArgs);
+    assertEquals(1, jvmArgs.size());
+    assertEquals("-Dcom.android.studio.gradle.modules.count=0", jvmArgs.get(0));
+  }
+
   public void testPopulateJvmArgsWithBuildConfiguration() {
     AndroidGradleBuildConfiguration configuration = new AndroidGradleBuildConfiguration();
     configuration.COMMAND_LINE_OPTIONS = "--stacktrace --offline";
     GradleSettings.getInstance(myProject).setOfflineWork(true);
-    List<String> jvmArgs= Lists.newArrayList();
+    List<String> jvmArgs = Lists.newArrayList();
     AndroidGradleBuildProcessParametersProvider.populateJvmArgs(configuration, jvmArgs, myProject);
     assertEquals(4, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.offline.mode=true", jvmArgs.get(0));

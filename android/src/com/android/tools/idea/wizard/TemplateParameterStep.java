@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.builder.model.SourceProvider;
+import com.android.ide.common.res2.SourceSet;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.annotations.VisibleForTesting;
@@ -37,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * TemplateParameterStep is a step in new project or add module wizards that pulls eligible parameters from the template being run
@@ -86,6 +89,11 @@ public class TemplateParameterStep extends TemplateWizardStep {
       Object value = myTemplateState.get(parameter.id) != null ? myTemplateState.get(parameter.id) : parameter.initial;
       myTemplateState.put(parameter.id, value);
       switch(parameter.type) {
+        case SEPARATOR:
+          c.setColSpan(3);
+          JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+          myParamContainer.add(separator, c);
+          break;
         case BOOLEAN:
           c.setColumn(1);
           JCheckBox checkBox = new JCheckBox(parameter.name);
@@ -106,9 +114,6 @@ public class TemplateParameterStep extends TemplateWizardStep {
             myPreferredFocusComponent = comboBox;
           }
           break;
-        case SEPARATOR:
-          myParamContainer.add(new JSeparator());
-          break;
         case STRING:
           myParamContainer.add(label, c);
           c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
@@ -116,19 +121,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
           c.setColumn(1);
           c.setColSpan(2);
 
-          if (myProject != null) {
-            // If we have existing files, ensure uniqueness is satisfied
-            if (parameter.constraints.contains(Parameter.Constraint.UNIQUE) &&
-                !parameter.uniquenessSatisfied(myProject, myModule, packageName, myTemplateState.getString(parameter.id))) {
-              // While uniqueness isn't satisfied, increment number and add to end
-              int i = 2;
-              String originalValue = myTemplateState.getString(parameter.id);
-              while (!parameter.uniquenessSatisfied(myProject, myModule, packageName, originalValue + Integer.toString(i))) {
-                i++;
-              }
-              myTemplateState.put(parameter.id, String.format("%s%d", originalValue, i));
-            }
-          }
+
 
           register(parameter.id, textField);
 
@@ -142,6 +135,8 @@ public class TemplateParameterStep extends TemplateWizardStep {
       updateVisibility(parameter);
     }
     update();
+    deduplicateSuggestions(packageName);
+
 
     c.setFill(GridConstraints.FILL_HORIZONTAL);
     c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
@@ -153,6 +148,38 @@ public class TemplateParameterStep extends TemplateWizardStep {
     Spacer spacer = new Spacer();
     myParamContainer.add(spacer, c);
     setDescriptionHtml(myTemplateState.getTemplateMetadata().getDescription());
+  }
+
+  private void deduplicateSuggestions(@Nullable String packageName) {
+    if (myProject == null || myTemplateState.getTemplateMetadata() == null) {
+      return;
+    }
+
+    SourceProvider provider = myTemplateState.getSourceProvider();
+    for (String paramName : myParamFields.keySet()) {
+      Parameter parameter = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
+      // For the moment, only string types can be checked for uniqueness
+      if (parameter == null || parameter.type != Parameter.Type.STRING) {
+        continue;
+      }
+      JComponent component = myParamFields.get(paramName);
+      // If we have existing files, ensure uniqueness is satisfied
+      if (parameter.constraints.contains(Parameter.Constraint.UNIQUE) &&
+          !parameter.uniquenessSatisfied(myProject, myModule, provider, packageName, myTemplateState.getString(parameter.id))) {
+        // While uniqueness isn't satisfied, increment number and add to end
+        int i = 2;
+        String originalValue = myTemplateState.getString(parameter.id);
+        while (!parameter.uniquenessSatisfied(myProject, myModule, provider, packageName, originalValue + Integer.toString(i))) {
+          i++;
+        }
+        String derivedValue = String.format("%s%d", originalValue, i);
+        myTemplateState.put(parameter.id, derivedValue);
+        if (component instanceof JTextField) {
+          ((JTextField)component).setText(derivedValue);
+        }
+        myTemplateState.myModified.remove(paramName);
+      }
+    }
   }
 
   @Override

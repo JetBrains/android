@@ -42,14 +42,24 @@ public class ProjectBuilder {
     myProject = project;
   }
 
-  public void make() {
+  public void assembleTranslate() {
+    if (Projects.isGradleProject(myProject)) {
+      if (Projects.isDirectGradleInvocationEnabled(myProject)) {
+        GradleInvoker.getInstance(myProject).assembleTranslate();
+        return;
+      }
+      buildProjectWithJps(BuildMode.ASSEMBLE_TRANSLATE);
+    }
+  }
+
+  public void compileJava() {
     if (Projects.isGradleProject(myProject)) {
       if (Projects.isDirectGradleInvocationEnabled(myProject)) {
         Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        GradleInvoker.getInstance(myProject).make(modules, GradleBuilds.TestCompileType.NONE);
+        GradleInvoker.getInstance(myProject).compileJava(modules);
         return;
       }
-      buildProjectWithJps(BuildMode.MAKE);
+      buildProjectWithJps(BuildMode.COMPILE_JAVA);
     }
   }
 

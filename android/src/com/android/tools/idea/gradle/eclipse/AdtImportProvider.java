@@ -24,24 +24,37 @@ import com.intellij.projectImport.ProjectImportProvider;
 import org.jetbrains.annotations.Nullable;
 
 public class AdtImportProvider extends ProjectImportProvider {
-  public AdtImportProvider() {
-    this(new AdtImportBuilder());
+  private final boolean myProjectImport;
+
+  public AdtImportProvider(boolean projectImport) {
+    this(new AdtImportBuilder(projectImport), projectImport);
   }
 
-  public AdtImportProvider(AdtImportBuilder builder) {
+  public AdtImportProvider(AdtImportBuilder builder, boolean projectImport) {
     super(builder);
+    myProjectImport = projectImport;
   }
 
   @Override
   public ModuleWizardStep[] createSteps(WizardContext context) {
-    return new ModuleWizardStep[]{
-      new AdtImportLocationStep(context),
-      new AdtImportPrefsStep(context),
-      new AdtWorkspaceForm(context),
-      new AdtImportSdkStep(context),
-      new AdtRepositoriesStep(context),
-      new AdtImportWarningsStep(context),
-    };
+    if (myProjectImport) {
+      return new ModuleWizardStep[]{
+        new AdtImportLocationStep(context),
+        new AdtImportPrefsStep(context),
+        new AdtWorkspaceForm(context),
+        new AdtImportSdkStep(context),
+        new AdtRepositoriesStep(context),
+        new AdtImportWarningsStep(context)
+      };
+    } else {
+      return new ModuleWizardStep[]{
+        new AdtImportPrefsStep(context),
+        new AdtWorkspaceForm(context),
+        new AdtImportSdkStep(context),
+        new AdtRepositoriesStep(context),
+        new AdtImportWarningsStep(context)
+      };
+    }
   }
 
   @Override

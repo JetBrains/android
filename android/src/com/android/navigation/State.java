@@ -18,19 +18,17 @@ package com.android.navigation;
 import com.android.annotations.NonNull;
 
 public abstract class State {
-  private Point location = Point.ORIGIN;
-
   public abstract String getClassName();
 
   public abstract String getXmlResourceName();
 
+  @Deprecated
   @NonNull
   public Point getLocation() {
-    return location;
+    return Point.ORIGIN;
   }
-
+  @Deprecated
   public void setLocation(@NonNull Point location) {
-    this.location = location;
   }
 
   @Override

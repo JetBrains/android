@@ -129,5 +129,10 @@ public class LayoutFilePullParserTest extends AndroidTestCase {
       fail("Should not be used by unit test");
       return null;
     }
+
+    @Override
+    public ActionBarCallback getActionBarCallback() {
+      return new ActionBarCallback();
+    }
   }
 }

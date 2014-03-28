@@ -23,20 +23,23 @@ public enum BuildMode {
   CLEAN,
 
   /** Compiles Java code and invokes Android build tools. */
-  MAKE,
+  ASSEMBLE,
 
-  /** Clean project and then {@link #MAKE}. */
+  /** Clean project and then {@link #ASSEMBLE}. */
   REBUILD,
 
   /** Compiles Java code, in selected modules, without invoking Android build tools. */
   COMPILE_JAVA,
 
   /** Generate Java source only (e.g. R.java). */
-  SOURCE_GEN;
+  SOURCE_GEN,
+
+  /** Build project with translation support. */
+  ASSEMBLE_TRANSLATE;
 
   /**
    * This build mode is used when user invokes "Build" > "Make" or "Build" > "Rebuild". For these cases, Studio does not have a chance to
    * set the build mode in the project (unlike "Build" > "Compile") so when JPS is called there is no build mode specified.
    */
-  public static final BuildMode DEFAULT_BUILD_MODE = MAKE;
+  public static final BuildMode DEFAULT_BUILD_MODE = COMPILE_JAVA;
 }

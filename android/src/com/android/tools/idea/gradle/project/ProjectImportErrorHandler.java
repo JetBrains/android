@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
 import java.io.File;
+import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
 /**
@@ -60,11 +61,15 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     if (isOldGradleVersion(rootCause)) {
-      String msg = String.format("You are using an old, unsupported version of Gradle. Please use version %1$s or greater.",
+      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.",
                                  GradleUtil.GRADLE_MINIMUM_VERSION);
       msg += ('\n' + FIX_GRADLE_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof UnknownHostException) {
+      return createUserFriendlyError(String.format("Unknown host '%1$s'.", rootCause.getMessage()), null);
     }
 
     if (rootCause instanceof IllegalStateException || rootCause instanceof ExternalSystemException) {

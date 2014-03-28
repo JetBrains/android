@@ -25,6 +25,7 @@
   <actions>
     <group id="Android.MainToolBarActionGroup">
       <separator/>
+      <reference id="Android.ShowNavigationEditor" />
       <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager" />
       <reference id="Android.RunAndroidSdkManager" />
@@ -45,7 +46,13 @@
         icon="AndroidIcons.SdkManagerLarge" >
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
-
-
   </actions>
+
+  <application-components>
+    <component>
+      <interface-class>com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent</interface-class>
+      <implementation-class>com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent</implementation-class>
+    </component>
+  </application-components>
+
 </idea-plugin>

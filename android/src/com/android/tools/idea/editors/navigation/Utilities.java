@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.editors.navigation;
 
-import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.editors.navigation.macros.MultiMatch;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -28,8 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
@@ -231,7 +229,8 @@ public class Utilities {
     return createMethodFromText(project, text, null);
   }
 
-  public static Module getModule(Project project, VirtualFile file) {
-    return NavigationView.getRenderingParams(project, file).myConfiguration.getModule();
+  @Nullable
+  public static VirtualFile virtualFile(File file) {
+    return LocalFileSystem.getInstance().findFileByIoFile(file);
   }
 }

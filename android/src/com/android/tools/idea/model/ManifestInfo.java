@@ -19,13 +19,16 @@ import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.android.dom.manifest.ActivityAlias;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -191,6 +194,11 @@ public abstract class ManifestInfo {
 
     ManifestInfo finder = module.getUserData(key);
     if (finder == null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        throw new IllegalArgumentException("Manifest information can only be obtained on modules with the Android facet.");
+      }
+
       finder = useMergedManifest ? new MergedManifestInfo(module) : new PrimaryManifestInfo(module);
       module.putUserData(key, finder);
     }
@@ -304,31 +312,42 @@ public abstract class ManifestInfo {
   /** @return the list activities defined in the manifest. */
   @NotNull
   public List<Activity> getActivities() {
-    List<Activity> activities = Lists.newArrayList();
+    return ApplicationManager.getApplication().runReadAction(new Computable<List<Activity>>() {
+      @Override
+      public List<Activity> compute() {
+        List<Activity> activities = Lists.newArrayList();
 
-    for (Manifest m : getManifests()) {
-      Application application = m.getApplication();
-      if (application != null) {
-        activities.addAll(application.getActivities());
+        for (Manifest m : getManifests()) {
+          Application application = m.getApplication();
+          if (application != null) {
+            activities.addAll(application.getActivities());
+          }
+        }
+
+        return activities;
       }
-    }
-
-    return activities;
+    });
   }
 
   /** @return the list activity aliases defined in the manifest. */
   @NotNull
   public List<ActivityAlias> getActivityAliases() {
-    List<ActivityAlias> activityAliases = Lists.newArrayList();
+    return ApplicationManager.getApplication().runReadAction(new Computable<List<ActivityAlias>>() {
+      @Override
+      public List<ActivityAlias> compute() {
+        List<ActivityAlias> activityAliases = Lists.newArrayList();
 
-    for (Manifest m : getManifests()) {
-      Application application = m.getApplication();
-      if (application != null) {
-        activityAliases.addAll(application.getActivityAliass());
+        for (Manifest m : getManifests()) {
+          Application application = m.getApplication();
+          if (application != null) {
+            activityAliases.addAll(application.getActivityAliass());
+          }
+        }
+
+
+        return activityAliases;
       }
-    }
-
-    return activityAliases;
+    });
   }
 
   @NotNull
