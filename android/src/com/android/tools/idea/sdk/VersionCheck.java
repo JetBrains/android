@@ -28,15 +28,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Handles the version check for the SDK.
+ * Handles the version check for the Android SDK.
  */
 public final class VersionCheck {
   private static final Logger LOG = Logger.getInstance(VersionCheck.class);
 
   /**
-   * The minimum version of the SDK Tools that this version of ADT requires.
+   * The minimum version of the SDK Tools that this version of Android Studio requires.
    */
-  public static final FullRevision MIN_TOOLS_REV = new FullRevision(22, 0, 0, 0);
+  public static final FullRevision MIN_TOOLS_REV = new FullRevision(22, 6, 2, 0);
 
   private static final Pattern mySourcePropPattern = Pattern.compile("^" + PkgProps.PKG_REVISION + "=(.*)$");
 
