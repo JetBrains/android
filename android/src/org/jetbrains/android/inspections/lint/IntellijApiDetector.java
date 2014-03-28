@@ -455,16 +455,6 @@ public class IntellijApiDetector extends ApiDetector {
     }
 
     @Override
-    public void visitResourceVariable(PsiResourceVariable resourceVariable) {
-      super.visitResourceVariable(resourceVariable);
-    }
-
-    @Override
-    public void visitReferenceElement(PsiJavaCodeReferenceElement reference) {
-      super.visitReferenceElement(reference);
-    }
-
-    @Override
     public void visitCallExpression(PsiCallExpression expression) {
       super.visitCallExpression(expression);
 
@@ -578,8 +568,6 @@ public class IntellijApiDetector extends ApiDetector {
 
         myContext.report(UNSUPPORTED, location, message, null);
       }
-
-      super.visitCallExpression(expression);
     }
   }
 
