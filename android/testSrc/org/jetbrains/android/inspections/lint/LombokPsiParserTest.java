@@ -15,23 +15,27 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.tools.lint.detector.api.JavaContext;
-import com.intellij.psi.PsiCall;
-import com.intellij.psi.PsiFile;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import lombok.ast.ClassDeclaration;
 import lombok.ast.CompilationUnit;
-import lombok.ast.MethodDeclaration;
-import lombok.ast.Node;
+import lombok.ast.TypeDeclaration;
 import org.jetbrains.android.AndroidTestCase;
+
+import static com.android.tools.lint.client.api.JavaParser.*;
 
 public class LombokPsiParserTest extends AndroidTestCase {
   public void testResolve() {
     String source1Path = "src/p1/p2/Target.java";
     String source1 = "package p1.p2;\n" +
                      "\n" +
-                     "public final class Target {\n" +
+                     "public class Target {\n" +
                      "    public void foo(int f) {\n" +
+                     "    }\n" +
+                     "    public int myField = 5;\n" +
+                     "    public static class Target2 extends java.io.File {\n" +
+                     "        public Target2() {\n" +
+                     "            super(null, null);\n" +
+                     "        }\n" +
                      "    }\n" +
                      "}";
     myFixture.addFileToProject(source1Path, source1);
@@ -39,24 +43,67 @@ public class LombokPsiParserTest extends AndroidTestCase {
     String source2Path = "src/p1/p2/Caller.java";
     String source2 = "package p1.p2;\n" +
                      "\n" +
-                     "public final class Caller {\n" +
+                     "public final class Caller extends Target.Target2 {\n" +
                      "    public String call(Target target) {\n" +
                      "        target.foo(42);\n" +
+                     "        target.myField = 6;\n" +
                      "    }\n" +
                      "}";
     PsiFile file2 = myFixture.addFileToProject(source2Path, source2);
     PsiCall call = PsiTreeUtil.findChildrenOfType(file2, PsiCall.class).iterator().next();
-    Node resolved = LombokPsiParser.resolve(call);
+    ResolvedNode resolved = LombokPsiParser.resolve(call);
     assertNotNull(resolved);
-    assertTrue(resolved instanceof MethodDeclaration);
-    MethodDeclaration method = (MethodDeclaration)resolved;
-    assertEquals("foo", method.astMethodName().astValue());
-    ClassDeclaration surroundingClass = JavaContext.findSurroundingClass(method);
-    assertNotNull(surroundingClass);
-    assertEquals("Target", surroundingClass.astName().astValue());
-    assertTrue(surroundingClass.getParent() instanceof CompilationUnit);
-    CompilationUnit unit = (CompilationUnit)surroundingClass.getParent();
-    assertNotNull(unit.astPackageDeclaration());
-    assertEquals("p1.p2", unit.astPackageDeclaration().getPackageName());
+    assertTrue(resolved instanceof ResolvedMethod);
+    ResolvedMethod method = (ResolvedMethod)resolved;
+    assertEquals("foo", method.getName());
+    assertEquals("p1.p2.Target", method.getContainingClass().getName());
+
+    // Resolve "target" as a reference expression in the call() method
+    PsiElement element = ((PsiMethodCallExpression)call).getMethodExpression().getQualifier();
+    assertNotNull(element);
+    resolved = LombokPsiParser.resolve(element);
+    assertTrue(resolved instanceof ResolvedVariable);
+    ResolvedVariable resolvedVariable = (ResolvedVariable)resolved;
+    assertEquals("target", resolvedVariable.getName());
+    assertEquals("p1.p2.Target", resolvedVariable.getType().getName());
+
+
+    PsiMethod callMethod = PsiTreeUtil.findChildrenOfType(file2, PsiMethod.class).iterator().next();
+    assertNotNull(callMethod);
+    PsiVariable variable = callMethod.getParameterList().getParameters()[0];
+    resolved = LombokPsiParser.resolve(variable);
+    assertTrue(resolved instanceof ResolvedVariable);
+    resolvedVariable = (ResolvedVariable)resolved;
+    assertEquals("target", resolvedVariable.getName());
+    assertEquals("p1.p2.Target", resolvedVariable.getType().getName());
+
+    @SuppressWarnings("ConstantConditions")
+    PsiStatement fieldReferenceStatement = callMethod.getBody().getStatements()[1];
+    PsiExpression lExpression =
+      ((PsiAssignmentExpression)((PsiExpressionStatement)fieldReferenceStatement).getExpression()).getLExpression();
+    resolved = LombokPsiParser.resolve(lExpression);
+    assertTrue(resolved instanceof ResolvedField);
+    ResolvedField field = (ResolvedField)resolved;
+    assertEquals("myField", field.getName());
+    assertEquals("int", field.getType().getName());
+    assertEquals("p1.p2.Target", field.getContainingClass().getName());
+
+    PsiClass cls = PsiTreeUtil.findChildrenOfType(file2, PsiClass.class).iterator().next();
+    @SuppressWarnings("ConstantConditions")
+    PsiJavaCodeReferenceElement superReference = cls.getExtendsList().getReferenceElements()[0];
+    resolved = LombokPsiParser.resolve(superReference);
+    assertTrue(resolved instanceof ResolvedClass);
+    ResolvedClass rc = (ResolvedClass)resolved;
+    assertTrue(rc.getName().equals("p1.p2.Target.Target2"));
+
+    CompilationUnit unit = LombokPsiConverter.convert((PsiJavaFile)file2);
+    TypeDeclaration first = unit.astTypeDeclarations().first();
+    resolved = LombokPsiParser.resolve((PsiElement)first.getNativeNode());
+    assertTrue(resolved instanceof ResolvedClass);
+    rc = (ResolvedClass)resolved;
+    assertEquals("p1.p2.Caller", rc.getName());
+    //noinspection ConstantConditions
+    assertEquals("p1.p2.Target.Target2", rc.getSuperClass().getName());
+    assertNull(rc.getContainingClass());
   }
 }

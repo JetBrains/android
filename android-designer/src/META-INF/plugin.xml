@@ -1,46 +1,12 @@
-<idea-plugin version="2" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin version="2">
   <name>Android Designer</name>
   <id>com.intellij.android-designer</id>
   <description>
       <![CDATA[
-      This plugin provides visual editing support for Android layout files.
-      The following features are available:
-        <ul>
-        <li>Android Layout Preview tool window.</li>
-        <li>Ability to create user interface of Android applications.</li>
-        <li>Ability to toggle between modes.</li>
-        <li>Navigation between activities and their layout definition files.</li>
-        </ul>
+      This plugin is no longer used; the layout editor has been moved into
+      the base Android plugin. This empty plugin container (which is present
+      to avoid issues with update patching) will be removed eventually.
       ]]>
    </description>
   <vendor>JetBrains</vendor>
-
-  <depends>org.jetbrains.android</depends>
-  <xi:include href="/META-INF/DesignerCorePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <errorHandler implementation="com.intellij.diagnostic.ITNReporter"/>
-
-    <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>
-
-    <projectService serviceInterface="com.intellij.android.designer.profile.ProfileList"
-                    serviceImplementation="com.intellij.android.designer.profile.ProfileList"/>
-
-    <projectService serviceInterface="com.intellij.android.designer.model.ViewsMetaManager"
-                    serviceImplementation="com.intellij.android.designer.model.ViewsMetaManager"/>
-  </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
-    </component>
-  </project-components>
-
-  <extensions defaultExtensionNs="org.jetbrains.android">
-    <refactoringContextProvider implementation="com.intellij.android.designer.AndroidDesignerRefactoringContextProvider"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="Designer">
-    <customizations implementation="com.intellij.android.designer.AndroidDesignerCustomizations" />
-  </extensions>
 </idea-plugin>

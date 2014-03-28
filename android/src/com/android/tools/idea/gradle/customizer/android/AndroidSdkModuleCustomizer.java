@@ -17,18 +17,21 @@ package com.android.tools.idea.gradle.customizer.android;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
 
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -43,8 +46,8 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
    * <li>there is a matching Android SDK already defined in IDEA</li>
    * </ol>
    *
-   * @param module             module to customize.
-   * @param project            project that owns the module to customize.
+   * @param module         module to customize.
+   * @param project        project that owns the module to customize.
    * @param androidProject the imported Android-Gradle project.
    */
   @Override
@@ -61,30 +64,16 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
     String androidHome = androidSdkHomePath.getPath();
     String compileTarget = androidProject.getDelegate().getCompileTarget();
 
-    boolean sdkSet =
-      AndroidSdkUtils.findAndSetSdk(module, compileTarget, androidHome, androidProject.getJavaLanguageLevel(), true);
-    if (sdkSet) {
-      String sdkPath = getSdkPath(module);
-      assert sdkPath != null;
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(compileTarget, androidHome, androidProject.getJavaLanguageLevel(), false);
+    if (sdk != null) {
+      ModuleRootModificationUtil.setModuleSdk(module, sdk);
+      return;
     }
-    else {
-      // This should never, ever happen.
-      // We already either attempted to create an Android SDK (even prompted the user for its path) or downloaded the matching platform.
-      String format = "Unable to set the Android SDK at '%1$s', with compile target '%2$s', to module '%3$s'";
-      String msg = String.format(format, androidHome, compileTarget, module.getName());
-      LOG.error(msg);
-      msg += ".\n\nPlease set the Android SDK manually via the \"Project Structure\" dialog.";
-      showErrorDialog(msg);
-    }
-  }
 
-  private static void showErrorDialog(@NotNull String msg) {
-    Messages.showErrorDialog(msg, "Android SDK Configuration");
-  }
+    String text = String.format("Module '%1$s': platform '%2$s' not found.", module.getName(), compileTarget);
+    LOG.info(text);
 
-  @Nullable
-  private static String getSdkPath(@NotNull Module module) {
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    return sdk != null ? sdk.getHomePath() : null;
+    Message msg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.ERROR, text);
+    ProjectSyncMessages.getInstance(project).add(msg);
   }
 }

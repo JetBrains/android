@@ -81,7 +81,7 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
       // Invoked from Welcome Screen, might not have an SDK setup yet
       AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
       if (sdkData != null) {
-        doRunTool(null, sdkData.getPath());
+        doRunTool(null, sdkData.getLocation().getPath());
       }
     }
     else {

@@ -1,0 +1,8 @@
+<transitionManager xmlns:android="http://schemas.android.com/apk/res/android">
+    <transition android:fromScene="@layout/transition_scene1"
+                android:toScene="@layout/transition_scene2"
+                android:transition="@transition/changebounds"/>
+    <transition android:fromScene="@layout/transition_scene2"
+                android:toScene="@layout/transition_scene1"
+                android:transition="@transition/changebounds"/>
+</transitionManager>

@@ -18,12 +18,9 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.ProjectImportEventMessage;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.CompilerOutputPathModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -37,6 +34,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -84,7 +82,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
@@ -95,9 +92,6 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrappe
 public class GradleProjectImporter {
   private static final Logger LOG = Logger.getInstance(GradleProjectImporter.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
-
-  private final List<ModuleCustomizer<IdeaAndroidProject>> myAndroidModuleCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputPathModuleCustomizer());
 
   private final ImporterDelegate myDelegate;
 
@@ -169,14 +163,75 @@ public class GradleProjectImporter {
         chooseGradleHomeDialog.storeLastUsedGradleHome();
       }
     }
+    createProjectFileForGradleProject(selectedFile, null);
+  }
 
+  public void importModule(@NotNull final VirtualFile file, @NotNull final Project project, @Nullable final Callback callback)
+      throws IOException, ConfigurationException {
+    // TODO: Remove this check when module import location is customizable
+    if (project.getBaseDir().findChild(file.getName()) != null) {
+      throw new IOException("Target directory already exists");
+    }
+    Throwable throwable = new WriteCommandAction.Simple(project) {
+      @Override
+      protected void run() throws Throwable {
+        copyAndRegisterModule(file, project, callback);
+      }
+
+      @Override
+      public boolean isSilentExecution() {
+        return true;
+      }
+    }.execute().getThrowable();
+    rethrowAsProperlyTypedException(throwable);
+  }
+
+  private static void rethrowAsProperlyTypedException(Throwable throwable) throws IOException {
+    if (throwable != null) {
+      if (throwable instanceof IOException) {
+        throw (IOException)throwable;
+      }
+      else if (throwable instanceof Error) {
+        throw (Error)throwable;
+      }
+      else if (throwable instanceof RuntimeException) {
+        throw (RuntimeException)throwable;
+      }
+      else {
+        throw new IllegalStateException(throwable);
+      }
+    }
+  }
+
+  private void copyAndRegisterModule(@NotNull VirtualFile file, @NotNull Project project, @Nullable Callback callback)
+      throws IOException, ConfigurationException {
+    VirtualFile projectRoot = project.getBaseDir();
+    file.copy(this, projectRoot, file.getName());
+    if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
+      projectRoot.createChildData(this, SdkConstants.FN_SETTINGS_GRADLE);
+    }
+    GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
+    assert  gradleSettingsFile != null : "File should've been created";
+    gradleSettingsFile.addModule(file.getName());
+    reImportProject(project, false, callback);
+  }
+
+  /**
+   * Creates IntelliJ project file in the root of the project directory.
+   *
+   * @param selectedFile <code>build.gradle</code> in the module folder.
+   * @param parentProject existing parent project or <code>null</code> if a new one should be created.
+   */
+  private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project parentProject) {
+    VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
+    File projectDirPath = VfsUtilCore.virtualToIoFile(projectDir);
     try {
       importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
         @Override
         public void projectImported(@NotNull Project project) {
           activateProjectView(project);
         }
-      });
+      }, parentProject);
     }
     catch (Exception e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -210,7 +265,7 @@ public class GradleProjectImporter {
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void reImportProject(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable Callback callback)
-    throws ConfigurationException {
+      throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
@@ -320,7 +375,7 @@ public class GradleProjectImporter {
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
-    throws IOException, ConfigurationException {
+      throws IOException, ConfigurationException {
     importProject(projectName, projectRootDir, callback, null);
   }
 
@@ -428,6 +483,13 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final Callback callback) throws ConfigurationException {
+    final Application application = ApplicationManager.getApplication();
+    final boolean isTest = application.isUnitTestMode();
+    if (!isTest) {
+      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+      messages.clearView();
+    }
+
     PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
@@ -438,18 +500,13 @@ public class GradleProjectImporter {
       @Override
       public void onSuccess(@Nullable final DataNode<ProjectData> projectInfo) {
         assert projectInfo != null;
-        final Application application = ApplicationManager.getApplication();
         Runnable runnable = new Runnable() {
           @Override
           public void run() {
             populateProject(project, projectInfo);
-            boolean isTest = application.isUnitTestMode();
             if (!isTest || !ourSkipSetupFromTest) {
               if (newProject) {
                 Projects.open(project);
-              }
-              else {
-                updateStructureAccordingToBuildVariants(project);
               }
               if (!isTest) {
                 project.save();
@@ -506,36 +563,16 @@ public class GradleProjectImporter {
               public void run() {
                 ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
 
-                Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
-                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */ );
-
-                Collection<DataNode<ProjectImportEventMessage>> eventMessages =
+                Collection<DataNode<Message>> eventMessages =
                   ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
                 dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */ );
+
+                Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
+                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */ );
               }
             });
           }
         });
-      }
-    });
-  }
-
-  private void updateStructureAccordingToBuildVariants(final Project project) {
-    // Update module dependencies, content roots and output paths. This needs to be done in case the selected variant is not
-    // the same one as the default (an by "default" we mean the first in the drop-down.)
-    ExternalSystemApiUtil.executeProjectChangeAction(true, new DisposeAwareProjectChange(project) {
-      @Override
-      public void execute() {
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        for (Module module : moduleManager.getModules()) {
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet != null) {
-            IdeaAndroidProject ideaAndroidProject = facet.getIdeaAndroidProject();
-            for (ModuleCustomizer<IdeaAndroidProject> customizer : myAndroidModuleCustomizers) {
-              customizer.customizeModule(module, project, ideaAndroidProject);
-            }
-          }
-        }
       }
     });
   }

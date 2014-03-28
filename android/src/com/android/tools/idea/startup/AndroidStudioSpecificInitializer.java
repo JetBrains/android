@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.Pair;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
@@ -96,6 +97,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       hideIdeaNewFilePopupActions();
     }
 
+    createDynamicTemplateMenu();
+
     replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
 
     try {
@@ -123,6 +126,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     checkAndSetAndroidSdkSources();
   }
 
+  private static void createDynamicTemplateMenu() {
+    DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
+    newGroup.addSeparator();
+    newGroup.add(TemplateManager.getInstance().getTemplateCreationMenu(), new Constraints(Anchor.AFTER, "NewDir"));
+  }
+
   private static void replaceIdeaNewProjectActions() {
     // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want. In the meantime,
     // unregister IntelliJ's version of the project actions and manually register our own.
@@ -131,15 +140,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
-    replaceAction("ImportProject", new AndroidImportProjectAction());
-    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
+    replaceAction("ImportProject", new AndroidImportProjectAction(true));
+    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction(true));
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
-    hideActionForAndroidGradle("ImportModule", "Import Module...");
+    replaceAction("ImportModule", new AndroidImportProjectAction(false));
 
-    hideActionForAndroidGradle(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
-    hideActionForAndroidGradle("AddFrameworkSupport", "Add Framework Support...");
-    hideActionForAndroidGradle("BuildArtifact", "Build Artifacts...");
-    hideActionForAndroidGradle("RunTargetAction", "Run Ant Target");
+    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
+    hideAction("AddFrameworkSupport", "Add Framework Support...");
+    hideAction("BuildArtifact", "Build Artifacts...");
+    hideAction("RunTargetAction", "Run Ant Target");
 
     replaceProjectPopupActions();
   }
@@ -155,7 +164,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     replaceAction(IdeActions.ACTION_COMPILE_PROJECT, new AndroidRebuildProjectAction());
 
     // 'Build' > 'Compile Modules' action
-    replaceAction(IdeActions.ACTION_COMPILE, new AndroidCompileModuleAction());
+    hideAction(IdeActions.ACTION_COMPILE, "Compile Module(s)");
   }
 
   private static void replaceAction(String actionId, AnAction newAction) {
@@ -168,7 +177,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     am.registerAction(actionId, newAction);
   }
 
-  private static void hideActionForAndroidGradle(String actionId, String backupText) {
+  private static void hideAction(@NotNull String actionId, @NotNull String backupText) {
     AnAction oldAction = ActionManager.getInstance().getAction(actionId);
     if (oldAction != null) {
       AnAction newAction = new AndroidActionRemover(oldAction, backupText);
@@ -184,8 +193,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       DefaultActionGroup parent = entry.getFirst();
       AnAction action = entry.getSecond();
       if (action instanceof DefaultActionGroup) {
-        for (AnAction child : ((DefaultActionGroup)action).getChildActionsOrStubs()) {
-          stack.push(Pair.of((DefaultActionGroup)action, child));
+        DefaultActionGroup actionGroup = (DefaultActionGroup)action;
+        for (AnAction child : actionGroup.getChildActionsOrStubs()) {
+          stack.push(Pair.of(actionGroup, child));
         }
       }
 

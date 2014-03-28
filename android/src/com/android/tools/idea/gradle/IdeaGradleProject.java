@@ -36,8 +36,8 @@ import java.util.List;
 public class IdeaGradleProject implements Serializable {
   @NotNull private final String myModuleName;
   @NotNull private final List<GradleTask> myTasks;
-  @NotNull private final VirtualFile myBuildFile;
   @NotNull private final String myGradlePath;
+  @Nullable private final VirtualFile myBuildFile;
 
   private JavaModel myJavaModel;
 
@@ -45,10 +45,10 @@ public class IdeaGradleProject implements Serializable {
    * Creates a new {@link IdeaGradleProject}.
    *
    * @param moduleName    the name of the IDEA module.
-   * @param buildFile     the build.gradle file.
    * @param gradleProject the Gradle project.
+   * @param buildFile     the build.gradle file.
    */
-  public IdeaGradleProject(@NotNull String moduleName, @NotNull File buildFile, @NotNull GradleProject gradleProject) {
+  public IdeaGradleProject(@NotNull String moduleName, @NotNull GradleProject gradleProject, @Nullable File buildFile) {
     myModuleName = moduleName;
 
     myTasks = Lists.newArrayList();
@@ -62,9 +62,10 @@ public class IdeaGradleProject implements Serializable {
       }
     }
 
-    VirtualFile found = VfsUtil.findFileByIoFile(buildFile, true);
-    // the build.gradle file can never be null.
-    assert found != null;
+    VirtualFile found = null;
+    if (buildFile != null) {
+      found = VfsUtil.findFileByIoFile(buildFile, true);
+    }
     myBuildFile = found;
 
     myGradlePath = gradleProject.getPath();
@@ -88,7 +89,7 @@ public class IdeaGradleProject implements Serializable {
     return myTasks;
   }
 
-  @NotNull
+  @Nullable
   public VirtualFile getBuildFile() {
     return myBuildFile;
   }

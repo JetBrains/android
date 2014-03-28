@@ -152,17 +152,18 @@ public final class AndroidSdkUtils {
     boolean docsOrSourcesFound = false;
 
     if (targetDir != null) {
-      docsOrSourcesFound = addJavaDocAndSources(result, targetDir) || docsOrSourcesFound;
+      docsOrSourcesFound = addJavaDocAndSources(result, targetDir);
     }
     VirtualFile sdkDir = sdkPath != null ? LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName((sdkPath))) : null;
+    VirtualFile sourcesDir = null;
     if (sdkDir != null) {
       docsOrSourcesFound = addJavaDocAndSources(result, sdkDir) || docsOrSourcesFound;
+      sourcesDir = sdkDir.findChild(SdkConstants.FD_PKG_SOURCES);
     }
 
     // todo: replace it by target.getPath(SOURCES) when it'll be up to date
-    final VirtualFile sourcesDir = sdkDir.findChild(SdkConstants.FD_PKG_SOURCES);
     if (sourcesDir != null && sourcesDir.isDirectory()) {
-      final VirtualFile platformSourcesDir = sourcesDir.findChild(platformDir.getName());
+      VirtualFile platformSourcesDir = sourcesDir.findChild(platformDir.getName());
       if (platformSourcesDir != null && platformSourcesDir.isDirectory()) {
         result.add(new OrderRoot(platformSourcesDir, OrderRootType.SOURCES));
         docsOrSourcesFound = true;
@@ -401,7 +402,7 @@ public final class AndroidSdkUtils {
         AndroidPlatform androidPlatform = data.getAndroidPlatform();
         if (androidPlatform != null) {
           // Put default platforms in the list before non-default ones so they'll be looked at first.
-          String sdkPath = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getPath());
+          String sdkPath = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getLocation().getPath());
           if (result.contains(sdkPath)) continue;
           if (androidSdk.getName().startsWith(SDK_NAME_PREFIX)) {
             result.add(0, sdkPath);
@@ -458,12 +459,11 @@ public final class AndroidSdkUtils {
     }
   }
 
-  @VisibleForTesting
   @Nullable
-  static Sdk findSuitableAndroidSdk(@NotNull String targetHashString,
-                                    @Nullable String sdkPath,
-                                    @Nullable LanguageLevel javaLangLevel,
-                                    boolean promptUserIfNecessary) {
+  public static Sdk findSuitableAndroidSdk(@NotNull String targetHashString,
+                                           @Nullable String sdkPath,
+                                           @Nullable LanguageLevel javaLangLevel,
+                                           boolean promptUserIfNecessary) {
     for (Sdk sdk : getAllAndroidSdks()) {
       AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
       if (data == null) {
@@ -471,10 +471,12 @@ public final class AndroidSdkUtils {
       }
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {
-        String baseDir = FileUtil.toSystemIndependentName(androidPlatform.getSdkData().getPath());
+        String baseDir = FileUtil.toSystemDependentName(androidPlatform.getSdkData().getLocation().getPath());
         boolean compatibleVersion = VersionCheck.isCompatibleVersion(baseDir);
-        boolean matchingHashString = targetHashString.equals(androidPlatform.getTarget().hashString());
-        boolean suitable = compatibleVersion && matchingHashString && checkSdkRoots(sdk, androidPlatform.getTarget(), false);
+
+        String platformHashString = androidPlatform.getTarget().hashString();
+        boolean suitable = compatibleVersion && targetHashString.equals(platformHashString);
+
         if (sdkPath != null && FileUtil.pathsEqual(baseDir, sdkPath)) {
           if (suitable) {
              return sdk;
@@ -493,7 +495,7 @@ public final class AndroidSdkUtils {
               return promptUserForSdkCreation(androidPlatform.getTarget(), null, jdkPath);
             }
 
-            if (!matchingHashString) {
+            if (!targetHashString.equals(platformHashString)) {
               // This is the specified SDK (usually in local.properties file.) We try our best to fix it.
               // TODO download platform;
             }
@@ -541,27 +543,23 @@ public final class AndroidSdkUtils {
       sdkPath = FileUtil.toSystemIndependentName(sdkPath);
     }
 
-    //noinspection TestOnlyProblems
     Sdk sdk = findSuitableAndroidSdk(targetHashString, sdkPath, javaLangLevel, promptUserIfNecessary);
     if (sdk != null) {
       ModuleRootModificationUtil.setModuleSdk(module, sdk);
       return true;
     }
 
-    //noinspection TestOnlyProblems
     if (sdkPath != null && tryToCreateAndSetAndroidSdk(module, sdkPath, targetHashString, promptUserIfNecessary)) {
       return true;
     }
 
     String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
-    //noinspection TestOnlyProblems
     if (androidHomeValue != null &&
         tryToCreateAndSetAndroidSdk(module, FileUtil.toSystemIndependentName(androidHomeValue), targetHashString, false)) {
       return true;
     }
 
     for (String dir : getAndroidSdkPathsFromExistingPlatforms()) {
-      //noinspection TestOnlyProblems
       if (tryToCreateAndSetAndroidSdk(module, dir, targetHashString, false)) {
         return true;
       }
@@ -578,7 +576,7 @@ public final class AndroidSdkUtils {
     if (sdkData != null) {
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
       if (target != null) {
-        Sdk androidSdk = createNewAndroidPlatform(target, sdkData.getPath(), true);
+        Sdk androidSdk = createNewAndroidPlatform(target, sdkData.getLocation().getPath(), true);
         if (androidSdk != null) {
           ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
           return true;
@@ -724,7 +722,8 @@ public final class AndroidSdkUtils {
     }
     Set<VirtualFile> filesInSdk = Sets.newHashSet(sdk.getRootProvider().getFiles(OrderRootType.CLASSES));
 
-    for (VirtualFile file : getPlatformAndAddOnJars(target)) {
+    List<VirtualFile> platformAndAddOnJars = getPlatformAndAddOnJars(target);
+    for (VirtualFile file : platformAndAddOnJars) {
       if (filesInSdk.contains(file) == forMaven) {
         return false;
       }

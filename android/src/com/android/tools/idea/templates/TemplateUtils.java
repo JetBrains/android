@@ -34,6 +34,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -270,13 +271,14 @@ public class TemplateUtils {
   *         etc.
   */
   @NotNull
-  public static File[] listFiles(File dir) {
-    File[] files = dir.listFiles();
-    if (files != null) {
-      return files;
-    } else {
-      return new File[0];
+  public static File[] listFiles(@Nullable File dir) {
+    if (dir != null) {
+      File[] files = dir.listFiles();
+      if (files != null) {
+        return files;
+      }
     }
+    return ArrayUtil.EMPTY_FILE_ARRAY;
   }
 
   /**

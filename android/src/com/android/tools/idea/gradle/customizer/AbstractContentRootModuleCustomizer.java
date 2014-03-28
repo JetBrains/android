@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -35,11 +36,10 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
   private static final Logger LOG = Logger.getInstance(AbstractContentRootModuleCustomizer.class);
-
-  @NonNls public static final String BUILD_DIR = "build";
 
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
@@ -55,7 +55,14 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
       }
 
       Collection<ContentEntry> contentEntries = findOrCreateContentEntries(rootModel, model);
-      setUpContentEntries(contentEntries, model);
+      List<RootSourceFolder> orphans = Lists.newArrayList();
+      setUpContentEntries(contentEntries, model, orphans);
+
+      for (RootSourceFolder orphan : orphans) {
+        File path = orphan.getPath();
+        ContentEntry contentEntry = rootModel.addContentEntry(pathToUrl(path));
+        addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
+      }
     }
     finally {
       rootModel.commit();
@@ -65,22 +72,33 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
   @NotNull
   protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull T model);
 
-  protected abstract void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries, @NotNull T model);
+  protected abstract void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries,
+                                              @NotNull T model,
+                                              @NotNull List<RootSourceFolder> orphans);
 
   protected void addSourceFolder(@NotNull Collection<ContentEntry> contentEntries,
-                                 @NotNull JpsModuleSourceRootType sourceRootType,
-                                 @NotNull File dirPath,
-                                 boolean isGenerated) {
-    ContentEntry parent = findParentContentEntry(contentEntries, dirPath);
+                                 @NotNull File folderPath,
+                                 @NotNull JpsModuleSourceRootType type,
+                                 boolean generated,
+                                 @NotNull List<RootSourceFolder> orphans) {
+    ContentEntry parent = findParentContentEntry(contentEntries, folderPath);
     if (parent == null) {
+      orphans.add(new RootSourceFolder(folderPath, type, generated));
       return;
     }
 
-    String url = pathToUrl(dirPath);
+    addSourceFolder(parent, folderPath, type, generated);
+  }
 
-    SourceFolder sourceFolder = parent.addSourceFolder(url, sourceRootType);
+  private void addSourceFolder(@NotNull ContentEntry contentEntry,
+                               @NotNull File folderPath,
+                               @NotNull JpsModuleSourceRootType type,
+                               boolean generated) {
+    String url = pathToUrl(folderPath);
 
-    if (isGenerated) {
+    SourceFolder sourceFolder = contentEntry.addSourceFolder(url, type);
+
+    if (generated) {
       JpsModuleSourceRoot sourceRoot = sourceFolder.getJpsElement();
       JpsElement properties = sourceRoot.getProperties();
       if (properties instanceof JavaSourceRootProperties) {
@@ -89,9 +107,12 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
     }
   }
 
-  protected void addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File dirPath) {
-    String url = pathToUrl(dirPath);
-    contentEntry.addExcludeFolder(url);
+  protected boolean addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File dirPath) {
+    if (!isPathInContentEntry(dirPath, contentEntry)) {
+      return false;
+    }
+    contentEntry.addExcludeFolder(pathToUrl(dirPath));
+    return true;
   }
 
   @Nullable
@@ -118,5 +139,31 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
   protected String pathToUrl(@NotNull File dirPath) {
     String path = FileUtil.toSystemIndependentName(dirPath.getPath());
     return VfsUtilCore.pathToUrl(path);
+  }
+
+  protected static class RootSourceFolder {
+    @NotNull private final File myPath;
+    @NotNull private final JpsModuleSourceRootType myType;
+    private final boolean myGenerated;
+
+    protected RootSourceFolder(@NotNull File path, @NotNull JpsModuleSourceRootType type, boolean generated) {
+      myPath = path;
+      myType = type;
+      myGenerated = generated;
+    }
+
+    @NotNull
+    protected File getPath() {
+      return myPath;
+    }
+
+    @NotNull
+    protected JpsModuleSourceRootType getType() {
+      return myType;
+    }
+
+    protected boolean isGenerated() {
+      return myGenerated;
+    }
   }
 }

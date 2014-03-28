@@ -57,7 +57,7 @@ class BuilderExecutionSettings {
     myGradleServiceDir = findDir(GRADLE_SERVICE_DIR_PATH, "Gradle service");
     myJavaHomeDir = findDir(GRADLE_JAVA_HOME_DIR_PATH, "Java home");
     myProjectDir = findProjectRootDir();
-    String buildActionName = System.getProperty(BUILD_ACTION);
+    String buildActionName = System.getProperty(BUILD_MODE);
     myBuildMode = Strings.isNullOrEmpty(buildActionName) ? BuildMode.DEFAULT_BUILD_MODE : BuildMode.valueOf(buildActionName);
     myModulesToBuildNames = getJvmArgGroup(MODULES_TO_BUILD_PROPERTY_COUNT, MODULES_TO_BUILD_PROPERTY_PREFIX);
     myGradleDaemonCommandLineOptions = getJvmArgGroup(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX);
