@@ -211,6 +211,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     if (buildMode == null) {
       buildMode = BuildMode.DEFAULT_BUILD_MODE;
     }
+    jvmArgs.add(createJvmArg(BUILD_MODE, buildMode.toString()));
     populateModulesToBuild(buildMode, jvmArgs);
   }
 
