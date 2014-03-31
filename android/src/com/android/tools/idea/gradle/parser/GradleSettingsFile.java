@@ -19,20 +19,26 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.Map;
 
 /**
  * GradleSettingsFile uses PSI to parse settings.gradle files and provides high-level methods to read and mutate the file.
@@ -166,6 +172,69 @@ public class GradleSettingsFile extends GradleGroovyFile {
         }
       }
     }));
+  }
+
+  /**
+   * Parses settings.gradle and obtains module locations. Paths are not validated (e.g. may point to non-existing location or to file
+   * instead of directory) and may be relative or absolute.
+   *
+   * @return a {@link java.util.Map} mapping module names to module locations.
+   */
+  @NotNull
+  public Map<String, File> getModulesWithLocation() {
+    checkInitialized();
+    Map<String, File> moduleLocations = Maps.newHashMap();
+    for (String module : getModules()) {
+      Iterable<String> segments = Splitter.on(SdkConstants.GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(module);
+      String defaultLocation = Joiner.on(File.separator).join(segments);
+      moduleLocations.put(module, new File(defaultLocation));
+    }
+    Iterable<GrAssignmentExpression> assignments = Iterables.filter(Arrays.asList(myGroovyFile.getChildren()), GrAssignmentExpression.class);
+    for (GrAssignmentExpression assignment : assignments) {
+      String project = getProjectName(assignment.getLValue());
+      GrExpression value = assignment.getRValue();
+      if (project != null && moduleLocations.containsKey(project)) {
+        File location = getProjectLocation(value);
+        if (location != null) {
+          moduleLocations.put(project, location);
+        }
+      }
+    }
+    return moduleLocations;
+  }
+
+  /**
+   * Obtains custom module location from the Gradle script. Currently it only recognizes File ctor invocation with a string constant.
+   */
+  @Nullable
+  private static File getProjectLocation(@Nullable GrExpression rValue) {
+    if (rValue instanceof GrNewExpression) {
+      PsiType type = rValue.getType();
+      String typeName = type != null ? type.getCanonicalText() : null;
+      if (File.class.getName().equals(typeName)
+          || File.class.getSimpleName().equals(typeName)) {
+        String path = getSingleStringArgumentValue(((GrNewExpression)rValue));
+        return path == null ? null : new File(path);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getProjectName(GrExpression lValue) {
+    if (lValue instanceof GrReferenceExpression) {
+      GrReferenceExpression reference = (GrReferenceExpression)lValue;
+      if ("projectDir".equals(reference.getCanonicalText())) {
+        GrExpression qualifier = reference.getQualifier();
+        if (qualifier instanceof GrMethodCall) {
+          GrMethodCall methodCall = (GrMethodCall)qualifier;
+          if ("project".equals(getMethodCallName(methodCall))) {
+            return getSingleStringArgumentValue(methodCall);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /**
