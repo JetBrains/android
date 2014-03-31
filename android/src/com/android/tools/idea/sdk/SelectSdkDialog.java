@@ -118,18 +118,6 @@ public class SelectSdkDialog extends DialogWrapper {
 
     if (sdkPath != null) {
       mySdkTextFieldWithButton.setText(sdkPath);
-      getWindow().addWindowListener(new WindowAdapter() {
-        @Override
-        public void windowActivated(WindowEvent e) {
-          ValidationInfo info = doValidate();
-          if (info != null) {
-            // This will report errors. No other way to do it since methods in DialogWrapper are private.
-            getOKAction().actionPerformed(null);
-          }
-          // Validate only the first time the dialog appears.
-          getWindow().removeWindowListener(this);
-        }
-      });
     }
 
     BrowseFolderListener listener =
@@ -159,6 +147,11 @@ public class SelectSdkDialog extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     return myPanel;
+  }
+
+  @Override
+  protected boolean postponeValidation() {
+    return false;
   }
 
   @Nullable
