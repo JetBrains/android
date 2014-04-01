@@ -26,8 +26,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.IdeaTestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 public class GradleSettingsFileTest extends IdeaTestCase {
   private Document myDocument;
@@ -186,6 +188,16 @@ public class GradleSettingsFileTest extends IdeaTestCase {
       return;
     }
     fail("Failed to get expected IllegalStateException");
+  }
+
+  public void testGetModulePath() throws IOException {
+    GradleSettingsFile file = getTestFile("include ':one', 'two\n" +
+                                          "project(':two').projectDir = new File('modules/three')\n"
+    );
+    Map<String, File> map = file.getModulesWithLocation();
+    assertEquals(map.toString(), 2, map.size());
+    assertEquals(new File("one"), map.get(":one"));
+    assertEquals(new File("modules", "three"), map.get(":two"));
   }
 
   private GradleSettingsFile getSimpleTestFile() throws IOException {
