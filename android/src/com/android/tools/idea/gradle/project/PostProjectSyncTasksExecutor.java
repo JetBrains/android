@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.stats.StudioBuildTime;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.*;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
@@ -115,6 +116,8 @@ public class PostProjectSyncTasksExecutor {
     }
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu();
+
+    StudioBuildTime.stop(StudioBuildTime.KEY_SYNC_TIME);
   }
 
   private void ensureAllModulesHaveSdk() {
