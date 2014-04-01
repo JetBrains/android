@@ -35,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 
 public class SelectSdkDialog extends DialogWrapper {
@@ -116,6 +118,18 @@ public class SelectSdkDialog extends DialogWrapper {
 
     if (sdkPath != null) {
       mySdkTextFieldWithButton.setText(sdkPath);
+      getWindow().addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowActivated(WindowEvent e) {
+          ValidationInfo info = doValidate();
+          if (info != null) {
+            // This will report errors. No other way to do it since methods in DialogWrapper are private.
+            getOKAction().actionPerformed(null);
+          }
+          // Validate only the first time the dialog appears.
+          getWindow().removeWindowListener(this);
+        }
+      });
     }
 
     BrowseFolderListener listener =
@@ -126,12 +140,6 @@ public class SelectSdkDialog extends DialogWrapper {
       new BrowseFolderListener("Select Android SDK Home", mySdkTextFieldWithButton, AndroidSdkType.getInstance().getHomeChooserDescriptor(),
                                sdkPath);
     mySdkTextFieldWithButton.addBrowseFolderListener(null, listener);
-  }
-
-  @NotNull
-  @Override
-  protected Action[] createActions() {
-    return super.createActions();
   }
 
   @Override
