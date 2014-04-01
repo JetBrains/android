@@ -38,6 +38,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
@@ -253,7 +254,7 @@ class GradleGroovyFile {
    * @return the array of arguments. This method never returns null; even in the case of a nonexistent argument list or error, it will
    * return an empty array.
    */
-  protected static @NotNull GroovyPsiElement[] getArguments(@NotNull GrMethodCall gmc) {
+  protected static @NotNull GroovyPsiElement[] getArguments(@NotNull GrCall gmc) {
     GrArgumentList argList = gmc.getArgumentList();
     if (argList == null) {
       return EMPTY_ELEMENT_ARRAY;
@@ -265,9 +266,26 @@ class GradleGroovyFile {
    * Returns the first argument for the given method call (which can be a literal, expression, or closure), or null if the method has
    * no arguments.
    */
-  protected static @Nullable GroovyPsiElement getFirstArgument(@NotNull GrMethodCall gmc) {
+  protected static @Nullable GroovyPsiElement getFirstArgument(@NotNull GrCall gmc) {
     GroovyPsiElement[] arguments = getArguments(gmc);
     return arguments.length > 0 ? arguments[0] : null;
+  }
+
+  /**
+   * Ensures that argument list has only one argument and that the argument value is a string constant.
+   *
+   * @return a string value of the argument or <code>null</code> if such a value cannot be deduced
+   */
+  @Nullable
+  protected static String getSingleStringArgumentValue(@NotNull GrCall methodCall) {
+    GroovyPsiElement argument = getFirstArgument(methodCall);
+    if (argument instanceof GrLiteral) {
+      Object value = ((GrLiteral)argument).getValue();
+      return value instanceof String ? (String)value : null;
+    }
+    else {
+      return null;
+    }
   }
 
   /**
