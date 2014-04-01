@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -37,6 +38,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -133,6 +135,9 @@ public class Parameter {
 
     /** The associated value should represent a valid id resource name */
     ID,
+
+    /** The associated value should represent a valid source directory name */
+    SOURCE_SET_FOLDER,
 
     /** The associated value should represent a valid string resource name */
     STRING;
@@ -448,6 +453,19 @@ public class Parameter {
         violations.add(Constraint.STRING);
       }
       // TODO: Existence check
+    }
+    if (constraints.contains(Constraint.SOURCE_SET_FOLDER)) {
+      if (module != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          String modulePath = AndroidRootUtil.getModuleDirPath(module);
+          if (modulePath != null) {
+            File file = new File(FileUtil.toSystemDependentName(modulePath), value);
+            VirtualFile vFile = VfsUtil.findFileByIoFile(file, true);
+            exists = !IdeaSourceProvider.getSourceProvidersForFile(facet, vFile, null).isEmpty();
+          }
+        }
+      }
     }
 
     if (constraints.contains(Constraint.UNIQUE) && exists) {

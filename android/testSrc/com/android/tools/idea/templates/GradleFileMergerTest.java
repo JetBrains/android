@@ -50,6 +50,12 @@ public class GradleFileMergerTest extends AndroidTestCase {
                    "templates/MergedRemapFlavorAssetDir.gradle");
   }
 
+  public void testRenameAndroidManifestFile() throws Exception {
+    checkFileMerge("templates/Base.gradle",
+                   "templates/RenameManifest.gradle",
+                   "templates/MergedRenameManifest.gradle");
+  }
+
   private void checkFileMerge(String destPath, String srcPath, String goldenPath) throws Exception {
     File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
     File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));

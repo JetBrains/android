@@ -17,7 +17,6 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
@@ -35,24 +34,14 @@ import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
-import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.Navigatable;
-import com.intellij.psi.NavigatablePsiElement;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -62,8 +51,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.GroovyFileType;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.w3c.dom.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -78,11 +65,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.templates.Parameter.Constraint;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
-import static com.android.tools.idea.templates.TemplateManager.templateRootIsValid;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
@@ -196,6 +180,7 @@ public class Template {
   private final MyTemplateLoader myLoader;
 
   private TemplateMetadata myMetadata;
+  private Project myProject;
 
   /** Creates a new {@link Template} for the given root path */
   @NotNull
@@ -235,11 +220,26 @@ public class Template {
    */
   @NotNull
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
+    render(outputRootPath, moduleRootPath, args, null);
+  }
+
+  /**
+   * Executes the template, rendering it to output files under the given module root directory.
+   *
+   * @param outputRootPath the filesystem directory that represents the root directory where the template will be expanded.
+   * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
+   * @param args the key/value pairs that are fed into the input parameters for the template.
+   * @param project the target project of this template.
+   */
+  @NotNull
+  public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args,
+                     @Nullable Project project) {
     assert outputRootPath.isDirectory() : outputRootPath;
 
     myFilesToOpen.clear();
     myOutputRoot = outputRootPath;
     myModuleRoot = moduleRootPath;
+    myProject = project;
 
     Map<String, Object> paramMap = createParameterMap(args);
     enforceParameterTypes(getMetadata(), args);
@@ -253,7 +253,11 @@ public class Template {
     if (paramMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
       List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
       if (dependencyList.size() > 0) {
-        mergeDependenciesIntoFile(dependencyList, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+        try {
+          mergeDependenciesIntoFile(freemarker, paramMap, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
       }
     }
   }
@@ -553,7 +557,7 @@ public class Template {
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
       contents = mergeGradleSettingsFile(sourceText, targetText);
     } else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
-      contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, null);
+      contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject);
     } else if (hasExtension(to, DOT_XML)) {
       contents = mergeXml(sourceText, targetText, to, paramMap);
     } else {
@@ -760,142 +764,21 @@ public class Template {
 
   /**
    * Merge the given dependency URLs into the given build.gradle file
-   * @param dependencyList the list of URLs to merge
+   * @param paramMap the parameters to merge
    * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
    */
-  private void mergeDependenciesIntoFile(List<String> dependencyList, File gradleBuildFile) {
-    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
-
-    // First, get the contents of the gradle file.
-    String contents = StringUtil.notNullize(readTextFile(gradleBuildFile, false /* Don't log if not exists */));
-
-    // Now, look for a (top-level) dependency block
-    int braceCount = 0;
-    boolean inDependencyBlock = false;
-    int dependencyBlockStart = 0;
-    int dependencyBlockEnd = 0;
-    for (int i = 0; i < contents.length(); ++i) {
-      if (contents.charAt(i) == '{') {
-        if (inDependencyBlock && braceCount == 0) {
-          dependencyBlockStart = i + 1;
-        }
-        braceCount++;
-      } else if (contents.charAt(i) == '}') {
-        braceCount--;
-        if (inDependencyBlock && braceCount == 0) {
-          dependencyBlockEnd = i;
-          inDependencyBlock = false;
-        }
-      } else if (braceCount == 0 && contents.length() > i + BLOCK_DEPENDENCIES.length() &&
-                 contents.substring(i, i + BLOCK_DEPENDENCIES.length()).equals(BLOCK_DEPENDENCIES)) {
-        inDependencyBlock = true;
-      }
+  private void mergeDependenciesIntoFile(@NotNull final Configuration freemarker, @NotNull Map<String, Object> paramMap,
+                                         @NotNull File gradleBuildFile) throws IOException, TemplateException {
+    File templateFile = new File(TemplateManager.getTemplateRootFolder().getPath(),
+                                 FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
+    myLoader.setTemplateFile(templateFile);
+    String contents = processFreemarkerTemplate(freemarker, paramMap, templateFile.getName());
+    String destinationContents = TemplateUtils.readTextFile(gradleBuildFile);
+    if (destinationContents == null) {
+      destinationContents = "";
     }
-
-    String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
-
-    // If we have dependencies already in the file, load those up
-    if (!dependencyBlock.isEmpty()) {
-      // Load up dependency URLs which are already present.
-      Matcher matcher = COMPILE_PATTERN.matcher(dependencyBlock);
-      StringBuffer blockSb = new StringBuffer();
-      while (matcher.find()) {
-        GradleCoordinate coord = GradleCoordinate.parseCoordinateString(matcher.group(1));
-        if (coord != null) {
-          dependencies.put(coord.getId(), coord);
-          matcher.appendReplacement(blockSb, "");
-        }
-      }
-      matcher.appendTail(blockSb);
-      dependencyBlock = blockSb.toString().trim();
-      // If it's non-empty, we want to put the leading spaces back
-      if (!dependencyBlock.isEmpty()) {
-        dependencyBlock = INDENT + dependencyBlock;
-      }
-    }
-
-    // Check to see if all our dependencies are satisfied. If so, we're done
-    boolean needsUpdate = false;
-
-    // Now load the new ones in
-    for (String coordinateString : dependencyList) {
-      GradleCoordinate coord = GradleCoordinate.parseCoordinateString(coordinateString);
-      if (coord != null) {
-        Collection<GradleCoordinate> existingDependencies = dependencies.get(coord.getId());
-        if (existingDependencies == null || !existingDependencies.iterator().hasNext() ||
-            COMPARE_PLUS_HIGHER.compare(existingDependencies.iterator().next(), coord) < 0) {
-          dependencies.put(coord.getId(), coord);
-          needsUpdate = true;
-        }
-      }
-    }
-
-    if (!needsUpdate) {
-      return;
-    }
-
-    List<String> unresolvedDependencies = Lists.newLinkedList();
-
-    // Now write the combined ones to a string
-    StringBuilder sb = new StringBuilder();
-    sb.append(contents.substring(0, dependencyBlockStart));
-    String repositoryName;
-    for (String key : dependencies.keySet()) {
-      GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
-
-      boolean isOurRepository = RepositoryUrlManager.supports(highest.getArtifactId());
-
-      if (!isOurRepository) {
-        sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
-      } else {
-        RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-        GradleCoordinate available = GradleCoordinate.parseCoordinateString(
-          urlManager.getLibraryCoordinate(highest.getArtifactId()));
-
-        File archiveFile = urlManager.getArchiveForCoordinate(highest);
-
-        if (archiveFile != null && archiveFile.exists() ||
-            (available != null && highest.acceptsGreaterRevisions() && COMPARE_PLUS_LOWER.compare(available, highest) > 0)) {
-          sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
-        } else {
-          // Get the name of the repository necessary for this package
-          repositoryName = highest.getArtifactId().equals(RepositoryUrlManager.PLAY_SERVICES_ID) ? "Google" : "Support";
-          // Add in a commented-out dependency with instructions.
-          sb.append(String.format(
-            "\n\n%3$s// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
-            "\n%3$s// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n%3$s// compile '%2$s'",
-            repositoryName, highest, INDENT));
-          unresolvedDependencies.add(highest.toString());
-        }
-      }
-    }
-    sb.append('\n');
-    if (!dependencyBlock.isEmpty()) {
-      // Add back in any dependencies we didn't understand
-      sb.append(dependencyBlock);
-      sb.append('\n');
-    }
-    sb.append(contents.substring(dependencyBlockEnd));
-
-    try {
-      FileUtil.createParentDirs(gradleBuildFile);
-      writeFile(sb.toString(), gradleBuildFile);
-    }
-    catch (IOException e) {
-      LOG.warn(e);
-    }
-
-    // Display an error message if we had to blank out some dependencies which weren't available
-    if (!unresolvedDependencies.isEmpty()) {
-      sb = new StringBuilder();
-      sb.append("The following dependencies were not resolvable. See your build.gradle file for details.\n");
-      for (String s : unresolvedDependencies) {
-        sb.append("\t- ");
-        sb.append(s);
-        sb.append('\n');
-      }
-      Messages.showErrorDialog(sb.toString(), "Unresolvable Dependencies Found");
-    }
+    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myProject);
+    writeFile(result, gradleBuildFile);
   }
 
   /** Instantiates the given template file into the given output file */
