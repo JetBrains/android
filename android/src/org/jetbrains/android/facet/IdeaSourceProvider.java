@@ -461,6 +461,23 @@ public abstract class IdeaSourceProvider {
     return ideaSourceProviders;
   }
 
+  /**
+   * Returns a list of all IDEA source providers that contain, or are contained by, the given file.
+   * For example, with the file structure:
+   * <pre>
+   * src
+   *   main
+   *     aidl
+   *       myfile.aidl
+   *   free
+   *     aidl
+   *       myoverlay.aidl
+   * </pre>
+   *
+   * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
+   * the returned list would be ['main', 'free'] since both of those source providers have source folders which
+   * are descendants of "src."
+   */
   @NotNull
   public static List<IdeaSourceProvider> getIdeaSourceProvidersForFile(@NotNull AndroidFacet facet,
                                                                        @Nullable VirtualFile targetFolder,
@@ -483,6 +500,23 @@ public abstract class IdeaSourceProvider {
     return sourceProviderList;
   }
 
+  /**
+   * Returns a list of all source providers that contain, or are contained by, the given file.
+   * For example, with the file structure:
+   * <pre>
+   * src
+   *   main
+   *     aidl
+   *       myfile.aidl
+   *   free
+   *     aidl
+   *       myoverlay.aidl
+   * </pre>
+   *
+   * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
+   * the returned list would be ['main', 'free'] since both of those source providers have source folders which
+   * are descendants of "src."
+   */
   @NotNull
   public static List<SourceProvider> getSourceProvidersForFile(@NotNull AndroidFacet facet, @Nullable VirtualFile targetFolder,
                                                                @Nullable SourceProvider defaultSourceProvider) {

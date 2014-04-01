@@ -327,6 +327,9 @@ public class TemplateManager {
 
   private Table<String, String, File> getCategoryTable(boolean forceReload) {
     if (myCategoryTable== null || forceReload) {
+      if (myTemplateMap != null) {
+        myTemplateMap.clear();
+      }
       myCategoryTable = TreeBasedTable.create();
       for (File categoryDirectory : TemplateUtils.listFiles(getTemplateRootFolder())) {
         for (File newTemplate : TemplateUtils.listFiles(categoryDirectory)) {
