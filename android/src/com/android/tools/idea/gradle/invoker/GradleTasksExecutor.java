@@ -22,8 +22,10 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.stats.StudioBuildTime;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -78,6 +80,7 @@ import icons.AndroidIcons;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -160,8 +163,41 @@ class GradleTasksExecutor extends Task.Backgroundable {
                                 "Gradle Invocation Finished", myErrorCount + " Errors, " + myWarningCount + " Warnings", true);
   }
 
+  private final static String[] STAT_PREFIXES = { ":generate", ":assemble", ":compile" };
+
+  // Compute a stat key name to capture build times
+  private String getStatKey() {
+    String statKey = "build";
+    boolean isClean = false;
+    forStatKeyName: for (String taskName : myGradleTasks) {
+      if (taskName == null) {
+        continue;
+      }
+      if (GradleBuilds.CLEAN_TASK_NAME.equals(taskName)) {
+        isClean = true;
+        continue;
+      }
+      for (String prefix : STAT_PREFIXES) {
+        if (taskName.contains(prefix)) {
+          statKey = prefix.substring(1);
+          break forStatKeyName;
+        }
+      }
+    }
+    if (isClean && "compile".equals(statKey)) {
+      statKey = "rebuild";
+    } else if (isClean && "generate".equals(statKey)) {
+      statKey = "clean";
+    }
+    statKey += "-time";
+    return statKey;
+  }
+
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
+    String statKey = getStatKey();
+    StudioBuildTime.start(statKey);
+
     myIndicator = indicator;
 
     ProjectManager projectManager = ProjectManager.getInstance();
@@ -192,6 +228,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
     finally {
       try {
+        StudioBuildTime.stop(statKey);
         indicator.stop();
         projectManager.removeProjectManagerListener(project, myCloseListener);
       }
