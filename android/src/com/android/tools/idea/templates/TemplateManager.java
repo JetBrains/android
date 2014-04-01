@@ -24,9 +24,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 import com.google.common.io.Files;
+import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -298,8 +300,13 @@ public class TemplateManager {
       if (EXCLUDED_CATEGORIES.contains(category)) {
         continue;
       }
-      DefaultActionGroup categoryGroup = new DefaultActionGroup(category, true);
-      categoryGroup.getTemplatePresentation().setIcon(AndroidIcons.Android);
+      // Create the menu group item
+      NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup();
+      categoryGroup.setPopup(true);
+      Presentation presentation = categoryGroup.getTemplatePresentation();
+      presentation.setIcon(AndroidIcons.Android);
+      presentation.setText(category);
+
       Map<String, File> categoryRow = myCategoryTable.row(category);
       for (String templateName : categoryRow.keySet()) {
         NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName);
