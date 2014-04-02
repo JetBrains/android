@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="java.lang.reflect.Constructor T newInstance(java.lang.Object...)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.lang.reflect.Member int getModifiers()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flagsFromClass" val="java.lang.reflect.Modifier.class" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{java.lang.reflect.Modifier.PUBLIC, java.lang.reflect.Modifier.PRIVATE, java.lang.reflect.Modifier.PROTECTED, java.lang.reflect.Modifier.STATIC, java.lang.reflect.Modifier.FINAL, java.lang.reflect.Modifier.SYNCHRONIZED, java.lang.reflect.Modifier.VOLATILE, java.lang.reflect.Modifier.TRANSIENT, java.lang.reflect.Modifier.NATIVE, java.lang.reflect.Modifier.INTERFACE, java.lang.reflect.Modifier.ABSTRACT, java.lang.reflect.Modifier.STRICT}" />
+      <val name="flag" val="true" />
     </annotation>
+  </item>
+  <item name="java.lang.reflect.Proxy java.lang.Object newProxyInstance(java.lang.ClassLoader, java.lang.Class&lt;?&gt;[], java.lang.reflect.InvocationHandler)">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 
