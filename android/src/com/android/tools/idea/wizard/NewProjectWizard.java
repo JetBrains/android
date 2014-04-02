@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -151,7 +150,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       File projectRoot = new File(wizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
-        if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
+        if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS) && assetGenerator != null) {
           assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
         }
         wizardState.updateParameters();
@@ -182,7 +181,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         }
         projectImporter.importProject(projectName, projectRoot, new NewProjectImportCallback() {
           @Override
-          public void projectImported(@NotNull final Project project) {
+          public void syncEnded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example
             // the layout editor won't add Design tabs to the file
             StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);

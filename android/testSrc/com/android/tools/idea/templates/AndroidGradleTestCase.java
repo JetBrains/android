@@ -409,11 +409,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
       @Override
-      public void projectImported(@NotNull Project project) {
+      public void syncStarted(@NotNull Project project) {
       }
 
       @Override
-      public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
+      public void syncEnded(@NotNull Project project) {
+      }
+
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
         fail(errorMessage);
       }
     }, project);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.application.Application;
@@ -29,14 +30,20 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
 public class GradleSyncState {
+  public static final Topic<GradleProjectImporter.Callback> GRADLE_SYNC_TOPIC =
+    new Topic<GradleProjectImporter.Callback>("Project sync with Gradle", GradleProjectImporter.Callback.class);
+
   private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
   @NotNull private final Project myProject;
+  @NotNull private final MessageBus myMessageBus;
 
   private volatile boolean mySyncInProgress;
 
@@ -45,8 +52,9 @@ public class GradleSyncState {
     return ServiceManager.getService(project, GradleSyncState.class);
   }
 
-  public GradleSyncState(@NotNull Project project) {
+  public GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus) {
     myProject = project;
+    myMessageBus = messageBus;
   }
 
   public void syncStarted(boolean notifyUser) {
@@ -54,9 +62,35 @@ public class GradleSyncState {
     if (notifyUser) {
       notifyUser();
     }
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject);
+      }
+    });
+  }
+
+  public void syncFailed(@NotNull final String message) {
+    syncFinished();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
+      }
+    });
   }
 
   public void syncEnded() {
+    syncFinished();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncEnded(myProject);
+      }
+    });
+  }
+
+  private void syncFinished() {
     mySyncInProgress = false;
     myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
     notifyUser();

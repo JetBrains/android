@@ -18,8 +18,6 @@
 <idea-plugin url="http://www.jetbrains.com/idea">
   <extensions defaultExtensionNs="com.intellij">
     <androidStudioInitializer id="Startup.AndroidStudioSpecificInitializer" order="first" implementation="com.android.tools.idea.startup.AndroidStudioSpecificInitializer" />
-    <projectStructureConfigurableFilter implementation="com.android.tools.idea.structure.AndroidStudioConfigurableFilter"/>
-    <projectStructureConfigurableAdder implementation="com.android.tools.idea.structure.AndroidStudioConfigurableContributor"/>
   </extensions>
 
   <actions>
