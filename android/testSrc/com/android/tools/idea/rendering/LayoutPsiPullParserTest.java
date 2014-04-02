@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.resources.ResourceFolderType;
-import com.google.common.base.Objects;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -76,6 +75,86 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals("ListView", parser.getName());
     assertEquals("@+id/listView", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
     assertNull(parser.getAttributeValue(ANDROID_URI, "fastScrollAlwaysVisible")); // Cleared by overriding defined framework attribute
+  }
+
+  public void testRootFragment() throws Exception {
+    @SuppressWarnings("SpellCheckingInspection")
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/root_fragment.xml", "res/layout/root_fragment.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("FrameLayout", parser.getName()); // Automatically inserted surrounding the <include>
+    assertEquals(7, parser.getAttributeCount());
+    assertEquals("@+id/item_list", parser.getAttributeValue(ANDROID_URI, ATTR_ID));
+    assertEquals("com.unit.test.app.ItemListFragment", parser.getAttributeValue(ANDROID_URI, ATTR_NAME));
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_width"));
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_height"));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("include", parser.getName());
+    assertEquals(null, parser.getAttributeValue(ANDROID_URI, ATTR_ID));
+    //noinspection ConstantConditions
+    assertEquals("@android:layout/list_content", parser.getAttributeValue(null, ATTR_LAYOUT));
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_width"));
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_height"));
+    assertEquals(END_TAG, parser.nextTag());
+  }
+
+  public void testFrameLayoutInclude() throws Exception {
+    @SuppressWarnings("SpellCheckingInspection")
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/frame_tools_layout.xml", "res/layout/frame_tools_layout.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("FrameLayout", parser.getName()); // Automatically inserted surrounding the <include>
+    assertEquals(5, parser.getAttributeCount());
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_width"));
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_height"));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("include", parser.getName());
+    assertEquals(null, parser.getAttributeValue(ANDROID_URI, ATTR_ID));
+    //noinspection ConstantConditions
+    assertEquals("@android:layout/list_content", parser.getAttributeValue(null, ATTR_LAYOUT));
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_width"));
+    assertEquals("fill_parent", parser.getAttributeValue(ANDROID_URI, "layout_height"));
+    assertEquals(END_TAG, parser.nextTag());
+  }
+
+  public void testVisibleChild() throws Exception {
+    @SuppressWarnings("SpellCheckingInspection")
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/visible_child.xml", "res/layout/visible_child.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("FrameLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("Button", parser.getName());
+    assertEquals("New Button", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT));
+    assertEquals("gone", parser.getAttributeValue(ANDROID_URI, ATTR_VISIBILITY));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("CheckBox", parser.getName());
+    assertEquals("New CheckBox", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT));
+    assertEquals("visible", parser.getAttributeValue(ANDROID_URI, ATTR_VISIBILITY));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("TextView", parser.getName());
+    assertEquals("New TextView", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT));
+    assertEquals("gone", parser.getAttributeValue(ANDROID_URI, ATTR_VISIBILITY));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("Switch", parser.getName());
+    assertEquals("New Switch", parser.getAttributeValue(ANDROID_URI, ATTR_TEXT));
+    assertEquals("visible", parser.getAttributeValue(ANDROID_URI, ATTR_VISIBILITY));
+    assertEquals(END_TAG, parser.nextTag());
   }
 
   public void test1() throws Exception {
