@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.android.tools.idea.structure.AndroidStudioConfigurableContributor;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
-import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurableContributor;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Configuration options for the Android-Gradle facet. These options <em>cannot</em> be directly changed by users.
+ * Configuration options for the Android-Gradle facet. In Android Studio, these options <em>cannot</em> be directly changed by users.
  */
 public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @NonNls public String GRADLE_PROJECT_PATH;
@@ -38,8 +38,7 @@ public class AndroidGradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    if (ProjectStructureConfigurableContributor.EP_NAME.findExtension(AndroidStudioConfigurableContributor.class) == null &&
-        GRADLE_PROJECT_PATH != null && GRADLE_PROJECT_PATH.length() > 0) {
+    if (!AndroidStudioSpecificInitializer.isAndroidStudio() && StringUtil.isNotEmpty(GRADLE_PROJECT_PATH)) {
       // IntelliJ only
       return new FacetEditorTab[]{new AndroidGradleFacetEditorTab(editorContext.getProject(), GRADLE_PROJECT_PATH)};
     }
