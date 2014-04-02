@@ -1,417 +1,213 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <item name="android.content.pm.ActivityInfo ActivityInfo(android.content.pm.ActivityInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ActivityInfo permission">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ActivityInfo screenOrientation">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_NOSENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_NOSENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED}" />
     </annotation>
   </item>
   <item name="android.content.pm.ActivityInfo void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ActivityInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ApplicationInfo ApplicationInfo(android.content.pm.ApplicationInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo backupAgentName">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo className">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo dataDir">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo java.lang.CharSequence loadDescription(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ApplicationInfo java.lang.CharSequence loadDescription(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo manageSpaceActivityName">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo nativeLibraryDir">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo permission">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo processName">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo sharedLibraryFiles">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ApplicationInfo taskAffinity">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ApplicationInfo void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ApplicationInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ApplicationInfo.DisplayNameComparator int compare(android.content.pm.ApplicationInfo, android.content.pm.ApplicationInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ApplicationInfo.DisplayNameComparator int compare(android.content.pm.ApplicationInfo, android.content.pm.ApplicationInfo) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ComponentInfo ComponentInfo(android.content.pm.ComponentInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ComponentInfo ComponentInfo(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ComponentInfo applicationInfo">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ComponentInfo java.lang.CharSequence loadLabel(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ComponentInfo void dumpBack(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ComponentInfo void dumpFront(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ComponentInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ConfigurationInfo ConfigurationInfo(android.content.pm.ConfigurationInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ConfigurationInfo java.lang.String getGlEsVersion()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ConfigurationInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.FeatureInfo FeatureInfo(android.content.pm.FeatureInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.FeatureInfo java.lang.String getGlEsVersion()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.FeatureInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.InstrumentationInfo InstrumentationInfo(android.content.pm.InstrumentationInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.InstrumentationInfo dataDir">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.InstrumentationInfo targetPackage">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.InstrumentationInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.LabeledIntent android.graphics.drawable.Drawable loadIcon(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.LabeledIntent android.graphics.drawable.Drawable loadIcon(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.LabeledIntent java.lang.CharSequence getNonLocalizedLabel()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.LabeledIntent java.lang.CharSequence loadLabel(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.LabeledIntent java.lang.CharSequence loadLabel(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.LabeledIntent void readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.LabeledIntent void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PackageInfo activities">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo applicationInfo">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo configPreferences">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo gids">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo instrumentation">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo permissions">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo providers">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo receivers">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo reqFeatures">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo requestedPermissions">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo requestedPermissionsFlags">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo services">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageInfo signatures">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo PackageItemInfo(android.content.pm.PackageItemInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo PackageItemInfo(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PackageItemInfo android.content.res.XmlResourceParser loadXmlMetaData(android.content.pm.PackageManager, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo android.content.res.XmlResourceParser loadXmlMetaData(android.content.pm.PackageManager, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PackageItemInfo android.graphics.drawable.Drawable loadIcon(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo android.graphics.drawable.Drawable loadIcon(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PackageItemInfo android.graphics.drawable.Drawable loadLogo(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo android.graphics.drawable.Drawable loadLogo(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PackageItemInfo java.lang.CharSequence loadLabel(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo java.lang.CharSequence loadLabel(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PackageItemInfo metaData">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageItemInfo name">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageItemInfo nonLocalizedLabel">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo void dumpFront(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo.DisplayNameComparator int compare(android.content.pm.PackageItemInfo, android.content.pm.PackageItemInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageItemInfo.DisplayNameComparator int compare(android.content.pm.PackageItemInfo, android.content.pm.PackageItemInfo) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PackageManager android.content.Intent getLaunchIntentForPackage(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageManager android.content.pm.PackageInfo getPackageArchiveInfo(java.lang.String, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageManager android.content.res.Resources getResourcesForActivity(android.content.ComponentName)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageManager android.content.res.Resources getResourcesForApplication(android.content.pm.ApplicationInfo)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageManager android.content.res.Resources getResourcesForApplication(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.PackageManager android.content.res.XmlResourceParser getXml(java.lang.String, int, android.content.pm.ApplicationInfo)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageManager android.content.res.XmlResourceParser getXml(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{xml}" />
-    </annotation>
-  </item>
-  <item name="android.content.pm.PackageManager android.graphics.drawable.Drawable getDrawable(java.lang.String, int, android.content.pm.ApplicationInfo)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.XmlRes" />
   </item>
   <item name="android.content.pm.PackageManager android.graphics.drawable.Drawable getDrawable(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{drawable}" />
-    </annotation>
-  </item>
-  <item name="android.content.pm.PackageManager java.lang.CharSequence getText(java.lang.String, int, android.content.pm.ApplicationInfo)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.content.pm.PackageManager java.lang.CharSequence getText(java.lang.String, int, android.content.pm.ApplicationInfo) 1">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{string}" />
-    </annotation>
-  </item>
-  <item name="android.content.pm.PackageManager java.lang.String getInstallerPackageName(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.content.pm.PackageStats PackageStats(android.content.pm.PackageStats) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageStats PackageStats(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PackageStats void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PathPermission PathPermission(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PathPermission void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PermissionGroupInfo PermissionGroupInfo(android.content.pm.PermissionGroupInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PermissionGroupInfo java.lang.CharSequence loadDescription(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PermissionGroupInfo java.lang.CharSequence loadDescription(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PermissionGroupInfo nonLocalizedDescription">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PermissionGroupInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PermissionInfo PermissionInfo(android.content.pm.PermissionInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PermissionInfo java.lang.CharSequence loadDescription(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PermissionInfo java.lang.CharSequence loadDescription(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.PermissionInfo nonLocalizedDescription">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.PermissionInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ProviderInfo ProviderInfo(android.content.pm.ProviderInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ProviderInfo authority">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ProviderInfo pathPermissions">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ProviderInfo readPermission">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ProviderInfo uriPermissionPatterns">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ProviderInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ProviderInfo writePermission">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ResolveInfo ResolveInfo(android.content.pm.ResolveInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ResolveInfo activityInfo">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ResolveInfo android.graphics.drawable.Drawable loadIcon(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ResolveInfo filter">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ResolveInfo java.lang.CharSequence loadLabel(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ResolveInfo java.lang.CharSequence loadLabel(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ResolveInfo nonLocalizedLabel">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.ResolveInfo serviceInfo">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ResolveInfo void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ResolveInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ResolveInfo.DisplayNameComparator int compare(android.content.pm.ResolveInfo, android.content.pm.ResolveInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ResolveInfo.DisplayNameComparator int compare(android.content.pm.ResolveInfo, android.content.pm.ResolveInfo) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ServiceInfo ServiceInfo(android.content.pm.ServiceInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.ServiceInfo permission">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ServiceInfo void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ServiceInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.Signature Signature(byte[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.Signature Signature(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.Signature byte[] toByteArray()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.pm.Signature char[] toChars()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.Signature char[] toChars(char[], int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.Signature char[] toChars(char[], int[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.Signature char[] toChars(char[], int[]) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.pm.Signature java.lang.String toCharsString()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.Signature void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 
