@@ -19,11 +19,14 @@ package org.jetbrains.android.util;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.google.common.collect.Lists;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -716,16 +719,28 @@ public class AndroidResourceUtil {
       resourcesElements[i] = resources;
     }
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    List<PsiFile> psiFiles = Lists.newArrayListWithExpectedSize(resFiles.length);
+    Project project = facet.getModule().getProject();
+    PsiManager manager = PsiManager.getInstance(project);
+    for (VirtualFile file : resFiles) {
+      PsiFile psiFile = manager.findFile(file);
+      if (psiFile != null) {
+        psiFiles.add(psiFile);
+      }
+    }
+    PsiFile[] files = psiFiles.toArray(new PsiFile[psiFiles.size()]);
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Add Resource", files) {
       @Override
-      public void run() {
+      protected void run(@NotNull Result<Void> result) {
         for (Resources resources : resourcesElements) {
           final ResourceElement element = addValueResource(resourceType, resources);
           element.getName().setValue(resourceName);
           afterAddedProcessor.process(element);
         }
       }
-    });
+    };
+    action.execute();
+
     return true;
   }
 
