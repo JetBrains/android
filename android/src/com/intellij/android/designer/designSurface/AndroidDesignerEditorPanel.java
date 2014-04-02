@@ -440,7 +440,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       @Override
       public void run() {
         if (mySession == null) {
-          showProgress("Initializing Rendering Library...");
+          showProgress(mySessionId <= 1 ? "Initializing Rendering Library..." : "Rendering...");
         }
       }
     }, 500);
@@ -782,7 +782,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   public void buildProject() {
-    if (myPsiChangeListener.ensureUpdateRenderer() && myRootComponent != null) {
+    if (myPsiChangeListener.ensureUpdateRenderer()) {
       updateRenderer(true);
     }
   }
