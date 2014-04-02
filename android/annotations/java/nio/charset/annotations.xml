@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="java.nio.charset.Charset Charset(java.lang.String, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset int compareTo(java.nio.charset.Charset) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.lang.String name()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.ByteBuffer encode(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.ByteBuffer encode(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.ByteBuffer encode(java.nio.CharBuffer)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.ByteBuffer encode(java.nio.CharBuffer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.CharBuffer decode(java.nio.ByteBuffer)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.CharBuffer decode(java.nio.ByteBuffer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.charset.Charset defaultCharset()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.nio.charset.Charset forName(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.Charset java.util.SortedMap&lt;java.lang.String,java.nio.charset.Charset&gt; availableCharsets()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.CharsetDecoder java.nio.CharBuffer decode(java.nio.ByteBuffer)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.CharsetDecoder java.nio.CharBuffer decode(java.nio.ByteBuffer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.CharsetEncoder java.nio.ByteBuffer encode(java.nio.CharBuffer)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.nio.charset.CharsetEncoder java.nio.ByteBuffer encode(java.nio.CharBuffer) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+
