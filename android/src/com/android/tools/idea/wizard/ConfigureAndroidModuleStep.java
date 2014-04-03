@@ -301,13 +301,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return myAppName;
   }
 
-  public void setModuleName(String name) {
-    myModuleName.setText(name);
-    myTemplateState.put(ATTR_MODULE_NAME, name);
-    myTemplateState.myModified.add(ATTR_MODULE_NAME);
-    validate();
-  }
-
   @NotNull
   @VisibleForTesting
   IAndroidTarget[] getCompilationTargets() {
