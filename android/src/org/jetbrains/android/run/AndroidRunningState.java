@@ -1272,8 +1272,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
           retry = true;
           break;
+        case INSTALL_FAILED_VERSION_DOWNGRADE:
+          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.version.downgrade")) &&
+                  uninstallPackage(device, packageName);
+          break;
         case INCONSISTENT_CERTIFICATES:
-          retry = promptUninstallExistingApp() && uninstallPackage(device, packageName);
+          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.different.signature")) &&
+                  uninstallPackage(device, packageName);
           break;
         case NO_CERTIFICATE:
           message(AndroidBundle.message("deployment.failed.no.certificates.explanation"), STDERR);
@@ -1306,13 +1311,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return true;
   }
 
-  private boolean promptUninstallExistingApp() {
+  private boolean promptUninstallExistingApp(final String reason) {
     final AtomicBoolean uninstall = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
         int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(),
-                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.text"),
+                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.text", reason),
                                                  AndroidBundle.message("deployment.failed.title"),
                                                  Messages.getQuestionIcon());
         uninstall.set(result == 0);
@@ -1331,7 +1336,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     });
   }
 
-  private enum InstallFailureCode { NO_ERROR, DEVICE_NOT_RESPONDING, INCONSISTENT_CERTIFICATES, NO_CERTIFICATE, UNTYPED_ERROR, }
+  private enum InstallFailureCode {
+    NO_ERROR,
+    DEVICE_NOT_RESPONDING,
+    INCONSISTENT_CERTIFICATES,
+    INSTALL_FAILED_VERSION_DOWNGRADE,
+    NO_CERTIFICATE,
+    UNTYPED_ERROR
+  }
 
   private static class InstallResult {
     public final InstallFailureCode failureCode;
@@ -1371,6 +1383,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return InstallFailureCode.INCONSISTENT_CERTIFICATES;
     } else if ("INSTALL_PARSE_FAILED_NO_CERTIFICATES".equals(receiver.failureMessage)) {
       return InstallFailureCode.NO_CERTIFICATE;
+    } else if ("INSTALL_FAILED_VERSION_DOWNGRADE".equals(receiver.failureMessage)) {
+      return InstallFailureCode.INSTALL_FAILED_VERSION_DOWNGRADE;
     }
 
     return InstallFailureCode.UNTYPED_ERROR;
