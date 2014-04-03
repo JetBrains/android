@@ -157,10 +157,12 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Nullable
   @Override
   public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
-    final String applicationName = myWizardState.getString(ATTR_APP_TITLE);
+    if (myWizardState.hasAttr(ATTR_APP_TITLE)) {
+      final String applicationName = myWizardState.getString(ATTR_APP_TITLE);
 
-    if (!applicationName.isEmpty()) {
-      settingsStep.getModuleNameField().setText(applicationName.replace(" ", ""));
+      if (!applicationName.isEmpty()) {
+        settingsStep.getModuleNameField().setText(applicationName.replace(" ", ""));
+      }
     }
     return null;
   }
