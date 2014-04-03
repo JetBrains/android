@@ -81,7 +81,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
                 "        }\n" +
                 "    }\n" +
                 "}\n", new File(moduleDir, SdkConstants.FN_BUILD_GRADLE), Charset.defaultCharset());
-    VirtualFile moduleFile = LocalFileSystem.getInstance().findFileByPath(moduleDir.getAbsolutePath());
+    VirtualFile moduleFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(moduleDir.getAbsolutePath());
     if (moduleFile == null) {
       throw new IllegalStateException("Cannot get virtual file for module we just created");
     }
