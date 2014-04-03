@@ -23,8 +23,11 @@ import com.android.ddmlib.Log;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.internal.repository.updater.SettingsController;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.utils.NullLogger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
@@ -67,6 +70,8 @@ public class AndroidSdkData {
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
 
   private final LocalSdk myLocalSdk;
+  private final RemoteSdk myRemoteSdk;
+  private final SettingsController mySettingsController;
   private final DeviceManager myDeviceManager;
 
   private final int myPlatformToolsRevision;
@@ -132,6 +137,8 @@ public class AndroidSdkData {
 
   private AndroidSdkData(@NotNull LocalSdk localSdk) {
     myLocalSdk = localSdk;
+    mySettingsController = new SettingsController(new NullLogger() /* TODO */);
+    myRemoteSdk = new RemoteSdk(mySettingsController);
     myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_PLATFORM_TOOLS);
     mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_TOOLS);
     myDeviceManager = DeviceManager.createInstance(localSdk.getLocation(), new MessageBuildingSdkLog());
@@ -393,6 +400,16 @@ public class AndroidSdkData {
   @NotNull
   public LocalSdk getLocalSdk() {
     return myLocalSdk;
+  }
+
+  @NotNull
+  public RemoteSdk getRemoteSdk() {
+    return myRemoteSdk;
+  }
+
+  @NotNull
+  public SettingsController getSettingsController() {
+    return mySettingsController;
   }
 
   @NotNull

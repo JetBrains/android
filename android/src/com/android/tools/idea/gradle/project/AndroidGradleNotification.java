@@ -49,15 +49,24 @@ public class AndroidGradleNotification {
     showBalloon(title, message, type, null);
   }
 
+
   public void showBalloon(@NotNull final String title,
                           @NotNull final String message,
                           @NotNull final NotificationType type,
+                          @Nullable final NotificationListener listener) {
+    showBalloon(title, message, type, NOTIFICATION_GROUP, listener);
+  }
+
+  public void showBalloon(@NotNull final String title,
+                          @NotNull final String message,
+                          @NotNull final NotificationType type,
+                          @NotNull final NotificationGroup group,
                           @Nullable final NotificationListener listener) {
     Runnable notificationTask = new Runnable() {
       @Override
       public void run() {
         if (!myProject.isDisposed() && myProject.isOpen()) {
-          Notification notification = NOTIFICATION_GROUP.createNotification(title, message, type, listener);
+          Notification notification = group.createNotification(title, message, type, listener);
           Notification old = myNotification;
           if (old != null) {
             boolean similar = Objects.equal(notification.getContent(), old.getContent());
@@ -77,5 +86,10 @@ public class AndroidGradleNotification {
     else {
       application.invokeLater(notificationTask);
     }
+  }
+
+  @Nullable
+  public Notification getNotification() {
+    return myNotification;
   }
 }
