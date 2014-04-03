@@ -23,6 +23,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,9 +42,13 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     myRenderContext = renderContext;
   }
 
+  protected void updatePresentation() {
+  }
+
   @Override
   public void actionPerformed(AnActionEvent e) {
     tryUpdateConfiguration();
+    updatePresentation();
   }
 
   protected void tryUpdateConfiguration() {
@@ -67,6 +72,9 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
         if (best != null && !best.equals(file)) {
           // Switch files, and leave this configuration alone
           pickedBetterMatch(best);
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          assert facet != null;
+          updateConfiguration(facet.getConfigurationManager().getConfiguration(best));
           return;
         }
       }
