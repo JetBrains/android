@@ -182,7 +182,8 @@ public abstract class CheckAndroidSdkUpdates {
           });
         }
 
-        LOG.info("Android SDK: " + updates.getUpdatedPkgs().size() + " updates found");
+        int n = updates == null ? 0 : updates.getUpdatedPkgs().size();
+        LOG.info("Android SDK: " + n + " updates found");
 
       } finally {
         sIndicator = null;

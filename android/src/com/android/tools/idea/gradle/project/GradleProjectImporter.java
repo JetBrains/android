@@ -26,7 +26,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StudioBuildTime;
+import com.android.tools.idea.stats.StatsTimeCollector;
+import com.android.tools.idea.stats.StatsKeys;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -497,7 +498,7 @@ public class GradleProjectImporter {
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
 
-    StudioBuildTime.start(StudioBuildTime.KEY_SYNC_TIME);
+    StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_TIME);
 
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
