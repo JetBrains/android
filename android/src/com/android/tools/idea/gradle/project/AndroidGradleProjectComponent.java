@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.sdk.CheckAndroidSdkUpdates;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.BuildRecord;
 import com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent;
@@ -112,6 +113,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (isGradleProject) {
       configureGradleProject(true);
     }
+
+    CheckAndroidSdkUpdates.checkNow(myProject);
 
     StudioBuildStatsPersistenceComponent stats = StudioBuildStatsPersistenceComponent.getInstance();
     if (stats != null) {
