@@ -17,34 +17,29 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.intellij.ide.util.projectWizard.*;
+import com.intellij.ide.util.projectWizard.ModuleBuilder;
+import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.intellij.ide.util.projectWizard.SettingsStep;
+import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkType;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.TextBrowseFolderListener;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import icons.AndroidIcons;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +49,9 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_APP_TITLE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LAUNCHER;
+import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
 public class TemplateWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener {
@@ -77,7 +74,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
                                      @Nullable Icon sidePanelIcon,
                                      @NotNull List<ModuleWizardStep> steps,
                                      @NotNull Disposable disposable,
-                                     boolean hideModuleName) {
+                                     boolean inGlobalWizard) {
     myMetadata = metadata;
     myProject = project;
     mySteps = steps;
@@ -106,8 +103,11 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
     if (templateFile != null) {
       myWizardState.setTemplateLocation(templateFile);
     }
-    if (hideModuleName) {
-      myWizardState.myHidden.add(ATTR_MODULE_NAME);
+    if (inGlobalWizard) {
+      if (myProject != null) {
+        myWizardState.myHidden.add(ATTR_MODULE_NAME);
+      }
+      myWizardState.myHidden.add(ATTR_PROJECT_LOCATION);
     }
 
     Template.convertApisToInt(myWizardState.getParameters());
@@ -157,6 +157,11 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Nullable
   @Override
   public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
+    final String applicationName = myWizardState.getString(ATTR_APP_TITLE);
+
+    if (!applicationName.isEmpty()) {
+      settingsStep.getModuleNameField().setText(applicationName.replace(" ", ""));
+    }
     return null;
   }
 
@@ -203,6 +208,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
                     NewProjectWizard.createProject(myWizardState, project, assetGenerator);
                   }
                   else {
+                    myWizardState.put(ATTR_MODULE_NAME, getName());
                     createModule();
                   }
                 }
@@ -227,12 +233,6 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   @Override
   public Icon getNodeIcon() {
     return AndroidIcons.Android;
-  }
-
-  @Override
-  public void setName(@NotNull String name) {
-    super.setName(name);
-    myConfigureAndroidModuleStep.setModuleName(name);
   }
 
   public void createModule() {
