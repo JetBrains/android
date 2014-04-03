@@ -218,7 +218,7 @@ public class DeviceMenuAction extends FlatComboAction {
     return group;
   }
 
-  private static class SetDeviceAction extends ConfigurationAction {
+  private class SetDeviceAction extends ConfigurationAction {
     private final Device myDevice;
 
     public SetDeviceAction(@NotNull RenderContext renderContext,
@@ -230,6 +230,11 @@ public class DeviceMenuAction extends FlatComboAction {
       if (select) {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
       }
+    }
+
+    @Override
+    protected void updatePresentation() {
+      DeviceMenuAction.this.updatePresentation(DeviceMenuAction.this.getTemplatePresentation());
     }
 
     @Override
