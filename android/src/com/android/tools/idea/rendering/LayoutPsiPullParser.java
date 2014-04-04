@@ -152,7 +152,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull RenderLogger logger) {
     myLogger = logger;
 
-    if (root != null) {
+    if (root != null && root.isValid()) {
       if (ApplicationManager.getApplication().isReadAccessAllowed()) {
         myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
         myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
