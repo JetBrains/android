@@ -25,7 +25,8 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.stats.StudioBuildTime;
+import com.android.tools.idea.stats.StatsKeys;
+import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -80,7 +81,6 @@ import icons.AndroidIcons;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -163,13 +163,21 @@ class GradleTasksExecutor extends Task.Backgroundable {
                                 "Gradle Invocation Finished", myErrorCount + " Errors, " + myWarningCount + " Warnings", true);
   }
 
-  private final static String[] STAT_PREFIXES = { ":generate", ":assemble", ":compile" };
+  private final static String[] STAT_KEYS = {
+    ":generate", StatsKeys.GRADLE_GENERATE_TIME,
+    ":assemble", StatsKeys.GRADLE_ASSEMBLE_TIME,
+    ":compile" , StatsKeys.GRADLE_COMPILE_TIME,
+  };
+
+  private final static String[] STAT_CLEAN_KEYS = {
+    ":generate", StatsKeys.GRADLE_CLEAN_TIME,
+    ":compile" , StatsKeys.GRADLE_REBUILD_TIME,
+  };
 
   // Compute a stat key name to capture build times
   private String getStatKey() {
-    String statKey = "build";
     boolean isClean = false;
-    forStatKeyName: for (String taskName : myGradleTasks) {
+    for (String taskName : myGradleTasks) {
       if (taskName == null) {
         continue;
       }
@@ -177,26 +185,20 @@ class GradleTasksExecutor extends Task.Backgroundable {
         isClean = true;
         continue;
       }
-      for (String prefix : STAT_PREFIXES) {
-        if (taskName.contains(prefix)) {
-          statKey = prefix.substring(1);
-          break forStatKeyName;
+      String[] keys = isClean ? STAT_CLEAN_KEYS : STAT_KEYS;
+      for (int i = 0, n = keys.length -1; i < n; i += 2) {
+        if (taskName.contains(keys[i])) {
+          return keys[i+1];
         }
       }
     }
-    if (isClean && "compile".equals(statKey)) {
-      statKey = "rebuild";
-    } else if (isClean && "generate".equals(statKey)) {
-      statKey = "clean";
-    }
-    statKey += "-time";
-    return statKey;
+    return StatsKeys.GRADLE_BUILD_TIME;
   }
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
     String statKey = getStatKey();
-    StudioBuildTime.start(statKey);
+    StatsTimeCollector.start(statKey);
 
     myIndicator = indicator;
 
@@ -228,7 +230,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
     finally {
       try {
-        StudioBuildTime.stop(statKey);
+        StatsTimeCollector.stop(statKey);
         indicator.stop();
         projectManager.removeProjectManagerListener(project, myCloseListener);
       }

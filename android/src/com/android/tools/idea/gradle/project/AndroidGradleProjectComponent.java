@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.sdk.CheckAndroidSdkUpdates;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.BuildRecord;
+import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
@@ -118,7 +119,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     StudioBuildStatsPersistenceComponent stats = StudioBuildStatsPersistenceComponent.getInstance();
     if (stats != null) {
-      BuildRecord b = new BuildRecord("project-opened", isGradleProject ? "gradle" : "not-gradle");
+      BuildRecord b = new BuildRecord(StatsKeys.PROJECT_OPENED, isGradleProject ? "gradle" : "not-gradle");
       stats.addBuildRecord(b);
     }
   }
