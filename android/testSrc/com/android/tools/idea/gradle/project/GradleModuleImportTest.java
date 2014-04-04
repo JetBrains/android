@@ -87,7 +87,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   };
   private File dir;
 
-  private static VirtualFile createGradleProjectToImport(File dir, String name, String... requiredProjects) throws IOException {
+  public static VirtualFile createGradleProjectToImport(File dir, String name, String... requiredProjects) throws IOException {
     File moduleDir = new File(dir, name);
     if (!moduleDir.mkdirs()) {
       throw new IllegalStateException("Unable to create module");
