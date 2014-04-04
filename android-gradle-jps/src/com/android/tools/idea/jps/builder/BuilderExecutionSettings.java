@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.api.GlobalOptions;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs.*;
@@ -106,9 +105,6 @@ class BuilderExecutionSettings {
   @NotNull
   private static List<String> getJvmArgGroup(@NotNull String countArgName, @NotNull String argPrefix) {
     int count = SystemProperties.getIntProperty(countArgName, 0);
-    if (count == 0) {
-      return Collections.emptyList();
-    }
     List<String> args = Lists.newArrayList();
     for (int i = 0; i < count; i++) {
       String arg = System.getProperty(argPrefix + i);
