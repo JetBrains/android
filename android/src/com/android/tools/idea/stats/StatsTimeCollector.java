@@ -19,21 +19,36 @@ import com.android.annotations.NonNull;
 import gnu.trove.TObjectLongHashMap;
 
 /**
- * Helper to use StudioBuildStatsPersistenceComponent to capture build times.
+ * Helper to use StudioBuildStatsPersistenceComponent to capture times intervals.
+ * <p/>
+ * Usage:
+ * <pre>
+ *   StatsTimeCollector.start(StatsKeys.SOME_KEY);
+ *   ...action to measure...
+ *   StatsTimeCollector.stop(StatsKeys.SOME_KEY);
+ * </pre>
+ *
+ * <em>Note: StudioBuildStatsPersistenceComponent is only enabled in Android Studio
+ * and thus collected times here are only served from that product and in accordance
+ * with the Usage Statistics setting panel. This is by design.</em>
  */
-public class StudioBuildTime {
+public class StatsTimeCollector {
 
-  public static final String KEY_SYNC_TIME = "sync-time";
-
+  private static final boolean isEnabled = StudioBuildStatsPersistenceComponent.getInstance() != null;
   private static final TObjectLongHashMap<String> myTimestampMap = new TObjectLongHashMap<String>();
 
   /**
    * Registers a build start event for the given stat key.
    * Timers are not nested and this replaces the last start value for the given key.
+   * <p/>
+   * This is a no-op if StudioBuildStatsPersistenceComponent is not available.
    *
    * @param key A key representing the action being timed.
    */
   public static void start(@NonNull String key) {
+    if (!isEnabled) {
+      return;
+    }
     synchronized (myTimestampMap) {
       myTimestampMap.put(key, System.currentTimeMillis());
     }
@@ -43,10 +58,15 @@ public class StudioBuildTime {
    * Registers a build stop event for the given stat key.
    * This generates a BuildRecord that will be sent in the next stats upload.
    * Does nothing if there hasn't been any corresponding start event.
+   * <p/>
+   * This is a no-op if StudioBuildStatsPersistenceComponent is not available.
    *
    * @param key A key representing the action being timed.
    */
   public static void stop(@NonNull String key) {
+    if (!isEnabled) {
+      return;
+    }
     try {
       long now = System.currentTimeMillis();
       long start = 0;

@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.messages.navigatable.OpenAndroidSdkNavigatable;
@@ -28,13 +27,12 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.variant.SelectionConflict;
 import com.android.tools.idea.gradle.variant.VariantSelectionVerifier;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StudioBuildTime;
+import com.android.tools.idea.stats.StatsTimeCollector;
+import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.*;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
@@ -61,12 +59,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.TreeSet;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 
 public class PostProjectSyncTasksExecutor {
   @NotNull private final Project myProject;
@@ -117,7 +112,7 @@ public class PostProjectSyncTasksExecutor {
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu();
 
-    StudioBuildTime.stop(StudioBuildTime.KEY_SYNC_TIME);
+    StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_TIME);
   }
 
   private void ensureAllModulesHaveSdk() {
