@@ -34,6 +34,7 @@ import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.util.List;
@@ -46,7 +47,7 @@ public class NamedObjectPanel extends BuildFilePanel {
   protected final BuildFileKey myRoot;
   protected final List<BuildFileKey> myProperties;
   private final JBTable myTable;
-  private final NamedObjectTableModel myModel;
+  @Nullable private final NamedObjectTableModel myModel;
   private AnActionButton myRemoveButton;
   private final String myNewItemName;
 
@@ -97,8 +98,8 @@ public class NamedObjectPanel extends BuildFilePanel {
     }
     myRoot = root;
     myProperties = objectFactory.getProperties();
-    myModel = new NamedObjectTableModel(myGradleBuildFile, root, myProperties);
-    myTable = new JBTable(myModel);
+    myModel = myGradleBuildFile != null ? new NamedObjectTableModel(myGradleBuildFile, root, myProperties) : null;
+    myTable = new JBTable(myGradleBuildFile != null ? myModel : new DefaultTableModel());
     myTable.setShowGrid(false);
     myTable.setDragEnabled(false);
     myTable.setIntercellSpacing(new Dimension(0, 0));
@@ -118,6 +119,9 @@ public class NamedObjectPanel extends BuildFilePanel {
   }
 
   private void removeSelectedItems(@NotNull final List removedRows) {
+    if (myModel == null) {
+      return;
+    }
     if (removedRows.isEmpty()) {
       return;
     }
@@ -142,6 +146,9 @@ public class NamedObjectPanel extends BuildFilePanel {
     decorator.setAddAction(new AnActionButtonRunnable() {
       @Override
       public void run(AnActionButton button) {
+        if (myModel == null) {
+          return;
+        }
         myModel.addRow();
         myTable.clearSelection();
         int row = myTable.getRowCount() - 1;
@@ -172,12 +179,14 @@ public class NamedObjectPanel extends BuildFilePanel {
 
   @Override
   public void apply() {
-    myModel.apply();
+    if (myModel != null) {
+      myModel.apply();
+    }
   }
 
   @Override
   public boolean isModified() {
-    return myModel.isModified();
+    return myModel != null && myModel.isModified();
   }
 
   @NotNull
@@ -186,7 +195,7 @@ public class NamedObjectPanel extends BuildFilePanel {
     String name;
     do {
       name = myNewItemName + num++;
-    } while (myModel.hasObjectNamed(name));
+    } while (myModel != null && myModel.hasObjectNamed(name));
     return name;
   }
 
