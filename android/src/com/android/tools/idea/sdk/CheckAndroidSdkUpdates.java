@@ -74,6 +74,16 @@ public abstract class CheckAndroidSdkUpdates {
       return;
     }
 
+    // TODO this really needs a way for users to disable the check.
+    // We want a settings panel for that. Right now let's not show
+    // the feature. Users who really want it can use this *temporary*
+    // env var to enable it.
+    if (!"1".equals(System.getenv("STUDIO_SDK_CHECK"))) {
+      LOG.debug("SDK check disabled by default, export STUDIO_SDK_CHECK=1 to enable it.");
+      return;
+    }
+
+
     if (sIndicator == null) {
       mCheckTimestampMs = now;
       SdkUpdateCheckTask task = new SdkUpdateCheckTask(project, sdkData);
