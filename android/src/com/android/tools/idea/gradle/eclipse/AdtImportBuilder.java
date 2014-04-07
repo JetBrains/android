@@ -158,7 +158,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     try {
       final NewProjectImportCallback callback = new NewProjectImportCallback() {
         @Override
-        public void projectImported(@NotNull final Project project) {
+        public void syncEnded(@NotNull final Project project) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -169,7 +169,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         }
 
         @Override
-        public void importFailed(@NotNull final Project project, @NotNull String errorMessage) {
+        public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
