@@ -41,7 +41,11 @@ import java.io.File;
 
 public abstract class NewProjectImportCallback implements GradleProjectImporter.Callback {
   @Override
-  public void importFailed(@NotNull final Project project, @NotNull String errorMessage) {
+  public void syncStarted(@NotNull Project project) {
+  }
+
+  @Override
+  public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
