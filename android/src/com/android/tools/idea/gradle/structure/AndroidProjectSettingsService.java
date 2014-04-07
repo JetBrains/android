@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.structure;
+package com.android.tools.idea.gradle.structure;
 
-import com.android.tools.idea.actions.AndroidShowStructureSettingsAction;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
 import com.intellij.ide.projectView.impl.ModuleGroup;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderEntry;
@@ -50,27 +51,21 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void openGlobalLibraries() {
-    if (isGradleProject()) {
-      openProjectSettings();
-    }
-    else {
+    if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openGlobalLibraries();
     }
   }
 
   @Override
   public void openLibrary(@NotNull Library library) {
-    if (isGradleProject()) {
-      openProjectSettings();
-    }
-    else {
+    if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openLibrary(library);
     }
   }
 
   @Override
   public boolean canOpenModuleSettings() {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       return true;
     }
     else {
@@ -79,28 +74,8 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   @Override
-  public void openModuleSettings(Module module) {
-    if (isGradleProject()) {
-      AndroidModuleStructureConfigurable.showDialog(myProject, module.getName(), null);
-    }
-    else {
-      myDelegate.openModuleSettings(module);
-    }
-  }
-
-  @Override
-  public boolean canOpenModuleLibrarySettings() {
-    if (isGradleProject()) {
-      return false;
-    }
-    else {
-      return myDelegate.canOpenModuleLibrarySettings();
-    }
-  }
-
-  @Override
   public void openModuleLibrarySettings(Module module) {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       openModuleSettings(module);
     }
     else {
@@ -109,8 +84,28 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   }
 
   @Override
+  public void openModuleSettings(Module module) {
+    if (isGradleProjectInAndroidStudio()) {
+      AndroidProjectStructureConfigurable.getInstance(myProject).showDialogAndSelect(module);
+    }
+    else {
+      myDelegate.openModuleSettings(module);
+    }
+  }
+
+  @Override
+  public boolean canOpenModuleLibrarySettings() {
+    if (isGradleProjectInAndroidStudio()) {
+      return false;
+    }
+    else {
+      return myDelegate.canOpenModuleLibrarySettings();
+    }
+  }
+
+  @Override
   public boolean canOpenContentEntriesSettings() {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       return false;
     }
     else {
@@ -120,7 +115,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void openContentEntriesSettings(Module module) {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       openModuleSettings(module);
     }
     else {
@@ -130,7 +125,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public boolean canOpenModuleDependenciesSettings() {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       // TODO: This is something we ought to be able to do. However, it's not clear that there's any code path that can reach this method.
       return false;
     }
@@ -141,7 +136,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void openModuleDependenciesSettings(@NotNull Module module, @Nullable OrderEntry orderEntry) {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       openModuleSettings(module);
     }
     else {
@@ -151,7 +146,7 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public boolean canOpenLibraryOrSdkSettings(OrderEntry orderEntry) {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       return false;
     }
     else {
@@ -161,17 +156,14 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void openLibraryOrSdkSettings(@NotNull OrderEntry orderEntry) {
-    if (isGradleProject()) {
-      openProjectSettings();
-    }
-    else {
+    if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openLibraryOrSdkSettings(orderEntry);
     }
   }
 
   @Override
   public boolean processModulesMoved(Module[] modules, @Nullable ModuleGroup targetGroup) {
-    if (isGradleProject()) {
+    if (isGradleProjectInAndroidStudio()) {
       return false;
     }
     else {
@@ -181,8 +173,10 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void showModuleConfigurationDialog(String moduleToSelect, String editorNameToSelect) {
-    if (isGradleProject()) {
-      AndroidModuleStructureConfigurable.showDialog(myProject, moduleToSelect, editorNameToSelect);
+    if (isGradleProjectInAndroidStudio()) {
+      Module module = ModuleManager.getInstance(myProject).findModuleByName(moduleToSelect);
+      assert module != null;
+      AndroidProjectStructureConfigurable.getInstance(myProject).showDialogAndSelect(module);
     }
     else {
       myDelegate.showModuleConfigurationDialog(moduleToSelect, editorNameToSelect);
@@ -197,15 +191,12 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
 
   @Override
   public void openArtifactSettings(@Nullable Artifact artifact) {
-    if (isGradleProject()) {
-      openProjectSettings();
-    }
-    else {
+    if (!isGradleProjectInAndroidStudio()) {
       myDelegate.openArtifactSettings(artifact);
     }
   }
 
-  private boolean isGradleProject() {
-    return Projects.isGradleProject(myProject);
+  private boolean isGradleProjectInAndroidStudio() {
+    return AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isGradleProject(myProject);
   }
 }

@@ -398,17 +398,22 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     private String myErrorMessage = null;
 
     @Override
-    public void projectImported(@NotNull Project project) {
+    public void syncEnded(@NotNull Project project) {
       myErrorMessage = null;
     }
 
     @Override
-    public void importFailed(@NotNull Project project, @NotNull String errorMessage) {
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       myErrorMessage = errorMessage;
     }
 
     public String getErrorMessage() {
       return myErrorMessage;
+    }
+
+    @Override
+    public void syncStarted(@NotNull Project project) {
+
     }
   }
 }
