@@ -24,13 +24,13 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrRefere
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
 
 /**
- * {@link AndroidResolveTest} tests that various elements in the Gradle build script are
+ * {@link AndroidDslContributorTest} tests that various elements in the Gradle build script are
  * being resolved to their appropriate elements in the gradle model. We have this as a
  * {@link AndroidGradleTestCase} instead of just a simple PSI test case since resolving these
  * requires that the Android Gradle plugin is actually in the classpath, and that happens
  * only if a Gradle project is actually imported by the IDE.
  */
-public class AndroidResolveTest extends AndroidGradleTestCase {
+public class AndroidDslContributorTest extends AndroidGradleTestCase {
   public void testResolutions() throws Exception {
     loadProject("projects/resolve/simple");
     PsiFile psiFile = getPsiFile("build.gradle");
@@ -46,7 +46,7 @@ public class AndroidResolveTest extends AndroidGradleTestCase {
 
     // symbols inside a build type
     validateResolution(psiFile, "runProguard", "com.android.builder.DefaultBuildType", "setRunProguard");
-    validateResolution(psiFile, "proguardFiles", "com.android.build.gradle.internal.dsl.BuildTypeDsl", "setProguardFiles");
+    validateResolution(psiFile, "proguardFiles", "com.android.build.gradle.internal.dsl.BuildTypeDsl", "proguardFiles");
 
     // symbols inside a product flavor
     validateResolution(psiFile, "packageName", "com.android.builder.DefaultProductFlavor", "setPackageName");
@@ -56,6 +56,10 @@ public class AndroidResolveTest extends AndroidGradleTestCase {
 
     // symbols inside signingConfigs
     validateResolution(psiFile, "storeFile", "com.android.builder.signing.DefaultSigningConfig", "setStoreFile");
+
+    // symbols inside sourceSets
+    validateResolution(psiFile, "aidl", "com.android.build.gradle.api.AndroidSourceSet", "getAidl");
+    validateResolution(psiFile, "setRoot", "com.android.build.gradle.api.AndroidSourceSet", "setRoot");
   }
 
   // tests that the given symbol in the given psi file resolves to the given method and class
@@ -99,5 +103,47 @@ public class AndroidResolveTest extends AndroidGradleTestCase {
       fail("Symbol " + element + " not found in file.");
     }
     return psiFile.findReferenceAt(offset);
+  }
+
+  public void testParametersWildcardNdo() {
+    AndroidDslContributor.ParametrizedTypeExtractor extractor = new AndroidDslContributor.ParametrizedTypeExtractor(
+      "org.gradle.api.Action<? super org.gradle.api.NamedDomainObjectContainer<BuildType>>>");
+
+    assertTrue(extractor.isClosure());
+    assertEquals("org.gradle.api.NamedDomainObjectContainer<BuildType>", extractor.getClosureType());
+
+    assertTrue(extractor.hasNamedDomainObjectContainer());
+    assertEquals("BuildType", extractor.getNamedDomainObject());
+  }
+
+  public void testParametersNdo() {
+    AndroidDslContributor.ParametrizedTypeExtractor extractor =
+      new AndroidDslContributor.ParametrizedTypeExtractor("org.gradle.api.Action<org.gradle.api.NamedDomainObjectContainer<Flavor>>>");
+
+    assertTrue(extractor.isClosure());
+    assertEquals("org.gradle.api.NamedDomainObjectContainer<Flavor>", extractor.getClosureType());
+
+    assertTrue(extractor.hasNamedDomainObjectContainer());
+    assertEquals("Flavor", extractor.getNamedDomainObject());
+  }
+
+  public void testParametersPrimitiveClosure() {
+    AndroidDslContributor.ParametrizedTypeExtractor extractor =
+      new AndroidDslContributor.ParametrizedTypeExtractor("org.gradle.api.Action<String>");
+
+    assertTrue(extractor.isClosure());
+    assertEquals("String", extractor.getClosureType());
+
+    assertFalse(extractor.hasNamedDomainObjectContainer());
+    assertNull(extractor.getNamedDomainObject());
+  }
+
+  public void testParametersNoClosure() {
+    AndroidDslContributor.ParametrizedTypeExtractor extractor =
+      new AndroidDslContributor.ParametrizedTypeExtractor("String");
+    assertFalse(extractor.isClosure());
+
+    assertFalse(extractor.hasNamedDomainObjectContainer());
+    assertNull(extractor.getNamedDomainObject());
   }
 }
