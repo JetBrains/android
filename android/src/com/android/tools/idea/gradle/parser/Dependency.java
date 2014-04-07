@@ -215,6 +215,10 @@ public class Dependency extends BuildFileStatement {
         Map<String, Object> values = (Map<String, Object>)data;
         String dir = (String)values.get(FILETREE_BASE_DIR_PROPERTY);
         Object value = values.get(FILETREE_INCLUDE_PATTERN_PROPERTY);
+
+        if (value == null) {
+          return false;
+        }
         List<String> includes = (value instanceof List) ? (List<String>)value : ImmutableList.of(value.toString());
         if (dir == null || includes == null) {
           return false;
