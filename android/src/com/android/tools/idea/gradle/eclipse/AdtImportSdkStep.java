@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.idea.structure.AndroidHomeConfigurable;
+import com.android.tools.idea.gradle.structure.DefaultSdksConfigurable;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.projectImport.ProjectImportWizardStep;
@@ -26,11 +26,11 @@ import java.awt.*;
 /** Panel where the user configures an SDK, if needed */
 class AdtImportSdkStep extends ProjectImportWizardStep {
   private JComponent myComponent;
-  private AndroidHomeConfigurable myConfigurable;
+  private DefaultSdksConfigurable myConfigurable;
 
   AdtImportSdkStep(WizardContext context) {
     super(context);
-    myConfigurable = new AndroidHomeConfigurable();
+    myConfigurable = new DefaultSdksConfigurable();
   }
 
   @Override
@@ -68,7 +68,7 @@ class AdtImportSdkStep extends ProjectImportWizardStep {
 
   @Override
   public boolean isStepVisible() {
-    return AndroidHomeConfigurable.isNeeded();
+    return DefaultSdksConfigurable.isNeeded();
   }
 
   @Override
