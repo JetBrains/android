@@ -27,6 +27,7 @@ import com.android.utils.Pair;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.AppLifecycleListener;
+import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.openapi.actionSystem.*;
@@ -68,6 +69,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
+  @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -81,25 +83,23 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
-    //noinspection UseOfArchaicSystemPropertyAccessors
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      // Fix New Project actions
       replaceIdeaNewProjectActions();
     }
 
-    //noinspection UseOfArchaicSystemPropertyAccessors
+    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
+      replaceProjectStructureActions();
+    }
+
     if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
       replaceIdeaMakeActions();
     }
 
-    //noinspection UseOfArchaicSystemPropertyAccessors
     if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
       hideIdeaNewFilePopupActions();
     }
 
     createDynamicTemplateMenu();
-
-    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
 
     try {
       // Setup JDK and Android SDK if necessary
@@ -129,13 +129,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static void createDynamicTemplateMenu() {
     DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
     newGroup.addSeparator();
-    newGroup.add(TemplateManager.getInstance().getTemplateCreationMenu(), new Constraints(Anchor.AFTER, "NewDir"));
+    ActionGroup templateCreationMenu = TemplateManager.getInstance().getTemplateCreationMenu();
+    assert templateCreationMenu != null;
+    newGroup.add(templateCreationMenu, new Constraints(Anchor.AFTER, "NewDir"));
   }
 
   private static void replaceIdeaNewProjectActions() {
-    // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want. In the meantime,
-    // unregister IntelliJ's version of the project actions and manually register our own.
-
+    // Unregister IntelliJ's version of the project actions and manually register our own.
     replaceAction("NewProject", new AndroidNewProjectAction());
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
@@ -151,6 +151,24 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     hideAction("RunTargetAction", "Run Ant Target");
 
     replaceProjectPopupActions();
+  }
+
+  private static void replaceProjectStructureActions() {
+    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
+
+    AndroidTemplateProjectStructureAction showDefaultProjectStructureAction = new AndroidTemplateProjectStructureAction();
+    showDefaultProjectStructureAction.getTemplatePresentation().setText("Default Project Structure...");
+    replaceAction("TemplateProjectStructure", showDefaultProjectStructureAction);
+
+    ActionManager am = ActionManager.getInstance();
+    AnAction action = am.getAction("WelcomeScreen.Configure.IDEA");
+    if (action instanceof DefaultActionGroup) {
+      DefaultActionGroup projectSettingsGroup = (DefaultActionGroup)action;
+      AnAction[] children = projectSettingsGroup.getChildren(null);
+      if (children.length == 1 && children[0] instanceof TemplateProjectSettingsGroup) {
+        projectSettingsGroup.replaceAction(children[0], new AndroidTemplateProjectSettingsGroup());
+      }
+    }
   }
 
   private static void replaceIdeaMakeActions() {
@@ -266,7 +284,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @Nullable
   private static File getAndroidSdkPath() {
     String studioHome = PathManager.getHomePath();
-    if (studioHome == null) {
+    if (StringUtil.isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
     }
     else {

@@ -56,7 +56,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     myProjectInfo = new DataNode<ProjectData>(ProjectKeys.PROJECT, projectData, null);
 
     ModuleData moduleData =
-      new ModuleData(GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
+      new ModuleData("", GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectName, projectRootDirPath, configPath);
     myProjectInfo.createChild(ProjectKeys.MODULE, moduleData);
 
     GradleProjectImporter.ImporterDelegate delegate = new GradleProjectImporter.ImporterDelegate() {
@@ -92,7 +92,11 @@ public class GradleProjectImporterTest extends IdeaTestCase {
 
   private class MyCallback implements GradleProjectImporter.Callback {
     @Override
-    public void projectImported(@NotNull Project project) {
+    public void syncStarted(@NotNull Project project) {
+    }
+
+    @Override
+    public void syncEnded(@NotNull Project project) {
       disposeOnTearDown(project);
       // Verify that project was imported correctly.
       assertEquals(myProjectName, project.getName());
@@ -110,7 +114,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     }
 
     @Override
-    public void importFailed(@NotNull Project project, @NotNull String errorMessage) {
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       fail(errorMessage);
     }
   }
