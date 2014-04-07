@@ -203,7 +203,7 @@ public class GradleProjectImporter {
     String error = validateProjectsForImport(modules);
     if (error != null) {
       if (callback != null) {
-        callback.importFailed(project, error);
+        callback.syncFailed(project, error);
         return;
       }
       else {
@@ -306,7 +306,7 @@ public class GradleProjectImporter {
     try {
       importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
         @Override
-        public void projectImported(@NotNull Project project) {
+        public void syncEnded(@NotNull Project project) {
           activateProjectView(project);
         }
       }, parentProject);
@@ -601,7 +601,7 @@ public class GradleProjectImporter {
               projectComponent.configureGradleProject(false);
             }
             if (callback != null) {
-              callback.projectImported(project);
+              callback.syncEnded(project);
             }
           }
         };
@@ -621,10 +621,10 @@ public class GradleProjectImporter {
         String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
         LOG.info(newMessage);
 
-        GradleSyncState.getInstance(project).syncEnded();
+        GradleSyncState.getInstance(project).syncFailed(newMessage);
 
         if (callback != null) {
-          callback.importFailed(project, newMessage);
+          callback.syncFailed(project, newMessage);
         }
       }
     }, progressExecutionMode);
@@ -791,14 +791,16 @@ public class GradleProjectImporter {
   }
 
   public interface Callback {
+    void syncStarted(@NotNull Project project);
+
     /**
-     * Invoked when a Gradle project has been imported. It is not guaranteed that the created IDEA project has been compiled.
+     * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
      *
      * @param project the IDEA project created from the Gradle one.
      */
-    void projectImported(@NotNull Project project);
+    void syncEnded(@NotNull Project project);
 
-    void importFailed(@NotNull Project project, @NotNull String errorMessage);
+    void syncFailed(@NotNull Project project, @NotNull String errorMessage);
   }
 
   /**
