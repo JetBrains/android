@@ -485,10 +485,6 @@ public class GradleProjectImporter {
                         @Nullable final Callback callback) throws ConfigurationException {
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
-    if (!isTest) {
-      ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-      messages.clearView();
-    }
 
     PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
 
