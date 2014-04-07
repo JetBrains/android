@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
@@ -50,7 +50,7 @@ public class GradleNotificationExtensionTest extends TestCase {
     expect(myProject.getName()).andReturn(projectName);
     replay(myProject);
 
-    NotificationData notification = new NotificationData("title", "msg", NotificationType.ERROR, NotificationSource.PROJECT_SYNC);
+    NotificationData notification = new NotificationData("title", "msg", NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
     GradleNotificationExtension.updateNotification(notification, myProject, errorMsg, myHyperlink1, myHyperlink2);
 
     verify(myProject);

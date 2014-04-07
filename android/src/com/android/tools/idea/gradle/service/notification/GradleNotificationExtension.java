@@ -31,6 +31,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -360,7 +361,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
     notification.setTitle(title);
     notification.setMessage(text);
-    notification.setNotificationType(DEFAULT_NOTIFICATION_TYPE);
+    notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
     for (final NotificationHyperlink hyperlink : hyperlinks) {
       notification.setListener(hyperlink.getUrl(), new NotificationListener.Adapter() {
         @Override
