@@ -59,6 +59,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Imports a new project into Android Studio.
@@ -188,11 +189,11 @@ public class AndroidImportProjectAction extends AnAction {
 
     if (GradleConstants.EXTENSION.equals(target.getExtension())) {
       // Gradle file, we handle this ourselves.
-      GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
       if (project == null) {
+        GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
         gradleImporter.importProject(file);
       } else {
-        gradleImporter.importModule(file, project, null);
+        importGradleProjectAsModule(project, file);
       }
       return null;
     }
@@ -217,6 +218,13 @@ public class AndroidImportProjectAction extends AnAction {
 
     ProjectImportProvider[] availableProviders = available.toArray(new ProjectImportProvider[available.size()]);
     return new AddModuleWizard(project, path, availableProviders);
+  }
+
+  private static void importGradleProjectAsModule(Project project, VirtualFile file)
+      throws IOException, ConfigurationException {
+    GradleProjectImporter importer = GradleProjectImporter.getInstance();
+    Map<String, VirtualFile> projectsToImport = importer.getRelatedProjects(file, project);
+    importer.importModules(projectsToImport, project, null);
   }
 
   @VisibleForTesting
