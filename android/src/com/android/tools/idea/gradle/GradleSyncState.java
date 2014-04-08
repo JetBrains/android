@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -28,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBus;
@@ -62,7 +62,7 @@ public class GradleSyncState {
     if (notifyUser) {
       notifyUser();
     }
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    syncPublisher(new Runnable() {
       @Override
       public void run() {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject);
@@ -72,7 +72,7 @@ public class GradleSyncState {
 
   public void syncFailed(@NotNull final String message) {
     syncFinished();
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    syncPublisher(new Runnable() {
       @Override
       public void run() {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
@@ -82,7 +82,7 @@ public class GradleSyncState {
 
   public void syncEnded() {
     syncFinished();
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    syncPublisher(new Runnable() {
       @Override
       public void run() {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncEnded(myProject);
@@ -96,21 +96,23 @@ public class GradleSyncState {
     notifyUser();
   }
 
+  private void syncPublisher(@NotNull final Runnable publishingTask) {
+    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().runWriteAction(publishingTask);
+      }
+    });
+  }
+
   public void notifyUser() {
-    Runnable notificationTask = new Runnable() {
+    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
       @Override
       public void run() {
         EditorNotifications.getInstance(myProject).updateAllNotifications();
         BuildVariantView.getInstance(myProject).updateContents();
       }
-    };
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      notificationTask.run();
-    }
-    else {
-      application.invokeLater(notificationTask);
-    }
+    });
   }
 
   public boolean isSyncInProgress() {
