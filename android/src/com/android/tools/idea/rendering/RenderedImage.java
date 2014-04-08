@@ -36,12 +36,10 @@ import static java.awt.RenderingHints.KEY_INTERPOLATION;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
 
 /**
- *  A rendered image from layoutlib, which can be zoomed.
- *
- * TODO: Rename to RenderedImage. With the drop shadow stuff and the device chrome stuff
- * the fact that it's scalable is less salient than it used to.
+ * A rendered image from layoutlib, which can be zoomed, can have decorations
+ * such as drop shadows or even device chrome, and so on.
  */
-public class ScalableImage {
+public class RenderedImage {
   /** Type of shadow to paint into the image, if any */
   enum ShadowType {
     /** Don't draw a drop shadow */
@@ -66,7 +64,9 @@ public class ScalableImage {
   /** Whether current thumbnail actually has a device frame */
   private boolean myThumbnailHasFrame;
 
-  public ScalableImage(@NotNull Configuration configuration, @NotNull BufferedImage image, boolean alphaChannelImage,
+  public RenderedImage(@NotNull Configuration configuration,
+                       @NotNull BufferedImage image,
+                       boolean alphaChannelImage,
                        @NotNull ShadowType shadowType) {
     myConfiguration = configuration;
     myImage = image;
@@ -244,6 +244,10 @@ public class ScalableImage {
   /** Returns the height of the image itself, when scaled */
   public int getScaledHeight() {
     return (int)(myScale * myImage.getHeight());
+  }
+
+  public Dimension getScaledSize() {
+    return new Dimension(getScaledWidth(), getScaledHeight());
   }
 
   /** Returns the required width to show the scaled image, including drop shadows if applicable */

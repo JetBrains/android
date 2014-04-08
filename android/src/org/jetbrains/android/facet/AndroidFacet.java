@@ -85,6 +85,7 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.util.*;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -1060,6 +1061,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myConfigurationManager;
   }
 
+  @Contract("true -> !null")
   @Nullable
   public AppResourceRepository getAppResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
@@ -1071,6 +1073,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  @Contract("true -> !null")
   @Nullable
   public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
@@ -1082,6 +1085,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  @Contract("true -> !null")
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
