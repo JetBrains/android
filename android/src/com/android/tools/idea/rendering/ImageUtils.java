@@ -17,9 +17,11 @@ package com.android.tools.idea.rendering;
 
 
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ImageLoader;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -503,6 +505,18 @@ public class ImageUtils {
     g.dispose();
 
     return cropped;
+  }
+
+  /**
+   * Loads a builtin icon from the Android plugin
+   *
+   * @param path the path relative to the Android plugin root; starts with /icons
+   */
+  @NotNull
+  public static Image loadIcon(String path) {
+    Image image = ImageLoader.loadFromResource(path, AndroidIcons.class);
+    assert image != null : path;
+    return image;
   }
 
   /**

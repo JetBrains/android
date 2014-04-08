@@ -78,7 +78,6 @@ import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.refactoring.AndroidInlineIncludeAction;
 import org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.android.uipreview.RenderingException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -406,7 +405,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
             }
           });
 
-          rootPanel.setBackground(AndroidLayoutPreviewPanel.DESIGNER_BACKGROUND_COLOR);
+          rootPanel.setBackground(RenderedPanel.DESIGNER_BACKGROUND_COLOR);
           rootPanel.setOpaque(true);
           rootPanel.add(myRootView);
           myLayeredPane.add(rootPanel, LAYER_COMPONENT);
