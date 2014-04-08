@@ -22,17 +22,12 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 
 /**
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
  */
 public class SyncProjectAction extends AnAction {
-  private static final Logger LOG = Logger.getInstance(SyncProjectAction.class);
-
   public SyncProjectAction() {
     super("Sync Project with Gradle Files");
   }
@@ -45,11 +40,7 @@ public class SyncProjectAction extends AnAction {
       Presentation presentation = e.getPresentation();
       presentation.setEnabled(false);
       try {
-        GradleProjectImporter.getInstance().reImportProject(project, null);
-      }
-      catch (ConfigurationException ex) {
-        Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-        LOG.info(ex);
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
       }
       finally {
         presentation.setEnabled(true);
