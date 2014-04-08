@@ -593,9 +593,9 @@ public class RenderPreview implements Disposable {
       }
 
       if (render.isSuccess()) {
-        ScalableImage scalableImage = result.getImage();
-        if (scalableImage != null) {
-          myFullImage = scalableImage.getOriginalImage();
+        RenderedImage renderedImage = result.getImage();
+        if (renderedImage != null) {
+          myFullImage = renderedImage.getOriginalImage();
         }
       }
 
