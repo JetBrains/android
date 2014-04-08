@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-public class SyncProjectHyperlink extends NotificationHyperlink {
-  public SyncProjectHyperlink() {
-    super("syncProjectWithGradle", "Sync Project with Gradle files");
-  }
+public interface GradleSyncListener {
+  void syncStarted(@NotNull Project project);
 
-  @Override
-  protected void execute(@NotNull Project project) {
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
-  }
+  /**
+   * Invoked when a Gradle project has been synced. It is not guaranteed that the created IDEA project has been compiled.
+   *
+   * @param project the IDEA project created from the Gradle one.
+   */
+  void syncEnded(@NotNull Project project);
+
+  void syncFailed(@NotNull Project project, @NotNull String errorMessage);
 }

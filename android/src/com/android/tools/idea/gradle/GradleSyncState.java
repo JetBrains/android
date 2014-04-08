@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.application.Application;
@@ -37,8 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 public class GradleSyncState {
-  public static final Topic<GradleProjectImporter.Callback> GRADLE_SYNC_TOPIC =
-    new Topic<GradleProjectImporter.Callback>("Project sync with Gradle", GradleProjectImporter.Callback.class);
+  public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
+    new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
 
   private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
