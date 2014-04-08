@@ -16,6 +16,7 @@
 package com.intellij.android.designer.designSurface;
 
 import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.Density;
@@ -291,6 +292,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         if (session == null) {
           return;
         }
+        updateDeviceFrameVisibility(result);
 
         if (!session.getResult().isSuccess()) {
           // This image may not have been fully rendered before some error caused
@@ -611,6 +613,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         if (session == null || session.getImage() == null) {
           return;
         }
+        updateDeviceFrameVisibility(result);
+
         RadViewComponent rootComponent = (RadViewComponent)myRootComponent;
         RootView rootView = (RootView)rootComponent.getNativeComponent();
         rootView.setRenderedImage(result.getImage());
@@ -1415,9 +1419,29 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     component.repaint();
   }
 
+  private boolean myShowDeviceFrames = true;
+
   @Override
   public void setDeviceFramesEnabled(boolean on) {
-    // TODO
+    myShowDeviceFrames = on;
+    if (myRootView != null) {
+      RenderedImage image = myRootView.getRenderedImage();
+      if (image != null) {
+        image.setDeviceFrameEnabled(on);
+      }
+    }
+  }
+
+  private void updateDeviceFrameVisibility(@Nullable RenderResult result) {
+    if (result != null) {
+      RenderedImage image = result.getImage();
+      if (image != null) {
+        RenderService renderService = result.getRenderService();
+        image.setDeviceFrameEnabled(myShowDeviceFrames && renderService != null &&
+                                    renderService.getRenderingMode() == SessionParams.RenderingMode.NORMAL &&
+                                    renderService.getShowDecorations());
+      }
+    }
   }
 
   @Nullable
