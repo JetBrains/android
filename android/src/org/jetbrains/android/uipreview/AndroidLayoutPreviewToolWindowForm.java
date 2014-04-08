@@ -20,7 +20,7 @@ import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
-import com.android.tools.idea.rendering.ScalableImage;
+import com.android.tools.idea.rendering.RenderedImage;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -290,9 +290,9 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public BufferedImage getRenderedImage() {
     RenderResult result = myPreviewPanel.getRenderResult();
     if (result != null) {
-      ScalableImage scalableImage = result.getImage();
-      if (scalableImage != null) {
-        return scalableImage.getOriginalImage();
+      RenderedImage renderedImage = result.getImage();
+      if (renderedImage != null) {
+        return renderedImage.getOriginalImage();
       }
     }
     return null;

@@ -41,7 +41,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -990,5 +992,16 @@ public class RenderService implements IImageFactory {
      */
     @Nullable
     String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
+  }
+
+  @Nullable
+  public static PsiFile getPsiFileSafely(final Project project, final VirtualFile file) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
+      @Nullable
+      @Override
+      public PsiFile compute() {
+        return file.isValid() ? PsiManager.getInstance(project).findFile(file) : null;
+      }
+    });
   }
 }
