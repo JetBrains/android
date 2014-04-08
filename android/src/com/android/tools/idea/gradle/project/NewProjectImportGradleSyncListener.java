@@ -39,7 +39,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 
-public abstract class NewProjectImportCallback implements GradleProjectImporter.Callback {
+public abstract class NewProjectImportGradleSyncListener implements GradleSyncListener {
   @Override
   public void syncStarted(@NotNull Project project) {
   }

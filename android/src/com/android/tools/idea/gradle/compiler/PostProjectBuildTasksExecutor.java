@@ -183,24 +183,9 @@ public class PostProjectBuildTasksExecutor {
       //    an automatic sync should have been triggered already. No need to trigger a new one.
       if (DEFAULT_BUILD_MODE.equals(buildMode) && lastGradleSyncFailed(myProject) && errorCount == 0 ||
           !SOURCE_GEN.equals(buildMode) && GradleSyncState.getInstance(myProject).isSyncNeeded().equals(YES)) {
-        syncProjectWithGradle();
+        GradleProjectImporter.getInstance().requestProjectSync(myProject, false /* do not generate sources */, null);
       }
     }
-  }
-
-  private void syncProjectWithGradle() {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          // Sync project. We don't need to generate sources, since we just built the project.
-          GradleProjectImporter.getInstance().reImportProject(myProject, false /* do not generate sources */, null);
-        }
-        catch (ConfigurationException e) {
-          Messages.showErrorDialog(myProject, e.getMessage(), e.getTitle());
-        }
-      }
-    });
   }
 
   private static boolean unresolvedDependenciesFound(@NotNull String errorMessage) {
