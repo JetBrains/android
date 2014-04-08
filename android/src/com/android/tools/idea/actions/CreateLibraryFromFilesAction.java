@@ -33,7 +33,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -43,7 +42,6 @@ import com.intellij.openapi.roots.ui.configuration.ModulesCombobox;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.DefaultLibraryRootsComponentDescriptor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryNameAndLevelPanel;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -217,11 +215,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
       finally {
         token.finish();
       }
-      try {
-        GradleProjectImporter.getInstance().reImportProject(myProject, null);
-      } catch (ConfigurationException ex) {
-        Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-      }
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
       super.doOKAction();
     }
 
