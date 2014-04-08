@@ -16,7 +16,7 @@
 package com.intellij.android.designer.designSurface;
 
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.ScalableImage;
+import com.android.tools.idea.rendering.RenderedImage;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import org.jetbrains.annotations.NotNull;
@@ -36,13 +36,13 @@ public class RootView extends JComponent implements TransformedComponent {
   @NotNull private final AndroidDesignerEditorPanel myPanel;
   protected int myX;
   protected int myY;
-  @Nullable ScalableImage myScalableImage;
+  @Nullable RenderedImage myRenderedImage;
 
   public RootView(@NotNull AndroidDesignerEditorPanel panel, int x, int y, @NotNull RenderResult renderResult) {
     myX = x;
     myY = y;
     myPanel = panel;
-    myScalableImage = renderResult.getImage();
+    myRenderedImage = renderResult.getImage();
   }
 
   private RootView(@NotNull AndroidDesignerEditorPanel panel) {
@@ -56,12 +56,12 @@ public class RootView extends JComponent implements TransformedComponent {
 
   @Nullable
   public BufferedImage getImage() {
-    return myScalableImage != null ? myScalableImage.getOriginalImage() : null;
+    return myRenderedImage != null ? myRenderedImage.getOriginalImage() : null;
   }
 
   @Nullable
-  public ScalableImage getScalableImage() {
-    return myScalableImage;
+  public RenderedImage getRenderedImage() {
+    return myRenderedImage;
   }
 
   /**
@@ -72,9 +72,9 @@ public class RootView extends JComponent implements TransformedComponent {
    *
    * @param image The image to be rendered
    */
-  public void setRenderedImage(@Nullable ScalableImage image) {
+  public void setRenderedImage(@Nullable RenderedImage image) {
     myEmptyRegions = null;
-    myScalableImage = image;
+    myRenderedImage = image;
     updateBounds(true);
     repaint();
   }
@@ -87,8 +87,8 @@ public class RootView extends JComponent implements TransformedComponent {
    * @return true if the image overlay should be shown with a drop shadow.
    */
   public boolean getShowDropShadow() {
-    if (myScalableImage != null) {
-      return myScalableImage.getShowDropShadow();
+    if (myRenderedImage != null) {
+      return myRenderedImage.getShowDropShadow();
     } else {
       return false;
     }
@@ -105,7 +105,7 @@ public class RootView extends JComponent implements TransformedComponent {
   }
 
   protected void updateBounds(boolean imageChanged) {
-    if (myScalableImage == null) {
+    if (myRenderedImage == null) {
       return;
     }
     if (myPanel.isZoomToFit()) {
@@ -113,23 +113,23 @@ public class RootView extends JComponent implements TransformedComponent {
     }
 
     double zoom = myPanel.getZoom();
-    myScalableImage.setScale(zoom);
-    Dimension requiredSize = myScalableImage.getRequiredSize();
+    myRenderedImage.setScale(zoom);
+    Dimension requiredSize = myRenderedImage.getRequiredSize();
     int newWidth = requiredSize.width;
     int newHeight = requiredSize.height;
     if (getWidth() != newWidth || getHeight() != newHeight) {
       setSize(newWidth, newHeight);
-      myScalableImage.imageChanged();
+      myRenderedImage.imageChanged();
     } else if (imageChanged) {
-      myScalableImage.imageChanged();
+      myRenderedImage.imageChanged();
     }
   }
 
   public void addEmptyRegion(int x, int y, int width, int height) {
-    if (myScalableImage == null) {
+    if (myRenderedImage == null) {
       return;
     }
-    BufferedImage image = myScalableImage.getOriginalImage();
+    BufferedImage image = myRenderedImage.getOriginalImage();
     if (new Rectangle(0, 0, image.getWidth(), image.getHeight()).contains(x, y)) {
       EmptyRegion r = new EmptyRegion();
       r.myX = x;
@@ -146,13 +146,13 @@ public class RootView extends JComponent implements TransformedComponent {
   }
 
   protected void paintImage(Graphics g) {
-    if (myScalableImage == null) {
+    if (myRenderedImage == null) {
       return;
     }
 
     double scale = myPanel.getZoom();
-    myScalableImage.setScale(scale);
-    myScalableImage.paint(g, 0, 0);
+    myRenderedImage.setScale(scale);
+    myRenderedImage.paint(g, 0, 0);
 
     if (myEmptyRegions != null && !myEmptyRegions.isEmpty()) {
       if (scale == 1) {
@@ -170,9 +170,9 @@ public class RootView extends JComponent implements TransformedComponent {
 
   /** Returns the width of the image itself, when scaled */
   public int getScaledWidth() {
-    if (myScalableImage != null) {
-      myScalableImage.setScale(myPanel.getZoom());
-      return myScalableImage.getScaledWidth();
+    if (myRenderedImage != null) {
+      myRenderedImage.setScale(myPanel.getZoom());
+      return myRenderedImage.getScaledWidth();
     }
 
     return 0;
@@ -180,9 +180,9 @@ public class RootView extends JComponent implements TransformedComponent {
 
   /** Returns the height of the image itself, when scaled */
   public int getScaledHeight() {
-    if (myScalableImage != null) {
-      myScalableImage.setScale(myPanel.getZoom());
-      return myScalableImage.getScaledHeight();
+    if (myRenderedImage != null) {
+      myRenderedImage.setScale(myPanel.getZoom());
+      return myRenderedImage.getScaledHeight();
     }
 
     return 0;
@@ -193,10 +193,10 @@ public class RootView extends JComponent implements TransformedComponent {
   @Override
   public double getScale() {
     double zoom = myPanel.getZoom();
-    if (myScalableImage != null) {
-      Rectangle viewBounds = myScalableImage.getImageBounds();
+    if (myRenderedImage != null) {
+      Rectangle viewBounds = myRenderedImage.getImageBounds();
       if (viewBounds != null) {
-        double deviceFrameFactor = viewBounds.getWidth() / (double) myScalableImage.getScaledWidth();
+        double deviceFrameFactor = viewBounds.getWidth() / (double) myRenderedImage.getScaledWidth();
         if (deviceFrameFactor != 1) {
           zoom *= deviceFrameFactor;
         }
@@ -209,8 +209,8 @@ public class RootView extends JComponent implements TransformedComponent {
 
   @Override
   public int getShiftX() {
-    if (myScalableImage != null) {
-      Rectangle viewBounds = myScalableImage.getImageBounds();
+    if (myRenderedImage != null) {
+      Rectangle viewBounds = myRenderedImage.getImageBounds();
       if (viewBounds != null) {
         return viewBounds.x;
       }
@@ -220,8 +220,8 @@ public class RootView extends JComponent implements TransformedComponent {
 
   @Override
   public int getShiftY() {
-    if (myScalableImage != null) {
-      Rectangle viewBounds = myScalableImage.getImageBounds();
+    if (myRenderedImage != null) {
+      Rectangle viewBounds = myRenderedImage.getImageBounds();
       if (viewBounds != null) {
         return viewBounds.y;
       }

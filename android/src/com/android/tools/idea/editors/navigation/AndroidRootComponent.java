@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +62,7 @@ public class AndroidRootComponent extends JComponent {
       OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
       FileEditorManager manager = FileEditorManager.getInstance(project);
       manager.openEditor(descriptor, true);
-      manager.setSelectedEditor(virtualFile, AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID);
+      manager.setSelectedEditor(virtualFile, RenderedPanel.ANDROID_DESIGNER_ID);
     }
   }
 
@@ -163,8 +162,8 @@ public class AndroidRootComponent extends JComponent {
   @Nullable
   private Image getScaledImage() {
     if (myScaledImage == null || myScaledImage.getWidth(null) != getWidth() || myScaledImage.getHeight(null) != getHeight()) {
-      ScalableImage scalableImage = (myRenderResult == null) ? null : myRenderResult.getImage();
-      BufferedImage image = (scalableImage == null) ? null : scalableImage.getOriginalImage();
+      RenderedImage renderedImage = (myRenderResult == null) ? null : myRenderResult.getImage();
+      BufferedImage image = (renderedImage == null) ? null : renderedImage.getOriginalImage();
       myScaledImage = (image == null) ? null : ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
     }
     return myScaledImage;
