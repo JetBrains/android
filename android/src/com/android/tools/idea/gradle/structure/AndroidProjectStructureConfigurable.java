@@ -20,13 +20,13 @@ import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.structure.AndroidModuleConfigurable;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
@@ -39,7 +39,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
 import com.intellij.openapi.ui.MasterDetailsComponent;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.ListItemDescriptor;
 import com.intellij.openapi.util.Disposer;
@@ -72,7 +71,7 @@ import java.util.Map;
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
  */
-public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleProjectImporter.Callback, SearchableConfigurable {
+public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
   @NotNull private final Project myProject;
   @NotNull private final Disposable myDisposable;
@@ -203,17 +202,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     ThreeState syncNeeded = GradleSyncState.getInstance(myProject).isSyncNeeded();
     if (syncNeeded == ThreeState.YES) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            GradleProjectImporter.getInstance().reImportProject(myProject, null);
-          }
-          catch (ConfigurationException e) {
-            Messages.showErrorDialog(myProject, e.getMessage(), e.getTitle());
-          }
-        }
-      });
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
 

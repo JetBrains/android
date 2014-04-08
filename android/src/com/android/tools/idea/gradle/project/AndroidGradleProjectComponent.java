@@ -44,10 +44,8 @@ import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -164,16 +162,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     Projects.enforceExternalBuild(myProject);
 
     if (reImportProject) {
-      try {
-        // Prevent IDEA from refreshing project. We want to do it ourselves.
-        myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
-
-        GradleProjectImporter.getInstance().reImportProject(myProject, null);
-      }
-      catch (ConfigurationException e) {
-        Messages.showErrorDialog(e.getMessage(), e.getTitle());
-        LOG.info(e);
-      }
+      // Prevent IDEA from refreshing project. We want to do it ourselves.
+      myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
 
