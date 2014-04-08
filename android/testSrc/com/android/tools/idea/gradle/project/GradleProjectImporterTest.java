@@ -86,11 +86,11 @@ public class GradleProjectImporterTest extends IdeaTestCase {
   }
 
   public void testImportProject() throws Exception {
-    MyCallback callback = new MyCallback();
+    MyGradleSyncListener callback = new MyGradleSyncListener();
     myImporter.importProject(myProjectName, myProjectRootDir, callback);
   }
 
-  private class MyCallback implements GradleProjectImporter.Callback {
+  private class MyGradleSyncListener implements GradleSyncListener {
     @Override
     public void syncStarted(@NotNull Project project) {
     }

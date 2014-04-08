@@ -17,7 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.NewProjectImportCallback;
+import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -179,7 +179,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         if (version != null) {
           initialLanguageLevel = LanguageLevel.parse(version.toString());
         }
-        projectImporter.importProject(projectName, projectRoot, new NewProjectImportCallback() {
+        projectImporter.importProject(projectName, projectRoot, new NewProjectImportGradleSyncListener() {
           @Override
           public void syncEnded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example
