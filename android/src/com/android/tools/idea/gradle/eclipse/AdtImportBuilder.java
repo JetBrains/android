@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.eclipse;
 
 import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.NewProjectImportCallback;
+import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -156,7 +156,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
 
     try {
-      final NewProjectImportCallback callback = new NewProjectImportCallback() {
+      final NewProjectImportGradleSyncListener callback = new NewProjectImportGradleSyncListener() {
         @Override
         public void syncEnded(@NotNull final Project project) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -183,7 +183,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       if (myCreateProject) {
         importer.importProject(project.getName(), destDir, callback, project);
       } else {
-        importer.reImportProject(project, true, callback);
+        importer.requestProjectSync(project, true, callback);
       }
     }
     catch (ConfigurationException e) {
