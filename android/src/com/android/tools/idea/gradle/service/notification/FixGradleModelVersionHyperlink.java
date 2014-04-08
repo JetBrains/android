@@ -23,12 +23,9 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -88,12 +85,6 @@ class FixGradleModelVersionHyperlink extends NotificationHyperlink {
     if (wrapperPropertiesFile != null) {
       updateGradleVersion(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
     }
-    try {
-      GradleProjectImporter.getInstance().reImportProject(project, null);
-    }
-    catch (ConfigurationException e) {
-      Messages.showErrorDialog(e.getMessage(), e.getTitle());
-      Logger.getInstance(FixGradleVersionInWrapperHyperlink.class).info(e);
-    }
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
 }

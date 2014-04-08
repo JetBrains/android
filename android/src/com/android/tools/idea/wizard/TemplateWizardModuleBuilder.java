@@ -17,7 +17,6 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.ide.util.projectWizard.*;
@@ -25,26 +24,19 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkType;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.ui.TextBrowseFolderListener;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import icons.AndroidIcons;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -263,7 +255,7 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
         template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
       }
       if (performGradleSync) {
-        GradleProjectImporter.getInstance().reImportProject(myProject, null);
+        GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
       }
     } catch (Exception e) {
       Messages.showErrorDialog(e.getMessage(), "New Module");
