@@ -20,17 +20,9 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.android.actions.NewAndroidComponentDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.util.Set;
 
@@ -51,43 +43,6 @@ public class NewAndroidComponentAction extends AnAction {
   }
 
   @Override
-  public void update(AnActionEvent e) {
-    final Presentation presentation = e.getPresentation();
-    final DataContext dataContext = e.getDataContext();
-    presentation.setVisible(isAvailable(dataContext));
-  }
-
-  private static boolean isAvailable(DataContext dataContext) {
-    final Module module = LangDataKeys.MODULE.getData(dataContext);
-    final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-
-    if (module == null ||
-        view == null ||
-        view.getDirectories().length == 0) {
-      return false;
-    }
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-
-    if (facet == null) {
-      return false;
-    }
-    if (facet.isGradleProject()) {
-      return true;
-    }
-    // check if we are under source root for old-style IntelliJ Android projects
-    final ProjectFileIndex projectIndex = ProjectRootManager.getInstance(module.getProject()).getFileIndex();
-    final JavaDirectoryService dirService = JavaDirectoryService.getInstance();
-
-    for (PsiDirectory dir : view.getDirectories()) {
-      if (projectIndex.isUnderSourceRootOfType(dir.getVirtualFile(), JavaModuleSourceRootTypes.SOURCES) &&
-          dirService.getPackage(dir) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public void actionPerformed(AnActionEvent e) {
     final DataContext dataContext = e.getDataContext();
 
@@ -101,24 +56,6 @@ public class NewAndroidComponentAction extends AnAction {
     if (module == null) return;
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
-
-    if (!facet.isGradleProject()) {
-      // show old-style dialog for classic IntelliJ Android projects
-      final PsiDirectory dir = view.getOrChooseDirectory();
-      if (dir == null) return;
-
-      NewAndroidComponentDialog dialog = new NewAndroidComponentDialog(module, dir);
-      dialog.show();
-      if (dialog.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
-        return;
-      }
-      final PsiElement[] createdElements = dialog.getCreatedElements();
-
-      for (PsiElement createdElement : createdElements) {
-        view.selectElement(createdElement);
-      }
-      return;
-    }
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
     NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
