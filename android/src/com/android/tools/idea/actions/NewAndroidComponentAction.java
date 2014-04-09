@@ -27,7 +27,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import icons.AndroidIcons;
 import org.jetbrains.android.actions.NewAndroidComponentDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +45,7 @@ public class NewAndroidComponentAction extends AnAction {
   private final String myTemplateName;
 
   public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName) {
-    super(templateName, "Create a new " + templateName, AndroidIcons.Android);
+    super(templateName, "Create a new " + templateName, null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
   }
