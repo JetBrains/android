@@ -54,7 +54,6 @@ public final class ProjectImportUtil {
     // Do not instantiate
   }
 
-  @VisibleForTesting
   @Nullable
   public static VirtualFile findImportTarget(@NotNull VirtualFile file) {
     if (file.isDirectory()) {
