@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure;
 
-import com.android.tools.idea.actions.AndroidImportProjectAction;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -38,7 +37,6 @@ import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
-import com.intellij.openapi.ui.MasterDetailsComponent;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.ListItemDescriptor;
 import com.intellij.openapi.util.Disposer;
@@ -509,20 +507,14 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     @NotNull
-    private AbstractAddGroup createAddAction() {
-      return new AbstractAddGroup("Add") {
-        @NotNull
-        @Override
-        public AnAction[] getChildren(@Nullable AnActionEvent e) {
-          AndroidNewModuleAction newModuleAction = new AndroidNewModuleAction("New Module", null, AllIcons.Actions.Module);
-
-          AndroidImportProjectAction importModuleAction = new AndroidImportProjectAction(false);
-          importModuleAction.getTemplatePresentation().setText("Import Module");
-          importModuleAction.getTemplatePresentation().setIcon(AllIcons.ToolbarDecorator.Import);
-
-          return new AnAction[] { newModuleAction, importModuleAction };
-        }
-      };
+    private AnAction createAddAction() {
+      AndroidNewModuleAction action = new AndroidNewModuleAction("New Module", null, IconUtil.getAddIcon());
+      Keymap active = KeymapManager.getInstance().getActiveKeymap();
+      if (active != null) {
+        Shortcut[] shortcuts = active.getShortcuts("NewElement");
+        action.registerCustomShortcutSet(new CustomShortcutSet(shortcuts), this);
+      }
+      return action;
     }
 
     @Override
@@ -579,35 +571,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(project);
       propertiesComponent.setValue(ANDROID_PROJECT_STRUCTURE_LAST_SELECTED_PROPERTY, lastSelectedConfigurable);
       propertiesComponent.setValue(ANDROID_PROJECT_STRUCTURE_PROPORTION_PROPERTY, String.valueOf(proportion));
-    }
-  }
-
-  private abstract static class AbstractAddGroup extends ActionGroup implements MasterDetailsComponent.ActionGroupWithPreselection {
-    AbstractAddGroup(@NotNull String text, @Nullable Icon icon) {
-      super(text, true);
-
-      Presentation presentation = getTemplatePresentation();
-      presentation.setIcon(icon);
-
-      Keymap active = KeymapManager.getInstance().getActiveKeymap();
-      if (active != null) {
-        Shortcut[] shortcuts = active.getShortcuts("NewElement");
-        setShortcutSet(new CustomShortcutSet(shortcuts));
-      }
-    }
-
-    AbstractAddGroup(@NotNull String text) {
-      this(text, IconUtil.getAddIcon());
-    }
-
-    @Override
-    public ActionGroup getActionGroup() {
-      return this;
-    }
-
-    @Override
-    public int getDefaultIndex() {
-      return 0;
     }
   }
 }
