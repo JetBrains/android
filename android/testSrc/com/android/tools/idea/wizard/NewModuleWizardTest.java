@@ -37,34 +37,19 @@ import java.util.Set;
  * Tests for {@link NewModuleWizard}
  */
 public class NewModuleWizardTest extends AndroidTestCase {
-
-  private TemplateWizardModuleBuilder myModuleBuilder;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
-    myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(), AndroidIcons.Wizards.NewModuleSidePanel,
-                                                      steps, getTestRootDisposable(), false) {
-      @Override
-      public void update() {
-        // Do nothing
-      }
-    };
-  }
-
   public void testTemplateChanged() throws Exception {
     NewModuleWizard wizard = new NewModuleWizard(myModule.getProject());
+    TemplateWizardModuleBuilder moduleBuilder = wizard.myModuleBuilder;
 
-    wizard.templateChanged(NewModuleWizard.LIB_NAME);
-    assertTrue(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
-    assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
-    assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
+    moduleBuilder.templateChanged(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME);
+    assertTrue(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
+    assertFalse(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
+    assertFalse(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
 
-    wizard.templateChanged(NewModuleWizard.APP_NAME);
-    assertFalse(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
-    assertTrue(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
-    assertTrue(wizard.myModuleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
+    moduleBuilder.templateChanged(TemplateWizardModuleBuilder.APP_TEMPLATE_NAME);
+    assertFalse(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
+    assertTrue(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LAUNCHER));
+    assertTrue(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS));
 
     Disposer.dispose(wizard.getDisposable());
   }
@@ -78,9 +63,19 @@ public class NewModuleWizardTest extends AndroidTestCase {
       }
     }));
 
-    int expectedCount = templateDirFiles.size() - NewModuleWizard.EXCLUDED_TEMPLATES.size() + 2 /* NewApp and NewLib */;
+    int expectedCount = templateDirFiles.size() - TemplateWizardModuleBuilder.EXCLUDED_TEMPLATES.size() + 2 /* NewApp and NewLib */;
 
-    ChooseTemplateStep chooseTemplateStep = NewModuleWizard.buildChooseModuleStep(myModuleBuilder, myModule.getProject(), null);
+    ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
+    TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(),
+                                                                                  AndroidIcons.Wizards.NewModuleSidePanel,
+                                                                                  steps, getTestRootDisposable(), false) {
+      @Override
+      public void update() {
+        // Do nothing
+      }
+    };
+
+    ChooseTemplateStep chooseTemplateStep = myModuleBuilder.buildChooseModuleStep(myModule.getProject());
 
     // Make sure we've got an actual object
     assertNotNull(chooseTemplateStep);
@@ -95,9 +90,35 @@ public class NewModuleWizardTest extends AndroidTestCase {
     assertEquals(expectedCount, templateMetadatas.getSize());
 
     // Ensure we're offering NewApplication and NewLibrary
-    assertContainsElements(templateNames, NewModuleWizard.APP_NAME, NewModuleWizard.LIB_NAME);
+    assertContainsElements(templateNames, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME);
 
     // Ensure we're not offering duplicate elements in the list
     assertEquals(templateNames.size(), templateMetadatas.getSize());
+  }
+
+  /**
+   * Test what paths the wizard takes depending on the first page selection.
+   */
+  public void testWizardPaths() {
+    NewModuleWizard wizard = new NewModuleWizard(myModule.getProject());
+
+    assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
+    assertEquals(7, wizard.getNextStep(0));
+
+    // Should proceed to import source location
+    assertFollowingTheRightPath(wizard, "Import Existing Project", 1, ImportSourceLocationStep.class);
+
+    // Should proceed to Android module creation first step
+    assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, 7, ChooseAndroidAndJavaSdkStep.class);
+  }
+
+  private static void assertFollowingTheRightPath(NewModuleWizard wizard, String templateName, int stepIndex, Class<?> stepClass) {
+    wizard.myModuleBuilder.templateChanged(templateName);
+    assertEquals(stepIndex, wizard.getNextStep(0));
+    wizard.doNextAction();
+    assertInstanceOf(wizard.getCurrentStepObject(), stepClass);
+    assertEquals(0, wizard.getPreviousStep(stepIndex));
+    wizard.doPreviousAction();
+    assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
   }
 }
