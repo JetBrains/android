@@ -62,16 +62,21 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
     if (currentStep >= mySteps.size()) {
       return;
     }
-    TemplateWizardStep step = (TemplateWizardStep)mySteps.get(currentStep);
-    if (step != null) {
-      step.getPreferredFocusedComponent();
-      step.update();
+    ModuleWizardStep step = mySteps.get(currentStep);
+    if (step instanceof TemplateWizardStep) {
+      ((TemplateWizardStep) step).update();
     }
   }
 
   @Override
   protected boolean canGoNext() {
-    return !mySteps.isEmpty() && ((TemplateWizardStep)mySteps.get(getCurrentStep())).isValid();
+    if (mySteps.isEmpty()) {
+      return false;
+    }
+    else {
+      ModuleWizardStep step = mySteps.get(getCurrentStep());
+      return !(step instanceof AndroidStudioWizardStep) || ((AndroidStudioWizardStep)step).isValid();
+    }
   }
 
   @Nullable
@@ -83,17 +88,21 @@ public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   @Override
   protected final int getNextStep(final int step) {
     for (int i = step + 1; i < mySteps.size(); i++) {
-      if (mySteps.get(i).isStepVisible()) {
+      if (isStepVisible(mySteps.get(i))) {
         return i;
       }
     }
     return step;
   }
 
+  protected boolean isStepVisible(ModuleWizardStep page) {
+    return page.isStepVisible();
+  }
+
   @Override
   protected final int getPreviousStep(final int step) {
     for (int i = step - 1; i >= 0; i--) {
-      if (mySteps.get(i).isStepVisible()) {
+      if (isStepVisible(mySteps.get(i))) {
         return i;
       }
     }
