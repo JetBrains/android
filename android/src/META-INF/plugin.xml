@@ -37,6 +37,9 @@
     <action id="CleanGradleProject" class="com.android.tools.idea.gradle.actions.CleanProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
+    <action id="LegacyNewAndroidComponent" class="com.android.tools.idea.actions.LegacyNewAndroidComponentAction">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
+    </action>
     <action id="NewAndroidAssetImage" class="com.android.tools.idea.actions.AndroidAssetStudioAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
     </action>
