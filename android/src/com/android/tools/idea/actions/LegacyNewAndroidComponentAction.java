@@ -45,7 +45,7 @@ public class LegacyNewAndroidComponentAction extends AnAction {
     }
     final AndroidFacet facet = AndroidFacet.getInstance(module);
 
-    if (facet == null) {
+    if (facet == null || facet.isGradleProject()) {
       return false;
     }
     final ProjectFileIndex projectIndex = ProjectRootManager.getInstance(module.getProject()).getFileIndex();
