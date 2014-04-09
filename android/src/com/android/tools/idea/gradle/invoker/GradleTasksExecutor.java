@@ -109,7 +109,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private static final Logger LOG = Logger.getInstance(GradleInvoker.class);
 
-  @NonNls private static final String CONTENT_NAME = "Gradle tasks";
+  @NonNls private static final String CONTENT_NAME = "Gradle Build";
   @NonNls private static final String APP_ICON_ID = "compiler";
 
   private static final Key<Key<?>> CONTENT_ID_KEY = Key.create("CONTENT_ID");
