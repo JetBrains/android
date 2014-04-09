@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.SdkConstants;
-import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.project.ImportSourceKind;
+import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
@@ -42,22 +41,20 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import com.intellij.util.ui.UIUtil;
-import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -74,12 +71,7 @@ import java.util.Map;
  */
 public class AndroidImportProjectAction extends AnAction {
   @NonNls private static final String LAST_IMPORTED_LOCATION = "last.imported.location";
-  @NonNls private static final String ANDROID_NATURE_NAME = "com.android.ide.eclipse.adt.AndroidNature";
-
   private static final Logger LOG = Logger.getInstance(AndroidImportProjectAction.class);
-
-  @NonNls static final String ECLIPSE_CLASSPATH_FILE_NAME = ".classpath";
-  @NonNls static final String ECLIPSE_PROJECT_FILE_NAME = ".project";
 
   private static final String WIZARD_TITLE = "Select Gradle Project Import";
   private static final String WIZARD_DESCRIPTION = "Select build.gradle or settings.gradle";
@@ -160,54 +152,49 @@ public class AndroidImportProjectAction extends AnAction {
   @Nullable
   private static AddModuleWizard createImportWizard(@Nullable Project project, @NotNull VirtualFile file)
     throws IOException, ConfigurationException {
-    //noinspection TestOnlyProblems
-    VirtualFile target = findImportTarget(file);
-    if (target == null) {
-      return null;
-    }
-    List<ProjectImportProvider> available = Lists.newArrayList();
 
-    // Prioritize ADT importer
-    VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
-    File targetDirFile = VfsUtilCore.virtualToIoFile(targetDir);
-    if (GradleImport.isAdtProjectDir(targetDirFile)
-        && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null) {
-      importAdtProject(file, project);
-      return null;
-    }
-    if (GradleImport.isEclipseProjectDir(targetDirFile)
-        && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null) {
+    ImportSourceKind kind = ProjectImportUtil.getImportLocationKind(file);
+
+    switch (kind) {
+      case ADT:
+        importAdtProject(file, project);
+        break;
+      case ECLIPSE:
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           Messages.showErrorDialog(String.format(
-            "%1$s is an Eclipse project, but not an Android Eclipse project.\n\n" +
+            "%1$s is in an Eclipse project, but not an Android Eclipse project.\n\n" +
             "Please select the directory of an Android Eclipse project (which for example will contain\n" +
             "an AndroidManifest.xml file) and try again.",
-            targetDirFile.getPath()), "Import Project");
+            file.getPath()), "Import Project");
         }
-      return null;
-    }
-
-    if (GradleConstants.EXTENSION.equals(target.getExtension())) {
-      // Gradle file, we handle this ourselves.
-      if (project == null) {
+        break;
+      case GRADLE:
+        // Gradle file, we handle this ourselves.
         GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-        gradleImporter.importProject(file);
-      } else {
-        importGradleProjectAsModule(project, file);
-      }
-      return null;
+        if (project == null) {
+          gradleImporter.importProject(file);
+        } else {
+          importGradleProjectAsModule(project, file);
+        }
+        break;
+      case NOTHING:
+        // Nothing to import
+        break;
+      case OTHER:
+        return importWithExtensions(file, project);
+      default:
+        throw new IllegalArgumentException(kind.name());
     }
+    return null;
+  }
 
-    for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
-      if (provider.canImport(target, project)) {
-        available.add(provider);
-      }
-    }
+  @Nullable
+  private static AddModuleWizard importWithExtensions(@NotNull VirtualFile file, @Nullable Project project) {
+    List<ProjectImportProvider> available = getImportProvidersForTarget(file, project);
     if (available.isEmpty()) {
       Messages.showInfoMessage(project, "Cannot import anything from " + file.getPath(), "Cannot Import");
       return null;
     }
-
     String path;
     if (available.size() == 1) {
       path = available.get(0).getPathToBeImported(file);
@@ -220,71 +207,29 @@ public class AndroidImportProjectAction extends AnAction {
     return new AddModuleWizard(project, path, availableProviders);
   }
 
+  @NotNull
+  private static List<ProjectImportProvider> getImportProvidersForTarget(@NotNull VirtualFile file, @Nullable Project project) {
+    VirtualFile target = ProjectImportUtil.findImportTarget(file);
+    if (target == null) {
+      return Collections.emptyList();
+    }
+    else {
+      List<ProjectImportProvider> available = Lists.newArrayList();
+      for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
+        if (provider.canImport(target, project)) {
+          available.add(provider);
+        }
+      }
+      return available;
+    }
+  }
+
   private static void importGradleProjectAsModule(Project project, VirtualFile file)
       throws IOException, ConfigurationException {
     GradleProjectImporter importer = GradleProjectImporter.getInstance();
     Map<String, VirtualFile> projectsToImport = importer.getRelatedProjects(file, project);
     importer.importModules(projectsToImport, project, null);
   }
-
-  @VisibleForTesting
-  @Nullable
-  static VirtualFile findImportTarget(@NotNull VirtualFile file) {
-    if (file.isDirectory()) {
-      VirtualFile target = findMatchingChild(file, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_SETTINGS_GRADLE);
-      if (target != null) {
-        return target;
-      }
-      target = findMatchingChild(file, ECLIPSE_PROJECT_FILE_NAME);
-      if (target != null) {
-        return findImportTarget(target);
-      }
-    }
-    else {
-      if (ECLIPSE_PROJECT_FILE_NAME.equals(file.getName()) && hasAndroidNature(file)) {
-        return file;
-      }
-      if (ECLIPSE_CLASSPATH_FILE_NAME.equals(file.getName())) {
-        return findImportTarget(file.getParent());
-      }
-    }
-    return file;
-  }
-
-  @Nullable
-  private static VirtualFile findMatchingChild(@NotNull VirtualFile parent, @NotNull String... validNames) {
-    if (parent.isDirectory()) {
-      for (VirtualFile child : parent.getChildren()) {
-        for (String name : validNames) {
-          if (name.equals(child.getName())) {
-            return child;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  private static boolean hasAndroidNature(@NotNull VirtualFile projectFile) {
-    File dotProjectFile = new File(projectFile.getPath());
-    try {
-      Element naturesElement = JDOMUtil.loadDocument(dotProjectFile).getRootElement().getChild("natures");
-      if (naturesElement != null) {
-        List<Element> naturesList = naturesElement.getChildren("nature");
-        for (Element nature : naturesList) {
-          String natureName = nature.getText();
-          if (ANDROID_NATURE_NAME.equals(natureName)) {
-            return true;
-          }
-        }
-      }
-    }
-    catch (Exception e) {
-      LOG.info(String.format("Unable to get natures for Eclipse project file '%1$s", projectFile.getPath()), e);
-    }
-    return false;
-  }
-
 
   private static void importAdtProject(@NotNull VirtualFile file, @Nullable Project project) {
     AdtImportProvider adtImportProvider = new AdtImportProvider(project == null);
