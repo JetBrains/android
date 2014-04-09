@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates;
 
 import com.android.tools.idea.actions.NewAndroidComponentAction;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
@@ -24,16 +23,16 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 import com.google.common.io.Files;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -284,10 +283,6 @@ public class TemplateManager {
   }
 
   public void refreshDynamicTemplateMenu() {
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      return;
-    }
-
     if (myTopGroup == null) {
       myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
     } else {
@@ -298,7 +293,14 @@ public class TemplateManager {
       if (EXCLUDED_CATEGORIES.contains(category)) {
         continue;
       }
-      DefaultActionGroup categoryGroup = new DefaultActionGroup(category, true);
+      DefaultActionGroup categoryGroup = new DefaultActionGroup(category, true) {
+        @Override
+        public void update(AnActionEvent e) {
+          final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
+          final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+          e.getPresentation().setVisible(facet != null && facet.isGradleProject());
+        }
+      };
       categoryGroup.getTemplatePresentation().setIcon(AndroidIcons.Android);
       Map<String, File> categoryRow = myCategoryTable.row(category);
       for (String templateName : categoryRow.keySet()) {
