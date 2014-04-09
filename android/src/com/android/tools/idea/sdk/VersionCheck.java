@@ -96,7 +96,7 @@ public final class VersionCheck {
       }
     } catch (IOException e) {
       String msg = String.format("Failed to read file: '%1$s' for Android SDK at '%2$s'", SdkConstants.FN_SOURCE_PROP, sdkPath);
-      LOG.error(msg, e);
+      LOG.info(msg, e);
     } finally {
       Closeables.closeQuietly(reader);
     }
