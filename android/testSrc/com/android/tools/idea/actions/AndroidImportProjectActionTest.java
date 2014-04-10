@@ -74,7 +74,7 @@ public class AndroidImportProjectActionTest extends IdeaTestCase {
       String text = Joiner.on(SystemProperties.getLineSeparator()).join(contents);
       FileUtil.writeToFile(file, text);
     }
-    VirtualFile vFile = myProjectRootDir.getFileSystem().findFileByPath(file.getPath());
+    VirtualFile vFile = myProjectRootDir.getFileSystem().refreshAndFindFileByPath(file.getPath());
     assertNotNull(vFile);
     return vFile;
   }
