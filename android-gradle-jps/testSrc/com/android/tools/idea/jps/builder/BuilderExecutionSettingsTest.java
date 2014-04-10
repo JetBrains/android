@@ -85,6 +85,7 @@ public class BuilderExecutionSettingsTest extends TestCase {
 
     System.setProperty(USE_EMBEDDED_GRADLE_DAEMON, "true");
     System.setProperty(USE_GRADLE_VERBOSE_LOGGING, "true");
+    System.setProperty(GRADLE_CONFIGURATION_ON_DEMAND, "true");
 
     System.setProperty(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, "2");
     System.setProperty(GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX + 0, "--stacktrace");
@@ -115,15 +116,16 @@ public class BuilderExecutionSettingsTest extends TestCase {
     System.setProperty(MODULES_TO_BUILD_PROPERTY_PREFIX + 1, "lib");
 
     BuilderExecutionSettings settings = new BuilderExecutionSettings();
-    assertEquals(55, settings.getGradleDaemonMaxIdleTimeInMs());
+    assertEquals(55, settings.getMaxIdleTimeInMs());
     assertEquals(gradleHomeDirPath, pathOf(settings.getGradleHomeDir()));
     assertEquals(gradleHomeServicePath, pathOf(settings.getGradleServiceDir()));
     assertEquals(javaHomePath, pathOf(settings.getJavaHomeDir()));
     assertEquals(projectDirPath, settings.getProjectDir().getPath());
-    assertTrue(settings.isEmbeddedGradleDaemonEnabled());
+    assertTrue(settings.isEmbeddedModeEnabled());
     assertTrue(settings.isVerboseLoggingEnabled());
+    assertTrue(settings.isConfigureOnDemand());
 
-    List<String> vmOptions = settings.getGradleDaemonJvmOptions();
+    List<String> vmOptions = settings.getJvmOptions();
     assertEquals(4, vmOptions.size());
     assertTrue(vmOptions.contains(xmx));
     assertTrue(vmOptions.contains(maxPermSize));
@@ -135,7 +137,7 @@ public class BuilderExecutionSettingsTest extends TestCase {
     assertTrue(modulesToBuildNames.contains("main"));
     assertTrue(modulesToBuildNames.contains("lib"));
 
-    List<String> commandLineOptions = settings.getGradleDaemonCommandLineOptions();
+    List<String> commandLineOptions = settings.getCommandLineOptions();
     assertEquals(2, commandLineOptions.size());
     assertTrue(commandLineOptions.contains("--stacktrace"));
     assertTrue(commandLineOptions.contains("--offline"));
