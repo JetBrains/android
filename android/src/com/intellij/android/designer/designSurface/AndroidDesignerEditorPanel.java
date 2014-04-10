@@ -159,7 +159,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     myConfigListener = new LayoutConfigurationListener();
     initializeConfiguration();
 
-    mySessionQueue = ViewsMetaManager.getInstance(project).getSessionQueue();
+    mySessionQueue = new MergingUpdateQueue("android.designer", 10, true, null, editor, null, Alarm.ThreadToUse.OWN_THREAD);
     myXmlFile = (XmlFile)ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
       @Override
       @Nullable
@@ -441,7 +441,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       @Override
       public void run() {
         if (mySession == null) {
-          showProgress(mySessionId <= 1 ? "Initializing Rendering Library..." : "Rendering...");
+          showProgress(mySessionId <= 1 ? "Initializing Rendering Library..." : "Rendering... ");
         }
       }
     }, 500);
