@@ -136,6 +136,9 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
     // Indicate whether build is in "offline" mode.
     jvmArgs.add(createJvmArg(GRADLE_OFFLINE_BUILD_MODE, GradleSettings.getInstance(project).isOfflineWork()));
 
+    // Indicate whether "configuration on demand" is enabled.
+    jvmArgs.add(createJvmArg(GRADLE_CONFIGURATION_ON_DEMAND, buildConfiguration.USE_CONFIGURATION_ON_DEMAND));
+
     // Add command-line options.
     String[] commandLineOptions = buildConfiguration.getCommandLineOptions();
     jvmArgs.add(createJvmArg(GRADLE_DAEMON_COMMAND_LINE_OPTION_COUNT, commandLineOptions.length));
