@@ -78,20 +78,27 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
+    return getSdkData(sdkLocation, false);
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
     File canonicalLocation = new File(FileUtil.toCanonicalPath(sdkLocation.getPath()));
-    Iterator<SoftReference<AndroidSdkData>> it = mInstances.iterator();
-    while (it.hasNext()) {
-      AndroidSdkData sdkData = it.next().get();
-      // Lazily remove stale soft references
-      if (sdkData == null) {
-        it.remove();
-        continue;
-      }
-      if (FileUtil.filesEqual(sdkData.getLocation(), canonicalLocation)) {
-        return sdkData;
+
+    if (!forceReparse) {
+      Iterator<SoftReference<AndroidSdkData>> it = mInstances.iterator();
+      while (it.hasNext()) {
+        AndroidSdkData sdkData = it.next().get();
+        // Lazily remove stale soft references
+        if (sdkData == null) {
+          it.remove();
+          continue;
+        }
+        if (FileUtil.filesEqual(sdkData.getLocation(), canonicalLocation)) {
+          return sdkData;
+        }
       }
     }
-
     if (!DefaultSdks.validateAndroidSdkPath(canonicalLocation)) {
       return null;
     }
