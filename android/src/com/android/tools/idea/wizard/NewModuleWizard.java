@@ -34,10 +34,16 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
 public class NewModuleWizard extends TemplateWizard {
-  protected TemplateWizardModuleBuilder myModuleBuilder;
+  private final boolean myIsImportOnly;
+  protected ImportWizardModuleBuilder myModuleBuilder;
 
   public NewModuleWizard(@Nullable Project project) {
+    this(project, true);
+  }
+
+  public NewModuleWizard(@Nullable Project project, boolean isImportOnly) {
     super("New Module", project);
+    myIsImportOnly = isImportOnly;
     Window window = getWindow();
     // Allow creation in headless mode for tests
     if (window != null) {
@@ -59,17 +65,32 @@ public class NewModuleWizard extends TemplateWizard {
         haveGlobalRepository = contents.contains("repositories") && contents.contains(SdkConstants.GRADLE_PLUGIN_NAME);
       }
     }
-
-    myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
-                                                      mySteps, getDisposable(), false) {
-      @Override
-      public void update() {
-        super.update();
-        NewModuleWizard.this.update();
-      }
-    };
+    myModuleBuilder = getModuleBuilder();
     myModuleBuilder.setupModuleBuilder(haveGlobalRepository);
     super.init();
+  }
+
+  protected ImportWizardModuleBuilder getModuleBuilder() {
+    if (myIsImportOnly) {
+      return new TemplateWizardModuleBuilder(null, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
+                                             mySteps, getDisposable(), false) {
+        @Override
+        public void update() {
+          super.update();
+          NewModuleWizard.this.update();
+        }
+      };
+    }
+    else {
+      return new ImportWizardModuleBuilder(null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
+                                           mySteps, getDisposable(), false) {
+        @Override
+        public void update() {
+          super.update();
+          NewModuleWizard.this.update();
+        }
+      };
+    }
   }
 
   @Override
