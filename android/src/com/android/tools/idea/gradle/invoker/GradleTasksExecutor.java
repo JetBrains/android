@@ -95,6 +95,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
 
@@ -288,7 +289,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
         BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
-        List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath), buildMode);
+
+        List<String> jvmArgs = getGradleInvocationJvmArgs(new File(projectPath), buildMode);
+        LOG.info("Build JVM args: " + jvmArgs);
 
         String executingTasksText =
           "Executing tasks: " + myGradleTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
@@ -301,16 +304,21 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-          List<String> commandLineOptions = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
+          List<String> commandLineArgs = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
 
-          CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-          if (compilerConfiguration.PARALLEL_COMPILATION && !commandLineOptions.contains(PARALLEL_BUILD_OPTION)) {
-            LOG.info("Using 'parallel' build option");
-            commandLineOptions.add(PARALLEL_BUILD_OPTION);
+          if (buildConfiguration.USE_CONFIGURATION_ON_DEMAND && !commandLineArgs.contains(CONFIGURE_ON_DEMAND_OPTION)) {
+            commandLineArgs.add(CONFIGURE_ON_DEMAND_OPTION);
           }
 
+          if (!commandLineArgs.contains(PARALLEL_BUILD_OPTION) &&
+              CompilerWorkspaceConfiguration.getInstance(project).PARALLEL_COMPILATION) {
+            commandLineArgs.add(PARALLEL_BUILD_OPTION);
+          }
+
+          LOG.info("Build command line options: " + commandLineArgs);
+
           BuildLauncher launcher = connection.newBuild();
-          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, extraJvmArgs, commandLineOptions, connection);
+          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
 
           File javaHome = DefaultSdks.getDefaultJavaHome();
           if (javaHome != null) {
