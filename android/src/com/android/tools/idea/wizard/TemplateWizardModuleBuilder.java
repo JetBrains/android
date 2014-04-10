@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,52 +15,30 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.Template;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.SettingsStep;
-import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.StdModuleTypes;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdkType;
-import com.intellij.openapi.projectRoots.SdkTypeId;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.ArrayUtil;
 import icons.AndroidIcons;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
-public class TemplateWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
-  private static final Logger LOG = Logger.getInstance("#" + TemplateWizardModuleBuilder.class.getName());
-
+/*
+ * Builder that also supports creating Android modules
+ */
+public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   protected static final String PROJECT_NAME = "Android Project";
   protected static final String MODULE_NAME = "Android Module";
   protected static final String APP_TEMPLATE_NAME = "Android Application";
@@ -68,109 +46,39 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
 
   protected static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of(MODULE_NAME, PROJECT_NAME);
 
-  private final TemplateMetadata myMetadata;
-  @NotNull private final List<ModuleWizardStep> mySteps;
-  @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
-  private final NewAndroidModulePath myNewAndroidModulePath;
-  @Nullable private Project myProject;
-  @NotNull private final WizardPath[] paths;
-
-  NewModuleWizardState myWizardState;
+  @Nullable private final TemplateMetadata myMetadata;
+  private NewAndroidModulePath myNewAndroidModulePath;
   private TemplateParameterStep myTemplateParameterStep;
-  boolean myInitializationComplete = false;
 
-  public TemplateWizardModuleBuilder(@Nullable File templateFile,
+  public TemplateWizardModuleBuilder(@Nullable File templateLocation,
                                      @Nullable TemplateMetadata metadata,
                                      @Nullable Project project,
                                      @Nullable Icon sidePanelIcon,
                                      @NotNull List<ModuleWizardStep> steps,
                                      @NotNull Disposable disposable,
                                      boolean hideModuleName) {
+    super(templateLocation, project, sidePanelIcon, steps, disposable, hideModuleName);
+    myWizardState.myIsModuleImport = false;
     myMetadata = metadata;
-    myProject = project;
-    mySteps = steps;
+  }
 
-    if (project == null) {
-      myWizardState = new NewProjectWizardState() {
-        @Override
-        public void setTemplateLocation(@NotNull File file) {
-          super.setTemplateLocation(file);
-          update();
-        }
-      };
-    }
-    else {
-      myWizardState = new NewModuleWizardState() {
-        @Override
-        public void setTemplateLocation(@NotNull File file) {
-          super.setTemplateLocation(file);
-          update();
-        }
-      };
-    }
-    myWizardState.put(ATTR_IS_LAUNCHER, project == null);
-    myWizardState.updateParameters();
-
-    if (templateFile != null) {
-      myWizardState.setTemplateLocation(templateFile);
-    }
-    if (hideModuleName) {
-      myWizardState.myHidden.add(ATTR_MODULE_NAME);
-    }
-
-    Template.convertApisToInt(myWizardState.getParameters());
-
-    myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, null, sidePanelIcon, this);
+  @Override
+  protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
+    WizardPath[] paths = super.setupWizardPaths(project, sidePanelIcon, disposable);
     myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
-    ImportSourceModulePath importSourcesPath =
-      new ImportSourceModulePath(myWizardState, new WizardContext(project), disposable, this);
-
-    paths = new WizardPath[] {importSourcesPath, myNewAndroidModulePath};
-
-    addSteps(importSourcesPath);
+    myTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, this);
     mySteps.add(new ChooseAndroidAndJavaSdkStep());
     mySteps.add(myTemplateParameterStep);
+
+    mySteps.add(0, buildChooseModuleStep(project));
     addSteps(myNewAndroidModulePath);
-
-    if (project != null) {
-      myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-    }
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
-    update();
-
-    myInitializationComplete = true;
+    return ArrayUtil.append(paths, myNewAndroidModulePath);
   }
 
-  private void addSteps(WizardPath path) {
-    Collection<ModuleWizardStep> steps = path.getSteps();
-    mySteps.addAll(steps);
-    myStepsToPath.putAll(Maps.toMap(steps, Functions.constant(path)));
-  }
-
-  public boolean isStepVisible(ModuleWizardStep step) {
-    WizardPath path = myStepsToPath.get(step);
-    return path == null ? step.isStepVisible() : path.isStepVisible(step);
-  }
-
-  public boolean updateWizardSteps() {
-    if (!myInitializationComplete) {
-      return false;
-    }
-    myTemplateParameterStep.setVisible(!myWizardState.myIsAndroidModule);
-    for (WizardPath path : paths) {
-      path.update();
-    }
-    return true;
-  }
-
-  public void setupModuleBuilder(boolean haveGlobalRepository) {
-    // Hide the library checkbox
-    myWizardState.myHidden.add(ATTR_IS_LIBRARY_MODULE);
-
-    myWizardState.put(ATTR_PER_MODULE_REPOS, !haveGlobalRepository);
-
-    mySteps.add(0, buildChooseModuleStep(myProject));
+  @Override
+  public void templateChanged(String templateName) {
+    myNewAndroidModulePath.templateChanged();
+    super.templateChanged(templateName);
   }
 
   @Nullable
@@ -181,125 +89,27 @@ public class TemplateWizardModuleBuilder extends ModuleBuilder implements Templa
   }
 
   @Override
-  @NotNull
-  public ModuleWizardStep[] createWizardSteps(@NotNull WizardContext wizardContext, @NotNull ModulesProvider modulesProvider) {
-    update();
-    return mySteps.toArray(new ModuleWizardStep[mySteps.size()]);
-  }
-
-  @Nullable
-  @Override
-  public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
-    return null;
-  }
-
-  @Override
-  public void update() {
-    if (!myInitializationComplete) {
-      return;
-    }
-    updateWizardSteps();
-  }
-
-  @Override
-  public void setupRootModel(final @NotNull ModifiableRootModel rootModel) throws ConfigurationException {
-    final Project project = rootModel.getProject();
-
-    // in IntelliJ wizard user is able to choose SDK (i.e. for "java library" module), so set it
-    if (myJdk != null){
-      rootModel.setSdk(myJdk);
-    } else {
-      rootModel.inheritSdk();
-    }
-    if (myProject == null) {
-      project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
-    }
-    StartupManager.getInstance(project).runWhenProjectIsInitialized(new DumbAwareRunnable() {
-        @Override
-        public void run() {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
-                @Override
-                public void run() {
-                  if (myProject == null) {
-                    myWizardState.putSdkDependentParams();
-                    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-                    AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
-                    NewProjectWizard.createProject(myWizardState, project, assetGenerator);
-                  }
-                  else {
-                    createModule();
-                  }
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-
-  @Override
-  @NotNull
-  public ModuleType getModuleType() {
-    return StdModuleTypes.JAVA;
-  }
-
-  @Override
-  public Icon getBigIcon() {
-    return AndroidIcons.Android24;
-  }
-
-  @Override
-  public Icon getNodeIcon() {
-    return AndroidIcons.Android;
-  }
-
-  @Override
   public void setName(@NotNull String name) {
     super.setName(name);
     myNewAndroidModulePath.setName(name);
   }
 
-  public void createModule() {
-    createModule(true);
-  }
-
-  /**
-   * Inflate the chosen template to create the module.
-   * @param performGradleSync if set to true, a sync will be triggered after the template has been created.
-   */
-  public void createModule(boolean performGradleSync) {
-    for (WizardPath path : paths) {
-      path.createModule();
-    }
-    if (performGradleSync && myProject != null) {
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-    }
-  }
-
   @Override
-  public boolean isSuitableSdkType(SdkTypeId sdkType) {
-    return myWizardState.myIsAndroidModule
-           ? AndroidSdkType.getInstance().equals(sdkType)
-           : sdkType instanceof JavaSdkType;
-  }
-
-  @Override
-  public void templateChanged(String templateName) {
-    myNewAndroidModulePath.templateChanged();
-    myWizardState.templateChanged(myProject, templateName);
-    // Let the other elements of the wizard update
-    for (ModuleWizardStep step : mySteps) {
-      step.updateStep();
+  public boolean updateWizardSteps() {
+    if (super.updateWizardSteps()) {
+      myTemplateParameterStep.setVisible(!myWizardState.myIsAndroidModule);
+      return true;
+    }
+    else {
+      return false;
     }
   }
 
   /**
    * Create a template chooser step populated with the correct templates for the new modules.
    */
-  ChooseTemplateStep buildChooseModuleStep(@Nullable Project project) {
+  @VisibleForTesting
+  protected ChooseTemplateStep buildChooseModuleStep(@Nullable Project project) {
     // We're going to build up our own list of templates here
     // This is a little hacky, we should clean this up later.
     ChooseTemplateStep chooseModuleStep =
