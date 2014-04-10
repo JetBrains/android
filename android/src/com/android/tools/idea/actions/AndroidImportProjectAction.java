@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.ImportSourceKind;
 import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.google.common.collect.Lists;
-import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
@@ -29,7 +27,6 @@ import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.StorageScheme;
 import com.intellij.openapi.diagnostic.Logger;
@@ -43,7 +40,6 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import com.intellij.util.ui.UIUtil;
@@ -56,7 +52,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Imports a new project into Android Studio.
@@ -76,18 +71,14 @@ public class AndroidImportProjectAction extends AnAction {
   private static final String WIZARD_TITLE = "Select Gradle Project Import";
   private static final String WIZARD_DESCRIPTION = "Select build.gradle or settings.gradle";
 
-  private final boolean myIsProjectImport;
-
-  public AndroidImportProjectAction(boolean isProjectImport) {
-    super(isProjectImport ? "Import Project..." : "Import Module...");
-    this.myIsProjectImport = isProjectImport;
+  public AndroidImportProjectAction() {
+    super("Import Project...");
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = !myIsProjectImport ? getEventProject(e) : null;
     try {
-      AddModuleWizard wizard = selectFileAndCreateWizard(project);
+      AddModuleWizard wizard = selectFileAndCreateWizard();
       if (wizard != null) {
         if (wizard.getStepCount() > 0) {
           if (!wizard.showAndGet()) {
@@ -99,22 +90,21 @@ public class AndroidImportProjectAction extends AnAction {
       }
     }
     catch (IOException exception) {
-      handleImportException(project, exception);
+      handleImportException(e.getProject(), exception);
     }
     catch (ConfigurationException exception) {
-      handleImportException(project, exception);
+      handleImportException(e.getProject(), exception);
     }
   }
 
   private void handleImportException(@Nullable Project project, @NotNull Exception e1) {
-    String projectOrModule = myIsProjectImport ? "Project" : "Module";
-    String message = String.format("%s import failed: %s", projectOrModule, e1.getMessage());
-    Messages.showErrorDialog(project, message, String.format("Import %s", projectOrModule));
+    String message = String.format("Project import failed: %s", e1.getMessage());
+    Messages.showErrorDialog(project, message, "Import Project");
     LOG.error(e1);
   }
 
   @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project) throws IOException, ConfigurationException {
+  private static AddModuleWizard selectFileAndCreateWizard() throws IOException, ConfigurationException {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false) {
       FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
 
@@ -126,13 +116,12 @@ public class AndroidImportProjectAction extends AnAction {
     };
     descriptor.setHideIgnored(false);
     descriptor.setTitle(WIZARD_TITLE);
-    String description = project == null ? WIZARD_DESCRIPTION : ImportModuleAction.getFileChooserDescription(project);
-    descriptor.setDescription(description);
-    return selectFileAndCreateWizard(project, descriptor);
+    descriptor.setDescription(WIZARD_DESCRIPTION);
+    return selectFileAndCreateWizard(descriptor);
   }
 
   @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project, @NotNull FileChooserDescriptor descriptor)
+  private static AddModuleWizard selectFileAndCreateWizard(@NotNull FileChooserDescriptor descriptor)
       throws IOException, ConfigurationException {
     FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null);
     VirtualFile toSelect = null;
@@ -146,18 +135,18 @@ public class AndroidImportProjectAction extends AnAction {
     }
     VirtualFile file = files[0];
     PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, file.getPath());
-    return createImportWizard(project, file);
+    return createImportWizard(file);
   }
 
   @Nullable
-  private static AddModuleWizard createImportWizard(@Nullable Project project, @NotNull VirtualFile file)
+  private static AddModuleWizard createImportWizard(@NotNull VirtualFile file)
     throws IOException, ConfigurationException {
 
     ImportSourceKind kind = ProjectImportUtil.getImportLocationKind(file);
 
     switch (kind) {
       case ADT:
-        importAdtProject(file, project);
+        importAdtProject(file);
         break;
       case ECLIPSE:
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -171,17 +160,13 @@ public class AndroidImportProjectAction extends AnAction {
       case GRADLE:
         // Gradle file, we handle this ourselves.
         GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-        if (project == null) {
-          gradleImporter.importProject(file);
-        } else {
-          importGradleProjectAsModule(project, file);
-        }
+        gradleImporter.importProject(file);
         break;
       case NOTHING:
         // Nothing to import
         break;
       case OTHER:
-        return importWithExtensions(file, project);
+        return importWithExtensions(file);
       default:
         throw new IllegalArgumentException(kind.name());
     }
@@ -189,10 +174,10 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private static AddModuleWizard importWithExtensions(@NotNull VirtualFile file, @Nullable Project project) {
-    List<ProjectImportProvider> available = getImportProvidersForTarget(file, project);
+  private static AddModuleWizard importWithExtensions(@NotNull VirtualFile file) {
+    List<ProjectImportProvider> available = getImportProvidersForTarget(file);
     if (available.isEmpty()) {
-      Messages.showInfoMessage(project, "Cannot import anything from " + file.getPath(), "Cannot Import");
+      Messages.showInfoMessage((Project) null, "Cannot import anything from " + file.getPath(), "Cannot Import");
       return null;
     }
     String path;
@@ -204,11 +189,11 @@ public class AndroidImportProjectAction extends AnAction {
     }
 
     ProjectImportProvider[] availableProviders = available.toArray(new ProjectImportProvider[available.size()]);
-    return new AddModuleWizard(project, path, availableProviders);
+    return new AddModuleWizard(null, path, availableProviders);
   }
 
   @NotNull
-  private static List<ProjectImportProvider> getImportProvidersForTarget(@NotNull VirtualFile file, @Nullable Project project) {
+  private static List<ProjectImportProvider> getImportProvidersForTarget(@NotNull VirtualFile file) {
     VirtualFile target = ProjectImportUtil.findImportTarget(file);
     if (target == null) {
       return Collections.emptyList();
@@ -216,7 +201,7 @@ public class AndroidImportProjectAction extends AnAction {
     else {
       List<ProjectImportProvider> available = Lists.newArrayList();
       for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
-        if (provider.canImport(target, project)) {
+        if (provider.canImport(target, null)) {
           available.add(provider);
         }
       }
@@ -224,22 +209,12 @@ public class AndroidImportProjectAction extends AnAction {
     }
   }
 
-  private static void importGradleProjectAsModule(Project project, VirtualFile file)
-      throws IOException, ConfigurationException {
-    GradleProjectImporter importer = GradleProjectImporter.getInstance();
-    Map<String, VirtualFile> projectsToImport = importer.getRelatedProjects(file, project);
-    importer.importModules(projectsToImport, project, null);
-  }
-
-  private static void importAdtProject(@NotNull VirtualFile file, @Nullable Project project) {
-    AdtImportProvider adtImportProvider = new AdtImportProvider(project == null);
-    if (project != null) {
-      ((AdtImportBuilder)adtImportProvider.getBuilder()).setSelectedProject(VfsUtilCore.virtualToIoFile(file));
-    }
-    AddModuleWizard wizard = new AddModuleWizard(project, ProjectImportProvider.getDefaultPath(file), adtImportProvider);
+  private static void importAdtProject(@NotNull VirtualFile file) {
+    AdtImportProvider adtImportProvider = new AdtImportProvider(true);
+    AddModuleWizard wizard = new AddModuleWizard(null, ProjectImportProvider.getDefaultPath(file), adtImportProvider);
     if (wizard.showAndGet()) {
       try {
-        doCreate(wizard, project);
+        doCreate(wizard);
       }
       catch (final IOException e) {
         UIUtil.invokeLaterIfNeeded(new Runnable() {
@@ -252,7 +227,7 @@ public class AndroidImportProjectAction extends AnAction {
     }
   }
 
-  private static void doCreate(@NotNull AddModuleWizard wizard, @Nullable Project project) throws IOException {
+  private static void doCreate(@NotNull AddModuleWizard wizard) throws IOException {
     // TODO: Now we need to add as module if file does not exist
     ProjectBuilder projectBuilder = wizard.getProjectBuilder();
 
@@ -268,15 +243,13 @@ public class AndroidImportProjectAction extends AnAction {
       }
 
       boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
+      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+      Project project = projectManager.newProject(wizard.getProjectName(), projectDirPath.getPath(), true, false);
       if (project == null) {
-        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-        project = projectManager.newProject(wizard.getProjectName(), projectDirPath.getPath(), true, false);
-        if (project == null) {
-          return;
-        }
-        if (!unitTestMode) {
-          project.save();
-        }
+        return;
+      }
+      if (!unitTestMode) {
+        project.save();
       }
       if (projectBuilder != null) {
         if (!projectBuilder.validate(null, project)) {
@@ -293,11 +266,5 @@ public class AndroidImportProjectAction extends AnAction {
         projectBuilder.cleanup();
       }
     }
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    Presentation presentation = e.getPresentation();
-    presentation.setEnabled(myIsProjectImport || getEventProject(e) != null);
   }
 }
