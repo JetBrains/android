@@ -39,7 +39,7 @@ import java.util.Set;
 public class NewModuleWizardTest extends AndroidTestCase {
   public void testTemplateChanged() throws Exception {
     NewModuleWizard wizard = new NewModuleWizard(myModule.getProject());
-    TemplateWizardModuleBuilder moduleBuilder = wizard.myModuleBuilder;
+    TemplateWizardModuleBuilder moduleBuilder = (TemplateWizardModuleBuilder)wizard.myModuleBuilder;
 
     moduleBuilder.templateChanged(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME);
     assertTrue(moduleBuilder.myWizardState.getBoolean(TemplateMetadata.ATTR_IS_LIBRARY_MODULE));
