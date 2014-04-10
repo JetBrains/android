@@ -232,6 +232,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   private static void setupSdks() {
     Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
+      String androidHome = sdk.getHomePath();
+      assert androidHome != null;
+      DefaultSdks.createAndroidSdksForAllTargets(new File(FileUtil.toSystemDependentName(androidHome)));
       return;
     }
     // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
