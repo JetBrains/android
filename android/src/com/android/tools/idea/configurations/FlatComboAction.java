@@ -161,7 +161,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
               @Override
               public void run() {
                 final Icon icon = getIcon();
-                if (icon != null) {
+                if (icon != null && isShowing()) {
                   Point location = MouseInfo.getPointerInfo().getLocation();
                   Point current = getLocationOnScreen();
                   int x = location.x - current.x;
@@ -281,7 +281,8 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
     }
 
     protected DataContext getDataContext() {
-      return myDataContext == null ? DataManager.getInstance().getDataContext(this) : myDataContext;
+      return myDataContext == null || PlatformDataKeys.CONTEXT_COMPONENT.getData(myDataContext) == null
+             ? DataManager.getInstance().getDataContext(this) : myDataContext;
     }
 
     @Override
