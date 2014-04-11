@@ -35,15 +35,12 @@ import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -74,8 +71,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService implements IImageFactory {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
-
   @NotNull
   private final Module myModule;
 
@@ -992,16 +987,5 @@ public class RenderService implements IImageFactory {
      */
     @Nullable
     String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
-  }
-
-  @Nullable
-  public static PsiFile getPsiFileSafely(final Project project, final VirtualFile file) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-      @Nullable
-      @Override
-      public PsiFile compute() {
-        return file.isValid() ? PsiManager.getInstance(project).findFile(file) : null;
-      }
-    });
   }
 }
