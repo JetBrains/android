@@ -169,6 +169,8 @@ public class OrientationMenuAction extends FlatComboAction {
 
     public void perform() {
       tryUpdateConfiguration();
+      updatePresentation();
+      myRenderContext.requestRender();
     }
 
     @Override

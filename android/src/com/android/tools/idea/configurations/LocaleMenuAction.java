@@ -280,8 +280,8 @@ public class LocaleMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void pickedBetterMatch(@NotNull VirtualFile file) {
-      super.pickedBetterMatch(file);
+    protected void pickedBetterMatch(@NotNull VirtualFile file, @NotNull VirtualFile old) {
+      super.pickedBetterMatch(file, old);
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched
