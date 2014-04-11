@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,12 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class AsyncValidatorTest extends TestCase {
   private static final int TIMEOUT = 1000; // ms
-  private final Disposable parentDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-        // Nothing
-      }
-    };
+  private Disposable parentDisposable = Disposer.newDisposable();
 
   @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
   private static void assertResult(Integer[] val, Integer expected) throws InterruptedException {
@@ -101,5 +97,11 @@ public final class AsyncValidatorTest extends TestCase {
       Thread.sleep(2);
     }
     assertResult(output, EXPECTED_RESULT); // Validation happens after loop exit - hence, 100 and not 99 which is in-loop max
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    Disposer.dispose(parentDisposable);
+    super.tearDown();
   }
 }
