@@ -95,7 +95,7 @@ public class LayoutFilePullParser extends KXmlParser implements ILayoutPullParse
     }
 
     // Store tools attributes if this looks like a layout we'll need adapter view
-    // bindings for in the ProjectCallback.
+    // bindings for in the LayoutlibCallback.
     if (LIST_VIEW.equals(name) || EXPANDABLE_LIST_VIEW.equals(name) || GRID_VIEW.equals(name) || SPINNER.equals(name)) {
       Map<String, String> map = null;
       int count = getAttributeCount();
