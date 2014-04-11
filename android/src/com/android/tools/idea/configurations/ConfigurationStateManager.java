@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * Persistent state management for configurations.
  * <p>
- * A configuration consists of some per-layout properties (such as the device, orientation
+ * A configuration consists of some per-layout properties (such as orientation
  * and theme) and some project-wide properties (such as the locale or rendering target).
  * The {@linkplain ConfigurationStateManager} is responsible for papering over these
  * differences and providing persistence for configuration changes.
