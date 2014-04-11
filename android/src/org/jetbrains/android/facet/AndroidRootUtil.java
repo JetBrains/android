@@ -18,6 +18,7 @@ package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
 import com.android.builder.model.Variant;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
@@ -28,12 +29,10 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidDexCompiler;
@@ -443,13 +442,7 @@ public class AndroidRootUtil {
     for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
       final VirtualFile vFile = contentRoot.findChild(propertyFileName);
       if (vFile != null) {
-        final PsiFile psiFile = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-          @Nullable
-          @Override
-          public PsiFile compute() {
-            return PsiManager.getInstance(module.getProject()).findFile(vFile);
-          }
-        });
+        final PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(module.getProject(), vFile);
         if (psiFile instanceof PropertiesFile) {
           return Pair.create((PropertiesFile)psiFile, vFile);
         }
