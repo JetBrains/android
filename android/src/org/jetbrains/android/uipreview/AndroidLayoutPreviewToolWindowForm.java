@@ -228,6 +228,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public void requestRender() {
     if (myFile != null) {
       myToolWindowManager.render();
+      myToolWindowManager.flush();
       myPreviewPanel.update();
     }
   }
