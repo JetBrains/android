@@ -18,9 +18,14 @@ package com.android.tools.idea.configurations;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.Locale;
+import com.intellij.util.xmlb.annotations.AbstractCollection;
+import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Per project state for layouts */
 @SuppressWarnings("UnusedDeclaration") // Getters called by XML serialization reflection
@@ -29,6 +34,20 @@ public class ConfigurationProjectState {
   @Nullable private String myLocale;
   @Nullable private String myTarget;
   private boolean myPickTarget = true;
+  /** List (in MRU order) of device IDs manually chosen */
+  @NotNull private List<String> myDeviceIds = new ArrayList<String>();
+
+  @NotNull
+  @Property(surroundWithTag = false)
+  @Tag("devices")
+  @AbstractCollection(surroundWithTag = false, elementTag = "device", elementValueAttribute = "id")
+  public List<String> getDeviceIds() {
+    return myDeviceIds;
+  }
+
+  public void setDeviceIds(@NotNull List<String> deviceIds) {
+    myDeviceIds = deviceIds;
+  }
 
   @Tag("locale")
   @Nullable
