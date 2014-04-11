@@ -17,10 +17,13 @@
 package com.android.tools.idea;
 
 import com.android.resources.ResourceType;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +31,63 @@ import static com.android.SdkConstants.ANDROID_PKG;
 import static com.android.SdkConstants.R_CLASS;
 
 public class AndroidPsiUtils {
+  /**
+   * Looks up the {@link PsiFile} for a given {@link VirtualFile} in a given {@link Project}, in
+   * a safe way (meaning it will acquire a read lock first, and will check that the file is valid
+   *
+   * @param project the project
+   * @param file the file
+   * @return the corresponding {@link PsiFile}, or null if not found or valid
+   */
+  @Nullable
+  public static PsiFile getPsiFileSafely(@NotNull final Project project, @NotNull final VirtualFile file) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
+      @Nullable
+      @Override
+      public PsiFile compute() {
+        return file.isValid() ? PsiManager.getInstance(project).findFile(file) : null;
+      }
+    });
+  }
+
+  /**
+   * Looks up the {@link Module} for a given {@link PsiElement}, in a safe way (meaning it will
+   * acquire a read lock first.
+   *
+   * @param element the element
+   * @return the module containing the element, or null if not found
+   */
+  @Nullable
+  public static Module getModuleSafely(@NotNull final PsiElement element) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
+      @Nullable
+      @Override
+      public Module compute() {
+        return ModuleUtilCore.findModuleForPsiElement(element);
+      }
+    });
+  }
+
+  /**
+   * Looks up the {@link Module} containing a given {@link VirtualFile} in a given {@link Project}, in
+   * a safe way (meaning it will acquire a read lock first
+   *
+   * @param project the project
+   * @param file the file
+   * @return the corresponding {@link Module}, or null if not found
+   */
+  @Nullable
+  public static Module getModuleSafely(@NotNull final Project project, @NotNull final VirtualFile file) {
+    return ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
+      @Nullable
+      @Override
+      public Module compute() {
+        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+        return psiFile == null ? null : ModuleUtilCore.findModuleForPsiElement(psiFile);
+      }
+    });
+  }
+
   /** Type of resource reference: R.type.name or android.R.type.name or neither */
   public enum ResourceReferenceType { NONE, APP, FRAMEWORK }
 
