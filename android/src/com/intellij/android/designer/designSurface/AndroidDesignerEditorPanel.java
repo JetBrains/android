@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationToolBar;
@@ -53,7 +54,6 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -62,8 +62,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.Alarm;
@@ -160,13 +158,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     initializeConfiguration();
 
     mySessionQueue = new MergingUpdateQueue("android.designer", 10, true, null, editor, null, Alarm.ThreadToUse.OWN_THREAD);
-    myXmlFile = (XmlFile)ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-      @Override
-      @Nullable
-      public PsiFile compute() {
-        return PsiManager.getInstance(getProject()).findFile(myFile);
-      }
-    });
+    myXmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
     myPsiChangeListener = new ExternalPSIChangeListener(this, myXmlFile, 100, new Runnable() {
       @Override
       public void run() {
@@ -813,13 +805,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   protected Module findModule(Project project, VirtualFile file) {
     Module module = super.findModule(project, file);
     if (module == null) {
-      module = ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
-        @Nullable
-        @Override
-        public Module compute() {
-          return ModuleUtilCore.findModuleForPsiElement(myXmlFile);
-        }
-      });
+      module = AndroidPsiUtils.getModuleSafely(myXmlFile);
     }
     return module;
   }
