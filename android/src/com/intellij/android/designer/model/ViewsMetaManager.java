@@ -24,8 +24,6 @@ import com.intellij.designer.model.VariationPaletteItem;
 import com.intellij.designer.palette.PaletteItem;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.Alarm;
-import com.intellij.util.ui.update.MergingUpdateQueue;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,15 +34,8 @@ import java.util.Map;
  * @author Alexander Lobas
  */
 public class ViewsMetaManager extends MetaManager {
-  private final MergingUpdateQueue mySessionQueue;
-
   public ViewsMetaManager(Project project) {
     super(project, "views-meta-model.xml");
-    mySessionQueue = new MergingUpdateQueue("android.designer", 10, true, null, project, null, Alarm.ThreadToUse.OWN_THREAD);
-  }
-
-  public MergingUpdateQueue getSessionQueue() {
-    return mySessionQueue;
   }
 
   public static ViewsMetaManager getInstance(Project project) {
