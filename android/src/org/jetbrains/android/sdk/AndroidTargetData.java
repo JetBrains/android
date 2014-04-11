@@ -21,18 +21,17 @@ import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.resources.FrameworkResources;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -170,13 +169,7 @@ public class AndroidTargetData {
     for (int i = 0; i < paths.length; i++) {
       String path = paths[i];
       final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-      PsiFile psiFile = file != null ? ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-        @Override
-        @Nullable
-        public PsiFile compute() {
-          return PsiManager.getInstance(project).findFile(file);
-        }
-      }) : null;
+      PsiFile psiFile = file != null ? AndroidPsiUtils.getPsiFileSafely(project, file) : null;
       if (psiFile == null) {
         LOG.info("File " + path + " is not found");
         return null;
