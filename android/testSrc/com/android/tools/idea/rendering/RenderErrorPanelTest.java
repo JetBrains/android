@@ -238,7 +238,7 @@ public class RenderErrorPanelTest extends AndroidTestCase {
           "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:513)\n" +
           "\tat org.jetbrains.android.uipreview.ViewLoader.createNewInstance(ViewLoader.java:365)\n" +
           "\tat org.jetbrains.android.uipreview.ViewLoader.loadView(ViewLoader.java:97)\n" +
-          "\tat com.android.tools.idea.rendering.ProjectCallback.loadView(ProjectCallback.java:121)\n" +
+          "\tat com.android.tools.idea.rendering.LayoutlibCallback.loadView(LayoutlibCallback.java:121)\n" +
           "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:207)\n" +
           "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:135)\n" +
           "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:755)\n" +
