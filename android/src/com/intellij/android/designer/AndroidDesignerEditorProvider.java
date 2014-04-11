@@ -31,12 +31,13 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.rendering.RenderedPanel.ANDROID_DESIGNER_ID;
-
 /**
  * @author Alexander Lobas
  */
 public final class AndroidDesignerEditorProvider implements FileEditorProvider, DumbAware {
+  /** FileEditorProvider ID for the layout editor */
+  public static final String ANDROID_DESIGNER_ID = "android-designer";
+
   public static boolean acceptLayout(final @NotNull Project project, final @NotNull VirtualFile file) {
     PsiFile psiFile = RenderService.getPsiFileSafely(project, file);
     return psiFile instanceof XmlFile &&
