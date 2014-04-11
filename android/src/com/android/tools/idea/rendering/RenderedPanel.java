@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.SessionParams;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -55,8 +56,6 @@ public class RenderedPanel extends JPanel implements Disposable {
   public static final Color SELECTION_BORDER_COLOR = new Color(0x00, 0x99, 0xFF, 255);
   @SuppressWarnings("UseJBColor")
   public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
-  /** FileEditorProvider ID for the layout editor */
-  public static final String ANDROID_DESIGNER_ID = "android-designer";
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
 
   protected RenderResult myRenderResult;
@@ -133,7 +132,7 @@ public class RenderedPanel extends JPanel implements Disposable {
           VirtualFile file = myRenderResult.getFile().getVirtualFile();
           if (file != null) {
             Project project = myRenderResult.getModule().getProject();
-            FileEditorManager.getInstance(project).setSelectedEditor(file, ANDROID_DESIGNER_ID);
+            FileEditorManager.getInstance(project).setSelectedEditor(file, AndroidDesignerEditorProvider.ANDROID_DESIGNER_ID);
           }
         }
       }, ModalityState.NON_MODAL);
