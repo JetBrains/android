@@ -66,13 +66,19 @@ public class LocaleMenuAction extends FlatComboAction {
     List<Locale> locales = getRelevantLocales();
 
     Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration != null && configuration.getEditedConfig().getLanguageQualifier() == null && locales.size() > 0) {
+    if (configuration != null && locales.size() > 0) {
       group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
       group.addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
         String title = getLocaleLabel(locale, false);
+
+        VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
+        if (better != null) {
+          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
+        }
+
         group.add(new SetLocaleAction(myRenderContext, title, locale));
       }
 
@@ -271,8 +277,8 @@ public class LocaleMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
-      if (configuration == myRenderContext.getConfiguration()) {
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      if (commit) {
         setProjectWideLocale();
       } else {
         configuration.setLocale(myLocale);

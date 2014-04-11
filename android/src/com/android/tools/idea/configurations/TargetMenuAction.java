@@ -183,8 +183,8 @@ public class TargetMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
-      if (configuration == myRenderContext.getConfiguration()) {
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      if (commit) {
         setProjectWideTarget();
       } else {
         configuration.setTarget(myTarget);
