@@ -60,14 +60,14 @@ public class ConfigurationStateManagerTest extends AndroidTestCase {
     ConfigurationFileState configState1 = new ConfigurationFileState();
     project.getProjectFilePath();
     configState1.setTheme("@style/Theme.Holo.Light");
-    configState1.setDevice("myDevice1");
+    configState1.setDeviceState("port");
     manager.setConfigurationState(file, configState1);
 
     ConfigurationStateManager.State state1 = manager.getState();
 
     ConfigurationFileState configState2 = new ConfigurationFileState();
     configState2.setTheme("@style/Theme.Dialog");
-    configState2.setDevice("myDevice2");
+    configState2.setDeviceState("land");
     manager.setConfigurationState(file, configState2);
 
     ConfigurationStateManager.State state2 = manager.getState();
@@ -75,14 +75,14 @@ public class ConfigurationStateManagerTest extends AndroidTestCase {
     ConfigurationFileState retrievedState1 = manager.getConfigurationState(file);
     assertNotNull(retrievedState1);
     assertEquals("@style/Theme.Dialog", retrievedState1.getTheme());
-    assertEquals("myDevice2", retrievedState1.getDevice());
+    assertEquals("land", retrievedState1.getDeviceState());
 
     manager.loadState(state1);
 
     ConfigurationFileState retrievedState2 = manager.getConfigurationState(file);
     assertNotNull(retrievedState2);
     assertEquals("@style/Theme.Holo.Light", retrievedState2.getTheme());
-    assertEquals("myDevice1", retrievedState2.getDevice());
+    assertEquals("port", retrievedState2.getDeviceState());
 
     assertNotSame(retrievedState1, configState1);
 
@@ -91,6 +91,6 @@ public class ConfigurationStateManagerTest extends AndroidTestCase {
     ConfigurationFileState retrievedState3 = manager.getConfigurationState(file);
     assertNotNull(retrievedState3);
     assertEquals("@style/Theme.Dialog", retrievedState3.getTheme());
-    assertEquals("myDevice2", retrievedState3.getDevice());
+    assertEquals("land", retrievedState3.getDeviceState());
   }
 }
