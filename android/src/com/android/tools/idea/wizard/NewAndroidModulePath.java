@@ -42,7 +42,7 @@ public final class NewAndroidModulePath implements WizardPath {
   private static final Logger LOG = Logger.getInstance(NewAndroidModulePath.class);
 
   @NotNull private final NewModuleWizardState myWizardState;
-  @NotNull private final Project myProject;
+  @Nullable private final Project myProject;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
   private AssetSetStep myAssetSetStep;
   private ChooseTemplateStep myChooseActivityStep;
@@ -51,7 +51,7 @@ public final class NewAndroidModulePath implements WizardPath {
 
   public NewAndroidModulePath(@NotNull NewModuleWizardState wizardState,
                               @NotNull TemplateWizardModuleBuilder builder,
-                              @NotNull Project project,
+                              @Nullable Project project,
                               @Nullable Icon sidePanelIcon,
                               @NotNull Disposable disposable) {
     myWizardState = wizardState;
@@ -90,7 +90,7 @@ public final class NewAndroidModulePath implements WizardPath {
 
   @Override
   public void createModule() {
-    if (!myWizardState.myIsModuleImport) {
+    if (!myWizardState.myIsModuleImport && myProject != null) {
       try {
         myWizardState.populateDirectoryParameters();
         File projectRoot = new File(myProject.getBasePath());
