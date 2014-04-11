@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
+import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -62,7 +63,7 @@ public class AndroidRootComponent extends JComponent {
       OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
       FileEditorManager manager = FileEditorManager.getInstance(project);
       manager.openEditor(descriptor, true);
-      manager.setSelectedEditor(virtualFile, RenderedPanel.ANDROID_DESIGNER_ID);
+      manager.setSelectedEditor(virtualFile, AndroidDesignerEditorProvider.ANDROID_DESIGNER_ID);
     }
   }
 
