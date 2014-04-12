@@ -62,9 +62,6 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   public DefaultSdksConfigurable() {
     myWholePanel.setPreferredSize(new Dimension(700, 500));
 
-    mySdkLocation.getTextField().setEditable(false);
-    myJdkLocation.getTextField().setEditable(false);
-
     myDetailsComponent = new DetailsComponent();
     myDetailsComponent.setContent(myWholePanel);
     myDetailsComponent.setText("SDK Location");
