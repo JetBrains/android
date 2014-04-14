@@ -119,9 +119,6 @@ public class LocaleMenuAction extends FlatComboAction {
       return Collections.emptyList();
     }
     Module module = configuration.getConfigurationManager().getModule();
-    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
-    SortedSet<String> languages = projectResources.getLanguages();
-
     LanguageQualifier specificLanguage = configuration.getEditedConfig().getLanguageQualifier();
     RegionQualifier specificRegion = configuration.getEditedConfig().getRegionQualifier();
 
@@ -141,6 +138,8 @@ public class LocaleMenuAction extends FlatComboAction {
       }
     }
 
+    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
+    Set<String> languages = projectResources != null ? projectResources.getLanguages() : Collections.<String>emptySet();
     for (String language : languages) {
       if (specificLanguage != null && !language.equals(specificLanguage.getValue())) {
         continue;
@@ -149,13 +148,15 @@ public class LocaleMenuAction extends FlatComboAction {
       LanguageQualifier languageQualifier = new LanguageQualifier(language);
       locales.add(Locale.create(languageQualifier));
 
-      SortedSet<String> regions = projectResources.getRegions(language);
-      for (String region : regions) {
-        if (specificRegion != null && !region.equals(specificRegion.getValue())) {
-          continue;
-        }
+      if (projectResources != null) {
+        SortedSet<String> regions = projectResources.getRegions(language);
+        for (String region : regions) {
+          if (specificRegion != null && !region.equals(specificRegion.getValue())) {
+            continue;
+          }
 
-        locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
+          locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
+        }
       }
     }
 
