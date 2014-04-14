@@ -29,7 +29,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="3588f" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="mySdkLocation" custom-create="true">
+          <component id="3588f" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="mySdkLocationTextField" custom-create="true">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
                 <minimum-size width="215" height="-1"/>
@@ -55,7 +55,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="6195c" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myJdkLocation" custom-create="true">
+          <component id="6195c" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myJdkLocationTextField" custom-create="true">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
                 <minimum-size width="215" height="-1"/>
