@@ -49,18 +49,11 @@
           <text value="Modules found:"/>
         </properties>
       </component>
-      <component id="3820c" class="com.intellij.ui.table.JBTable" binding="myModulesList">
+      <component id="58443" class="com.android.tools.idea.wizard.ModulesTable" binding="myModulesList">
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <showHorizontalLines value="true"/>
-          <showVerticalLines value="true"/>
-          <striped value="false"/>
-        </properties>
-        <clientProperties>
-          <Table.isFileList class="java.lang.Boolean" value="false"/>
-        </clientProperties>
+        <properties/>
       </component>
     </children>
   </grid>

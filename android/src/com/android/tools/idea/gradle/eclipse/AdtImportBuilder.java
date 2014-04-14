@@ -97,7 +97,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   @Nullable
-  GradleImport getImporter() {
+  public GradleImport getImporter() {
     return myImporter;
   }
 
@@ -129,9 +129,9 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   @Nullable
   @Override
   public List<Module> commit(final Project project,
-                             ModifiableModuleModel model,
+                             @Nullable ModifiableModuleModel model,
                              ModulesProvider modulesProvider,
-                             ModifiableArtifactModel artifactModel) {
+                             @Nullable ModifiableArtifactModel artifactModel) {
     File destDir = new File(project.getBasePath());
     try {
       if (!destDir.exists()) {
@@ -205,6 +205,12 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
   }
 
+  @SuppressWarnings("ConstantConditions")
+  @Override
+  public boolean validate(@Nullable Project current, Project dest) {
+    return super.validate(current, dest);
+  }
+
   private static void openSummary(Project project) {
     VirtualFile summary = project.getBaseDir().findChild(GradleImport.IMPORT_SUMMARY_TXT);
     if (summary != null) {
@@ -213,7 +219,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   @Nullable
-  static AdtImportBuilder getBuilder(@Nullable WizardContext context) {
+  public static AdtImportBuilder getBuilder(@Nullable WizardContext context) {
     if (context != null) {
       return (AdtImportBuilder)context.getProjectBuilder();
     }
