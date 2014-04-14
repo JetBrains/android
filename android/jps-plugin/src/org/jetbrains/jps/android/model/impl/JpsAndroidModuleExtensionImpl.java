@@ -206,6 +206,12 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
     return nativeLibsFolder != null ? canonizeFilePath(nativeLibsFolder) : null;
   }
 
+  @Override
+  public File getProguardLogsDir() {
+    File proguardLogsDir = findFileByRelativeModulePath(myProperties.PROGUARD_LOGS_FOLDER_RELATIVE_PATH, false);
+    return proguardLogsDir != null ? canonizeFilePath(proguardLogsDir) : null;
+  }
+
   private static File canonizeFilePath(@NotNull File file) {
     return new File(FileUtil.toCanonicalPath(file.getPath()));
   }
