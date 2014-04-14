@@ -39,23 +39,27 @@ import java.awt.*;
 public class ConfigurationToolBar extends JPanel {
   private final AndroidLayoutPreviewToolWindowForm myPreviewWindow;
 
-
   public ConfigurationToolBar(AndroidLayoutPreviewToolWindowForm previewWindow) {
     myPreviewWindow = previewWindow;
     DefaultActionGroup group = createActions(myPreviewWindow);
     ActionToolbar toolbar = createToolBar(group);
 
     setLayout(new BorderLayout());
-    add(toolbar.getComponent(), BorderLayout.NORTH);
+    add(toolbar.getComponent(), BorderLayout.CENTER);
   }
 
   private static ActionToolbar createToolBar(ActionGroup group) {
     ActionManager actionManager = ActionManager.getInstance();
-    ActionToolbar toolbar = actionManager.createActionToolbar("Configuration Toolbar", group, true);
-    toolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-    //// The default toolbar layout adds too much spacing between the buttons. Switch to mini mode,
-    //// but also set a minimum size which will add *some* padding for our 16x16 icons.
-    toolbar.setMiniMode(true);
+    ActionToolbar toolbar = actionManager.createActionToolbar("LayoutConfiguration", group, true);
+    toolbar.setLayoutPolicy(ActionToolbar.AUTO_LAYOUT_POLICY);
+
+    // The default toolbar layout adds too much spacing between the buttons. Switch to mini mode,
+    // but also set a minimum size which will add *some* padding for our 16x16 icons.
+    // Disabled because mini mode does not seem to change the visual appearance anymore, and
+    // more importantly, it introduces some subtle layout bugs (additional insets when the
+    // toolbar does not fully fit etc)
+    //toolbar.setMiniMode(true);
+
     toolbar.setMinimumButtonSize(new Dimension(22, 24));
     return toolbar;
   }
