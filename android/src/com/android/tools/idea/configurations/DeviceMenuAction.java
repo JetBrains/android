@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -270,27 +271,27 @@ public class DeviceMenuAction extends FlatComboAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
-
-      // TODO: Attempt to jump to the default orientation of the new device; for example, if you're viewing a layout in
+      // Attempt to jump to the default orientation of the new device; for example, if you're viewing a layout in
       // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
       // (its default) unless of course there is a different layout that is the best fit for that device.
-      /*
       Device prevDevice = configuration.getDevice();
       State prevState = configuration.getDeviceState();
+      String newState = prevState != null ? prevState.getName() : null;
       if (prevDevice != null && prevState != null && configuration.getDeviceState() == prevDevice.getDefaultState() &&
-          !myDevice.getDefaultState().getName().equals(prevState.getName())) {
+          !myDevice.getDefaultState().getName().equals(prevState.getName()) &&
+          configuration.getEditedConfig().getScreenOrientationQualifier() == null) {
         VirtualFile file = configuration.getFile();
         if (file != null) {
-          configuration.setDevice(myDevice, false);
-          if (configuration.isBestMatchFor(file, configuration.getFullConfig())) {
-            return;
+          String name = myDevice.getDefaultState().getName();
+          if (ConfigurationMatcher.getBetterMatch(configuration, myDevice, name, null, null) == null) {
+            newState = name;
           }
-          configuration.setDevice(prevDevice, false);
-          configuration.setDeviceState(prevState);
         }
       }
-      */
 
+      if (newState != null) {
+        configuration.setDeviceStateName(newState);
+      }
       if (commit) {
         configuration.getConfigurationManager().selectDevice(myDevice);
       } else {
