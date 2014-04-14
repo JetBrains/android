@@ -212,7 +212,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       Object oldValue = myTemplateState.get(paramName);
       JComponent component = myParamFields.get(paramName);
-      if (component == focusedComponent) {
+      if (component == focusedComponent || component.isAncestorOf(focusedComponent)) {
         String help = param != null && param.help != null && param.help.length() > 0 ? param.help : getHelpText(paramName);
         setDescriptionHtml(help);
       }
@@ -586,6 +586,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     myParamFields.put(paramName, (JComponent)field);
     field.addFocusListener(this);
     field.getTextField().getDocument().addDocumentListener(this);
+    field.getTextField().addFocusListener(this);
   }
 
   protected void register(@NotNull String paramName, @NotNull ColorPanel colorPanel) {
