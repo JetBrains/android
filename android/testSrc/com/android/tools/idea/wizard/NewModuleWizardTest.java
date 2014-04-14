@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.Lists;
+import com.intellij.execution.ui.layout.impl.TabImpl;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.HashSet;
@@ -108,8 +110,20 @@ public class NewModuleWizardTest extends AndroidTestCase {
     // Should proceed to import source location
     assertFollowingTheRightPath(wizard, "Import Existing Project", 1, ImportSourceLocationStep.class);
 
-    // Should proceed to Android module creation first step
-    assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, 7, ChooseAndroidAndJavaSdkStep.class);
+    // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up
+    final int expectedStep;
+    final Class<?> expectedStepClass;
+    if (DefaultSdks.getDefaultJdk() != null && DefaultSdks.getDefaultAndroidHome() != null) {
+      // Should proceed to Android module creation first step
+      expectedStep = 9;
+      expectedStepClass = ConfigureAndroidModuleStep.class;
+    }
+    else {
+      // Needs to setup JDK/Android SDK paths
+      expectedStep = 7;
+      expectedStepClass = ChooseAndroidAndJavaSdkStep.class;
+    }
+    assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, expectedStep, expectedStepClass);
   }
 
   private static void assertFollowingTheRightPath(NewModuleWizard wizard, String templateName, int stepIndex, Class<?> stepClass) {
