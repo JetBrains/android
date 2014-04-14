@@ -20,7 +20,6 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.Lists;
-import com.intellij.execution.ui.layout.impl.TabImpl;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.HashSet;
@@ -104,26 +103,31 @@ public class NewModuleWizardTest extends AndroidTestCase {
   public void testWizardPaths() {
     NewModuleWizard wizard = new NewModuleWizard(myModule.getProject());
 
-    // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up
-    final int firstStepNewModulePath;
-    final Class<?> firstStepNewModuleClass;
-    if (DefaultSdks.getDefaultJdk() != null && DefaultSdks.getDefaultAndroidHome() != null) {
-      // Should proceed to Android module creation first step
-      firstStepNewModulePath = 9;
-      firstStepNewModuleClass = ConfigureAndroidModuleStep.class;
-    }
-    else {
-      // Needs to setup JDK/Android SDK paths
-      firstStepNewModulePath = 7;
-      firstStepNewModuleClass = ChooseAndroidAndJavaSdkStep.class;
-    }
-    assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
-    assertEquals(firstStepNewModulePath, wizard.getNextStep(0));
+    try {
+      // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up
+      final int firstStepNewModulePath;
+      final Class<?> firstStepNewModuleClass;
+      if (DefaultSdks.getDefaultJdk() != null && DefaultSdks.getDefaultAndroidHome() != null) {
+        // Should proceed to Android module creation first step
+        firstStepNewModulePath = 9;
+        firstStepNewModuleClass = ConfigureAndroidModuleStep.class;
+      }
+      else {
+        // Needs to setup JDK/Android SDK paths
+        firstStepNewModulePath = 7;
+        firstStepNewModuleClass = ChooseAndroidAndJavaSdkStep.class;
+      }
+      assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
+      assertEquals(firstStepNewModulePath, wizard.getNextStep(0));
 
-    // Import path
-    assertFollowingTheRightPath(wizard, "Import Existing Project", 1, ImportSourceLocationStep.class);
-    // New module path
-    assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, firstStepNewModulePath, firstStepNewModuleClass);
+      // Import path
+      assertFollowingTheRightPath(wizard, "Import Existing Project", 1, ImportSourceLocationStep.class);
+      // New module path
+      assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, firstStepNewModulePath, firstStepNewModuleClass);
+    }
+    finally {
+      Disposer.dispose(wizard.getDisposable());
+    }
   }
 
   private static void assertFollowingTheRightPath(NewModuleWizard wizard, String templateName, int stepIndex, Class<?> stepClass) {
