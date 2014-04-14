@@ -410,8 +410,15 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
       return null;
     }
 
-    final String logsDirOsPath =
-          FileUtil.toSystemDependentName(mainContentRoot.getPath() + '/' + AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME);
+    final File proguardLogsDir = extension.getProguardLogsDir();
+    final File logsDir;
+
+    if (proguardLogsDir != null) {
+      logsDir = proguardLogsDir;
+    }
+    else {
+      logsDir = new File(mainContentRoot.getPath() + '/' + AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME);
+    }
     final AndroidProGuardStateStorage.MyState newState = new AndroidProGuardStateStorage.MyState(
       proguardCfgFiles);
 
@@ -461,12 +468,11 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     if (testingManager != null) {
       testingManager.getCommandExecutor().checkJarContent("proguard_input_jar", inputJarOsPath);
     }
-
-    final File logsDir = new File(logsDirOsPath);
     if (!logsDir.exists()) {
       if (!logsDir.mkdirs()) {
-        context.processMessage(new CompilerMessage(PRO_GUARD_BUILDER_NAME, BuildMessage.Kind.ERROR,
-                                                   AndroidJpsBundle.message("android.jps.cannot.create.directory", logsDirOsPath)));
+        context.processMessage(new CompilerMessage(
+          PRO_GUARD_BUILDER_NAME, BuildMessage.Kind.ERROR,
+          AndroidJpsBundle.message("android.jps.cannot.create.directory", FileUtil.toSystemDependentName(logsDir.getPath()))));
         return null;
       }
     }
@@ -481,7 +487,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     final Map<AndroidCompilerMessageKind, List<String>> messages =
       AndroidCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
                                         javaExecutable, proguardVmOptions, proguardCfgPaths, inputJarOsPath, externalJarOsPaths,
-                                        outputJarPath, logsDirOsPath);
+                                        outputJarPath, logsDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, PRO_GUARD_BUILDER_NAME, module.getName());
     return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()
            ? Pair.create(true, newState) : null;
