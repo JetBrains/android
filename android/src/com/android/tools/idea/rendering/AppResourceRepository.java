@@ -293,7 +293,7 @@ public class AppResourceRepository extends MultiResourceRepository {
     return null;
   }
 
-  // For ProjectCallback
+  // For LayoutlibCallback
 
   // Project resource ints are defined as 0x7FXX#### where XX is the resource type (layout, drawable,
   // etc...). Using FF as the type allows for 255 resource types before we get a collision

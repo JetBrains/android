@@ -22,7 +22,6 @@ import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.ManifestInfo;
-import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -65,8 +64,8 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
  * <p/>This implements {@link com.android.ide.common.rendering.api.IProjectCallback} for the old and new API through
  * {@link com.android.ide.common.rendering.legacy.LegacyCallback}
  */
-public final class ProjectCallback extends LegacyCallback {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.ProjectCallback");
+public final class LayoutlibCallback extends LegacyCallback {
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.LayoutlibCallback");
 
   /** Maximum number of getParser calls in a render before we suspect and investigate potential include cycles */
   private static final int MAX_PARSER_INCLUDES = 50;
@@ -87,7 +86,7 @@ public final class ProjectCallback extends LegacyCallback {
   private int myParserCount;
 
   /**
-   * Creates a new {@link ProjectCallback} to be used with the layout lib.
+   * Creates a new {@link LayoutlibCallback} to be used with the layout lib.
    *
    * @param layoutLib  The layout library this callback is going to be invoked from
    * @param projectRes the {@link LocalResourceRepository} for the project.
@@ -96,14 +95,19 @@ public final class ProjectCallback extends LegacyCallback {
    * @param logger     the render logger
    * @param credential the sandbox credential
    */
-  public ProjectCallback(@NotNull LayoutLibrary layoutLib, @NotNull AppResourceRepository projectRes, @NotNull Module module,
-                         @NotNull AndroidFacet facet, @NotNull RenderLogger logger, @Nullable Object credential) {
+  public LayoutlibCallback(@NotNull LayoutLibrary layoutLib,
+                           @NotNull AppResourceRepository projectRes,
+                           @NotNull Module module,
+                           @NotNull AndroidFacet facet,
+                           @NotNull RenderLogger logger,
+                           @Nullable Object credential,
+                           @NotNull RenderService renderService) {
     myLayoutLib = layoutLib;
     myProjectRes = projectRes;
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
-    myActionBarHandler = new ActionBarHandler(ManifestInfo.get(myModule, false));
+    myActionBarHandler = new ActionBarHandler(renderService);
   }
 
   /** Resets the callback state for another render */
