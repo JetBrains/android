@@ -127,6 +127,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         myTargetSdk.addItem(targetInfo);
       }
       myTemplateState.put(ATTR_TARGET_API, SdkVersionInfo.HIGHEST_KNOWN_API);
+      myTemplateState.myModified.add(ATTR_TARGET_API);
     }
 
     int highestApi = -1;
@@ -141,6 +142,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     if (highestApi >= 1) {
       myTemplateState.put(ATTR_BUILD_API, highestApi);
+      myTemplateState.myModified.add(ATTR_BUILD_API);
       if (highestApi > SdkVersionInfo.HIGHEST_KNOWN_API) {
         myTemplateState.put(ATTR_TARGET_API, highestApi);
       }
