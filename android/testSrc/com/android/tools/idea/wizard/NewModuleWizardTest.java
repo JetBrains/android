@@ -104,26 +104,26 @@ public class NewModuleWizardTest extends AndroidTestCase {
   public void testWizardPaths() {
     NewModuleWizard wizard = new NewModuleWizard(myModule.getProject());
 
-    assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
-    assertEquals(7, wizard.getNextStep(0));
-
-    // Should proceed to import source location
-    assertFollowingTheRightPath(wizard, "Import Existing Project", 1, ImportSourceLocationStep.class);
-
     // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up
-    final int expectedStep;
-    final Class<?> expectedStepClass;
+    final int firstStepNewModulePath;
+    final Class<?> firstStepNewModuleClass;
     if (DefaultSdks.getDefaultJdk() != null && DefaultSdks.getDefaultAndroidHome() != null) {
       // Should proceed to Android module creation first step
-      expectedStep = 9;
-      expectedStepClass = ConfigureAndroidModuleStep.class;
+      firstStepNewModulePath = 9;
+      firstStepNewModuleClass = ConfigureAndroidModuleStep.class;
     }
     else {
       // Needs to setup JDK/Android SDK paths
-      expectedStep = 7;
-      expectedStepClass = ChooseAndroidAndJavaSdkStep.class;
+      firstStepNewModulePath = 7;
+      firstStepNewModuleClass = ChooseAndroidAndJavaSdkStep.class;
     }
-    assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, expectedStep, expectedStepClass);
+    assertInstanceOf(wizard.getCurrentStepObject(), ChooseTemplateStep.class);
+    assertEquals(firstStepNewModulePath, wizard.getNextStep(0));
+
+    // Import path
+    assertFollowingTheRightPath(wizard, "Import Existing Project", 1, ImportSourceLocationStep.class);
+    // New module path
+    assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, firstStepNewModulePath, firstStepNewModuleClass);
   }
 
   private static void assertFollowingTheRightPath(NewModuleWizard wizard, String templateName, int stepIndex, Class<?> stepClass) {
