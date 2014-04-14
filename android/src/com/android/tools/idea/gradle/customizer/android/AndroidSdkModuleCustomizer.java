@@ -61,10 +61,13 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
       return;
     }
 
-    String androidHome = androidSdkHomePath.getPath();
     String compileTarget = androidProject.getDelegate().getCompileTarget();
 
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(compileTarget, androidHome, androidProject.getJavaLanguageLevel(), false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(compileTarget);
+    if (sdk == null) {
+      sdk = AndroidSdkUtils.tryToCreateAndroidSdk(androidSdkHomePath, compileTarget);
+    }
+
     if (sdk != null) {
       ModuleRootModificationUtil.setModuleSdk(module, sdk);
       return;
