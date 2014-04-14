@@ -173,7 +173,7 @@ public class Configuration implements Disposable {
       assert qualifier != null; // because isOrientationSpecificLayout()
       ScreenOrientation orientation = qualifier.getValue();
       if (orientation != null) {
-        myStateName = orientation.getResourceValue();
+        myStateName = orientation.getShortDisplayValue();
       }
     }
   }
@@ -245,7 +245,8 @@ public class Configuration implements Disposable {
     copy.myTarget = original.myTarget; // avoid getTarget() since it fetches project state
     copy.myLocale = original.myLocale;  // avoid getLocale() since it fetches project state
     copy.myTheme = original.getTheme();
-    copy.mySpecificDevice = original.mySpecificDevice; // avoid getDevice() since it fetches project state
+    copy.mySpecificDevice = original.mySpecificDevice;
+    copy.myDevice = original.myDevice; // avoid getDevice() since it fetches project state
     copy.myStateName = original.myStateName;
     copy.myState = original.myState;
     copy.myActivity = original.getActivity();
@@ -422,7 +423,11 @@ public class Configuration implements Disposable {
   @Nullable
   private Device computeBestDevice() {
     for (Device device : myManager.getRecentDevices()) {
-      State selectedState = ConfigurationFileState.getState(device, myStateName);
+      String stateName = myStateName;
+      if (stateName == null) {
+        stateName = device.getDefaultState().getName();
+      }
+      State selectedState = ConfigurationFileState.getState(device, stateName);
       FolderConfiguration currentConfig = getFolderConfig(selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
@@ -647,12 +652,14 @@ public class Configuration implements Disposable {
               state = device.getState(prevState.getName());
             }
           }
+        } else if (preserveState && myStateName != null) {
+          state = device.getState(myStateName);
         }
         if (state == null) {
           state = device.getDefaultState();
         }
         if (myState != state) {
-          myStateName = state.getName();
+          setDeviceStateName(state.getName());
           myState = state;
           updateFlags |= CFG_DEVICE_STATE;
         }
@@ -660,8 +667,8 @@ public class Configuration implements Disposable {
 
       // TODO: Is this redundant with the stuff above?
       if (mySpecificDevice != null && myState == null) {
+        setDeviceStateName(mySpecificDevice.getDefaultState().getName());
         myState = mySpecificDevice.getDefaultState();
-        myStateName = myState.getName();
         updateFlags |= CFG_DEVICE_STATE;
       }
 
@@ -740,8 +747,12 @@ public class Configuration implements Disposable {
    */
   public void setDeviceState(State state) {
     if (myState != state) {
+      if (state != null) {
+        setDeviceStateName(state.getName());
+      } else {
+        myStateName = null;
+      }
       myState = state;
-      myStateName = state != null ? state.getName() : null;
 
       updated(CFG_DEVICE_STATE);
     }
@@ -753,6 +764,14 @@ public class Configuration implements Disposable {
    * @param stateName the device state name
    */
   public void setDeviceStateName(@Nullable String stateName) {
+    ScreenOrientationQualifier qualifier = myEditedConfig.getScreenOrientationQualifier();
+    if (qualifier != null) {
+      ScreenOrientation orientation = qualifier.getValue();
+      if (orientation != null) {
+        stateName = orientation.getShortDisplayValue(); // Also used as state names
+      }
+    }
+
     if (!Objects.equal(stateName, myStateName)) {
       myStateName = stateName;
       myState = null;
