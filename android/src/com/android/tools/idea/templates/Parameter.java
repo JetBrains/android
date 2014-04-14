@@ -60,7 +60,8 @@ public class Parameter {
     STRING,
     BOOLEAN,
     ENUM,
-    SEPARATOR;
+    SEPARATOR,
+    EXTERNAL;
     // TODO: Numbers?
 
     public static Type get(String name) {
@@ -191,6 +192,12 @@ public class Parameter {
   @Nullable
   public final String visibility;
 
+  /**
+   * A URL for externally sourced values.
+   */
+  @Nullable
+  public final String sourceUrl;
+
   /** Help for the parameter, if any */
   @Nullable
   public final String help;
@@ -215,6 +222,7 @@ public class Parameter {
     initial = parameter.getAttribute(ATTR_DEFAULT);
     suggest = parameter.getAttribute(ATTR_SUGGEST);
     visibility = parameter.getAttribute(ATTR_VISIBILITY);
+    sourceUrl = type == Type.EXTERNAL ? parameter.getAttribute(ATTR_SOURCE_URL) : null;
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
@@ -246,6 +254,7 @@ public class Parameter {
     initial = null;
     suggest = null;
     visibility = null;
+    sourceUrl = null;
     name = id;
     help = null;
     constraints = EnumSet.noneOf(Constraint.class);
@@ -269,6 +278,7 @@ public class Parameter {
   public String validate(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                          @Nullable String packageName, @Nullable Object value) {
     switch (type) {
+      case EXTERNAL:
       case STRING:
         return getErrorMessageForStringType(project, module, provider, packageName, value.toString());
       case BOOLEAN:

@@ -159,6 +159,7 @@ public class Template {
   public static final String ATTR_AT = "at";
   public static final String ATTR_CONSTRAINTS = "constraints";
   public static final String ATTR_VISIBILITY = "visibility";
+  public static final String ATTR_SOURCE_URL = "href";
 
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
