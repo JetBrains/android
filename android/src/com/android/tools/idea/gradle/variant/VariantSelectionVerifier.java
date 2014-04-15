@@ -17,12 +17,11 @@ package com.android.tools.idea.gradle.variant;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
@@ -35,20 +34,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 
 public class VariantSelectionVerifier {
   @NotNull private final Project myProject;
-
-  @NotNull
-  public static VariantSelectionVerifier getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, VariantSelectionVerifier.class);
-  }
 
   public VariantSelectionVerifier(@NotNull Project project) {
     myProject = project;
@@ -65,18 +56,16 @@ public class VariantSelectionVerifier {
       final Module conflictSource = conflict.getSource();
       text.add(String.format("Module '%1$s' has variant '%2$s' selected.", conflictSource.getName(), conflict.getSelectedVariant()));
 
-      Multimap<String, String> affectedModulesByVariant = ArrayListMultimap.create();
-      TreeSet<String> expectedVariants = Sets.newTreeSet();
 
-      for (SelectionConflict.AffectedModule affectedModule : conflict.getAffectedModules()) {
-        String expectedVariant = affectedModule.getExpectedVariant();
-        expectedVariants.add(expectedVariant);
-        String name = affectedModule.getTarget().getName();
-        affectedModulesByVariant.put(expectedVariant, "'" + name + "'");
-      }
+      List<String> expectedVariants = Lists.newArrayList(conflict.getVariants());
+      Collections.sort(expectedVariants);
 
       for (String expectedVariant : expectedVariants) {
-        List<String> modules = Lists.newArrayList(affectedModulesByVariant.get(expectedVariant));
+        List<String> modules = Lists.newArrayList();
+        for (SelectionConflict.AffectedModule affected : conflict.getModulesExpectingVariant(expectedVariant)) {
+          modules.add("'" + affected.getTarget().getName() + "'");
+
+        }
         Collections.sort(modules);
         text.add(String.format("- Variant '%1$s' expected by module(s) %2$s.", expectedVariant, modules));
         text.add("");
@@ -100,14 +89,13 @@ public class VariantSelectionVerifier {
     BuildVariantView.getInstance(myProject).updateNotification(conflicts);
   }
 
-  @VisibleForTesting
   @NotNull
-  ImmutableList<SelectionConflict> findSelectionConflicts() {
+  public ImmutableList<SelectionConflict> findSelectionConflicts() {
     Map<String, SelectionConflict> conflictsByModuleName = Maps.newHashMap();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
-      String gradlePath = getGradlePath(module);
+      String gradlePath = GradleUtil.getGradlePath(module);
       if (StringUtil.isEmpty(gradlePath)) {
         continue;
       }
@@ -123,7 +111,8 @@ public class VariantSelectionVerifier {
         if (androidProject == null) {
           continue;
         }
-        for (AndroidLibrary library : androidProject.getSelectedVariant().getMainArtifact().getDependencies().getLibraries()) {
+
+        for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(androidProject.getSelectedVariant())) {
           if (!gradlePath.equals(library.getProject())) {
             continue;
           }
@@ -140,7 +129,32 @@ public class VariantSelectionVerifier {
         }
       }
     }
-    return ImmutableList.copyOf(conflictsByModuleName.values());
+
+    // Make sure conflict has all modules affected by it.
+    Collection<SelectionConflict> conflicts = conflictsByModuleName.values();
+    for (SelectionConflict conflict : conflicts) {
+      Module source = conflict.getSource();
+      String gradlePath = GradleUtil.getGradlePath(source);
+      assert gradlePath != null;
+
+      for (Module dependent : ModuleUtilCore.getAllDependentModules(source)) {
+        IdeaAndroidProject androidProject = getAndroidProject(dependent, false);
+        if (androidProject == null) {
+          continue;
+        }
+        for (AndroidLibrary library : GradleUtil.getDirectLibraryDependencies(androidProject.getSelectedVariant())) {
+          String expected = library.getProjectVariant();
+          if (!gradlePath.equals(library.getProject())) {
+            continue;
+          }
+          if (!StringUtil.isEmpty(expected) && !conflict.isAffectingDirectly(dependent)) {
+            conflict.addAffectedModule(dependent, expected);
+          }
+        }
+      }
+    }
+
+    return ImmutableList.copyOf(conflicts);
   }
 
   @Nullable
@@ -154,11 +168,5 @@ public class VariantSelectionVerifier {
       return androidProject;
     }
     return null;
-  }
-
-  @Nullable
-  private static String getGradlePath(@NotNull Module module) {
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
-    return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
   }
 }
