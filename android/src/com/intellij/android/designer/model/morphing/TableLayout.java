@@ -17,7 +17,7 @@ package com.intellij.android.designer.model.morphing;
 
 import com.android.SdkConstants;
 import com.intellij.android.designer.model.ComponentMorphingTool;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.grid.RadGridLayout;
 import com.intellij.android.designer.model.layout.grid.RadGridLayoutComponent;
@@ -45,7 +45,7 @@ public class TableLayout {
         for (final RadComponent rowComponent : new ArrayList<RadComponent>(myOldComponent.getChildren())) {
           if (RadTableRowLayout.is(rowComponent)) {
             for (RadComponent cellComponent : new ArrayList<RadComponent>(rowComponent.getChildren())) {
-              ModelParser.moveComponent(myOldComponent, (RadViewComponent)cellComponent, (RadViewComponent)rowComponent);
+              RadComponentOperations.moveComponent(myOldComponent, (RadViewComponent)cellComponent, (RadViewComponent)rowComponent);
             }
             rowComponent.delete();
           }
@@ -70,7 +70,7 @@ public class TableLayout {
             RadComponent firstCellComponent = rowComponents[0];
             if (firstCellComponent != null && firstCellComponent.extractClientProperty(TABLE_ROW_KEY) == Boolean.TRUE) {
               XmlTag cellTag = ((RadViewComponent)firstCellComponent).getTag();
-              ModelParser.deleteAttribute(cellTag, "layout_span");
+              RadComponentOperations.deleteAttribute(cellTag, "layout_span");
               cellTag.setAttribute("layout_column", SdkConstants.NS_RESOURCES, "0");
               cellTag.setAttribute("layout_columnSpan", SdkConstants.NS_RESOURCES, columnCount);
               cellTag.setAttribute("layout_gravity", SdkConstants.NS_RESOURCES, "fill_horizontal");

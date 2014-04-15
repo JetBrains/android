@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.tools.lint.detector.api.ClassContext;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.psi.PsiClass;
 import com.intellij.util.lang.UrlClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

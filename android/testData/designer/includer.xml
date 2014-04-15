@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="ffff0000"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="500px"
+        android:layout_height="80px"
+        android:layout_gravity="center_horizontal"
+        android:text="Outer Layout"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="500px"
+        android:layout_height="80px"
+        android:text="This text is from the outer layout" />
+
+    <include layout="@layout/included" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="500px"
+        android:layout_height="80px"
+        android:text="This text is at the end of the outer layout" />
+</LinearLayout>

@@ -16,6 +16,7 @@
 package com.intellij.android.designer.model.layout;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.designer.LinearLayoutResizeOperation;
 import com.android.tools.idea.designer.ResizeOperation;
 import com.intellij.android.designer.designSurface.TreeDropToOperation;
 import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint;
@@ -23,9 +24,8 @@ import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.ResizeSelectionDecorator;
 import com.intellij.android.designer.designSurface.layout.LinearLayoutOperation;
 import com.intellij.android.designer.designSurface.layout.actions.LayoutMarginOperation;
-import com.android.tools.idea.designer.LinearLayoutResizeOperation;
 import com.intellij.android.designer.designSurface.layout.flow.FlowStaticDecorator;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayoutWithData;
 import com.intellij.android.designer.model.layout.actions.*;
@@ -46,9 +46,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.VALUE_VERTICAL;
+import static com.android.SdkConstants.*;
 import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.SHOW_STATIC_GRID;
 
 /**
@@ -350,7 +348,7 @@ public class RadLinearLayout extends RadViewLayoutWithData implements ILayoutDec
         @Override
         public void run() {
           for (RadViewComponent component : components) {
-            ModelParser.deleteAttribute(component.getTag(), "layout_gravity");
+            RadComponentOperations.deleteAttribute(component.getTag(), "layout_gravity");
           }
         }
       });

@@ -18,6 +18,8 @@ package com.intellij.android.designer.model;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderService;
 import com.intellij.android.designer.propertyTable.*;
 import com.intellij.designer.model.*;
 import com.intellij.designer.propertyTable.PropertyTable;
@@ -29,6 +31,8 @@ import org.jetbrains.android.dom.attrs.StyleableDefinition;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ProjectClassLoader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -48,7 +52,15 @@ public class PropertyParser {
   private ProjectClassLoader myClassLoader;
   private Map<String, List<Property>> myCachedProperties;
 
-  public PropertyParser(Module module, IAndroidTarget target) throws Exception {
+  public PropertyParser(@NotNull RenderResult result)  {
+    assert result.getSession() != null;
+    assert result.getSession().getResult().isSuccess();
+    RenderService renderService = result.getRenderService();
+    assert renderService != null;
+    IAndroidTarget target = renderService.getConfiguration().getTarget();
+    assert target != null;
+    Module module = renderService.getModule();
+
     myMetaManager = ViewsMetaManager.getInstance(module.getProject());
     myCachedProperties = myMetaManager.getCache(target.hashString());
     if (myCachedProperties == null) {
@@ -56,10 +68,11 @@ public class PropertyParser {
     }
 
     AndroidPlatform androidPlatform = AndroidPlatform.getInstance(module);
+    assert androidPlatform != null;
     AndroidTargetData targetData = androidPlatform.getSdkData().getTargetData(target);
     myDefinitions = targetData.getAttrDefs(module.getProject());
 
-    LayoutLibrary library = targetData.getLayoutLibrary(module.getProject());
+    LayoutLibrary library = renderService.getLayoutLib();
     myClassLoader = new ProjectClassLoader(library.getClassLoader(), module);
   }
 
@@ -130,7 +143,7 @@ public class PropertyParser {
     }
   }
 
-  private List<Property> loadWidgetProperties(Class<?> componentClass, MetaModel model) throws Exception {
+  private List<Property> loadWidgetProperties(Class<?> componentClass, @Nullable MetaModel model) throws Exception {
     String component = componentClass.getSimpleName();
 
     List<Property> properties = myCachedProperties.get(component);

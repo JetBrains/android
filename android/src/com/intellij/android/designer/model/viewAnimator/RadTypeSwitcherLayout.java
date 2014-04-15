@@ -16,6 +16,7 @@
 package com.intellij.android.designer.model.viewAnimator;
 
 import com.intellij.android.designer.model.PropertyParser;
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.designer.designSurface.OperationContext;
@@ -42,11 +43,12 @@ public class RadTypeSwitcherLayout extends RadViewSwitcherLayout {
         myTypeModel = manager.getModelByTag(myTypeTag);
       }
 
-      PropertyParser parser = myContainer.getRoot().getClientProperty(PropertyParser.KEY);
-
-      for (RadComponent component : context.getComponents()) {
-        if (!parser.isAssignableFrom(myTypeModel, component.getMetaModel())) {
-          return false;
+      PropertyParser parser = RadModelBuilder.getPropertyParser(myContainer);
+      if (parser != null) {
+        for (RadComponent component : context.getComponents()) {
+          if (!parser.isAssignableFrom(myTypeModel, component.getMetaModel())) {
+            return false;
+          }
         }
       }
 

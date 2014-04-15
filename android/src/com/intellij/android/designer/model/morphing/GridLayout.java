@@ -42,13 +42,13 @@ public class GridLayout {
       @Override
       protected void convertChildren() throws Exception {
         for (List<RadComponent>[] rowComponents : components) {
-          RadViewComponent newRowComponent = ModelParser.createComponent(null, tableRowModel);
-          ModelParser.addComponent(myNewComponent, newRowComponent, null);
+          RadViewComponent newRowComponent = RadComponentOperations.createComponent(null, tableRowModel);
+          RadComponentOperations.addComponent(myNewComponent, newRowComponent, null);
 
           for (List<RadComponent> cellComponents : rowComponents) {
             if (cellComponents != null) {
               for (RadComponent cellComponent : cellComponents) {
-                ModelParser.moveComponent(newRowComponent, (RadViewComponent)cellComponent, null);
+                RadComponentOperations.moveComponent(newRowComponent, (RadViewComponent)cellComponent, null);
               }
             }
           }
@@ -58,14 +58,14 @@ public class GridLayout {
       @Override
       protected void convertTag() {
         XmlTag tag = myNewComponent.getTag();
-        ModelParser.deleteAttribute(tag, "rowCount");
-        ModelParser.deleteAttribute(tag, "columnCount");
+        RadComponentOperations.deleteAttribute(tag, "rowCount");
+        RadComponentOperations.deleteAttribute(tag, "columnCount");
 
         for (RadComponent rowComponent : myNewComponent.getChildren()) {
           for (RadComponent cellComponent : rowComponent.getChildren()) {
             XmlTag cellTag = ((RadViewComponent)cellComponent).getTag();
-            ModelParser.deleteAttribute(cellTag, "layout_row");
-            ModelParser.deleteAttribute(cellTag, "layout_rowSpan");
+            RadComponentOperations.deleteAttribute(cellTag, "layout_row");
+            RadComponentOperations.deleteAttribute(cellTag, "layout_rowSpan");
 
             XmlAttribute attribute = cellTag.getAttribute("layout_columnSpan", SdkConstants.NS_RESOURCES);
             if (attribute != null) {

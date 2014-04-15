@@ -50,8 +50,8 @@ public class FrameLayout {
           new HashMap<RadViewComponent, Map<Gravity, List<RadViewComponent>>>();
 
         for (int i = 0; i < rowComponents.length; i++) {
-          RadViewComponent newRowComponent = ModelParser.createComponent(null, tableRowModel);
-          ModelParser.addComponent(myNewComponent, newRowComponent, null);
+          RadViewComponent newRowComponent = RadComponentOperations.createComponent(null, tableRowModel);
+          RadComponentOperations.addComponent(myNewComponent, newRowComponent, null);
           rowComponents[i] = newRowComponent;
         }
 
@@ -90,7 +90,7 @@ public class FrameLayout {
         for (RadComponent rowComponent : myNewComponent.getChildren()) {
           for (RadComponent cellComponent : rowComponent.getChildren()) {
             XmlTag childTag = ((RadViewComponent)cellComponent).getTag();
-            ModelParser.deleteAttribute(childTag, "layout_gravity");
+            RadComponentOperations.deleteAttribute(childTag, "layout_gravity");
 
             Integer column = cellComponent.extractClientProperty(COLUMN_KEY);
             if (column != null) {
@@ -112,7 +112,7 @@ public class FrameLayout {
         if (column != -1) {
           childComponent.setClientProperty(COLUMN_KEY, column);
         }
-        ModelParser.moveComponent(container, childComponent, null);
+        RadComponentOperations.moveComponent(container, childComponent, null);
       }
       return false;
     }
@@ -140,7 +140,7 @@ public class FrameLayout {
         for (RadComponent childComponent : myNewComponent.getChildren()) {
           XmlTag childTag = ((RadViewComponent)childComponent).getTag();
           Pair<Gravity, Gravity> sides = Gravity.getSides(childComponent);
-          ModelParser.deleteAttribute(childTag, "layout_gravity");
+          RadComponentOperations.deleteAttribute(childTag, "layout_gravity");
           childTag.setAttribute("layout_row", SdkConstants.NS_RESOURCES, getRowIndexValue(sides.second));
           childTag.setAttribute("layout_column", SdkConstants.NS_RESOURCES, getColumnIndexValue(sides.first));
         }

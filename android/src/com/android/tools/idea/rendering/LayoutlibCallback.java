@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -35,7 +36,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
@@ -249,6 +249,11 @@ public final class LayoutlibCallback extends LegacyCallback {
     myLayoutEmbeddedParser = layoutParser;
   }
 
+  @Nullable
+  public ILayoutPullParser getLayoutEmbeddedParser() {
+    return myLayoutEmbeddedParser;
+  }
+
   @SuppressWarnings("deprecation") // Required by IProjectCallback
   @Nullable
   @Override
@@ -262,17 +267,17 @@ public final class LayoutlibCallback extends LegacyCallback {
       }
     }
 
-    return getParser(layoutName, null);
+    return getParser(layoutName, false, null);
   }
 
   @Nullable
   @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
-    return getParser(layoutResource.getName(), new File(layoutResource.getValue()));
+    return getParser(layoutResource.getName(), layoutResource.isFramework(), new File(layoutResource.getValue()));
   }
 
   @Nullable
-  private ILayoutPullParser getParser(@NotNull String layoutName, @Nullable File xml) {
+  private ILayoutPullParser getParser(@NotNull String layoutName, boolean isFramework, @Nullable File xml) {
     if (myParserFiles != null && myParserFiles.contains(xml)) {
       if (myParserCount > MAX_PARSER_INCLUDES) {
         // Unlikely large number of includes. Look for cyclic dependencies in the available
@@ -292,7 +297,7 @@ public final class LayoutlibCallback extends LegacyCallback {
     }
     myParserCount++;
 
-    if (layoutName.equals(myLayoutName)) {
+    if (layoutName.equals(myLayoutName) && !isFramework) {
       ILayoutPullParser parser = myLayoutEmbeddedParser;
       // The parser should only be used once!! If it is included more than once,
       // subsequent includes should just use a plain pull parser that is not tied
@@ -311,8 +316,7 @@ public final class LayoutlibCallback extends LegacyCallback {
         if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_MENU)) {
           VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
           if (file != null) {
-            PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
-            PsiFile psiFile = psiManager.findFile(file);
+            PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
             if (psiFile instanceof XmlFile) {
               assert myLogger != null;
               LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);

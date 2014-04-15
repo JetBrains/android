@@ -23,13 +23,13 @@ import com.intellij.android.designer.propertyTable.FragmentProperty;
 import com.intellij.android.designer.propertyTable.IdProperty;
 import com.intellij.android.designer.propertyTable.JavadocParser;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
-import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.propertyTable.editors.TextEditorWrapper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -98,9 +98,12 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
 
   @Nullable
   private static String chooseFragment(RadComponent rootComponent) {
-    ModuleProvider moduleProvider = rootComponent.getClientProperty(ModelParser.MODULE_KEY);
+    Module module = RadModelBuilder.getModule(rootComponent);
+    if (module == null) {
+      return null;
+    }
     ChooseClassDialog dialog =
-      new ChooseClassDialog(moduleProvider.getModule(), "Fragments", true, "android.app.Fragment", "android.support.v4.app.Fragment");
+      new ChooseClassDialog(module, "Fragments", true, "android.app.Fragment", "android.support.v4.app.Fragment");
     dialog.show();
 
     if (dialog.isOK()) {
