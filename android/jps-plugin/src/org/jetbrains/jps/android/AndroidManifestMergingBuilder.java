@@ -110,6 +110,8 @@ public class AndroidManifestMergingBuilder
       return false;
     }
     if (!doMergeManifests(context, platform.getLocalSdk(), manifestFile, libManifests, outputFile)) {
+      context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR,
+                                                 "[" + module.getName() + "] Cannot perform manifest merging"));
       return false;
     }
     final List<String> srcPaths = new ArrayList<String>();

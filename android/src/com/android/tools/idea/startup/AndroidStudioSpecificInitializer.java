@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.Pair;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
@@ -99,7 +98,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       hideIdeaNewFilePopupActions();
     }
 
-    createDynamicTemplateMenu();
+    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
 
     try {
       // Setup JDK and Android SDK if necessary
@@ -124,14 +123,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
 
     checkAndSetAndroidSdkSources();
-  }
-
-  private static void createDynamicTemplateMenu() {
-    DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
-    newGroup.addSeparator();
-    ActionGroup templateCreationMenu = TemplateManager.getInstance().getTemplateCreationMenu();
-    assert templateCreationMenu != null;
-    newGroup.add(templateCreationMenu, new Constraints(Anchor.AFTER, "NewDir"));
   }
 
   private static void replaceIdeaNewProjectActions() {
