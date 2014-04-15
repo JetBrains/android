@@ -29,7 +29,6 @@ import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.utils.NullLogger;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,7 +41,6 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.psi.PsiClass;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
@@ -54,7 +52,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Eugene.Kudelevsky
@@ -83,20 +83,27 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation) {
+    return getSdkData(sdkLocation, false);
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
     File canonicalLocation = new File(FileUtil.toCanonicalPath(sdkLocation.getPath()));
-    Iterator<SoftReference<AndroidSdkData>> it = mInstances.iterator();
-    while (it.hasNext()) {
-      AndroidSdkData sdkData = it.next().get();
-      // Lazily remove stale soft references
-      if (sdkData == null) {
-        it.remove();
-        continue;
-      }
-      if (FileUtil.filesEqual(sdkData.getLocation(), canonicalLocation)) {
-        return sdkData;
+
+    if (!forceReparse) {
+      Iterator<SoftReference<AndroidSdkData>> it = mInstances.iterator();
+      while (it.hasNext()) {
+        AndroidSdkData sdkData = it.next().get();
+        // Lazily remove stale soft references
+        if (sdkData == null) {
+          it.remove();
+          continue;
+        }
+        if (FileUtil.filesEqual(sdkData.getLocation(), canonicalLocation)) {
+          return sdkData;
+        }
       }
     }
-
     if (!DefaultSdks.validateAndroidSdkPath(canonicalLocation)) {
       return null;
     }
@@ -160,7 +167,7 @@ public class AndroidSdkData {
     return getLocation().getPath();
   }
 
-  @NotNull
+  @Nullable
   public BuildToolInfo getLatestBuildTool() {
     return myLocalSdk.getLatestBuildTool();
   }

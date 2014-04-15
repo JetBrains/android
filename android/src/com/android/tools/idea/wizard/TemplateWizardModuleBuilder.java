@@ -56,8 +56,8 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      @Nullable Icon sidePanelIcon,
                                      @NotNull List<ModuleWizardStep> steps,
                                      @NotNull Disposable disposable,
-                                     boolean hideModuleName) {
-    super(templateLocation, project, sidePanelIcon, steps, disposable, hideModuleName);
+                                     boolean inGlobalWizard) {
+    super(templateLocation, project, sidePanelIcon, steps, disposable, inGlobalWizard);
     myWizardState.myIsModuleImport = false;
     myMetadata = metadata;
   }
@@ -86,12 +86,6 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   public String getBuilderId() {
     assert myMetadata != null;
     return myMetadata.getTitle();
-  }
-
-  @Override
-  public void setName(@NotNull String name) {
-    super.setName(name);
-    myNewAndroidModulePath.setName(name);
   }
 
   @Override
