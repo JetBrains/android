@@ -67,12 +67,11 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     List<File> templates = manager.getTemplates(Template.CATEGORY_PROJECTS);
     List<ProjectTemplate> tt = new ArrayList<ProjectTemplate>();
     for (File template : templates) {
-      if (project == null) {
-        final String templateName = template.getName();
+      final String templateName = template.getName();
 
-        if (!NewProjectWizardState.MODULE_TEMPLATE_NAME.equals(templateName)) {
-          continue;
-        }
+      if (NewProjectWizardState.PROJECT_TEMPLATE_NAME.equals(templateName) ||
+          project == null && !NewProjectWizardState.MODULE_TEMPLATE_NAME.equals(templateName)) {
+        continue;
       }
       TemplateMetadata metadata = manager.getTemplate(template);
       if (metadata == null || !metadata.isSupported()) {

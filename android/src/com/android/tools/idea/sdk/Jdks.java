@@ -27,13 +27,12 @@ import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ObjectUtils;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Utility methods related to IDEA JDKs.
@@ -83,13 +82,28 @@ public class Jdks {
   }
 
   @Nullable
-  private static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
+  public static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
     Collection<String> jdkHomePaths = JavaSdk.getInstance().suggestHomePaths();
     if (jdkHomePaths.isEmpty()) {
       return null;
     }
-    //noinspection TestOnlyProblems
-    return getBestJdkHomePath(jdkHomePaths, langLevel);
+    // prefer jdk path of getJavaHome(), since we have to allow access to it in tests
+    // see AndroidProjectDataServiceTest#testImportData()
+    final List<String> list = new ArrayList<String>();
+    String javaHome = SystemProperties.getJavaHome();
+
+    if (javaHome != null && !javaHome.isEmpty()) {
+      for (Iterator<String> it = jdkHomePaths.iterator(); it.hasNext(); ) {
+        final String path = it.next();
+
+        if (javaHome.startsWith(path)) {
+          it.remove();
+          list.add(path);
+        }
+      }
+    }
+    list.addAll(jdkHomePaths);
+    return getBestJdkHomePath(list, langLevel);
 
   }
 

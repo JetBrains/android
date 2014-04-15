@@ -55,7 +55,7 @@ public class GenericEditor<E extends EditorPanel> implements ModuleConfiguration
 
   @Override
   public boolean isModified() {
-    return myPanel.isModified();
+    return myPanel != null && myPanel.isModified();
   }
 
   @Override
