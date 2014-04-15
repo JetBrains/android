@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.ImportSourceKind;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -28,10 +32,13 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -81,7 +88,7 @@ public class ImportSourceModulePath implements WizardPath {
       assert importKind != null && modulesToImport != null;
       switch (importKind) {
         case ADT:
-          importAdtModules();
+          importAdtModules(modulesToImport);
           break;
         case GRADLE:
           importGradleModule(modulesToImport);
@@ -106,12 +113,20 @@ public class ImportSourceModulePath implements WizardPath {
     }
   }
 
-  private void importAdtModules() {
-    ProjectBuilder builder = myContext.getProjectBuilder();
+  private void importAdtModules(@NotNull Map<String, VirtualFile> modules) {
+    AdtImportBuilder builder = AdtImportBuilder.getBuilder(myContext);
     Project project = myContext.getProject();
     assert builder != null && project != null;
+    GradleImport importer = builder.getImporter();
+    assert importer != null;
+    importer.setModulesToImport(Maps.transformValues(modules, new Function<VirtualFile, File>() {
+      @Override
+      public File apply(VirtualFile input) {
+        return VfsUtilCore.virtualToIoFile(input);
+      }
+    }));
     if (builder.validate(null, project)) {
-      builder.commit(project, null, ModulesProvider.EMPTY_MODULES_PROVIDER);
+      builder.commit(project, null, ModulesProvider.EMPTY_MODULES_PROVIDER, null);
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         project.save();
       }
