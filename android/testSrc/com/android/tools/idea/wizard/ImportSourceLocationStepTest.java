@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.GradleModuleImportTest;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -35,6 +36,7 @@ import java.io.File;
 public final class ImportSourceLocationStepTest extends AndroidTestBase {
   private VirtualFile myModule;
   private ImportSourceLocationStep myPage;
+  private Disposable myDisposable;
 
   @Override
   public void setUp() throws Exception {
@@ -45,12 +47,14 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     myModule = GradleModuleImportTest.createGradleProjectToImport(new File(Files.createTempDir(), "project"), "gradleProject");
-    myPage = new ImportSourceLocationStep(new WizardContext(getProject()), new NewModuleWizardState(), new Disposable() {
-      @Override
-      public void dispose() {
-        // Do nothing
-      }
-    }, null);
+    myDisposable = Disposer.newDisposable();
+    myPage = new ImportSourceLocationStep(new WizardContext(getProject()), new NewModuleWizardState(), myDisposable, null);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    Disposer.dispose(myDisposable);
+    super.tearDown();
   }
 
   public void testValidation() {
