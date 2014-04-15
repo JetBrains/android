@@ -19,10 +19,13 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
+import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
+import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
 
 import java.io.File;
@@ -67,6 +70,11 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
   }
 
   public void testImportData() {
+    final String jdkPath = Jdks.getJdkHomePath(LanguageLevel.JDK_1_6);
+
+    if (jdkPath != null) {
+      VirtualDirectoryImpl.allowRootAccess(jdkPath);
+    }
     List<DataNode<IdeaAndroidProject>> nodes = Lists.newArrayList();
     Key<IdeaAndroidProject> key = AndroidProjectKeys.IDE_ANDROID_PROJECT;
     nodes.add(new DataNode<IdeaAndroidProject>(key, myIdeaAndroidProject, null));
