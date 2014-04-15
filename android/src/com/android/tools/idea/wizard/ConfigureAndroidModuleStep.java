@@ -303,13 +303,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     return myAppName;
   }
 
-  public void setModuleName(String name) {
-    myModuleName.setText(name);
-    myTemplateState.put(ATTR_MODULE_NAME, name);
-    myTemplateState.myModified.add(ATTR_MODULE_NAME);
-    validate();
-  }
-
   @NotNull
   @VisibleForTesting
   IAndroidTarget[] getCompilationTargets() {
@@ -317,6 +310,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (sdkData == null) {
       return new IAndroidTarget[0];
     }
+    return getCompilationTargets(sdkData);
+  }
+
+  @NotNull
+  public static IAndroidTarget[] getCompilationTargets(@NotNull AndroidSdkData sdkData) {
     IAndroidTarget[] targets = sdkData.getTargets();
     List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
 
@@ -328,7 +326,6 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
       list.add(target);
     }
-
     return list.toArray(new IAndroidTarget[list.size()]);
   }
 

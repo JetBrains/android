@@ -214,7 +214,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     if (unsupportedModules.size() == 0) {
       return;
     }
-    final String s = StringUtil.join(modules, new Function<Module, String>() {
+    final String s = StringUtil.join(unsupportedModules, new Function<Module, String>() {
       @Override
       public String fun(Module module) {
         return module.getName();

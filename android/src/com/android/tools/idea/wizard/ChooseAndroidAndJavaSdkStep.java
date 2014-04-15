@@ -1,6 +1,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.intellij.CommonBundle;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -10,9 +11,12 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ui.configuration.JdkComboBox;
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,13 +77,26 @@ public class ChooseAndroidAndJavaSdkStep extends ModuleWizardStep {
       if (location.length() == 0) {
         throw new ConfigurationException("Specify Android SDK location");
       }
-      if (!new File(location).isDirectory()) {
+      final File fileLocation = new File(FileUtil.toSystemIndependentName(location));
+
+      if (!fileLocation.isDirectory()) {
         throw new ConfigurationException(location + " is not directory");
       }
-      final AndroidSdkData sdkData = AndroidSdkData.getSdkData(location);
+      final AndroidSdkData sdkData = AndroidSdkData.getSdkData(fileLocation, true);
 
       if (sdkData == null) {
         throw new ConfigurationException("Invalid Android SDK");
+      }
+      if (ConfigureAndroidModuleStep.getCompilationTargets(sdkData).length == 0) {
+        final int result = Messages.showOkCancelDialog(
+          myPanel, "This Android SDK doesn't contain any platform targets installed.\n" +
+                   "Please launch SDK manager to install the platforms.", CommonBundle.getErrorTitle(),
+          "Launch SDK manager", Messages.CANCEL_BUTTON, Messages.getErrorIcon());
+
+        if (result == Messages.OK) {
+          RunAndroidSdkManagerAction.runSpecificSdkManager(null, fileLocation);
+        }
+        return false;
       }
     }
     return true;
