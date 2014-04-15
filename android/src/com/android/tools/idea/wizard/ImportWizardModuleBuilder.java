@@ -19,10 +19,8 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -30,7 +28,6 @@ import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.StdModuleTypes;
@@ -42,7 +39,6 @@ import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.io.FileUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
@@ -53,10 +49,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
 public class ImportWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
@@ -75,7 +70,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
                                    @Nullable Icon sidePanelIcon,
                                    @NotNull List<ModuleWizardStep> steps,
                                    @NotNull Disposable disposable,
-                                   boolean hideModuleName) {
+                                   boolean inGlobalWizard) {
     myProject = project;
     mySteps = steps;
 
@@ -104,8 +99,11 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     if (templateFile != null) {
       myWizardState.setTemplateLocation(templateFile);
     }
-    if (hideModuleName) {
-      myWizardState.myHidden.add(ATTR_MODULE_NAME);
+    if (inGlobalWizard) {
+      if (myProject != null) {
+        myWizardState.myHidden.add(ATTR_MODULE_NAME);
+      }
+      myWizardState.myHidden.add(ATTR_PROJECT_LOCATION);
     }
 
     Template.convertApisToInt(myWizardState.getParameters());
@@ -167,6 +165,13 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   @Nullable
   @Override
   public ModuleWizardStep modifySettingsStep(@NotNull SettingsStep settingsStep) {
+    if (myWizardState.hasAttr(ATTR_APP_TITLE)) {
+      final String applicationName = myWizardState.getString(ATTR_APP_TITLE);
+
+      if (!applicationName.isEmpty()) {
+        settingsStep.getModuleNameField().setText(applicationName.replace(" ", ""));
+      }
+    }
     return null;
   }
 
@@ -207,6 +212,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
                     NewProjectWizard.createProject(myWizardState, project, assetGenerator);
                   }
                   else {
+                    myWizardState.put(ATTR_MODULE_NAME, getName());
                     createModule();
                   }
                 }
