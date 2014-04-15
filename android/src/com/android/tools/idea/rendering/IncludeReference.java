@@ -15,75 +15,113 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.annotations.Nullable;
+import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.io.fs.IFile;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.*;
+import java.io.File;
+
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
 
 /**
  * A reference to a particular file in the project
  */
 public class IncludeReference {
-  /**
-   * The unique id referencing the file, such as (for res/layout-land/main.xml)
-   * "layout-land/main")
-   */
-  @NotNull
-  private final String myId;
+  @SuppressWarnings("ConstantConditions")
+  public static final IncludeReference NONE = new IncludeReference(null, null, null);
+
+  /** Tools namespace attribute for declaring a surrounding layout to be used */
+  public static final String ATTR_RENDER_IN = "showIn";
 
   /**
-   * The project containing the file
+   * The source file of the reference (included from)
    */
   @NotNull
-  private final Project myProject;
+  private final VirtualFile myFromFile;
 
   /**
-   * The resource name of the file, such as (for res/layout/main.xml) "main"
+   * The destination file of the reference (the file being included)
    */
   @Nullable
-  private String myName;
+  private final VirtualFile myToFile;
+
+  /**
+   * The module containing the file
+   */
+  @NotNull
+  private final Module myModule;
 
   /**
    * Creates a new include reference
    */
-  private IncludeReference(@NotNull Project project, @NotNull String id) {
-    myProject = project;
-    myId = id;
+  private IncludeReference(@NonNull Module module, @NonNull VirtualFile fromFile,  @Nullable VirtualFile toFile) {
+    myModule = module;
+    myFromFile = fromFile;
+    myToFile = toFile;
   }
 
   /**
-   * Returns the id identifying the given file within the project
-   *
-   * @return the id identifying the given file within the project
+   * Creates a new include reference
+   */
+  public static IncludeReference create(@NonNull Module module, @NonNull VirtualFile fromFile,  @Nullable VirtualFile toFile) {
+    return new IncludeReference(module, fromFile, toFile);
+  }
+
+  /**
+   * Returns the associated module
+   * @return the module
    */
   @NotNull
-  public String getId() {
-    return myId;
+  public Module getModule() {
+    return myModule;
   }
 
   /**
-   * Returns the {@link IFile} in the project for the given file. May return null if
-   * there is an error in locating the file or if the file no longer exists.
-   *
-   * @return the project file, or null
+   * Returns the file for the include reference
+   * @return the file
+   */
+  @NotNull
+  public VirtualFile getFromFile() {
+    return myFromFile;
+  }
+
+  /**
+   * Returns the path for the include reference
+   * @return the path
+   */
+  @NotNull
+  public File getFromPath() {
+    return VfsUtilCore.virtualToIoFile(myFromFile);
+  }
+
+  /**
+   * Returns the destination file for the include reference
+   * @return the destination file
    */
   @Nullable
-  public VirtualFile getFile() {
-    String reference = myId;
-    if (reference.indexOf('/') == -1) {
-      reference = FD_RES_LAYOUT + '/' + reference;
-    }
+  public VirtualFile getToFile() {
+    return myToFile;
+  }
 
-    String projectPath = FD_RESOURCES + '/' + reference + '.' + EXT_XML;
-    VirtualFile file = myProject.getBaseDir().findFileByRelativePath(projectPath);
-    if (file != null && file.exists()) {
-      return file;
-    }
-
-    return null;
+  /**
+   * Returns the destination path for the include reference
+   * @return the destination path, if known
+   */
+  @Nullable
+  public File getToPath() {
+    return myToFile != null ? VfsUtilCore.virtualToIoFile(myToFile) : null;
   }
 
   /**
@@ -92,67 +130,101 @@ public class IncludeReference {
    * @return a display name for the reference
    */
   @NotNull
-  public String getDisplayName() {
+  public String getFromDisplayName() {
     // The ID is deliberately kept in a pretty user-readable format but we could
     // consider prepending layout/ on ids that don't have it (to make the display
     // more uniform) or ripping out all layout[-constraint] prefixes out and
     // instead prepending @ etc.
-    return myId;
-  }
-
-  /**
-   * Returns the name of the reference, suitable for resource lookup. For example,
-   * for "res/layout/main.xml", as well as for "res/layout-land/main.xml", this
-   * would be "main".
-   *
-   * @return the resource name of the reference
-   */
-  @NotNull
-  public String getName() {
-    if (myName == null) {
-      myName = myId;
-      int index = myName.lastIndexOf('/');
-      if (index != -1) {
-        myName = myName.substring(index + 1);
-      }
+    if (myToFile != null && myToFile.getParent() == myFromFile.getParent()) {
+      return myFromFile.getName();
     }
 
-    return myName;
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + myId.hashCode();
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
-    IncludeReference other = (IncludeReference)obj;
-    if (!myId.equals(other.myId)) return false;
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "IncludeReference [getId()=" + getId() //$NON-NLS-1$
-           + ", getDisplayName()=" + getDisplayName() //$NON-NLS-1$
-           + ", getName()=" + getName() //$NON-NLS-1$
-           + ", getFile()=" + getFile() + "]"; //$NON-NLS-1$
+    return myFromFile.getParent().getName() + '/' + myFromFile.getName();
   }
 
   /**
-   * Returns the resource name of this layout, such as {@code @layout/foo}.
+   * Returns the resource name of this layout
    *
    * @return the resource name
    */
   @NotNull
-  public String getResourceName() {
-    return '@' + FD_RES_LAYOUT + '/' + getName();
+  public String getFromResourceName() {
+    return ResourceHelper.getResourceName(myFromFile);
+  }
+
+  /**
+   * Returns the resource URL for this layout, such as {@code @layout/foo}.
+   *
+   * @return the resource URL
+   */
+  @NotNull
+  public String getFromResourceUrl() {
+    return LAYOUT_RESOURCE_PREFIX + getFromResourceName();
+  }
+
+  @Nullable
+  public static String getIncludingLayout(@NotNull final XmlFile file) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+        @Nullable
+        @Override
+        public String compute() {
+          return getIncludingLayout(file);
+        }
+      });
+    }
+    XmlTag rootTag = file.getRootTag();
+    if (rootTag != null) {
+      return rootTag.getAttributeValue(ATTR_RENDER_IN, TOOLS_URI);
+    }
+
+    return null;
+  }
+
+  public static void setIncludingLayout(@NotNull Project project, @NotNull XmlFile xmlFile, @Nullable String layout) {
+    XmlTag tag = xmlFile.getRootTag();
+    if (tag != null) {
+      SetAttributeFix fix = new SetAttributeFix(project, tag, ATTR_RENDER_IN, TOOLS_URI, layout);
+      fix.execute();
+    }
+  }
+
+  /** Returns an {link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from the
+   * given file */
+  @NotNull
+  public static IncludeReference get(@NotNull final Module module, @NotNull final XmlFile file, @NotNull final RenderResources resolver) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction(new Computable<IncludeReference>() {
+        @NotNull
+        @Override
+        public IncludeReference compute() {
+          return get(module, file, resolver);
+        }
+      });
+    }
+
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    XmlTag rootTag = file.getRootTag();
+    if (rootTag != null) {
+      String layout = rootTag.getAttributeValue(ATTR_RENDER_IN, TOOLS_URI);
+      if (layout != null) {
+        ResourceValue resValue = resolver.findResValue(layout, false);
+        if (resValue != null) {
+          // TODO: Do some sort of picking based on best configuration!!
+          // I should make sure I also get a configuration that is compatible with
+          // my target include! I could stash it in the include reference!
+          File path = ResourceHelper.resolveLayout(resolver, resValue);
+          if (path != null) {
+            VirtualFile source = LocalFileSystem.getInstance().findFileByIoFile(path);
+            if (source != null) {
+              VirtualFile target = file.getVirtualFile();
+              return create(module, source, target);
+            }
+          }
+        }
+      }
+    }
+
+    return NONE;
   }
 }

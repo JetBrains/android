@@ -16,7 +16,7 @@
 package com.intellij.android.designer.model.layout.relative;
 
 import com.android.SdkConstants;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.IXmlAttributeLocator;
 import com.intellij.android.designer.propertyTable.JavadocParser;
@@ -80,7 +80,7 @@ public class CenterProperty extends Property<RadViewComponent> implements IXmlAt
             tag.setAttribute(ATTR_ITEMS[i], SdkConstants.NS_RESOURCES, "true");
           }
           else {
-            ModelParser.deleteAttribute(tag, ATTR_ITEMS[i]);
+            RadComponentOperations.deleteAttribute(tag, ATTR_ITEMS[i]);
           }
         }
       }

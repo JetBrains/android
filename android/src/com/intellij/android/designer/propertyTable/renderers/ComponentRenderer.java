@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.propertyTable.renderers;
 
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.propertyTable.editors.StringsComboEditor;
 import com.intellij.designer.componentTree.AttributeWrapper;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
@@ -49,9 +50,11 @@ public abstract class ComponentRenderer extends ColoredListCellRenderer implemen
   }
 
   private void renderComponent(RadComponent component) {
-    TreeComponentDecorator decorator = component.getRoot().getClientProperty(TreeComponentDecorator.KEY);
-    decorator.decorate(component, this, AttributeWrapper.DEFAULT, false);
-    setIcon(component.getMetaModel().getIcon());
+    TreeComponentDecorator decorator = RadModelBuilder.getTreeDecorator(component);
+    if (decorator != null) {
+      decorator.decorate(component, this, AttributeWrapper.DEFAULT, false);
+      setIcon(component.getMetaModel().getIcon());
+    }
   }
 
   @NotNull
