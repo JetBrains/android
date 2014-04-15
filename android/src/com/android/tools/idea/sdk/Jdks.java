@@ -83,7 +83,7 @@ public class Jdks {
 
   @Nullable
   public static String getJdkHomePath(@NotNull LanguageLevel langLevel) {
-    Collection<String> jdkHomePaths = JavaSdk.getInstance().suggestHomePaths();
+    Collection<String> jdkHomePaths = new ArrayList<String>(JavaSdk.getInstance().suggestHomePaths());
     if (jdkHomePaths.isEmpty()) {
       return null;
     }
