@@ -16,7 +16,6 @@
 package com.android.tools.idea.templates;
 
 import com.android.tools.idea.actions.NewAndroidComponentAction;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
@@ -25,17 +24,16 @@ import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 import com.google.common.io.Files;
 import com.intellij.ide.actions.NonEmptyActionGroup;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +67,7 @@ public class TemplateManager {
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
 
   /**
-   * Cache for {@link #getTemplate()}
+   * Cache for {@link #getTemplate(File)}
    */
   private Map<File, TemplateMetadata> myTemplateMap;
 
@@ -286,10 +284,6 @@ public class TemplateManager {
   }
 
   public void refreshDynamicTemplateMenu() {
-    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      return;
-    }
-
     if (myTopGroup == null) {
       myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
     } else {
@@ -301,7 +295,15 @@ public class TemplateManager {
         continue;
       }
       // Create the menu group item
-      NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup();
+      NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
+        @Override
+        public void update(AnActionEvent e) {
+          final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
+          final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+          Presentation presentation = e.getPresentation();
+          presentation.setVisible(getChildrenCount() > 0 && facet != null && facet.isGradleProject());
+        }
+      };
       categoryGroup.setPopup(true);
       Presentation presentation = categoryGroup.getTemplatePresentation();
       presentation.setIcon(AndroidIcons.Android);

@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.templates.TemplateManager;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +34,17 @@ public class AndroidPlugin implements ApplicationComponent {
 
   @Override
   public void initComponent() {
+    createDynamicTemplateMenu();
+  }
+
+  public static void createDynamicTemplateMenu() {
+    DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
+    newGroup.addSeparator();
+    final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu();
+
+    if (menu != null) {
+      newGroup.add(menu, new Constraints(Anchor.AFTER, "NewDir"));
+    }
   }
 
   @Override

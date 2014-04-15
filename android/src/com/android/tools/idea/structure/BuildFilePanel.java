@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,7 +33,7 @@ public abstract class BuildFilePanel extends EditorPanel {
   private static final Logger LOG = Logger.getInstance(BuildFilePanel.class);
 
   protected final Project myProject;
-  protected final GradleBuildFile myGradleBuildFile;
+  @Nullable protected final GradleBuildFile myGradleBuildFile;
   protected boolean myModified = false;
   private final JPanel myPanel;
 
