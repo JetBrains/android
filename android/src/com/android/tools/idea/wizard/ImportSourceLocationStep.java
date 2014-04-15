@@ -19,12 +19,9 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.project.ImportSourceKind;
 import com.android.tools.idea.gradle.project.ProjectImportUtil;
-import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
@@ -40,27 +37,24 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
-import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.intellij.openapi.ui.MessageType.ERROR;
+import static com.intellij.openapi.ui.MessageType.WARNING;
 
 /**
  * Wizard page for selecting source location for module import.
@@ -69,25 +63,24 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private static final int VALIDATION_STATUS_DISPLAY_DELAY = 50; //ms
   private final Logger LOG = Logger.getInstance(ImportSourceLocationStep.class);
   private final NewModuleWizardState myState;
-  private final ModulesTableModel myModulesModel;
   private final Timer myDelayedValidationProgressDisplay;
   @NotNull private final TemplateWizardStep.UpdateListener myUpdateListener;
   @NotNull private final WizardContext myContext;
   private JPanel myPanel;
   private TextFieldWithBrowseButton mySourceLocation;
   private JBLabel myErrorWarning;
-  private JBTable myModulesList;
+  private ModulesTable myModulesList;
   private JBLabel myModuleImportLabel;
   private AsyncProcessIcon myValidationProgress;
   private AsyncValidator<?> validator;
-  private BackgroundOperationResult myResult;
-  private boolean myIsValidating = false;
+  private PathValidationResult myPageValidationResult;
+  private boolean myValidating = false;
+  private PageStatus myStatus;
 
   public ImportSourceLocationStep(@NotNull WizardContext context,
                                   @NotNull NewModuleWizardState state,
                                   @NotNull Disposable disposable,
                                   @Nullable TemplateWizardStep.UpdateListener listener) {
-    myModulesList.setGridColor(UIUtil.getSlightlyDarkerColor(myModulesList.getBackground()));
     myContext = context;
     myUpdateListener = listener == null ? new TemplateWizardStep.UpdateListener() {
       @Override
@@ -100,21 +93,29 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     descriptor.setTitle("Select Source Location");
     descriptor.setDescription("Select location of your existing ");
     mySourceLocation.addBrowseFolderListener(new TextBrowseFolderListener(descriptor));
-
-    validator = new AsyncValidator<BackgroundOperationResult>(disposable) {
+    PropertyChangeListener modulesListener = new PropertyChangeListener() {
+      @SuppressWarnings("unchecked")
       @Override
-      protected void showValidationResult(BackgroundOperationResult result) {
+      public void propertyChange(PropertyChangeEvent evt) {
+        if (ModulesTable.PROPERTY_SELECTED_MODULES.equals(evt.getPropertyName())) {
+          updateStepStatus(myPageValidationResult);
+        }
+      }
+    };
+    myModulesList.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, modulesListener);
+
+    validator = new AsyncValidator<PathValidationResult>(disposable) {
+      @Override
+      protected void showValidationResult(PathValidationResult result) {
         applyBackgroundOperationResult(result);
       }
 
       @NotNull
       @Override
-      protected BackgroundOperationResult validate() {
+      protected PathValidationResult validate() {
         return checkPath(mySourceLocation.getText());
       }
     };
-    myModulesModel = new ModulesTableModel();
-    myModulesList.setModel(myModulesModel);
     applyBackgroundOperationResult(checkPath(mySourceLocation.getText()));
     myErrorWarning.setText("");
     myErrorWarning.setIcon(null);
@@ -127,58 +128,23 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     myDelayedValidationProgressDisplay = new Timer(VALIDATION_STATUS_DISPLAY_DELAY, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (myIsValidating) {
-          updateStatusDisplay(PageStatus.VALIDATING);
+        if (myValidating) {
+          updateStatusDisplay(PageStatus.VALIDATING, null);
         }
       }
     });
   }
 
-  /**
-   * Returns a relative path string to be shown in the UI. Wizard logic
-   * operates with VirtualFile's so these paths are only for user. The paths
-   * shown are relative to the file system location user specified, showing
-   * relative paths will be easier for the user to read.
-   */
-  private static String getRelativePath(@NotNull VirtualFile file, @Nullable VirtualFile base) {
-    String path = file.getPath();
-    if (base == null) {
-      return path;
-    }
-    else if (file.equals(base)) {
-      return ".";
-    }
-    else if (!base.isDirectory()) {
-      return getRelativePath(file, base.getParent());
-    }
-    else {
-      String basePath = base.getPath();
-      if (path.startsWith(basePath + "/")) {
-        return path.substring(basePath.length() + 1);
-      }
-      else if (file.getFileSystem().equals(base.getFileSystem())) {
-        StringBuilder builder = new StringBuilder(basePath.length());
-        String prefix = Strings.commonPrefix(path, basePath);
-        if (!prefix.endsWith("/")) {
-          prefix = prefix.substring(0, prefix.indexOf("/"));
-        }
-        if (!path.startsWith(basePath)) {
-          Iterable<String> segments = Splitter.on("/").split(basePath.substring(prefix.length()));
-          Joiner.on("/").appendTo(builder, Iterables.transform(segments, Functions.constant("..")));
-          builder.append("/");
-        }
-        builder.append(path.substring(prefix.length()));
-        return builder.toString();
-      }
-      else {
-        return path;
-      }
-    }
+  private static String multiLineJLabelText(String... messages) {
+    StringBuilder builder = new StringBuilder("<html><body><p>");
+    Joiner.on("<br>").appendTo(builder, messages);
+    builder.append("</p></body></html>");
+    return builder.toString();
   }
 
-  private void updateStatusDisplay(@NotNull PageStatus status) {
+  private void updateStatusDisplay(@NotNull PageStatus status, @Nullable Object details) {
     myValidationProgress.setVisible(status.isSpinnerVisible());
-    myErrorWarning.setText(status.message);
+    myErrorWarning.setText(status.getMessage(details));
     myErrorWarning.setIcon(status.getIcon());
     myModulesList.setEnabled(!status.isSpinnerVisible()); // Grayed out for background op
     myUpdateListener.update();
@@ -188,16 +154,27 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     if (!myDelayedValidationProgressDisplay.isRunning()) {
       myDelayedValidationProgressDisplay.start();
     }
-    myIsValidating = true;
+    myValidating = true;
     validator.invalidate();
   }
 
-  private void applyBackgroundOperationResult(@NotNull BackgroundOperationResult result) {
+  private void applyBackgroundOperationResult(@NotNull PathValidationResult result) {
     assert EventQueue.isDispatchThread();
     Map<String, VirtualFile> modules = null;
     try {
       if (result.myStatus == PageStatus.OK) {
+        assert result.myVfile != null && myContext.getProject() != null;
         modules = ProjectImportUtil.findModules(result.myVfile, myContext.getProject());
+        Set<String> missingSource = new TreeSet<String>();
+        for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
+          if (module.getValue() == null || !module.getValue().exists()) {
+            missingSource.add(module.getKey());
+          }
+        }
+        if (!missingSource.isEmpty()) {
+          result = new PathValidationResult(PageStatus.MISSING_SUBPROJECTS,
+                                            result.myVfile, result.myImportKind, missingSource);
+        }
         AdtImportBuilder builder = (AdtImportBuilder)myContext.getProjectBuilder();
         assert builder != null;
         builder.setSelectedProject(new File(mySourceLocation.getText()));
@@ -207,13 +184,30 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       LOG.error(e);
       result = PageStatus.INTERNAL_ERROR.result();
     }
-    myIsValidating = false;
-    myResult = result;
-    updateStatusDisplay(myResult.myStatus);
-    myUpdateListener.update();
-    myState.setImportKind(result.myImportKind);
+    myValidating = false;
     refreshModulesList(result.myVfile, modules);
-    myState.setModulesToImport(modules);
+    myState.setImportKind(result.myImportKind);
+    updateStepStatus(result);
+  }
+
+  private void updateStepStatus(PathValidationResult result) {
+    Object validationDetails = result.myDetails;
+    PageStatus status = result.myStatus;
+    final Map<String, VirtualFile> selectedModules;
+    if (!MessageType.ERROR.equals(status.severity)) {
+      selectedModules = myModulesList.getSelectedModules();
+      if (selectedModules.isEmpty()) {
+        status = PageStatus.NO_MODULES_SELECTED;
+        validationDetails = null;
+      }
+    } else {
+      selectedModules = Collections.emptyMap();
+    }
+    myState.setModulesToImport(selectedModules);
+    myPageValidationResult = result;
+    updateStatusDisplay(status, validationDetails);
+    myStatus = status;
+    myUpdateListener.update();
   }
 
   private void refreshModulesList(@Nullable VirtualFile vfile, @Nullable Map<String, VirtualFile> modules) {
@@ -221,7 +215,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     boolean hasModules = modules != null && modules.size() > 1;
     myModulesList.setVisible(hasModules);
     myModuleImportLabel.setVisible(hasModules);
-    myModulesModel.setModules(vfile, modules);
+    myModulesList.setModules(vfile, modules);
   }
 
   private void createUIComponents() {
@@ -231,7 +225,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
 
   @Override
   public boolean validate() {
-    return myResult.myStatus.severity != ERROR && !myIsValidating;
+    return myStatus.severity != ERROR && !myValidating;
   }
 
   @Override
@@ -241,7 +235,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
 
   @NotNull
   @VisibleForTesting
-  protected BackgroundOperationResult checkPath(@NotNull String path) {
+  protected PathValidationResult checkPath(@NotNull String path) {
     path = path.trim();
     if (Strings.isNullOrEmpty(path)) {
       return PageStatus.EMPTY_PATH.result();
@@ -257,7 +251,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     if (kind != ImportSourceKind.ADT && kind != ImportSourceKind.GRADLE) {
       return PageStatus.NOT_ADT_OR_GRADLE.result();
     }
-    return new BackgroundOperationResult(PageStatus.OK, vfile, kind);
+    return new PathValidationResult(PageStatus.OK, vfile, kind, null);
   }
 
   private boolean isInProject(VirtualFile path) {
@@ -293,19 +287,25 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   enum PageStatus {
     OK(null, null), EMPTY_PATH("Path is empty", ERROR), DOES_NOT_EXIST("Path does not exist", ERROR),
     NESTED_IN_PROJECT("Path points to a location within your project", ERROR),
+    MISSING_SUBPROJECTS("Some projects were not found", WARNING),
+    NO_MODULES_SELECTED("Select modules to import", ERROR),
     NOT_ADT_OR_GRADLE("Specify location of the Gradle or Android Eclipse project", ERROR),
     INTERNAL_ERROR("Internal error, please check the IDE log", ERROR), VALIDATING("Validating", null);
 
-    @Nullable public final String message;
     @Nullable public final MessageType severity;
+    @Nullable private final String message;
 
     PageStatus(@Nullable String message, @Nullable MessageType severity) {
       this.message = message;
       this.severity = severity;
     }
 
-    public BackgroundOperationResult result() {
-      return new BackgroundOperationResult(this, null, null);
+    private static String atMostTwoProjects(Collection<String> names) {
+      return Joiner.on(", ").join(Iterables.limit(names, Math.min(names.size() - 1, 2)));
+    }
+
+    public PathValidationResult result() {
+      return new PathValidationResult(this, null, null, null);
     }
 
     @Nullable
@@ -316,74 +316,49 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     public boolean isSpinnerVisible() {
       return this == VALIDATING;
     }
+
+    @SuppressWarnings("unchecked")
+    public String getMessage(@Nullable Object details) {
+      if (this == MISSING_SUBPROJECTS && details instanceof Collection) {
+        final String message;
+        Collection<String> names = (Collection<String>)details;
+        if (names.size() <= 1) { // If there's 0 elements, some error happened
+          message = String.format("Unable to find sources for subproject %1$s.",
+                                  Iterables.getFirst(names, "<validation error>"));
+        }
+        else if (names.size() <= 3) {
+          message = String.format("Unable to find sources for subprojects %1$s and %2$s.",
+                                  atMostTwoProjects(names), Iterables.getLast(names));
+        }
+        else {
+          message = String.format("Unable to find sources for %1$s and %2$d more subprojects.",
+                                  atMostTwoProjects(names), names.size() - 2);
+        }
+        return multiLineJLabelText(message, "This may result in missing dependencies.");
+      }
+      else {
+        return Strings.nullToEmpty(message);
+      }
+    }
+
   }
 
   @VisibleForTesting
-  static final class BackgroundOperationResult {
+  static final class PathValidationResult {
     @NotNull public final PageStatus myStatus;
     @Nullable public final VirtualFile myVfile;
     @Nullable public final ImportSourceKind myImportKind;
+    @Nullable public final Object myDetails;
 
-    private BackgroundOperationResult(@NotNull PageStatus status,
-                                      @Nullable VirtualFile vfile,
-                                      @Nullable ImportSourceKind importKind) {
+    private PathValidationResult(@NotNull PageStatus status,
+                                 @Nullable VirtualFile vfile,
+                                 @Nullable ImportSourceKind importKind,
+                                 @Nullable Object details) {
       myStatus = status;
       myVfile = vfile;
       myImportKind = importKind;
+      myDetails = details;
     }
   }
 
-  private static class ModulesTableModel extends AbstractTableModel {
-    private @NotNull List<String> mySortedNames = Collections.emptyList();
-    private @Nullable Map<String, VirtualFile> myModules = null;
-    @Nullable private VirtualFile myBase;
-
-
-    @Override
-    public int getRowCount() {
-      return mySortedNames.size();
-    }
-
-    @Override
-    public int getColumnCount() {
-      return 2;
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-      if (rowIndex >= mySortedNames.size()) {
-        return "<Out of bounds>";
-      }
-
-      String name = mySortedNames.get(rowIndex);
-      switch (columnIndex) {
-        case 0:
-          return name;
-        case 1:
-          return getModulePath(name);
-        default:
-          return String.format("Column %d", columnIndex);
-      }
-    }
-
-    @NotNull
-    private String getModulePath(@NotNull String name) {
-      assert myModules != null;
-      VirtualFile vfile = myModules.get(name);
-      if (vfile == null) {
-        return "";
-      }
-      else {
-        return Files.simplifyPath(getRelativePath(vfile, myBase));
-      }
-    }
-
-    public void setModules(@Nullable VirtualFile base, @Nullable Map<String, VirtualFile> modules) {
-      myBase = base;
-      mySortedNames = modules == null ? Collections.<String>emptyList() : new ArrayList<String>(modules.keySet());
-      myModules = modules;
-      Collections.sort(mySortedNames, Collator.getInstance());
-      fireTableDataChanged();
-    }
-  }
 }
