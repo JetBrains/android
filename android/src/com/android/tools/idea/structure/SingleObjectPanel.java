@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.util.List;
@@ -31,7 +32,7 @@ public class SingleObjectPanel extends BuildFilePanel {
   protected final GrClosableBlock myRoot;
   protected final List<BuildFileKey> myProperties;
   private final JBTable myTable;
-  private final SingleObjectTableModel myModel;
+  @Nullable private final SingleObjectTableModel myModel;
 
   public SingleObjectPanel(@NotNull Project project, @NotNull String moduleName, @Nullable GrClosableBlock root,
                            @NotNull List<BuildFileKey> properties) {
@@ -39,14 +40,14 @@ public class SingleObjectPanel extends BuildFilePanel {
     myRoot = root;
     myProperties = properties;
 
-    myModel = new SingleObjectTableModel(myGradleBuildFile, myRoot, myProperties);
+    myModel = myGradleBuildFile != null ? new SingleObjectTableModel(myGradleBuildFile, myRoot, myProperties) : null;
 
     // We have to provide our own cell editors because JTable by default only allows one data type per column; we vary our
     // data type by row.
-    myTable = new JBTable(myModel) {
+    myTable = new JBTable(myGradleBuildFile != null ? myModel : new DefaultTableModel()) {
       @Override
       public TableCellEditor getCellEditor(int row, int col) {
-        TableCellEditor editor = myModel.getCellEditor(row, col);
+        TableCellEditor editor = myModel != null ? myModel.getCellEditor(row, col) : null;
         return editor != null ? editor : super.getCellEditor(row, col);
       }
     };
@@ -68,11 +69,13 @@ public class SingleObjectPanel extends BuildFilePanel {
 
   @Override
   public void apply() {
-    myModel.apply();
+    if (myModel != null) {
+      myModel.apply();
+    }
   }
 
   @Override
   public boolean isModified() {
-    return myModel.isModified();
+    return myModel != null && myModel.isModified();
   }
 }

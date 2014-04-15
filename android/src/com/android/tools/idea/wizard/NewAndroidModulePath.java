@@ -80,10 +80,6 @@ public final class NewAndroidModulePath implements WizardPath {
     myActivityTemplateParameterStep.setVisible(createActivity);
   }
 
-  public void setName(String name) {
-    myConfigureAndroidModuleStep.setModuleName(name);
-  }
-
   public void templateChanged() {
     myConfigureAndroidModuleStep.refreshUiFromParameters();
   }
