@@ -50,10 +50,6 @@ public class GradleBuildFile extends GradleGroovyFile {
     super(buildFile, project);
   }
 
-  public GradleBuildFile(@NotNull GroovyFile buildFile) {
-    super(buildFile);
-  }
-
   @NotNull
   public List<BuildFileStatement> getDependencies() {
     Object dependencies = getValue(BuildFileKey.DEPENDENCIES);
@@ -160,12 +156,12 @@ public class GradleBuildFile extends GradleGroovyFile {
   }
 
   /**
-   * Returns a list of all the plugins used by the build file.
+   * Returns a list of all the plugins used by the given build file.
    */
   @NotNull
-  public List<String> getPlugins() {
+  public static List<String> getPlugins(GroovyFile buildScript) {
     List<String> plugins = Lists.newArrayListWithExpectedSize(1);
-    for (GrMethodCall methodCall : getMethodCalls(myGroovyFile, "apply")) {
+    for (GrMethodCall methodCall : getMethodCalls(buildScript, "apply")) {
       Map<String,Object> values = getNamedArgumentValues(methodCall);
       Object plugin = values.get("plugin");
       if (plugin != null) {
@@ -173,6 +169,14 @@ public class GradleBuildFile extends GradleGroovyFile {
       }
     }
     return plugins;
+  }
+
+  /**
+   * Returns a list of all the plugins used by the build file.
+   */
+  @NotNull
+  public List<String> getPlugins() {
+    return getPlugins(myGroovyFile);
   }
 
   /**
