@@ -16,12 +16,23 @@
 package com.android.tools.idea.gradle.service.resolve;
 
 import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
+
+import java.util.Set;
 
 /**
  * {@link AndroidDslContributorTest} tests that various elements in the Gradle build script are
@@ -72,7 +83,7 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     validateResolution(psiFile, "publishNonDefault", "com.android.build.gradle.LibraryExtension", "publishNonDefault");
   }
 
-  private void validateNoResolution(PsiFile psiFile, String symbol) {
+  private static void validateNoResolution(PsiFile psiFile, String symbol) {
     PsiReference ref = getPsiReference(psiFile, symbol);
     assert ref instanceof GrReferenceExpression : symbol;
 
@@ -104,6 +115,34 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     assertEquals("Method names don't match while resolving " + symbol, methodName, psiMethod.getName());
   }
 
+  public void testCompletions() throws Exception {
+    loadProject("projects/resolve/simple");
+
+    assertHasCompletions("completion/comp.gradle", "compileSdkVersion", "compileOptions");
+    assertHasCompletions("completion/suffix.gradle", "packageNameSuffix", "versionNameSuffix");
+    assertHasCompletions("completion/ndk.gradle", "ndk", "ndkConfig", "renderscriptNdkMode");
+  }
+
+  private void assertHasCompletions(String path, String... expectedCompletions) throws Exception {
+    VirtualFile file = getProject().getBaseDir().findFileByRelativePath(path);
+    assertNotNull(file);
+
+    myFixture.configureFromExistingVirtualFile(file);
+
+    LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
+    assertNotNull(elements);
+
+    Set<String> suggestions = Sets.newHashSetWithExpectedSize(elements.length);
+    for (LookupElement element : elements) {
+      suggestions.add(element.getLookupString());
+    }
+
+    for (String expected : expectedCompletions) {
+      String msg = String.format("%1$s not in available completions: {%2$s}", expected, Joiner.on(',').join(suggestions));
+      assertTrue(msg, suggestions.contains(expected));
+    }
+  }
+
   @Nullable
   private GroovyFile getPsiFile(String path) throws Exception {
     VirtualFile buildFile = getProject().getBaseDir().findChild(path);
@@ -122,47 +161,5 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
       fail("Symbol " + element + " not found in file.");
     }
     return psiFile.findReferenceAt(offset);
-  }
-
-  public void testParametersWildcardNdo() {
-    AndroidDslContributor.ParametrizedTypeExtractor extractor = new AndroidDslContributor.ParametrizedTypeExtractor(
-      "org.gradle.api.Action<? super org.gradle.api.NamedDomainObjectContainer<BuildType>>>");
-
-    assertTrue(extractor.isClosure());
-    assertEquals("org.gradle.api.NamedDomainObjectContainer<BuildType>", extractor.getClosureType());
-
-    assertTrue(extractor.hasNamedDomainObjectContainer());
-    assertEquals("BuildType", extractor.getNamedDomainObject());
-  }
-
-  public void testParametersNdo() {
-    AndroidDslContributor.ParametrizedTypeExtractor extractor =
-      new AndroidDslContributor.ParametrizedTypeExtractor("org.gradle.api.Action<org.gradle.api.NamedDomainObjectContainer<Flavor>>>");
-
-    assertTrue(extractor.isClosure());
-    assertEquals("org.gradle.api.NamedDomainObjectContainer<Flavor>", extractor.getClosureType());
-
-    assertTrue(extractor.hasNamedDomainObjectContainer());
-    assertEquals("Flavor", extractor.getNamedDomainObject());
-  }
-
-  public void testParametersPrimitiveClosure() {
-    AndroidDslContributor.ParametrizedTypeExtractor extractor =
-      new AndroidDslContributor.ParametrizedTypeExtractor("org.gradle.api.Action<String>");
-
-    assertTrue(extractor.isClosure());
-    assertEquals("String", extractor.getClosureType());
-
-    assertFalse(extractor.hasNamedDomainObjectContainer());
-    assertNull(extractor.getNamedDomainObject());
-  }
-
-  public void testParametersNoClosure() {
-    AndroidDslContributor.ParametrizedTypeExtractor extractor =
-      new AndroidDslContributor.ParametrizedTypeExtractor("String");
-    assertFalse(extractor.isClosure());
-
-    assertFalse(extractor.hasNamedDomainObjectContainer());
-    assertNull(extractor.getNamedDomainObject());
   }
 }
