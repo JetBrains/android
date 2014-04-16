@@ -20,10 +20,14 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.intellij.ide.startup.impl.StartupManagerImpl;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.project.impl.ProjectManagerImpl;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
@@ -34,10 +38,14 @@ import com.intellij.psi.impl.source.tree.PsiWhiteSpaceImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.groovy.annotator.intentions.dynamic.DynamicManager;
+import org.jetbrains.plugins.groovy.annotator.intentions.dynamic.DynamicManagerImpl;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
 
 import java.io.File;
 import java.util.*;
@@ -53,7 +61,15 @@ public class GradleFileMerger {
   public static final String COMPILE_FORMAT = "compile '%s'\n";
 
   public static String mergeGradleFiles(@NotNull String source, @NotNull String dest, @Nullable Project project) {
-    final Project project2 = project == null ? ProjectManager.getInstance().getDefaultProject() : project;
+    final Project project2;
+    if (project != null) {
+      project2 = project;
+    } else {
+      project2 = ((ProjectManagerImpl)ProjectManager.getInstance()).newProject("MergingOnly", "", false, true);
+      assert project2 != null;
+      ((StartupManagerImpl)StartupManager.getInstance(project2)).runStartupActivities();
+    }
+
 
     final GroovyFile templateBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(SdkConstants.FN_BUILD_GRADLE,
                                                                                                       GroovyFileType.GROOVY_FILE_TYPE,
@@ -65,7 +81,8 @@ public class GradleFileMerger {
       @Override
       protected void run(@NotNull Result<String> result) throws Throwable {
         mergePsi(templateBuildFile, existingBuildFile, project2);
-        result.setResult(CodeStyleManager.getInstance(project2).reformat(existingBuildFile).getText());
+        PsiElement formatted = CodeStyleManager.getInstance(project2).reformat(existingBuildFile);
+        result.setResult(formatted.getText());
       }
     }).execute().getResultObject();
   }
@@ -73,6 +90,20 @@ public class GradleFileMerger {
   private static void mergePsi(@NotNull PsiElement fromRoot, @NotNull PsiElement toRoot, @NotNull Project project) {
     Set<PsiElement> destinationChildren = new HashSet<PsiElement>();
     destinationChildren.addAll(Arrays.asList(toRoot.getChildren()));
+
+    // First try and do a string literal replacement.
+    // If both toRoot and fromRoot are call expressions
+    if (toRoot instanceof GrCallExpression && fromRoot instanceof GrCallExpression) {
+      PsiElement[] fromArguments = fromRoot.getLastChild().getChildren();
+      PsiElement[] toArguments = toRoot.getLastChild().getChildren();
+      // and both have only one argument and that argument is a literal
+      if (toArguments.length == 1 && fromArguments.length == 1 &&
+          toArguments[0] instanceof GrLiteral && fromArguments[0] instanceof GrLiteral) {
+        // End this branch by replacing the old literal with the new
+        toArguments[0].replace(fromArguments[0]);
+        return;
+      }
+    }
 
     // Do an element-wise (disregarding order) child comparison
     for (PsiElement child : fromRoot.getChildren()) {
@@ -102,14 +133,9 @@ public class GradleFileMerger {
     pullDependenciesIntoMap(toRoot, dependencies);
 
     // Load dependencies into the map for the new build.gradle
-    boolean newDependenciesIncoming = pullDependenciesIntoMap(fromRoot, dependencies);
-
-    if (!newDependenciesIncoming) {
-      return;
-    }
+    pullDependenciesIntoMap(fromRoot, dependencies);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
-    PsiElementFactory baseFactory = JavaPsiFacade.getElementFactory(project);
 
     RepositoryUrlManager urlManager = RepositoryUrlManager.get();
 
@@ -122,9 +148,9 @@ public class GradleFileMerger {
         GradleCoordinate available = GradleCoordinate.parseCoordinateString(
           urlManager.getLibraryCoordinate(highest.getArtifactId()));
 
-        File archiveFile = urlManager.getArchiveForCoordinate(highest);
+        File archiveFile = urlManager.getArchiveForCoordinate(available);
         if (archiveFile == null || !archiveFile.exists() || COMPARE_PLUS_LOWER.compare(available, highest) < 0) {
-          PsiElement comment = baseFactory.createCommentFromText(RepositoryUrlManager.getHelpComment(highest), null);
+          PsiElement comment = factory.createGroovyFile(RepositoryUrlManager.getHelpComment(highest), false, null);
           toRoot.addBefore(comment, toRoot.getLastChild());
         }
 
