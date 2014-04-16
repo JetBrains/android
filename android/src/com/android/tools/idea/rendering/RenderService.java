@@ -711,6 +711,10 @@ public class RenderService implements IImageFactory {
     return myPsiFile;
   }
 
+  public boolean supportsCapability(@NotNull Capability capability) {
+    return myLayoutLib.supports(capability);
+  }
+
   public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target, @NotNull Capability capability) {
     Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module);
