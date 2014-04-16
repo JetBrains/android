@@ -71,6 +71,7 @@ public class TemplateMetadata {
   public static final String ATTR_PER_MODULE_REPOS = "perModuleRepositories";
   public static final String ATTR_ICON_NAME = "iconName";
   public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
+  public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
 
   public static final String ATTR_DEPENDENCIES_LIST = "dependencyList";
   public static final String ATTR_FRAGMENTS_EXTRA = "usesFragments";

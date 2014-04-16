@@ -24,6 +24,7 @@ android {
     paid {
       packageName "com.example.projectwithappandlib.app.paid"
       assets.srcDirs = ['paid-assets', 'bundled-assets']
+      manifest.srcFile 'src/paid/AndroidManifest.xml'
     }
   }
 }
