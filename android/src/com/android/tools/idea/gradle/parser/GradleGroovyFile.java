@@ -71,13 +71,6 @@ class GradleGroovyFile {
     reload();
   }
 
-  public GradleGroovyFile(@NotNull GroovyFile groovyFile) {
-    myProject = groovyFile.getProject();
-    myFile = groovyFile.getContainingFile().getVirtualFile();
-    myGroovyFile = groovyFile;
-    onPsiFileAvailable();
-  }
-
   public Project getProject() {
     return myProject;
   }

@@ -38,14 +38,21 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.Navigatable;
+import com.intellij.psi.NavigatablePsiElement;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -55,6 +62,8 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.GroovyFileType;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.w3c.dom.*;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -72,8 +81,8 @@ import static com.android.SdkConstants.*;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
 import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.templates.Parameter.Constraint;
-import static com.android.tools.idea.templates.Parameter.existsResourceFile;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
+import static com.android.tools.idea.templates.TemplateManager.templateRootIsValid;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
 
@@ -542,7 +551,9 @@ public class Template {
 
     String contents;
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
-      contents = mergeGradleSettingsFile(sourceText, targetText, freemarker, paramMap);
+      contents = mergeGradleSettingsFile(sourceText, targetText);
+    } else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
+      contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, null);
     } else if (hasExtension(to, DOT_XML)) {
       contents = mergeXml(sourceText, targetText, to, paramMap);
     } else {
@@ -724,9 +735,7 @@ public class Template {
   }
 
   private String mergeGradleSettingsFile(@NotNull String source,
-                                         @NotNull String dest,
-                                         @NotNull final Configuration freemarker,
-                                         @NotNull final Map<String, Object> paramMap) throws IOException, TemplateException {
+                                         @NotNull String dest) throws IOException, TemplateException {
     // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
     // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
     // support requires a project, which we don't necessarily have when instantiating a template.
