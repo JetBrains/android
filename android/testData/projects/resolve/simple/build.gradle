@@ -49,4 +49,9 @@ android {
   lintOptions {
     quiet true
   }
+
+  // this should not be resolved as it only applies to android libraries
+  if (false) {
+    publishNonDefault true
+  }
 }
