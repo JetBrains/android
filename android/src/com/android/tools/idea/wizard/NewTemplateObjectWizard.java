@@ -96,7 +96,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
                                  @Nullable String templateCategory,
                                  @Nullable String templateName,
                                  @Nullable Set<String> excluded) {
-    super("New " + templateCategory, project);
+    super("New " + (templateName != null ? templateName : templateCategory), project);
     myProject = project;
     myModule = module;
     myTemplateCategory = templateCategory;
