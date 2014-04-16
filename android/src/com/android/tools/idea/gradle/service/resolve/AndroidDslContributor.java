@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service.resolve;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -36,10 +37,15 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleBuildClasspathManager;
 import org.jetbrains.plugins.gradle.service.resolve.GradleMethodContextContributor;
 import org.jetbrains.plugins.gradle.service.resolve.GradleResolverUtil;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiManager;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
@@ -54,6 +60,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
   @NonNls private static final String DSL_ANDROID = "android";
   @NonNls private static final String ANDROID_FQCN = "com.android.build.gradle.AppExtension";
+  @NonNls private static final String ANDROID_LIB_FQCN = "com.android.build.gradle.LibraryExtension";
 
   private static final Key<PsiElement> CONTRIBUTOR_KEY = Key.create("AndroidDslContributor.key");
 
@@ -123,8 +130,8 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     // top level android block
     if (callStack.size() == 1) {
-      // TODO: we need to map this to AppExtension or LibExtension depending on whether the 'android' or 'android-library' plugins is in use
-      PsiClass contributorClass = psiManager.findClassWithCache(ANDROID_FQCN, place.getResolveScope());
+      String clz = getPluginType(place.getContainingFile()) == PluginType.ANDROID_APP ? ANDROID_FQCN : ANDROID_LIB_FQCN;
+      PsiClass contributorClass = psiManager.findClassWithCache(clz, place.getResolveScope());
       if (contributorClass == null) {
         return;
       }
@@ -349,6 +356,20 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     });
     String classPath = Joiner.on(':').join(paths);
     LOG.info(String.format("Android DSL resolver classpath (project %1$s): %2$s", project.getName(), classPath));
+  }
+
+  private enum PluginType { ANDROID_APP, ANDROID_LIBRARY };
+
+  /** Returns the android plugin type applied in this file. */
+  private static PluginType getPluginType(PsiFile file) {
+    assert file instanceof GroovyFile;
+    List<String> plugins = new GradleBuildFile((GroovyFile)file).getPlugins();
+    if (plugins.contains("android-library")) {
+      return PluginType.ANDROID_LIBRARY;
+    } else {
+      // default to android app if no plugins are applied
+      return PluginType.ANDROID_APP;
+    }
   }
 
   /**
