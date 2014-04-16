@@ -361,7 +361,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   @Nullable
   private static String resolveAndroidExtension(PsiFile file) {
     assert file instanceof GroovyFile;
-    List<String> plugins = new GradleBuildFile((GroovyFile)file).getPlugins();
+    List<String> plugins = GradleBuildFile.getPlugins((GroovyFile)file);
     if (plugins.contains("android")) {
       return ANDROID_FQCN;
     }
