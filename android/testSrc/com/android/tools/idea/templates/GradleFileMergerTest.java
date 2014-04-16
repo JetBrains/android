@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.templates;
 
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -25,6 +28,17 @@ import java.io.File;
  */
 public class GradleFileMergerTest extends AndroidTestCase {
 
+  public void testProjectDisposal() throws Exception {
+    Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+    checkFileMerge("templates/Base.gradle", "templates/NewFlavor.gradle", "templates/MergedNewFlavor.gradle", null);
+    Project[] postMergeOpenProjects = ProjectManager.getInstance().getOpenProjects();
+    assertFalse(postMergeOpenProjects.length > openProjects.length);
+    for (Project p : postMergeOpenProjects) {
+      if (p.getName().equals("MergingOnly")) {
+        fail();
+      }
+    }
+  }
 
   public void testInsertFlavor() throws Exception {
     checkFileMerge("templates/Base.gradle",
@@ -57,6 +71,10 @@ public class GradleFileMergerTest extends AndroidTestCase {
   }
 
   private void checkFileMerge(String destPath, String srcPath, String goldenPath) throws Exception {
+    checkFileMerge(destPath, srcPath, goldenPath, getProject());
+  }
+
+  private static void checkFileMerge(String destPath, String srcPath, String goldenPath, @Nullable Project project) throws Exception {
     File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
     File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
     File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
@@ -67,6 +85,6 @@ public class GradleFileMergerTest extends AndroidTestCase {
     assertNotNull(dest);
     assertNotNull(golden);
     assertEquals(golden.replaceAll("\\s+","\n"),
-                 GradleFileMerger.mergeGradleFiles(source, dest, getProject()).replaceAll("\\s+", "\n"));
+                 GradleFileMerger.mergeGradleFiles(source, dest, project).replaceAll("\\s+", "\n"));
   }
 }
