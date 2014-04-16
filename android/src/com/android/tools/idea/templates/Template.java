@@ -41,6 +41,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
@@ -773,7 +774,12 @@ public class Template {
                                  FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
     myLoader.setTemplateFile(templateFile);
     String contents = processFreemarkerTemplate(freemarker, paramMap, templateFile.getName());
-    String destinationContents = TemplateUtils.readTextFile(gradleBuildFile);
+    String destinationContents;
+    if (gradleBuildFile.exists()) {
+      destinationContents = TemplateUtils.readTextFile(gradleBuildFile);
+    } else {
+      destinationContents = "";
+    }
     if (destinationContents == null) {
       destinationContents = "";
     }
@@ -947,7 +953,7 @@ public class Template {
         if (to.getParentFile() != null && !to.getParentFile().exists()) {
           to.getParentFile().mkdirs();
         }
-        vf = LocalFileSystem.getInstance().findFileByIoFile(to.getParentFile()).createChildData(this, to.getName());
+        vf = VfsUtil.findFileByIoFile(to.getParentFile(), true).createChildData(this, to.getName());
       } catch (NullPointerException e) {
         throw new IOException("Unable to create file " + to.getAbsolutePath());
       }

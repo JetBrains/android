@@ -21,25 +21,22 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.ide.startup.impl.StartupManagerImpl;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiLiteral;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.psi.impl.source.codeStyle.CodeFormatterFacade;
-import com.intellij.psi.impl.source.tree.PsiWhiteSpaceImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
-import org.jetbrains.plugins.groovy.annotator.intentions.dynamic.DynamicManager;
-import org.jetbrains.plugins.groovy.annotator.intentions.dynamic.DynamicManagerImpl;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
@@ -62,12 +59,14 @@ public class GradleFileMerger {
 
   public static String mergeGradleFiles(@NotNull String source, @NotNull String dest, @Nullable Project project) {
     final Project project2;
+    boolean projectNeedsCleanup = false;
     if (project != null) {
       project2 = project;
     } else {
       project2 = ((ProjectManagerImpl)ProjectManager.getInstance()).newProject("MergingOnly", "", false, true);
       assert project2 != null;
       ((StartupManagerImpl)StartupManager.getInstance(project2)).runStartupActivities();
+      projectNeedsCleanup = true;
     }
 
 
@@ -77,7 +76,7 @@ public class GradleFileMerger {
     final GroovyFile existingBuildFile = (GroovyFile)PsiFileFactory.getInstance(project2).createFileFromText(SdkConstants.FN_BUILD_GRADLE,
                                                                                                       GroovyFileType.GROOVY_FILE_TYPE,
                                                                                                       dest);
-    return (new WriteCommandAction<String>(project, "Merge Gradle Files", existingBuildFile) {
+    String result = (new WriteCommandAction<String>(project2, "Merge Gradle Files", existingBuildFile) {
       @Override
       protected void run(@NotNull Result<String> result) throws Throwable {
         mergePsi(templateBuildFile, existingBuildFile, project2);
@@ -85,6 +84,16 @@ public class GradleFileMerger {
         result.setResult(formatted.getText());
       }
     }).execute().getResultObject();
+
+    if (projectNeedsCleanup) {
+      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+        @Override
+        public void run() {
+          Disposer.dispose(project2);
+        }
+      });
+    }
+    return result;
   }
 
   private static void mergePsi(@NotNull PsiElement fromRoot, @NotNull PsiElement toRoot, @NotNull Project project) {
