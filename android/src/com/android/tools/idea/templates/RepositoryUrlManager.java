@@ -81,6 +81,10 @@ public class RepositoryUrlManager {
 
   public static final String MAVEN_METADATA_FILE_NAME = "maven-metadata.xml";
 
+
+  public static final String HELP_COMMENT =
+    "// You must install or update the %1$s Repository through the SDK manager to use this dependency.";
+
   /** Model of our internal extras repository */
   public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
     .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
@@ -90,6 +94,7 @@ public class RepositoryUrlManager {
     .put(MEDIA_ROUTER_ID_V7, new RepositoryLibrary(MEDIA_ROUTER_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .build();
+
 
   public static RepositoryUrlManager get() {
     return new RepositoryUrlManager();
@@ -201,6 +206,14 @@ public class RepositoryUrlManager {
     } else {
       return Collections.max(versions).toString();
     }
+  }
+
+  /**
+   * Get a helpful comment about how to install the parent repository for the given coordinate
+   */
+  public static String getHelpComment(@NotNull GradleCoordinate coordinate) {
+    String repositoryName = coordinate.getArtifactId().equals(PLAY_SERVICES_ID) ? "Google" : "Support";
+    return String.format(HELP_COMMENT, repositoryName);
   }
 
   @Nullable
