@@ -65,6 +65,7 @@ public class TemplateManager {
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final boolean USE_SDK_TEMPLATES = false;
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
+  private static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of("Empty Activity");
 
   /**
    * Cache for {@link #getTemplate(File)}
@@ -311,6 +312,9 @@ public class TemplateManager {
 
       Map<String, File> categoryRow = myCategoryTable.row(category);
       for (String templateName : categoryRow.keySet()) {
+        if (EXCLUDED_TEMPLATES.contains(templateName)) {
+          continue;
+        }
         NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName);
         String actionId = ACTION_ID_PREFIX + category + templateName;
         am.unregisterAction(actionId);
