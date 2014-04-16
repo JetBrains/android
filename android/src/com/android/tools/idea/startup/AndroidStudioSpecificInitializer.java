@@ -353,14 +353,14 @@ public class AndroidStudioSpecificInitializer implements Runnable {
    * Remove popup actions that we don't use
    */
   private static void hideIdeaNewFilePopupActions() {
-    ActionManager am = ActionManager.getInstance();
+    hideAction("NewHtmlFile", "HTML File");
 
-    // Hide groups of actions which aren't useful to Android Studio
-    am.getActionOrStub("NewXml").getTemplatePresentation().setEnabledAndVisible(false); // Not used by our XML. Offers HTML files
-    AnAction guiNewActions = am.getActionOrStub("GuiDesigner.NewActions");
-    if (guiNewActions != null) {
-      guiNewActions.getTemplatePresentation().setEnabledAndVisible(false); // Swing GUI templates
-    }
+    hideAction("NewPackageInfo", "package-info.java");
+
+    // Hide designer actions
+    hideAction("NewForm", "GUI Form");
+    hideAction("NewDialog", "Dialog");
+    hideAction("NewFormSnapshot", "Form Snapshot");
 
     // Hide individual actions that aren't part of a group
     replaceAction("Groovy.NewClass", new EmptyAction());
