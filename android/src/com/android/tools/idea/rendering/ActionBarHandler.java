@@ -17,6 +17,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
@@ -38,9 +39,17 @@ import java.util.List;
 
 import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
 
+/**
+ * A callback to provide information related to the Action Bar as required by the
+ * {@link LayoutLibrary}
+ */
 public class ActionBarHandler extends ActionBarCallback {
 
-  @NotNull private RenderService myRenderService;
+  @NotNull
+  private RenderService myRenderService;
+  @Nullable
+  private List<String> myMenus;
+
 
   ActionBarHandler(@NotNull RenderService renderService) {
     myRenderService = renderService;
@@ -62,6 +71,9 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public List<String> getMenuIdNames() {
+    if (myMenus != null) {
+      return myMenus;
+    }
     String commaSeparatedMenus = getRootTagAttributeSafely(myRenderService.getPsiFile(), "menu", SdkConstants.TOOLS_URI);
     if (commaSeparatedMenus != null) {
       ArrayList<String> menus = new ArrayList<String>();
@@ -80,6 +92,10 @@ public class ActionBarHandler extends ActionBarCallback {
       return HomeButtonStyle.SHOW_HOME_AS_UP;
     }
     return HomeButtonStyle.NONE;
+  }
+
+  public void setMenuIdNames(@Nullable List<String> menus) {
+    myMenus = menus;
   }
 
   private @Nullable ActivityAttributes getActivityAttributes() {
