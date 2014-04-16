@@ -60,6 +60,25 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     // symbols inside sourceSets
     validateResolution(psiFile, "aidl", "com.android.build.gradle.api.AndroidSourceSet", "getAidl");
     validateResolution(psiFile, "setRoot", "com.android.build.gradle.api.AndroidSourceSet", "setRoot");
+
+    validateNoResolution(psiFile, "publishNonDefault");
+  }
+
+  public void testResolutionsInLibrary() throws Exception {
+    loadProject("projects/resolve/simple");
+    PsiFile psiFile = getPsiFile("lib.gradle");
+    assertNotNull(psiFile);
+
+    validateResolution(psiFile, "publishNonDefault", "com.android.build.gradle.LibraryExtension", "publishNonDefault");
+  }
+
+  private void validateNoResolution(PsiFile psiFile, String symbol) {
+    PsiReference ref = getPsiReference(psiFile, symbol);
+    assert ref instanceof GrReferenceExpression : symbol;
+
+    GrReferenceExpression referenceExpression = (GrReferenceExpression)ref;
+    PsiElement element = referenceExpression.advancedResolve().getElement();
+    assertNull(element);
   }
 
   // tests that the given symbol in the given psi file resolves to the given method and class
