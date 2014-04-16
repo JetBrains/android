@@ -35,22 +35,17 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
-import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
-import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.gradle.GradleScript;
@@ -104,76 +99,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       String msg = getUnsupportedModelVersionErrorMsg(GradleModelVersionCheck.getModelVersion(androidProject));
       throw new IllegalStateException(msg);
     }
-
-    String moduleName = gradleModule.getName();
-    if (moduleName == null) {
-      throw new IllegalStateException("Module with undefined name detected: " + gradleModule);
-    }
-
-    File moduleDirPath = getModuleDirPath(gradleModule);
-    if (moduleDirPath == null) {
-      return nextResolver.createModule(gradleModule, projectData);
-    }
-
-    String moduleConfigPath = moduleDirPath.getPath();
-
-    String gradlePath = gradleModule.getGradleProject().getPath();
-    String id = StringUtil.isEmpty(gradlePath) || ":".equals(gradlePath) ? moduleName : gradlePath;
-    ModuleData moduleData =
-      new ModuleData(id, GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), moduleName, moduleConfigPath, moduleConfigPath);
-
-    ModuleExtendedModel moduleExtendedModel = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    if (moduleExtendedModel != null) {
-      moduleData.setArtifacts(moduleExtendedModel.getArtifacts());
-      moduleData.setGroup(moduleExtendedModel.getGroup());
-      moduleData.setVersion(moduleExtendedModel.getVersion());
-    }
-    return moduleData;
-  }
-
-  @NotNull
-  @Override
-  public Collection<TaskData> populateModuleTasks(@NotNull IdeaModule gradleModule,
-                                                  @NotNull DataNode<ModuleData> ideModule,
-                                                  @NotNull DataNode<ProjectData> ideProject) {
-    File moduleDirPath = getModuleDirPath(gradleModule);
-    if (moduleDirPath == null) {
-      return nextResolver.populateModuleTasks(gradleModule, ideModule, ideProject);
-    }
-
-    Collection<TaskData> tasks = Lists.newArrayList();
-    String moduleConfigPath = moduleDirPath.getPath();
-
-    for (GradleTask task : gradleModule.getGradleProject().getTasks()) {
-      String taskName = task.getName();
-      if (taskName == null || taskName.trim().isEmpty() || isIdeaTask(taskName)) {
-        continue;
-      }
-      TaskData taskData = new TaskData(GradleConstants.SYSTEM_ID, taskName, moduleConfigPath, task.getDescription());
-      ideModule.createChild(ProjectKeys.TASK, taskData);
-      tasks.add(taskData);
-    }
-
-    return tasks;
-  }
-
-  private static boolean isIdeaTask(@NotNull String taskName) {
-    return taskName.toLowerCase().contains("idea");
-  }
-
-  @Nullable
-  private File getModuleDirPath(@NotNull IdeaModule gradleModule) {
-    GradleBuild build = resolverCtx.getExtraProject(gradleModule, GradleBuild.class);
-    if (build == null) {
-      // We got here only if the project is using Gradle version 1.7 or earlier. For Android projects it will never be the case.
-      return null;
-    }
-    String gradlePath = gradleModule.getGradleProject().getPath();
-    File moduleDirPath = getModuleDirPath(build, gradlePath);
-    if (moduleDirPath == null) {
-      throw new IllegalStateException(String.format("Unable to find root directory for module '%s'", gradleModule.getName()));
-    }
-    return moduleDirPath;
+    return nextResolver.createModule(gradleModule, projectData);
   }
 
   /**
@@ -208,7 +134,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    GradleScript buildScript = gradleModule.getGradleProject().getBuildScript();
+    GradleScript buildScript = null;
+    try {
+      buildScript = gradleModule.getGradleProject().getBuildScript();
+    } catch (UnsupportedOperationException ignore) {}
+
     if (buildScript == null || !inAndroidGradleProject(gradleModule)) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
       return;
@@ -329,7 +259,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public Set<Class> getExtraProjectModelClasses() {
-    return Sets.<Class>newHashSet(AndroidProject.class, GradleBuild.class);
+    return Sets.<Class>newHashSet(AndroidProject.class);
   }
 
 
