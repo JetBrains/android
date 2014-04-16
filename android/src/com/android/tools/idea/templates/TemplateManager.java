@@ -290,6 +290,7 @@ public class TemplateManager {
     } else {
       myTopGroup.removeAll();
     }
+    myTopGroup.addSeparator();
     ActionManager am = ActionManager.getInstance();
     for (String category : getCategoryTable(true).rowKeySet()) {
       if (EXCLUDED_CATEGORIES.contains(category)) {
