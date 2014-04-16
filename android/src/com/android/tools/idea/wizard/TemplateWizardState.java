@@ -113,13 +113,13 @@ public class TemplateWizardState {
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
 
     // Set Res directory if we don't have one
-    if (!myParameters.containsKey(ATTR_RES_OUT)) {
+    if (!myParameters.containsKey(ATTR_RES_OUT) || myParameters.get(ATTR_RES_OUT) == null) {
       File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
       put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     }
 
     // Set Src directory if we don't have one
-    if (!myParameters.containsKey(ATTR_SRC_OUT)) {
+    if (!myParameters.containsKey(ATTR_SRC_OUT)  || myParameters.get(ATTR_SRC_OUT) == null) {
       File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
       File javaSourcePackageRoot;
       if (myParameters.containsKey(ATTR_PACKAGE_ROOT)) {
@@ -134,7 +134,7 @@ public class TemplateWizardState {
     }
 
     // Set Manifest directory if we don't have one
-    if (!myParameters.containsKey(ATTR_MANIFEST_OUT)) {
+    if (!myParameters.containsKey(ATTR_MANIFEST_OUT) || myParameters.get(ATTR_MANIFEST_OUT) == null) {
       put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
     }
 
