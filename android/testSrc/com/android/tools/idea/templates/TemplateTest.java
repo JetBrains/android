@@ -219,6 +219,30 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BlankActivity", true);
   }
 
+  public void testNewTabbedActivity() throws Exception {
+    checkCreateTemplate("activities", "TabbedActivity", false);
+  }
+
+  public void testNewProjectWithTabbedActivity() throws Exception {
+    checkCreateTemplate("activities", "TabbedActivity", true);
+  }
+
+  public void testNewNavigationDrawerActivity() throws Exception {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", false);
+  }
+
+  public void testNewProjectWithNavigationDrawerActivity() throws Exception {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", true);
+  }
+
+  public void testNewBlankActivityWithFragment() throws Exception {
+    checkCreateTemplate("activities", "BlankActivityWithFragment", false);
+  }
+
+  public void testNewProjectWithBlankActivityWithFragment() throws Exception {
+    checkCreateTemplate("activities", "BlankActivityWithFragment", true);
+  }
+
   public void testNewMasterDetailFlow() throws Exception {
     checkCreateTemplate("activities", "MasterDetailFlow", false);
   }
@@ -741,6 +765,9 @@ public class TemplateTest extends AndroidGradleTestCase {
                             @NonNull NewProjectWizardState projectValues,
                             @Nullable final TemplateWizardState templateValues) throws Exception {
     ourCount++;
+    projectValues.put(ATTR_RES_OUT, null);
+    projectValues.put(ATTR_SRC_OUT, null);
+    projectValues.put(ATTR_MANIFEST_OUT, null);
 
     JavaCodeInsightTestFixture fixture = null;
     File projectDir = null;
