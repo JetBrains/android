@@ -21,6 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -47,6 +48,10 @@ public class GradleBuildFile extends GradleGroovyFile {
 
   public GradleBuildFile(@NotNull VirtualFile buildFile, @NotNull Project project) {
     super(buildFile, project);
+  }
+
+  public GradleBuildFile(@NotNull GroovyFile buildFile) {
+    super(buildFile);
   }
 
   @NotNull

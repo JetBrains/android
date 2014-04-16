@@ -60,8 +60,6 @@ import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralStr
  */
 class GradleGroovyFile {
   private static final Logger LOG = Logger.getInstance(GradleGroovyFile.class);
-  protected static final GroovyPsiElement[] EMPTY_ELEMENT_ARRAY = new GroovyPsiElement[0];
-  protected static final Iterable<GrLiteral> EMPTY_LITERAL_ITERABLE = Arrays.asList(new GrLiteral[0]);
 
   protected final Project myProject;
   protected final VirtualFile myFile;
@@ -71,6 +69,13 @@ class GradleGroovyFile {
     myProject = project;
     myFile = file;
     reload();
+  }
+
+  public GradleGroovyFile(@NotNull GroovyFile groovyFile) {
+    myProject = groovyFile.getProject();
+    myFile = groovyFile.getContainingFile().getVirtualFile();
+    myGroovyFile = groovyFile;
+    onPsiFileAvailable();
   }
 
   public Project getProject() {
@@ -257,7 +262,7 @@ class GradleGroovyFile {
   protected static @NotNull GroovyPsiElement[] getArguments(@NotNull GrCall gmc) {
     GrArgumentList argList = gmc.getArgumentList();
     if (argList == null) {
-      return EMPTY_ELEMENT_ARRAY;
+      return GroovyPsiElement.EMPTY_ARRAY;
     }
     return argList.getAllArguments();
   }
@@ -319,7 +324,7 @@ class GradleGroovyFile {
    */
   protected static @NotNull String getMethodCallName(@NotNull GrMethodCall gmc) {
     GrExpression expression = gmc.getInvokedExpression();
-    return (expression != null && expression.getText() != null) ? expression.getText() : "";
+    return expression.getText() != null ? expression.getText() : "";
   }
 
   /**
@@ -334,9 +339,6 @@ class GradleGroovyFile {
    */
   protected static @NotNull Iterable<GrLiteral> getLiteralArguments(@NotNull GrMethodCall gmc) {
     GrArgumentList argumentList = gmc.getArgumentList();
-    if (argumentList == null) {
-      return EMPTY_LITERAL_ITERABLE;
-    }
     return getTypedArguments(argumentList, GrLiteral.class);
   }
 
@@ -357,9 +359,6 @@ class GradleGroovyFile {
    */
   protected static @NotNull Map<String, Object> getNamedArgumentValues(@NotNull GrMethodCall gmc) {
     GrArgumentList argumentList = gmc.getArgumentList();
-    if (argumentList == null) {
-      return Collections.EMPTY_MAP;
-    }
     Map<String, Object> values = Maps.newHashMap();
     for (GrNamedArgument grNamedArgument : getTypedArguments(argumentList, GrNamedArgument.class)) {
       values.put(grNamedArgument.getLabelName(), parseValueExpression(grNamedArgument.getExpression()));
@@ -371,7 +370,7 @@ class GradleGroovyFile {
    * Given a Groovy expression, parses it as if it's literal or list type, and returns the corresponding literal value or List
    * type. Returns null if the expression cannot be evaluated as a literal or list type.
    */
-  protected static @Nullable Object parseValueExpression(@NotNull GrExpression gre) {
+  protected static @Nullable Object parseValueExpression(@Nullable GrExpression gre) {
     if (gre instanceof GrLiteral) {
       return ((GrLiteral)gre).getValue();
     } else if (gre instanceof GrListOrMap) {
