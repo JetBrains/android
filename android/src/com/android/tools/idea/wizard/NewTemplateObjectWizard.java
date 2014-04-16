@@ -248,6 +248,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       myWizardState.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getPath()));
     }
     myWizardState.put(ATTR_PACKAGE_NAME, packageName);
+    myWizardState.put(ATTR_SOURCE_PROVIDER_NAME, sourceProvider.getName());
 
     myWizardState.setSourceProvider(sourceProvider);
   }
@@ -337,7 +338,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
           if (contentRoots.length > 0) {
             VirtualFile rootDir = contentRoots[0];
             File moduleRoot = VfsUtilCore.virtualToIoFile(rootDir);
-            myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
+            myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters, myProject);
             // Render the assets if necessary
             if (myAssetSetStep.isStepVisible()) {
               myAssetSetStep.createAssets(myModule);
