@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -23,6 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.io.IOException;
 
@@ -51,6 +53,16 @@ class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
+  }
+
+  @Override
+  public boolean executeIfClicked(@NotNull Project project, @NotNull HyperlinkEvent event) {
+    // we need HyperlinkEvent for the link deactivation after the fix apply
+    final boolean updated = updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
+    if(updated){
+      EditableNotificationMessageElement.disableLink(event);
+    }
+    return updated;
   }
 
   static boolean updateGradleVersion(@NotNull Project project, @NotNull File wrapperPropertiesFile, @NotNull String gradleVersion) {
