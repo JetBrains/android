@@ -54,6 +54,7 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     Disposer.dispose(myDisposable);
+    myFixture.tearDown();
     super.tearDown();
   }
 
