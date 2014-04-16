@@ -289,6 +289,18 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       boolean visible = myStringEvaluator.evaluateBooleanExpression(param.visibility, myTemplateState.getParameters(), true);
       if (visible) {
         myTemplateState.myHidden.remove(param.id);
+        // Update the newly shown parameter if necessary
+        if (param.suggest != null) {
+          final String updated = myStringEvaluator.evaluate(param.suggest, myTemplateState.getParameters());
+          if (updated != null && !updated.equals(myTemplateState.get(param.id))) {
+            updateDerivedValue(param.id, (JTextField)myParamFields.get(param.id), new Callable<String>() {
+              @Override
+              public String call() throws Exception {
+                return updated;
+              }
+            });
+          }
+        }
       }
       else {
         myTemplateState.myHidden.add(param.id);
