@@ -38,14 +38,10 @@ import org.jetbrains.plugins.gradle.service.GradleBuildClasspathManager;
 import org.jetbrains.plugins.gradle.service.resolve.GradleMethodContextContributor;
 import org.jetbrains.plugins.gradle.service.resolve.GradleResolverUtil;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 import org.jetbrains.plugins.groovy.lang.psi.impl.GroovyPsiManager;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightMethodBuilder;
@@ -130,7 +126,10 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     // top level android block
     if (callStack.size() == 1) {
-      String clz = getPluginType(place.getContainingFile()) == PluginType.ANDROID_APP ? ANDROID_FQCN : ANDROID_LIB_FQCN;
+      String clz = resolveAndroidExtension(place.getContainingFile());
+      if (clz == null) {
+        return;
+      }
       PsiClass contributorClass = psiManager.findClassWithCache(clz, place.getResolveScope());
       if (contributorClass == null) {
         return;
@@ -358,17 +357,19 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     LOG.info(String.format("Android DSL resolver classpath (project %1$s): %2$s", project.getName(), classPath));
   }
 
-  private enum PluginType { ANDROID_APP, ANDROID_LIBRARY };
-
-  /** Returns the android plugin type applied in this file. */
-  private static PluginType getPluginType(PsiFile file) {
+  /** Returns the class corresponding to the android extension for given file. */
+  @Nullable
+  private static String resolveAndroidExtension(PsiFile file) {
     assert file instanceof GroovyFile;
     List<String> plugins = new GradleBuildFile((GroovyFile)file).getPlugins();
-    if (plugins.contains("android-library")) {
-      return PluginType.ANDROID_LIBRARY;
-    } else {
-      // default to android app if no plugins are applied
-      return PluginType.ANDROID_APP;
+    if (plugins.contains("android")) {
+      return ANDROID_FQCN;
+    }
+    else if (plugins.contains("android-library")) {
+      return ANDROID_LIB_FQCN;
+    }
+    else {
+      return null;
     }
   }
 
