@@ -179,6 +179,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   }
 
   /** Returns true if the data in this wizard step is correct and the user is permitted to move to the next step. */
+  @Override
   public boolean isValid() {
     return myIsValid;
   }
@@ -320,6 +321,12 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
     Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
+
+    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
+    if (minApi != null && metadata != null && metadata.getMinSdk() > minApi) {
+      setErrorHtml("This template requires a minimum API level of " + metadata.getMinSdk());
+      return false;
+    }
 
     for (String paramName : myParamFields.keySet()) {
       if (myTemplateState.myHidden.contains(paramName)) {
