@@ -16,20 +16,31 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 public class GradleSettingsFileTest extends IdeaTestCase {
   private Document myDocument;
@@ -198,6 +209,30 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     assertEquals(map.toString(), 2, map.size());
     assertEquals(new File("one"), map.get(":one"));
     assertEquals(new File("modules", "three"), map.get(":two"));
+  }
+
+  public void testRemoveModuleSpecifiedWithInclude() throws IOException {
+    Collection<String> modules = Arrays.asList("one", "two", "three", "four", "five");
+    final String body = getSettingsFileWithModules(modules);
+    for (final String module : modules) {
+      final GradleSettingsFile file = getTestFile(body);
+      new WriteCommandAction<Object>(getProject(), file.getPsiFile()) {
+        @Override
+        protected void run(@NotNull Result<Object> result) throws Throwable {
+          file.removeModule(module);
+        }
+      }.execute();
+      Set<String> postDelete = ImmutableSet.copyOf(file.getModules());
+      assertEquals(module + " was not deleted", modules.size() - 1, postDelete.size());
+      assertFalse(module + " was not deleted", postDelete.contains(module));
+      Predicate<String> notCurrentModule = Predicates.not(Predicates.equalTo(module));
+      String expectedFileContents = getSettingsFileWithModules(Iterables.filter(modules, notCurrentModule));
+      assertEquals(expectedFileContents, file.getPsiFile().getText());
+    }
+  }
+
+  private static String getSettingsFileWithModules(Iterable<String> modules) {
+    return "include \'" + Joiner.on("\'\ninclude \'").join(modules) + "\'\n";
   }
 
   private GradleSettingsFile getSimpleTestFile() throws IOException {
