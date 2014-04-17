@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2010 JetBrains s.r.o.
+ * Copyright 2000-2014 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,12 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ConvertContext;
-import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.converters.DelimitedListConverter;
-import com.intellij.xml.util.XmlTagUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,25 +71,6 @@ public class FlagConverter extends DelimitedListConverter<String> {
     List<String> variants = new ArrayList<String>(myValues);
     filterVariants(variants, value);
     return ArrayUtil.toStringArray(variants);
-  }
-
-  @NotNull
-  @Override
-  protected PsiReference createPsiReference(PsiElement element,
-                                            int start,
-                                            int end,
-                                            ConvertContext context,
-                                            GenericDomValue<List<String>> value,
-                                            boolean delimitersOnly) {
-    return new MyPsiReference(element, getTextRange(value, start, end), context, value, delimitersOnly);
-  }
-
-  protected static TextRange getTextRange(GenericDomValue value, int start, int end) {
-    if (value instanceof GenericAttributeValue) {
-      return new TextRange(start, end);
-    }
-    TextRange tagRange = XmlTagUtil.getTrimmedValueRange(value.getXmlTag());
-    return new TextRange(tagRange.getStartOffset() + start - 1, tagRange.getStartOffset() + end - 1);
   }
 
   @Override

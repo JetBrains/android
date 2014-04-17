@@ -224,9 +224,9 @@ public class NewAndroidComponentDialog extends DialogWrapper {
 
     if (statements.length == 1) {
       final PsiStatement statement = statements[0];
-      ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      new WriteCommandAction(project, body.getContainingFile()) {
         @Override
-        public void run() {
+        protected void run(@NotNull Result result) throws Throwable {
           final PsiStatement newStatement = PsiElementFactory.SERVICE.getInstance(project).createStatementFromText(
             "return inflater.inflate(" + layoutFieldRef + ", container, false);", body);
           statement.replace(newStatement);
@@ -234,7 +234,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
           JavaCodeStyleManager.getInstance(project).shortenClassReferences(body);
           CodeStyleManager.getInstance(project).reformat(body);
         }
-      });
+      }.execute();
     }
   }
 

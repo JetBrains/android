@@ -38,6 +38,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2 = "resourceRepository/valuesOverlay2.xml";
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
+  @Override
+  public void tearDown() throws Exception {
+    ResourceFolderRegistry.reset();
+    super.tearDown();
+  }
+
   public void testStable() {
     assertSame(AppResourceRepository.getAppResources(myFacet, true), AppResourceRepository.getAppResources(myFacet, true));
     assertSame(AppResourceRepository.getAppResources(myFacet, true), AppResourceRepository.getAppResources(myModule, true));
