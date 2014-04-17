@@ -44,6 +44,7 @@ public class AndroidSdkTypeTest extends NewProjectWizardTestCase {
       fail("Exception should be thrown");
     }
     catch (Exception e) {
+      e.printStackTrace();
       assertEquals(AndroidSdkType.getInstance().getUnsatisfiedDependencyMessage(), e.getMessage());
     }
   }

@@ -837,9 +837,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     }
   }
 
-
-  // Copied from com.intellij.designer.utils.SizedIcon
-
   public static class SizedIcon implements Icon {
     private final int myWidth;
     private final int myHeight;

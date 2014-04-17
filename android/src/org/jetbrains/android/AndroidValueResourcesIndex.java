@@ -41,7 +41,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
     new DataIndexer<ResourceEntry, Set<MyResourceInfo>, FileContent>() {
       @Override
       @NotNull
-      public Map<ResourceEntry, Set<MyResourceInfo>> map(FileContent inputData) {
+      public Map<ResourceEntry, Set<MyResourceInfo>> map(@NotNull FileContent inputData) {
         if (!isSimilarFile(inputData)) {
           return Collections.emptyMap();
         }

@@ -32,6 +32,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +60,18 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String XLIFF = "resourceRepository/xliff.xml";
   private static final String STRINGS = "resourceRepository/strings.xml";
   private static final String DRAWABLE = "resourceRepository/logo.png";
+
+  @Override
+  public void tearDown() throws Exception {
+    ResourceFolderRegistry.reset();
+    super.tearDown();
+  }
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    ResourceFolderRegistry.reset();
+  }
 
   private static void resetScanCounter() {
     ourFullRescans = 0;
@@ -754,7 +767,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -781,6 +795,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
             assertTrue(resources.getModificationCount() > generation);
           }
         });
+        UIUtil.dispatchAllInvocationEvents();
       }
     });
   }
@@ -867,7 +882,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // Currently, the PSI events delivered for the above edits results in PSI events without enough
     // info for incremental analysis
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1121,7 +1137,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     // enough info to be handled incrementally, so instead we do an asynchronous update (such that
     // we can do a single update rather than rescanning the file 20 times)
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1191,7 +1208,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1226,7 +1244,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
 
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1256,7 +1275,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1313,7 +1333,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.isScanPending(psiFile1));
     final long finalGeneration = generation;
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1551,7 +1572,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1617,7 +1639,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
       }
     });
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1896,7 +1919,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     }
 
     assertTrue(resources.isScanPending(psiFile1));
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();
@@ -1950,7 +1974,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     assertTrue(resources.isScanPending(psiFile1));
     resetScanCounter();
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
+    UIUtil.dispatchAllInvocationEvents();
+    UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
         ensureSingleScan();

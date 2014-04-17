@@ -46,7 +46,7 @@ public class AndroidIdIndex extends FileBasedIndexExtension<String, Set<String>>
   private static final DataIndexer<String, Set<String>, FileContent> INDEXER = new DataIndexer<String, Set<String>, FileContent>() {
     @Override
     @NotNull
-    public Map<String, Set<String>> map(FileContent inputData) {
+    public Map<String, Set<String>> map(@NotNull FileContent inputData) {
       final CharSequence content = inputData.getContentAsText();
 
       if (CharArrayUtil.indexOf(content, SdkConstants.NS_RESOURCES, 0) == -1) {
