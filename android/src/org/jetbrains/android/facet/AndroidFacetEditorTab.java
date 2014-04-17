@@ -113,6 +113,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
   private JPanel myAptAutogenerationOptionsPanel;
   private JPanel myAidlAutogenerationOptionsPanel;
   private RawCommandLineEditor myAdditionalPackagingCommandLineParametersField;
+  private TextFieldWithBrowseButton myProguardLogsDirectoryField;
+  private JBLabel myProGuardLogsDirectoryLabel;
 
   private static final String MAVEN_TAB_TITLE = "Maven";
   private final Component myMavenTabComponent;
@@ -260,6 +262,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     final int mavenTabIndex = myTabbedPane.indexOfTab(MAVEN_TAB_TITLE);
     assert mavenTabIndex >= 0;
     myMavenTabComponent = myTabbedPane.getComponentAt(mavenTabIndex);
+
+    myProguardLogsDirectoryField.getButton().addActionListener(new MyFolderFieldListener(myProguardLogsDirectoryField, null, false, null));
   }
 
   private void updateLibAndAppSpecificFields() {
@@ -277,6 +281,8 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myCustomKeystoreLabel.setEnabled(!lib);
     myCustomDebugKeystoreField.setEnabled(!lib);
     myPreDexEnabledCheckBox.setEnabled(!lib);
+    myProGuardLogsDirectoryLabel.setEnabled(!lib);
+    myProguardLogsDirectoryField.setEnabled(!lib);
   }
 
   private void updateAutogenerationPanels() {
@@ -409,6 +415,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       return true;
     }
     if (!myUpdateProjectPropertiesCombo.getSelectedItem().equals(myConfiguration.getState().UPDATE_PROPERTY_FILES)) {
+      return true;
+    }
+    if (checkRelativePath(myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH, myProguardLogsDirectoryField.getText())) {
       return true;
     }
     if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
@@ -570,6 +579,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     }
     myConfiguration.getState().UPDATE_PROPERTY_FILES = (String)myUpdateProjectPropertiesCombo.getSelectedItem();
 
+    String absProguardLogsPath = myProguardLogsDirectoryField.getText().trim();
+    myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH =
+      absProguardLogsPath.length() > 0 ? '/' + getAndCheckRelativePath(absProguardLogsPath, false) : "";
+
     runApt = runApt && AndroidAptCompiler.isToCompileModule(myContext.getModule(), myConfiguration);
 
     if (runApt || runIdl) {
@@ -663,6 +676,10 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myCustomManifestPackageField.setEnabled(myConfiguration.getState().USE_CUSTOM_MANIFEST_PACKAGE);
     myCustomManifestPackageField.setText(myConfiguration.getState().CUSTOM_MANIFEST_PACKAGE);
     myAdditionalPackagingCommandLineParametersField.setText(myConfiguration.getState().ADDITIONAL_PACKAGING_COMMAND_LINE_PARAMETERS);
+
+    String proguardLogsPath = configuration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH;
+    String proguardLogsAbsPath = proguardLogsPath.length() > 0 ? toAbsolutePath(proguardLogsPath) : "";
+    myProguardLogsDirectoryField.setText(proguardLogsAbsPath != null ? proguardLogsAbsPath : "");
 
     myUpdateProjectPropertiesCombo.setSelectedItem(myConfiguration.getState().UPDATE_PROPERTY_FILES);
     myEnableSourcesAutogenerationCheckBox.setSelected(myConfiguration.getState().ENABLE_SOURCES_AUTOGENERATION);

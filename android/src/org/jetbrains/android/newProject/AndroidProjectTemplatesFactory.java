@@ -51,7 +51,7 @@ public class AndroidProjectTemplatesFactory extends ProjectTemplatesFactory {
 
   @Override
   public Icon getGroupIcon(String group) {
-    return AndroidIcons.Android24;
+    return AndroidIcons.Android;
   }
 
   @Override

@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
@@ -94,9 +95,12 @@ public class ContentRootModuleCustomizerTest extends IdeaTestCase {
 
     SourceFolder[] sourceFolders = contentEntry.getSourceFolders();
     List<String> sourcePaths = Lists.newArrayListWithExpectedSize(sourceFolders.length);
+
     for (SourceFolder folder : sourceFolders) {
       if (!folder.isTestSource()) {
         VirtualFile file = folder.getFile();
+        final String path = VfsUtilCore.urlToPath(folder.getUrl());
+        System.out.println("path: " + path + "; " + new File(path).exists());
         assertNotNull(file);
         sourcePaths.add(file.getPath());
       }

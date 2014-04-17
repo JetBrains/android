@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -48,12 +49,17 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
 
   @Override
   public Icon getGroupIcon(String group) {
-    return AndroidIcons.Android24;
+    return AndroidIcons.Android;
   }
 
   @Override
   public String getParentGroup(String group) {
     return "Java";
+  }
+
+  @Override
+  public int getGroupWeight(String group) {
+    return JavaModuleBuilder.JAVA_MOBILE_WEIGHT;
   }
 
   @NotNull
