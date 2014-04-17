@@ -41,6 +41,8 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
+import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.*;
 import com.intellij.openapi.project.Project;
@@ -359,7 +361,7 @@ public class PostProjectSyncTasksExecutor {
       }
     };
     String text = String.format("You can find all errors in the 'Messages' window, under the '%1$s' tab.\n",
-                                ProjectSyncMessages.CONTENT_NAME);
+                                ExternalSystemNotificationManager.getContentDisplayName(NotificationSource.PROJECT_SYNC, GradleConstants.SYSTEM_ID));
     text+= hyperlink.toString();
     NotificationListener listener = new CustomNotificationListener(myProject, hyperlink);
     AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, listener);
