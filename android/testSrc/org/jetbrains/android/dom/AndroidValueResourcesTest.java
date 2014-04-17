@@ -261,14 +261,11 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     assertNotNull(((LazyValueResourceElementWrapper)element).computeElement());
   }
 
-  /* Temporarily disabled because this test fails; not sure why.
-   *  Started failing with a7702330a3146991b838c777a3b19566d6b85a18
   // see getPathToCopy()
   public void testResOverlay() throws Throwable {
     myFacet.getProperties().RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
     doTestCompletionVariants("styles1.xml", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
   }
-  */
 
   public void testCreateResourceFromUsage() throws Throwable {
     final VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml", "res/values/drawables.xml");
