@@ -96,7 +96,7 @@ public class NewAndroidComponentAction extends AnAction {
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
     NewTemplateObjectWizard dialog =
-      new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext), LangDataKeys.MODULE.getData(dataContext), targetFile,
+      new NewTemplateObjectWizard(module.getProject(), module, targetFile,
                                   myTemplateCategory, myTemplateName, EXCLUDED);
 
     dialog.show();
