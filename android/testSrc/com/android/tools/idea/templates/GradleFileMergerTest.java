@@ -53,9 +53,21 @@ public class GradleFileMergerTest extends AndroidTestCase {
   }
 
   public void testMergeDependencies() throws Exception {
-    checkFileMerge("templates/Base.gradle",
-                   "templates/NewDependencies.gradle",
-                   "templates/MergedNewDependencies.gradle");
+    File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName("templates/Base.gradle"));
+    String dest = TemplateUtils.readTextFile(destFile);
+    assertNotNull(dest);
+
+    File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName("templates/NewDependencies.gradle"));
+    String source = TemplateUtils.readTextFile(srcFile);
+    assertNotNull(source);
+
+    File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName("templates/MergedNewDependencies.gradle"));
+    String golden = TemplateUtils.readTextFile(goldenFile);
+    assertNotNull(golden);
+
+    // Strip comments from merged file
+    assertEquals(golden.replaceAll("\\s+","\n"),
+                 GradleFileMerger.mergeGradleFiles(source, dest, getProject()).replaceAll("\\s+//.*", "").replaceAll("\\s+", "\n"));
   }
 
   public void testRemapFlavorAssetDir() throws Exception {
@@ -70,20 +82,33 @@ public class GradleFileMergerTest extends AndroidTestCase {
                    "templates/MergedRenameManifest.gradle");
   }
 
-  private void checkFileMerge(String destPath, String srcPath, String goldenPath) throws Exception {
+  private void checkFileMerge(@Nullable String destPath, @Nullable String srcPath, @Nullable String goldenPath) throws Exception {
     checkFileMerge(destPath, srcPath, goldenPath, getProject());
   }
 
-  private static void checkFileMerge(String destPath, String srcPath, String goldenPath, @Nullable Project project) throws Exception {
-    File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
-    File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
-    File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
-    String source = TemplateUtils.readTextFile(srcFile);
-    String dest = TemplateUtils.readTextFile(destFile);
-    String golden = TemplateUtils.readTextFile(goldenFile);
-    assertNotNull(source);
-    assertNotNull(dest);
-    assertNotNull(golden);
+  private static void checkFileMerge(@Nullable String destPath, @Nullable String srcPath, @Nullable String goldenPath,
+                                     @Nullable Project project) throws Exception {
+    String source = "";
+    String dest = "";
+    String golden = "";
+    if (destPath != null) {
+      File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
+      dest = TemplateUtils.readTextFile(destFile);
+      assertNotNull(dest);
+    }
+
+    if (srcPath != null) {
+      File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
+      source = TemplateUtils.readTextFile(srcFile);
+      assertNotNull(source);
+    }
+
+    if (goldenPath != null) {
+      File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
+      golden = TemplateUtils.readTextFile(goldenFile);
+      assertNotNull(golden);
+    }
+
     assertEquals(golden.replaceAll("\\s+","\n"),
                  GradleFileMerger.mergeGradleFiles(source, dest, project).replaceAll("\\s+", "\n"));
   }
