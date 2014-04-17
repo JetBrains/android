@@ -218,7 +218,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewProjectWithBlankActivity() throws Exception {
     checkCreateTemplate("activities", "BlankActivity", true);
   }
-/*
+
   public void testNewTabbedActivity() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", false);
   }
@@ -242,7 +242,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewProjectWithBlankActivityWithFragment() throws Exception {
     checkCreateTemplate("activities", "BlankActivityWithFragment", true);
   }
-*/
+
   public void testNewMasterDetailFlow() throws Exception {
     checkCreateTemplate("activities", "MasterDetailFlow", false);
   }
