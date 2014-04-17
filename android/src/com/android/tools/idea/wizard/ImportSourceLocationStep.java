@@ -28,12 +28,13 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
@@ -244,8 +245,8 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     if (vfile == null || !vfile.exists()) {
       return PageStatus.DOES_NOT_EXIST.result();
     }
-    else if (isInProject(vfile)) {
-      return PageStatus.NESTED_IN_PROJECT.result();
+    else if (isProjectOrModule(vfile)) {
+      return PageStatus.IS_PROJECT_OR_MODULE.result();
     }
     ImportSourceKind kind = ProjectImportUtil.getImportLocationKind(vfile);
     if (kind != ImportSourceKind.ADT && kind != ImportSourceKind.GRADLE) {
@@ -254,9 +255,21 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     return new PathValidationResult(PageStatus.OK, vfile, kind, null);
   }
 
-  private boolean isInProject(VirtualFile path) {
+  private boolean isProjectOrModule(@NotNull VirtualFile dir) {
     Project project = myContext.getProject();
-    return project == null || VfsUtilCore.isAncestor(project.getBaseDir(), path, false);
+    if (project != null) {
+      if (dir.equals(project.getBaseDir())) {
+        return true;
+      } else {
+        for (Module module : ModuleManager.getInstance(project).getModules()) {
+          VirtualFile moduleFile = module.getModuleFile();
+          if (moduleFile != null && dir.equals(moduleFile.getParent())) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @Override
@@ -279,14 +292,10 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     return mySourceLocation.getTextField();
   }
 
-  // TODO: Validate:
-  // 1. Not in "workspace"
-  // 2. Exists
-  // 3. ADT or Gradle
   @VisibleForTesting
   enum PageStatus {
     OK(null, null), EMPTY_PATH("Path is empty", ERROR), DOES_NOT_EXIST("Path does not exist", ERROR),
-    NESTED_IN_PROJECT("Path points to a location within your project", ERROR),
+    IS_PROJECT_OR_MODULE("This location is already imported", ERROR),
     MISSING_SUBPROJECTS("Some projects were not found", WARNING),
     NO_MODULES_SELECTED("Select modules to import", ERROR),
     NOT_ADT_OR_GRADLE("Specify location of the Gradle or Android Eclipse project", ERROR),
