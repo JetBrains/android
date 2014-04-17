@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationExtension.CustomizationResult;
+import com.intellij.notification.NotificationListener;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
+import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static org.easymock.EasyMock.*;
 
@@ -45,7 +50,8 @@ public class GradleNotificationExtensionTest extends TestCase {
     expect(myProject.getName()).andReturn(projectName);
     replay(myProject);
 
-    CustomizationResult notification = GradleNotificationExtension.createNotification(myProject, errorMsg, myHyperlink1, myHyperlink2);
+    NotificationData notification = new NotificationData("title", "msg", NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
+    GradleNotificationExtension.updateNotification(notification, myProject, errorMsg, myHyperlink1, myHyperlink2);
 
     verify(myProject);
 
@@ -55,12 +61,12 @@ public class GradleNotificationExtensionTest extends TestCase {
 
     assertEquals(errorMsg + "\n<a href=\"1\">Hyperlink 1</a> <a href=\"2\">Hyperlink 2</a>", notification.getMessage());
 
-    CustomNotificationListener notificationListener = (CustomNotificationListener)notification.getListener();
+    NotificationListener notificationListener = notification.getListener();
     assertNotNull(notificationListener);
-    NotificationHyperlink[] hyperlinks = notificationListener.getHyperlinks();
-    assertEquals(2, hyperlinks.length);
-    assertSame(myHyperlink1, hyperlinks[0]);
-    assertSame(myHyperlink2, hyperlinks[1]);
+    List<String> hyperlinks = notification.getRegisteredListenerIds();
+    assertEquals(2, hyperlinks.size());
+    assertTrue(hyperlinks.contains(myHyperlink1.getUrl()));
+    assertTrue(hyperlinks.contains(myHyperlink2.getUrl()));
   }
 
   private static class TestingHyperlink extends NotificationHyperlink {
