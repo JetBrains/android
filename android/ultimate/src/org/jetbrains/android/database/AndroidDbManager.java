@@ -223,7 +223,7 @@ public class AndroidDbManager extends DbPsiManagerSpi {
         result = new AndroidDataSource("");
       }
       result.setName(StringUtil.notNullize(newName, getName()));
-      result.init();
+      result.resolveDriver();
       return result;
     }
 

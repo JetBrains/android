@@ -578,8 +578,6 @@
 
   <!-- Layout editor -->
 
-  <xi:include href="/META-INF/DesignerCorePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>
 

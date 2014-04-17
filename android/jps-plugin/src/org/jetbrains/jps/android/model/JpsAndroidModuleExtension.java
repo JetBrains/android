@@ -46,6 +46,9 @@ public interface JpsAndroidModuleExtension extends JpsElement {
   @Nullable
   File getNativeLibsDir();
 
+  @Nullable
+  File getProguardLogsDir();
+
   boolean isGradleProject();
 
   boolean isLibrary();

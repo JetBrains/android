@@ -64,6 +64,8 @@ public class JpsAndroidModuleProperties {
 
   public boolean RUN_PROGUARD = false;
 
+  public String PROGUARD_LOGS_FOLDER_RELATIVE_PATH = "/" + AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME;
+
   @Tag("proGuardCfgFiles")
   @AbstractCollection(surroundWithTag = false, elementTag = "file", elementValueAttribute = "")
   public List<String> myProGuardCfgFiles = new ArrayList<String>(Arrays.asList(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL));
