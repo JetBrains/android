@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.parser;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -339,12 +340,12 @@ class GradleGroovyFile {
    * Returns values of all literal-typed arguments of the given method call.
    */
   protected static @NotNull Iterable<Object> getLiteralArgumentValues(@NotNull GrMethodCall gmc) {
-    return Iterables.transform(getLiteralArguments(gmc), new Function<GrLiteral, Object>() {
+    return Iterables.filter(Iterables.transform(getLiteralArguments(gmc), new Function<GrLiteral, Object>() {
       @Override
       public Object apply(@Nullable GrLiteral input) {
         return (input != null) ? input.getValue() : null;
       }
-    });
+    }), Predicates.notNull());
   }
 
   /**
