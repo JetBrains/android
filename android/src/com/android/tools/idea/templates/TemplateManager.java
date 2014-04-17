@@ -316,7 +316,8 @@ public class TemplateManager {
         if (EXCLUDED_TEMPLATES.contains(templateName)) {
           continue;
         }
-        NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName);
+        TemplateMetadata metadata = getTemplate(myCategoryTable.get(category, templateName));
+        NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, metadata);
         String actionId = ACTION_ID_PREFIX + category + templateName;
         am.unregisterAction(actionId);
         am.registerAction(actionId, templateAction);
