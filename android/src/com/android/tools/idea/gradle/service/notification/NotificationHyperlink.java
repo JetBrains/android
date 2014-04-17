@@ -46,4 +46,9 @@ public abstract class NotificationHyperlink {
   public String toString() {
     return myValue;
   }
+
+  @NotNull
+  public String getUrl() {
+    return myUrl;
+  }
 }
