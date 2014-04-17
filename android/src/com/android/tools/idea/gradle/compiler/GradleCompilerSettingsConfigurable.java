@@ -92,7 +92,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   @Nullable
   public String getHelpTopic() {
-    return null;
+    return "reference.projectsettings.compiler.gradle";
   }
 
   @Override
