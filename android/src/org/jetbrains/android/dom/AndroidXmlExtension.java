@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
@@ -49,10 +48,6 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
   public boolean isAvailable(final PsiFile file) {
     if (file instanceof XmlFile) {
       Project project = file.getProject();
-      if (!project.isDefault() && !DirectoryIndex.getInstance(project).isInitialized()) {
-        return false;
-      }
-
       if (AndroidFacet.getInstance(file) == null) {
         return false;
       }

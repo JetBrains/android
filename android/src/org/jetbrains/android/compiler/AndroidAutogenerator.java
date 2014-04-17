@@ -693,13 +693,8 @@ public class AndroidAutogenerator {
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
-          @Override
-          public void run() {
-            run[0] = !project.isDisposed() &&
-                     ReadonlyStatusHandler.ensureFilesWritable(project, filesToCheck.toArray(new VirtualFile[filesToCheck.size()]));
-          }
-        });
+        run[0] = !project.isDisposed() &&
+                 ReadonlyStatusHandler.ensureFilesWritable(project, filesToCheck.toArray(new VirtualFile[filesToCheck.size()]));
       }
     }, ModalityState.defaultModalityState());
 
