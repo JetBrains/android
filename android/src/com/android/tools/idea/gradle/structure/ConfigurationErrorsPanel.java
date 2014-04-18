@@ -154,7 +154,7 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
   }
 
   void removeAllErrors() {
-    myListModel.getErrors().clear();
+    myListModel.removeErrors();
   }
 
   boolean hasCriticalErrors() {
@@ -689,6 +689,14 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
     @NotNull
     private List<ProjectConfigurationError> getErrors() {
       return myAllErrors;
+    }
+
+    public void removeErrors() {
+      boolean hadErrors = !myAllErrors.isEmpty();
+      myAllErrors.clear();
+      if (hadErrors) {
+        fireContentsChanged(this, 0, 0);
+      }
     }
   }
 
