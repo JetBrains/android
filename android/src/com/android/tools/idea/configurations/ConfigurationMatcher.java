@@ -222,8 +222,9 @@ public class ConfigurationMatcher {
     boolean currentConfigIsCompatible = false;
     State selectedState = myConfiguration.getDeviceState();
     FolderConfiguration editedConfig = myConfiguration.getEditedConfig();
+    Module module = myConfiguration.getModule();
     if (selectedState != null) {
-      FolderConfiguration currentConfig = Configuration.getFolderConfig(selectedState, myConfiguration.getLocale(),
+      FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, myConfiguration.getLocale(),
                                                                         myConfiguration.getTarget());
       if (currentConfig != null && editedConfig.isMatchFor(currentConfig)) {
         currentConfigIsCompatible = true; // current config is compatible
@@ -249,7 +250,7 @@ public class ConfigurationMatcher {
         VersionQualifier versionQualifier = new VersionQualifier(target.getVersion().getApiLevel());
         mainloop:
         for (State state : device.getAllStates()) {
-          testConfig.set(Configuration.getFolderConfig(state, myConfiguration.getLocale(), target));
+          testConfig.set(Configuration.getFolderConfig(module, state, myConfiguration.getLocale(), target));
           testConfig.setVersionQualifier(versionQualifier);
 
           // loop on the locales.
@@ -353,13 +354,14 @@ public class ConfigurationMatcher {
 
     Locale currentLocale = myConfiguration.getLocale();
     IAndroidTarget currentTarget = myConfiguration.getTarget();
+    Module module = myConfiguration.getModule();
 
     for (Device device : deviceList) {
       for (State state : device.getAllStates()) {
 
         // loop on the list of config bundles to create full
         // configurations.
-        FolderConfiguration stateConfig = Configuration.getFolderConfig(state, currentLocale, currentTarget);
+        FolderConfiguration stateConfig = Configuration.getFolderConfig(module, state, currentLocale, currentTarget);
         for (ConfigBundle bundle : configBundles) {
           // create a new config with device config
           FolderConfiguration testConfig = new FolderConfiguration();
@@ -604,7 +606,7 @@ public class ConfigurationMatcher {
       if (target == null) {
         target = configuration.getTarget();
       }
-      FolderConfiguration currentConfig = Configuration.getFolderConfig(selectedState, locale, target);
+      FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
         LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
         if (resources != null) {
