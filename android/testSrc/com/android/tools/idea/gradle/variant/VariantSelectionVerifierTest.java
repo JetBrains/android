@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
-import com.android.tools.idea.gradle.variant.VariantSelectionVerifier;
 import com.google.common.collect.ImmutableList;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
