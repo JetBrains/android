@@ -21,6 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -51,6 +52,10 @@ import org.jetbrains.plugins.groovy.lang.psi.util.GroovyPropertyUtils;
 
 import java.util.*;
 
+/**
+ * {@link AndroidDslContributor} provides symbol resolution for identifiers inside the android block
+ * in a Gradle build script.
+ */
 public class AndroidDslContributor implements GradleMethodContextContributor {
   private static final Logger LOG = Logger.getInstance(AndroidDslContributor.class);
 
@@ -88,18 +93,6 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     //           }
     //         }
     //
-    //         productFlavors {
-    //           flavor1 {
-    //             packageName "com.example.flavor1"
-    //           }
-    //         }
-    //
-    //         signingConfigs {
-    //           myConfig {
-    //             storeFile file("other.keystore")
-    //           }
-    //         }
-    //
     //         lintOptions {
     //           quiet true
     //         }
@@ -114,6 +107,13 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     // Depending on the parent contributor (method or class), the symbols are resolved to be either method calls of a class or
     // new domain objects.
 
+
+    // There are two issues that necessitate this custom processing: 1. Groovy doesn't know what the block corresponding to
+    // 'android' with a closure means i.e. it doesn't know that it is an extension provided by the android Gradle plugin.
+    // 2. Once it understands that 'android' is a closure of a certain type, it still stumbles over methods that take in
+    // either an Action<T> or a Action<NamedDomainObject<T>>. So most of the code simply tries to match the former to a method
+    // that takes a closure<T> and the latter to be a closure that defines objects with closure<T>
+
     // we only care about symbols within the android closure
     String topLevel = ContainerUtil.getLastItem(callStack, null);
     if (!DSL_ANDROID.equals(topLevel)) {
@@ -126,44 +126,31 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     // top level android block
     if (callStack.size() == 1) {
-      String clz = resolveAndroidExtension(place.getContainingFile());
-      if (clz == null) {
-        return;
-      }
-      PsiClass contributorClass = psiManager.findClassWithCache(clz, place.getResolveScope());
-      if (contributorClass == null) {
-        return;
-      }
+      String fqcn = resolveAndroidExtension(place.getContainingFile());
+      PsiClass contributorClass = fqcn == null ? null : findClassByName(psiManager, place.getResolveScope(), fqcn);
+      if (contributorClass != null) {
+        String qualifiedName = contributorClass.getQualifiedName();
+        if (qualifiedName == null) {
+          qualifiedName = fqcn;
+        }
 
-      GrLightMethodBuilder methodWithClosure = GradleResolverUtil.createMethodWithClosure("android", ANDROID_FQCN, null, place, psiManager);
-      if (methodWithClosure != null) {
-        processor.execute(methodWithClosure, state);
+        // resolve 'android' as a method that takes a closure
+        resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state, psiManager);
+        cacheContributorInfo(place, contributorClass);
       }
-
-      cacheContributorInfo(place, contributorClass);
       return;
     }
 
-    // For all blocks within android, we first figure out who contributed the parent block. We do this by first obtaining the closeable
-    // block that contains this element, and figuring out the method whose closure argument is the closeable block. We do this instead of
-    // directly looking for a parent element of type method call since this scheme allows us to handle both the following two cases:
-    //   sourceSets {
-    //      ^main {}
-    //      ^debug.setRoot()
-    //   }
-    // In the above example, parent(parent('main')) == parent('debug') == 'sourceSets'.
-    GrClosableBlock closeableBlock = PsiTreeUtil.getParentOfType(place, GrClosableBlock.class);
-    if (closeableBlock == null || !(closeableBlock.getParent() instanceof GrMethodCall)) {
-      return;
-    }
-    PsiElement parentContributor = closeableBlock.getParent().getUserData(CONTRIBUTOR_KEY);
+    // For all blocks within android, we first figure out who contributed the parent block.
+    PsiElement parentContributor = getParentContributor(place);
     if (parentContributor == null) {
       return;
     }
 
     // if the parent object is a class, then process the current identifier as a method of the parent class
     if (parentContributor instanceof PsiClass) {
-      PsiMethod method = findAndProcessContributingMethod(callStack.get(0), processor, state, place, (PsiClass)parentContributor);
+      PsiMethod method =
+        findAndProcessContributingMethod(callStack.get(0), processor, state, place, (PsiClass)parentContributor, psiManager);
       cacheContributorInfo(place, method);
       return;
     }
@@ -180,96 +167,67 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     //             main {}
     //             debug.setRoot {}
     //        }
-    //        This is similar to case 2, we just need to make sure that debug is resolved as a variable of type
-    //        AndroidSourceSet
+    //        This is similar to case 2, we just need to make sure that debug is resolved as a variable of type AndroidSourceSet
     if (!(parentContributor instanceof PsiMethod)) {
       return;
     }
 
-    PsiParameter[] parameters = ((PsiMethod)parentContributor).getParameterList().getParameters();
-
-    // The method must have had atleast 1 closure argument.
-    if (parameters.length < 1) {
-      LOG.info("inside the closure of a method, but method has " + parameters.length + " arguments (expected atleast 1).");
+    // determine the type variable present in the parent method
+    ParametrizedTypeExtractor typeExtractor = getTypeExtractor((PsiMethod)parentContributor);
+    if (typeExtractor == null) {
+      LOG.info("inside the closure of a method, but unable to extract the closure parameter's type.");
       return;
     }
 
-    PsiParameter param = parameters[parameters.length-1];
-    String parameterType = param.getType().getCanonicalText();
-    ParametrizedTypeExtractor typeExtractor = new ParametrizedTypeExtractor(parameterType);
-
     if (typeExtractor.hasNamedDomainObjectContainer()) {
+      // this symbol must be a NamedDomainObject<T>
+      // so define a it as a method with the given name (place.getText()) with an argument Closure<T>
       String namedDomainObject = typeExtractor.getNamedDomainObject();
-      assert namedDomainObject != null : parameterType; // because hasNamedDomainObjectContainer()
+      assert namedDomainObject != null : typeExtractor.getCanonicalType(); // because hasNamedDomainObjectContainer()
 
       PsiClass contributorClass = findClassByName(psiManager, place.getResolveScope(), namedDomainObject);
-      if (contributorClass == null) {
-        return;
-      }
-
-      if (place.getParent() instanceof GrMethodCallExpression) {
-        // define a new named domain object as a method that takes a closure
-        GrLightMethodBuilder methodWithClosure = GradleResolverUtil
-          .createMethodWithClosure(place.getText(), namedDomainObject, null, place, GroovyPsiManager.getInstance(place.getProject()));
-        if (methodWithClosure != null) {
-          processor.execute(methodWithClosure, state);
+      if (contributorClass != null) {
+        String qualifiedName = contributorClass.getQualifiedName();
+        if (qualifiedName == null) {
+          qualifiedName = namedDomainObject;
         }
+        resolveToMethodWithClosure(place, contributorClass, qualifiedName, processor, state, psiManager);
         cacheContributorInfo(place, contributorClass);
       }
-      else if (place.getParent() instanceof GrReferenceExpression) {
-        // resolve the symbol as a variable of type namedDomainObject
-        GrLightVariable variable = new GrLightVariable(place.getManager(), place.getText(), namedDomainObject, place);
-        processor.execute(variable, state);
-      }
-
       return;
     }
 
     if (typeExtractor.isClosure()) {
+      // the parent method was of type Action<T>, so this is simply a method of class T
       String clz = typeExtractor.getClosureType();
-      assert clz != null : parameterType; // because typeExtractor.isClosure()
+      assert clz != null : typeExtractor.getCanonicalType(); // because typeExtractor.isClosure()
 
       PsiClass contributorClass = findClassByName(psiManager, place.getResolveScope(), clz);
       if (contributorClass == null) {
         return;
       }
 
-      PsiMethod method = findAndProcessContributingMethod(callStack.get(0), processor, state, place, contributorClass);
+      PsiMethod method = findAndProcessContributingMethod(callStack.get(0), processor, state, place, contributorClass, psiManager);
       cacheContributorInfo(place, method);
     }
   }
 
-  @Nullable
-  private static PsiClass findClassByName(GroovyPsiManager psiManager, GlobalSearchScope resolveScope, @NotNull String fqcn) {
-    if (ourDslForClassMap.containsKey(fqcn)) {
-      fqcn = ourDslForClassMap.get(fqcn);
-    }
-
-    return psiManager.findClassWithCache(fqcn, resolveScope);
-  }
-
-  private static void cacheContributorInfo(@NotNull PsiElement place, @Nullable PsiElement contributor) {
-    if (contributor == null) {
-      return;
-    }
-
-    // only cache info if this is a method call (and not a reference expression or something else),
-    // as only method calls can contain closure arguments where this might be needed
-    if (!(place.getParent() instanceof GrMethodCall)) {
-      return;
-    }
-
-    // A method call of form "lintOptions { quiet = true }" has a PSI structure like:
-    //   |- Method call
-    //   |---- Reference Expression
-    //   |--------PsiElement (identifier) (place usually points to this)
-    //   |---- Arguments
-    //   |---- Closeable block
-    // Rather than caching information at the method call identifier, we cache it at the
-    // root method call.
-    GrMethodCall method = PsiTreeUtil.getParentOfType(place, GrMethodCall.class);
-    if (method != null) {
-      method.putUserData(CONTRIBUTOR_KEY, contributor);
+  private static void resolveToMethodWithClosure(PsiElement place,
+                                                 PsiElement resolveToElement,
+                                                 String closureTypeFqcn,
+                                                 PsiScopeProcessor processor,
+                                                 ResolveState state,
+                                                 GroovyPsiManager psiManager) {
+    if (place.getParent() instanceof GrMethodCallExpression) {
+      GrLightMethodBuilder methodWithClosure =
+        GradleResolverUtil.createMethodWithClosure(place.getText(), closureTypeFqcn, null, place, psiManager);
+      if (methodWithClosure != null) {
+        processor.execute(methodWithClosure, state);
+        methodWithClosure.setNavigationElement(resolveToElement);
+      }
+    } else if (place.getParent() instanceof GrReferenceExpression) {
+      GrLightVariable variable = new GrLightVariable(place.getManager(), place.getText(), closureTypeFqcn, place);
+      processor.execute(variable, state);
     }
   }
 
@@ -278,21 +236,36 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
                                                             PsiScopeProcessor processor,
                                                             ResolveState state,
                                                             PsiElement place,
-                                                            PsiClass contributorClass) {
+                                                            PsiClass contributorClass,
+                                                            GroovyPsiManager psiManager) {
     PsiMethod method = getContributingMethod(place, contributorClass, symbol);
     if (method == null) {
       return null;
     }
 
-    GrLightMethodBuilder builder = new GrLightMethodBuilder(place.getManager(), method.getName());
-    PsiElementFactory factory = JavaPsiFacade.getElementFactory(place.getManager().getProject());
-    PsiType type = new PsiArrayType(factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope()));
-    builder.addParameter(new GrLightParameter("param", type, builder));
-    PsiClassType retType = factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope());
-    builder.setReturnType(retType);
-    processor.execute(builder, state);
+    ParametrizedTypeExtractor typeExtractor = getTypeExtractor(method);
+    if (typeExtractor != null && !typeExtractor.hasNamedDomainObjectContainer() && typeExtractor.isClosure()) {
+      // method takes a closure argument
+      String clz = typeExtractor.getClosureType();
+      if (clz == null) {
+        clz = CommonClassNames.JAVA_LANG_OBJECT;
+      }
+      if (ourDslForClassMap.containsKey(clz)) {
+        clz = ourDslForClassMap.get(clz);
+      }
+      resolveToMethodWithClosure(place, method, clz, processor, state, psiManager);
+    } else {
+      GrLightMethodBuilder builder = new GrLightMethodBuilder(place.getManager(), method.getName());
+      PsiElementFactory factory = JavaPsiFacade.getElementFactory(place.getManager().getProject());
+      PsiType type = new PsiArrayType(factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope()));
+      builder.addParameter(new GrLightParameter("param", type, builder));
+      PsiClassType retType = factory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_OBJECT, place.getResolveScope());
+      builder.setReturnType(retType);
+      processor.execute(builder, state);
 
-    builder.setNavigationElement(method);
+      builder.setNavigationElement(method);
+    }
+
     return method;
   }
 
@@ -324,8 +297,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   @NotNull
   private static PsiMethod[] findMethodByName(PsiClass contributorClass, String methodName) {
     // Search for methods that match the given name, or a setter or getter.
-    List<String> possibleMethods = Arrays.asList(methodName,
-                                                 GroovyPropertyUtils.getSetterName(methodName),
+    List<String> possibleMethods = Arrays.asList(methodName, GroovyPropertyUtils.getSetterName(methodName),
                                                  GroovyPropertyUtils.getGetterNameNonBoolean(methodName),
                                                  GroovyPropertyUtils.getGetterNameBoolean(methodName));
 
@@ -337,6 +309,81 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     }
 
     return PsiMethod.EMPTY_ARRAY;
+  }
+
+  @Nullable
+  private static ParametrizedTypeExtractor getTypeExtractor(PsiMethod parentContributor) {
+    PsiParameter[] parameters = parentContributor.getParameterList().getParameters();
+
+    // The method must have had at least 1 closure argument.
+    if (parameters.length < 1) {
+      return null;
+    }
+
+    PsiParameter param = parameters[parameters.length-1];
+    String parameterType = param.getType().getCanonicalText();
+
+    return new ParametrizedTypeExtractor(parameterType);
+  }
+
+  /**
+   * Returns the contributor of the enclosing block.
+   * This is performed by first obtaining the closeable block that contains this element, and figuring out the method whose
+   * closure argument is the closeable block. We do this instead of directly looking for a parent element of type method call
+   * since this scheme allows us to handle both the following two cases:
+   *   sourceSets {
+   *      ^main {}
+   *      ^debug.setRoot()
+   *   }
+   * In the above example, parent(parent('main')) == parent('debug') == 'sourceSets'.
+   */
+  @Nullable
+  private static PsiElement getParentContributor(PsiElement place) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    GrClosableBlock closeableBlock = PsiTreeUtil.getParentOfType(place, GrClosableBlock.class);
+    if (closeableBlock == null || !(closeableBlock.getParent() instanceof GrMethodCall)) {
+      return null;
+    }
+    PsiElement parentContributor = closeableBlock.getParent().getUserData(CONTRIBUTOR_KEY);
+    if (parentContributor == null) {
+      return null;
+    }
+    return parentContributor;
+  }
+
+  @Nullable
+  public static PsiClass findClassByName(GroovyPsiManager psiManager, GlobalSearchScope resolveScope, @NotNull String fqcn) {
+    if (ourDslForClassMap.containsKey(fqcn)) {
+      fqcn = ourDslForClassMap.get(fqcn);
+    }
+
+    return psiManager.findClassWithCache(fqcn, resolveScope);
+  }
+
+  private static void cacheContributorInfo(@NotNull PsiElement place, @Nullable PsiElement contributor) {
+    if (contributor == null) {
+      return;
+    }
+
+    // only cache info if this is a method call (and not a reference expression or something else),
+    // as only method calls can contain closure arguments where this might be needed
+    if (!(place.getParent() instanceof GrMethodCall)) {
+      return;
+    }
+
+    // A method call of form "lintOptions { quiet = true }" has a PSI structure like:
+    //   |- Method call
+    //   |---- Reference Expression
+    //   |--------PsiElement (identifier) (place usually points to this)
+    //   |---- Arguments
+    //   |---- Closeable block
+    // Rather than caching information at the method call identifier, we cache it at the
+    // root method call.
+    GrMethodCall method = PsiTreeUtil.getParentOfType(place, GrMethodCall.class);
+    if (method != null) {
+      method.putUserData(CONTRIBUTOR_KEY, contributor);
+    }
   }
 
   private void logClassPathOnce(@NotNull Project project) {
@@ -384,9 +431,15 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
 
     private static final Splitter SPLITTER = Splitter.onPattern("[<>]").trimResults().omitEmptyStrings();
     private final ArrayList<String> myParameterTypes;
+    private final String myCanonicalType;
 
     public ParametrizedTypeExtractor(String canonicalType) {
+      myCanonicalType = canonicalType;
       myParameterTypes = Lists.newArrayList(SPLITTER.split(canonicalType));
+    }
+
+    public String getCanonicalType() {
+      return myCanonicalType;
     }
 
     public boolean isClosure() {
