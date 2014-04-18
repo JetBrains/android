@@ -21,10 +21,13 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.AppUIUtil;
@@ -37,6 +40,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 public class GradleSyncState {
+  private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
+
   public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
     new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
 
@@ -109,7 +114,20 @@ public class GradleSyncState {
     AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
       @Override
       public void run() {
-        EditorNotifications.getInstance(myProject).updateAllNotifications();
+        EditorNotifications notifications = EditorNotifications.getInstance(myProject);
+        VirtualFile[] files = FileEditorManager.getInstance(myProject).getOpenFiles();
+        for (VirtualFile file : files) {
+          try {
+            notifications.updateNotifications(file);
+          }
+          catch (Throwable e) {
+            String filePath = FileUtil.toSystemDependentName(file.getPath());
+            String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
+            LOG.info(msg, e);
+          }
+        }
+
+        notifications.updateAllNotifications();
         BuildVariantView.getInstance(myProject).updateContents();
       }
     });
