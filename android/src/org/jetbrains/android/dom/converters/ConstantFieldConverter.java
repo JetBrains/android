@@ -182,7 +182,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
             return true;
           }
           if (added.add(s)) {
-            result.add(LookupElementBuilder.create(pair.getFirst(), s));
+            result.add(LookupElementBuilder.create(pair.getFirst(), s).withCaseSensitivity(false));
           }
           return true;
         }
