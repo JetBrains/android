@@ -282,6 +282,10 @@ public class LocaleMenuAction extends FlatComboAction {
       if (commit) {
         setProjectWideLocale();
       } else {
+        // The locale can affect the direction qualifier: don't constrain best match
+        // search to the current direction
+        configuration.getEditedConfig().setLayoutDirectionQualifier(null);
+
         configuration.setLocale(myLocale);
       }
     }
