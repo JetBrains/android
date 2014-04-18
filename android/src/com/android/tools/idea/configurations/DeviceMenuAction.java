@@ -133,7 +133,10 @@ public class DeviceMenuAction extends FlatComboAction {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(configurationManager.getModule());
-    assert facet != null;
+    if (facet == null) {
+      // Unlikely, but has happened - see http://b.android.com/68091
+      return group;
+    }
     final AvdManager avdManager = facet.getAvdManagerSilently();
     if (avdManager != null) {
       boolean separatorNeeded = false;
