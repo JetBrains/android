@@ -61,6 +61,7 @@ import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -128,15 +129,18 @@ public class AndroidColorAnnotator implements Annotator {
 
   private static void annotateXml(PsiElement element, AnnotationHolder holder, String value) {
     if (value.startsWith("#")) {
-      if (element instanceof XmlTag) {
-        Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setGutterIconRenderer(new MyRenderer(element, null));
-      } else {
-        assert element instanceof XmlAttributeValue;
-        Color color = ResourceHelper.parseColor(value);
-        if (color != null) {
+      final PsiFile file = element.getContainingFile();
+      if (file != null && AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
+        if (element instanceof XmlTag) {
           Annotation annotation = holder.createInfoAnnotation(element, null);
           annotation.setGutterIconRenderer(new MyRenderer(element, null));
+        } else {
+          assert element instanceof XmlAttributeValue;
+          Color color = ResourceHelper.parseColor(value);
+          if (color != null) {
+            Annotation annotation = holder.createInfoAnnotation(element, null);
+            annotation.setGutterIconRenderer(new MyRenderer(element, null));
+          }
         }
       }
     } else if (value.startsWith(COLOR_RESOURCE_PREFIX)) {
