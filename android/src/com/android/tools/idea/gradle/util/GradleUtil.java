@@ -39,6 +39,7 @@ import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.StartParameter;
@@ -399,5 +400,28 @@ public final class GradleUtil {
 
   private static boolean isValidGradleHome(@NotNull File path) {
     return path.isDirectory() && ServiceManager.getService(GradleInstallationManager.class).isGradleSdkHome(path);
+  }
+
+  /**
+   * Convert a Gradle project name into a system dependent path relative to root project. Please note this is the default mapping from a
+   * Gradle "logical" path to a physical path. Users can override this mapping in settings.gradle and this mapping may not always be
+   * accurate.
+   * <p/>
+   * E.g. ":module" becomes "module" and ":directory:module" is converted to "directory/module"
+   */
+  @NotNull @VisibleForTesting
+  public static String getDefaultPhysicalPathFromGradlePath(@NotNull String name) {
+    List<String> segments = getPathSegments(name);
+    return FileUtil.join(segments.toArray(new String[segments.size()]));
+  }
+
+  /**
+   * Obtain default path for the Gradle subproject with the given name in the project.
+   */
+  @NotNull
+  public static File getDefaultSubprojectLocation(@NotNull VirtualFile project, @NotNull String gradlePath) {
+    assert gradlePath.length() > 0;
+    String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
+    return new File(VfsUtilCore.virtualToIoFile(project), relativePath);
   }
 }

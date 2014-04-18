@@ -26,6 +26,8 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
@@ -122,7 +124,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
         GradleSettingsFile settingsFile = GradleSettingsFile.get(myProject);
         if (settingsFile != null) {
           settingsFile.removeModule(oldPath);
-          settingsFile.addModule(newPath);
+          settingsFile.addModule(newPath, VfsUtilCore.virtualToIoFile(eventFile));
         }
       }
     }
