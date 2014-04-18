@@ -152,6 +152,11 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       else if (qualifier instanceof ScreenHeightQualifier) {
         myEditors.put(name, new MyScreenHeightEditor());
       }
+      else if (qualifier instanceof LayoutDirectionQualifier) {
+        myEditors.put(name, new MyLayoutDirectionEditor());
+      } else {
+        LOG.info("Missing editor for qualifier " + qualifier);
+      }
     }
 
     for (String name : myEditors.keySet()) {
@@ -263,6 +268,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     ourIcons.put(ScreenWidthQualifier.NAME, AndroidIcons.Configs.Width);
     ourIcons.put(TextInputMethodQualifier.NAME, AndroidIcons.Configs.TextInput);
     ourIcons.put(TouchScreenQualifier.NAME, AndroidIcons.Configs.Touch);
+    ourIcons.put(LayoutDirectionQualifier.NAME, AndroidIcons.Configs.LayoutDirection);
 
     // TODO: Get dedicated icon for the API version
     ourIcons.put(VersionQualifier.NAME, AndroidIcons.Targets);
@@ -886,6 +892,36 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
+  private class MyLayoutDirectionEditor extends MyEnumBasedEditor<LayoutDirectionQualifier, LayoutDirection> {
+    private MyLayoutDirectionEditor() {
+      super(LayoutDirection.class);
+    }
+
+    @NotNull
+    @Override
+    protected String getCaption() {
+      return "Layout direction:";
+    }
+
+    @NotNull
+    @Override
+    protected LayoutDirection getValue(@NotNull LayoutDirectionQualifier qualifier) {
+      return qualifier.getValue();
+    }
+
+    @NotNull
+    @Override
+    protected LayoutDirectionQualifier getQualifier(@NotNull LayoutDirection value) {
+      return new LayoutDirectionQualifier(value);
+    }
+
+    @NotNull
+    @Override
+    protected String getErrorMessage() {
+      return "Specify layout direction";
+    }
+  }
+
   private class MyScreenDimensionEditor extends MyQualifierEditor<ScreenDimensionQualifier> {
     private final JTextField mySizeField1 = new JTextField();
     private final JTextField mySizeField2 = new JTextField();
@@ -1168,12 +1204,12 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     void reset(@NotNull T qualifier) {
       myTextField.setText(Integer.toString(getValue(qualifier)));
     }
-    
+
     protected abstract int getValue(@NotNull T qualifier);
-    
+
     @NotNull
     protected abstract T createQualifier(int value);
-    
+
     protected abstract String getErrorMessage();
 
     @NotNull
@@ -1191,7 +1227,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       }
     }
   }
-  
+
   private class MySmallestScreenWidthEditor extends MySizeEditorBase<SmallestScreenWidthQualifier> {
     private MySmallestScreenWidthEditor() {
       super("Smallest screen width:");
@@ -1213,7 +1249,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       return "Incorrect smallest screen width";
     }
   }
-  
+
   private class MyScreenWidthEditor extends MySizeEditorBase<ScreenWidthQualifier> {
     private MyScreenWidthEditor() {
       super("Screen width:");
@@ -1235,7 +1271,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       return "Incorrect screen width";
     }
   }
-  
+
   private class MyScreenHeightEditor extends MySizeEditorBase<ScreenHeightQualifier> {
     private MyScreenHeightEditor() {
       super("Screen height:");
