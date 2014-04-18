@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -79,6 +83,36 @@ public final class GradleUtil {
   private static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
 
   private GradleUtil() {
+  }
+
+  /**
+   * Returns the Gradle "logical" path (using colons as separators) if the given module represents a Gradle project or sub-project.
+   *
+   * @param module the given module.
+   * @return the Gradle path for the given module, or {@code null} if the module does not represent a Gradle project or sub-project.
+   */
+  @Nullable
+  public static String getGradlePath(@NotNull Module module) {
+    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+    return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
+  }
+
+  /**
+   * Returns the library dependencies in the given variant. This method checks dependencies in the "main" and "instrumentation tests"
+   * artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
+   *
+   * @param variant the given variant.
+   * @return the library dependencies in the given variant.
+   */
+  @NotNull
+  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant) {
+    List<AndroidLibrary> libraries = Lists.newArrayList();
+    libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
+    AndroidArtifact testArtifact = IdeaAndroidProject.findInstrumentationTestArtifact(variant);
+    if (testArtifact != null) {
+      libraries.addAll(testArtifact.getDependencies().getLibraries());
+    }
+    return libraries;
   }
 
   @Nullable
