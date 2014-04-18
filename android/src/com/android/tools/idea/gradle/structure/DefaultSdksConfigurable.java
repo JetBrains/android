@@ -33,6 +33,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.util.Function;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -41,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -55,6 +57,7 @@ import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 public class DefaultSdksConfigurable extends BaseConfigurable implements ValidationAwareConfigurable {
   private static final String CHOOSE_VALID_JDK_DIRECTORY_ERR = "Please choose a valid JDK directory.";
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
+  private final ConfigurableHost myHost;
 
   // These paths are system-dependent.
   @NotNull private String myOriginalJdkHomePath;
@@ -66,7 +69,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
 
   private DetailsComponent myDetailsComponent;
 
-  public DefaultSdksConfigurable() {
+  public DefaultSdksConfigurable(@Nullable ConfigurableHost host) {
+    myHost = host;
     myWholePanel.setPreferredSize(new Dimension(700, 500));
 
     myDetailsComponent = new DetailsComponent();
@@ -118,7 +122,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
       }
     });
 
-    mySdkLocationTextField = new TextFieldWithBrowseButton(new ActionListener() {
+    JTextField textField = new JTextField(10);
+    mySdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         VirtualFile suggestedDir = null;
@@ -133,6 +138,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
         }
       }
     });
+    installValidationListener(textField);
   }
 
   private void createJdkLocationTextField() {
@@ -146,7 +152,8 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
       }
     });
 
-    myJdkLocationTextField = new TextFieldWithBrowseButton(new ActionListener() {
+    JTextField textField = new JTextField(10);
+    myJdkLocationTextField = new TextFieldWithBrowseButton(textField, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         VirtualFile suggestedDir = null;
@@ -161,6 +168,18 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
         }
       }
     });
+    installValidationListener(textField);
+  }
+
+  private void installValidationListener(JTextField textField) {
+    if (myHost != null) {
+      textField.getDocument().addDocumentListener(new DocumentAdapter() {
+        @Override
+        protected void textChanged(DocumentEvent e) {
+          myHost.requestValidation();
+        }
+      });
+    }
   }
 
   @NotNull
