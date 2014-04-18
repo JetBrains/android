@@ -31,8 +31,8 @@ import com.android.tools.idea.gradle.variant.VariantSelectionVerifier;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.idea.stats.StatsKeys;
+import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -332,7 +332,16 @@ public class PostProjectSyncTasksExecutor {
   }
 
   private void findAndShowVariantSelectionConflicts() {
-    VariantSelectionVerifier.getInstance(myProject).findAndShowSelectionConflicts();
+    // TODO: enable this code to allow creation of project profiles.
+    //ImmutableList<SelectionConflict> conflicts = VariantSelectionVerifier.getInstance(myProject).findSelectionConflicts();
+    //if (!conflicts.isEmpty()) {
+    //  ProjectProfileSelectionDialog dialog = new ProjectProfileSelectionDialog(myProject, conflicts);
+    //  dialog.show();
+    //}
+
+    VariantSelectionVerifier verifier = new VariantSelectionVerifier(myProject);
+    verifier.findAndShowSelectionConflicts();
+
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     if (!messages.isEmpty()) {
       displayProjectSetupMessages();
