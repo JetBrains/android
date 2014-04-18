@@ -96,7 +96,7 @@ public class Jdks {
       for (Iterator<String> it = jdkHomePaths.iterator(); it.hasNext(); ) {
         final String path = it.next();
 
-        if (javaHome.startsWith(path)) {
+        if (path != null && javaHome.startsWith(path)) {
           it.remove();
           list.add(path);
         }
