@@ -76,6 +76,7 @@ public class AndroidIcons {
     public static final Icon TextInput = load("/icons/text_input.png");
     public static final Icon Touch = load("/icons/touch.png");
     public static final Icon Width = load("/icons/width.png");
+    public static final Icon LayoutDirection = load("/icons/direction.png");
   }
 
   public static class Ddms {
