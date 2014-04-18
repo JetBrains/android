@@ -26,6 +26,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
@@ -69,7 +70,8 @@ import java.util.Map;
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
  */
-public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable {
+public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable,
+                                                                                     ConfigurableHost {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
   @NotNull private final Project myProject;
   @NotNull private final Disposable myDisposable;
@@ -83,7 +85,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @NotNull private final Wrapper myDetails = new Wrapper();
   @NotNull private final UiState myUiState;
 
-  @NotNull private final DefaultSdksConfigurable mySdksConfigurable = new DefaultSdksConfigurable();
+  @NotNull private final DefaultSdksConfigurable mySdksConfigurable = new DefaultSdksConfigurable(this);
   @NotNull private final Map<String, AndroidModuleConfigurable> myModuleConfigurablesByName = Maps.newHashMap();
 
   private JComponent myToFocus;
@@ -399,6 +401,18 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   private static void revalidateAndRepaint(@NotNull JComponent c) {
     c.revalidate();
     c.repaint();
+  }
+
+  @Override
+  public void requestValidation() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        if (myErrorsPanel != null) {
+          validateState();
+        }
+      }
+    });
   }
 
   private class MainPanel extends JPanel implements DataProvider {
