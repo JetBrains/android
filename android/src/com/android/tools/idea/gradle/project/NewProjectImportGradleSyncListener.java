@@ -54,7 +54,7 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
     });
   }
 
-  protected void createTopLevelProjectAndOpen(@NotNull final Project project) {
+  public static void createTopLevelProjectAndOpen(@NotNull final Project project) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
@@ -113,7 +113,7 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
     }
   }
 
-  protected static void activateProjectView(@NotNull Project project) {
+  public static void activateProjectView(@NotNull Project project) {
     ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.PROJECT_VIEW);
     if (window != null) {
       window.activate(null, false);
