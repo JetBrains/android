@@ -275,11 +275,16 @@ public class GradleProjectImporter {
       File targetFile = GradleUtil.getDefaultSubprojectLocation(projectRoot, name);
       VirtualFile moduleSource = module.getValue();
       if (moduleSource != null) {
-        VirtualFile target = VfsUtil.createDirectoryIfMissing(targetFile.getAbsolutePath());
-        if (target == null) {
-          throw new IOException(String.format("Unable to create directory %1$s", targetFile));
+        if (!VfsUtilCore.isAncestor(projectRoot, moduleSource, true)) {
+          VirtualFile target = VfsUtil.createDirectoryIfMissing(targetFile.getAbsolutePath());
+          if (target == null) {
+            throw new IOException(String.format("Unable to create directory %1$s", targetFile));
+          }
+          moduleSource.copy(this, target.getParent(), target.getName());
         }
-        moduleSource.copy(this, target.getParent(), target.getName());
+        else {
+          targetFile = VfsUtilCore.virtualToIoFile(moduleSource);
+        }
       }
       gradleSettingsFile.addModule(name, targetFile);
     }
