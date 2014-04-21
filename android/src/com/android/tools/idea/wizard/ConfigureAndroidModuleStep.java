@@ -568,9 +568,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         testFile = testFile.getParentFile();
       }
       File file = new File(projectLocation);
-      if (file.exists()) {
-        setErrorHtml("There must not already be a file or directory at the project location");
+      if (file.exists() && file.isFile()) {
+        setErrorHtml("There must not already be a file at the project location");
         return false;
+      } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
+        setErrorHtml("A non-empty directory already exists at the specified project location. Existing files may be overwritten. Proceed with caution.");
       }
       if (file.getParent() == null) {
         setErrorHtml("The project location can not be at the filesystem root");
