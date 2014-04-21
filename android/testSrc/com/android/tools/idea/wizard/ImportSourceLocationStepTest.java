@@ -19,7 +19,9 @@ import com.android.tools.idea.gradle.project.GradleModuleImportTest;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -29,6 +31,9 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.AndroidTestBase;
 
 import java.io.File;
+import java.io.IOException;
+
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
  * Test wizard page for specifying the location
@@ -59,12 +64,23 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
   }
 
   public void testValidation() {
-    String modulePath = VfsUtilCore.virtualToIoFile(myModule).getAbsolutePath();
+    String modulePath = virtualToIoFile(myModule).getAbsolutePath();
     assertValidationResult(ImportSourceLocationStep.PageStatus.OK, modulePath);
     assertValidationResult(ImportSourceLocationStep.PageStatus.DOES_NOT_EXIST, modulePath + "_it_cant_exists_I_even_add_random_numbers_201404021710");
     assertValidationResult(ImportSourceLocationStep.PageStatus.EMPTY_PATH, "");
-    assertValidationResult(ImportSourceLocationStep.PageStatus.NESTED_IN_PROJECT, VfsUtilCore.virtualToIoFile(getProject().getBaseDir()).getAbsolutePath());
-    assertValidationResult(ImportSourceLocationStep.PageStatus.NOT_ADT_OR_GRADLE, VfsUtilCore.virtualToIoFile(myModule.getParent()).getAbsolutePath());
+    assertValidationResult(ImportSourceLocationStep.PageStatus.NOT_ADT_OR_GRADLE, virtualToIoFile(myModule.getParent()).getAbsolutePath());
+  }
+
+  public void testPathInProject() throws IOException {
+    VirtualFile moduleInProject = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
+      @Override
+      public VirtualFile compute() throws IOException {
+        return GradleModuleImportTest.createGradleProjectToImport(VfsUtilCore.virtualToIoFile(getProject().getBaseDir()), "gradlemodule");
+      }
+    });
+    moduleInProject.refresh(false, true);
+    assertValidationResult(ImportSourceLocationStep.PageStatus.IS_PROJECT_OR_MODULE, virtualToIoFile(getProject().getBaseDir()).getAbsolutePath());
+    assertValidationResult(ImportSourceLocationStep.PageStatus.OK, virtualToIoFile(moduleInProject).getAbsolutePath());
   }
 
   private void assertValidationResult(ImportSourceLocationStep.PageStatus validationResult, String path) {
