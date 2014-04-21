@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.google.common.base.Stopwatch;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,9 +45,6 @@ import java.util.Map;
  * text and comment nodes.)
  */
 class DomPsiConverter {
-  /** Whether to time initialization of each PSI and print some logging data */
-  private static final boolean BENCHMARK = false;
-
   private DomPsiConverter() {
   }
 
@@ -65,22 +62,14 @@ class DomPsiConverter {
         return null;
       }
 
-      @SuppressWarnings("UnusedAssignment")
-      Stopwatch timer;
-      if (BENCHMARK) {
-        timer = new Stopwatch();
-        timer.start();
-      }
-
-      Document document = convert(xmlDocument);
-
-      if (BENCHMARK) {
-        timer.stop();
-        //noinspection UseOfSystemOutOrSystemErr
-        System.out.println("Creating PSI for " + xmlFile.getName() + " took " + timer.elapsedMillis() + "ms (" + timer.toString() + ")");
-      }
-
-      return document;
+      return convert(xmlDocument);
+    }
+    catch (ProcessCanceledException e) {
+      // Ignore: common occurrence, e.g. we're running lint as part of an editor background
+      // and while lint is running the user switches files: the inspections framework will
+      // then cancel the process from within the PSI machinery (which asks the progress manager
+      // periodically whether the operation is cancelled) and we find ourselves here
+      return null;
     }
     catch (Exception e) {
       String path = xmlFile.getName();
