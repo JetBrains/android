@@ -16,20 +16,19 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.IdeaTestCase;
@@ -61,24 +60,14 @@ public class GradleSettingsFileTest extends IdeaTestCase {
 
   public void testAddModuleToEmptyFile() throws Exception {
     final GradleSettingsFile file = getEmptyTestFile();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-          @Override
-          public void run() {
-        file.addModule(":one");
-      }
-    });
+    addModule(file, ":one");
     String expected = "include ':one'";
     assertContents(file, expected);
   }
 
   public void testAddModuleToExistingFile() throws Exception {
     final GradleSettingsFile file = getSimpleTestFile();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        file.addModule(":four");
-      }
-    });
+    addModule(file, ":four");
     String expected =
       "include ':one', ':two', ':four'\n" +
       "include ':three'\n" +
@@ -87,14 +76,47 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     assertContents(file, expected);
   }
 
-  public void testAddModuleToLineContainingMethodCall() throws Exception {
-    final GradleSettingsFile file = getMethodCallTestFile();
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+  /**
+   * Module should be imported and its locations should be set to path relative to parent project root.
+   */
+  public void testAddModuleWithNondefaultLocationWithinProject() throws IOException {
+    final String modulePath = "directory/module";
+    final GradleSettingsFile file = getSimpleTestFile();
+    File moduleLocation = new File(VfsUtilCore.virtualToIoFile(file.getFile().getParent()), modulePath);
+    assertModuleWithNonDefaultLocation(file, ":mymodule", modulePath, moduleLocation);
+  }
+
+  /**
+   * Module should be imported and its locations should be set to absolute path.
+   */
+  public void testAddModuleWithNondefaultLocationOutsideProject() throws IOException {
+    final String modulePath = "/directory/module";
+    File moduleLocation = new File(modulePath);
+    final GradleSettingsFile file = getSimpleTestFile();
+    assertModuleWithNonDefaultLocation(file, ":mymodule", modulePath, moduleLocation);
+  }
+
+  private void assertModuleWithNonDefaultLocation(final GradleSettingsFile file,
+                                                  final String moduleName,
+                                                  String expectedPath,
+                                                  final File moduleLocation) throws IOException {
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
       @Override
       public void run() {
-        file.addModule(":one");
+        file.addModule(moduleName, moduleLocation);
       }
     });
+    String expected =
+      "include ':one', ':two', '%1$s'\n" +
+      "include ':three'\n" +
+      "include callSomeMethod()\n" +
+      "project('%1$s').projectDir = new File('%2$s')";
+    assertContents(file, String.format(expected, moduleName, expectedPath));
+  }
+
+  public void testAddModuleToLineContainingMethodCall() throws Exception {
+    final GradleSettingsFile file = getMethodCallTestFile();
+    addModule(file, ":one");
     String expected =
       "include callSomeMethod(), ':one'";
 
@@ -146,10 +168,24 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     assertContents(file, "include ':two'");
   }
 
+  public void testRemoveModuleAndLocation() throws IOException {
+    final GradleSettingsFile file = getTestFile("include ':one', 'two'\n" +
+                                          "project('two').projectDir = new File('modules/three')\n" +
+                                          "project(':one').projectDir = new File('modules/four')");
+    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
+      @Override
+      public void run() {
+        file.removeModule("two");
+      }
+    });
+    assertContents(file, "include ':one'\n" +
+                         "project(':one').projectDir = new File('modules/four')");
+  }
+
   public void testAddModuleStringChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
-      file.addModule("asdf");
+      file.addModule("asdf", GradleUtil.getDefaultSubprojectLocation(file.getFile(), ":asdf"));
     } catch (IllegalStateException e) {
       // expected
       return;
@@ -235,6 +271,15 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     return "include \'" + Joiner.on("\'\ninclude \'").join(modules) + "\'\n";
   }
 
+  private static void addModule(final GradleSettingsFile file, final String name) {
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        file.addModule(name, GradleUtil.getDefaultSubprojectLocation(file.getFile().getParent(), name));
+      }
+    });
+  }
+
   private GradleSettingsFile getSimpleTestFile() throws IOException {
     String contents =
       "include ':one', ':two'\n" +
@@ -253,8 +298,9 @@ public class GradleSettingsFileTest extends IdeaTestCase {
     return getTestFile("");
   }
 
-  private GradleSettingsFile getTestFile(String contents) throws IOException {
-    VirtualFile vf = getVirtualFile(createTempFile(SdkConstants.FN_SETTINGS_GRADLE, contents));
+  private GradleSettingsFile getTestFile(String... contents) throws IOException {
+    String fileContents = Joiner.on("\n").join(contents);
+    VirtualFile vf = getVirtualFile(createTempFile(SdkConstants.FN_SETTINGS_GRADLE, fileContents));
     myDocument = FileDocumentManager.getInstance().getDocument(vf);
     return new GradleSettingsFile(vf, getProject());
   }
