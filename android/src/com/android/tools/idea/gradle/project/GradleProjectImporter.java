@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
@@ -76,7 +75,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.ui.AppUIUtil;
-import com.intellij.util.PathUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -111,20 +109,6 @@ public class GradleProjectImporter {
    * by unit tests that do not run all of IntelliJ (e.g. do not extend the IdeaTestCase base)
    */
   public static boolean ourSkipSetupFromTest;
-
-  /**
-   * Convert a Gradle project name into a system dependent path relative to root project. Please note this is the default mapping from a
-   * Gradle "logical" path to a physical path. Users can override this mapping in settings.gradle and this mapping may not always be
-   * accurate.
-   * <p/>
-   * E.g. ":module" becomes "module" and ":directory:module" is converted to "directory/module"
-   */
-  @NotNull
-  @VisibleForTesting
-  static File getDefaultPhysicalPathFromGradlePath(@NotNull String name) {
-    List<String> segments = GradleUtil.getPathSegments(name);
-    return new File(FileUtil.join(segments.toArray(new String[segments.size()])));
-  }
 
   @NotNull
   public static GradleProjectImporter getInstance() {
@@ -287,13 +271,17 @@ public class GradleProjectImporter {
     GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
     assert gradleSettingsFile != null : "File should have been created";
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
-      if (module.getValue() != null) {
-        String name = module.getKey();
-        String directoryPath = getDefaultPhysicalPathFromGradlePath(name).getPath();
-        VirtualFile target = VfsUtil.createDirectoryIfMissing(projectRoot, PathUtil.toSystemIndependentName(directoryPath));
-        module.getValue().copy(this, target.getParent(), target.getName());
-        gradleSettingsFile.addModule(name);
+      String name = module.getKey();
+      File targetFile = GradleUtil.getDefaultSubprojectLocation(projectRoot, name);
+      VirtualFile moduleSource = module.getValue();
+      if (moduleSource != null) {
+        VirtualFile target = VfsUtil.createDirectoryIfMissing(targetFile.getAbsolutePath());
+        if (target == null) {
+          throw new IOException(String.format("Unable to create directory %1$s", targetFile));
+        }
+        moduleSource.copy(this, target.getParent(), target.getName());
       }
+      gradleSettingsFile.addModule(name, targetFile);
     }
     requestProjectSync(project, false, listener);
   }
