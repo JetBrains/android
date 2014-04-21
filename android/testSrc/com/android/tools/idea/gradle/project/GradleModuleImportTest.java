@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
@@ -181,7 +182,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     for (Map.Entry<String, String> module : modules.entrySet()) {
       String path = module.getValue();
       if (Strings.isNullOrEmpty(path)) {
-        path = PathUtil.toSystemIndependentName(GradleProjectImporter.getDefaultPhysicalPathFromGradlePath(module.getKey()).getPath());
+        path = PathUtil.toSystemIndependentName(GradleUtil.getDefaultPhysicalPathFromGradlePath(module.getKey()));
       }
       else {
         customLocationStatements.add(String.format("project('%s').projectDir = new File('%s')", module.getKey(), path));
