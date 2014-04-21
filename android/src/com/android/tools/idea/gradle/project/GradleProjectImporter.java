@@ -27,8 +27,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.idea.stats.StatsKeys;
+import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -53,7 +53,10 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataManager;
-import com.intellij.openapi.externalSystem.util.*;
+import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -458,6 +461,14 @@ public class GradleProjectImporter {
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       newProject.save();
+    }
+
+    Projects.open(newProject);
+    if (!ProjectValidator.validate(newProject, projectRootDir)) {
+      // The project failed validation. Bail out on Gradle import, but create a top-level module so that the entire project directory
+      // contents will show up in the project window and the user can edit files to fix the validation problems.
+      NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen(newProject);
+      return;
     }
 
     doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, listener);

@@ -65,7 +65,8 @@ public class ProjectSyncMessages {
     }
     NotificationData notification = new NotificationData(
       message.getGroupName(), StringUtil.join(message.getText(), "\n"),
-      NotificationCategory.convert(message.getType().getValue()), NotificationSource.PROJECT_SYNC);
+      NotificationCategory.convert(message.getType().getValue()), NotificationSource.PROJECT_SYNC,
+      message.getFile() != null ? message.getFile().getPath() : null, message.getLine(), message.getColumn(), false);
     notification.setNavigatable(navigatable);
     myNotificationManager.showNotification(GradleConstants.SYSTEM_ID, notification);
   }

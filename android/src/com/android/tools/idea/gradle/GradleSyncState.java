@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.ProjectValidator;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.application.ApplicationManager;
@@ -81,6 +82,7 @@ public class GradleSyncState {
       @Override
       public void run() {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
+        ProjectValidator.mergeQueuedMessages(myProject);
       }
     });
   }
@@ -91,6 +93,7 @@ public class GradleSyncState {
       @Override
       public void run() {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncEnded(myProject);
+        ProjectValidator.mergeQueuedMessages(myProject);
       }
     });
   }
