@@ -400,13 +400,23 @@ public class Configuration implements Disposable {
   }
 
   @Nullable
-  public static FolderConfiguration getFolderConfig(@NotNull State state, @NotNull Locale locale, @Nullable IAndroidTarget target) {
+  public static FolderConfiguration getFolderConfig(@NotNull Module module, @NotNull State state, @NotNull Locale locale,
+                                                    @Nullable IAndroidTarget target) {
     FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
     if (currentConfig != null) {
       if (locale.hasLanguage()) {
         currentConfig.setLanguageQualifier(locale.language);
         if (locale.hasRegion()) {
           currentConfig.setRegionQualifier(locale.region);
+        }
+
+        if (locale.hasLanguage()) {
+          LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
+          if (layoutLib != null) {
+            if (layoutLib.isRtl(locale.toLocaleId())) {
+              currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
+            }
+          }
         }
       }
 
@@ -428,10 +438,11 @@ public class Configuration implements Disposable {
         stateName = device.getDefaultState().getName();
       }
       State selectedState = ConfigurationFileState.getState(device, stateName);
-      FolderConfiguration currentConfig = getFolderConfig(selectedState, getLocale(), getTarget());
+      Module module = myManager.getModule();
+      FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = AppResourceRepository.getAppResources(myManager.getModule(), true);
+          LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
             if (folderType != null) {
@@ -872,7 +883,7 @@ public class Configuration implements Disposable {
     if (deviceState == null) {
       deviceState = device.getDefaultState();
     }
-    FolderConfiguration config = getFolderConfig(deviceState, getLocale(), getTarget());
+    FolderConfiguration config = getFolderConfig(getModule(), deviceState, getLocale(), getTarget());
 
     // replace the config with the one from the device
     myFullConfig.set(config);
