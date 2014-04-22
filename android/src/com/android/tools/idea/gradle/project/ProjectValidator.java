@@ -125,7 +125,7 @@ public class ProjectValidator {
                        @Nullable Location location,
                        @NonNull String message,
                        @Nullable Object data) {
-      myFatalError |= severity.compareTo(Severity.ERROR) >= 0;
+      myFatalError |= severity.compareTo(Severity.ERROR) <= 0;
 
       File file = location != null ? location.getFile() : null;
       VirtualFile virtualFile = file != null ? LocalFileSystem.getInstance().findFileByIoFile(file) : null;
