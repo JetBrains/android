@@ -16,6 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
@@ -1397,11 +1398,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private class MyDeviceChangeListener implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
     private final MergingUpdateQueue myQueue =
       new MergingUpdateQueue("ANDROID_DEVICE_STATE_UPDATE_QUEUE", 1000, true, null, this, null, false);
-    private volatile boolean installed;
 
-    public MyDeviceChangeListener() {
-      installed = false;
-    }
+    @GuardedBy("this")
+    private boolean installed;
 
     @Override
     public void deviceConnected(final IDevice device) {
@@ -1432,15 +1431,25 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
 
     private synchronized void onDeviceChanged(IDevice device) {
-      if (!installed && isMyDevice(device) && device.isOnline()) {
-        if (myTargetDevices.length == 0) {
-          myTargetDevices = new IDevice[]{device};
-        }
-        message("Device is online: " + device.getSerialNumber(), STDOUT);
-        installed = true;
-        if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
-          getProcessHandler().destroyProcess();
-        }
+      if (installed || !isMyDevice(device) || !device.isOnline()) {
+        return;
+      }
+
+      if (myTargetDevices.length == 0) {
+        myTargetDevices = new IDevice[]{device};
+      }
+
+      // devices (esp. emulators) may be reported as online, but may not have services running yet
+      // check to see if the acore process is alive before continuing
+      if (device.getClient("android.process.acore") == null) {
+        message(String.format("Device %1$s is online, waiting for processes to start up..", device.getName()), STDOUT);
+        return;
+      }
+
+      message("Device is ready: " + device.getName(), STDOUT);
+      installed = true;
+      if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
+        getProcessHandler().destroyProcess();
       }
     }
 
