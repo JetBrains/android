@@ -308,112 +308,112 @@
   </item>
   <item name="java.util.Calendar boolean isSet(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int get(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int getActualMaximum(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int getActualMinimum(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int getFirstDayOfWeek()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.SUNDAYjava.util.Calendar.MONDAYjava.util.Calendar.TUESDAYjava.util.Calendar.WEDNESDAYjava.util.Calendar.THURSDAYjava.util.Calendar.FRIDAYjava.util.Calendar.SATURDAY}" />
+      <val name="value" val="{java.util.Calendar.SUNDAY, java.util.Calendar.MONDAY, java.util.Calendar.TUESDAY, java.util.Calendar.WEDNESDAY, java.util.Calendar.THURSDAY, java.util.Calendar.FRIDAY, java.util.Calendar.SATURDAY}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int getGreatestMinimum(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int getLeastMaximum(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int getMaximum(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar int getMinimum(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar java.lang.String getDisplayName(int, int, java.util.Locale) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar java.lang.String getDisplayName(int, int, java.util.Locale) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.SHORTjava.util.Calendar.LONG}" />
+      <val name="value" val="{java.util.Calendar.SHORT, java.util.Calendar.LONG}" />
     </annotation>
   </item>
   <item name="java.util.Calendar java.util.Map&lt;java.lang.String,java.lang.Integer&gt; getDisplayNames(int, int, java.util.Locale) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar java.util.Map&lt;java.lang.String,java.lang.Integer&gt; getDisplayNames(int, int, java.util.Locale) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.SHORTjava.util.Calendar.LONGjava.util.Calendar.ALL_STYLES}" />
+      <val name="value" val="{java.util.Calendar.SHORT, java.util.Calendar.LONG, java.util.Calendar.ALL_STYLES}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void add(int, int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void clear(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void roll(int, boolean) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void roll(int, int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void set(int, int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.ERAjava.util.Calendar.YEARjava.util.Calendar.MONTHjava.util.Calendar.WEEK_OF_YEARjava.util.Calendar.WEEK_OF_MONTHjava.util.Calendar.DATEjava.util.Calendar.DAY_OF_MONTHjava.util.Calendar.DAY_OF_YEARjava.util.Calendar.DAY_OF_WEEKjava.util.Calendar.DAY_OF_WEEK_IN_MONTHjava.util.Calendar.AM_PMjava.util.Calendar.HOURjava.util.Calendar.HOUR_OF_DAYjava.util.Calendar.MINUTEjava.util.Calendar.SECONDjava.util.Calendar.MILLISECONDjava.util.Calendar.ZONE_OFFSETjava.util.Calendar.DST_OFFSET}" />
+      <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void set(int, int, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.JANUARYjava.util.Calendar.FEBRUARYjava.util.Calendar.MARCHjava.util.Calendar.APRILjava.util.Calendar.MAYjava.util.Calendar.JUNEjava.util.Calendar.JULYjava.util.Calendar.AUGUSTjava.util.Calendar.SEPTEMBERjava.util.Calendar.OCTOBERjava.util.Calendar.NOVEMBERjava.util.Calendar.DECEMBER}" />
+      <val name="value" val="{java.util.Calendar.JANUARY, java.util.Calendar.FEBRUARY, java.util.Calendar.MARCH, java.util.Calendar.APRIL, java.util.Calendar.MAY, java.util.Calendar.JUNE, java.util.Calendar.JULY, java.util.Calendar.AUGUST, java.util.Calendar.SEPTEMBER, java.util.Calendar.OCTOBER, java.util.Calendar.NOVEMBER, java.util.Calendar.DECEMBER}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void set(int, int, int, int, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.JANUARYjava.util.Calendar.FEBRUARYjava.util.Calendar.MARCHjava.util.Calendar.APRILjava.util.Calendar.MAYjava.util.Calendar.JUNEjava.util.Calendar.JULYjava.util.Calendar.AUGUSTjava.util.Calendar.SEPTEMBERjava.util.Calendar.OCTOBERjava.util.Calendar.NOVEMBERjava.util.Calendar.DECEMBER}" />
+      <val name="value" val="{java.util.Calendar.JANUARY, java.util.Calendar.FEBRUARY, java.util.Calendar.MARCH, java.util.Calendar.APRIL, java.util.Calendar.MAY, java.util.Calendar.JUNE, java.util.Calendar.JULY, java.util.Calendar.AUGUST, java.util.Calendar.SEPTEMBER, java.util.Calendar.OCTOBER, java.util.Calendar.NOVEMBER, java.util.Calendar.DECEMBER}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void set(int, int, int, int, int, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.JANUARYjava.util.Calendar.FEBRUARYjava.util.Calendar.MARCHjava.util.Calendar.APRILjava.util.Calendar.MAYjava.util.Calendar.JUNEjava.util.Calendar.JULYjava.util.Calendar.AUGUSTjava.util.Calendar.SEPTEMBERjava.util.Calendar.OCTOBERjava.util.Calendar.NOVEMBERjava.util.Calendar.DECEMBER}" />
+      <val name="value" val="{java.util.Calendar.JANUARY, java.util.Calendar.FEBRUARY, java.util.Calendar.MARCH, java.util.Calendar.APRIL, java.util.Calendar.MAY, java.util.Calendar.JUNE, java.util.Calendar.JULY, java.util.Calendar.AUGUST, java.util.Calendar.SEPTEMBER, java.util.Calendar.OCTOBER, java.util.Calendar.NOVEMBER, java.util.Calendar.DECEMBER}" />
     </annotation>
   </item>
   <item name="java.util.Calendar void setFirstDayOfWeek(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{java.util.Calendar.SUNDAYjava.util.Calendar.MONDAYjava.util.Calendar.TUESDAYjava.util.Calendar.WEDNESDAYjava.util.Calendar.THURSDAYjava.util.Calendar.FRIDAYjava.util.Calendar.SATURDAY}" />
+      <val name="value" val="{java.util.Calendar.SUNDAY, java.util.Calendar.MONDAY, java.util.Calendar.TUESDAY, java.util.Calendar.WEDNESDAY, java.util.Calendar.THURSDAY, java.util.Calendar.FRIDAY, java.util.Calendar.SATURDAY}" />
     </annotation>
   </item>
   <item name="java.util.Collection T[] toArray(T[])">
