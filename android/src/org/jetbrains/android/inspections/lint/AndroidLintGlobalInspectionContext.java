@@ -11,6 +11,7 @@ import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -85,7 +86,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     }
 
     List<VirtualFile> files = null;
-    List<Module> modules = Lists.newArrayList();
+    final List<Module> modules = Lists.newArrayList();
 
     int scopeType = scope.getScopeType();
     switch (scopeType) {
@@ -105,20 +106,27 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
         files = Lists.newArrayList();
         SearchScope searchScope = scope.toSearchScope();
         if (searchScope instanceof LocalSearchScope) {
-          LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
-          PsiElement[] elements = localSearchScope.getScope();
-          for (PsiElement element : elements) {
-            if (element instanceof PsiFile) { // should be the case since scope type is FILE
-              Module module = ModuleUtilCore.findModuleForPsiElement(element);
-              if (module != null && !modules.contains(module)) {
-                modules.add(module);
-              }
-              VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
-              if (virtualFile != null) {
-                files.add(virtualFile);
+          final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
+          final PsiElement[] elements = localSearchScope.getScope();
+          final List<VirtualFile> finalFiles = files;
+
+          ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
+            public void run() {
+              for (PsiElement element : elements) {
+                if (element instanceof PsiFile) { // should be the case since scope type is FILE
+                  Module module = ModuleUtilCore.findModuleForPsiElement(element);
+                  if (module != null && !modules.contains(module)) {
+                    modules.add(module);
+                  }
+                  VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
+                  if (virtualFile != null) {
+                    finalFiles.add(virtualFile);
+                  }
+                }
               }
             }
-          }
+          });
         } else {
           final List<VirtualFile> finalList = files;
           scope.accept(new PsiElementVisitor() {
