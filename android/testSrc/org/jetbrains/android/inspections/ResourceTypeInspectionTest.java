@@ -69,4 +69,8 @@ public class ResourceTypeInspectionTest extends InspectionTestCase {
   public void testNotAndroid() throws Exception {
     doTest();
   }
+
+  public void testFlow() throws Exception {
+    doTest();
+  }
 }
