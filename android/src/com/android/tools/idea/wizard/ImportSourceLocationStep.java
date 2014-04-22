@@ -216,7 +216,8 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     boolean hasModules = modules != null && modules.size() > 1;
     myModulesList.setVisible(hasModules);
     myModuleImportLabel.setVisible(hasModules);
-    myModulesList.setModules(vfile, modules);
+    assert myContext.getProject() != null;
+    myModulesList.setModules(myContext.getProject(), vfile, modules);
   }
 
   private void createUIComponents() {
