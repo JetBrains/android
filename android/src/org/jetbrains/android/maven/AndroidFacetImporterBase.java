@@ -45,6 +45,7 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.io.ZipUtil;
 import org.jdom.Element;
+import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.AndroidDexCompilerConfiguration;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -1161,6 +1162,14 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       }
     }
 
+    if (MavenProjectsManager.getInstance(module.getProject()).getImportingSettings().isUseMavenOutput()) {
+      final String buildDirectory = FileUtil.toSystemIndependentName(project.getBuildDirectory());
+      final String buildDirRelPath = FileUtil.getRelativePath(moduleDirPath, buildDirectory, '/');
+      configuration.getState().APK_PATH = '/' + buildDirRelPath + '/' + AndroidCompileUtil.getApkName(module);
+    }
+    else {
+      configuration.getState().APK_PATH = "";
+    }
     if (configuration.isImportedProperty(AndroidImportableProperty.NATIVE_LIBS_DIR_PATH)) {
       String nativeLibsFolderRelPath = getPathFromConfig(module, project, moduleDirPath, "nativeLibrariesDirectory", false, true);
       if (nativeLibsFolderRelPath != null && isFullyResolved(nativeLibsFolderRelPath)) {
