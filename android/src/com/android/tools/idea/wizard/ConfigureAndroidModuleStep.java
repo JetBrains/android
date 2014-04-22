@@ -568,7 +568,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         testFile = testFile.getParentFile();
       }
       File file = new File(projectLocation);
-      if (file.exists() && file.isFile()) {
+      if (file.isFile()) {
         setErrorHtml("There must not already be a file at the project location");
         return false;
       } else if (file.isDirectory() && TemplateUtils.listFiles(file).length > 0) {
