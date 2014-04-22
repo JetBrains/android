@@ -25,6 +25,7 @@ import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -46,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.android.SdkConstants.*;
 
@@ -107,9 +109,10 @@ import static com.android.SdkConstants.*;
  *     we should look for a ResourceType instead of a set of integer/string constants
  *   </li>
  *   <li>
- *     {@link #isGoodExpression}: Added check for allowedValues.types and if non-null,
+ *     {@link #isAllowed}: Added check for allowedValues.types and if non-null,
  *     check that if the call can be resolved to R.type.name, that the type is one
- *     of the expected types.
+ *     of the expected types (this is done by a method similar to getGoodExpression
+ *     but which analyzes resource types instead)
  *   </li>
  *   <li>
  *     Removed {@code checkAnnotationsJarAttached()}, since we will always provide SDK annotations
@@ -359,7 +362,10 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         String qualifiedName = annotation.getQualifiedName();
         if (qualifiedName == null) {
           continue;
+        } else if (ApplicationManager.getApplication().isUnitTestMode() && qualifiedName.indexOf('.') == -1) {
+          qualifiedName = SUPPORT_ANNOTATIONS_PREFIX + qualifiedName;
         }
+
         if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
           values = getAllowedValuesFromTypedef(type, annotation, manager);
           if (values != null) return values;
@@ -438,6 +444,11 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                    @NotNull final AllowedValues allowedValues,
                                    @NotNull final PsiManager manager,
                                    @Nullable final Set<PsiExpression> visited) {
+    // Resource type check
+    if (allowedValues.types != null) {
+      return isResourceTypeAllowed(scope, argument, allowedValues, manager, visited);
+    }
+
     if (isGoodExpression(argument, allowedValues, scope, manager, visited)) return true;
 
     return processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
@@ -466,61 +477,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     // Resource type check
-    if (allowedValues.types != null) {
-      for (ResourceType type : allowedValues.types) {
-        if (expression instanceof PsiReferenceExpression) {
-          PsiReferenceExpression refExpression = (PsiReferenceExpression)expression;
-          PsiExpression qualifierExpression = refExpression.getQualifierExpression();
-          if (qualifierExpression instanceof PsiReferenceExpression) {
-            PsiReferenceExpression typeDef = (PsiReferenceExpression)qualifierExpression;
-            PsiElement nameElement = typeDef.getReferenceNameElement();
-            if (nameElement instanceof PsiIdentifier) {
-              PsiIdentifier identifier = (PsiIdentifier)nameElement;
-              if (type.getName().equals(identifier.getText())) {
-                return true;
-              }
-            }
-          }
-        }
-        else if (expression instanceof PsiLiteral) {
-          // Allow a literal '0' or '-1' as the resource type; this is sometimes used to communicate that
-          // no id was specified (the support library does this in a few places for example)
-          Object value = ((PsiLiteral)expression).getValue();
-          if (value instanceof Integer && ((Integer)value).intValue() == 0) {
-            return true;
-          }
+    assert allowedValues.types == null; // Handled separately
 
-          if (expression instanceof PsiLiteralExpression) {
-            PsiElement parent = expression.getParent();
-            if (parent instanceof PsiField) {
-              parent = parent.getParent();
-              if (parent instanceof PsiClass) {
-                PsiElement outerMost = parent.getParent();
-                if (outerMost instanceof PsiClass && R_CLASS.equals(((PsiClass)outerMost).getName())) {
-                  PsiClass typeClass = (PsiClass)parent;
-                  if (type.getName().equals(typeClass.getName())) {
-                    return true;
-                  }
-                }
-              }
-            }
-          }
-        } else if (expression instanceof PsiPrefixExpression) {
-          // Allow a literal '-1' as the resource type; this is sometimes used to communicate that
-          // no id was specified
-          PsiPrefixExpression ppe = (PsiPrefixExpression)expression;
-          if (ppe.getOperationTokenType() == JavaTokenType.MINUS &&
-              ppe.getOperand() instanceof PsiLiteral) {
-            Object value = ((PsiLiteral)ppe.getOperand()).getValue();
-            if (value instanceof Integer && ((Integer)value).intValue() == 1) {
-              return true;
-            }
-          }
-        }
-      }
-
-      return false;
-    } else if (isOneOf(expression, allowedValues, manager)) return true;
+    if (isOneOf(expression, allowedValues, manager)) return true;
 
     if (allowedValues.canBeOred) {
       PsiExpression zero = getLiteralExpression(expression, manager, "0");
@@ -560,7 +519,168 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     return PsiType.NULL.equals(expression.getType());
   }
 
-  // Would be nice to reuse the MagicConstantInspection's cache for this, but it's not accessibile
+  /** Return value from {@link #isValidResourceTypeExpression} : the expression is valid */
+  private static final int VALID = 1001;
+  /** Return value from {@link #isValidResourceTypeExpression} : the expression is not valid */
+  private static final int INVALID = VALID + 1;
+  /** Return value from {@link #isValidResourceTypeExpression} : uncertain whether the resource type is valid */
+  private static final int UNCERTAIN = INVALID + 1;
+
+  private static boolean isResourceTypeAllowed(@NotNull final PsiElement scope,
+                                               @NotNull final PsiExpression argument,
+                                               @NotNull final AllowedValues allowedValues,
+                                               @NotNull final PsiManager manager,
+                                               @Nullable final Set<PsiExpression> visited) {
+    int result = isValidResourceTypeExpression(argument, allowedValues, scope, manager, visited);
+    if (result == VALID) {
+      return true;
+    } else if (result == INVALID) {
+      return false;
+    }
+    assert result == UNCERTAIN;
+
+    final AtomicInteger b = new AtomicInteger();
+    processValuesFlownTo(argument, scope, manager, new Processor<PsiExpression>() {
+      @Override
+      public boolean process(PsiExpression expression) {
+        int goodExpression = isValidResourceTypeExpression(expression, allowedValues, scope, manager, visited);
+        b.set(goodExpression);
+        return goodExpression == UNCERTAIN;
+      }
+    });
+    result = b.get();
+    // Treat uncertain as allowed: this means that we were passed some integer whose origins
+    // we don't recognize; don't flag those.
+    return result != INVALID;
+  }
+
+  private static int isValidResourceTypeExpression(@NotNull PsiExpression e,
+                                                   @NotNull AllowedValues allowedValues,
+                                                   @NotNull PsiElement scope,
+                                                   @NotNull PsiManager manager,
+                                                   @Nullable Set<PsiExpression> visited) {
+    PsiExpression expression = PsiUtil.deparenthesizeExpression(e);
+    if (expression == null) return VALID;
+    if (visited == null) visited = new THashSet<PsiExpression>();
+    if (!visited.add(expression)) return VALID;
+    if (expression instanceof PsiConditionalExpression) {
+      PsiExpression thenExpression = ((PsiConditionalExpression)expression).getThenExpression();
+      boolean thenAllowed = thenExpression == null || isAllowed(scope, thenExpression, allowedValues, manager, visited);
+      if (!thenAllowed) return INVALID;
+      PsiExpression elseExpression = ((PsiConditionalExpression)expression).getElseExpression();
+      return elseExpression == null || isAllowed(scope, elseExpression, allowedValues, manager, visited) ? VALID : UNCERTAIN;
+    }
+
+    // Resource type check
+    assert allowedValues.types != null;
+    if (expression instanceof PsiReferenceExpression) {
+      PsiReferenceExpression refExpression = (PsiReferenceExpression)expression;
+      PsiExpression qualifierExpression = refExpression.getQualifierExpression();
+      if (qualifierExpression instanceof PsiReferenceExpression) {
+        PsiReferenceExpression typeDef = (PsiReferenceExpression)qualifierExpression;
+        PsiExpression r = typeDef.getQualifierExpression();
+        if (r instanceof PsiReferenceExpression) {
+          if (R_CLASS.equals(((PsiReferenceExpression)r).getReferenceName())) {
+            String typeName = typeDef.getReferenceName();
+            for (ResourceType type : allowedValues.types) {
+              if (type.getName().equals(typeName)) {
+                return VALID;
+              }
+            }
+            return INVALID;
+          }
+        }
+      }
+    }
+    else if (expression instanceof PsiLiteral) {
+      if (expression instanceof PsiLiteralExpression) {
+        PsiElement parent = expression.getParent();
+        if (parent instanceof PsiField) {
+          parent = parent.getParent();
+          if (parent instanceof PsiClass) {
+            PsiElement outerMost = parent.getParent();
+            if (outerMost instanceof PsiClass && R_CLASS.equals(((PsiClass)outerMost).getName())) {
+              PsiClass typeClass = (PsiClass)parent;
+              String typeClassName = typeClass.getName();
+              for (ResourceType type : allowedValues.types) {
+                if (type.getName().equals(typeClassName)) {
+                  return VALID;
+                }
+              }
+              return INVALID;
+            }
+          }
+        }
+      }
+
+      // Allow a literal '0' or '-1' as the resource type; this is sometimes used to communicate that
+      // no id was specified (the support library does this in a few places for example)
+      Object value = ((PsiLiteral)expression).getValue();
+      if (value instanceof Integer) {
+        return ((Integer)value).intValue() == 0 ? VALID : INVALID;
+      }
+    } else if (expression instanceof PsiPrefixExpression) {
+      // Allow a literal '-1' as the resource type; this is sometimes used to communicate that
+      // no id was specified
+      PsiPrefixExpression ppe = (PsiPrefixExpression)expression;
+      if (ppe.getOperationTokenType() == JavaTokenType.MINUS &&
+          ppe.getOperand() instanceof PsiLiteral) {
+        Object value = ((PsiLiteral)ppe.getOperand()).getValue();
+        if (value instanceof Integer) {
+          return ((Integer)value).intValue() == 1 ? VALID : INVALID;
+        }
+      }
+    }
+
+    PsiElement resolved = null;
+    if (expression instanceof PsiReference) {
+      resolved = ((PsiReference)expression).resolve();
+      if (resolved instanceof PsiField) {
+        PsiField field = (PsiField)resolved;
+        PsiClass containingClass = field.getContainingClass();
+        if (containingClass != null) {
+          PsiClass r = containingClass.getContainingClass();
+          if (r != null && R_CLASS.equals(r.getName())) {
+            ResourceType type = ResourceType.getEnum(containingClass.getName());
+            if (type != null) {
+              for (ResourceType t : allowedValues.types) {
+                if (t == type) {
+                  return VALID;
+                }
+              }
+              return INVALID;
+            }
+          }
+        }
+      }
+    }
+    else if (expression instanceof PsiCallExpression) {
+      resolved = ((PsiCallExpression)expression).resolveMethod();
+    }
+
+    AllowedValues allowedForRef;
+
+    if (resolved instanceof PsiModifierListOwner) {
+      PsiType type = getType((PsiModifierListOwner)resolved);
+      allowedForRef = getAllowedValues((PsiModifierListOwner)resolved, type, null);
+      if (allowedForRef != null && allowedForRef.types != null) {
+        // Happy if *any* of the resource types on the annotation matches any of the
+        // annotations allowed for this API
+        for (ResourceType t1 : allowedForRef.types) {
+          for (ResourceType t2 : allowedValues.types) {
+            if (t1 == t2) {
+              return VALID;
+            }
+          }
+        }
+        return INVALID;
+      }
+    }
+
+    return UNCERTAIN;
+  }
+
+  // Would be nice to reuse the MagicConstantInspection's cache for this, but it's not accessible
   private static final Key<Map<String, PsiExpression>> LITERAL_EXPRESSION_CACHE = Key.create("TYPE_DEF_LITERAL_EXPRESSION");
   private static PsiExpression getLiteralExpression(@NotNull PsiExpression context, @NotNull PsiManager manager, @NotNull String text) {
     Map<String, PsiExpression> cache = LITERAL_EXPRESSION_CACHE.get(manager);
