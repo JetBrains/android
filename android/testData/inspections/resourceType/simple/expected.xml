@@ -47,4 +47,16 @@
     <description>Expected resource of type bool</description>
   </problem>
 
+  <problem>
+    <file>X.java</file>
+    <line>41</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>29</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
 </problems>
