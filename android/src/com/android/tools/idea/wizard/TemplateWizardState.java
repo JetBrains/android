@@ -118,6 +118,12 @@ public class TemplateWizardState {
       put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     }
 
+    // Set AIDL directory if we don't have one
+    if (!myParameters.containsKey(ATTR_AIDL_OUT) || myParameters.get(ATTR_AIDL_OUT) == null) {
+      File aidlRoot = new File(mainFlavorSourceRoot, TemplateWizard.AIDL_SOURCE_PATH);
+      put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlRoot.getPath()));
+    }
+
     // Set Src directory if we don't have one
     if (!myParameters.containsKey(ATTR_SRC_OUT)  || myParameters.get(ATTR_SRC_OUT) == null) {
       File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
