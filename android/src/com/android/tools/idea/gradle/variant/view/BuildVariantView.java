@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.variant.SelectionConflict;
+import com.android.tools.idea.gradle.variant.Conflict;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -211,7 +211,7 @@ public class BuildVariantView {
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
-  public void updateNotification(ImmutableList<SelectionConflict> conflicts) {
+  public void updateNotification(ImmutableList<Conflict> conflicts) {
     myErrorPanel.removeAll();
     myConflictSources.clear();
 
@@ -227,7 +227,7 @@ public class BuildVariantView {
       myErrorPanel.add(notification);
     }
 
-    for (SelectionConflict conflict : conflicts) {
+    for (Conflict conflict : conflicts) {
       myConflictSources.add(conflict.getSource().getName());
     }
   }

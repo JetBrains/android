@@ -35,21 +35,17 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Tests for {@link VariantSelectionVerifier}
+ * Tests for {@link ConflictFinder}
  */
-public class VariantSelectionVerifierTest extends IdeaTestCase {
+public class ConflictFinderTest extends IdeaTestCase {
   private Module myLibModule;
   private IdeaAndroidProject myApp;
   private IdeaAndroidProject myLib;
   private String myLibGradlePath;
 
-  private VariantSelectionVerifier myVerifier;
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-
-    myVerifier = new VariantSelectionVerifier(myProject);
 
     myLibModule = createModule("lib");
     myLibGradlePath = ":lib";
@@ -137,37 +133,37 @@ public class VariantSelectionVerifierTest extends IdeaTestCase {
     }
   }
 
-  public void testFindFirstConflictWithoutConflict() {
+  public void testFindSelectionConflictsWithoutConflict() {
     setUpDependencyOnLibrary("debug");
-    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
-  public void testFindFirstConflictWithoutEmptyVariantDependency() {
+  public void testFindSelectionConflictsWithoutEmptyVariantDependency() {
     setUpDependencyOnLibrary("");
-    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
-  public void testFindFirstConflictWithoutNullVariantDependency() {
+  public void testFindSelectionConflictsWithoutNullVariantDependency() {
     setUpDependencyOnLibrary(null);
-    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
-  public void testFindFirstConflictWithConflict() {
+  public void testFindSelectionConflictsWithConflict() {
     setUpDependencyOnLibrary("release");
-    ImmutableList<SelectionConflict> conflicts = myVerifier.findSelectionConflicts();
+    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
     assertEquals(1, conflicts.size());
 
-    SelectionConflict conflict = conflicts.get(0);
+    Conflict conflict = conflicts.get(0);
     assertSame(myLibModule, conflict.getSource());
     assertSame("debug", conflict.getSelectedVariant());
 
-    List<SelectionConflict.AffectedModule> affectedModules = conflict.getAffectedModules();
+    List<Conflict.AffectedModule> affectedModules = conflict.getAffectedModules();
     assertEquals(1, affectedModules.size());
 
-    SelectionConflict.AffectedModule affectedModule = affectedModules.get(0);
+    Conflict.AffectedModule affectedModule = affectedModules.get(0);
     assertSame(myModule, affectedModule.getTarget());
     assertSame("release", affectedModule.getExpectedVariant());
   }
