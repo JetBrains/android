@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.variant.SelectionConflict;
+import com.android.tools.idea.gradle.variant.Conflict;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
@@ -71,7 +71,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     new SimpleTextAttributes(SimpleTextAttributes.STYLE_STRIKEOUT, SimpleTextAttributes.GRAY_ATTRIBUTES.getFgColor());
 
   @NotNull private final Project myProject;
-  @NotNull private final List<SelectionConflict> myConflicts;
+  @NotNull private final List<Conflict> myConflicts;
 
   @NotNull private final JPanel myPanel;
 
@@ -80,12 +80,12 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
   @NotNull private CheckboxTreeView myConflictTree;
   @NotNull private DetailsComponent myConflictDetails;
 
-  public ProjectProfileSelectionDialog(@NotNull Project project, @NotNull List<SelectionConflict> conflicts) {
+  public ProjectProfileSelectionDialog(@NotNull Project project, @NotNull List<Conflict> conflicts) {
     super(project);
     myProject = project;
     myConflicts = conflicts;
 
-    for (SelectionConflict conflict : conflicts) {
+    for (Conflict conflict : conflicts) {
       conflict.refreshStatus();
     }
 
@@ -129,7 +129,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
             if (!moduleElement.myConflicts.isEmpty()) {
               boolean allResolved = true;
-              for (SelectionConflict conflict : moduleElement.myConflicts) {
+              for (Conflict conflict : moduleElement.myConflicts) {
                 if (!conflict.isResolved()) {
                   allResolved = false;
                   break;
@@ -198,7 +198,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
             continue;
           }
 
-          SelectionConflict conflict = getConflict(dependency);
+          Conflict conflict = getConflict(dependency);
           modulesByGradlePath.put(gradlePath, dependency);
 
           DependencyTreeElement dependencyElement =
@@ -287,10 +287,10 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
             }
             CheckedTreeNode moduleNode = (CheckedTreeNode)child;
             data = moduleNode.getUserObject();
-            if (!(data instanceof SelectionConflict.AffectedModule)) {
+            if (!(data instanceof Conflict.AffectedModule)) {
               continue;
             }
-            SelectionConflict.AffectedModule affected = (SelectionConflict.AffectedModule)data;
+            Conflict.AffectedModule affected = (Conflict.AffectedModule)data;
             boolean checked = node.isChecked();
             if (module.equals(affected.getTarget()) && moduleNode.isChecked() != checked) {
               affected.setSelected(checked);
@@ -317,8 +317,8 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
   }
 
   @Nullable
-  private SelectionConflict getConflict(@NotNull Module source) {
-    for (SelectionConflict conflict : myConflicts) {
+  private Conflict getConflict(@NotNull Module source) {
+    for (Conflict conflict : myConflicts) {
       if (source.equals(conflict.getSource())) {
         return conflict;
       }
@@ -424,7 +424,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     ConflictsTableModel tableModel = (ConflictsTableModel)myConflictsTable.getModel();
     ConflictTableRow row = tableModel.myRows.get(selectedIndex);
 
-    SelectionConflict conflict = row.myConflict;
+    Conflict conflict = row.myConflict;
     myConflictDetails.setText("Conflict Detail: " + conflict.getSource().getName());
 
     List<String> variants = Lists.newArrayList(conflict.getVariants());
@@ -434,7 +434,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       CheckedTreeNode variantNode = new CheckedTreeNode(variant);
       myConflictTree.myRoot.add(variantNode);
 
-      for (SelectionConflict.AffectedModule module : conflict.getModulesExpectingVariant(variant)) {
+      for (Conflict.AffectedModule module : conflict.getModulesExpectingVariant(variant)) {
         CheckedTreeNode moduleNode = new CheckedTreeNode(module);
         variantNode.add(moduleNode);
       }
@@ -471,7 +471,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
         show = true;
       }
       else {
-        for (SelectionConflict conflict : moduleElement.myConflicts) {
+        for (Conflict conflict : moduleElement.myConflicts) {
           if (selectedConflictSources.contains(conflict.getSource())) {
             show = true;
             break;
@@ -493,8 +493,8 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
         if (value instanceof DefaultMutableTreeNode) {
           Object data = ((DefaultMutableTreeNode)value).getUserObject();
           ColoredTreeCellRenderer textRenderer = getTextRenderer();
-          if (data instanceof SelectionConflict.AffectedModule) {
-            textRenderer.append(((SelectionConflict.AffectedModule)data).getTarget().getName());
+          if (data instanceof Conflict.AffectedModule) {
+            textRenderer.append(((Conflict.AffectedModule)data).getTarget().getName());
             textRenderer.setIcon(AllIcons.Actions.Module);
           }
           else if (data instanceof String) {
@@ -510,10 +510,10 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       @Override
       protected void onNodeStateChanged(@NotNull CheckedTreeNode node) {
         Object data = node.getUserObject();
-        if (!(data instanceof SelectionConflict.AffectedModule)) {
+        if (!(data instanceof Conflict.AffectedModule)) {
           return;
         }
-        SelectionConflict.AffectedModule affected = (SelectionConflict.AffectedModule)data;
+        Conflict.AffectedModule affected = (Conflict.AffectedModule)data;
         Module module = affected.getTarget();
 
         Enumeration moduleNodes = myProjectStructureTree.myRoot.children();
@@ -564,10 +564,10 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     final List<ConflictTableRow> myRows = Lists.newArrayList();
     final Function<List<ConflictTableRow>, Void> myFilterFunction;
 
-    ConflictsTableModel(@NotNull List<SelectionConflict> conflicts, Function<List<ConflictTableRow>, Void> filterFunction) {
+    ConflictsTableModel(@NotNull List<Conflict> conflicts, Function<List<ConflictTableRow>, Void> filterFunction) {
       super(COLUMN_NAMES, conflicts.size());
       myFilterFunction = filterFunction;
-      for (SelectionConflict conflict : conflicts) {
+      for (Conflict conflict : conflicts) {
         myRows.add(new ConflictTableRow(conflict));
       }
       Collections.sort(myRows);
@@ -604,10 +604,10 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
   }
 
   private static class ConflictTableRow implements Comparable<ConflictTableRow> {
-    final SelectionConflict myConflict;
+    final Conflict myConflict;
     boolean myFilter;
 
-    ConflictTableRow(SelectionConflict conflict) {
+    ConflictTableRow(Conflict conflict) {
       myConflict = conflict;
     }
 
@@ -717,13 +717,13 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
   private static class ModuleTreeElement {
     @NotNull final Module myModule;
-    @NotNull final List<SelectionConflict> myConflicts = Lists.newArrayList();
+    @NotNull final List<Conflict> myConflicts = Lists.newArrayList();
 
     ModuleTreeElement(@NotNull Module module) {
       myModule = module;
     }
 
-    void addConflict(@NotNull SelectionConflict conflict) {
+    void addConflict(@NotNull Conflict conflict) {
       myConflicts.add(conflict);
     }
   }
@@ -733,12 +733,12 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
     @NotNull final String myGradlePath;
 
     @Nullable final String myVariant;
-    @Nullable final SelectionConflict myConflict;
+    @Nullable final Conflict myConflict;
 
     DependencyTreeElement(@NotNull Module module,
                           @NotNull String gradlePath,
                           @Nullable String variant,
-                          @Nullable SelectionConflict conflict) {
+                          @Nullable Conflict conflict) {
       myGradlePath = gradlePath;
       myVariant = variant;
       myModule = module;
