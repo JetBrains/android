@@ -195,4 +195,8 @@ public class IdeaAndroidProject implements Serializable {
   public String computePackageName() {
     return getSelectedVariant().getMainArtifact().getPackageName();
   }
+
+  public boolean isLibrary() {
+    return getDelegate().isLibrary();
+  }
 }

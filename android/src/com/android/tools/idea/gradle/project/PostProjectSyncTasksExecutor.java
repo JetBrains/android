@@ -27,13 +27,18 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.variant.VariantSelectionVerifier;
+import com.android.tools.idea.gradle.variant.Conflict;
+import com.android.tools.idea.gradle.variant.ConflictDisplay;
+import com.android.tools.idea.gradle.variant.ConflictFinder;
+import com.android.tools.idea.gradle.variant.ConflictSet;
+import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.idea.templates.TemplateManager;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
@@ -56,6 +61,7 @@ import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -332,15 +338,15 @@ public class PostProjectSyncTasksExecutor {
   }
 
   private void findAndShowVariantSelectionConflicts() {
-    // TODO: enable this code to allow creation of project profiles.
-    //ImmutableList<SelectionConflict> conflicts = VariantSelectionVerifier.getInstance(myProject).findSelectionConflicts();
-    //if (!conflicts.isEmpty()) {
-    //  ProjectProfileSelectionDialog dialog = new ProjectProfileSelectionDialog(myProject, conflicts);
-    //  dialog.show();
-    //}
+    ConflictSet conflicts = ConflictFinder.findConflicts(myProject);
 
-    VariantSelectionVerifier verifier = new VariantSelectionVerifier(myProject);
-    verifier.findAndShowSelectionConflicts();
+    ImmutableList<Conflict> structureConflicts = conflicts.getStructureConflicts();
+    if (!structureConflicts.isEmpty() && SystemProperties.getBooleanProperty("enable.project.profiles", false)) {
+      ProjectProfileSelectionDialog dialog = new ProjectProfileSelectionDialog(myProject, structureConflicts);
+      dialog.show();
+    }
+
+    ConflictDisplay.displayConflicts(myProject, conflicts);
 
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     if (!messages.isEmpty()) {
