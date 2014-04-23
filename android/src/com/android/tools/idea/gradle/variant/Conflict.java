@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
-public class SelectionConflict {
+public class Conflict {
   @NotNull private final Module mySource;
   @NotNull private final String mySelectedVariant;
 
@@ -35,7 +35,7 @@ public class SelectionConflict {
 
   private boolean myResolved;
 
-  public SelectionConflict(@NotNull Module source, @NotNull String selectedVariant) {
+  public Conflict(@NotNull Module source, @NotNull String selectedVariant) {
     mySource = source;
     mySelectedVariant = selectedVariant;
   }
@@ -102,19 +102,19 @@ public class SelectionConflict {
   }
 
   public static class AffectedModule {
-    @NotNull private final SelectionConflict myConflict;
+    @NotNull private final Conflict myConflict;
     @NotNull private final Module myTarget;
     @NotNull private final String myExpectedVariant;
     private boolean mySelected = true;
 
-    AffectedModule(@NotNull SelectionConflict conflict, @NotNull Module target, @NotNull String expectedVariant) {
+    AffectedModule(@NotNull Conflict conflict, @NotNull Module target, @NotNull String expectedVariant) {
       myConflict = conflict;
       myTarget = target;
       myExpectedVariant = expectedVariant;
     }
 
     @NotNull
-    public SelectionConflict getConflict() {
+    public Conflict getConflict() {
       return myConflict;
     }
 
