@@ -84,7 +84,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
                                                   PsiElement element,
                                                   ConfigurationContext context,
                                                   Ref<PsiElement> sourceElement) {
-    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+    PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class, false);
 
     while (elementMethod != null) {
       if (isTestMethod(elementMethod)) {
@@ -179,7 +179,7 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
     final PsiClass elementClass = PsiTreeUtil.getParentOfType(element, PsiClass.class, false);
     final String className = elementClass == null ? null : elementClass.getQualifiedName();
 
-    final PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
+    final PsiMethod elementMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class, false);
     final String methodName = elementMethod == null ? null : elementMethod.getName();
     final Module moduleInConfig = configuration.getConfigurationModule().getModule();
 
