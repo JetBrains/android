@@ -197,7 +197,8 @@ public class AndroidTestConfigurationProducer extends JavaRunConfigurationProduc
         return elementMethod == null && className != null && className.equals(configuration.CLASS_NAME);
 
       case AndroidTestRunConfiguration.TEST_METHOD:
-        return methodName != null && methodName.equals(configuration.METHOD_NAME);
+        return methodName != null && methodName.equals(configuration.METHOD_NAME) &&
+               className != null && className.equals(configuration.CLASS_NAME);
     }
     return false;
   }
