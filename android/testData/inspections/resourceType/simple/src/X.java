@@ -35,7 +35,7 @@ public class X {
         boolean error4 = resources.getBoolean(flow2);
     }
 
-    @DrawableRes
+    @android.support.annotation.DrawableRes
     public int testResourceTypeReturnValues(Context context, boolean useString) {
         if (useString) {
             return R.string.app_name; // error
