@@ -58,12 +58,12 @@ public abstract class CheckAndroidSdkUpdates {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.sdk.CheckAndroidSdkUpdates");
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Android SDK Notification Group");
 
-  private static long mCheckTimestampMs;
-  private static BackgroundableProcessIndicator sIndicator;
+  private static long ourCheckTimestampMs;
+  private static BackgroundableProcessIndicator ourIndicator;
 
   public static void checkNow(@NotNull Project project) {
     long now = System.currentTimeMillis();
-    if (now - mCheckTimestampMs <= RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS) {
+    if (now - ourCheckTimestampMs <= RemoteSdk.DEFAULT_EXPIRATION_PERIOD_MS) {
       LOG.info("Skip: too early");
       return;
     }
@@ -84,11 +84,11 @@ public abstract class CheckAndroidSdkUpdates {
     }
 
 
-    if (sIndicator == null) {
-      mCheckTimestampMs = now;
+    if (ourIndicator == null) {
+      ourCheckTimestampMs = now;
       SdkUpdateCheckTask task = new SdkUpdateCheckTask(project, sdkData);
-      sIndicator = new BackgroundableProcessIndicator(task);
-      ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, sIndicator);
+      ourIndicator = new BackgroundableProcessIndicator(task);
+      ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, ourIndicator);
     }
   }
 
@@ -196,7 +196,7 @@ public abstract class CheckAndroidSdkUpdates {
         LOG.info("Android SDK: " + n + " updates found");
 
       } finally {
-        sIndicator = null;
+        ourIndicator = null;
       }
     }
 

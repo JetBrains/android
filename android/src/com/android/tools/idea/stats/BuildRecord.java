@@ -78,7 +78,7 @@ public class BuildRecord {
 
   /**
    * Returns the equivalent of {@link System#currentTimeMillis()} in the UTC timezone.
-   * @return Now's timestamp, in millisconds since the epoch, in the UTC timezone.
+   * @return Now's timestamp, in milliseconds since the epoch, in the UTC timezone.
    */
   public static long utcNow() {
     Calendar c = Calendar.getInstance();
