@@ -211,7 +211,7 @@ public class BuildVariantView {
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
-  public void updateNotification(ImmutableList<Conflict> conflicts) {
+  public void updateNotification(List<Conflict> conflicts) {
     myErrorPanel.removeAll();
     myConflictSources.clear();
 
@@ -234,7 +234,8 @@ public class BuildVariantView {
 
   public void selectAndScrollTo(@NotNull Module module) {
     String name = module.getName();
-    for (int row = 0; row < myVariantsTable.getRowCount() - 1; row++) {
+    int rowCount = myVariantsTable.getRowCount();
+    for (int row = 0; row < rowCount; row++) {
       if (name.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
         myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
         myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(MODULE_COLUMN_INDEX, MODULE_COLUMN_INDEX);
