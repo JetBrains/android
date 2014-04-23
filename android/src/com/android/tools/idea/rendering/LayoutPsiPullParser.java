@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -64,7 +65,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   protected String myAndroidPrefix;
 
-  private boolean myProvideViewCookies = true;
+  protected boolean myProvideViewCookies = true;
 
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
@@ -75,6 +76,30 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull RenderLogger logger) {
+    if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
+      return new LayoutPsiPullParser(file, logger) {
+        @Nullable
+        @Override
+        public Object getViewCookie() {
+          if (myProvideViewCookies) {
+            Element element = getCurrentNode();
+            if (element != null) {
+              // <menu> tags means that we are adding a sub-menu. Since we don't show the submenu, we
+              // return the enclosing tag.
+              if (element.tag.equals(FD_RES_MENU)) {
+                Element previousElement = getPreviousNode();
+                if (previousElement != null) {
+                  return previousElement.cookie;
+                }
+              }
+              return element.cookie;
+            }
+          }
+
+          return null;
+        }
+      };
+    }
     return new LayoutPsiPullParser(file, logger);
   }
 
@@ -177,6 +202,15 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   protected final Element getCurrentNode() {
     if (myNodeStack.size() > 0) {
       return myNodeStack.get(myNodeStack.size() - 1);
+    }
+
+    return null;
+  }
+
+  @Nullable
+  protected final Element getPreviousNode() {
+    if (myNodeStack.size() > 1) {
+      return myNodeStack.get(myNodeStack.size() - 2);
     }
 
     return null;
