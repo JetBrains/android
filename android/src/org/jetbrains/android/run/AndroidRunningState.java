@@ -261,7 +261,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           if (chooser.useSameDevicesAgain()) {
             myConfiguration.USE_LAST_SELECTED_DEVICE = true;
-            myConfiguration.setDevicesUsedInLaunch(getDeviceNames(selectedDevices));
+            myConfiguration.setDevicesUsedInLaunch(serializeDevices(selectedDevices));
           } else {
             myConfiguration.USE_LAST_SELECTED_DEVICE = false;
             myConfiguration.setDevicesUsedInLaunch(Collections.<String>emptySet());
@@ -280,14 +280,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return new DefaultExecutionResult(console, myProcessHandler);
   }
 
-  private static Set<String> getDeviceNames(@NotNull IDevice[] selectedDevices) {
+  @NotNull
+  private static Set<String> serializeDevices(@NotNull IDevice[] selectedDevices) {
     Set<String> s = new HashSet<String>(selectedDevices.length);
 
     for (IDevice d : selectedDevices) {
-      String name = d.getName();
-      if (name != null) {
-        s.add(name);
-      }
+      s.add(d.getSerialNumber());
     }
 
     return s;
@@ -303,7 +301,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     List<IDevice> onlineDevices = new ArrayList<IDevice>(devices.length);
 
     for (IDevice d : devices) {
-      if (devicesUsedInLastLaunch.contains(d.getName())) {
+      if (devicesUsedInLastLaunch.contains(d.getSerialNumber())) {
         onlineDevices.add(d);
       }
     }
@@ -784,7 +782,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   Boolean isCompatibleDevice(@NotNull IDevice device) {
     if (myTargetChooser instanceof EmulatorTargetChooser) {
       if (device.isEmulator()) {
-        String avdName = device.isEmulator() ? device.getAvdName() : null;
+        String avdName = device.getAvdName();
         if (myAvdName != null) {
           return myAvdName.equals(avdName);
         }
