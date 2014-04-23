@@ -41,7 +41,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
@@ -154,7 +153,9 @@ public class Template {
   public static final String ATTR_CONSTRAINTS = "constraints";
   public static final String ATTR_VISIBILITY = "visibility";
   public static final String ATTR_SOURCE_URL = "href";
-
+  public static final String ATTR_TEMPLATE_MERGE_STRATEGY = "templateMergeStrategy";
+  public static final String VALUE_MERGE_STRATEGY_REPLACE = "replace";
+  public static final String VALUE_MERGE_STRATEGY_PRESERVE = "preserve";
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
@@ -677,12 +678,19 @@ public class Template {
 
       for (Node node : nodes) {
         if (node.getNodeType() == Node.ELEMENT_NODE) {
-          Element element = (Element) node;
+          // Chances are, we will put the node from the clean template into the original document, so import it.
+          Element element = (Element) currentDocument.importNode(node, true);
+          String mergeStrategy = element.getAttribute(ATTR_TEMPLATE_MERGE_STRATEGY);
+          // Remove the "templateMergeStrategy" attribute from the final output.
+          element.removeAttribute(ATTR_TEMPLATE_MERGE_STRATEGY);
+
           String name = getResourceId(element);
           Node replace = name != null ? old.get(name) : null;
           if (replace != null) {
-            // There is an existing item with the same id: just replace it
-            // ACTUALLY -- let's NOT change it.
+            // There is an existing item with the same id. Either replace it
+            // or preserve it depending on the "templateMergeStrategy" attribute.
+            // If that attribute does not exist, default to preserving it.
+
             // Let's say you've used the activity wizard once, and it
             // emits some configuration parameter as a resource that
             // it depends on, say "padding". Then the user goes and
@@ -690,16 +698,17 @@ public class Template {
             // Now running the wizard a *second* time for some new activity,
             // we should NOT go and set the value back to the template's
             // default!
-            //root.replaceChild(node, replace);
-
-            // ... ON THE OTHER HAND... What if it's a parameter class
-            // (where the template rewrites a common attribute). Here it's
-            // really confusing if the new parameter is not set. This is
-            // really an error in the template, since we shouldn't have conflicts
-            // like that, but we need to do something to help track this down.
-            LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
+            if (VALUE_MERGE_STRATEGY_REPLACE.equals(mergeStrategy)) {
+              root.replaceChild(element, replace);
+              modified = true;
+            } else if (VALUE_MERGE_STRATEGY_PRESERVE.equals(mergeStrategy)) {
+              // Preserve the existing value.
+            } else {
+              // No explicit directive given, preserve the original value by default.
+              LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
+            }
           } else {
-            root.appendChild(currentDocument.importNode(node, true));
+            root.appendChild(element);
             modified = true;
           }
         }
