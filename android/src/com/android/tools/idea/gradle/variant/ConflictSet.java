@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Set of all variant-selection-related conflicts. We classify these conflicts in 2 groups:
@@ -44,12 +45,12 @@ public class ConflictSet {
   }
 
   @NotNull
-  public ImmutableList<Conflict> getSelectionConflicts() {
+  public List<Conflict> getSelectionConflicts() {
     return mySelectionConflicts;
   }
 
   @NotNull
-  public ImmutableList<Conflict> getStructureConflicts() {
+  public List<Conflict> getStructureConflicts() {
     return myStructureConflicts;
   }
 }
