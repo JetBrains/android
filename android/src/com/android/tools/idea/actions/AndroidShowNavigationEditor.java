@@ -41,6 +41,9 @@ public class AndroidShowNavigationEditor extends AnAction {
       return null;
     }
     VirtualFile baseDir = project.getBaseDir();
+    if (baseDir == null) { // this happens when we have the 'default' project, we can't launch nav editor here
+      return null;
+    }
     VirtualFile navDir = baseDir.findFileByRelativePath(".navigation");
     if (navDir == null) { // todo remove hard coding of flavor path
       navDir = baseDir.findFileByRelativePath("app/src/main/.navigation");
