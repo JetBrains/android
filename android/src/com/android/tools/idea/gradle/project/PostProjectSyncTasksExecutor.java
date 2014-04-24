@@ -350,7 +350,30 @@ public class PostProjectSyncTasksExecutor {
     }
 
     List<Conflict> selectionConflicts = conflicts.getSelectionConflicts();
-    ConflictResolution.displaySelectionConflicts(myProject, selectionConflicts);
+    List<Conflict> solvedConflicts = Lists.newArrayList();
+    if (!selectionConflicts.isEmpty()) {
+      for (Conflict conflict : selectionConflicts) {
+        boolean solved = ConflictResolution.solveSelectionConflict(conflict);
+        if (solved) {
+          solvedConflicts.add(conflict);
+        }
+      }
+      if (solvedConflicts.isEmpty()) {
+        ConflictResolution.displaySelectionConflicts(myProject, selectionConflicts);
+      }
+      else {
+        List<Conflict> remainingConflicts = Lists.newArrayList(selectionConflicts);
+        remainingConflicts.removeAll(solvedConflicts);
+
+        if (!remainingConflicts.isEmpty()) {
+          ConflictResolution.displaySelectionConflicts(myProject, remainingConflicts);
+        }
+
+        BuildVariantView view = BuildVariantView.getInstance(myProject);
+        view.updateNotification(remainingConflicts);
+        view.updateContents();
+      }
+    }
 
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     if (!messages.isEmpty()) {
