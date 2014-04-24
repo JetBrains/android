@@ -345,6 +345,15 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                  @NotNull final Project project,
                                  @NotNull String errorMsg,
                                  @NotNull NotificationHyperlink... hyperlinks) {
+    String title = String.format("Failed to refresh Gradle project '%1$s'", project.getName());
+    updateNotification(notification, project, title, errorMsg, hyperlinks);
+  }
+
+  public static void updateNotification(@NotNull NotificationData notification,
+                                        @NotNull final Project project,
+                                        @NotNull String title,
+                                        @NotNull String errorMsg,
+                                        @NotNull NotificationHyperlink... hyperlinks) {
     String text = errorMsg;
     int hyperlinkCount = hyperlinks.length;
     if (hyperlinkCount > 0) {
@@ -357,7 +366,6 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       }
       text += ('\n' + b.toString());
     }
-    String title = String.format("Failed to refresh Gradle project '%1$s'", project.getName());
 
     notification.setTitle(title);
     notification.setMessage(text);
