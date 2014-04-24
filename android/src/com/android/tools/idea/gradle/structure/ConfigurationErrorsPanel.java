@@ -150,11 +150,15 @@ class ConfigurationErrorsPanel extends JPanel implements Disposable, ListDataLis
   }
 
   void addErrors(@NotNull Collection<ProjectConfigurationError> errors) {
-    myListModel.addErrors(errors);
+    if (myListModel != null) {
+      myListModel.addErrors(errors);
+    }
   }
 
   void removeAllErrors() {
-    myListModel.removeErrors();
+    if (myListModel != null) {
+      myListModel.removeErrors();
+    }
   }
 
   boolean hasCriticalErrors() {
