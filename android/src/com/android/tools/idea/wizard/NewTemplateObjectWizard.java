@@ -217,6 +217,12 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       myWizardState.put(ATTR_MANIFEST_DIR, manifestPath);
       myWizardState.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
     }
+    File aidlDir = findAidlDir(sourceProvider);
+    if (aidlDir != null) {
+      String aidlPath = FileUtil.getRelativePath(ioModuleDir, aidlDir);
+      myWizardState.put(ATTR_AIDL_DIR, aidlPath);
+      myWizardState.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
+    }
 
     // Calculate package name
     String applicationPackageName = gradleProject.computePackageName();
@@ -271,6 +277,19 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     File resDir = null;
     if (!resDirectories.isEmpty()) {
       resDir = resDirectories.iterator().next();
+    }
+    return resDir;
+  }
+
+  /**
+   * Finds and returns the main res directory for the given project or null if one cannot be found.
+   */
+  @Nullable
+  public static File findAidlDir(@NotNull SourceProvider sourceProvider) {
+    Collection<File> aidlDirectories = sourceProvider.getAidlDirectories();
+    File resDir = null;
+    if (!aidlDirectories.isEmpty()) {
+      resDir = aidlDirectories.iterator().next();
     }
     return resDir;
   }
