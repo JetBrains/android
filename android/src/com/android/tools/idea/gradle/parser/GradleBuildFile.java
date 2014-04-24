@@ -110,7 +110,7 @@ public class GradleBuildFile extends GradleGroovyFile {
     if (root == null) {
       root = myGroovyFile;
     }
-    setValueStatic(root, key, value);
+    setValueStatic(root, key, value, true);
   }
 
   /**

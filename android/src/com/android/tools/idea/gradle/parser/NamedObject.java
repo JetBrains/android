@@ -107,11 +107,12 @@ public class NamedObject {
       for (BuildFileKey property : myProperties) {
         Object value = object.getValue(property);
         if (value != null) {
-          GradleGroovyFile.setValueStatic(subclosure, property, value);
+          GradleGroovyFile.setValueStatic(subclosure, property, value, false);
         } else if (GradleGroovyFile.getValueStatic(subclosure, property) != GradleBuildFile.UNRECOGNIZED_VALUE) {
           GradleGroovyFile.removeValueStatic(subclosure, property);
         }
       }
+      GradleGroovyFile.reformatClosure(subclosure);
     }
 
     @Nullable
