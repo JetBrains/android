@@ -46,7 +46,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -105,7 +104,10 @@ class GradleGroovyFile {
    * Creates a new, blank-valued property at the given path.
    */
   @Nullable
-  static GrMethodCall createNewValue(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @Nullable Object value) {
+  static GrMethodCall createNewValue(@NotNull GrStatementOwner root,
+                                     @NotNull BuildFileKey key,
+                                     @Nullable Object value,
+                                     boolean reformatClosure) {
     // First iterate through the components of the path and make sure all of the nested closures are in place.
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(root.getProject());
     String path = key.getPath();
@@ -126,7 +128,9 @@ class GradleGroovyFile {
     String name = parts[parts.length - 1];
     String text = name + " " + key.getType().convertValueToExpression(value);
     parent.addStatementBefore(factory.createStatementFromText(text), null);
-    reformatClosure(parent);
+    if (reformatClosure) {
+      reformatClosure(parent);
+    }
     return getMethodCall(parent, name);
   }
 
@@ -476,13 +480,13 @@ class GradleGroovyFile {
   /**
    * Sets the value for the given key
    */
-  static void setValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
+  static void setValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value, boolean reformatClosure) {
     if (value == GradleBuildFile.UNRECOGNIZED_VALUE) {
       return;
     }
     GrMethodCall method = getMethodCallByPath(root, key.getPath());
     if (method == null) {
-      method = createNewValue(root, key, value);
+      method = createNewValue(root, key, value, reformatClosure);
       if (key.getType() != BuildFileKeyType.CLOSURE) {
         return;
       }
