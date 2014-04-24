@@ -252,6 +252,32 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(flavors, newFlavors);
   }
 
+  public void testRenameNamedObjectWithMultipleSubvalues() throws Exception {
+    String contents = getSimpleTestFile();
+    final GradleBuildFile file = getTestFile(contents);
+    Object value = file.getValue(BuildFileKey.BUILD_TYPES);
+    assert value != null;
+    assert value instanceof List;
+    final List<NamedObject> buildTypes = (List<NamedObject>)value;
+    assertEquals(2, buildTypes.size());
+    NamedObject buildType = buildTypes.get(1);
+    assertEquals("release", buildType.getName());
+    buildTypes.remove(1);
+    NamedObject newBuildType = new NamedObject("release1a");
+    newBuildType.setValue(BuildFileKey.DEBUGGABLE, false);
+    newBuildType.setValue(BuildFileKey.ZIP_ALIGN, true);
+    buildTypes.add(newBuildType);
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
+      }
+    });
+    assertContents(file,
+                   contents.replaceAll("release", "release1a")
+                           .replaceAll("debuggable false\n", "debuggable false\n            zipAlign true\n"));
+  }
+
   public void testCreateStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
