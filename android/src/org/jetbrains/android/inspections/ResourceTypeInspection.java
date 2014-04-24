@@ -362,8 +362,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         String qualifiedName = annotation.getQualifiedName();
         if (qualifiedName == null) {
           continue;
-        } else if (ApplicationManager.getApplication().isUnitTestMode() && qualifiedName.indexOf('.') == -1) {
-          qualifiedName = SUPPORT_ANNOTATIONS_PREFIX + qualifiedName;
         }
 
         if (INT_DEF_ANNOTATION.equals(qualifiedName) || STRING_DEF_ANNOTATION.equals(qualifiedName)) {
