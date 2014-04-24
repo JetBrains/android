@@ -26,7 +26,9 @@ import com.android.tools.idea.ddms.hprof.DumpHprofAction;
 import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
 import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
@@ -35,6 +37,7 @@ import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
@@ -72,6 +75,7 @@ public class DevicePanel implements Disposable,
       }
     }
   });
+  private boolean myIgnoreListeners;
 
   private final DeviceContext myDeviceContext;
   private final Project myProject;
@@ -178,7 +182,7 @@ public class DevicePanel implements Disposable,
     myClientsList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
+        if (e.getValueIsAdjusting() || myIgnoreListeners) {
           return;
         }
         Object sel = myClientsList.getSelectedValue();
@@ -275,13 +279,7 @@ public class DevicePanel implements Disposable,
     UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        UIUtil.invokeLaterIfNeeded(new Runnable() {
-          @Override
-          public void run() {
-            myDevicesComboBox.repaint();
-          }
-        });
-
+        myDevicesComboBox.repaint();
         if (!myDevicesComboBox.getSelectedItem().equals(device)) {
           return;
         }
@@ -296,18 +294,27 @@ public class DevicePanel implements Disposable,
   }
 
   private void updateClientsForDevice(@Nullable IDevice device) {
-    Object selectedObject = myClientsList.getSelectedValue();
-    myClientsListModel.clear();
-
     if (device == null) {
+      // Note: we do want listeners triggered when the device itself disappears.
+      // so we don't set myIgnoreListeners
+      myClientsListModel.clear();
       return;
     }
 
-    for (Client c: device.getClients()) {
-      myClientsListModel.add(c);
-    }
+    Object selectedObject = myClientsList.getSelectedValue();
+    Client[] clients = device.getClients();
 
-    myClientsList.setSelectedValue(selectedObject, false);
+    try {
+      // we want to refresh the list of clients, however we don't want the listeners to
+      // think that this is a user driven change to the list selection.
+      // the only time this update should trigger the selection listener is if the currently selected client isn't there anymore
+      myIgnoreListeners = ArrayUtil.contains(selectedObject, clients);
+      myClientsListModel.clear();
+      myClientsListModel.addAll(clients);
+      myClientsList.setSelectedValue(selectedObject, true);
+    } finally {
+      myIgnoreListeners = false;
+    }
   }
 
   @NotNull
