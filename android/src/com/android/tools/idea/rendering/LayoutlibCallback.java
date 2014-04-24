@@ -21,7 +21,6 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.legacy.LegacyCallback;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -76,11 +75,11 @@ public final class LayoutlibCallback extends LegacyCallback {
   @Nullable private final Object myCredential;
   @Nullable private String myNamespace;
   @Nullable private RenderLogger myLogger;
-  @NotNull private ViewLoader myClassLoader;
+  @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private ResourceResolver myResourceResolver;
-  @NotNull private ActionBarHandler myActionBarHandler;
+  @NotNull private final ActionBarHandler myActionBarHandler;
   private boolean myUsed = false;
   private Set<File> myParserFiles;
   private int myParserCount;
@@ -269,7 +268,7 @@ public final class LayoutlibCallback extends LegacyCallback {
   @Nullable
   @Override
   public ILayoutPullParser getParser(@NotNull ResourceValue layoutResource) {
-    return getParser(layoutResource.getName(), new File(layoutResource.getName()));
+    return getParser(layoutResource.getName(), new File(layoutResource.getValue()));
   }
 
   @Nullable
@@ -307,17 +306,22 @@ public final class LayoutlibCallback extends LegacyCallback {
     // contents rather than the most recently saved file contents.
     if (xml != null && xml.isFile()) {
       File parent = xml.getParentFile();
-      if (parent != null && parent.getName().startsWith(FD_RES_LAYOUT)) {
-        VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
-        if (file != null) {
-          PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
-          PsiFile psiFile = psiManager.findFile(file);
-          if (psiFile instanceof XmlFile) {
-            assert myLogger != null;
-            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
-            // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
-            parser.setProvideViewCookies(false);
-            return parser;
+      if (parent != null) {
+        String parentName = parent.getName();
+        if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_MENU)) {
+          VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
+          if (file != null) {
+            PsiManager psiManager = PsiManager.getInstance(myModule.getProject());
+            PsiFile psiFile = psiManager.findFile(file);
+            if (psiFile instanceof XmlFile) {
+              assert myLogger != null;
+              LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+              if (parentName.startsWith(FD_RES_LAYOUT)) {
+                // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
+                parser.setProvideViewCookies(false);
+              }
+              return parser;
+            }
           }
         }
       }
