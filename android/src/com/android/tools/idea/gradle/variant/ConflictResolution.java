@@ -169,22 +169,11 @@ public final class ConflictResolution {
     messages.removeMessages(groupName);
 
     for (final Conflict conflict : conflicts) {
+      String text = getText(conflict);
+
       final Module source = conflict.getSource();
-      String text = String.format("Module '%1$s' has variant '%2$s' selected, ", source.getName(), conflict.getSelectedVariant());
-
-      List<String> expectedVariants = Lists.newArrayList(conflict.getVariants());
-      assert expectedVariants.size() == 1;
-
-      String expectedVariant = expectedVariants.get(0);
-      List<String> modules = Lists.newArrayList();
-      for (Conflict.AffectedModule affected : conflict.getModulesExpectingVariant(expectedVariant)) {
-        modules.add("'" + affected.getTarget().getName() + "'");
-
-      }
-      Collections.sort(modules);
-      text += String.format("but variant '%1$s' is expected by module(s) %2$s.", expectedVariant, modules);
-
       String hyperlinkText = String.format("Select '%1$s' in \"Build Variants\" window", source.getName());
+
       NotificationHyperlink selectInBuildVariantsWindowHyperlink =
         new NotificationHyperlink("select.conflict.in.variants.window", hyperlinkText) {
         @Override
@@ -206,6 +195,26 @@ public final class ConflictResolution {
       Message msg = new Message(groupName, Message.Type.ERROR, text);
       messages.add(msg, selectInBuildVariantsWindowHyperlink, quickFixHyperlink);
     }
+  }
+
+  @NotNull
+  public static String getText(@NotNull Conflict conflict) {
+    Module source = conflict.getSource();
+    String text = String.format("Module '%1$s' has variant '%2$s' selected, ", source.getName(), conflict.getSelectedVariant());
+
+    List<String> expectedVariants = Lists.newArrayList(conflict.getVariants());
+    assert expectedVariants.size() == 1;
+
+    String expectedVariant = expectedVariants.get(0);
+    List<String> modules = Lists.newArrayList();
+    for (Conflict.AffectedModule affected : conflict.getModulesExpectingVariant(expectedVariant)) {
+      modules.add("'" + affected.getTarget().getName() + "'");
+
+    }
+    Collections.sort(modules);
+    text += String.format("but variant '%1$s' is expected by module(s) %2$s.", expectedVariant, modules);
+
+    return text;
   }
 
   public static void displayStructureConflicts(@NotNull final Project project, @NotNull List<Conflict> conflicts) {
