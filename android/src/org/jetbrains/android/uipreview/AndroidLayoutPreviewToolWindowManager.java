@@ -289,6 +289,11 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       @Override
       public void run() {
         myToolWindowReady = true;
+        for (FileEditor editor : FileEditorManager.getInstance(myProject).getSelectedEditors()) {
+          if (editor instanceof TextEditor) {
+            processFileEditorChange(((TextEditor)editor));
+          }
+        }
       }
     });
   }
