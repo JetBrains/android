@@ -20,9 +20,11 @@ import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.*;
+import com.intellij.util.concurrency.SequentialTaskExecutor;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -63,6 +65,8 @@ public class StudioBuildStatsPersistenceComponent
 
   private final LinkedList<BuildRecord> myRecords = new LinkedList<BuildRecord>();
 
+  private final SequentialTaskExecutor myTaskExecutor = new SequentialTaskExecutor(PooledThreadExecutor.INSTANCE);
+
   /**
    * Retrieves an instance of the component or null if not available or configured.
    *
@@ -82,7 +86,17 @@ public class StudioBuildStatsPersistenceComponent
    *
    * @param newRecord to be added to the internal queue.
    */
-  public void addBuildRecord(@NotNull BuildRecord newRecord) {
+  public void addBuildRecord(@NotNull final BuildRecord newRecord) {
+    myTaskExecutor.execute(new Runnable() {
+      @Override
+      public void run() {
+        addBuildRecordImmediately(newRecord);
+      }
+    });
+  }
+
+  @VisibleForTesting
+  void addBuildRecordImmediately(@NotNull BuildRecord newRecord) {
     // Skip if there is no Application, allowing this to run using non-idea unit tests.
     Application app = ApplicationManager.getApplication();
     if (app != null && !app.isUnitTestMode()) {
