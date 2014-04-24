@@ -37,7 +37,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.JavaModuleType;
@@ -60,8 +59,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
-  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectComponent.class);
-
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
 
   @Nullable private Disposable myDisposable;
@@ -117,8 +114,8 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     StudioBuildStatsPersistenceComponent stats = StudioBuildStatsPersistenceComponent.getInstance();
     if (stats != null) {
-      BuildRecord b = new BuildRecord(StatsKeys.PROJECT_OPENED, isGradleProject ? "gradle" : "not-gradle");
-      stats.addBuildRecord(b);
+      BuildRecord record = new BuildRecord(StatsKeys.PROJECT_OPENED, isGradleProject ? "gradle" : "not-gradle");
+      stats.addBuildRecord(record);
     }
   }
 
