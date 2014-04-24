@@ -46,17 +46,17 @@ public class X {
     }
 
     private static class MimeTypes {
-        @StyleRes
-        @DrawableRes
+        @android.support.annotation.StyleRes
+        @android.support.annotation.DrawableRes
         public static int styleAndDrawable;
 
-        @StyleRes
+        @android.support.annotation.StyleRes
         public static int style;
 
-        @DrawableRes
+        @android.support.annotation.DrawableRes
         public static int drawable;
 
-        @DrawableRes
+        @android.support.annotation.DrawableRes
         public static int getIconForExt(String ext) {
             return R.drawable.my_drawable;
         }
@@ -71,12 +71,12 @@ public class X {
             return R.drawable.my_drawable;
         }
 
-        @StringRes
+        @android.support.annotation.StringRes
         public static int getAnnotatedString() {
             return R.string.my_string;
         }
 
-        @DrawableRes
+        @android.support.annotation.DrawableRes
         public static int getAnnotatedDrawable() {
             return R.drawable.my_drawable;
         }
