@@ -33,7 +33,6 @@ import gnu.trove.TObjectLongHashMap;
  * with the Usage Statistics setting panel. This is by design.</em>
  */
 public class StatsTimeCollector {
-
   private static final boolean isEnabled = StudioBuildStatsPersistenceComponent.getInstance() != null;
   private static final TObjectLongHashMap<String> myTimestampMap = new TObjectLongHashMap<String>();
 
@@ -69,17 +68,19 @@ public class StatsTimeCollector {
     }
     try {
       long now = System.currentTimeMillis();
-      long start = 0;
+      long start;
       synchronized (myTimestampMap) {
         start = myTimestampMap.remove(key);
       }
       if (start > 0 && start < now) {
-        StudioBuildStatsPersistenceComponent i = StudioBuildStatsPersistenceComponent.getInstance();
-        if (i != null) {
-          i.addBuildRecord(new BuildRecord(key, Long.toString(now - start)));
+        StudioBuildStatsPersistenceComponent stats = StudioBuildStatsPersistenceComponent.getInstance();
+        if (stats != null) {
+          BuildRecord record = new BuildRecord(key, Long.toString(now - start));
+          stats.addBuildRecord(record);
         }
       }
-    } catch (Throwable ignore) {}
+    } catch (Throwable ignore) {
+    }
   }
 
 }
