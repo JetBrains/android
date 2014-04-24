@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
-import com.google.common.collect.ImmutableList;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -35,9 +34,9 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Tests for {@link ConflictFinder}
+ * Tests for {@link ConflictResolution}
  */
-public class ConflictFinderTest extends IdeaTestCase {
+public class ConflictResolutionTest extends IdeaTestCase {
   private Module myLibModule;
   private IdeaAndroidProject myApp;
   private IdeaAndroidProject myLib;
@@ -135,25 +134,25 @@ public class ConflictFinderTest extends IdeaTestCase {
 
   public void testFindSelectionConflictsWithoutConflict() {
     setUpDependencyOnLibrary("debug");
-    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithoutEmptyVariantDependency() {
     setUpDependencyOnLibrary("");
-    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithoutNullVariantDependency() {
     setUpDependencyOnLibrary(null);
-    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithConflict() {
     setUpDependencyOnLibrary("release");
-    ImmutableList<Conflict> conflicts = ConflictFinder.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
     assertEquals(1, conflicts.size());
 
     Conflict conflict = conflicts.get(0);
