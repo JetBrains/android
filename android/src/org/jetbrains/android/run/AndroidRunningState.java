@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.service.notification.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -225,10 +226,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
     if (myTargetChooser instanceof ManualTargetChooser) {
       if (myConfiguration.USE_LAST_SELECTED_DEVICE) {
-        Set<String> devicesUsedInLastLaunch = myConfiguration.getDevicesUsedInLastLaunch();
+        DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
 
-        if (devicesUsedInLastLaunch != null) {
-          myTargetDevices = getDevicesStillOnline(devicesUsedInLastLaunch);
+        if (lastLaunchState != null) {
+          Set<IDevice> onlineDevices = getOnlineDevices();
+          if (lastLaunchState.matchesCurrentAvailableDevices(onlineDevices)) {
+            Collection<IDevice> usedDevices = lastLaunchState.filterByUsed(onlineDevices);
+            myTargetDevices = usedDevices.toArray(new IDevice[usedDevices.size()]);
+          }
         }
 
         if (myTargetDevices.length > 1 && !mySupportMultipleDevices) {
@@ -261,10 +266,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           if (chooser.useSameDevicesAgain()) {
             myConfiguration.USE_LAST_SELECTED_DEVICE = true;
-            myConfiguration.setDevicesUsedInLaunch(serializeDevices(selectedDevices));
+            myConfiguration.setDevicesUsedInLaunch(Sets.newHashSet(selectedDevices), getOnlineDevices());
           } else {
             myConfiguration.USE_LAST_SELECTED_DEVICE = false;
-            myConfiguration.setDevicesUsedInLaunch(Collections.<String>emptySet());
+            myConfiguration.setDevicesUsedInLaunch(Collections.<IDevice>emptySet(), Collections.<IDevice>emptySet());
           }
         }
       }
@@ -280,33 +285,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return new DefaultExecutionResult(console, myProcessHandler);
   }
 
-  @NotNull
-  private static Set<String> serializeDevices(@NotNull IDevice[] selectedDevices) {
-    Set<String> s = new HashSet<String>(selectedDevices.length);
-
-    for (IDevice d : selectedDevices) {
-      s.add(d.getSerialNumber());
-    }
-
-    return s;
-  }
-
-  private IDevice[] getDevicesStillOnline(@NotNull Set<String> devicesUsedInLastLaunch) {
+  private Set<IDevice> getOnlineDevices() {
     AndroidDebugBridge debugBridge = myFacet.getDebugBridge();
     if (debugBridge == null) {
-      return EMPTY_DEVICE_ARRAY;
+      return Collections.emptySet();
     }
 
-    IDevice[] devices = debugBridge.getDevices();
-    List<IDevice> onlineDevices = new ArrayList<IDevice>(devices.length);
-
-    for (IDevice d : devices) {
-      if (devicesUsedInLastLaunch.contains(d.getSerialNumber())) {
-        onlineDevices.add(d);
-      }
-    }
-
-    return onlineDevices.toArray(new IDevice[onlineDevices.size()]);
+    return Sets.newHashSet(debugBridge.getDevices());
   }
 
   @Nullable
@@ -626,7 +611,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return;
     }
 
-    assert myPackageName != null;
     myTestPackageName = computeTestPackageName(myFacet, myPackageName);
 
     setTargetPackageName(myPackageName);
@@ -793,8 +777,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return !device.isEmulator();
     }
     else if (myTargetChooser instanceof ManualTargetChooser && myConfiguration.USE_LAST_SELECTED_DEVICE) {
-      Set<String> devicesUsedInLastLaunch = myConfiguration.getDevicesUsedInLastLaunch();
-      return devicesUsedInLastLaunch != null && devicesUsedInLastLaunch.contains(device.getName());
+      DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
+      return lastLaunchState != null && lastLaunchState.usedDevice(device);
     }
     return false;
   }
