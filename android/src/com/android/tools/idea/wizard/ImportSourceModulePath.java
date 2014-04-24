@@ -53,7 +53,8 @@ public class ImportSourceModulePath implements WizardPath {
   @NotNull private final WizardContext myContext;
   private Collection<ModuleWizardStep> mySteps;
 
-  public ImportSourceModulePath(@NotNull NewModuleWizardState wizardState,
+  public ImportSourceModulePath(@Nullable VirtualFile importSource,
+                                @NotNull NewModuleWizardState wizardState,
                                 @NotNull WizardContext context,
                                 @NotNull Disposable disposable,
                                 @Nullable TemplateWizardStep.UpdateListener listener) {
@@ -62,7 +63,8 @@ public class ImportSourceModulePath implements WizardPath {
     AdtImportProvider provider = new AdtImportProvider(false);
     context.setProjectBuilder(provider.getBuilder());
     ModuleWizardStep[] adtImportSteps = provider.createSteps(context);
-    ImportSourceLocationStep locationStep = new ImportSourceLocationStep(context, wizardState, disposable, listener);
+    ImportSourceLocationStep locationStep = new ImportSourceLocationStep(context, importSource,
+                                                                         wizardState, disposable, listener);
     mySteps = Lists.asList(locationStep, adtImportSteps);
   }
 

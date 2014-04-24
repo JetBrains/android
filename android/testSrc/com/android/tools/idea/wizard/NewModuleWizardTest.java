@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public class NewModuleWizardTest extends AndroidTestCase {
   public void testTemplateChanged() throws Exception {
-    NewModuleWizard wizard = new NewModuleWizard(myModule.getProject());
+    NewModuleWizard wizard = NewModuleWizard.createNewModuleWizard(myModule.getProject());
     TemplateWizardModuleBuilder moduleBuilder = (TemplateWizardModuleBuilder)wizard.myModuleBuilder;
 
     moduleBuilder.templateChanged(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME);
@@ -101,7 +101,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
    * Test what paths the wizard takes depending on the first page selection.
    */
   public void testWizardPaths() {
-    NewModuleWizard wizard = new NewModuleWizard(myModule.getProject());
+    NewModuleWizard wizard = NewModuleWizard.createNewModuleWizard(myModule.getProject());
 
     try {
       // On some systems JDK and Android SDK location might not be known - then the wizard will proceed to a page to set them up

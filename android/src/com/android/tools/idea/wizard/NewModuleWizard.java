@@ -23,9 +23,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Map;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 
@@ -34,15 +36,24 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
 public class NewModuleWizard extends TemplateWizard {
+  @Nullable private final VirtualFile myImportSource;
   private final boolean myIsImportOnly;
   protected ImportWizardModuleBuilder myModuleBuilder;
 
-  public NewModuleWizard(@Nullable Project project) {
-    this(project, true);
+  public static NewModuleWizard createImportModuleWizard(@NotNull Project project,
+                                                         @Nullable VirtualFile importLocation) {
+    return new NewModuleWizard(project, importLocation, true);
   }
 
-  public NewModuleWizard(@Nullable Project project, boolean isImportOnly) {
+  public static NewModuleWizard createNewModuleWizard(@NotNull Project project) {
+    return new NewModuleWizard(project, null, false);
+  }
+
+  private NewModuleWizard(@Nullable Project project,
+                          @Nullable VirtualFile importSource,
+                          boolean isImportOnly) {
     super("New Module", project);
+    myImportSource = importSource;
     myIsImportOnly = isImportOnly;
     Window window = getWindow();
     // Allow creation in headless mode for tests
@@ -72,8 +83,8 @@ public class NewModuleWizard extends TemplateWizard {
 
   protected ImportWizardModuleBuilder getModuleBuilder() {
     if (myIsImportOnly) {
-      return new TemplateWizardModuleBuilder(null, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
-                                             mySteps, getDisposable(), false) {
+      return new ImportWizardModuleBuilder(null, myProject, myImportSource, AndroidIcons.Wizards.NewModuleSidePanel,
+                                           mySteps, getDisposable(), false) {
         @Override
         public void update() {
           super.update();
@@ -82,8 +93,8 @@ public class NewModuleWizard extends TemplateWizard {
       };
     }
     else {
-      return new ImportWizardModuleBuilder(null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
-                                           mySteps, getDisposable(), false) {
+      return new TemplateWizardModuleBuilder(null, null, myProject, AndroidIcons.Wizards.NewModuleSidePanel,
+                                             mySteps, getDisposable(), false) {
         @Override
         public void update() {
           super.update();
