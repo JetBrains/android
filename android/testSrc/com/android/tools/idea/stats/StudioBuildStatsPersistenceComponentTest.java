@@ -74,7 +74,7 @@ public class StudioBuildStatsPersistenceComponentTest extends TestCase {
           new KeyString("key2", "value 2"),
         });
 
-    myComponent.addBuildRecord(b1);
+    myComponent.addBuildRecordImmediately(b1);
 
     assertEquals(1, myComponent.getRecords().size());
     assertEquals(b1, myComponent.getRecords().getFirst());
@@ -102,8 +102,8 @@ public class StudioBuildStatsPersistenceComponentTest extends TestCase {
           new KeyString("key2", "value 44"),
         });
 
-    myComponent.addBuildRecord(b1);
-    myComponent.addBuildRecord(b2);
+    myComponent.addBuildRecordImmediately(b1);
+    myComponent.addBuildRecordImmediately(b2);
 
     Element element2 = myComponent.getState();
     assertNotNull(element2);
