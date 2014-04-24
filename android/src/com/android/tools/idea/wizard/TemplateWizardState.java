@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.tools.idea.templates.Parameter;
@@ -99,6 +100,7 @@ public class TemplateWizardState {
 
     put(ATTR_SRC_DIR, "src/main/java");
     put(ATTR_RES_DIR, "src/main/res");
+    put(ATTR_AIDL_DIR, "src/main/aidl");
     put(ATTR_MANIFEST_DIR, "src/main");
   }
 
@@ -107,7 +109,8 @@ public class TemplateWizardState {
    * a number of files go. The templates use these globals to allow them to service both old-style Ant builds with the old directory
    * structure and new-style Gradle builds with the new structure.
    */
-  protected void populateDirectoryParameters() throws IOException {
+  @VisibleForTesting
+  public void populateDirectoryParameters() throws IOException {
     File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
@@ -119,7 +122,7 @@ public class TemplateWizardState {
     }
 
     // Set AIDL directory if we don't have one
-    if (!myParameters.containsKey(ATTR_AIDL_OUT) || myParameters.get(ATTR_AIDL_OUT) == null) {
+    if (!myParameters.containsKey(ATTR_AIDL_OUT) || get(ATTR_AIDL_OUT) == null) {
       File aidlRoot = new File(mainFlavorSourceRoot, TemplateWizard.AIDL_SOURCE_PATH);
       put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlRoot.getPath()));
     }
