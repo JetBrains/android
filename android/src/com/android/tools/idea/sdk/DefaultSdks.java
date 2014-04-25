@@ -454,7 +454,7 @@ public final class DefaultSdks {
     VirtualFile javaHome = null;
 
     for (String jdkPath : jdkPaths) {
-      javaHome = LocalFileSystem.getInstance().findFileByPath(jdkPath);
+      javaHome = jdkPath != null ? LocalFileSystem.getInstance().findFileByPath(jdkPath) : null;
 
       if (javaHome != null) {
         break;
