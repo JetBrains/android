@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.Gray;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -111,7 +112,7 @@ public class GutterIconCache {
             BufferedImage bg = UIUtil.createImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
             Graphics g = bg.getGraphics();
             //noinspection UseJBColor
-            g.setColor(new Color(255, 255, 255, 0));
+            g.setColor(Gray.TRANSPARENT);
             g.fillRect(0, 0, bg.getWidth(), bg.getHeight());
             //noinspection ConstantConditions
             UIUtil.drawImage(g, image, 0, 0, null);
