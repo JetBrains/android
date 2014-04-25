@@ -16,11 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import junit.framework.TestCase;
-import org.gradle.api.internal.LocationAwareException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-import org.junit.Ignore;
-
-import java.io.File;
 
 /**
  * Tests for {@link ProjectImportErrorHandler}.
