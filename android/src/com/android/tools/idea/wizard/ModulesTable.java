@@ -52,7 +52,7 @@ import static com.google.common.base.Predicates.not;
 public final class ModulesTable extends JBTable {
   public static final String PROPERTY_SELECTED_MODULES = "selectedModules";
 
-  private Project myProject;
+  @Nullable private Project myProject;
   @Nullable private VirtualFile myCurrentPath;
   private Map<ModuleToImport, ModuleValidationState> myModules;
   private Set<ModuleToImport> myUncheckedModules = new HashSet<ModuleToImport>();
@@ -182,7 +182,7 @@ public final class ModulesTable extends JBTable {
     return checked != null ? checked : !myUncheckedModules.contains(module);
   }
 
-  public void setModules(@NotNull Project project, @Nullable VirtualFile currentPath, @Nullable Iterable<ModuleToImport> modules) {
+  public void setModules(@Nullable Project project, @Nullable VirtualFile currentPath, @Nullable Iterable<ModuleToImport> modules) {
     myCurrentPath = currentPath;
     myProject = project;
     if (modules == null) {
@@ -251,16 +251,21 @@ public final class ModulesTable extends JBTable {
   }
 
   private boolean projectHasSubprojectWithPath(ModuleToImport module) {
-    String name = module.name;
-    if (GradleUtil.findModuleByGradlePath(myProject, name) != null) {
-      return true;
+    if (myProject == null) {
+      return false;
     }
-    File targetPath = GradleUtil.getDefaultSubprojectLocation(myProject.getBaseDir(), name);
-    if (targetPath.exists()) {
-      String[] children = targetPath.list();
-      return (children == null || children.length > 0);
+    else {
+      String name = module.name;
+      if (GradleUtil.findModuleByGradlePath(myProject, name) != null) {
+        return true;
+      }
+      File targetPath = GradleUtil.getDefaultSubprojectLocation(myProject.getBaseDir(), name);
+      if (targetPath.exists()) {
+        String[] children = targetPath.list();
+        return (children == null || children.length > 0);
+      }
+      return false;
     }
-    return false;
   }
 
   private ModuleValidationState validateModule(ModuleToImport module) {
