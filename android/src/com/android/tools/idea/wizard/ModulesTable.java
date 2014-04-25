@@ -43,8 +43,7 @@ import java.util.*;
 import java.util.List;
 import java.util.Queue;
 
-import static com.google.common.base.Predicates.in;
-import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.*;
 
 /**
  * Table for showing a list of modules that will be imported.
@@ -57,6 +56,8 @@ public final class ModulesTable extends JBTable {
   private Map<ModuleToImport, ModuleValidationState> myModules;
   private Set<ModuleToImport> myUncheckedModules = new HashSet<ModuleToImport>();
   private Multimap<ModuleToImport, ModuleToImport> myRequiredModules;
+  private boolean myHasPrimaryModule; // Checkboxes are not shown in this case
+                                      // and required modules are not grayed out
 
   public ModulesTable() {
     setModel(new ModulesTableModel());
@@ -118,7 +119,7 @@ public final class ModulesTable extends JBTable {
     component.setFont(font.deriveFont(style));
     component.setBackground(background);
     component.setForeground(foreground);
-    component.setEnabled(state.canToggle());
+    component.setEnabled(state == ModuleValidationState.PRIMARY || state.canToggle());
     component.setToolTipText(getDescription(module, state));
   }
 
@@ -203,7 +204,11 @@ public final class ModulesTable extends JBTable {
     for (ModuleToImport module : modules) {
       myModules.put(module, validateModule(module));
     }
-    computeRequiredModules();
+    myHasPrimaryModule = !Maps.filterValues(myModules, equalTo(ModuleValidationState.PRIMARY)).isEmpty();
+    // If we have a "primary module" then all modules in the list are required
+    if (!myHasPrimaryModule) {
+      computeRequiredModules();
+    }
   }
 
   private void computeRequiredModules() {
@@ -283,7 +288,7 @@ public final class ModulesTable extends JBTable {
       return ModuleValidationState.NULL;
     }
     ModuleValidationState state = myModules.get(module);
-    if (state == ModuleValidationState.OK && myRequiredModules.containsKey(module)) {
+    if (!myHasPrimaryModule && state == ModuleValidationState.OK && myRequiredModules.containsKey(module)) {
       return ModuleValidationState.REQUIRED;
     }
     else {
@@ -375,15 +380,29 @@ public final class ModulesTable extends JBTable {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      String label = value == null ? "" : getRelativePath(myCurrentPath, ((ModuleToImport)value).location);
-      myLabel.setText(label);
-      configureComponent(myLabel, (ModuleToImport)value, table, isSelected);
+      ModuleToImport module = (ModuleToImport)value;
+      myLabel.setText(getModulePath(module));
+      configureComponent(myLabel, module, table, isSelected);
       return myLabel;
+    }
+
+    private String getModulePath(ModuleToImport module) {
+      if (module == null || module.location == null) {
+        return "";
+      }
+      else {
+        if (getModuleValidationState(module) == ModuleValidationState.PRIMARY) {
+          return module.location.getPath();
+        } else {
+          return getRelativePath(myCurrentPath, module.location);
+        }
+      }
     }
   }
 
   private final class ModuleNameCellEditor extends AbstractTableCellEditor implements TableCellRenderer {
     private final JBCheckBox myCheckBox = new JBCheckBox();
+    private final JLabel myLabel = new JLabel();
 
     public ModuleNameCellEditor() {
       myCheckBox.addActionListener(new ActionListener() {
@@ -393,9 +412,13 @@ public final class ModulesTable extends JBTable {
         }
       });
       myCheckBox.setOpaque(true);
+      myLabel.setOpaque(true);
     }
 
-    private void setupCheckbox(@NotNull JTable table, @Nullable ModuleToImport module, @NotNull JBCheckBox checkBox, boolean isSelected) {
+    private JComponent setupComponent(@NotNull JTable table,
+                                      @Nullable ModuleToImport module,
+                                      @NotNull JBCheckBox checkBox,
+                                      boolean isSelected) {
       // JTable may send a null value to the cell editor during initialization
       final String text;
       if (module != null) {
@@ -404,16 +427,23 @@ public final class ModulesTable extends JBTable {
       else {
         text = "<No Module>";
       }
-      checkBox.setText(text);
-      checkBox.setSelected(isModuleSelected(module));
+      final JComponent component;
+      if (myHasPrimaryModule) {
+        myLabel.setText(text);
+        component = myLabel;
+      } else {
+        checkBox.setText(text);
+        checkBox.setSelected(isModuleSelected(module));
+        component = checkBox;
+      }
 
-      configureComponent(checkBox, module, table, isSelected);
+      configureComponent(component, module, table, isSelected);
+      return component;
     }
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-      setupCheckbox(table, (ModuleToImport)value, myCheckBox, true);
-      return myCheckBox;
+      return setupComponent(table, (ModuleToImport)value, myCheckBox, true);
     }
 
     @Override
@@ -423,8 +453,7 @@ public final class ModulesTable extends JBTable {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      setupCheckbox(table, (ModuleToImport)value, myCheckBox, isSelected);
-      return myCheckBox;
+      return setupComponent(table, (ModuleToImport)value, myCheckBox, isSelected);
     }
   }
 
@@ -444,7 +473,7 @@ public final class ModulesTable extends JBTable {
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
       ModuleToImport module = myModules.get(rowIndex);
-      return columnIndex == 0 && getModuleValidationState(module).canToggle();
+      return !myHasPrimaryModule && columnIndex == 0 && getModuleValidationState(module).canToggle();
     }
 
     @Override
