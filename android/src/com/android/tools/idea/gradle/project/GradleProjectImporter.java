@@ -19,8 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.parser.Dependency;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -30,12 +28,8 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.google.common.base.*;
+import com.google.common.collect.*;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
@@ -95,6 +89,7 @@ import java.util.*;
 
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.notNull;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
@@ -690,10 +685,11 @@ public class GradleProjectImporter {
    * if the module location was not found.
    */
   @NotNull
-  public Map<String, VirtualFile> getRelatedProjects(@NotNull VirtualFile sourceProject, @NotNull Project destinationProject) {
+  public Set<ModuleToImport> getRelatedProjects(@NotNull VirtualFile sourceProject, @NotNull Project destinationProject) {
     VirtualFile settingsGradle = sourceProject.findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
     if (settingsGradle != null) {
-      return getSubprojects(settingsGradle, destinationProject);
+      return buildModulesSet(getSubprojects(settingsGradle, destinationProject),
+                             GradleProjectDependencyParser.newInstance(destinationProject));
     }
     else {
       return getRequiredProjects(sourceProject, destinationProject);
@@ -704,93 +700,39 @@ public class GradleProjectImporter {
    * Find direct and transitive dependency projects.
    */
   @NotNull
-  private static Map<String, VirtualFile> getRequiredProjects(VirtualFile sourceProject, Project destinationProject) {
-    Map<String, VirtualFile> subprojectLocations = null;
-    final Set<String> requiredProjectNames = new HashSet<String>();
+  private static Set<ModuleToImport> getRequiredProjects(VirtualFile sourceProject, Project destinationProject) {
+    GradleSiblingLookup subprojectLocations = new GradleSiblingLookup(sourceProject, destinationProject);
+    Function<VirtualFile, Iterable<String>> parser = GradleProjectDependencyParser.newInstance(destinationProject);
     Map<String, VirtualFile> modules = Maps.newHashMap();
+    List<VirtualFile> toAnalyze = Lists.newLinkedList();
+    toAnalyze.add(sourceProject);
 
-    for (VirtualFile file = sourceProject;
-         file != null;
-         file = nextUnanalyzedDependency(requiredProjectNames, subprojectLocations, modules)) {
-      requiredProjectNames.addAll(analyzeDependencies(file, destinationProject));
-      if (!requiredProjectNames.isEmpty() && subprojectLocations == null) {
-        // Our project may have some fancy module name in parent project that other projects may refer to it by.
-        // We should try to figure it out
-        subprojectLocations = findSiblings(sourceProject, destinationProject, new HashSet<VirtualFile>());
-        String name = SdkConstants.GRADLE_PATH_SEPARATOR + sourceProject.getName();
-        for (Map.Entry<String, VirtualFile> nameToLocation : subprojectLocations.entrySet()) {
-          if (sourceProject.equals(nameToLocation.getValue())) {
-            name = nameToLocation.getKey();
-            break;
-          }
-        }
-        modules.put(name, sourceProject);
+    while (!toAnalyze.isEmpty()) {
+      Set<String> dependencies = Sets.newHashSet(Iterables.concat(Iterables.transform(toAnalyze, parser)));
+      Iterable<String> notAnalyzed = Iterables.filter(dependencies, not(in(modules.keySet())));
+      // Turns out, Maps#toMap does not allow null values...
+      Map<String, VirtualFile> dependencyToLocation = Maps.newHashMap();
+      for (String dependency : notAnalyzed) {
+        dependencyToLocation.put(dependency, subprojectLocations.apply(dependency));
       }
-      if (subprojectLocations == null) { // Either project has no dependencies or unable to find settings.gradle
-        return Collections.singletonMap(SdkConstants.GRADLE_PATH_SEPARATOR + sourceProject.getName(), sourceProject);
-      }
+      modules.putAll(dependencyToLocation);
+      toAnalyze = FluentIterable.from(dependencyToLocation.values()).filter(notNull()).toList();
     }
-    return modules;
+    modules.put(subprojectLocations.getPrimaryProjectName(), sourceProject);
+    return buildModulesSet(modules, parser);
   }
 
-  @Nullable
-  private static VirtualFile nextUnanalyzedDependency(Set<String> projects,
-                                                      Map<String, VirtualFile> siblingProjects,
-                                                      Map<String, VirtualFile> projectsToImport) {
-    for (String project : Iterables.filter(projects, not(in(projectsToImport.keySet())))) {
-      VirtualFile file = siblingProjects.get(project);
-      projectsToImport.put(project, file);
-      if (file != null) {
-        return file;
-      }
+  private static Set<ModuleToImport> buildModulesSet(Map<String, VirtualFile> modules,
+                                                     Function<VirtualFile, Iterable<String>> parser) {
+    Set<ModuleToImport> modulesSet = new HashSet<ModuleToImport>(modules.size());
+    for (Map.Entry<String, VirtualFile> entry : modules.entrySet()) {
+      modulesSet.add(new ModuleToImport(entry.getKey(), entry.getValue(), parser));
     }
-    return null;
+    return modulesSet;
   }
 
   @NotNull
-  private static Set<String> analyzeDependencies(VirtualFile sourceProject, Project destinationProject) {
-    VirtualFile file1 = sourceProject.findChild(SdkConstants.FN_BUILD_GRADLE);
-    if (file1 == null) {
-      return Collections.emptySet();
-    }
-    else {
-      Set<String> result = new HashSet<String>();
-      GradleBuildFile buildFile = new GradleBuildFile(file1, destinationProject);
-      for (Dependency dependency : Iterables.filter(buildFile.getDependencies(), Dependency.class)) {
-        if (dependency.type == Dependency.Type.MODULE) {
-          String moduleName = dependency.getValueAsString();
-          result.add(moduleName);
-        }
-      }
-      return result;
-    }
-  }
-
-  /**
-   * Recursively go up the file system tree to find parent project with settings.gradle and then obtain collection of siblings from
-   * that file.
-   */
-  private static Map<String, VirtualFile> findSiblings(@Nullable VirtualFile directory, Project project, Set<VirtualFile> seen) {
-    if (directory == null) {
-      return Collections.emptyMap();
-    }
-    else {
-      if (seen.contains(directory)) {
-        return findSiblings(null, project, seen);
-      }
-      seen.add(directory);
-      VirtualFile settings = directory.findChild(SdkConstants.FN_SETTINGS_GRADLE);
-      if (settings == null) {
-        return findSiblings(directory.getParent(), project, seen);
-      }
-      else {
-        return getSubprojects(settings, project);
-      }
-    }
-  }
-
-  @NotNull
-  private static Map<String, VirtualFile> getSubprojects(@NotNull final VirtualFile settingsGradle, Project destinationProject) {
+  public static Map<String, VirtualFile> getSubprojects(@NotNull final VirtualFile settingsGradle, Project destinationProject) {
     final GradleSettingsFile settingsFile = new GradleSettingsFile(settingsGradle, destinationProject);
     Map<String, File> allProjects = settingsFile.getModulesWithLocation();
     return Maps.transformValues(allProjects, new ResolvePath(VfsUtilCore.virtualToIoFile(settingsGradle.getParent())));
