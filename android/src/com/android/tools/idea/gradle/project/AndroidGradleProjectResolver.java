@@ -57,7 +57,6 @@ import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
-import org.jetbrains.plugins.gradle.model.ProjectDependenciesModel;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -211,12 +210,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   private List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule module) {
-    ProjectDependenciesModel model = resolverCtx.getExtraProject(module, ProjectDependenciesModel.class);
-    List<? extends IdeaDependency> dependencies = model != null ? model.getDependencies() : module.getDependencies().getAll();
-    if (dependencies != null) {
-      return dependencies;
-    }
-    return Collections.emptyList();
+    List<? extends IdeaDependency> dependencies = module.getDependencies().getAll();
+    return (dependencies != null) ? dependencies : Collections.<IdeaDependency>emptyList();
   }
 
   @Override
