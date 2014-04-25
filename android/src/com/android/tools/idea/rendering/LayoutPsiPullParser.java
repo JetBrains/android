@@ -77,28 +77,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull RenderLogger logger) {
     if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
-      return new LayoutPsiPullParser(file, logger) {
-        @Nullable
-        @Override
-        public Object getViewCookie() {
-          if (myProvideViewCookies) {
-            Element element = getCurrentNode();
-            if (element != null) {
-              // <menu> tags means that we are adding a sub-menu. Since we don't show the submenu, we
-              // return the enclosing tag.
-              if (element.tag.equals(FD_RES_MENU)) {
-                Element previousElement = getPreviousNode();
-                if (previousElement != null) {
-                  return previousElement.cookie;
-                }
-              }
-              return element.cookie;
-            }
-          }
-
-          return null;
-        }
-      };
+      return new MenuPsiPullParser(file, logger);
     }
     return new LayoutPsiPullParser(file, logger);
   }
@@ -132,41 +111,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   public static LayoutPsiPullParser create(@Nullable final AttributeFilter filter,
                                            @NotNull XmlTag root,
                                            @NotNull RenderLogger logger) {
-    return new LayoutPsiPullParser(root, logger) {
-      @Override
-      public String getAttributeValue(final String namespace, final String localName) {
-        if (filter != null) {
-          Element element = getCurrentNode();
-          if (element != null) {
-            final XmlTag tag = element.cookie;
-            if (tag != null) {
-              String value;
-              if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-                value = filter.getAttribute(tag, namespace, localName);
-              }
-              else {
-                value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-                  @Override
-                  @Nullable
-                  public String compute() {
-                    return filter.getAttribute(tag, namespace, localName);
-                  }
-                });
-              }
-              if (value != null) {
-                if (value.isEmpty()) { // empty means unset
-                  return null;
-                }
-                return value;
-              }
-              // null means no preference, not "unset".
-            }
-          }
-        }
-
-        return super.getAttributeValue(namespace, localName);
-      }
-    };
+    return new AttributeFilteredLayoutParser(root, logger, filter);
   }
 
   /** Use one of the {@link #create} factory methods instead */
@@ -793,6 +738,57 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       this.prefix = prefix;
       this.name = name;
       this.value = value;
+    }
+  }
+
+  static class AttributeFilteredLayoutParser extends LayoutPsiPullParser {
+
+    @Nullable
+    private final AttributeFilter myFilter;
+
+    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull RenderLogger logger, @Nullable AttributeFilter filter) {
+      super(root, logger);
+      this.myFilter = filter;
+    }
+
+    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull RenderLogger logger, @Nullable AttributeFilter filter) {
+      super(file, logger);
+      this.myFilter = filter;
+    }
+
+    @Nullable
+    @Override
+    public String getAttributeValue(final String namespace, final String localName) {
+      if (myFilter != null) {
+        Element element = getCurrentNode();
+        if (element != null) {
+          final XmlTag tag = element.cookie;
+          if (tag != null) {
+            String value;
+            if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+              value = myFilter.getAttribute(tag, namespace, localName);
+            }
+            else {
+              value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+                @Override
+                @Nullable
+                public String compute() {
+                  return myFilter.getAttribute(tag, namespace, localName);
+                }
+              });
+            }
+            if (value != null) {
+              if (value.isEmpty()) { // empty means unset
+                return null;
+              }
+              return value;
+            }
+            // null means no preference, not "unset".
+          }
+        }
+      }
+
+      return super.getAttributeValue(namespace, localName);
     }
   }
 }
