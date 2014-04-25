@@ -6,9 +6,11 @@ import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.PredefinedCodeStyle;
+import com.intellij.psi.codeStyle.arrangement.group.ArrangementGroupingRule;
 import com.intellij.psi.codeStyle.arrangement.match.StdArrangementMatchRule;
-import com.intellij.psi.codeStyle.arrangement.std.StdRulePriorityAwareSettings;
+import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
+import com.intellij.util.containers.ContainerUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +63,8 @@ public class AndroidXmlPredefinedCodeStyle extends PredefinedCodeStyle {
     rules.add(attrArrangementRule(".*", ".*", BY_NAME));
     // TODO: Should sort name:"color",namespace:"" to the end (primarily for color state lists)
     final CommonCodeStyleSettings xmlCommonSettings = settings.getCommonSettings(XMLLanguage.INSTANCE);
-    xmlCommonSettings.setArrangementSettings(new StdRulePriorityAwareSettings(rules));
+    xmlCommonSettings.setArrangementSettings(
+      StdArrangementSettings.createByMatchRules(ContainerUtil.<ArrangementGroupingRule>emptyList(), rules));
     xmlCommonSettings.FORCE_REARRANGE_MODE = CommonCodeStyleSettings.REARRANGE_ALWAYS;
   }
 }
