@@ -38,6 +38,11 @@ public class GradleTaskStub implements GradleTask {
   }
 
   @Override
+  public String getDisplayName() {
+    return myName;
+  }
+
+  @Override
   public String getDescription() {
     return null;
   }
