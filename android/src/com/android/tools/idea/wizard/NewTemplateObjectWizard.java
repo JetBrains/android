@@ -381,4 +381,18 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       selectSourceProvider(sourceProvider, myGradleProject);
     }
   }
+
+  @Override
+  protected boolean canFinish() {
+    if (!super.canFinish()) {
+      return false;
+    }
+    TemplateMetadata metadata = myWizardState.getTemplateMetadata();
+    int minApi = myWizardState.getInt(ATTR_MIN_API_LEVEL);
+    if (metadata != null && metadata.getMinSdk() > minApi) {
+      ((TemplateWizardStep)getCurrentStepObject()).setErrorHtml("This template requires a minimum API level of " + metadata.getMinSdk());
+      return false;
+    }
+    return true;
+  }
 }
