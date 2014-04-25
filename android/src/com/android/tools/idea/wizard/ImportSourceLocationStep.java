@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.project.ImportSourceKind;
+import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -53,6 +54,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.WARNING;
@@ -161,20 +163,20 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
 
   private void applyBackgroundOperationResult(@NotNull PathValidationResult result) {
     assert EventQueue.isDispatchThread();
-    Map<String, VirtualFile> modules = null;
+    Iterable<ModuleToImport> modules = null;
     try {
       if (result.myStatus == PageStatus.OK) {
         assert result.myVfile != null && myContext.getProject() != null;
         modules = ProjectImportUtil.findModules(result.myVfile, myContext.getProject());
-        Set<String> missingSource = new TreeSet<String>();
-        for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
-          if (module.getValue() == null || !module.getValue().exists()) {
-            missingSource.add(module.getKey());
+        Set<String> missingSourceModuleNames = new TreeSet<String>();
+        for (ModuleToImport module : modules) {
+          if (module.location == null || !module.location.exists()) {
+            missingSourceModuleNames.add(module.name);
           }
         }
-        if (!missingSource.isEmpty()) {
+        if (!missingSourceModuleNames.isEmpty()) {
           result = new PathValidationResult(PageStatus.MISSING_SUBPROJECTS,
-                                            result.myVfile, result.myImportKind, missingSource);
+                                            result.myVfile, result.myImportKind, missingSourceModuleNames);
         }
         AdtImportBuilder builder = (AdtImportBuilder)myContext.getProjectBuilder();
         assert builder != null;
@@ -194,15 +196,18 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private void updateStepStatus(PathValidationResult result) {
     Object validationDetails = result.myDetails;
     PageStatus status = result.myStatus;
-    final Map<String, VirtualFile> selectedModules;
+    Map<String, VirtualFile> selectedModules = Collections.emptyMap();
     if (!MessageType.ERROR.equals(status.severity)) {
-      selectedModules = myModulesList.getSelectedModules();
-      if (selectedModules.isEmpty()) {
+      final List<ModuleToImport> modules = myModulesList.getSelectedModules();
+      if (modules.isEmpty()) {
         status = PageStatus.NO_MODULES_SELECTED;
         validationDetails = null;
+      } else {
+        selectedModules = new HashMap<String, VirtualFile>(modules.size());
+        for (ModuleToImport module : modules) {
+          selectedModules.put(module.name, module.location);
+        }
       }
-    } else {
-      selectedModules = Collections.emptyMap();
     }
     myState.setModulesToImport(selectedModules);
     myPageValidationResult = result;
@@ -211,9 +216,9 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     myUpdateListener.update();
   }
 
-  private void refreshModulesList(@Nullable VirtualFile vfile, @Nullable Map<String, VirtualFile> modules) {
+  private void refreshModulesList(@Nullable VirtualFile vfile, @Nullable Iterable<ModuleToImport> modules) {
     // No need to show table when importing a single module
-    boolean hasModules = modules != null && modules.size() > 1;
+    boolean hasModules = modules != null && Iterables.size(modules) > 1;
     myModulesList.setVisible(hasModules);
     myModuleImportLabel.setVisible(hasModules);
     assert myContext.getProject() != null;
@@ -310,10 +315,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       this.severity = severity;
     }
 
-    private static String atMostTwoProjects(Collection<String> names) {
-      return Joiner.on(", ").join(Iterables.limit(names, Math.min(names.size() - 1, 2)));
-    }
-
     public PathValidationResult result() {
       return new PathValidationResult(this, null, null, null);
     }
@@ -330,20 +331,10 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     @SuppressWarnings("unchecked")
     public String getMessage(@Nullable Object details) {
       if (this == MISSING_SUBPROJECTS && details instanceof Collection) {
-        final String message;
-        Collection<String> names = (Collection<String>)details;
-        if (names.size() <= 1) { // If there's 0 elements, some error happened
-          message = String.format("Unable to find sources for subproject %1$s.",
-                                  Iterables.getFirst(names, "<validation error>"));
-        }
-        else if (names.size() <= 3) {
-          message = String.format("Unable to find sources for subprojects %1$s and %2$s.",
-                                  atMostTwoProjects(names), Iterables.getLast(names));
-        }
-        else {
-          message = String.format("Unable to find sources for %1$s and %2$d more subprojects.",
-                                  atMostTwoProjects(names), names.size() - 2);
-        }
+        final String message = ImportUIUtil.formatElementListString((Collection<String>)details,
+                                                                     "Unable to find sources for subproject %1$s.",
+                                                                     "Unable to find sources for subprojects %1$s and %2$s.",
+                                                                     "Unable to find sources for %1$s and %2$d more subprojects.");
         return multiLineJLabelText(message, "This may result in missing dependencies.");
       }
       else {
