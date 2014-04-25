@@ -16,11 +16,12 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.gradle.eclipse.GradleImport;
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
+import com.google.common.base.Functions;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -28,19 +29,16 @@ import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.projectImport.ProjectImportProvider;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Project import logic used by UI elements
@@ -132,25 +130,30 @@ public final class ProjectImportUtil {
     return ImportSourceKind.OTHER;
   }
 
-  public static Map<String, VirtualFile> findModules(final @NotNull VirtualFile vfile,
+  public static Set<ModuleToImport> findModules(final @NotNull VirtualFile vfile,
                                                      final @NotNull Project project) throws IOException {
     ApplicationManager.getApplication().assertIsDispatchThread();
     ImportSourceKind kind = getImportLocationKind(vfile);
     if (kind == ImportSourceKind.GRADLE) {
       return GradleProjectImporter.getInstance().getRelatedProjects(vfile, project);
     } else if (kind == ImportSourceKind.ADT) {
-      GradleImport gradleImport = new GradleImport();
-      gradleImport.importProjects(Collections.singletonList(VfsUtilCore.virtualToIoFile(vfile)));
-      Map<String, File> adtProjects = gradleImport.getDetectedModuleLocations();
-      return Maps.transformValues(adtProjects, new Function<File, VirtualFile>() {
-        @Override
-        public VirtualFile apply(File input) {
-          return input == null ? null : VfsUtil.findFileByIoFile(input, true);
-        }
-      });
+      return getAdtProjects(vfile);
     } else {
-      return Collections.emptyMap();
+      return Collections.emptySet();
     }
-
   }
+
+  private static Set<ModuleToImport> getAdtProjects(VirtualFile vfile) throws IOException {
+    GradleImport gradleImport = new GradleImport();
+    gradleImport.importProjects(Collections.singletonList(VfsUtilCore.virtualToIoFile(vfile)));
+    Map<String, File> adtProjects = gradleImport.getDetectedModuleLocations();
+    Function<Object, Iterable<String>> resolver = Functions.<Iterable<String>>constant(Collections.<String>emptySet());
+    Set<ModuleToImport> modules = Sets.newHashSet();
+    for (Map.Entry<String, File> entry : adtProjects.entrySet()) {
+      VirtualFile location = VfsUtil.findFileByIoFile(entry.getValue(), false);
+      modules.add(new ModuleToImport(entry.getKey(), location, resolver));
+    }
+    return modules;
+  }
+
 }
