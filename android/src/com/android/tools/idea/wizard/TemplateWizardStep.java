@@ -322,12 +322,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
     Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
 
-    TemplateMetadata metadata = myTemplateState.getTemplateMetadata();
-    if (minApi != null && metadata != null && metadata.getMinSdk() > minApi) {
-      setErrorHtml("This template requires a minimum API level of " + metadata.getMinSdk());
-      return false;
-    }
-
     for (String paramName : myParamFields.keySet()) {
       if (myTemplateState.myHidden.contains(paramName)) {
         continue;
