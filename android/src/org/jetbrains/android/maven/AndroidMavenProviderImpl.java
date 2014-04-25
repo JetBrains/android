@@ -24,7 +24,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +57,6 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
         configuration.getState().GEN_FOLDER_RELATIVE_PATH_APT = '/' + genRelativePath + "/r";
         configuration.getState().GEN_FOLDER_RELATIVE_PATH_AIDL = '/' + genRelativePath + "/aidl";
       }
-      String buildDirectory = FileUtil.toSystemIndependentName(mavenProject.getBuildDirectory());
-      String buildDirRelPath = FileUtil.getRelativePath(moduleDirPath, buildDirectory, '/');
-      configuration.getState().APK_PATH = '/' + buildDirRelPath + '/' + AndroidCompileUtil.getApkName(module);
     }
   }
 

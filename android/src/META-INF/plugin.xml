@@ -564,6 +564,7 @@
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidImplicitUsagesProvider"/>
     <spellchecker.support language="XML" implementationClass="org.jetbrains.android.spellchecker.AndroidXmlSpellcheckingStrategy" order="before xml"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
+    <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
