@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.reference.SoftReference;
+import com.intellij.ui.Gray;
 import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -290,7 +291,7 @@ public class DeviceArtPainter {
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
       BufferedImage result = new BufferedImage(framedWidth, framedHeight, BufferedImage.TYPE_INT_ARGB);
       Graphics2D g = result.createGraphics();
-      g.setColor(new Color(128, 0, 0, 0));
+      g.setColor(Gray.TRANSPARENT);
       g.fillRect(0, 0, result.getWidth(), result.getHeight());
       g.drawImage(scaledImage, screenX, screenY, null);
       BufferedImage scaledFrameImage = ImageUtils.scale(frameImage, downScale, downScale, 0, 0);
@@ -349,7 +350,7 @@ public class DeviceArtPainter {
     @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
     BufferedImage composite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = composite.createGraphics();
-    g.setColor(new Color(0, 0, 0, 0));
+    g.setColor(Gray.TRANSPARENT);
     g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
     NinePatch ninePatch = NinePatch.load(image, true, false);
@@ -787,7 +788,7 @@ public class DeviceArtPainter {
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
       BufferedImage composite = new BufferedImage(myFrameWidth, myFrameHeight, BufferedImage.TYPE_INT_ARGB);
       Graphics g = composite.createGraphics();
-      g.setColor(new Color(0, 0, 0, 0));
+      g.setColor(Gray.TRANSPARENT);
       g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
       Graphics2D g2d = (Graphics2D)g;
