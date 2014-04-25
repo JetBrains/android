@@ -1249,10 +1249,10 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     executor.addPathPrefix("PROJECT_DIR", getOrCreateProjectDir().getPath());
     executor.addPathPrefix("ANDROID_SDK_DIR", androidSdk.getHomePath());
     executor.addPathPrefix("DATA_STORAGE_ROOT", myDataStorageRoot.getPath());
-    executor.addRegexPathPatternPrefix("AAPT_OUTPUT_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/android_apt_output\\d+tmp");
+    executor.addRegexPathPatternPrefix("AAPT_OUTPUT_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/android_apt_output\\d*tmp");
     executor.addRegexPathPatternPrefix("COMBINED_ASSETS_TMP", FileUtil.toSystemIndependentName(tempDirectory) +
-                                                              "/android_combined_assets\\d+tmp");
-    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d+\\.tmp");
+                                                              "/android_combined_assets\\d*tmp");
+    executor.addRegexPathPatternPrefix("CLASSPATH_TMP", FileUtil.toSystemIndependentName(tempDirectory) + "/classpath\\d*\\.tmp");
     executor.addRegexPathPattern("JAVA_PATH", ".*/java");
     executor.addRegexPathPattern("IDEA_RT_PATH", ".*/idea_rt.jar");
     executor.addRegexPathPattern("PROGUARD_INPUT_JAR", ".*/proguard_input\\S*\\.jar");
