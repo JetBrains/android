@@ -76,7 +76,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
   @NotNull private final JPanel myPanel;
 
   @NotNull private CheckboxTreeView myProjectStructureTree;
-  @NotNull private JBTable myConflictsTable;
+  @NotNull private ConflictsTable myConflictsTable;
   @NotNull private CheckboxTreeView myConflictTree;
   @NotNull private DetailsComponent myConflictDetails;
 
@@ -171,6 +171,13 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
 
     for (Module module : modules) {
       String gradlePath = GradleUtil.getGradlePath(module);
+
+      if (StringUtil.isEmpty(gradlePath)) {
+        // The top-level module representing the project usually does not have a Gradle path.
+        // We always want to include it, therefore we don't give users a chance to uncheck it in the "Project Structure" pane.
+        continue;
+      }
+
       modulesByGradlePath.put(gradlePath, module);
 
       ModuleTreeElement moduleElement = new ModuleTreeElement(module);
@@ -395,26 +402,10 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
         return null;
       }
     });
-    myConflictsTable = new JBTable(tableModel);
-    myConflictsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myConflictsTable = new ConflictsTable(tableModel);
     if (!tableModel.myRows.isEmpty()) {
-      // select first row by default.
-      myConflictsTable.getSelectionModel().setSelectionInterval(0, 0);
       showConflictDetail();
     }
-
-    TableColumn filterColumn = myConflictsTable.getColumn(myConflictsTable.getColumnName(ConflictsTableModel.FILTER_COLUMN));
-    filterColumn.setCellEditor(new BooleanTableCellEditor());
-    setUpBooleanColumn(filterColumn, true);
-
-    TableColumn resolvedColumn = myConflictsTable.getColumn(myConflictsTable.getColumnName(ConflictsTableModel.RESOLVED_COLUMN));
-    setUpBooleanColumn(resolvedColumn, false);
-  }
-
-  private static void setUpBooleanColumn(@NotNull TableColumn column, boolean editable) {
-    TableCellRenderer renderer = editable ? new BooleanTableCellRenderer() : new BooleanCellRenderer();
-    column.setCellRenderer(renderer);
-    column.setMaxWidth(50);
   }
 
   private void showConflictDetail() {
@@ -471,11 +462,16 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
         show = true;
       }
       else {
+        // We show the modules that depend on any of the selected conflict sources.
         for (Conflict conflict : moduleElement.myConflicts) {
           if (selectedConflictSources.contains(conflict.getSource())) {
             show = true;
             break;
           }
+        }
+        // We show the conflict sources as well.
+        if (!show && selectedConflictSources.contains(moduleElement.myModule)) {
+          show = true;
         }
       }
 
@@ -552,6 +548,36 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
   @NotNull
   protected JComponent createCenterPanel() {
     return myPanel;
+  }
+
+  private static class ConflictsTable extends JBTable {
+    ConflictsTable(@NotNull ConflictsTableModel model) {
+      super(model);
+      setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+      if (!model.myRows.isEmpty()) {
+        // select first row by default.
+        getSelectionModel().setSelectionInterval(0, 0);
+      }
+
+      TableColumn filterColumn = getColumn(ConflictsTableModel.FILTER_COLUMN);
+      filterColumn.setCellEditor(new BooleanTableCellEditor());
+      setUpBooleanColumn(filterColumn, true);
+
+      TableColumn resolvedColumn = getColumn(ConflictsTableModel.RESOLVED_COLUMN);
+      setUpBooleanColumn(resolvedColumn, false);
+    }
+
+    private static void setUpBooleanColumn(@NotNull TableColumn column, boolean editable) {
+      TableCellRenderer renderer = editable ? new BooleanTableCellRenderer() : new BooleanCellRenderer();
+      column.setCellRenderer(renderer);
+      column.setMaxWidth(50);
+    }
+
+    @SuppressWarnings("MethodOverloadsMethodOfSuperclass")
+    @NotNull
+    public TableColumn getColumn(int index) {
+      return getColumn(getColumnName(index));
+    }
   }
 
   private static class ConflictsTableModel extends DefaultTableModel {
