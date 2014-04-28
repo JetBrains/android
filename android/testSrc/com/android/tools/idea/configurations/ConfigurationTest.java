@@ -214,13 +214,15 @@ public class ConfigurationTest extends AndroidTestCase {
     configuration1.setTheme("Theme.Dialog");
     Device device = manager.getDevices().get(manager.getDevices().size() / 2);
     State state = device.getAllStates().get(device.getAllStates().size() - 1);
-    configuration1.setDevice(device, false);
-    configuration1.setDeviceState(state);
+    configuration1.getConfigurationManager().selectDevice(device);
+
+    configuration1.setDeviceStateName(state.getName());
     configuration1.save();
 
     Configuration configuration2 = manager.createSimilar(file2, file1);
     assertEquals(configuration1.getTheme(), configuration2.getTheme());
-    assertEquals(configuration1.getDevice(), configuration2.getDevice());
+    Device device2 = configuration2.getDevice();
+    assertEquals(configuration1.getDevice(), device2);
     assertEquals(Locale.create("no-rNO"), configuration2.getLocale());
     assertEquals(Locale.create("en"), configuration1.getLocale());
 

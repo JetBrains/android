@@ -16,6 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.service.notification.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
@@ -224,10 +226,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
     if (myTargetChooser instanceof ManualTargetChooser) {
       if (myConfiguration.USE_LAST_SELECTED_DEVICE) {
-        Set<String> devicesUsedInLastLaunch = myConfiguration.getDevicesUsedInLastLaunch();
+        DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
 
-        if (devicesUsedInLastLaunch != null) {
-          myTargetDevices = getDevicesStillOnline(devicesUsedInLastLaunch);
+        if (lastLaunchState != null) {
+          Set<IDevice> onlineDevices = getOnlineDevices();
+          if (lastLaunchState.matchesCurrentAvailableDevices(onlineDevices)) {
+            Collection<IDevice> usedDevices = lastLaunchState.filterByUsed(onlineDevices);
+            myTargetDevices = usedDevices.toArray(new IDevice[usedDevices.size()]);
+          }
         }
 
         if (myTargetDevices.length > 1 && !mySupportMultipleDevices) {
@@ -260,10 +266,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           if (chooser.useSameDevicesAgain()) {
             myConfiguration.USE_LAST_SELECTED_DEVICE = true;
-            myConfiguration.setDevicesUsedInLaunch(getDeviceNames(selectedDevices));
+            myConfiguration.setDevicesUsedInLaunch(Sets.newHashSet(selectedDevices), getOnlineDevices());
           } else {
             myConfiguration.USE_LAST_SELECTED_DEVICE = false;
-            myConfiguration.setDevicesUsedInLaunch(Collections.<String>emptySet());
+            myConfiguration.setDevicesUsedInLaunch(Collections.<IDevice>emptySet(), Collections.<IDevice>emptySet());
           }
         }
       }
@@ -279,35 +285,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return new DefaultExecutionResult(console, myProcessHandler);
   }
 
-  private static Set<String> getDeviceNames(@NotNull IDevice[] selectedDevices) {
-    Set<String> s = new HashSet<String>(selectedDevices.length);
-
-    for (IDevice d : selectedDevices) {
-      String name = d.getName();
-      if (name != null) {
-        s.add(name);
-      }
-    }
-
-    return s;
-  }
-
-  private IDevice[] getDevicesStillOnline(@NotNull Set<String> devicesUsedInLastLaunch) {
+  private Set<IDevice> getOnlineDevices() {
     AndroidDebugBridge debugBridge = myFacet.getDebugBridge();
     if (debugBridge == null) {
-      return EMPTY_DEVICE_ARRAY;
+      return Collections.emptySet();
     }
 
-    IDevice[] devices = debugBridge.getDevices();
-    List<IDevice> onlineDevices = new ArrayList<IDevice>(devices.length);
-
-    for (IDevice d : devices) {
-      if (devicesUsedInLastLaunch.contains(d.getName())) {
-        onlineDevices.add(d);
-      }
-    }
-
-    return onlineDevices.toArray(new IDevice[onlineDevices.size()]);
+    return Sets.newHashSet(debugBridge.getDevices());
   }
 
   @Nullable
@@ -627,7 +611,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return;
     }
 
-    assert myPackageName != null;
     myTestPackageName = computeTestPackageName(myFacet, myPackageName);
 
     setTargetPackageName(myPackageName);
@@ -783,7 +766,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   Boolean isCompatibleDevice(@NotNull IDevice device) {
     if (myTargetChooser instanceof EmulatorTargetChooser) {
       if (device.isEmulator()) {
-        String avdName = device.isEmulator() ? device.getAvdName() : null;
+        String avdName = device.getAvdName();
         if (myAvdName != null) {
           return myAvdName.equals(avdName);
         }
@@ -794,8 +777,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return !device.isEmulator();
     }
     else if (myTargetChooser instanceof ManualTargetChooser && myConfiguration.USE_LAST_SELECTED_DEVICE) {
-      Set<String> devicesUsedInLastLaunch = myConfiguration.getDevicesUsedInLastLaunch();
-      return devicesUsedInLastLaunch != null && devicesUsedInLastLaunch.contains(device.getName());
+      DeviceStateAtLaunch lastLaunchState = myConfiguration.getDevicesUsedInLastLaunch();
+      return lastLaunchState != null && lastLaunchState.usedDevice(device);
     }
     return false;
   }
@@ -1272,8 +1255,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           }
           retry = true;
           break;
+        case INSTALL_FAILED_VERSION_DOWNGRADE:
+          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.version.downgrade")) &&
+                  uninstallPackage(device, packageName);
+          break;
         case INCONSISTENT_CERTIFICATES:
-          retry = promptUninstallExistingApp() && uninstallPackage(device, packageName);
+          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.different.signature")) &&
+                  uninstallPackage(device, packageName);
           break;
         case NO_CERTIFICATE:
           message(AndroidBundle.message("deployment.failed.no.certificates.explanation"), STDERR);
@@ -1306,13 +1294,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return true;
   }
 
-  private boolean promptUninstallExistingApp() {
+  private boolean promptUninstallExistingApp(final String reason) {
     final AtomicBoolean uninstall = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(new Runnable() {
       @Override
       public void run() {
         int result = Messages.showOkCancelDialog(myFacet.getModule().getProject(),
-                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.text"),
+                                                 AndroidBundle.message("deployment.failed.uninstall.prompt.text", reason),
                                                  AndroidBundle.message("deployment.failed.title"),
                                                  Messages.getQuestionIcon());
         uninstall.set(result == 0);
@@ -1331,7 +1319,14 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     });
   }
 
-  private enum InstallFailureCode { NO_ERROR, DEVICE_NOT_RESPONDING, INCONSISTENT_CERTIFICATES, NO_CERTIFICATE, UNTYPED_ERROR, }
+  private enum InstallFailureCode {
+    NO_ERROR,
+    DEVICE_NOT_RESPONDING,
+    INCONSISTENT_CERTIFICATES,
+    INSTALL_FAILED_VERSION_DOWNGRADE,
+    NO_CERTIFICATE,
+    UNTYPED_ERROR
+  }
 
   private static class InstallResult {
     public final InstallFailureCode failureCode;
@@ -1371,6 +1366,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return InstallFailureCode.INCONSISTENT_CERTIFICATES;
     } else if ("INSTALL_PARSE_FAILED_NO_CERTIFICATES".equals(receiver.failureMessage)) {
       return InstallFailureCode.NO_CERTIFICATE;
+    } else if ("INSTALL_FAILED_VERSION_DOWNGRADE".equals(receiver.failureMessage)) {
+      return InstallFailureCode.INSTALL_FAILED_VERSION_DOWNGRADE;
     }
 
     return InstallFailureCode.UNTYPED_ERROR;
@@ -1383,11 +1380,9 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private class MyDeviceChangeListener implements AndroidDebugBridge.IDeviceChangeListener, Disposable {
     private final MergingUpdateQueue myQueue =
       new MergingUpdateQueue("ANDROID_DEVICE_STATE_UPDATE_QUEUE", 1000, true, null, this, null, false);
-    private volatile boolean installed;
 
-    public MyDeviceChangeListener() {
-      installed = false;
-    }
+    @GuardedBy("this")
+    private boolean installed;
 
     @Override
     public void deviceConnected(final IDevice device) {
@@ -1418,15 +1413,25 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
 
     private synchronized void onDeviceChanged(IDevice device) {
-      if (!installed && isMyDevice(device) && device.isOnline()) {
-        if (myTargetDevices.length == 0) {
-          myTargetDevices = new IDevice[]{device};
-        }
-        message("Device is online: " + device.getSerialNumber(), STDOUT);
-        installed = true;
-        if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
-          getProcessHandler().destroyProcess();
-        }
+      if (installed || !isMyDevice(device) || !device.isOnline()) {
+        return;
+      }
+
+      if (myTargetDevices.length == 0) {
+        myTargetDevices = new IDevice[]{device};
+      }
+
+      // devices (esp. emulators) may be reported as online, but may not have services running yet
+      // check to see if the acore process is alive before continuing
+      if (device.getClient("android.process.acore") == null) {
+        message(String.format("Device %1$s is online, waiting for processes to start up..", device.getName()), STDOUT);
+        return;
+      }
+
+      message("Device is ready: " + device.getName(), STDOUT);
+      installed = true;
+      if ((!prepareAndStartApp(device) || !myDebugMode) && !myStopped) {
+        getProcessHandler().destroyProcess();
       }
     }
 

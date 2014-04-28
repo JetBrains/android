@@ -17,9 +17,11 @@ package com.android.tools.idea.rendering;
 
 
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.ImageLoader;
 import com.intellij.util.JBHiDPIScaledImage;
 import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -159,12 +161,15 @@ public class ImageUtils {
     int destWidth = source.getWidth() + 2 * marginSize;
     int destHeight = source.getHeight() + 2 * marginSize;
 
-    BufferedImage expanded = new BufferedImage(destWidth, destHeight, source.getType());
+    // since we are adding a transparent margin, make sure destination image has an alpha channel
+    int type = source.getColorModel().hasAlpha() ? source.getType() : BufferedImage.TYPE_INT_ARGB;
+
+    BufferedImage expanded = new BufferedImage(destWidth, destHeight, type);
     Graphics2D g2 = expanded.createGraphics();
     //noinspection UseJBColor
     g2.setColor(new Color(0, true));
     g2.fillRect(0, 0, destWidth, destHeight);
-    g2.drawImage(source, 1, 1, null);
+    g2.drawImage(source, marginSize, marginSize, null);
     g2.dispose();
 
     return expanded;
@@ -500,6 +505,18 @@ public class ImageUtils {
     g.dispose();
 
     return cropped;
+  }
+
+  /**
+   * Loads a builtin icon from the Android plugin
+   *
+   * @param path the path relative to the Android plugin root; starts with /icons
+   */
+  @NotNull
+  public static Image loadIcon(String path) {
+    Image image = ImageLoader.loadFromResource(path, AndroidIcons.class);
+    assert image != null : path;
+    return image;
   }
 
   /**

@@ -23,8 +23,10 @@ import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.sdk.CheckAndroidSdkUpdates;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.BuildRecord;
+import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
@@ -35,17 +37,14 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -60,8 +59,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
-  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectComponent.class);
-
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
 
   @Nullable private Disposable myDisposable;
@@ -113,10 +110,12 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       configureGradleProject(true);
     }
 
+    CheckAndroidSdkUpdates.checkNow(myProject);
+
     StudioBuildStatsPersistenceComponent stats = StudioBuildStatsPersistenceComponent.getInstance();
     if (stats != null) {
-      BuildRecord b = new BuildRecord("project-opened", isGradleProject ? "gradle" : "not-gradle");
-      stats.addBuildRecord(b);
+      BuildRecord record = new BuildRecord(StatsKeys.PROJECT_OPENED, isGradleProject ? "gradle" : "not-gradle");
+      stats.addBuildRecord(record);
     }
   }
 
@@ -160,16 +159,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
     Projects.enforceExternalBuild(myProject);
 
     if (reImportProject) {
-      try {
-        // Prevent IDEA from refreshing project. We want to do it ourselves.
-        myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
-
-        GradleProjectImporter.getInstance().reImportProject(myProject, null);
-      }
-      catch (ConfigurationException e) {
-        Messages.showErrorDialog(e.getMessage(), e.getTitle());
-        LOG.info(e);
-      }
+      // Prevent IDEA from refreshing project. We want to do it ourselves.
+      myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
 

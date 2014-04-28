@@ -69,6 +69,11 @@ public class IntellijApiDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testRecursion() throws Exception {
+    AndroidLintNewApiInspection inspection = new AndroidLintNewApiInspection();
+    doTest(inspection, null);
+  }
+
   @Ignore
   public void testTryWithResources() throws Exception {
     // TODO: Allow setting a custom minSdkVersion in the manifest so I can test both with and without

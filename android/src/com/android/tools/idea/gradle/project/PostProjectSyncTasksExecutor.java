@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.messages.navigatable.OpenAndroidSdkNavigatable;
@@ -28,14 +27,19 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.variant.SelectionConflict;
-import com.android.tools.idea.gradle.variant.VariantSelectionVerifier;
+import com.android.tools.idea.gradle.variant.Conflict;
+import com.android.tools.idea.gradle.variant.ConflictResolution;
+import com.android.tools.idea.gradle.variant.ConflictSet;
+import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.stats.StatsKeys;
+import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.idea.templates.TemplateManager;
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -56,18 +60,16 @@ import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
-import java.util.TreeSet;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
 
 public class PostProjectSyncTasksExecutor {
   @NotNull private final Project myProject;
@@ -103,7 +105,7 @@ public class PostProjectSyncTasksExecutor {
       AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
     }
 
-    findAndShowVariantSelectionConflicts();
+    findAndShowVariantConflicts();
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
@@ -117,6 +119,8 @@ public class PostProjectSyncTasksExecutor {
     }
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu();
+
+    StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_TIME);
   }
 
   private void ensureAllModulesHaveSdk() {
@@ -332,8 +336,45 @@ public class PostProjectSyncTasksExecutor {
     }
   }
 
-  private void findAndShowVariantSelectionConflicts() {
-    VariantSelectionVerifier.getInstance(myProject).findAndShowSelectionConflicts();
+  private void findAndShowVariantConflicts() {
+    ConflictSet conflicts = ConflictResolution.findConflicts(myProject);
+
+    List<Conflict> structureConflicts = conflicts.getStructureConflicts();
+
+    if (!structureConflicts.isEmpty()) {
+      ConflictResolution.displayStructureConflicts(myProject, structureConflicts);
+      if (SystemProperties.getBooleanProperty("enable.project.profiles", false)) {
+        ProjectProfileSelectionDialog dialog = new ProjectProfileSelectionDialog(myProject, structureConflicts);
+        dialog.show();
+      }
+    }
+
+    List<Conflict> selectionConflicts = conflicts.getSelectionConflicts();
+    List<Conflict> solvedConflicts = Lists.newArrayList();
+    if (!selectionConflicts.isEmpty()) {
+      for (Conflict conflict : selectionConflicts) {
+        boolean solved = ConflictResolution.solveSelectionConflict(conflict);
+        if (solved) {
+          solvedConflicts.add(conflict);
+        }
+      }
+      if (solvedConflicts.isEmpty()) {
+        ConflictResolution.displaySelectionConflicts(myProject, selectionConflicts);
+      }
+      else {
+        List<Conflict> remainingConflicts = Lists.newArrayList(selectionConflicts);
+        remainingConflicts.removeAll(solvedConflicts);
+
+        if (!remainingConflicts.isEmpty()) {
+          ConflictResolution.displaySelectionConflicts(myProject, remainingConflicts);
+        }
+
+        BuildVariantView view = BuildVariantView.getInstance(myProject);
+        view.updateNotification(remainingConflicts);
+        view.updateContents();
+      }
+    }
+
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     if (!messages.isEmpty()) {
       displayProjectSetupMessages();

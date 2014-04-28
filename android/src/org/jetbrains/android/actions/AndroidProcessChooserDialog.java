@@ -17,7 +17,6 @@ package org.jetbrains.android.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -40,6 +39,8 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.JBDefaultTreeCellRenderer;
+import com.intellij.ui.ListSpeedSearch;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
@@ -93,7 +94,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   protected AndroidProcessChooserDialog(@NotNull Project project) {
     super(project);
-    setTitle("Choose process");
+    setTitle("Choose Process");
 
     myProject = project;
     myUpdatesQueue =
@@ -144,6 +145,22 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         getOKAction().setEnabled(getSelectedDevice() != null && getSelectedClient() != null);
       }
     });
+    new TreeSpeedSearch(myProcessTree) {
+      @Override
+      protected boolean isMatchingElement(Object element, String pattern) {
+        if (element instanceof TreePath) {
+          Object lastComponent = ((TreePath)element).getLastPathComponent();
+          if (lastComponent instanceof DefaultMutableTreeNode) {
+            Object userObject = ((DefaultMutableTreeNode)lastComponent).getUserObject();
+            if (userObject instanceof Client) {
+              String pkg = ((Client)userObject).getClientData().getClientDescription();
+              return pkg != null && pkg.contains(pattern);
+            }
+          }
+        }
+        return false;
+      }
+    };
 
     myProcessTree.setCellRenderer(new JBDefaultTreeCellRenderer(myProcessTree) {
       @Override
@@ -157,10 +174,10 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         if (value instanceof DefaultMutableTreeNode) {
           final Object userObject = ((DefaultMutableTreeNode)value).getUserObject();
           if (userObject instanceof IDevice) {
-            value = getPresentableName((IDevice)userObject);
+            value = ((IDevice)userObject).getName();
           }
           else if (userObject instanceof Client) {
-            value = getClientDescription((Client)userObject);
+            value = ((Client)userObject).getClientData().getClientDescription();
           }
         }
 
@@ -217,20 +234,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     AndroidDebugBridge.removeDeviceChangeListener(myDeviceChangeListener);
     AndroidDebugBridge.removeClientChangeListener(myClientChangeListener);
-  }
-
-  @NotNull
-  private static String getPresentableName(@NotNull IDevice device) {
-    String serialNumber = device.getSerialNumber();
-    final String avdName = device.getAvdName();
-
-    if (serialNumber == null || serialNumber.length() == 0) {
-      serialNumber = "<unknown>";
-    }
-
-    return avdName == null || avdName.length() == 0
-           ? serialNumber
-           : serialNumber + " (" + avdName + ')';
   }
 
   private void updateTree() {
@@ -290,14 +293,14 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       root.add(deviceNode);
 
       for (Client client : device.getClients()) {
-        final String clientDescription = getClientDescription(client);
+        final String clientDescription = client.getClientData().getClientDescription();
 
         if (clientDescription != null &&
             (showAllProcesses || isRelatedProcess(processNames, clientDescription))) {
           final DefaultMutableTreeNode clientNode = new DefaultMutableTreeNode(client);
           deviceNode.add(clientNode);
 
-          final String deviceName = getPresentableName(device);
+          final String deviceName = device.getName();
 
           if (clientDescription.equals(prevProcess) &&
               (selectedDeviceNode == null || deviceName.equals(prevDevice))) {
@@ -368,12 +371,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     return result;
   }
 
-  @Nullable
-  private static String getClientDescription(Client client) {
-    final ClientData clientData = client.getClientData();
-    return clientData != null ? clientData.getClientDescription() : null;
-  }
-
   private static void collectProcessNames(XmlElement xmlElement, final Set<String> result) {
     xmlElement.accept(new XmlRecursiveElementVisitor() {
       @Override
@@ -410,7 +407,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     super.doOKAction();
 
-    properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, getPresentableName(selectedDevice));
+    properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, selectedDevice.getName());
     properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, selectedClient.getClientData().getClientDescription());
     properties.setValue(SHOW_ALL_PROCESSES_PROPERTY, Boolean.toString(myShowAllProcessesCheckBox.isSelected()));
 

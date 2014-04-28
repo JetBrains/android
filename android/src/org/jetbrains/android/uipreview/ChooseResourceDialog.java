@@ -34,7 +34,10 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.*;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
@@ -157,6 +160,7 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
     if (types == COLOR_TYPES) {
       Color color = ResourceHelper.parseColor(value);
       myColorPicker = new ColorPicker(myDisposable, color, true);
+      myColorPicker.pickARGB();
       myContentPanel.addTab("Color", myColorPicker);
       if (color != null) {
         myContentPanel.setSelectedIndex(2);
@@ -331,7 +335,8 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       Color color = myColorPicker.getColor();
       setOKActionEnabled(color != null);
       myNewResourceAction.setEnabled(false);
-      myResultResourceName = color == null ? null : "#" + toHex(color.getRed()) + toHex(color.getGreen()) + toHex(color.getBlue());
+      myResultResourceName = color == null ? null :
+                             "#" + toHex(color.getAlpha()) + toHex(color.getRed()) + toHex(color.getGreen()) + toHex(color.getBlue());
     }
     else {
       boolean isProjectPanel = selectedComponent == myProjectPanel.myComponent;
@@ -831,9 +836,6 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       return myElement;
     }
   }
-
-
-  // Copied from com.intellij.designer.utils.SizedIcon
 
   public static class SizedIcon implements Icon {
     private final int myWidth;

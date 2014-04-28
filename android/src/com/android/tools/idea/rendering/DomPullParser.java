@@ -40,7 +40,7 @@ import static com.android.SdkConstants.AUTO_URI;
 /**
  * Simple wrapper around an XML document which provides its contents as a pull parser.
  * Most of this is based on the {@link com.android.tools.idea.rendering.LayoutPsiPullParser} but
- * with
+ * with DOM nodes instead of PSI elements as the data model
  */
 public class DomPullParser extends LayoutPullParser {
   @NotNull

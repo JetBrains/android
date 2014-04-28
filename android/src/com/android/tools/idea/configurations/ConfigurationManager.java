@@ -28,6 +28,8 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -36,18 +38,17 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.android.uipreview.UserDeviceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
+import static com.android.tools.idea.configurations.ConfigurationListener.*;
 
 /**
  * A {@linkplain ConfigurationManager} is responsible for managing {@link Configuration}
@@ -63,6 +64,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 public class ConfigurationManager implements Disposable {
   @NotNull private final Module myModule;
   private List<Device> myDevices;
+  private Map<String,Device> myDeviceMap;
   private final UserDeviceManager myUserDeviceManager;
   private final SoftValueHashMap<VirtualFile, Configuration> myCache = new SoftValueHashMap<VirtualFile, Configuration>();
   private List<Locale> myLocales;
@@ -81,6 +83,7 @@ public class ConfigurationManager implements Disposable {
       protected void userDevicesChanged() {
         // Force refresh
         myDevices = null;
+        myDeviceMap = null;
         // TODO: How do I trigger changes in the UI?
       }
     };
@@ -152,6 +155,10 @@ public class ConfigurationManager implements Disposable {
       config = new FolderConfiguration();
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
+    Configuration baseConfig = myCache.get(file);
+    if (baseConfig != null) {
+      configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());
+    }
     LocalResourceRepository resources = AppResourceRepository.getAppResources(myModule, true);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, resources, file);
     matcher.adaptConfigSelection(true /*needBestMatch*/);
@@ -199,6 +206,24 @@ public class ConfigurationManager implements Disposable {
     }
 
     return myDevices;
+  }
+
+  @NotNull
+  private Map<String,Device> getDeviceMap() {
+    if (myDeviceMap == null) {
+      List<Device> devices = getDevices();
+      myDeviceMap = Maps.newHashMapWithExpectedSize(devices.size());
+      for (Device device : devices) {
+        myDeviceMap.put(device.getId(), device);
+      }
+    }
+
+    return myDeviceMap;
+  }
+
+  @Nullable
+  public Device getDeviceById(@NotNull String id) {
+    return getDeviceMap().get(id);
   }
 
   @Nullable
@@ -290,7 +315,6 @@ public class ConfigurationManager implements Disposable {
           return theme;
         }
       }
-
     }
 
     // Look up the default/fallback theme to use for this project (which
@@ -395,11 +419,51 @@ public class ConfigurationManager implements Disposable {
   public void setLocale(@NotNull Locale locale) {
     if (!locale.equals(myLocale)) {
       myLocale = locale;
+      myStateVersion++;
       getStateManager().getProjectState().setLocale(ConfigurationProjectState.toLocaleString(locale));
       for (Configuration configuration : myCache.values()) {
         configuration.updated(CFG_LOCALE);
       }
-      myStateVersion++;
+    }
+  }
+
+  /** Returns the most recently used devices, in MRU order */
+  public List<Device> getRecentDevices() {
+    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
+    if (deviceIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<Device> devices = Lists.newArrayListWithExpectedSize(deviceIds.size());
+    ListIterator<String> iterator = deviceIds.listIterator();
+    while (iterator.hasNext()) {
+      String id = iterator.next();
+      Device device = getDeviceById(id);
+      if (device != null) {
+        devices.add(device);
+      } else {
+        iterator.remove();
+      }
+    }
+
+    return devices;
+  }
+
+  public void selectDevice(@NotNull Device device) {
+    // Manually move the given device to the front of the eligibility queue
+    String id = device.getId();
+    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
+    deviceIds.remove(id);
+    deviceIds.add(0, id);
+
+    // Only store a limited number of recent devices
+    while (deviceIds.size() > 10) {
+      deviceIds.remove(deviceIds.size() - 1);
+    }
+
+    myStateVersion++;
+    for (Configuration configuration : myCache.values()) {
+      configuration.updated(CFG_DEVICE);
     }
   }
 
@@ -458,10 +522,10 @@ public class ConfigurationManager implements Disposable {
       myTarget = target;
       if (target != null) {
         getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
+        myStateVersion++;
         for (Configuration configuration : myCache.values()) {
           configuration.updated(CFG_TARGET);
         }
-        myStateVersion++;
       }
     }
   }

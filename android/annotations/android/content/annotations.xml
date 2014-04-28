@@ -1,1664 +1,1000 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <item name="android.content.AbstractThreadedSyncAdapter void onSyncCanceled(java.lang.Thread) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.AsyncQueryHandler android.os.Handler createHandler(android.os.Looper) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.AsyncQueryHandler void handleMessage(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.AsyncQueryHandler.WorkerArgs result">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.AsyncQueryHandler.WorkerHandler WorkerHandler(android.os.Looper) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.AsyncQueryHandler.WorkerHandler void handleMessage(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.AsyncTaskLoader AsyncTaskLoader(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.AsyncTaskLoader void dump(java.lang.String, java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.BroadcastReceiver android.content.BroadcastReceiver.PendingResult goAsync()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.BroadcastReceiver android.os.Bundle getResultExtras(boolean)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.BroadcastReceiver android.os.IBinder peekService(android.content.Context, android.content.Intent)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.BroadcastReceiver android.os.IBinder peekService(android.content.Context, android.content.Intent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.BroadcastReceiver android.os.IBinder peekService(android.content.Context, android.content.Intent) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.BroadcastReceiver java.lang.String getResultData()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData ClipData(android.content.ClipData) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipData ClipData(android.content.ClipDescription, android.content.ClipData.Item) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipData ClipData(java.lang.CharSequence, java.lang.String[], android.content.ClipData.Item) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData android.content.ClipData newHtmlText(java.lang.CharSequence, java.lang.CharSequence, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData android.content.ClipData newIntent(java.lang.CharSequence, android.content.Intent)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData android.content.ClipData newPlainText(java.lang.CharSequence, java.lang.CharSequence)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData android.content.ClipData newRawUri(java.lang.CharSequence, android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData android.content.ClipData newUri(android.content.ContentResolver, java.lang.CharSequence, android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData android.content.ClipData newUri(android.content.ContentResolver, java.lang.CharSequence, android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData android.content.ClipData newUri(android.content.ContentResolver, java.lang.CharSequence, android.net.Uri) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipData void addItem(android.content.ClipData.Item) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipData.Item Item(java.lang.CharSequence, java.lang.String, android.content.Intent, android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipData.Item Item(java.lang.CharSequence, java.lang.String, android.content.Intent, android.net.Uri) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipData.Item android.content.Intent getIntent()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipData.Item android.net.Uri getUri()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipData.Item java.lang.CharSequence coerceToStyledText(android.content.Context)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData.Item java.lang.CharSequence coerceToStyledText(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipData.Item java.lang.CharSequence coerceToText(android.content.Context)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData.Item java.lang.CharSequence coerceToText(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipData.Item java.lang.CharSequence getText()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipData.Item java.lang.String coerceToHtmlText(android.content.Context)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipData.Item java.lang.String coerceToHtmlText(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipData.Item java.lang.String getHtmlText()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipDescription ClipDescription(android.content.ClipDescription) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipDescription ClipDescription(java.lang.CharSequence, java.lang.String[]) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipDescription boolean compareMimeTypes(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipDescription boolean hasMimeType(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipDescription java.lang.CharSequence getLabel()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipDescription java.lang.String getMimeType(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipDescription java.lang.String[] filterMimeTypes(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipDescription java.lang.String[] filterMimeTypes(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ClipDescription void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ClipboardManager android.content.ClipData getPrimaryClip()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipboardManager android.content.ClipDescription getPrimaryClipDescription()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ClipboardManager java.lang.CharSequence getText()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.Class&lt;?&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.Class&lt;?&gt;) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ComponentName ComponentName(android.content.Context, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName ComponentName(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ComponentName ComponentName(java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ComponentName ComponentName(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName android.content.ComponentName clone()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ComponentName android.content.ComponentName readFromParcel(android.os.Parcel)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName android.content.ComponentName readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ComponentName android.content.ComponentName unflattenFromString(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName android.content.ComponentName unflattenFromString(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName int compareTo(android.content.ComponentName) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName java.lang.String flattenToShortString()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName java.lang.String flattenToString()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ComponentName java.lang.String getClassName()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ComponentName java.lang.String getPackageName()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ComponentName java.lang.String getShortClassName()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName java.lang.String toShortString()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ComponentName void writeToParcel(android.content.ComponentName, android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName void writeToParcel(android.content.ComponentName, android.os.Parcel) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ComponentName void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProvider android.content.ContentProviderResult[] applyBatch(java.util.ArrayList&lt;android.content.ContentProviderOperation&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProvider android.content.Context getContext()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProvider android.content.res.AssetFileDescriptor openTypedAssetFile(android.net.Uri, java.lang.String, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProvider android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openFileHelper(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProvider android.os.ParcelFileDescriptor openPipeHelper(android.net.Uri, java.lang.String, android.os.Bundle, T, android.content.ContentProvider.PipeDataWriter&lt;T&gt;) 4">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProvider int bulkInsert(android.net.Uri, android.content.ContentValues[]) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProvider java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProvider void dump(java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProviderClient android.content.ContentProvider getLocalContentProvider()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openAssetFile(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderClient android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderClient android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 5">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderClient android.net.Uri insert(android.net.Uri, android.content.ContentValues)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderClient android.os.Bundle call(java.lang.String, java.lang.String, android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderClient java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation android.content.ContentProviderOperation.Builder newAssertQuery(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation android.content.ContentProviderOperation.Builder newDelete(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation android.content.ContentProviderOperation.Builder newInsert(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation android.content.ContentProviderOperation.Builder newUpdate(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation android.content.ContentProviderResult apply(android.content.ContentProvider, android.content.ContentProviderResult[], int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation android.content.ContentProviderResult apply(android.content.ContentProvider, android.content.ContentProviderResult[], int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProviderOperation android.content.ContentValues resolveValueBackReferences(android.content.ContentProviderResult[], int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderOperation android.net.Uri getUri()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderOperation java.lang.String[] resolveSelectionArgsBackReferences(android.content.ContentProviderResult[], int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation build()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withExpectedCount(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withSelection(java.lang.String, java.lang.String[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withSelection(java.lang.String, java.lang.String[]) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withSelectionBackReference(int, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withValue(java.lang.String, java.lang.Object)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withValue(java.lang.String, java.lang.Object) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withValueBackReference(java.lang.String, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withValueBackReferences(android.content.ContentValues)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withValues(android.content.ContentValues)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withValues(android.content.ContentValues) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderOperation.Builder android.content.ContentProviderOperation.Builder withYieldAllowed(boolean)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProviderResult ContentProviderResult(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderResult ContentProviderResult(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentProviderResult count">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentProviderResult uri">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentProviderResult void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentQueryMap ContentQueryMap(android.database.Cursor, java.lang.String, boolean, android.os.Handler) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentQueryMap java.util.Map&lt;java.lang.String,android.content.ContentValues&gt; getRows()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver ContentResolver(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireContentProviderClient(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.content.ContentProviderClient acquireContentProviderClient(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireContentProviderClient(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireUnstableContentProviderClient(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.content.ContentProviderClient acquireUnstableContentProviderClient(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver android.content.ContentProviderClient acquireUnstableContentProviderClient(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.content.SyncInfo getCurrentSync()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openAssetFileDescriptor(android.net.Uri, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.content.res.AssetFileDescriptor openTypedAssetFileDescriptor(android.net.Uri, java.lang.String, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String, android.os.CancellationSignal) 5">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.os.Bundle call(android.net.Uri, java.lang.String, java.lang.String, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver android.os.ParcelFileDescriptor openFileDescriptor(android.net.Uri, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver int bulkInsert(android.net.Uri, android.content.ContentValues[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver int delete(android.net.Uri, java.lang.String, java.lang.String[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver int update(android.net.Uri, android.content.ContentValues, java.lang.String, java.lang.String[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver java.io.InputStream openInputStream(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.io.InputStream openInputStream(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.io.OutputStream openOutputStream(android.net.Uri, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.lang.Object addStatusChangeListener(int, android.content.SyncStatusObserver)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver java.lang.Object addStatusChangeListener(int, android.content.SyncStatusObserver) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver java.lang.String getType(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.lang.String getType(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver java.lang.String[] getStreamTypes(android.net.Uri, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver java.util.List&lt;android.content.PeriodicSync&gt; getPeriodicSyncs(android.accounts.Account, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver java.util.List&lt;android.content.PeriodicSync&gt; getPeriodicSyncs(android.accounts.Account, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver void addPeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle, long) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver void addPeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle, long) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void addPeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle, long) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver void cancelSync(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void registerContentObserver(android.net.Uri, boolean, android.database.ContentObserver) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver void removePeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver void removePeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void removePeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver void removeStatusChangeListener(java.lang.Object) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void requestSync(android.accounts.Account, java.lang.String, android.os.Bundle) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentResolver void startSync(android.net.Uri, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentResolver void startSync(android.net.Uri, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void unregisterContentObserver(android.database.ContentObserver) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentResolver void validateSyncExtrasBundle(android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentUris android.net.Uri withAppendedId(android.net.Uri, long)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentUris android.net.Uri withAppendedId(android.net.Uri, long) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentUris android.net.Uri.Builder appendId(android.net.Uri.Builder, long)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentUris android.net.Uri.Builder appendId(android.net.Uri.Builder, long) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentUris long parseId(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentValues CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentValues ContentValues(android.content.ContentValues) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContentValues byte[] getAsByteArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.Boolean getAsBoolean(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.Byte getAsByte(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.Double getAsDouble(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.Float getAsFloat(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.Integer getAsInteger(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.Long getAsLong(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.Short getAsShort(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContentValues java.lang.String getAsString(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentValues java.util.Set&lt;java.lang.String&gt; keySet()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentValues java.util.Set&lt;java.util.Map.Entry&lt;java.lang.String,java.lang.Object&gt;&gt; valueSet()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentValues void putAll(android.content.ContentValues) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.ContentValues void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.ComponentName startService(android.content.Intent)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context android.content.Context createConfigurationContext(android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.Context createDisplayContext(android.view.Display) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.Context createPackageContext(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.CONTEXT_INCLUDE_CODE, android.content.Context.CONTEXT_IGNORE_SECURITY, android.content.Context.CONTEXT_RESTRICTED}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.CONTEXT_INCLUDE_CODE, android.content.Context.CONTEXT_IGNORE_SECURITY, android.content.Context.CONTEXT_RESTRICTED}" />
+      <val name="flag" val="true" />
     </annotation>
-  </item>
-  <item name="android.content.Context android.content.Context getApplicationContext()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
   </item>
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler) 3">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context android.content.SharedPreferences getSharedPreferences(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_MULTI_PROCESS}" />
-    </annotation>
-  </item>
-  <item name="android.content.Context android.content.pm.ApplicationInfo getApplicationInfo()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context android.content.pm.PackageManager getPackageManager()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context android.content.res.Resources.Theme getTheme()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[]) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{styleable}" />
-    </annotation>
+    <annotation name="android.support.annotation.StyleableRes" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int, int[]) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.content.res.TypedArray obtainStyledAttributes(int[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_ENABLE_WRITE_AHEAD_LOGGING}" />
-    </annotation>
-  </item>
-  <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_ENABLE_WRITE_AHEAD_LOGGING}" />
-    </annotation>
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler) 3">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context boolean bindService(android.content.Intent, android.content.ServiceConnection, int) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context boolean bindService(android.content.Intent, android.content.ServiceConnection, int) 2">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.BIND_AUTO_CREATE, android.content.Context.BIND_AUTO_CREATE, android.content.Context.BIND_DEBUG_UNBIND, android.content.Context.BIND_NOT_FOREGROUND, android.content.Context.BIND_ABOVE_CLIENT, android.content.Context.BIND_ALLOW_OOM_MANAGEMENT, android.content.Context.BIND_WAIVE_PRIORITY}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Context.BIND_AUTO_CREATE, android.content.Context.BIND_AUTO_CREATE, android.content.Context.BIND_DEBUG_UNBIND, android.content.Context.BIND_NOT_FOREGROUND, android.content.Context.BIND_ABOVE_CLIENT, android.content.Context.BIND_ALLOW_OOM_MANAGEMENT, android.content.Context.BIND_WAIVE_PRIORITY}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context boolean startInstrumentation(android.content.ComponentName, java.lang.String, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context boolean startInstrumentation(android.content.ComponentName, java.lang.String, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context boolean startInstrumentation(android.content.ComponentName, java.lang.String, android.os.Bundle) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context int checkCallingOrSelfPermission(java.lang.String)">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingOrSelfPermission(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context int checkCallingOrSelfUriPermission(android.net.Uri, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingPermission(java.lang.String)">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkCallingPermission(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context int checkCallingUriPermission(android.net.Uri, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context int checkPermission(java.lang.String, int, int)">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.PackageManager.PERMISSION_GRANTED, android.content.pm.PackageManager.PERMISSION_DENIED}" />
     </annotation>
   </item>
   <item name="android.content.Context int checkPermission(java.lang.String, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, int, int, int) 3">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context int checkUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int) 5">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
-    </annotation>
-  </item>
-  <item name="android.content.Context java.io.File getCacheDir()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context java.io.File getDir(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context java.io.File getExternalCacheDir()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context java.io.File getExternalFilesDir(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context java.io.File getExternalFilesDir(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context java.io.File getFilesDir()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context java.io.FileOutputStream openFileOutput(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_APPEND, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE}" />
-    </annotation>
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context java.lang.CharSequence getText(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{string}" />
-    </annotation>
-  </item>
-  <item name="android.content.Context java.lang.ClassLoader getClassLoader()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.content.Context java.lang.Object getSystemService(java.lang.String) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="stringValues" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE}" />
+    <annotation name="android.support.annotation.StringDef">
+      <val name="value" val="{android.content.Context.POWER_SERVICE, android.content.Context.WINDOW_SERVICE, android.content.Context.LAYOUT_INFLATER_SERVICE, android.content.Context.ACCOUNT_SERVICE, android.content.Context.ACTIVITY_SERVICE, android.content.Context.ALARM_SERVICE, android.content.Context.NOTIFICATION_SERVICE, android.content.Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, android.content.Context.KEYGUARD_SERVICE, android.content.Context.LOCATION_SERVICE, android.content.Context.SEARCH_SERVICE, android.content.Context.SENSOR_SERVICE, android.content.Context.STORAGE_SERVICE, android.content.Context.WALLPAPER_SERVICE, android.content.Context.VIBRATOR_SERVICE, android.content.Context.CONNECTIVITY_SERVICE, android.content.Context.WIFI_SERVICE, android.content.Context.WIFI_P2P_SERVICE, android.content.Context.NSD_SERVICE, android.content.Context.AUDIO_SERVICE, android.content.Context.MEDIA_ROUTER_SERVICE, android.content.Context.TELEPHONY_SERVICE, android.content.Context.CLIPBOARD_SERVICE, android.content.Context.INPUT_METHOD_SERVICE, android.content.Context.TEXT_SERVICES_MANAGER_SERVICE, android.content.Context.DROPBOX_SERVICE, android.content.Context.DEVICE_POLICY_SERVICE, android.content.Context.UI_MODE_SERVICE, android.content.Context.DOWNLOAD_SERVICE, android.content.Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, android.content.Context.USB_SERVICE, android.content.Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.PRINT_SERVICE}" />
     </annotation>
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Context java.lang.String getPackageCodePath()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Context java.lang.String getPackageResourcePath()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context java.lang.String getString(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{string}" />
-    </annotation>
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.content.Context java.lang.String getString(int, java.lang.Object...) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{string}" />
-    </annotation>
-  </item>
-  <item name="android.content.Context java.util.List&lt;android.content.RestrictionEntry&gt; getApplicationRestrictions()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.content.Context void enforceCallingOrSelfPermission(java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context void enforceCallingOrSelfPermission(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void enforceCallingOrSelfUriPermission(android.net.Uri, int, java.lang.String) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context void enforceCallingPermission(java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context void enforceCallingPermission(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void enforceCallingUriPermission(android.net.Uri, int, java.lang.String) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context void enforcePermission(java.lang.String, int, int, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context void enforcePermission(java.lang.String, int, int, java.lang.String) 3">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void enforceUriPermission(android.net.Uri, int, int, int, java.lang.String) 3">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context void enforceUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void enforceUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void enforceUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int, java.lang.String) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void enforceUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int, java.lang.String) 5">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context void enforceUriPermission(android.net.Uri, java.lang.String, java.lang.String, int, int, int, java.lang.String) 6">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void grantUriPermission(java.lang.String, android.net.Uri, int) 2">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context void revokeUriPermission(android.net.Uri, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION, android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Context void sendBroadcast(android.content.Intent, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 3">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 5">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcast(android.content.Intent, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 6">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 4">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 6">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, java.lang.String, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 7">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 4">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcast(android.content.Intent, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 5">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 3">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 5">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void sendStickyOrderedBroadcastAsUser(android.content.Intent, android.os.UserHandle, android.content.BroadcastReceiver, android.os.Handler, int, java.lang.String, android.os.Bundle) 6">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void setTheme(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{style}" />
-    </annotation>
+    <annotation name="android.support.annotation.StyleRes" />
   </item>
   <item name="android.content.Context void startActivity(android.content.Intent, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void startIntentSender(android.content.IntentSender, android.content.Intent, int, int, int, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.content.Context void unbindService(android.content.ServiceConnection) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.ContextWrapper android.content.ComponentName startService(android.content.Intent)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper android.content.Context getApplicationContext()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper android.content.Intent registerReceiver(android.content.BroadcastReceiver, android.content.IntentFilter, java.lang.String, android.os.Handler)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper android.content.SharedPreferences getSharedPreferences(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_MULTI_PROCESS}" />
-    </annotation>
-  </item>
-  <item name="android.content.ContextWrapper android.content.pm.ApplicationInfo getApplicationInfo()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper android.content.pm.PackageManager getPackageManager()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper android.content.res.Resources.Theme getTheme()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_ENABLE_WRITE_AHEAD_LOGGING}" />
-    </annotation>
-  </item>
-  <item name="android.content.ContextWrapper android.database.sqlite.SQLiteDatabase openOrCreateDatabase(java.lang.String, int, android.database.sqlite.SQLiteDatabase.CursorFactory, android.database.DatabaseErrorHandler) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE, android.content.Context.MODE_ENABLE_WRITE_AHEAD_LOGGING}" />
-    </annotation>
-  </item>
-  <item name="android.content.ContextWrapper java.io.File getCacheDir()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper java.io.File getDir(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE}" />
-    </annotation>
-  </item>
-  <item name="android.content.ContextWrapper java.io.File getExternalCacheDir()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper java.io.File getExternalFilesDir(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper java.io.File getFilesDir()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper java.io.FileOutputStream openFileOutput(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.content.Context.MODE_PRIVATE, android.content.Context.MODE_APPEND, android.content.Context.MODE_WORLD_READABLE, android.content.Context.MODE_WORLD_WRITEABLE}" />
-    </annotation>
-  </item>
-  <item name="android.content.ContextWrapper java.lang.ClassLoader getClassLoader()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper java.lang.String getPackageCodePath()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.ContextWrapper java.lang.String getPackageResourcePath()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.CursorLoader void deliverResult(android.database.Cursor) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.CursorLoader void dump(java.lang.String, java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.CursorLoader void onCanceled(android.database.Cursor) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Entity java.util.ArrayList&lt;android.content.Entity.NamedContentValues&gt; getSubValues()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent Intent(android.content.Intent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent T getParcelableExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent android.content.ComponentName resolveActivity(android.content.pm.PackageManager)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.ComponentName resolveActivity(android.content.pm.PackageManager) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent addCategory(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent addCategory(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent addFlags(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent cloneFilter()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent createChooser(android.content.Intent, java.lang.CharSequence)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent createChooser(android.content.Intent, java.lang.CharSequence) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent createChooser(android.content.Intent, java.lang.CharSequence) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent android.content.Intent getIntent(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent getIntent(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent getIntentOld(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent getIntentOld(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent getSelector()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent makeMainActivity(android.content.ComponentName)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent makeMainSelectorActivity(java.lang.String, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent makeMainSelectorActivity(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent makeRestartActivityTask(android.content.ComponentName)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent parseIntent(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent parseIntent(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent parseIntent(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent parseIntent(android.content.res.Resources, org.xmlpull.v1.XmlPullParser, android.util.AttributeSet) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent parseUri(java.lang.String, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent parseUri(java.lang.String, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putCharSequenceArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.CharSequence&gt;)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, android.os.Parcelable)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, android.os.Parcelable[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, boolean)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, boolean[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, byte)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, byte[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, char)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, char[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, double)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, double[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, float[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, int[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.io.Serializable)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.CharSequence)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.CharSequence[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, java.lang.String[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, long)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, long[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, short)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtra(java.lang.String, short[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtras(android.content.Intent)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtras(android.content.Intent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtras(android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putExtras(android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putIntegerArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.Integer&gt;)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent putParcelableArrayListExtra(java.lang.String, java.util.ArrayList&lt;?extendsandroid.os.Parcelable&gt;)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent putStringArrayListExtra(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent replaceExtras(android.content.Intent)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent replaceExtras(android.content.Intent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent replaceExtras(android.os.Bundle)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent replaceExtras(android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setAction(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent setAction(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setClass(android.content.Context, java.lang.Class&lt;?&gt;)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setClassName(android.content.Context, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setClassName(java.lang.String, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setComponent(android.content.ComponentName)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setData(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setDataAndNormalize(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setDataAndNormalize(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setDataAndType(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setDataAndTypeAndNormalize(android.net.Uri, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setDataAndTypeAndNormalize(android.net.Uri, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setFlags(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setPackage(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.Intent setPackage(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setType(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.Intent setTypeAndNormalize(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.content.pm.ActivityInfo resolveActivityInfo(android.content.pm.PackageManager, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent android.content.pm.ActivityInfo resolveActivityInfo(android.content.pm.PackageManager, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent android.graphics.Rect getSourceBounds()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent android.net.Uri getData()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent android.os.Bundle getBundleExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent android.os.Bundle getExtras()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent android.os.Parcelable[] getParcelableArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent boolean filterEquals(android.content.Intent) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent boolean[] getBooleanArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent byte[] getByteArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent char[] getCharArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent double[] getDoubleArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent float[] getFloatArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent int fillIn(android.content.Intent, int)">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FILL_IN_ACTION, android.content.Intent.FILL_IN_DATA, android.content.Intent.FILL_IN_CATEGORIES, android.content.Intent.FILL_IN_COMPONENT, android.content.Intent.FILL_IN_PACKAGE, android.content.Intent.FILL_IN_SOURCE_BOUNDS, android.content.Intent.FILL_IN_SELECTOR, android.content.Intent.FILL_IN_CLIP_DATA}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FILL_IN_ACTION, android.content.Intent.FILL_IN_DATA, android.content.Intent.FILL_IN_CATEGORIES, android.content.Intent.FILL_IN_COMPONENT, android.content.Intent.FILL_IN_PACKAGE, android.content.Intent.FILL_IN_SOURCE_BOUNDS, android.content.Intent.FILL_IN_SELECTOR, android.content.Intent.FILL_IN_CLIP_DATA}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.content.Intent int fillIn(android.content.Intent, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent int fillIn(android.content.Intent, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.content.Intent.FILL_IN_ACTION, android.content.Intent.FILL_IN_DATA, android.content.Intent.FILL_IN_CATEGORIES, android.content.Intent.FILL_IN_COMPONENT, android.content.Intent.FILL_IN_PACKAGE, android.content.Intent.FILL_IN_SOURCE_BOUNDS, android.content.Intent.FILL_IN_SELECTOR, android.content.Intent.FILL_IN_CLIP_DATA}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.Intent.FILL_IN_ACTION, android.content.Intent.FILL_IN_DATA, android.content.Intent.FILL_IN_CATEGORIES, android.content.Intent.FILL_IN_COMPONENT, android.content.Intent.FILL_IN_PACKAGE, android.content.Intent.FILL_IN_SOURCE_BOUNDS, android.content.Intent.FILL_IN_SELECTOR, android.content.Intent.FILL_IN_CLIP_DATA}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
-  <item name="android.content.Intent int[] getIntArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.io.Serializable getSerializableExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.CharSequence getCharSequenceExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.CharSequence[] getCharSequenceArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.content.Intent java.lang.Object clone()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent java.lang.String getAction()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String getDataString()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String getPackage()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String getScheme()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String getStringExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String getType()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String normalizeMimeType(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String normalizeMimeType(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.lang.String resolveType(android.content.ContentResolver)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent java.lang.String resolveType(android.content.ContentResolver) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent java.lang.String resolveType(android.content.Context)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent java.lang.String resolveType(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent java.lang.String resolveTypeIfNeeded(android.content.ContentResolver)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent java.lang.String resolveTypeIfNeeded(android.content.ContentResolver) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent java.lang.String toURI()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent java.lang.String toUri(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent java.lang.String[] getStringArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.util.ArrayList&lt;T&gt; getParcelableArrayListExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.util.ArrayList&lt;java.lang.CharSequence&gt; getCharSequenceArrayListExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.util.ArrayList&lt;java.lang.Integer&gt; getIntegerArrayListExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.util.ArrayList&lt;java.lang.String&gt; getStringArrayListExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent java.util.Set&lt;java.lang.String&gt; getCategories()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent long[] getLongArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent short[] getShortArrayExtra(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent void readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent void setSelector(android.content.Intent) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.Intent void setSourceBounds(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent.FilterComparison FilterComparison(android.content.Intent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent.FilterComparison android.content.Intent getIntent()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent.ShortcutIconResource android.content.Intent.ShortcutIconResource fromContext(android.content.Context, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent.ShortcutIconResource android.content.Intent.ShortcutIconResource fromContext(android.content.Context, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.Intent.ShortcutIconResource packageName">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Intent.ShortcutIconResource void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter IntentFilter(android.content.IntentFilter) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter IntentFilter(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter IntentFilter(java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter IntentFilter(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter android.content.IntentFilter create(java.lang.String, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter android.content.IntentFilter create(java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter android.content.IntentFilter create(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentFilter boolean hasAction(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter boolean hasDataAuthority(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter int match(android.content.ContentResolver, android.content.Intent, boolean, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter int match(android.content.ContentResolver, android.content.Intent, boolean, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentFilter int match(java.lang.String, java.lang.String, java.lang.String, android.net.Uri, java.util.Set&lt;java.lang.String&gt;, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter int match(java.lang.String, java.lang.String, java.lang.String, android.net.Uri, java.util.Set&lt;java.lang.String&gt;, java.lang.String) 4">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter int matchData(java.lang.String, java.lang.String, android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter int matchData(java.lang.String, java.lang.String, android.net.Uri) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter int matchData(java.lang.String, java.lang.String, android.net.Uri) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter int matchDataAuthority(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentFilter java.lang.String matchCategories(java.util.Set&lt;java.lang.String&gt;)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter java.lang.String matchCategories(java.util.Set&lt;java.lang.String&gt;) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter java.util.Iterator&lt;android.content.IntentFilter.AuthorityEntry&gt; authoritiesIterator()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter java.util.Iterator&lt;android.os.PatternMatcher&gt; pathsIterator()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter java.util.Iterator&lt;java.lang.String&gt; actionsIterator()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter java.util.Iterator&lt;java.lang.String&gt; categoriesIterator()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter java.util.Iterator&lt;java.lang.String&gt; schemesIterator()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentFilter java.util.Iterator&lt;java.lang.String&gt; typesIterator()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void addAction(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void addCategory(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void addDataAuthority(java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentFilter void addDataAuthority(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void addDataPath(java.lang.String, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void addDataScheme(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void addDataType(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void readFromXml(org.xmlpull.v1.XmlPullParser) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter void writeToXml(org.xmlpull.v1.XmlSerializer) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter.AuthorityEntry AuthorityEntry(java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentFilter.AuthorityEntry AuthorityEntry(java.lang.String, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentFilter.AuthorityEntry int match(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentSender CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentSender android.content.IntentSender readIntentSenderOrNullFromParcel(android.os.Parcel)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentSender android.content.IntentSender readIntentSenderOrNullFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentSender android.os.UserHandle getCreatorUserHandle()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentSender java.lang.String getCreatorPackage()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentSender java.lang.String getTargetPackage()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentSender void sendIntent(android.content.Context, int, android.content.Intent, android.content.IntentSender.OnFinished, android.os.Handler) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentSender void sendIntent(android.content.Context, int, android.content.Intent, android.content.IntentSender.OnFinished, android.os.Handler, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.IntentSender void sendIntent(android.content.Context, int, android.content.Intent, android.content.IntentSender.OnFinished, android.os.Handler, java.lang.String) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentSender void sendIntent(android.content.Context, int, android.content.Intent, android.content.IntentSender.OnFinished, android.os.Handler, java.lang.String) 3">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.IntentSender void writeIntentSenderOrNullToParcel(android.content.IntentSender, android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentSender void writeIntentSenderOrNullToParcel(android.content.IntentSender, android.os.Parcel) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.IntentSender void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Loader Loader(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Loader java.lang.String dataToString(D)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.Loader void dump(java.lang.String, java.io.FileDescriptor, java.io.PrintWriter, java.lang.String[]) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.PeriodicSync PeriodicSync(android.accounts.Account, java.lang.String, android.os.Bundle, long) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.PeriodicSync extras">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.PeriodicSync void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.RestrictionEntry void setChoiceEntries(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.ArrayRes" />
+  </item>
+  <item name="android.content.RestrictionEntry void setChoiceValues(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.ArrayRes" />
   </item>
   <item name="android.content.SearchRecentSuggestionsProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.SearchRecentSuggestionsProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.SearchRecentSuggestionsProvider android.database.Cursor query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.SearchRecentSuggestionsProvider android.net.Uri insert(android.net.Uri, android.content.ContentValues)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SearchRecentSuggestionsProvider android.net.Uri insert(android.net.Uri, android.content.ContentValues) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SearchRecentSuggestionsProvider int delete(android.net.Uri, java.lang.String, java.lang.String[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SearchRecentSuggestionsProvider java.lang.String getType(android.net.Uri)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SearchRecentSuggestionsProvider java.lang.String getType(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.SharedPreferences java.util.Map&lt;java.lang.String,?&gt; getAll()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncAdapterType SyncAdapterType(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncAdapterType android.content.SyncAdapterType newKey(java.lang.String, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.SyncAdapterType java.lang.String getSettingsActivity()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncAdapterType void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.SyncContext android.os.IBinder getSyncContextBinder()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncResult ALREADY_IN_PROGRESS">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncResult java.lang.String toDebugString()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncResult stats">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncResult void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncStats SyncStats(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.SyncStats void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.UriMatcher int match(android.net.Uri) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.UriMatcher void addURI(java.lang.String, java.lang.String, int) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

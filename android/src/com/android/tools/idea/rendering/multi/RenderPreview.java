@@ -25,22 +25,20 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.SdkUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.PairFunction;
 import com.intellij.util.ui.UIUtil;
@@ -540,13 +538,7 @@ public class RenderPreview implements Disposable {
                                         ? myAlternateConfiguration : myConfiguration;
     PsiFile psiFile;
     if (myAlternateInput != null) {
-      psiFile = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-        @Nullable
-        @Override
-        public PsiFile compute() {
-          return PsiManager.getInstance(module.getProject()).findFile(myAlternateInput);
-        }
-      });
+      psiFile = AndroidPsiUtils.getPsiFileSafely(module.getProject(), myAlternateInput);
     } else {
       psiFile = myRenderContext.getXmlFile();
     }
@@ -593,9 +585,9 @@ public class RenderPreview implements Disposable {
       }
 
       if (render.isSuccess()) {
-        ScalableImage scalableImage = result.getImage();
-        if (scalableImage != null) {
-          myFullImage = scalableImage.getOriginalImage();
+        RenderedImage renderedImage = result.getImage();
+        if (renderedImage != null) {
+          myFullImage = renderedImage.getOriginalImage();
         }
       }
 

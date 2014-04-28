@@ -19,9 +19,9 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.google.common.base.Stopwatch;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -63,9 +63,6 @@ import java.util.Iterator;
  * which looks up the corresponding PSI element and provides the necessary data.
  */
 public class LombokPsiConverter {
-  /** Whether to time initialization of each PSI and print some logging data */
-  private static final boolean BENCHMARK = false;
-
   /**
    * If true, insert fully qualified types even when not
    * present in the source, to make lint not have to worry
@@ -199,22 +196,16 @@ public class LombokPsiConverter {
    * @param javaFile the file to be converted
    * @return a corresponding Lombok AST tree
    */
-  @NonNull
+  @Nullable
   public static CompilationUnit convert(@NonNull PsiJavaFile javaFile) {
     try {
-      @SuppressWarnings("UnusedAssignment")
-      Stopwatch timer;
-      if (BENCHMARK) {
-        timer = new Stopwatch();
-        timer.start();
-      }
-      CompilationUnit compilationUnit = toCompilationUnit(javaFile);
-      if (BENCHMARK) {
-        timer.stop();
-        System.out.println("Creating PSI for " + javaFile.getName() + " took " + timer.elapsedMillis() + "ms ("  + timer.toString() + ")");
-
-      }
-      return compilationUnit;
+      return toCompilationUnit(javaFile);
+    } catch (ProcessCanceledException e) {
+      // Ignore: common occurrence, e.g. we're running lint as part of an editor background
+      // and while lint is running the user switches files: the inspections framework will
+      // then cancel the process from within the PSI machinery (which asks the progress manager
+      // periodically whether the operation is cancelled) and we find ourselves here
+      return null;
     } catch (Exception e) {
       String path = javaFile.getName();
       VirtualFile virtualFile = javaFile.getVirtualFile();

@@ -17,7 +17,6 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.ide.common.xml.XmlFormatPreferences;
 import com.android.ide.common.xml.XmlFormatStyle;
@@ -35,14 +34,11 @@ import com.android.utils.StdLogger;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
-import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -69,10 +65,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER;
-import static com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER;
 import static com.android.tools.idea.templates.Parameter.Constraint;
-import static com.android.tools.idea.templates.Parameter.existsResourceFile;
 import static com.android.tools.idea.templates.TemplateManager.getTemplateRootFolder;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateUtils.readTextFile;
@@ -159,7 +152,10 @@ public class Template {
   public static final String ATTR_AT = "at";
   public static final String ATTR_CONSTRAINTS = "constraints";
   public static final String ATTR_VISIBILITY = "visibility";
-
+  public static final String ATTR_SOURCE_URL = "href";
+  public static final String ATTR_TEMPLATE_MERGE_STRATEGY = "templateMergeStrategy";
+  public static final String VALUE_MERGE_STRATEGY_REPLACE = "replace";
+  public static final String VALUE_MERGE_STRATEGY_PRESERVE = "preserve";
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
@@ -186,6 +182,7 @@ public class Template {
   private final MyTemplateLoader myLoader;
 
   private TemplateMetadata myMetadata;
+  private Project myProject;
 
   /** Creates a new {@link Template} for the given root path */
   @NotNull
@@ -225,11 +222,26 @@ public class Template {
    */
   @NotNull
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
+    render(outputRootPath, moduleRootPath, args, null);
+  }
+
+  /**
+   * Executes the template, rendering it to output files under the given module root directory.
+   *
+   * @param outputRootPath the filesystem directory that represents the root directory where the template will be expanded.
+   * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
+   * @param args the key/value pairs that are fed into the input parameters for the template.
+   * @param project the target project of this template.
+   */
+  @NotNull
+  public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args,
+                     @Nullable Project project) {
     assert outputRootPath.isDirectory() : outputRootPath;
 
     myFilesToOpen.clear();
     myOutputRoot = outputRootPath;
     myModuleRoot = moduleRootPath;
+    myProject = project;
 
     Map<String, Object> paramMap = createParameterMap(args);
     enforceParameterTypes(getMetadata(), args);
@@ -243,7 +255,11 @@ public class Template {
     if (paramMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
       List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
       if (dependencyList.size() > 0) {
-        mergeDependenciesIntoFile(dependencyList, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+        try {
+          mergeDependenciesIntoFile(freemarker, paramMap, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
       }
     }
   }
@@ -541,7 +557,9 @@ public class Template {
 
     String contents;
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
-      contents = mergeGradleSettingsFile(sourceText, targetText, freemarker, paramMap);
+      contents = mergeGradleSettingsFile(sourceText, targetText);
+    } else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
+      contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject);
     } else if (hasExtension(to, DOT_XML)) {
       contents = mergeXml(sourceText, targetText, to, paramMap);
     } else {
@@ -660,12 +678,19 @@ public class Template {
 
       for (Node node : nodes) {
         if (node.getNodeType() == Node.ELEMENT_NODE) {
-          Element element = (Element) node;
+          // Chances are, we will put the node from the clean template into the original document, so import it.
+          Element element = (Element) currentDocument.importNode(node, true);
+          String mergeStrategy = element.getAttribute(ATTR_TEMPLATE_MERGE_STRATEGY);
+          // Remove the "templateMergeStrategy" attribute from the final output.
+          element.removeAttribute(ATTR_TEMPLATE_MERGE_STRATEGY);
+
           String name = getResourceId(element);
           Node replace = name != null ? old.get(name) : null;
           if (replace != null) {
-            // There is an existing item with the same id: just replace it
-            // ACTUALLY -- let's NOT change it.
+            // There is an existing item with the same id. Either replace it
+            // or preserve it depending on the "templateMergeStrategy" attribute.
+            // If that attribute does not exist, default to preserving it.
+
             // Let's say you've used the activity wizard once, and it
             // emits some configuration parameter as a resource that
             // it depends on, say "padding". Then the user goes and
@@ -673,16 +698,17 @@ public class Template {
             // Now running the wizard a *second* time for some new activity,
             // we should NOT go and set the value back to the template's
             // default!
-            //root.replaceChild(node, replace);
-
-            // ... ON THE OTHER HAND... What if it's a parameter class
-            // (where the template rewrites a common attribute). Here it's
-            // really confusing if the new parameter is not set. This is
-            // really an error in the template, since we shouldn't have conflicts
-            // like that, but we need to do something to help track this down.
-            LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
+            if (VALUE_MERGE_STRATEGY_REPLACE.equals(mergeStrategy)) {
+              root.replaceChild(element, replace);
+              modified = true;
+            } else if (VALUE_MERGE_STRATEGY_PRESERVE.equals(mergeStrategy)) {
+              // Preserve the existing value.
+            } else {
+              // No explicit directive given, preserve the original value by default.
+              LOG.warn("Warning: Ignoring name conflict in resource file for name " + name);
+            }
           } else {
-            root.appendChild(currentDocument.importNode(node, true));
+            root.appendChild(element);
             modified = true;
           }
         }
@@ -723,9 +749,7 @@ public class Template {
   }
 
   private String mergeGradleSettingsFile(@NotNull String source,
-                                         @NotNull String dest,
-                                         @NotNull final Configuration freemarker,
-                                         @NotNull final Map<String, Object> paramMap) throws IOException, TemplateException {
+                                         @NotNull String dest) throws IOException, TemplateException {
     // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
     // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
     // support requires a project, which we don't necessarily have when instantiating a template.
@@ -750,142 +774,26 @@ public class Template {
 
   /**
    * Merge the given dependency URLs into the given build.gradle file
-   * @param dependencyList the list of URLs to merge
+   * @param paramMap the parameters to merge
    * @param gradleBuildFile the build.gradle file which will be written with the merged dependencies
    */
-  private void mergeDependenciesIntoFile(List<String> dependencyList, File gradleBuildFile) {
-    Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
-
-    // First, get the contents of the gradle file.
-    String contents = StringUtil.notNullize(readTextFile(gradleBuildFile, false /* Don't log if not exists */));
-
-    // Now, look for a (top-level) dependency block
-    int braceCount = 0;
-    boolean inDependencyBlock = false;
-    int dependencyBlockStart = 0;
-    int dependencyBlockEnd = 0;
-    for (int i = 0; i < contents.length(); ++i) {
-      if (contents.charAt(i) == '{') {
-        if (inDependencyBlock && braceCount == 0) {
-          dependencyBlockStart = i + 1;
-        }
-        braceCount++;
-      } else if (contents.charAt(i) == '}') {
-        braceCount--;
-        if (inDependencyBlock && braceCount == 0) {
-          dependencyBlockEnd = i;
-          inDependencyBlock = false;
-        }
-      } else if (braceCount == 0 && contents.length() > i + BLOCK_DEPENDENCIES.length() &&
-                 contents.substring(i, i + BLOCK_DEPENDENCIES.length()).equals(BLOCK_DEPENDENCIES)) {
-        inDependencyBlock = true;
-      }
+  private void mergeDependenciesIntoFile(@NotNull final Configuration freemarker, @NotNull Map<String, Object> paramMap,
+                                         @NotNull File gradleBuildFile) throws IOException, TemplateException {
+    File templateFile = new File(TemplateManager.getTemplateRootFolder().getPath(),
+                                 FileUtil.join("gradle", "utils", "dependencies.gradle.ftl"));
+    myLoader.setTemplateFile(templateFile);
+    String contents = processFreemarkerTemplate(freemarker, paramMap, templateFile.getName());
+    String destinationContents;
+    if (gradleBuildFile.exists()) {
+      destinationContents = TemplateUtils.readTextFile(gradleBuildFile);
+    } else {
+      destinationContents = "";
     }
-
-    String dependencyBlock = contents.substring(dependencyBlockStart, dependencyBlockEnd);
-
-    // If we have dependencies already in the file, load those up
-    if (!dependencyBlock.isEmpty()) {
-      // Load up dependency URLs which are already present.
-      Matcher matcher = COMPILE_PATTERN.matcher(dependencyBlock);
-      StringBuffer blockSb = new StringBuffer();
-      while (matcher.find()) {
-        GradleCoordinate coord = GradleCoordinate.parseCoordinateString(matcher.group(1));
-        if (coord != null) {
-          dependencies.put(coord.getId(), coord);
-          matcher.appendReplacement(blockSb, "");
-        }
-      }
-      matcher.appendTail(blockSb);
-      dependencyBlock = blockSb.toString().trim();
-      // If it's non-empty, we want to put the leading spaces back
-      if (!dependencyBlock.isEmpty()) {
-        dependencyBlock = INDENT + dependencyBlock;
-      }
+    if (destinationContents == null) {
+      destinationContents = "";
     }
-
-    // Check to see if all our dependencies are satisfied. If so, we're done
-    boolean needsUpdate = false;
-
-    // Now load the new ones in
-    for (String coordinateString : dependencyList) {
-      GradleCoordinate coord = GradleCoordinate.parseCoordinateString(coordinateString);
-      if (coord != null) {
-        Collection<GradleCoordinate> existingDependencies = dependencies.get(coord.getId());
-        if (existingDependencies == null || !existingDependencies.iterator().hasNext() ||
-            COMPARE_PLUS_HIGHER.compare(existingDependencies.iterator().next(), coord) < 0) {
-          dependencies.put(coord.getId(), coord);
-          needsUpdate = true;
-        }
-      }
-    }
-
-    if (!needsUpdate) {
-      return;
-    }
-
-    List<String> unresolvedDependencies = Lists.newLinkedList();
-
-    // Now write the combined ones to a string
-    StringBuilder sb = new StringBuilder();
-    sb.append(contents.substring(0, dependencyBlockStart));
-    String repositoryName;
-    for (String key : dependencies.keySet()) {
-      GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
-
-      boolean isOurRepository = RepositoryUrlManager.supports(highest.getArtifactId());
-
-      if (!isOurRepository) {
-        sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
-      } else {
-        RepositoryUrlManager urlManager = RepositoryUrlManager.get();
-        GradleCoordinate available = GradleCoordinate.parseCoordinateString(
-          urlManager.getLibraryCoordinate(highest.getArtifactId()));
-
-        File archiveFile = urlManager.getArchiveForCoordinate(highest);
-
-        if (archiveFile != null && archiveFile.exists() ||
-            (available != null && highest.acceptsGreaterRevisions() && COMPARE_PLUS_LOWER.compare(available, highest) > 0)) {
-          sb.append(String.format("\n%1$scompile '%2$s'", INDENT, highest));
-        } else {
-          // Get the name of the repository necessary for this package
-          repositoryName = highest.getArtifactId().equals(RepositoryUrlManager.PLAY_SERVICES_ID) ? "Google" : "Support";
-          // Add in a commented-out dependency with instructions.
-          sb.append(String.format(
-            "\n\n%3$s// You must install or update the %1$s Repository through the SDK manager to use this dependency." +
-            "\n%3$s// The %1$s Repository (separate from the corresponding library) can be found in the Extras category.\n%3$s// compile '%2$s'",
-            repositoryName, highest, INDENT));
-          unresolvedDependencies.add(highest.toString());
-        }
-      }
-    }
-    sb.append('\n');
-    if (!dependencyBlock.isEmpty()) {
-      // Add back in any dependencies we didn't understand
-      sb.append(dependencyBlock);
-      sb.append('\n');
-    }
-    sb.append(contents.substring(dependencyBlockEnd));
-
-    try {
-      FileUtil.createParentDirs(gradleBuildFile);
-      writeFile(sb.toString(), gradleBuildFile);
-    }
-    catch (IOException e) {
-      LOG.warn(e);
-    }
-
-    // Display an error message if we had to blank out some dependencies which weren't available
-    if (!unresolvedDependencies.isEmpty()) {
-      sb = new StringBuilder();
-      sb.append("The following dependencies were not resolvable. See your build.gradle file for details.\n");
-      for (String s : unresolvedDependencies) {
-        sb.append("\t- ");
-        sb.append(s);
-        sb.append('\n');
-      }
-      Messages.showErrorDialog(sb.toString(), "Unresolvable Dependencies Found");
-    }
+    String result = GradleFileMerger.mergeGradleFiles(contents, destinationContents, myProject);
+    writeFile(result, gradleBuildFile);
   }
 
   /** Instantiates the given template file into the given output file */
@@ -1054,7 +962,7 @@ public class Template {
         if (to.getParentFile() != null && !to.getParentFile().exists()) {
           to.getParentFile().mkdirs();
         }
-        vf = LocalFileSystem.getInstance().findFileByIoFile(to.getParentFile()).createChildData(this, to.getName());
+        vf = VfsUtil.findFileByIoFile(to.getParentFile(), true).createChildData(this, to.getName());
       } catch (NullPointerException e) {
         throw new IOException("Unable to create file " + to.getAbsolutePath());
       }

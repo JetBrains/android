@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.hardware.display.DisplayManager android.view.Display getDisplay(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.hardware.display.DisplayManager android.view.Display[] getDisplays()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.display.DisplayManager android.view.Display[] getDisplays(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.hardware.display.DisplayManager android.view.Display[] getDisplays(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

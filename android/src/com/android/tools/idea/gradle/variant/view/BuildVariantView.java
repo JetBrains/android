@@ -18,7 +18,8 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.variant.SelectionConflict;
+import com.android.tools.idea.gradle.variant.Conflict;
+import com.android.tools.idea.gradle.variant.ConflictResolution;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -47,15 +48,14 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,7 +75,7 @@ public class BuildVariantView {
   private JPanel myErrorPanel;
 
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
-  private final List<String> myConflictSources = Lists.newArrayList();
+  private final List<Conflict> myConflicts = Lists.newArrayList();
 
   public BuildVariantView(@NotNull Project project) {
     myProject = project;
@@ -211,9 +211,9 @@ public class BuildVariantView {
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
-  public void updateNotification(ImmutableList<SelectionConflict> conflicts) {
+  public void updateNotification(List<Conflict> conflicts) {
     myErrorPanel.removeAll();
-    myConflictSources.clear();
+    myConflicts.clear();
 
     if (!conflicts.isEmpty()) {
       EditorNotificationPanel notification = new EditorNotificationPanel();
@@ -227,14 +227,13 @@ public class BuildVariantView {
       myErrorPanel.add(notification);
     }
 
-    for (SelectionConflict conflict : conflicts) {
-      myConflictSources.add(conflict.getSource().getName());
-    }
+    myConflicts.addAll(conflicts);
   }
 
   public void selectAndScrollTo(@NotNull Module module) {
     String name = module.getName();
-    for (int row = 0; row < myVariantsTable.getRowCount() - 1; row++) {
+    int rowCount = myVariantsTable.getRowCount();
+    for (int row = 0; row < rowCount; row++) {
       if (name.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
         myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
         myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(MODULE_COLUMN_INDEX, MODULE_COLUMN_INDEX);
@@ -290,6 +289,7 @@ public class BuildVariantView {
     private final List<TableCellEditor> myCellEditors = Lists.newArrayList();
 
     BuildVariantTable() {
+      super(new BuildVariantTableModel(Collections.<String[]>emptyList()));
       setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
@@ -301,16 +301,23 @@ public class BuildVariantView {
           Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
           if (c instanceof JComponent) {
             JComponent component = (JComponent)c;
-            boolean hasConflict = false;
-            for (String source : myConflictSources) {
+            Conflict conflictFound = null;
+            for (Conflict conflict : myConflicts) {
               Object moduleName = table.getValueAt(row, MODULE_COLUMN_INDEX);
-              if (source.equals(moduleName)) {
-                hasConflict = true;
+              if (conflict.getSource().getName().equals(moduleName)) {
+                conflictFound = conflict;
                 break;
               }
             }
-            Color background = hasConflict ? MessageType.ERROR.getPopupBackground() : JBColor.background();
+
+            Color background = isSelected ? BuildVariantTable.this.getSelectionBackground() : BuildVariantTable.this.getBackground();
+            if (conflictFound != null) {
+              background = MessageType.ERROR.getPopupBackground();
+            }
             component.setBackground(background);
+
+            String toolTip = conflictFound != null? ConflictResolution.getText(conflictFound) : null;
+            component.setToolTipText(toolTip);
 
             // add some padding to table cells. It is hard to read text of combo box.
             component.setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));

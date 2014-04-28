@@ -254,7 +254,7 @@ public class LayoutMetadata {
         binding.addItem(new DataBindingItem(layout, isFramework, 1));
       }
       else if (viewObject != null) {
-        String listFqcn = ProjectCallback.getListAdapterViewFqcn(viewObject.getClass());
+        String listFqcn = LayoutlibCallback.getListAdapterViewFqcn(viewObject.getClass());
         if (listFqcn != null) {
           if (listFqcn.endsWith(EXPANDABLE_LIST_VIEW)) {
             binding.addItem(new DataBindingItem(DEFAULT_EXPANDABLE_LIST_ITEM, true /* isFramework */, 1));

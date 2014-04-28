@@ -42,7 +42,6 @@ import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -290,6 +289,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       @Override
       public void run() {
         myToolWindowReady = true;
+        processFileEditorChange(getActiveLayoutXmlEditor());
       }
     });
   }
@@ -372,6 +372,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
    * A listener on {@link #myPendingShowComponent} which listens for the most recently opened file editor to start showing
    */
   private HierarchyListener myHierarchyListener;
+  private boolean myRenderImmediately;
 
   private void processFileEditorChange(@Nullable final TextEditor newEditor) {
     if (myPendingShowComponent != null) {
@@ -386,6 +387,9 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         if (!myToolWindowReady || myToolWindowDisposed) {
           return;
         }
+        boolean renderImmediately = myRenderImmediately;
+        myRenderImmediately = false;
+
         final Editor activeEditor = newEditor != null ? newEditor.getEditor() : null;
 
         if (myToolWindow == null) {
@@ -480,6 +484,9 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         if (toRender) {
           boolean requestedRender = render();
           if (requestedRender) {
+            if (renderImmediately) {
+              getRenderingQueue().sendFlush();
+            }
             AndroidLayoutPreviewToolWindowForm toolWindowForm = myToolWindowForm;
             synchronized (PROGRESS_LOCK) {
               if (myCurrentIndicator == null) {
@@ -539,6 +546,10 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       }
     });
     return true;
+  }
+
+  public void flush() {
+    getRenderingQueue().sendFlush();
   }
 
   private void doRender(@NotNull final AndroidFacet facet, @NotNull final PsiFile psiFile) {
@@ -638,6 +649,24 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
 
   public static AndroidLayoutPreviewToolWindowManager getInstance(Project project) {
     return project.getComponent(AndroidLayoutPreviewToolWindowManager.class);
+  }
+
+  /**
+   * Manually notify the manager that an editor is about to be shown; typically done right after
+   * switching to a file to show an update as soon as possible. This is used when we know
+   * the editor is about to be shown (because we've requested it). We don't have a way to
+   * add a listener which is called after the requested file has been opened, so instead we
+   * simply anticipate the change by calling this method first; the subsequent file open will
+   * then become a no-op since the file doesn't change.
+   */
+  public void notifyFileShown(@NotNull TextEditor editor, boolean renderImmediately) {
+    if (renderImmediately) {
+      myRenderImmediately = true;
+    }
+    processFileEditorChange(editor);
+    if (renderImmediately) {
+      myToolWindowUpdateQueue.sendFlush();
+    }
   }
 
   private class MyAndroidPlatformListener extends ModuleRootAdapter {

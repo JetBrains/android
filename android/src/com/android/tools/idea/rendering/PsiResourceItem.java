@@ -29,10 +29,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.xml.XmlElementType;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.psi.xml.XmlText;
-import com.intellij.psi.xml.XmlTokenType;
+import com.intellij.psi.xml.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -181,6 +178,9 @@ class PsiResourceItem extends ResourceItem {
           }
         });
         break;
+      case STRING:
+        value = parseTextValue(new TextResourceValue(type, name, isFrameworks));
+        break;
       default:
         value = parseValue(new ResourceValue(type, name, isFrameworks));
         break;
@@ -315,6 +315,20 @@ class PsiResourceItem extends ResourceItem {
     StringBuilder sb = new StringBuilder(40);
     appendText(sb, tag);
     return sb.toString();
+  }
+
+  @NonNull
+  private TextResourceValue parseTextValue(@NonNull TextResourceValue value) {
+    assert myTag != null;
+    String text = getTextContent(myTag);
+    text = ValueXmlHelper.unescapeResourceString(text, true, true);
+    value.setValue(text);
+
+    if (myTag.getSubTags().length > 0) {
+      value.setRawXmlValue(myTag.getValue().getText());
+    }
+
+    return value;
   }
 
   private static String getXmlTextValue(XmlText element) {

@@ -17,7 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.NewProjectImportCallback;
+import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -151,7 +150,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       File projectRoot = new File(wizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
       File moduleRoot = new File(projectRoot, moduleName);
       if (FileUtilRt.createDirectory(projectRoot)) {
-        if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
+        if (wizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS) && assetGenerator != null) {
           assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
         }
         wizardState.updateParameters();
@@ -180,9 +179,9 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         if (version != null) {
           initialLanguageLevel = LanguageLevel.parse(version.toString());
         }
-        projectImporter.importProject(projectName, projectRoot, new NewProjectImportCallback() {
+        projectImporter.importProject(projectName, projectRoot, new NewProjectImportGradleSyncListener() {
           @Override
-          public void projectImported(@NotNull final Project project) {
+          public void syncEnded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example
             // the layout editor won't add Design tabs to the file
             StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);

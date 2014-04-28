@@ -16,13 +16,50 @@
 
 package org.jetbrains.android.dom.menu;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Eugene.Kudelevsky
- * Date: Mar 27, 2009
- * Time: 2:55:42 PM
- * To change this template use File | Settings | File Templates.
- */
+import com.intellij.psi.PsiClass;
+import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.ExtendClass;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.resources.ResourceValue;
+
 public interface MenuItem extends MenuElement {
   Menu getMenu();
+
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("id")
+  AndroidAttributeValue<ResourceValue> getId();
+
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("string")
+  AndroidAttributeValue<ResourceValue> getTitle();
+
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("string")
+  AndroidAttributeValue<ResourceValue> getTitleCondensed();
+
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("layout")
+  AndroidAttributeValue<ResourceValue> getActionLayout();
+
+  @Attribute("actionViewClass")
+  @Convert(PackageClassConverter.class)
+  @ExtendClass(value = "android.view.View",
+               instantiatable = false,
+               allowAbstract = false,
+               allowInterface = false,
+               allowEnum = false)
+  AndroidAttributeValue<PsiClass> getActionViewClass();
+
+  @Attribute("actionProviderClass")
+  @Convert(PackageClassConverter.class)
+  @ExtendClass(value = "android.view.ActionProvider",
+               instantiatable = false,
+               allowAbstract = false,
+               allowInterface = false,
+               allowEnum = false)
+  AndroidAttributeValue<PsiClass> getActionProviderClass();
 }

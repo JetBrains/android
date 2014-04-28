@@ -98,7 +98,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     assertNotNull(render);
 
     assertNotNull(result);
-    ScalableImage image = result.getImage();
+    RenderedImage image = result.getImage();
     assertNotNull(image);
     image.setMaxSize(200, 200);
     image.setDeviceFrameEnabled(false);

@@ -57,6 +57,9 @@
     <orderEntry type="module" module-name="jetgroovy" />
     <orderEntry type="module" module-name="perflib" />
     <orderEntry type="library" name="swingx" level="project" />
+    <orderEntry type="module" module-name="util" />
+    <orderEntry type="module" module-name="gradle-import" />
+    <orderEntry type="module" module-name="ui-designer-core" />
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
@@ -68,7 +71,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="gradle-import" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="Eclipse" level="project" />
   </component>

@@ -1,0 +1,7 @@
+android {
+  productFlavors {
+    paid {
+      manifest.srcFile 'src/paid/PaidManifest.xml'
+    }
+  }
+}

@@ -69,7 +69,7 @@ public class AndroidTestBase extends UsefulTestCase {
     return getAndroidPluginHome() + "/testData";
   }
 
-  protected static String getAndroidPluginHome() {
+  public static String getAndroidPluginHome() {
     // Now that the Android plugin is kept in a separate place, we need to look in
     // a relative position instead
     String adtPath = PathManager.getHomePath() + "/../adt/idea/android";

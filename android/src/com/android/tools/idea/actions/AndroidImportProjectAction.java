@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.SdkConstants;
-import com.android.tools.gradle.eclipse.GradleImport;
-import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.project.ImportSourceKind;
+import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.google.common.collect.Lists;
-import com.intellij.ide.actions.ImportModuleAction;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.impl.NewProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
@@ -30,7 +27,6 @@ import com.intellij.ide.util.newProjectWizard.AddModuleWizard;
 import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.StorageScheme;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,22 +38,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import com.intellij.util.ui.UIUtil;
-import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -73,28 +66,19 @@ import java.util.List;
  */
 public class AndroidImportProjectAction extends AnAction {
   @NonNls private static final String LAST_IMPORTED_LOCATION = "last.imported.location";
-  @NonNls private static final String ANDROID_NATURE_NAME = "com.android.ide.eclipse.adt.AndroidNature";
-
   private static final Logger LOG = Logger.getInstance(AndroidImportProjectAction.class);
-
-  @NonNls static final String ECLIPSE_CLASSPATH_FILE_NAME = ".classpath";
-  @NonNls static final String ECLIPSE_PROJECT_FILE_NAME = ".project";
 
   private static final String WIZARD_TITLE = "Select Gradle Project Import";
   private static final String WIZARD_DESCRIPTION = "Select build.gradle or settings.gradle";
 
-  private final boolean myIsProjectImport;
-
-  public AndroidImportProjectAction(boolean isProjectImport) {
-    super(isProjectImport ? "Import Project..." : "Import Module...");
-    this.myIsProjectImport = isProjectImport;
+  public AndroidImportProjectAction() {
+    super("Import Project...");
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = !myIsProjectImport ? getEventProject(e) : null;
     try {
-      AddModuleWizard wizard = selectFileAndCreateWizard(project);
+      AddModuleWizard wizard = selectFileAndCreateWizard();
       if (wizard != null) {
         if (wizard.getStepCount() > 0) {
           if (!wizard.showAndGet()) {
@@ -106,22 +90,21 @@ public class AndroidImportProjectAction extends AnAction {
       }
     }
     catch (IOException exception) {
-      handleImportException(project, exception);
+      handleImportException(e.getProject(), exception);
     }
     catch (ConfigurationException exception) {
-      handleImportException(project, exception);
+      handleImportException(e.getProject(), exception);
     }
   }
 
   private void handleImportException(@Nullable Project project, @NotNull Exception e1) {
-    String projectOrModule = myIsProjectImport ? "Project" : "Module";
-    String message = String.format("%s import failed: %s", projectOrModule, e1.getMessage());
-    Messages.showErrorDialog(project, message, String.format("Import %s", projectOrModule));
+    String message = String.format("Project import failed: %s", e1.getMessage());
+    Messages.showErrorDialog(project, message, "Import Project");
     LOG.error(e1);
   }
 
   @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project) throws IOException, ConfigurationException {
+  private static AddModuleWizard selectFileAndCreateWizard() throws IOException, ConfigurationException {
     FileChooserDescriptor descriptor = new FileChooserDescriptor(true, true, true, true, false, false) {
       FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
 
@@ -133,13 +116,12 @@ public class AndroidImportProjectAction extends AnAction {
     };
     descriptor.setHideIgnored(false);
     descriptor.setTitle(WIZARD_TITLE);
-    String description = project == null ? WIZARD_DESCRIPTION : ImportModuleAction.getFileChooserDescription(project);
-    descriptor.setDescription(description);
-    return selectFileAndCreateWizard(project, descriptor);
+    descriptor.setDescription(WIZARD_DESCRIPTION);
+    return selectFileAndCreateWizard(descriptor);
   }
 
   @Nullable
-  private static AddModuleWizard selectFileAndCreateWizard(@Nullable Project project, @NotNull FileChooserDescriptor descriptor)
+  private static AddModuleWizard selectFileAndCreateWizard(@NotNull FileChooserDescriptor descriptor)
       throws IOException, ConfigurationException {
     FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null);
     VirtualFile toSelect = null;
@@ -153,60 +135,51 @@ public class AndroidImportProjectAction extends AnAction {
     }
     VirtualFile file = files[0];
     PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, file.getPath());
-    return createImportWizard(project, file);
+    return createImportWizard(file);
   }
 
   @Nullable
-  private static AddModuleWizard createImportWizard(@Nullable Project project, @NotNull VirtualFile file)
+  private static AddModuleWizard createImportWizard(@NotNull VirtualFile file)
     throws IOException, ConfigurationException {
-    //noinspection TestOnlyProblems
-    VirtualFile target = findImportTarget(file);
-    if (target == null) {
-      return null;
-    }
-    List<ProjectImportProvider> available = Lists.newArrayList();
 
-    // Prioritize ADT importer
-    VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
-    File targetDirFile = VfsUtilCore.virtualToIoFile(targetDir);
-    if (GradleImport.isAdtProjectDir(targetDirFile)
-        && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null) {
-      importAdtProject(file, project);
-      return null;
-    }
-    if (GradleImport.isEclipseProjectDir(targetDirFile)
-        && targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null) {
+    ImportSourceKind kind = ProjectImportUtil.getImportLocationKind(file);
+
+    switch (kind) {
+      case ADT:
+        importAdtProject(file);
+        break;
+      case ECLIPSE:
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
           Messages.showErrorDialog(String.format(
-            "%1$s is an Eclipse project, but not an Android Eclipse project.\n\n" +
+            "%1$s is in an Eclipse project, but not an Android Eclipse project.\n\n" +
             "Please select the directory of an Android Eclipse project (which for example will contain\n" +
             "an AndroidManifest.xml file) and try again.",
-            targetDirFile.getPath()), "Import Project");
+            file.getPath()), "Import Project");
         }
-      return null;
-    }
-
-    if (GradleConstants.EXTENSION.equals(target.getExtension())) {
-      // Gradle file, we handle this ourselves.
-      GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-      if (project == null) {
+        break;
+      case GRADLE:
+        // Gradle file, we handle this ourselves.
+        GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
         gradleImporter.importProject(file);
-      } else {
-        gradleImporter.importModule(file, project, null);
-      }
-      return null;
+        break;
+      case NOTHING:
+        // Nothing to import
+        break;
+      case OTHER:
+        return importWithExtensions(file);
+      default:
+        throw new IllegalArgumentException(kind.name());
     }
+    return null;
+  }
 
-    for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
-      if (provider.canImport(target, project)) {
-        available.add(provider);
-      }
-    }
+  @Nullable
+  private static AddModuleWizard importWithExtensions(@NotNull VirtualFile file) {
+    List<ProjectImportProvider> available = getImportProvidersForTarget(file);
     if (available.isEmpty()) {
-      Messages.showInfoMessage(project, "Cannot import anything from " + file.getPath(), "Cannot Import");
+      Messages.showInfoMessage((Project) null, "Cannot import anything from " + file.getPath(), "Cannot Import");
       return null;
     }
-
     String path;
     if (available.size() == 1) {
       path = available.get(0).getPathToBeImported(file);
@@ -216,77 +189,32 @@ public class AndroidImportProjectAction extends AnAction {
     }
 
     ProjectImportProvider[] availableProviders = available.toArray(new ProjectImportProvider[available.size()]);
-    return new AddModuleWizard(project, path, availableProviders);
+    return new AddModuleWizard(null, path, availableProviders);
   }
 
-  @VisibleForTesting
-  @Nullable
-  static VirtualFile findImportTarget(@NotNull VirtualFile file) {
-    if (file.isDirectory()) {
-      VirtualFile target = findMatchingChild(file, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_SETTINGS_GRADLE);
-      if (target != null) {
-        return target;
-      }
-      target = findMatchingChild(file, ECLIPSE_PROJECT_FILE_NAME);
-      if (target != null) {
-        return findImportTarget(target);
-      }
+  @NotNull
+  private static List<ProjectImportProvider> getImportProvidersForTarget(@NotNull VirtualFile file) {
+    VirtualFile target = ProjectImportUtil.findImportTarget(file);
+    if (target == null) {
+      return Collections.emptyList();
     }
     else {
-      if (ECLIPSE_PROJECT_FILE_NAME.equals(file.getName()) && hasAndroidNature(file)) {
-        return file;
-      }
-      if (ECLIPSE_CLASSPATH_FILE_NAME.equals(file.getName())) {
-        return findImportTarget(file.getParent());
-      }
-    }
-    return file;
-  }
-
-  @Nullable
-  private static VirtualFile findMatchingChild(@NotNull VirtualFile parent, @NotNull String... validNames) {
-    if (parent.isDirectory()) {
-      for (VirtualFile child : parent.getChildren()) {
-        for (String name : validNames) {
-          if (name.equals(child.getName())) {
-            return child;
-          }
+      List<ProjectImportProvider> available = Lists.newArrayList();
+      for (ProjectImportProvider provider : ProjectImportProvider.PROJECT_IMPORT_PROVIDER.getExtensions()) {
+        if (provider.canImport(target, null)) {
+          available.add(provider);
         }
       }
+      return available;
     }
-    return null;
   }
 
-  private static boolean hasAndroidNature(@NotNull VirtualFile projectFile) {
-    File dotProjectFile = new File(projectFile.getPath());
-    try {
-      Element naturesElement = JDOMUtil.loadDocument(dotProjectFile).getRootElement().getChild("natures");
-      if (naturesElement != null) {
-        List<Element> naturesList = naturesElement.getChildren("nature");
-        for (Element nature : naturesList) {
-          String natureName = nature.getText();
-          if (ANDROID_NATURE_NAME.equals(natureName)) {
-            return true;
-          }
-        }
-      }
-    }
-    catch (Exception e) {
-      LOG.info(String.format("Unable to get natures for Eclipse project file '%1$s", projectFile.getPath()), e);
-    }
-    return false;
-  }
-
-
-  private static void importAdtProject(@NotNull VirtualFile file, @Nullable Project project) {
-    AdtImportProvider adtImportProvider = new AdtImportProvider(project == null);
-    if (project != null) {
-      ((AdtImportBuilder)adtImportProvider.getBuilder()).setSelectedProject(VfsUtilCore.virtualToIoFile(file));
-    }
-    AddModuleWizard wizard = new AddModuleWizard(project, ProjectImportProvider.getDefaultPath(file), adtImportProvider);
+  private static void importAdtProject(@NotNull VirtualFile file) {
+    AdtImportProvider adtImportProvider = new AdtImportProvider(true);
+    AddModuleWizard wizard = new AddModuleWizard(null, ProjectImportProvider.getDefaultPath(file), adtImportProvider);
     if (wizard.showAndGet()) {
       try {
-        doCreate(wizard, project);
+        doCreate(wizard);
       }
       catch (final IOException e) {
         UIUtil.invokeLaterIfNeeded(new Runnable() {
@@ -299,7 +227,7 @@ public class AndroidImportProjectAction extends AnAction {
     }
   }
 
-  private static void doCreate(@NotNull AddModuleWizard wizard, @Nullable Project project) throws IOException {
+  private static void doCreate(@NotNull AddModuleWizard wizard) throws IOException {
     // TODO: Now we need to add as module if file does not exist
     ProjectBuilder projectBuilder = wizard.getProjectBuilder();
 
@@ -315,15 +243,13 @@ public class AndroidImportProjectAction extends AnAction {
       }
 
       boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();
+      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+      Project project = projectManager.newProject(wizard.getProjectName(), projectDirPath.getPath(), true, false);
       if (project == null) {
-        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-        project = projectManager.newProject(wizard.getProjectName(), projectDirPath.getPath(), true, false);
-        if (project == null) {
-          return;
-        }
-        if (!unitTestMode) {
-          project.save();
-        }
+        return;
+      }
+      if (!unitTestMode) {
+        project.save();
       }
       if (projectBuilder != null) {
         if (!projectBuilder.validate(null, project)) {
@@ -340,11 +266,5 @@ public class AndroidImportProjectAction extends AnAction {
         projectBuilder.cleanup();
       }
     }
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    Presentation presentation = e.getPresentation();
-    presentation.setEnabled(myIsProjectImport || getEventProject(e) != null);
   }
 }

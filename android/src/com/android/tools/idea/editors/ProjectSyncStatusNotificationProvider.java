@@ -22,9 +22,7 @@ import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -84,7 +82,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       createActionLabel("Sync Now", new Runnable() {
         @Override
         public void run() {
-          reImportProject();
+          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
         }
       });
     }
@@ -97,7 +95,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       createActionLabel("Try Again", new Runnable() {
         @Override
         public void run() {
-          reImportProject();
+          GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
         }
       });
 
@@ -121,13 +119,4 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
   }
 
-  private void reImportProject() {
-    try {
-      GradleProjectImporter.getInstance().reImportProject(myProject, null);
-    }
-    catch (ConfigurationException ex) {
-      Messages.showErrorDialog(ex.getMessage(), ex.getTitle());
-      LOG.info(ex);
-    }
-  }
 }

@@ -16,8 +16,22 @@
 
 package com.android.tools.idea.actions;
 
+import com.intellij.ide.projectView.impl.ModuleGroup;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
+
 public class AndroidNewModuleInGroupAction extends AndroidNewModuleAction {
   public AndroidNewModuleInGroupAction() {
     super("Module", "Adds a new module to the project", null);
+  }
+
+  @Override
+  public void update(final AnActionEvent e) {
+    super.update(e);
+    final ModuleGroup[] moduleGroups = ModuleGroup.ARRAY_DATA_KEY.getData(e.getDataContext());
+    final Module[] modules = e.getData(LangDataKeys.MODULE_CONTEXT_ARRAY);
+    e.getPresentation().setVisible((moduleGroups != null && moduleGroups.length > 0) ||
+                                   (modules != null && modules.length > 0));
   }
 }

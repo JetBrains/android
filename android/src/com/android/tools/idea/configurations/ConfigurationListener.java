@@ -64,7 +64,7 @@ public interface ConfigurationListener {
   int MASK_RENDERING = MASK_FILE_ATTRS | CFG_THEME;
 
   /** Attributes which are edited project-wide */
-  int MASK_PROJECT_STATE = CFG_LOCALE|CFG_TARGET;
+  int MASK_PROJECT_STATE = CFG_LOCALE|CFG_TARGET|CFG_DEVICE;
 
   /**
    * The configuration has changed. If the client returns false, it means that

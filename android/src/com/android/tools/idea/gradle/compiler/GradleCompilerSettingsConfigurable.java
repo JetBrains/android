@@ -56,6 +56,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
 
+  private JCheckBox myConfigureOnDemandCheckBox;
+  @SuppressWarnings("UnusedDeclaration")
+  private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
+
   public GradleCompilerSettingsConfigurable(@NotNull Project project) {
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -88,7 +92,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   @Nullable
   public String getHelpTopic() {
-    return null;
+    return "reference.projectsettings.compiler.gradle";
   }
 
   @Override
@@ -103,6 +107,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
            !Objects.equal(getVmOptions(), myGradleSettings.getGradleVmOptions()) ||
            myCompilerConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
            myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD != isExperimentalBuildEnabled() ||
+           myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND != isConfigurationOnDemandEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
 
@@ -125,6 +130,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isExperimentalBuildEnabled() {
     return myUseInProcessBuildCheckBox.isSelected();
+  }
+
+  private boolean isConfigurationOnDemandEnabled() {
+    return myConfigureOnDemandCheckBox.isSelected();
   }
 
   @Nullable
@@ -161,8 +170,12 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
                            "http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects");
 
     myCommandLineOptionsDocHyperlinkLabel =
-      createHyperlinkLabel("Example: --stacktrace --debug (for more information, please read Gradle's ", "documentation", ")",
+      createHyperlinkLabel("Example: --stacktrace --debug (for more information, please read Gradle's ", "documentation", ".)",
                            "http://www.gradle.org/docs/current/userguide/gradle_command_line.html");
+
+    myConfigureOnDemandDocHyperlinkLabel =
+      createHyperlinkLabel("This option may speed up builds. This option is in \"incubation.\" Please read Gradle's ", "documentation", ".",
+                           "http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:configuration_on_demand");
 
     myVmOptionsEditor = new RawCommandLineEditor();
     myVmOptionsEditor.setDialogCaption("Gradle VM Options");

@@ -26,6 +26,7 @@ import com.android.utils.Pair;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.AppLifecycleListener;
+import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.openapi.actionSystem.*;
@@ -67,6 +68,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
+  @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -80,18 +82,18 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
-    //noinspection UseOfArchaicSystemPropertyAccessors
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      // Fix New Project actions
       replaceIdeaNewProjectActions();
     }
 
-    //noinspection UseOfArchaicSystemPropertyAccessors
+    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
+      replaceProjectStructureActions();
+    }
+
     if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
       replaceIdeaMakeActions();
     }
 
-    //noinspection UseOfArchaicSystemPropertyAccessors
     if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
       hideIdeaNewFilePopupActions();
     }
@@ -124,17 +126,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void replaceIdeaNewProjectActions() {
-    // TODO: This is temporary code. We should build out our own menu set and welcome screen exactly how we want. In the meantime,
-    // unregister IntelliJ's version of the project actions and manually register our own.
-
+    // Unregister IntelliJ's version of the project actions and manually register our own.
     replaceAction("NewProject", new AndroidNewProjectAction());
     replaceAction("WelcomeScreen.CreateNewProject", new AndroidNewProjectAction());
     replaceAction("NewModule", new AndroidNewModuleAction());
     replaceAction("NewModuleInGroup", new AndroidNewModuleInGroupAction());
-    replaceAction("ImportProject", new AndroidImportProjectAction(true));
-    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction(true));
+    replaceAction("ImportProject", new AndroidImportProjectAction());
+    replaceAction("WelcomeScreen.ImportProject", new AndroidImportProjectAction());
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
-    replaceAction("ImportModule", new AndroidImportProjectAction(false));
+    replaceAction("ImportModule", new AndroidImportModuleAction());
 
     hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD, "Generate Ant Build...");
     hideAction("AddFrameworkSupport", "Add Framework Support...");
@@ -142,6 +142,24 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     hideAction("RunTargetAction", "Run Ant Target");
 
     replaceProjectPopupActions();
+  }
+
+  private static void replaceProjectStructureActions() {
+    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
+
+    AndroidTemplateProjectStructureAction showDefaultProjectStructureAction = new AndroidTemplateProjectStructureAction();
+    showDefaultProjectStructureAction.getTemplatePresentation().setText("Default Project Structure...");
+    replaceAction("TemplateProjectStructure", showDefaultProjectStructureAction);
+
+    ActionManager am = ActionManager.getInstance();
+    AnAction action = am.getAction("WelcomeScreen.Configure.IDEA");
+    if (action instanceof DefaultActionGroup) {
+      DefaultActionGroup projectSettingsGroup = (DefaultActionGroup)action;
+      AnAction[] children = projectSettingsGroup.getChildren(null);
+      if (children.length == 1 && children[0] instanceof TemplateProjectSettingsGroup) {
+        projectSettingsGroup.replaceAction(children[0], new AndroidTemplateProjectSettingsGroup());
+      }
+    }
   }
 
   private static void replaceIdeaMakeActions() {
@@ -203,8 +221,16 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
-    Sdk sdk = findFirstCompatibleAndroidSdk();
+    final Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          String androidHome = sdk.getHomePath();
+          assert androidHome != null;
+          DefaultSdks.createAndroidSdksForAllTargets(new File(FileUtil.toSystemDependentName(androidHome)));
+        }
+      });
       return;
     }
     // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
@@ -257,7 +283,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @Nullable
   private static File getAndroidSdkPath() {
     String studioHome = PathManager.getHomePath();
-    if (studioHome == null) {
+    if (StringUtil.isEmpty(studioHome)) {
       LOG.info("Unable to find Studio home directory");
     }
     else {
@@ -332,14 +358,14 @@ public class AndroidStudioSpecificInitializer implements Runnable {
    * Remove popup actions that we don't use
    */
   private static void hideIdeaNewFilePopupActions() {
-    ActionManager am = ActionManager.getInstance();
+    hideAction("NewHtmlFile", "HTML File");
 
-    // Hide groups of actions which aren't useful to Android Studio
-    am.getActionOrStub("NewXml").getTemplatePresentation().setEnabledAndVisible(false); // Not used by our XML. Offers HTML files
-    AnAction guiNewActions = am.getActionOrStub("GuiDesigner.NewActions");
-    if (guiNewActions != null) {
-      guiNewActions.getTemplatePresentation().setEnabledAndVisible(false); // Swing GUI templates
-    }
+    hideAction("NewPackageInfo", "package-info.java");
+
+    // Hide designer actions
+    hideAction("NewForm", "GUI Form");
+    hideAction("NewDialog", "Dialog");
+    hideAction("NewFormSnapshot", "Form Snapshot");
 
     // Hide individual actions that aren't part of a group
     replaceAction("Groovy.NewClass", new EmptyAction());

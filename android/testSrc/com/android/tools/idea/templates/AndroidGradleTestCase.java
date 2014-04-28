@@ -19,6 +19,7 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -407,13 +408,17 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   public static void importProject(Project project, String projectName, File projectRoot) throws IOException, ConfigurationException {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-    projectImporter.importProject(projectName, projectRoot, new GradleProjectImporter.Callback() {
+    projectImporter.importProject(projectName, projectRoot, new GradleSyncListener() {
       @Override
-      public void projectImported(@NotNull Project project) {
+      public void syncStarted(@NotNull Project project) {
       }
 
       @Override
-      public void importFailed(@NotNull Project project, @NotNull final String errorMessage) {
+      public void syncEnded(@NotNull Project project) {
+      }
+
+      @Override
+      public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
         fail(errorMessage);
       }
     }, project);

@@ -27,13 +27,13 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-import static com.android.tools.idea.rendering.ScalableImage.ShadowType;
+import static com.android.tools.idea.rendering.RenderedImage.ShadowType;
 
 public class RenderResult {
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @Nullable private final List<ViewInfo> myRootViews;
-  @Nullable private final ScalableImage myImage;
+  @Nullable private final RenderedImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
   @Nullable private final RenderService myRenderService;
   @Nullable private final RenderSession mySession; // TEMPORARY
@@ -55,7 +55,7 @@ public class RenderResult {
       if (shadowType == ShadowType.NONE && renderService.isNonRectangular()) {
         shadowType = ShadowType.ARBITRARY;
       }
-      myImage = new ScalableImage(configuration, image, alphaChannelImage, shadowType);
+      myImage = new RenderedImage(configuration, image, alphaChannelImage, shadowType);
     } else {
       myRootViews = null;
       myImage = null;
@@ -95,7 +95,7 @@ public class RenderResult {
   }
 
   @Nullable
-  public ScalableImage getImage() {
+  public RenderedImage getImage() {
     return myImage;
   }
 
