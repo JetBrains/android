@@ -1278,9 +1278,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     // If you click/drag outside the root, select the root
     if (target == null) {
-      target = getLayoutRoot();
-      if (target != null && filter != null && filter.preFilter(myRootComponent)) {
-        filter.resultFilter(target);
+      RadComponent rootTarget = getLayoutRoot();
+      if (rootTarget != null && filter != null && filter.preFilter(myRootComponent) && filter.resultFilter(rootTarget)) {
+        return rootTarget;
       }
     }
 
