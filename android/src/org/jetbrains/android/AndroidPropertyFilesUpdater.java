@@ -177,14 +177,19 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
               }
             }
             if (ReadonlyStatusHandler.ensureFilesWritable(myProject, toAskFiles.toArray(new VirtualFile[toAskFiles.size()]))) {
-              ApplicationManager.getApplication().runWriteAction(new Runnable() {
+              CommandProcessor.getInstance().executeCommand(myProject, new Runnable() {
                 @Override
                 public void run() {
-                  for (Runnable change : toAskChanges) {
-                    change.run();
-                  }
+                  ApplicationManager.getApplication().runWriteAction(new Runnable() {
+                    @Override
+                    public void run() {
+                      for (Runnable change : toAskChanges) {
+                        change.run();
+                      }
+                    }
+                  });
                 }
-              });
+              }, "Update Android property files", null);
             }
             return true;
           }
