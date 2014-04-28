@@ -17,6 +17,7 @@ package com.intellij.android.designer.propertyTable;
 
 import com.intellij.android.designer.model.PropertyParser;
 import com.intellij.android.designer.model.RadCustomViewComponent;
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.designer.model.PropertiesContainer;
@@ -89,8 +90,10 @@ public class CustomViewProperty extends Property<RadCustomViewComponent> impleme
     component.extractClientProperty(RadCustomViewComponent.MODEL_KEY);
     component.setProperties(Collections.<Property>emptyList());
 
-    PropertyParser propertyParser = component.getRoot().getClientProperty(PropertyParser.KEY);
-    propertyParser.load(component);
+    PropertyParser parser = RadModelBuilder.getPropertyParser(component);
+    if (parser != null) {
+      parser.load(component);
+    }
   }
 
   @Override

@@ -65,7 +65,10 @@ public class RadCustomViewComponent extends RadViewComponent implements IConfigu
 
   @Nullable
   public static String chooseView(RadComponent rootComponent) {
-    ModuleProvider moduleProvider = rootComponent.getClientProperty(ModelParser.MODULE_KEY);
+    ModuleProvider moduleProvider = RadModelBuilder.getModuleProvider(rootComponent);
+    if (moduleProvider == null) {
+      return null;
+    }
     ChooseClassDialog dialog = new ChooseClassDialog(moduleProvider.getModule(), "Views", false) {
       @Override
       protected void findClasses(Module module, boolean includeAll, DefaultListModel model, String[] classes) {
@@ -121,7 +124,8 @@ public class RadCustomViewComponent extends RadViewComponent implements IConfigu
     MetaModel metaModel = getClientProperty(MODEL_KEY);
 
     if (metaModel == null) {
-      ModuleProvider moduleProvider = getRoot().getClientProperty(ModelParser.MODULE_KEY);
+      ModuleProvider moduleProvider = RadModelBuilder.getModuleProvider(getRoot());
+      assert moduleProvider != null;
       MetaManager metaManager = ViewsMetaManager.getInstance(moduleProvider.getProject());
       PsiClass viewClass = ChooseClassDialog.findClass(moduleProvider.getModule(), getViewClass());
 

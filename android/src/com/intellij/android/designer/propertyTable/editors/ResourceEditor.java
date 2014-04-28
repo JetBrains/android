@@ -16,10 +16,9 @@
 package com.intellij.android.designer.propertyTable.editors;
 
 import com.android.resources.ResourceType;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.renderers.ResourceRenderer;
-import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.model.PropertiesContainer;
 import com.intellij.designer.model.PropertyContext;
 import com.intellij.designer.model.RadComponent;
@@ -29,6 +28,7 @@ import com.intellij.designer.propertyTable.PropertyEditor;
 import com.intellij.designer.propertyTable.editors.ComboEditor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -302,8 +302,14 @@ public class ResourceEditor extends PropertyEditor {
   }
 
   protected void showDialog() {
-    ModuleProvider moduleProvider = myRootComponent.getClientProperty(ModelParser.MODULE_KEY);
-    ResourceDialog dialog = new ResourceDialog(moduleProvider.getModule(), myTypes, (String)getValue(), (RadViewComponent)myComponent);
+    Module module = RadModelBuilder.getModule(myRootComponent);
+    if (module == null) {
+      if (myBooleanResourceValue != null) {
+        fireEditingCancelled();
+      }
+      return;
+    }
+    ResourceDialog dialog = new ResourceDialog(module, myTypes, (String)getValue(), (RadViewComponent)myComponent);
     dialog.show();
 
     if (dialog.isOK()) {

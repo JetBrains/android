@@ -20,7 +20,7 @@ import com.android.tools.idea.designer.Insets;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.*;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.*;
 import com.intellij.designer.designSurface.feedbacks.LineMarginBorder;
@@ -178,7 +178,7 @@ public class LayoutMarginOperation implements EditOperation {
   private void setValue(XmlTag tag, String name, int pxValue) {
     int value = AndroidDesignerUtils.pxToDp(myContext.getArea(), pxValue);
     if (value == 0) {
-      ModelParser.deleteAttribute(tag, name);
+      RadComponentOperations.deleteAttribute(tag, name);
     }
     else {
       tag.setAttribute(name, SdkConstants.NS_RESOURCES, String.format(Locale.US, VALUE_N_DP, value));

@@ -90,11 +90,6 @@ public class TestRootView extends RootView {
   }
 
   @Override
-  public void addEmptyRegion(int x, int y, int width, int height) {
-    throw new RuntimeException("addEmptyRegion() is not supported by TestRootView");
-  }
-
-  @Override
   protected void paintImage(Graphics g) {
     throw new RuntimeException("paintImage() is not supported by TestRootView");
   }

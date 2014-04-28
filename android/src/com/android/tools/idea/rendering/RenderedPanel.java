@@ -19,7 +19,10 @@ import com.android.ide.common.rendering.api.SessionParams;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.base.Objects;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
+import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -31,7 +34,6 @@ import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -42,20 +44,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 
 /** A panel displaying a layoutlib render result as well as errors */
 public class RenderedPanel extends JPanel implements Disposable {
-  public static final Gray DESIGNER_BACKGROUND_COLOR = Gray._150;
-  @SuppressWarnings("UseJBColor") // The designer canvas is not using light/dark themes; colors match Android theme rendering
-  public static final Color SELECTION_BORDER_COLOR = new Color(0x00, 0x99, 0xFF, 255);
-  @SuppressWarnings("UseJBColor")
-  public static final Color SELECTION_FILL_COLOR = new Color(0x00, 0x99, 0xFF, 32);
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
 
   protected RenderResult myRenderResult;
@@ -124,6 +119,10 @@ public class RenderedPanel extends JPanel implements Disposable {
     previewPanel.add(myProgressPanel, LAYER_PROGRESS);
   }
 
+  public Component getPaintComponent() {
+    return myImagePanel;
+  }
+
   private void switchToLayoutEditor() {
     if (myRenderResult != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -140,6 +139,12 @@ public class RenderedPanel extends JPanel implements Disposable {
   }
 
   protected void selectViewAt(int x, int y) {
+    RenderedView leaf = findLeaf(x, y);
+    selectView(leaf);
+  }
+
+  @Nullable
+  protected RenderedView findLeaf(int x, int y) {
     RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
     assert hierarchy != null; // because image != null
     RenderedView leaf = hierarchy.findLeafAt(x, y);
@@ -150,8 +155,7 @@ public class RenderedPanel extends JPanel implements Disposable {
     while (leaf != null && leaf.tag == null) {
       leaf = leaf.getParent();
     }
-
-    selectView(leaf);
+    return leaf;
   }
 
   protected void selectView(@Nullable RenderedView leaf) {
@@ -180,6 +184,36 @@ public class RenderedPanel extends JPanel implements Disposable {
       y /= zoomFactor;
 
       return new Point(x, y);
+    }
+
+    return null;
+  }
+
+  /**
+   * Computes the corresponding layoutlib point from a screen point (relative to the top left corner of the rendered image)
+   */
+  @Nullable
+  public Rectangle fromScreenToModel(int x, int y, int width, int height) {
+    if (myRenderResult == null) {
+      return null;
+    }
+    RenderedImage image = myRenderResult.getImage();
+    if (image != null) {
+      double zoomFactor = image.getScale();
+      Rectangle imageBounds = image.getImageBounds();
+      if (imageBounds != null) {
+        x -= imageBounds.x;
+        y -= imageBounds.y;
+        double deviceFrameFactor = imageBounds.getWidth() / (double) image.getScaledWidth();
+        zoomFactor *= deviceFrameFactor;
+      }
+
+      x /= zoomFactor;
+      y /= zoomFactor;
+      width /= zoomFactor;
+      height /= zoomFactor;
+
+      return new Rectangle(x, y, width, height);
     }
 
     return null;
@@ -219,48 +253,31 @@ public class RenderedPanel extends JPanel implements Disposable {
     return null;
   }
 
-  protected void paintRenderedImage(Graphics g, int px, int py) {
+  protected boolean paintRenderedImage(Component component, Graphics g, int px, int py) {
     if (myRenderResult == null) {
-      return;
+      return false;
     }
     RenderedImage image = myRenderResult.getImage();
     if (image != null) {
       image.paint(g, px, py);
-
-      // TODO: Use layout editor's static feedback rendering
       List<RenderedView> selectedViews = mySelectedViews;
       if (selectedViews != null && !selectedViews.isEmpty() && !myErrorPanel.isVisible()) {
         for (RenderedView selected : selectedViews) {
           Rectangle r = fromModelToScreen(selected.x, selected.y, selected.w, selected.h);
           if (r == null) {
-            return;
+            continue;
           }
           int x = r.x + px;
           int y = r.y + py;
           int w = r.width;
           int h = r.height;
 
-          g.setColor(SELECTION_FILL_COLOR);
-          g.fillRect(x, y, w, h);
-
-          g.setColor(SELECTION_BORDER_COLOR);
-          x -= 1;
-          y -= 1;
-          w += 1; // +1 rather than +2: drawRect already includes end point whereas fillRect does not
-          h += 1;
-          if (x < 0) {
-            w -= x;
-            x = 0;
-          }
-          if (y < 0) {
-            h -= y;
-            y = 0;
-          }
-
-          g.drawRect(x, y, w, h);
+          DesignerGraphics.drawFilledRect(DrawingStyle.SELECTION, g, x, y, w, h);
         }
       }
+      return true;
     }
+    return false;
   }
 
   public void setRenderResult(@NotNull final RenderResult renderResult) {
@@ -305,13 +322,11 @@ public class RenderedPanel extends JPanel implements Disposable {
     return myRenderResult;
   }
 
-  public void setSelectedView(@Nullable RenderedView view) {
-    if (view != null) {
-      mySelectedViews = Collections.singletonList(view);
-    } else {
-      mySelectedViews = Collections.emptyList();
+  public void setSelectedViews(@Nullable List<RenderedView> views) {
+    if (!Objects.equal(views, mySelectedViews)) {
+      mySelectedViews = views;
+      repaint();
     }
-    repaint();
   }
 
   public synchronized void registerIndicator(@NotNull ProgressIndicator indicator) {
@@ -395,7 +410,7 @@ public class RenderedPanel extends JPanel implements Disposable {
         }
       }
     }
-    Color background = useGray ? DESIGNER_BACKGROUND_COLOR : JBColor.WHITE;
+    Color background = useGray ? DrawingStyle.DESIGNER_BACKGROUND_COLOR : JBColor.WHITE;
     if (getBackground() != background) {
       setBackground(background);
     }
@@ -478,10 +493,6 @@ public class RenderedPanel extends JPanel implements Disposable {
     return this;
   }
 
-  public boolean supportsPreviews() {
-    return false;
-  }
-
   @NotNull
   public Dimension getFullImageSize() {
     if (myRenderResult != null) {
@@ -492,16 +503,6 @@ public class RenderedPanel extends JPanel implements Disposable {
     }
 
     return RenderContext.NO_SIZE;
-  }
-
-  @NotNull
-  public Rectangle getClientArea() {
-    return getBounds();
-  }
-
-  @Nullable
-  public BufferedImage getRenderedImage() {
-    return myRenderResult != null && myRenderResult.getImage() != null ? myRenderResult.getImage().getOriginalImage() : null;
   }
 
   @NotNull
@@ -661,7 +662,7 @@ public class RenderedPanel extends JPanel implements Disposable {
 
     @Override
     protected void paintComponent(Graphics graphics) {
-      paintRenderedImage(graphics, myImagePanel.getX(), myImagePanel.getY());
+      paintRenderedImage(this, graphics, myImagePanel.getX(), myImagePanel.getY());
 
       if (myPreviewManager != null) {
         myPreviewManager.paint((Graphics2D)graphics);

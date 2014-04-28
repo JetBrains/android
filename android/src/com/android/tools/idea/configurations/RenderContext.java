@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -175,6 +176,9 @@ public interface RenderContext {
   /** Returns the most recent rendered image, if any */
   @Nullable
   BufferedImage getRenderedImage();
+
+  @Nullable
+  RenderedViewHierarchy getViewHierarchy();
 
   /**
    * Types of uses of the {@link com.android.tools.idea.rendering.RenderService} which can drive some decisions, such as how and whether

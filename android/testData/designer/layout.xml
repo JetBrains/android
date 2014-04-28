@@ -1,77 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
               android:layout_width="fill_parent"
-              android:layout_height="fill_parent">
+              android:layout_height="fill_parent"
+              android:orientation="vertical">
 
-  <LinearLayout style="@style/TitleBar" android:id="@+id/header">
-    <ImageView style="@style/TitleBarLogo"
-               android:contentDescription="@string/description_logo"
-               android:src="@drawable/title_logo" />
+  <LinearLayout
+      android:id="@+id/header"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content">
 
-    <View style="@style/TitleBarSpring" />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@android:string/ok"
+        android:src="@android:drawable/btn_plus" />
 
-    <ImageView style="@style/TitleBarSeparator" />
-    <ImageButton style="@style/TitleBarAction"
-                 android:id="@+id/btn_title_refresh"
-                 android:contentDescription="@string/description_refresh"
-                 android:src="@drawable/ic_title_refresh"
-                 android:layout_width="wrap_content"
-                 android:layout_height="42dp"
-                 android:onClick="onRefreshClick" />
-    <ProgressBar style="@style/TitleBarProgressIndicator"
-                 android:id="@+id/title_refresh_progress"
-                 android:layout_width="wrap_content"
-                 android:visibility="visible"/>
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
-    <ImageView style="@style/TitleBarSeparator" />
-    <ImageButton style="@style/TitleBarAction"
-                 android:contentDescription="@string/description_search"
-                 android:src="@drawable/ic_title_search"
-                 android:layout_width="wrap_content"
-                 android:layout_height="42dp"
-                 android:onClick="onSearchClick" />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageButton
+        android:id="@+id/btn_title_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="42dp"
+        android:contentDescription="@android:string/ok"
+        android:onClick="onRefreshClick"
+        android:src="@android:drawable/btn_plus" />
+
+    <ProgressBar
+        android:id="@+id/title_refresh_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="visible" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="42dp"
+        android:contentDescription="@android:string/ok"
+        android:onClick="onSearchClick"
+        android:src="@android:drawable/btn_plus" />
   </LinearLayout>
 
   <LinearLayout
       android:id="@+id/noteArea"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      android:layout_weight="1"
-      android:layout_margin="5dip">
+      android:layout_margin="5dip"
+      android:layout_weight="1">
+
     <EditText
         android:id="@android:id/text1"
+        android:layout_width="wrap_content"
         android:layout_height="fill_parent"
-        android:hint="@string/note_hint"
+        android:layout_weight="1"
         android:freezesText="true"
-        android:gravity="top" android:layout_width="wrap_content" android:layout_weight="1">
-    </EditText>
+        android:gravity="top"
+        android:hint="@android:string/ok"></EditText>
+
     <EditText
         android:id="@android:id/text2"
+        android:layout_width="wrap_content"
         android:layout_height="fill_parent"
+        android:layout_weight="1"
         android:freezesText="true"
-        android:gravity="top" android:layout_width="wrap_content" android:layout_weight="1">
+        android:gravity="top">
+
       <requestFocus />
     </EditText>
   </LinearLayout>
 
   <LinearLayout
-      android:orientation="horizontal"
+      style="@android:style/ButtonBar"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      style="@android:style/ButtonBar">
+      android:orientation="horizontal">
+
     <Button
         android:layout_width="0dip"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:onClick="onSaveClick"
-        android:text="@string/note_save" />
+        android:text="@android:string/ok" />
+
     <Button
         android:layout_width="0dip"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:onClick="onDiscardClick"
-        android:text="@string/note_discard" />
+        android:text="@android:string/ok" />
   </LinearLayout>
 
 </LinearLayout>

@@ -29,6 +29,7 @@ public class DirectionResizePoint extends com.intellij.designer.designSurface.se
   private final DrawingStyle myStyle;
 
   public DirectionResizePoint(DrawingStyle style, int direction, Object type, @Nullable String description) {
+    //noinspection UseJBColor
     super(Color.RED /* should not be used */, Color.RED /* should not be used */, direction, type, description);
     myStyle = style;
   }
@@ -37,7 +38,7 @@ public class DirectionResizePoint extends com.intellij.designer.designSurface.se
   protected void paint(DecorationLayer layer, Graphics2D g, RadComponent component) {
     Point location = getLocation(layer, component);
     int size = getSize();
-    DesignerGraphics.drawFilledRect(myStyle, g, location.x, location.y, size, size);
+    DesignerGraphics.drawStrokeFilledRect(myStyle, g, location.x, location.y, size, size);
   }
 
   @Override
