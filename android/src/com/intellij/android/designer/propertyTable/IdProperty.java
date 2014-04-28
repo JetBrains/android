@@ -58,9 +58,13 @@ public class IdProperty extends AttributeProperty {
     IdManager idManager = IdManager.get(component);
     final String oldId = component.getId();
 
-    idManager.removeComponent(component, false);
+    if (idManager != null) {
+      idManager.removeComponent(component, false);
+    }
     super.setValue(component, value);
-    idManager.addComponent(component);
+    if (idManager != null) {
+      idManager.addComponent(component);
+    }
 
     if (oldId != null && value != null && !oldId.equals(value)) {
       ApplicationManager.getApplication().runWriteAction(new Runnable() {

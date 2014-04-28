@@ -15,7 +15,7 @@
  */
 package com.intellij.android.designer.designSurface.layout.caption;
 
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.table.RadCaptionTableRow;
 import com.intellij.android.designer.model.layout.table.RadTableLayoutComponent;
@@ -45,9 +45,7 @@ public class TableVerticalCaptionOperation extends VerticalCaptionFlowBaseOperat
     RadViewComponent mainInsertBefore = insertBefore == null ? null : ((RadCaptionTableRow)insertBefore).getComponent();
 
     for (RadComponent component : myComponents) {
-      ModelParser.moveComponent(myMainContainer,
-                                ((RadCaptionTableRow)component).getComponent(),
-                                mainInsertBefore);
+      RadComponentOperations.moveComponent(myMainContainer, ((RadCaptionTableRow)component).getComponent(), mainInsertBefore);
     }
   }
 }

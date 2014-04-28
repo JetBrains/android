@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -22,15 +23,13 @@ import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.configurations.ConfigurationToolBar;
-import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.primitives.Ints;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
+import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.inspection.ErrorAnalyzer;
 import com.intellij.android.designer.model.*;
 import com.intellij.android.designer.model.layout.actions.ToggleRenderModeAction;
@@ -53,6 +52,7 @@ import com.intellij.designer.palette.PaletteToolWindowManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -63,6 +63,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.Alarm;
 import com.intellij.util.PsiNavigateUtil;
@@ -87,8 +88,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -104,7 +104,8 @@ import static org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderLi
 /**
  * @author Alexander Lobas
  */
-public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implements RenderContext, ResourceFolderListener {
+public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implements RenderContext, ResourceFolderListener,
+                                                                                     OverlayContainer {
   private static final int DEFAULT_HORIZONTAL_MARGIN = 30;
   private static final int DEFAULT_VERTICAL_MARGIN = 20;
   private static final Integer LAYER_ERRORS = LAYER_INPLACE_EDITING + 150; // Must be an Integer, not an int; see JLayeredPane.addImpl
@@ -124,6 +125,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private RootView myRootView;
   private boolean myShowingRoot;
   private RenderPreviewTool myPreviewTool;
+  private RenderResult myRenderResult;
+  private PropertyParser myPropertyParser;
+  private final IdManager myIdManager = new IdManager();
 
   @Nullable private Configuration myConfiguration;
   private int myConfigurationDirty;
@@ -134,6 +138,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private double myZoom = 1;
   private ZoomType myZoomMode = ZoomType.FIT_INTO;
   private RenderPreviewManager myPreviewManager;
+  private final HoverOverlay myHover = new HoverOverlay(this);
+  private final List<Overlay> myOverlays = Arrays.asList(myHover, new IncludeOverlay(this));
 
   public AndroidDesignerEditorPanel(@NotNull DesignerEditor editor,
                                     @NotNull Project project,
@@ -159,6 +165,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
     mySessionQueue = new MergingUpdateQueue("android.designer", 10, true, null, editor, null, Alarm.ThreadToUse.OWN_THREAD);
     myXmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
+    assert myXmlFile != null : myFile;
     myPsiChangeListener = new ExternalPSIChangeListener(this, myXmlFile, 100, new Runnable() {
       @Override
       public void run() {
@@ -272,12 +279,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   private void parseFile(final Runnable runnable) {
-    final ModelParser parser = new ModelParser(getProject(), myXmlFile);
     if (myConfiguration == null) {
       return;
     }
 
-    createRenderer(new MyThrowable(), new ThrowableConsumer<RenderResult, Throwable>() {
+    createRenderer(new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
       public void consume(RenderResult result) throws Throwable {
         RenderSession session = result.getSession();
@@ -292,8 +298,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           // was due to some configuration change, we don't want to replace the image
           // since all the mouse regions and model setup will no longer match the pixels.
           if (myRootView != null && myRootView.getImage() != null && session.getImage() != null &&
-            session.getImage().getWidth() == myRootView.getImage().getWidth() &&
-            session.getImage().getHeight() == myRootView.getImage().getHeight()) {
+              session.getImage().getWidth() == myRootView.getImage().getWidth() &&
+              session.getImage().getHeight() == myRootView.getImage().getHeight()) {
             myRootView.setRenderedImage(result.getImage());
             myRootView.repaint();
           }
@@ -315,28 +321,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           myRootView.setRenderedImage(result.getImage());
           myRootView.updateBounds(true);
         }
+        boolean firstRender = myRootComponent == null;
         try {
-          parser.updateRootComponent(myConfiguration.getFullConfig(), session, myRootView);
+          myRootComponent = RadModelBuilder.update(AndroidDesignerEditorPanel.this, result, (RadViewComponent)myRootComponent, myRootView);
         }
         catch (Throwable e) {
-          myRootComponent = parser.getRootComponent();
+          myRootComponent = null;
           throw e;
         }
-        RadViewComponent newRootComponent = parser.getRootComponent();
-
-        newRootComponent.setClientProperty(ModelParser.XML_FILE_KEY, myXmlFile);
-        newRootComponent.setClientProperty(ModelParser.MODULE_KEY, AndroidDesignerEditorPanel.this);
-        newRootComponent.setClientProperty(TreeComponentDecorator.KEY, myTreeDecorator);
-
-        IAndroidTarget target = myConfiguration.getTarget();
-        assert target != null; // otherwise, rendering would not have succeeded
-        PropertyParser propertyParser = new PropertyParser(getModule(), target);
-        newRootComponent.setClientProperty(PropertyParser.KEY, propertyParser);
-        propertyParser.loadRecursive(newRootComponent);
-
-        boolean firstRender = myRootComponent == null;
-
-        myRootComponent = newRootComponent;
 
         // Start out selecting the root layout rather than the device item; this will
         // show relevant layout actions immediately, will cause the component tree to
@@ -392,14 +384,15 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
               if (myMaxWidth > 0) {
                 myRootView.setLocation(Math.max(0, (myMaxWidth - myRootView.getScaledWidth()) / 2),
-                                         2 + Math.max(0, (myMaxHeight - myRootView.getScaledHeight()) / 2));
-              } else {
+                                       2 + Math.max(0, (myMaxHeight - myRootView.getScaledHeight()) / 2));
+              }
+              else {
                 myRootView.setLocation(x, y);
               }
             }
           });
 
-          rootPanel.setBackground(RenderedPanel.DESIGNER_BACKGROUND_COLOR);
+          rootPanel.setBackground(DrawingStyle.DESIGNER_BACKGROUND_COLOR);
           rootPanel.setOpaque(true);
           rootPanel.add(myRootView);
           myLayeredPane.add(rootPanel, LAYER_COMPONENT);
@@ -422,8 +415,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     });
   }
 
-  private void createRenderer(final MyThrowable throwable,
-                              final ThrowableConsumer<RenderResult, Throwable> runnable) {
+  private void createRenderer(final ThrowableConsumer<RenderResult, Throwable> runnable) {
     disposeRenderer();
     if (myConfiguration == null) {
       return;
@@ -492,6 +484,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
               } else {
                 renderResult = RenderResult.createBlank(myXmlFile, logger);
               }
+              myRenderResult = renderResult;
             }
             finally {
               myRendererLock.unlock();
@@ -513,7 +506,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
           mySessionAlarm.cancelAllRequests();
 
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
+          Runnable uiRunnable = new Runnable() {
             @Override
             public void run() {
               try {
@@ -527,10 +520,15 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
               }
               catch (Throwable e) {
                 myPsiChangeListener.clear();
-                showError("Parsing error", throwable.wrap(e));
+                showError("Parsing error", e);
               }
             }
-          });
+          };
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            ApplicationManager.getApplication().invokeAndWait(uiRunnable, ModalityState.defaultModalityState());
+          } else {
+            ApplicationManager.getApplication().invokeLater(uiRunnable);
+          }
         }
         catch (final Throwable e) {
           myPsiChangeListener.clear();
@@ -540,7 +538,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
             @Override
             public void run() {
               myPsiChangeListener.clear();
-              showError("Render error", throwable.wrap(e));
+              showError("Render error", e);
             }
           });
         }
@@ -598,7 +596,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       reparseFile();
       return;
     }
-    createRenderer(new MyThrowable(), new ThrowableConsumer<RenderResult, Throwable>() {
+    createRenderer(new ThrowableConsumer<RenderResult, Throwable>() {
       @Override
       public void consume(RenderResult result) throws Throwable {
         RenderSession session = result.getSession();
@@ -606,11 +604,8 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
           return;
         }
         updateDeviceFrameVisibility(result);
-
-        RadViewComponent rootComponent = (RadViewComponent)myRootComponent;
-        RootView rootView = (RootView)rootComponent.getNativeComponent();
-        rootView.setRenderedImage(result.getImage());
-        ModelParser.updateRootComponent(myConfiguration.getFullConfig(), rootComponent, session, rootView);
+        myRootComponent = RadModelBuilder.update(AndroidDesignerEditorPanel.this, result, (RadViewComponent)myRootComponent, myRootView);
+        myRootView.setRenderedImage(result.getImage());
 
         zoomToFitIfNecessary();
 
@@ -697,12 +692,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     info.myShowMessage = false;
     info.myShowLog = true;
 
-    Throwable renderCreator = null;
-    if (info.myThrowable instanceof MyThrowable) {
-      renderCreator = info.myThrowable;
-      info.myThrowable = ((MyThrowable)info.myThrowable).original;
-    }
-
     StringBuilder builder = new StringBuilder();
 
     builder.append("ActiveTool: ").append(myToolProvider.getActiveTool());
@@ -719,24 +708,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       builder.append("<unknown>");
     }
 
-    if (renderCreator != null) {
-      builder.append("\nCreateRendererStack:\n");
-      ByteArrayOutputStream stream = new ByteArrayOutputStream();
-      PrintStream printStream = new PrintStream(stream);
-      try {
-        renderCreator.printStackTrace(printStream);
-        builder.append(stream.toString());
-      } finally {
-        printStream.close();
-      }
-    }
-
     if (info.myThrowable instanceof IndexOutOfBoundsException && myRootComponent != null && mySession != null) {
       builder.append("\n-------- RadTree --------\n");
-      ModelParser.printTree(builder, myRootComponent, 0);
+      RadComponentOperations.printTree(builder, myRootComponent, 0);
       builder.append("\n-------- ViewTree(").append(mySession.getRootViews().size()).append(") --------\n");
       for (ViewInfo viewInfo : mySession.getRootViews()) {
-        ModelParser.printTree(builder, viewInfo, 0);
+        RadComponentOperations.printTree(builder, viewInfo, 0);
       }
     }
 
@@ -882,6 +859,23 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     return api.intValue() <= target.getVersion().getApiLevel();
   }
 
+  public PropertyParser getPropertyParser(@Nullable RenderResult result) {
+    if (myPropertyParser == null) {
+      myPropertyParser = new PropertyParser(result != null ? result : myRenderResult);
+    }
+    return myPropertyParser;
+  }
+
+  @Nullable
+  public RadViewComponent getRootViewComponent() {
+    return (RadViewComponent)myRootComponent;
+  }
+
+  @VisibleForTesting
+  public RenderResult getLastRenderResult() {
+    return myRenderResult;
+  }
+
   @Override
   @NotNull
   protected ComponentCreationFactory createCreationFactory(final PaletteItem paletteItem) {
@@ -889,7 +883,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       @NotNull
       @Override
       public RadComponent create() throws Exception {
-        RadViewComponent component = ModelParser.createComponent(null, paletteItem.getMetaModel());
+        RadViewComponent component = RadComponentOperations.createComponent(null, paletteItem.getMetaModel());
         component.setInitialPaletteItem(paletteItem);
         if (component instanceof IConfigurableComponent) {
           ((IConfigurableComponent)component).configure(myRootComponent);
@@ -1026,21 +1020,6 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   public void loadInspections(ProgressIndicator progress) {
     if (myRootComponent != null) {
       ErrorAnalyzer.load(getProject(), myXmlFile, myRootComponent, progress);
-    }
-  }
-
-  //////////////////////////////////////////////////////////////////////////////////////////
-  //
-  //
-  //
-  //////////////////////////////////////////////////////////////////////////////////////////
-
-  private static class MyThrowable extends Throwable {
-    public Throwable original;
-
-    public MyThrowable wrap(Throwable original) {
-      this.original = original;
-      return this;
     }
   }
 
@@ -1236,9 +1215,15 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     super.viewZoomed();
   }
 
+  @VisibleForTesting
+  public RootView getCurrentRootView() {
+    assert myRootView == getRootView();
+    return myRootView;
+  }
 
   @Nullable
   private RootView getRootView() {
+    // TODO: Why isn't this just using myRootView ?
     if (myRootComponent instanceof RadViewComponent) {
       Component nativeComponent = ((RadViewComponent)myRootComponent).getNativeComponent();
       if (nativeComponent instanceof RootView) {
@@ -1274,6 +1259,10 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     }
 
     return target;
+  }
+
+  public IdManager getIdManager() {
+    return myIdManager;
   }
 
   /**
@@ -1358,6 +1347,13 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   public void requestRender() {
     updateRenderer(false);
+    mySessionQueue.sendFlush();
+  }
+
+  @VisibleForTesting
+  public void requestImmediateRender() {
+    updateRenderer(true);
+    mySessionQueue.sendFlush();
   }
 
   @Override
@@ -1437,6 +1433,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   }
 
   @Override
+  @Nullable
+  public RenderedViewHierarchy getViewHierarchy() {
+    return myRenderResult != null ? myRenderResult.getHierarchy() : null;
+  }
+
+  @Override
   @NotNull
   public Dimension getFullImageSize() {
     if (myRootView != null) {
@@ -1497,6 +1499,72 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     }
 
     return myPreviewManager;
+  }
+
+  // ---- Implements OverlayContainer ----
+
+  @NotNull
+  @Override
+  public Rectangle fromModel(@NotNull Component target, @NotNull Rectangle rectangle) {
+    Rectangle r = myRootComponent.fromModel(target, rectangle);
+    if (target == myRootView) {
+      double scale = myRootView.getScale();
+      r.x *= scale;
+      r.y *= scale;
+      r.width *= scale;
+      r.height *= scale;
+    }
+    RenderedImage renderedImage = myRootView.getRenderedImage();
+    if (renderedImage != null) {
+      Rectangle imageBounds = renderedImage.getImageBounds();
+      if (imageBounds != null) {
+        r.x += imageBounds.x;
+        r.y += imageBounds.y;
+      }
+    }
+    return r;
+  }
+
+  @NotNull
+  @Override
+  public Rectangle toModel(@NotNull Component source, @NotNull Rectangle rectangle) {
+    RenderedImage renderedImage = myRootView.getRenderedImage();
+    if (renderedImage != null) {
+      Rectangle imageBounds = renderedImage.getImageBounds();
+      if (imageBounds != null && imageBounds.x != 0 && imageBounds.y != 0) {
+        rectangle = new Rectangle(rectangle);
+        rectangle.x -= imageBounds.x;
+        rectangle.y -= imageBounds.y;
+      }
+    }
+    Rectangle r = myRootComponent.toModel(source, rectangle);
+    if (source == myRootView) {
+      double scale = myRootView.getScale();
+      r.x /= scale;
+      r.y /= scale;
+      r.width /= scale;
+      r.height /= scale;
+    }
+    return r;
+  }
+
+  @Override
+  @Nullable
+  public List<Overlay> getOverlays() {
+    return myOverlays;
+  }
+
+  @Override
+  public boolean isSelected(@NotNull XmlTag tag) {
+    for (RadComponent component : getSurfaceArea().getSelection()) {
+      if (component instanceof RadViewComponent) {
+        RadViewComponent rv = (RadViewComponent)component;
+        if (tag == rv.getTag()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   // ---- Implements ResourceFolderManager.ResourceFolderListener ----
@@ -1576,6 +1644,20 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
         }
       }
 
+      if (myRootComponent != null && myRenderResult != null) {
+        RadComponent target = findTarget(x, y, null);
+        RenderedView leaf = null;
+        if (target instanceof RadViewComponent) {
+          RadViewComponent rv = (RadViewComponent)target;
+          RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
+          if (hierarchy != null) {
+            leaf = hierarchy.findViewByTag(rv.getTag());
+          }
+        }
+        if (myHover.setHoveredView(leaf)) {
+          repaint();
+        }
+      }
       return super.findTargetTool(x, y);
     }
   }

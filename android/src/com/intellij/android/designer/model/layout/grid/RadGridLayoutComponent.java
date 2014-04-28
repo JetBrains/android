@@ -15,9 +15,8 @@
  */
 package com.intellij.android.designer.model.layout.grid;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewContainer;
 import com.intellij.android.designer.model.grid.GridInfo;
@@ -296,10 +295,10 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
         tag.setAttribute(ATTR_LAYOUT_ROW, namespace, Integer.toString(row));
         tag.setAttribute(ATTR_LAYOUT_COLUMN, namespace, Integer.toString(column));
         if (clearRowSpan) {
-          ModelParser.deleteAttribute(tag, ATTR_LAYOUT_ROW_SPAN, namespace);
+          RadComponentOperations.deleteAttribute(tag, ATTR_LAYOUT_ROW_SPAN, namespace);
         }
         if (clearColumnSpan) {
-          ModelParser.deleteAttribute(tag, ATTR_LAYOUT_COLUMN_SPAN, namespace);
+          RadComponentOperations.deleteAttribute(tag, ATTR_LAYOUT_COLUMN_SPAN, namespace);
         }
 
         XmlTag layoutTag = ((RadViewComponent)component.getParent()).getTag();
@@ -352,8 +351,8 @@ public class RadGridLayoutComponent extends RadViewContainer implements ICompone
       public void run() {
         String namespace = getGridLayoutNamespace((RadViewComponent)component);
         XmlTag tag = ((RadViewComponent)component).getTag();
-        ModelParser.deleteAttribute(tag, ATTR_LAYOUT_ROW_SPAN, namespace);
-        ModelParser.deleteAttribute(tag, ATTR_LAYOUT_COLUMN_SPAN, namespace);
+        RadComponentOperations.deleteAttribute(tag, ATTR_LAYOUT_ROW_SPAN, namespace);
+        RadComponentOperations.deleteAttribute(tag, ATTR_LAYOUT_COLUMN_SPAN, namespace);
       }
     });
   }

@@ -15,11 +15,13 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.tools.idea.rendering.RenderedPanel;
+import com.android.tools.idea.configurations.OverlayContainer;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderedPanel;
 import com.android.tools.idea.rendering.RenderedView;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
-import com.google.common.base.Objects;
+import com.android.tools.idea.rendering.HoverOverlay;
+import com.android.tools.idea.rendering.Overlay;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
@@ -27,9 +29,14 @@ import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.List;
 
 /**
@@ -44,9 +51,42 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
       updateCaret();
     }
   };
+  private OverlayContainer myOverlayContainer;
 
   public AndroidLayoutPreviewPanel() {
     super(true);
+  }
+
+  public void installHover(final HoverOverlay overlay) {
+    Container parent = getPaintComponent().getParent();
+    parent.addMouseMotionListener(new MouseMotionAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent mouseEvent) {
+        int x1 = mouseEvent.getX();
+        int y1 = mouseEvent.getY();
+
+        Component paintComponent = getPaintComponent();
+        x1 -= paintComponent.getX();
+        y1 -= paintComponent.getY();
+
+        RenderedView leaf = null;
+        Point p = fromScreenToModel(x1, y1);
+        if (p != null) {
+          leaf = findLeaf(p.x, p.y);
+        }
+        if (overlay.setHoveredView(leaf)) {
+          repaint();
+        }
+      }
+    });
+    parent.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseExited(MouseEvent mouseEvent) {
+        if (overlay.setHoveredView(null)) {
+          repaint();
+        }
+      }
+    });
   }
 
   @Override
@@ -59,6 +99,14 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
     return getParent().getParent().getSize().getWidth() - 5;
   }
 
+  @Override
+  protected boolean paintRenderedImage(Component component, Graphics g, int px, int py) {
+    boolean paintedImage = super.paintRenderedImage(component, g, px, py);
+    if (paintedImage) {
+      Overlay.paintOverlays(myOverlayContainer, component, g, px, py);
+    }
+    return paintedImage;
+  }
 
   @Override
   protected void selectView(@Nullable RenderedView leaf) {
@@ -82,10 +130,7 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
           if (views != null && views.size() == 1 && views.get(0).isRoot()) {
             views = null;
           }
-          if (!Objects.equal(views, mySelectedViews)) {
-            mySelectedViews = views;
-            repaint();
-          }
+          setSelectedViews(views);
         }
       }
     }
@@ -113,5 +158,20 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
         myCaretModel.addCaretListener(myCaretListener);
       }
     }
+  }
+
+  public void setOverlayContainer(OverlayContainer overlayContainer) {
+    myOverlayContainer = overlayContainer;
+  }
+
+  public boolean isSelected(@NotNull XmlTag tag) {
+    if (mySelectedViews != null) {
+      for (RenderedView view : mySelectedViews) {
+        if (view.tag == tag) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

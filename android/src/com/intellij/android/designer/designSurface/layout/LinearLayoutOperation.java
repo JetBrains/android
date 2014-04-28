@@ -23,7 +23,7 @@ import com.intellij.android.designer.designSurface.feedbacks.TextFeedback;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.layout.flow.FlowBaseOperation;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.Gravity;
 import com.intellij.designer.designSurface.FeedbackLayer;
@@ -245,7 +245,7 @@ public class LinearLayoutOperation extends FlowBaseOperation {
     if (gravity == null) {
       for (RadViewComponent component : components) {
         XmlTag tag = component.getTag();
-        ModelParser.deleteAttribute(tag, ATTR_LAYOUT_GRAVITY);
+        RadComponentOperations.deleteAttribute(tag, ATTR_LAYOUT_GRAVITY);
       }
     }
     else {

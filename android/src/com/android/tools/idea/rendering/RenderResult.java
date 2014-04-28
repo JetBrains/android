@@ -37,6 +37,7 @@ public class RenderResult {
   @Nullable private RenderedViewHierarchy myHierarchy;
   @Nullable private final RenderService myRenderService;
   @Nullable private final RenderSession mySession; // TEMPORARY
+  @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
 
   public RenderResult(@Nullable RenderService renderService,
                       @Nullable RenderSession session,
@@ -88,7 +89,7 @@ public class RenderResult {
   @Nullable
   public RenderedViewHierarchy getHierarchy() {
     if (myHierarchy == null && myRootViews != null) {
-      myHierarchy = RenderedViewHierarchy.create(myFile, myRootViews);
+      myHierarchy = RenderedViewHierarchy.create(myFile, myRootViews, myIncludedWithin != IncludeReference.NONE);
     }
 
     return myHierarchy;
@@ -97,11 +98,6 @@ public class RenderResult {
   @Nullable
   public RenderedImage getImage() {
     return myImage;
-  }
-
-  @Nullable
-  public List<ViewInfo> getRootViews() {
-    return myRootViews;
   }
 
   @NotNull
@@ -116,6 +112,18 @@ public class RenderResult {
 
   @NotNull
   public Module getModule() {
-    return myLogger.getModule();
+    Module module = myLogger.getModule();
+    // This method should only be called on a valid render result
+    assert module != null;
+    return module;
+  }
+
+  @Nullable
+  public IncludeReference getIncludedWithin() {
+    return myIncludedWithin;
+  }
+
+  public void setIncludedWithin(@Nullable IncludeReference includedWithin) {
+    myIncludedWithin = includedWithin;
   }
 }

@@ -16,13 +16,13 @@
 package com.intellij.android.designer.propertyTable.renderers;
 
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.intellij.android.designer.model.ModelParser;
-import com.intellij.designer.ModuleProvider;
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.designer.model.PropertiesContainer;
 import com.intellij.designer.model.PropertyContext;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.propertyTable.renderers.AbstractResourceRenderer;
 import com.intellij.designer.propertyTable.renderers.BooleanRenderer;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ArrayUtil;
@@ -139,17 +139,23 @@ public class ResourceRenderer extends AbstractResourceRenderer<String> {
         String type = value.substring(start, index);
         String name = value.substring(index + 1);
 
-        ModuleProvider moduleProvider = component.getRoot().getClientProperty(ModelParser.MODULE_KEY);
-        AndroidFacet facet = AndroidFacet.getInstance(moduleProvider.getModule());
-        ResourceManager manager = facet.getResourceManager(system ? AndroidUtils.SYSTEM_RESOURCE_PACKAGE : null);
-        List<ResourceElement> resources = manager.findValueResources(type, name, false);
+        Module module = RadModelBuilder.getModule(component);
+        if (module != null) {
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet != null) {
+            ResourceManager manager = facet.getResourceManager(system ? AndroidUtils.SYSTEM_RESOURCE_PACKAGE : null);
+            if (manager != null) {
+              List<ResourceElement> resources = manager.findValueResources(type, name, false);
 
-        if ("color".equalsIgnoreCase(type) && !resources.isEmpty()) {
-          colorValue.append(resources.get(0).getRawText());
-        }
+              if ("color".equalsIgnoreCase(type) && !resources.isEmpty()) {
+                colorValue.append(resources.get(0).getRawText());
+              }
 
-        if (resources.isEmpty() && manager.findResourceFiles(type, name, false).isEmpty()) {
-          return SimpleTextAttributes.ERROR_ATTRIBUTES;
+              if (resources.isEmpty() && manager.findResourceFiles(type, name, false).isEmpty()) {
+                return SimpleTextAttributes.ERROR_ATTRIBUTES;
+              }
+            }
+          }
         }
       }
       catch (Throwable e) {
