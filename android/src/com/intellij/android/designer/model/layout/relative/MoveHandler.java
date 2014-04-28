@@ -28,8 +28,8 @@ import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.MAX_MATCH_DISTANCE;
 import static com.android.tools.idea.designer.MarginType.NO_MARGIN;
+import static com.intellij.android.designer.designSurface.graphics.DrawingStyle.MAX_MATCH_DISTANCE;
 import static java.lang.Math.abs;
 
 /**

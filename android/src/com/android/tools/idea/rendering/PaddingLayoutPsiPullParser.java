@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
 import com.android.resources.Density;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;

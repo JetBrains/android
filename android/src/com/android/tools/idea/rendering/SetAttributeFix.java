@@ -20,7 +20,11 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.inspections.lint.SuppressLintIntentionAction;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class SetAttributeFix extends WriteCommandAction<Void> {
   private final XmlTag myTag;
@@ -28,7 +32,8 @@ public class SetAttributeFix extends WriteCommandAction<Void> {
   private final String myAttribute;
   private final String myValue;
 
-  public SetAttributeFix(Project project, XmlTag tag, String attribute, String namespace, String value) {
+  public SetAttributeFix(@NotNull Project project, @NotNull XmlTag tag, @NotNull String attribute, @Nullable String namespace,
+                         @Nullable String value) {
     super(project, String.format("Set %1$s Attribute", StringUtil.capitalize(attribute)), tag.getContainingFile());
     myTag = tag;
     myNamespace = namespace;
@@ -38,6 +43,9 @@ public class SetAttributeFix extends WriteCommandAction<Void> {
 
   @Override
   protected void run(Result<Void> result) throws Throwable {
+    if (myNamespace != null && myValue != null) {
+      SuppressLintIntentionAction.ensureNamespaceImported(getProject(), (XmlFile)myTag.getContainingFile(), myNamespace);
+    }
     myTag.setAttribute(myAttribute, myNamespace, myValue);
   }
 }

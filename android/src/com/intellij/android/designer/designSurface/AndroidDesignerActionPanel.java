@@ -17,6 +17,7 @@ package com.intellij.android.designer.designSurface;
 
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.configurations.RenderOptionsMenuBuilder;
+import com.android.tools.idea.rendering.IncludeReference;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
 import com.intellij.android.designer.model.RadViewComponent;
@@ -30,6 +31,12 @@ import com.intellij.designer.model.RadLayout;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.keymap.KeymapUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.PsiNavigateUtil;
@@ -40,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -218,6 +226,13 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
       myDynamicAfterGroup.removeAll();
     }
 
+    addShowIncludedInContextMenuActions();
+    addSelectionContextMenuActions(area);
+
+    return myPopupGroup;
+  }
+
+  private void addSelectionContextMenuActions(EditableArea area) {
     // Insert selection actions
     List<RadComponent> selection = area.getSelection();
     if (selection.size() == 1) {
@@ -239,7 +254,63 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
         }
       }
     }
+  }
 
-    return myPopupGroup;
+  private void addShowIncludedInContextMenuActions() {
+    DefaultActionGroup targetGroup = myDynamicBeforeGroup;
+    AndroidDesignerEditorPanel designer = (AndroidDesignerEditorPanel)myDesigner;
+    XmlFile xmlFile = designer.getXmlFile();
+    Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(xmlFile);
+    Iterator<PsiReference> iterator = allReferences.iterator();
+
+    if (iterator.hasNext()) {
+      boolean needSeparator = false;
+
+      String includingLayout = IncludeReference.getIncludingLayout(designer.getXmlFile());
+      if (includingLayout != null) {
+          targetGroup.add(new ShowIncludedIn(designer, null, "Hide Including Layout"));
+          targetGroup.addSeparator();
+      }
+
+      while (iterator.hasNext()) {
+        PsiReference reference = iterator.next();
+        PsiElement referenceElement = reference.getElement();
+        if (referenceElement != null) {
+          PsiFile file = referenceElement.getContainingFile();
+          if (file != null && file != xmlFile) {
+            VirtualFile fromFile = file.getVirtualFile();
+            if (fromFile != null) {
+              VirtualFile toFile = designer.getVirtualFile();
+              IncludeReference includeReference = IncludeReference.create(designer.getModule(), fromFile, toFile);
+              String title = String.format("Show Included In %1$s", includeReference.getFromDisplayName());
+              targetGroup.add(new ShowIncludedIn(designer, includeReference, title));
+              needSeparator = true;
+            }
+          }
+        }
+      }
+
+      if (needSeparator) {
+        targetGroup.addSeparator();
+      }
+    }
+  }
+
+  private static class ShowIncludedIn extends AnAction {
+    private final IncludeReference myReference;
+    private final AndroidDesignerEditorPanel myPanel;
+
+    private ShowIncludedIn(@NotNull AndroidDesignerEditorPanel panel, @Nullable IncludeReference reference, @NotNull String title) {
+      super(title);
+      myPanel = panel;
+      myReference = reference;
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      String layout = myReference != null ? myReference.getFromResourceUrl() : null;
+      IncludeReference.setIncludingLayout(myPanel.getProject(), myPanel.getXmlFile(), layout);
+      myPanel.requestRender();
+    }
   }
 }

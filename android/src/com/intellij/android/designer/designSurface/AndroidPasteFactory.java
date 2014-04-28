@@ -16,7 +16,7 @@
 package com.intellij.android.designer.designSurface;
 
 import com.android.sdklib.IAndroidTarget;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.designer.designSurface.tools.ComponentPasteFactory;
@@ -76,7 +76,7 @@ public class AndroidPasteFactory implements ComponentPasteFactory {
       myClassLoader.loadClass(target);
     }
 
-    RadViewComponent component = ModelParser.createComponent(null, metaModel);
+    RadViewComponent component = RadComponentOperations.createComponent(null, metaModel);
     component.setClientProperty(KEY, element.getChild("properties"));
 
     for (Object childElement : element.getChildren("component")) {

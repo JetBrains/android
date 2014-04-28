@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.multi;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
@@ -152,5 +153,11 @@ class PreviewRenderContext implements RenderContext {
   @Override
   public BufferedImage getRenderedImage() {
     return myRenderContext.getRenderedImage();
+  }
+
+  @Nullable
+  @Override
+  public RenderedViewHierarchy getViewHierarchy() {
+    return myRenderContext.getViewHierarchy();
   }
 }

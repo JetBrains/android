@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,14 +43,22 @@ public class IdManager {
 
   private final Set<String> myIdList = new HashSet<String>();
 
+  @Nullable
   public static IdManager get(RadComponent component) {
-    return component.getRoot().getClientProperty(KEY);
+    return RadModelBuilder.getIdManager(component);
   }
 
-  private static String parseIdValue(String idValue) {
-    if (idValue != null && !idValue.startsWith("@android:id/")) {
-      return idValue.substring(idValue.indexOf('/') + 1);
+  @Nullable
+  private static String parseIdValue(@Nullable String idValue) {
+    if (idValue != null) {
+      if (idValue.startsWith(NEW_ID_PREFIX)) {
+        return idValue.substring(NEW_ID_PREFIX.length());
+      }
+      else if (idValue.startsWith(ID_PREFIX)) {
+        return idValue.substring(ID_PREFIX.length());
+      }
     }
+
     return null;
   }
 
@@ -63,7 +72,7 @@ public class IdManager {
   public void removeComponent(RadViewComponent component, boolean withChildren) {
     String idValue = parseIdValue(component.getId());
     if (idValue != null) {
-      myIdList.remove(idValue);
+      myIdList.remove(idValue); // Uh oh. What if it appears more than once? This would incorrectly assume it's no longer there! Needs to be a list or have a count!
     }
 
     if (withChildren) {
@@ -71,6 +80,10 @@ public class IdManager {
         removeComponent((RadViewComponent)child, true);
       }
     }
+  }
+
+  public void clearIds() {
+    myIdList.clear();
   }
 
   public String createId(RadViewComponent component) {
