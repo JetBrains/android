@@ -19,7 +19,10 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlAttribute;
@@ -62,7 +65,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   @Nullable
   protected String myAndroidPrefix;
 
-  private boolean myProvideViewCookies = true;
+  protected boolean myProvideViewCookies = true;
 
   /**
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
@@ -73,6 +76,30 @@ public class LayoutPsiPullParser extends LayoutPullParser {
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull RenderLogger logger) {
+    if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
+      return new LayoutPsiPullParser(file, logger) {
+        @Nullable
+        @Override
+        public Object getViewCookie() {
+          if (myProvideViewCookies) {
+            Element element = getCurrentNode();
+            if (element != null) {
+              // <menu> tags means that we are adding a sub-menu. Since we don't show the submenu, we
+              // return the enclosing tag.
+              if (element.tag.equals(FD_RES_MENU)) {
+                Element previousElement = getPreviousNode();
+                if (previousElement != null) {
+                  return previousElement.cookie;
+                }
+              }
+              return element.cookie;
+            }
+          }
+
+          return null;
+        }
+      };
+    }
     return new LayoutPsiPullParser(file, logger);
   }
 
@@ -112,25 +139,28 @@ public class LayoutPsiPullParser extends LayoutPullParser {
           Element element = getCurrentNode();
           if (element != null) {
             final XmlTag tag = element.cookie;
-            String value;
-            if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-              value = filter.getAttribute(tag, namespace, localName);
-            } else {
-              value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-                @Override
-                @Nullable
-                public String compute() {
-                  return filter.getAttribute(tag, namespace, localName);
-                }
-              });
-            }
-            if (value != null) {
-              if (value.isEmpty()) { // empty means unset
-                return null;
+            if (tag != null) {
+              String value;
+              if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+                value = filter.getAttribute(tag, namespace, localName);
               }
-              return value;
+              else {
+                value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+                  @Override
+                  @Nullable
+                  public String compute() {
+                    return filter.getAttribute(tag, namespace, localName);
+                  }
+                });
+              }
+              if (value != null) {
+                if (value.isEmpty()) { // empty means unset
+                  return null;
+                }
+                return value;
+              }
+              // null means no preference, not "unset".
             }
-            // null means no preference, not "unset".
           }
         }
 
@@ -147,7 +177,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull RenderLogger logger) {
     myLogger = logger;
 
-    if (root != null) {
+    if (root != null && root.isValid()) {
       if (ApplicationManager.getApplication().isReadAccessAllowed()) {
         myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
         myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
@@ -172,6 +202,15 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   protected final Element getCurrentNode() {
     if (myNodeStack.size() > 0) {
       return myNodeStack.get(myNodeStack.size() - 1);
+    }
+
+    return null;
+  }
+
+  @Nullable
+  protected final Element getPreviousNode() {
+    if (myNodeStack.size() > 1) {
+      return myNodeStack.get(myNodeStack.size() - 2);
     }
 
     return null;
@@ -554,6 +593,104 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   }
 
   private static Element createSnapshot(XmlTag tag) {
+    // <include> tags can't be at the root level; handle <fragment> rewriting here such that we don't
+    // need to handle it as a tag name rewrite (where it's harder to change the structure)
+    // https://code.google.com/p/android/issues/detail?id=67910
+    String rootTag = tag.getName();
+    if (rootTag.equals(VIEW_FRAGMENT)) {
+      Element element = new Element(tag, FRAME_LAYOUT, "", "");
+      XmlAttribute[] psiAttributes = tag.getAttributes();
+      List<Attribute> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
+      element.attributes = attributes;
+      for (XmlAttribute psiAttribute : psiAttributes) {
+        Attribute attribute = createAttributeSnapshot(psiAttribute);
+        attributes.add(attribute);
+      }
+      Element include = new Element(null, VIEW_FRAGMENT, "", "");
+      element.children = Collections.singletonList(include);
+      include.children = Collections.emptyList();
+      List<Attribute> includeAttributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
+      include.attributes = includeAttributes;
+      for (XmlAttribute psiAttribute : psiAttributes) {
+        String name = psiAttribute.getName();
+        if (name.startsWith(XMLNS_PREFIX)) {
+          continue;
+        }
+        String localName = psiAttribute.getLocalName();
+        if (localName.startsWith(ATTR_LAYOUT_MARGIN) || localName.startsWith(ATTR_PADDING) ||
+            localName.equals(ATTR_ID)) {
+          continue;
+        }
+        Attribute attribute = createAttributeSnapshot(psiAttribute);
+        includeAttributes.add(attribute);
+      }
+      return element;
+    } else if (rootTag.equals(FRAME_LAYOUT)) {
+      Element root = createTagSnapshot(tag);
+
+      // tools:layout on a <FrameLayout> acts like an <include> child. This
+      // lets you preview runtime additions on FrameLayouts.
+      String layout = tag.getAttributeValue(ATTR_LAYOUT, TOOLS_URI);
+      if (layout != null && root.children.isEmpty()) {
+        String prefix = tag.getPrefixByNamespace(ANDROID_URI);
+        if (prefix != null) {
+          List<Element> children = Lists.newArrayList();
+          children.addAll(root.children);
+          root.children = children;
+
+          Element element = new Element(null, VIEW_INCLUDE, "", "");
+          children.add(element);
+          element.children = Collections.emptyList();
+          List<Attribute> attributes = Lists.newArrayListWithExpectedSize(3);
+          element.attributes = attributes;
+          attributes.add(new Attribute("", "", ATTR_LAYOUT, layout));
+          attributes.add(new Attribute(ANDROID_URI, prefix, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT));
+          attributes.add(new Attribute(ANDROID_URI, prefix, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT));
+        }
+      }
+
+      // Allow <FrameLayout tools:visibleChildren="1,3,5"> to make all but the given children visible
+      String visibleChild = tag.getAttributeValue("visibleChildren", TOOLS_URI);
+      if (visibleChild != null) {
+        Set<Integer> indices = Sets.newHashSet();
+        for (String s : Splitter.on(',').trimResults().omitEmptyStrings().split(visibleChild)) {
+          try {
+            indices.add(Integer.parseInt(s));
+          } catch (NumberFormatException e) {
+            // ignore metadata if it's incorrect
+          }
+        }
+        String prefix = tag.getPrefixByNamespace(ANDROID_URI);
+        if (prefix != null) {
+          for (int i = 0, n = root.children.size(); i < n; i++) {
+            Element child = root.children.get(i);
+            boolean visible = indices.contains(i);
+            child.setAttribute(ATTR_VISIBILITY, ANDROID_URI, prefix, visible ? "visible" : "gone");
+          }
+        }
+      }
+
+      return root;
+    } else {
+      Element root = createTagSnapshot(tag);
+
+      // Ensure that root tags that qualify for adapter binding specify an id attribute, since that is required for
+      // attribute binding to work. (Without this, a <ListView> at the root level will not show Item 1, Item 2, etc.
+      if (rootTag.equals(LIST_VIEW) || rootTag.equals(EXPANDABLE_LIST_VIEW) || rootTag.equals(GRID_VIEW) || rootTag.equals(SPINNER)) {
+        XmlAttribute id = tag.getAttribute(ATTR_ID, ANDROID_URI);
+        if (id == null) {
+          String prefix = tag.getPrefixByNamespace(ANDROID_URI);
+          if (prefix != null) {
+            root.attributes.add(new Attribute(ANDROID_URI, prefix, ATTR_ID, "@+id/_dynamic"));
+          }
+        }
+      }
+
+      return root;
+    }
+  }
+
+  private static Element createTagSnapshot(XmlTag tag) {
     Element element = new Element(tag);
 
     // Attributes
@@ -561,7 +698,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     List<Attribute> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
     element.attributes = attributes;
     for (XmlAttribute psiAttribute : psiAttributes) {
-      Attribute attribute = createSnapshot(psiAttribute);
+      Attribute attribute = createAttributeSnapshot(psiAttribute);
       attributes.add(attribute);
     }
 
@@ -572,7 +709,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       ArrayList<Element> children = Lists.newArrayListWithExpectedSize(subTags.length);
       element.children = children;
       for (XmlTag subTag : subTags) {
-        Element child = createSnapshot(subTag);
+        Element child = createTagSnapshot(subTag);
         children.add(child);
         if (last != null) {
           last.next = child;
@@ -586,7 +723,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     return element;
   }
 
-  private static Attribute createSnapshot(XmlAttribute psiAttribute) {
+  private static Attribute createAttributeSnapshot(XmlAttribute psiAttribute) {
     String localName = psiAttribute.getLocalName();
     String namespace = psiAttribute.getNamespace();
     String prefix = psiAttribute.getNamespacePrefix();
@@ -603,11 +740,15 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     public List<Element> children;
     public List<Attribute> attributes;
 
-    public Element(XmlTag tag) {
-      this.tag = tag.getName();
-      this.prefix = tag.getNamespacePrefix();
-      this.namespace = tag.getNamespace();
+    public Element(@Nullable XmlTag tag, String tagName, String prefix, String namespace) {
+      this.tag = tagName;
+      this.prefix = prefix;
+      this.namespace = namespace;
       this.cookie = tag;
+    }
+
+    public Element(@NotNull XmlTag tag) {
+      this(tag, tag.getName(), tag.getNamespacePrefix(), tag.getNamespace());
     }
 
     @Nullable
@@ -627,6 +768,18 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
       return null;
     }
+
+    private void setAttribute(String name, String namespace, String prefix, @Nullable String value) {
+      for (Attribute attribute : attributes) {
+        if (name.equals(attribute.name) && (namespace == null || namespace.equals(attribute.namespace))) {
+          attributes.remove(attribute);
+          break;
+        }
+      }
+      if (value != null) {
+        attributes.add(new Attribute(namespace, prefix, name, value));
+      }
+    }
   }
 
   protected static class Attribute {
@@ -635,7 +788,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
     public String name;
     public String value;
 
-    private Attribute(String namespace, String prefix, String name, @Nullable String value) {
+    private Attribute(@Nullable String namespace, String prefix, String name, @Nullable String value) {
       this.namespace = namespace;
       this.prefix = prefix;
       this.name = name;

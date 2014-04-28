@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.eclipse;
 
 import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.NewProjectImportCallback;
+import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.intellij.ide.util.projectWizard.WizardContext;
@@ -97,7 +97,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   @Nullable
-  GradleImport getImporter() {
+  public GradleImport getImporter() {
     return myImporter;
   }
 
@@ -129,9 +129,9 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   @Nullable
   @Override
   public List<Module> commit(final Project project,
-                             ModifiableModuleModel model,
+                             @Nullable ModifiableModuleModel model,
                              ModulesProvider modulesProvider,
-                             ModifiableArtifactModel artifactModel) {
+                             @Nullable ModifiableArtifactModel artifactModel) {
     File destDir = new File(project.getBasePath());
     try {
       if (!destDir.exists()) {
@@ -156,9 +156,9 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
 
     try {
-      final NewProjectImportCallback callback = new NewProjectImportCallback() {
+      final NewProjectImportGradleSyncListener callback = new NewProjectImportGradleSyncListener() {
         @Override
-        public void projectImported(@NotNull final Project project) {
+        public void syncEnded(@NotNull final Project project) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -169,7 +169,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         }
 
         @Override
-        public void importFailed(@NotNull final Project project, @NotNull String errorMessage) {
+        public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -183,7 +183,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       if (myCreateProject) {
         importer.importProject(project.getName(), destDir, callback, project);
       } else {
-        importer.reImportProject(project, true, callback);
+        importer.requestProjectSync(project, true, callback);
       }
     }
     catch (ConfigurationException e) {
@@ -205,6 +205,12 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
   }
 
+  @SuppressWarnings("ConstantConditions")
+  @Override
+  public boolean validate(@Nullable Project current, Project dest) {
+    return super.validate(current, dest);
+  }
+
   private static void openSummary(Project project) {
     VirtualFile summary = project.getBaseDir().findChild(GradleImport.IMPORT_SUMMARY_TXT);
     if (summary != null) {
@@ -213,7 +219,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   @Nullable
-  static AdtImportBuilder getBuilder(@Nullable WizardContext context) {
+  public static AdtImportBuilder getBuilder(@Nullable WizardContext context) {
     if (context != null) {
       return (AdtImportBuilder)context.getProjectBuilder();
     }

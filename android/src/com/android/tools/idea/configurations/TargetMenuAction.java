@@ -18,7 +18,10 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
@@ -180,8 +183,8 @@ public class TargetMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
-      if (configuration == myRenderContext.getConfiguration()) {
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      if (commit) {
         setProjectWideTarget();
       } else {
         configuration.setTarget(myTarget);
@@ -189,8 +192,8 @@ public class TargetMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void pickedBetterMatch(@NotNull VirtualFile file) {
-      super.pickedBetterMatch(file);
+    protected void pickedBetterMatch(@NotNull VirtualFile file, @NotNull VirtualFile old) {
+      super.pickedBetterMatch(file, old);
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched

@@ -22,8 +22,11 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.stats.StatsKeys;
+import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -92,6 +95,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
 
@@ -106,7 +110,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   private static final Logger LOG = Logger.getInstance(GradleInvoker.class);
 
-  @NonNls private static final String CONTENT_NAME = "Gradle tasks";
+  @NonNls private static final String CONTENT_NAME = "Gradle Build";
   @NonNls private static final String APP_ICON_ID = "compiler";
 
   private static final Key<Key<?>> CONTENT_ID_KEY = Key.create("CONTENT_ID");
@@ -160,8 +164,43 @@ class GradleTasksExecutor extends Task.Backgroundable {
                                 "Gradle Invocation Finished", myErrorCount + " Errors, " + myWarningCount + " Warnings", true);
   }
 
+  private final static String[] STAT_KEYS = {
+    ":generate", StatsKeys.GRADLE_GENERATE_TIME,
+    ":assemble", StatsKeys.GRADLE_ASSEMBLE_TIME,
+    ":compile" , StatsKeys.GRADLE_COMPILE_TIME,
+  };
+
+  private final static String[] STAT_CLEAN_KEYS = {
+    ":generate", StatsKeys.GRADLE_CLEAN_TIME,
+    ":compile" , StatsKeys.GRADLE_REBUILD_TIME,
+  };
+
+  // Compute a stat key name to capture build times
+  private String getStatKey() {
+    boolean isClean = false;
+    for (String taskName : myGradleTasks) {
+      if (taskName == null) {
+        continue;
+      }
+      if (GradleBuilds.CLEAN_TASK_NAME.equals(taskName)) {
+        isClean = true;
+        continue;
+      }
+      String[] keys = isClean ? STAT_CLEAN_KEYS : STAT_KEYS;
+      for (int i = 0, n = keys.length -1; i < n; i += 2) {
+        if (taskName.contains(keys[i])) {
+          return keys[i+1];
+        }
+      }
+    }
+    return StatsKeys.GRADLE_BUILD_TIME;
+  }
+
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
+    String statKey = getStatKey();
+    StatsTimeCollector.start(statKey);
+
     myIndicator = indicator;
 
     ProjectManager projectManager = ProjectManager.getInstance();
@@ -192,6 +231,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
     finally {
       try {
+        StatsTimeCollector.stop(statKey);
         indicator.stop();
         projectManager.removeProjectManagerListener(project, myCloseListener);
       }
@@ -249,7 +289,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         ExternalSystemTaskId id = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project);
         BuildMode buildMode = BuildSettings.getInstance(project).getBuildMode();
-        List<String> extraJvmArgs = getGradleInvocationJvmArgs(new File(projectPath), buildMode);
+
+        List<String> jvmArgs = getGradleInvocationJvmArgs(new File(projectPath), buildMode);
+        LOG.info("Build JVM args: " + jvmArgs);
 
         String executingTasksText =
           "Executing tasks: " + myGradleTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
@@ -262,16 +304,21 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-          List<String> commandLineOptions = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
+          List<String> commandLineArgs = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
 
-          CompilerWorkspaceConfiguration compilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-          if (compilerConfiguration.PARALLEL_COMPILATION && !commandLineOptions.contains(PARALLEL_BUILD_OPTION)) {
-            LOG.info("Using 'parallel' build option");
-            commandLineOptions.add(PARALLEL_BUILD_OPTION);
+          if (buildConfiguration.USE_CONFIGURATION_ON_DEMAND && !commandLineArgs.contains(CONFIGURE_ON_DEMAND_OPTION)) {
+            commandLineArgs.add(CONFIGURE_ON_DEMAND_OPTION);
           }
 
+          if (!commandLineArgs.contains(PARALLEL_BUILD_OPTION) &&
+              CompilerWorkspaceConfiguration.getInstance(project).PARALLEL_COMPILATION) {
+            commandLineArgs.add(PARALLEL_BUILD_OPTION);
+          }
+
+          LOG.info("Build command line options: " + commandLineArgs);
+
           BuildLauncher launcher = connection.newBuild();
-          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, extraJvmArgs, commandLineOptions, connection);
+          GradleExecutionHelper.prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
 
           File javaHome = DefaultSdks.getDefaultJavaHome();
           if (javaHome != null) {

@@ -21,16 +21,19 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.SparseIntArray;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.uipreview.VirtualFileWrapper;
@@ -39,10 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
@@ -50,7 +50,7 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
  * Produces matches for configurations.
  * <p/>
  * See algorithm described here:
- * http://developer.android.com/guide/topics/resources/providing-resources.html
+ * http://developer.android.com/guide/topics/resources/providing-resources.html#BestMatch
  * <p>
  * This class was ported from ADT and could probably use a rewrite.
  */
@@ -222,8 +222,10 @@ public class ConfigurationMatcher {
     boolean currentConfigIsCompatible = false;
     State selectedState = myConfiguration.getDeviceState();
     FolderConfiguration editedConfig = myConfiguration.getEditedConfig();
+    Module module = myConfiguration.getModule();
     if (selectedState != null) {
-      FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(selectedState);
+      FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, myConfiguration.getLocale(),
+                                                                        myConfiguration.getTarget());
       if (currentConfig != null && editedConfig.isMatchFor(currentConfig)) {
         currentConfigIsCompatible = true; // current config is compatible
         if (!needBestMatch || isCurrentFileBestMatchFor(currentConfig)) {
@@ -248,7 +250,7 @@ public class ConfigurationMatcher {
         VersionQualifier versionQualifier = new VersionQualifier(target.getVersion().getApiLevel());
         mainloop:
         for (State state : device.getAllStates()) {
-          testConfig.set(DeviceConfigHelper.getFolderConfig(state));
+          testConfig.set(Configuration.getFolderConfig(module, state, myConfiguration.getLocale(), target));
           testConfig.setVersionQualifier(versionQualifier);
 
           // loop on the locales.
@@ -271,6 +273,7 @@ public class ConfigurationMatcher {
       if (matchState != null) {
         myConfiguration.startBulkEditing();
         myConfiguration.setDeviceState(matchState);
+        myConfiguration.setEffectiveDevice(device, matchState);
         myConfiguration.finishBulkEditing();
       }
       else {
@@ -349,12 +352,16 @@ public class ConfigurationMatcher {
 
     addRenderTargetToBundles(configBundles);
 
+    Locale currentLocale = myConfiguration.getLocale();
+    IAndroidTarget currentTarget = myConfiguration.getTarget();
+    Module module = myConfiguration.getModule();
+
     for (Device device : deviceList) {
       for (State state : device.getAllStates()) {
 
         // loop on the list of config bundles to create full
         // configurations.
-        FolderConfiguration stateConfig = DeviceConfigHelper.getFolderConfig(state);
+        FolderConfiguration stateConfig = Configuration.getFolderConfig(module, state, currentLocale, currentTarget);
         for (ConfigBundle bundle : configBundles) {
           // create a new config with device config
           FolderConfiguration testConfig = new FolderConfiguration();
@@ -395,8 +402,7 @@ public class ConfigurationMatcher {
         ConfigMatch match = selectConfigMatch(anyMatches);
 
         myConfiguration.startBulkEditing();
-        myConfiguration.setDevice(match.device, false);
-        myConfiguration.setDeviceState(match.state);
+        myConfiguration.setEffectiveDevice(match.device, match.state);
         myConfiguration.setUiMode(UiMode.getByIndex(match.bundle.dockModeIndex));
         myConfiguration.setNightMode(NightMode.getByIndex(match.bundle.nightModeIndex));
         myConfiguration.finishBulkEditing();
@@ -419,8 +425,7 @@ public class ConfigurationMatcher {
       ConfigMatch match = selectConfigMatch(bestMatches);
 
       myConfiguration.startBulkEditing();
-      myConfiguration.setDevice(match.device, false);
-      myConfiguration.setDeviceState(match.state);
+      myConfiguration.setEffectiveDevice(match.device, match.state);
       myConfiguration.setUiMode(UiMode.getByIndex(match.bundle.dockModeIndex));
       myConfiguration.setNightMode(NightMode.getByIndex(match.bundle.nightModeIndex));
       myConfiguration.finishBulkEditing();
@@ -506,6 +511,13 @@ public class ConfigurationMatcher {
 
   @NotNull
   private ConfigMatch selectConfigMatch(@NotNull List<ConfigMatch> matches) {
+    List<String> deviceIds = myManager.getStateManager().getProjectState().getDeviceIds();
+    Map<String, Integer> idRank = Maps.newHashMapWithExpectedSize(deviceIds.size());
+    int rank = 0;
+    for (String id : deviceIds) {
+      idRank.put(id, rank++);
+    }
+
     // API 11-13: look for a x-large device
     Comparator<ConfigMatch> comparator = null;
     IAndroidTarget projectTarget = myManager.getProjectTarget();
@@ -514,14 +526,15 @@ public class ConfigurationMatcher {
       if (apiLevel >= 11 && apiLevel < 14) {
         // TODO: Maybe check the compatible-screen tag in the manifest to figure out
         // what kind of device should be used for display.
-        comparator = new TabletConfigComparator();
+        comparator = new TabletConfigComparator(idRank);
       }
     }
 
     if (comparator == null) {
       // lets look for a high density device
-      comparator = new PhoneConfigComparator();
+      comparator = new PhoneConfigComparator(idRank);
     }
+
     Collections.sort(matches, comparator);
 
     // Look at the currently active editor to see if it's a layout editor, and if so,
@@ -566,9 +579,66 @@ public class ConfigurationMatcher {
   }
 
   /**
+   * Returns a different file which is a better match for the given device, orientation, target version, etc
+   * than the current one. You can supply {@code null} for all parameters; in that case, the current value
+   * in the configuration is used.
+   */
+  @Nullable
+  public static VirtualFile getBetterMatch(@NotNull Configuration configuration, @Nullable Device device, @Nullable String stateName,
+                                           @Nullable Locale locale, @Nullable IAndroidTarget target) {
+    VirtualFile file = configuration.getFile();
+    Module module = configuration.getModule();
+    if (file != null && module != null) {
+      if (device == null) {
+        device = configuration.getDevice();
+      }
+      if (stateName == null) {
+        State deviceState = configuration.getDeviceState();
+        stateName = deviceState != null ? deviceState.getName() : null;
+      }
+      State selectedState = ConfigurationFileState.getState(device, stateName);
+      if (selectedState == null) {
+        return null; // Invalid state name passed in for the current device
+      }
+      if (locale == null) {
+        locale = configuration.getLocale();
+      }
+      if (target == null) {
+        target = configuration.getTarget();
+      }
+      FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
+      if (currentConfig != null) {
+        LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+        if (resources != null) {
+          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+          if (folderType != null) {
+            List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
+            if (!types.isEmpty()) {
+              ResourceType type = types.get(0);
+              VirtualFile match = resources.getMatchingFile(file, type, currentConfig);
+              if (match != null && !file.equals(match)) {
+                return match;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
   private static class TabletConfigComparator implements Comparator<ConfigMatch> {
+    private final Map<String, Integer> mIdRank;
+    private static final String PREFERRED_ID = "Nexus 10";
+
+    private TabletConfigComparator(Map<String, Integer> idRank) {
+      mIdRank = idRank;
+    }
+
     @Override
     public int compare(ConfigMatch o1, ConfigMatch o2) {
       FolderConfiguration config1 = o1 != null ? o1.testConfig : null;
@@ -582,6 +652,31 @@ public class ConfigurationMatcher {
         }
       }
       else if (config2 == null) {
+        return 1;
+      }
+
+      String n1 = o1.device.getId();
+      String n2 = o2.device.getId();
+
+      Integer rank1 = mIdRank.get(o1.device.getId());
+      Integer rank2 = mIdRank.get(o2.device.getId());
+      if (rank1 != null) {
+        if (rank2 != null) {
+          int delta = rank1 - rank2;
+          if (delta != 0) {
+            return delta;
+          }
+        } else {
+          return -1;
+        }
+      } else if (rank2 != null) {
+        return 1;
+      }
+
+      // Default to a modern device
+      if (n1.equals(PREFERRED_ID)) {
+        return n2.equals(PREFERRED_ID) ? 0 : -1;
+      } else if (n2.equals(PREFERRED_ID)) {
         return 1;
       }
 
@@ -638,17 +733,24 @@ public class ConfigurationMatcher {
    * Note: this comparator imposes orderings that are inconsistent with equals.
    */
   private static class PhoneConfigComparator implements Comparator<ConfigMatch> {
-    private static final String NEXUS_4 = "Nexus 4";
-    private static final String GALAXY_NEXUS = "Galaxy Nexus";
+    // Default phone. Not picking the Nexus 5 yet since it has much higher resolution
+    // (which will on a typical desktop rendering of the layout be scaled back down again anyway)
+    // so it's just extra work.
+    private static final String PREFERRED_ID = "Nexus 4";
 
     private final SparseIntArray mDensitySort = new SparseIntArray(4);
+    private final Map<String, Integer> mIdRank;
 
-    public PhoneConfigComparator() {
+    public PhoneConfigComparator(Map<String, Integer> idRank) {
       // put the sort order for the density.
       mDensitySort.put(Density.HIGH.getDpiValue(), 1);
       mDensitySort.put(Density.MEDIUM.getDpiValue(), 2);
       mDensitySort.put(Density.XHIGH.getDpiValue(), 3);
-      mDensitySort.put(Density.LOW.getDpiValue(), 4);
+      mDensitySort.put(Density.XXHIGH.getDpiValue(), 4);
+      mDensitySort.put(Density.TV.getDpiValue(), 5);
+      mDensitySort.put(Density.LOW.getDpiValue(), 6);
+
+      mIdRank = idRank;
     }
 
     @Override
@@ -667,20 +769,28 @@ public class ConfigurationMatcher {
         return 1;
       }
 
-      // Default to a modern device
       String n1 = o1.device.getId();
       String n2 = o2.device.getId();
-      if (n1.equals(NEXUS_4)) {
-        return n2.equals(NEXUS_4) ? 0 : -1;
-      } else if (n2.equals(NEXUS_4)) {
+
+      Integer rank1 = mIdRank.get(o1.device.getId());
+      Integer rank2 = mIdRank.get(o2.device.getId());
+      if (rank1 != null) {
+        if (rank2 != null) {
+          int delta = rank1 - rank2;
+          if (delta != 0) {
+            return delta;
+          }
+        } else {
+          return -1;
+        }
+      } else if (rank2 != null) {
         return 1;
       }
 
-      // Fallback to a slightly less modern device, since we just now added N4 to the devices.xml list, and
-      // it's not configured everywhere
-      if (n1.equals(GALAXY_NEXUS)) {
-        return n2.equals(GALAXY_NEXUS) ? 0 : -1;
-      } else if (n2.equals(GALAXY_NEXUS)) {
+      // Default to a modern device
+      if (n1.equals(PREFERRED_ID)) {
+        return n2.equals(PREFERRED_ID) ? 0 : -1;
+      } else if (n2.equals(PREFERRED_ID)) {
         return 1;
       }
 

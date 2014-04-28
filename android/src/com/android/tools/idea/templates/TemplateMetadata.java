@@ -62,6 +62,8 @@ public class TemplateMetadata {
   public static final String ATTR_SRC_DIR = "srcDir";
   public static final String ATTR_RES_DIR = "resDir";
   public static final String ATTR_MANIFEST_DIR = "manifestDir";
+  public static final String ATTR_AIDL_DIR = "aidlDir";
+  public static final String ATTR_AIDL_OUT = "aidlOut";
   public static final String ATTR_DEBUG_KEYSTORE_SHA1 = "debugKeystoreSha1";
   public static final String ATTR_BUILD_TOOLS_VERSION = "buildToolsVersion";
   public static final String ATTR_GRADLE_PLUGIN_VERSION = "gradlePluginVersion";
@@ -71,6 +73,7 @@ public class TemplateMetadata {
   public static final String ATTR_PER_MODULE_REPOS = "perModuleRepositories";
   public static final String ATTR_ICON_NAME = "iconName";
   public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
+  public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
 
   public static final String ATTR_DEPENDENCIES_LIST = "dependencyList";
   public static final String ATTR_FRAGMENTS_EXTRA = "usesFragments";

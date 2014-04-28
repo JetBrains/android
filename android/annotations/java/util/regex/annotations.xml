@@ -1,13 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
+  <item name="java.util.regex.Matcher java.lang.String replaceFirst(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.regex.Pattern boolean matches(java.lang.String, java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.regex.Pattern int flags()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flagsFromClass" val="java.util.regex.Pattern.class" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{java.util.regex.Pattern.UNIX_LINES, java.util.regex.Pattern.CASE_INSENSITIVE, java.util.regex.Pattern.COMMENTS, java.util.regex.Pattern.MULTILINE, java.util.regex.Pattern.LITERAL, java.util.regex.Pattern.DOTALL, java.util.regex.Pattern.UNICODE_CASE, java.util.regex.Pattern.CANON_EQ}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
+  <item name="java.util.regex.Pattern java.util.regex.Matcher matcher(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.regex.Pattern java.util.regex.Matcher matcher(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.regex.Pattern java.util.regex.Pattern compile(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.util.regex.Pattern java.util.regex.Pattern compile(java.lang.String, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="java.util.regex.Pattern java.util.regex.Pattern compile(java.lang.String, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flagsFromClass" val="java.util.regex.Pattern.class" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{java.util.regex.Pattern.UNIX_LINES, java.util.regex.Pattern.CASE_INSENSITIVE, java.util.regex.Pattern.COMMENTS, java.util.regex.Pattern.MULTILINE, java.util.regex.Pattern.LITERAL, java.util.regex.Pattern.DOTALL, java.util.regex.Pattern.UNICODE_CASE, java.util.regex.Pattern.CANON_EQ}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
 </root>

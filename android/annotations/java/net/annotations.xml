@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <item name="java.net.URI URI(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI create(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI normalize()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI parseServerAuthority()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI relativize(java.net.URI)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI relativize(java.net.URI) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI resolve(java.lang.String)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI resolve(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI resolve(java.net.URI)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URI resolve(java.net.URI) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="java.net.URI java.net.URL toURL()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+</root>
+

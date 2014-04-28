@@ -25,10 +25,7 @@ import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.*;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -87,16 +84,32 @@ public class Configuration implements Disposable {
   private String myTheme;
 
   /**
-   * The device to render with
+   * A specific device to render with
+   */
+  @Nullable
+  private Device mySpecificDevice;
+
+  /**
+   * The specific device state
+   */
+  @Nullable
+  private State myState;
+
+  /**
+   * The computed effective device; if this configuration does not have a hardcoded specific device,
+   * it will be computed based on the current device list; this field caches the value.
    */
   @Nullable
   private Device myDevice;
 
   /**
-   * The device state
+   * The device state to use. Used to update {@link #getDeviceState()} such that it returns a state
+   * suitable with whatever {@link #getDevice()} returns, since {@link #getDevice()} updates dynamically,
+   * and the specific {@link State} instances are tied to actual devices (through the
+   * {@link com.android.sdklib.devices.State#getHardware()} accessor).
    */
   @Nullable
-  private State myState;
+  private String myStateName;
 
   /**
    * The activity associated with the layout. This is just a cached value of
@@ -151,8 +164,17 @@ public class Configuration implements Disposable {
     myFile = file;
     myEditedConfig = editedConfig;
 
-    if (editedConfig.getLanguageQualifier() != null) {
+    if (isLocaleSpecificLayout()) {
       myLocale = Locale.create(editedConfig);
+    }
+
+    if (isOrientationSpecificLayout()) {
+      ScreenOrientationQualifier qualifier = editedConfig.getScreenOrientationQualifier();
+      assert qualifier != null; // because isOrientationSpecificLayout()
+      ScreenOrientation orientation = qualifier.getValue();
+      if (orientation != null) {
+        myStateName = orientation.getShortDisplayValue();
+      }
     }
   }
 
@@ -166,9 +188,7 @@ public class Configuration implements Disposable {
   static Configuration create(@NotNull ConfigurationManager manager,
                               @Nullable VirtualFile file,
                               @NotNull FolderConfiguration editedConfig) {
-    Configuration configuration = new Configuration(manager, file, editedConfig);
-    configuration.myDevice = manager.getDefaultDevice();
-    return configuration;
+    return new Configuration(manager, file, editedConfig);
   }
 
   /**
@@ -202,12 +222,6 @@ public class Configuration implements Disposable {
     configuration.startBulkEditing();
     if (fileState != null) {
       fileState.loadState(configuration);
-    } else {
-      Device device = manager.getDefaultDevice();
-      if (device != null) {
-        configuration.myDevice = device;
-        configuration.myState = device.getDefaultState();
-      }
     }
     configuration.finishBulkEditing();
 
@@ -231,8 +245,10 @@ public class Configuration implements Disposable {
     copy.myTarget = original.myTarget; // avoid getTarget() since it fetches project state
     copy.myLocale = original.myLocale;  // avoid getLocale() since it fetches project state
     copy.myTheme = original.getTheme();
-    copy.myDevice = original.getDevice();
-    copy.myState = original.getDeviceState();
+    copy.mySpecificDevice = original.mySpecificDevice;
+    copy.myDevice = original.myDevice; // avoid getDevice() since it fetches project state
+    copy.myStateName = original.myStateName;
+    copy.myState = original.myState;
     copy.myActivity = original.getActivity();
     copy.myUiMode = original.getUiMode();
     copy.myNightMode = original.getNightMode();
@@ -263,10 +279,11 @@ public class Configuration implements Disposable {
       destination.myTarget = source.myTarget;  // avoid getTarget() since it fetches project state
     }
     if (editedConfig.getScreenSizeQualifier() == null) {
-      destination.myDevice = source.getDevice();
+      destination.mySpecificDevice = source.mySpecificDevice; // avoid getDevice() since it fetches project state
     }
     if (editedConfig.getScreenOrientationQualifier() == null && editedConfig.getSmallestScreenWidthQualifier() == null) {
-      destination.myState = source.getDeviceState();
+      destination.myStateName = source.myStateName;
+      destination.myState = source.myState;
     }
     if (editedConfig.getLanguageQualifier() == null) {
       destination.myLocale = source.myLocale; // avoid getLocale() since it fetches project state
@@ -371,10 +388,79 @@ public class Configuration implements Disposable {
   @Nullable
   public Device getDevice() {
     if (myDevice == null) {
-      myDevice = myManager.getDefaultDevice();
+      if (mySpecificDevice != null) {
+        myDevice = mySpecificDevice;
+      }
+      else {
+        myDevice = computeBestDevice();
+      }
     }
 
     return myDevice;
+  }
+
+  @Nullable
+  public static FolderConfiguration getFolderConfig(@NotNull Module module, @NotNull State state, @NotNull Locale locale,
+                                                    @Nullable IAndroidTarget target) {
+    FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
+    if (currentConfig != null) {
+      if (locale.hasLanguage()) {
+        currentConfig.setLanguageQualifier(locale.language);
+        if (locale.hasRegion()) {
+          currentConfig.setRegionQualifier(locale.region);
+        }
+
+        if (locale.hasLanguage()) {
+          LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
+          if (layoutLib != null) {
+            if (layoutLib.isRtl(locale.toLocaleId())) {
+              currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
+            }
+          }
+        }
+      }
+
+      // Don't match on target since we tend to use recent layout lib versions to render even default (older) layouts
+      // since more recent versions work a lot better fidelity wise
+      // if (target != null) {
+      //   currentConfig.setVersionQualifier(new VersionQualifier(target.getVersion().getApiLevel()));
+      // }
+    }
+
+    return currentConfig;
+  }
+
+  @Nullable
+  private Device computeBestDevice() {
+    for (Device device : myManager.getRecentDevices()) {
+      String stateName = myStateName;
+      if (stateName == null) {
+        stateName = device.getDefaultState().getName();
+      }
+      State selectedState = ConfigurationFileState.getState(device, stateName);
+      Module module = myManager.getModule();
+      FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
+      if (currentConfig != null) {
+        if (myEditedConfig.isMatchFor(currentConfig)) {
+          LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
+          if (resources != null && myFile != null) {
+            ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
+            if (folderType != null) {
+              List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
+              if (!types.isEmpty()) {
+                ResourceType type = types.get(0);
+                VirtualFile match = resources.getMatchingFile(myFile, type, currentConfig);
+                if (match != null && myFile.equals(match)) {
+                  return device;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return myManager.getDefaultDevice();
   }
 
   /**
@@ -386,10 +472,9 @@ public class Configuration implements Disposable {
   public State getDeviceState() {
     if (myState == null) {
       Device device = getDevice();
-      if (device != null) {
-        myState = device.getDefaultState();
-      }
+      myState = ConfigurationFileState.getState(device, myStateName);
     }
+
     return myState;
   }
 
@@ -493,6 +578,15 @@ public class Configuration implements Disposable {
   }
 
   /**
+   * Returns true if the current layout is locale-specific
+   *
+   * @return if this configuration represents a locale-specific layout
+   */
+  public boolean isOrientationSpecificLayout() {
+    return myEditedConfig.getScreenOrientationQualifier() != null;
+  }
+
+  /**
    * Returns the full, complete {@link com.android.ide.common.resources.configuration.FolderConfiguration}
    *
    * @return the full configuration
@@ -548,11 +642,11 @@ public class Configuration implements Disposable {
    * @param preserveState if true, attempt to preserve the state associated with the config
    */
   public void setDevice(Device device, boolean preserveState) {
-    if (myDevice != device) {
-      Device prevDevice = myDevice;
+    if (mySpecificDevice != device) {
+      Device prevDevice = mySpecificDevice;
       State prevState = myState;
 
-      myDevice = device;
+      myDevice = mySpecificDevice = device;
 
       int updateFlags = CFG_DEVICE;
 
@@ -569,19 +663,23 @@ public class Configuration implements Disposable {
               state = device.getState(prevState.getName());
             }
           }
+        } else if (preserveState && myStateName != null) {
+          state = device.getState(myStateName);
         }
         if (state == null) {
           state = device.getDefaultState();
         }
         if (myState != state) {
+          setDeviceStateName(state.getName());
           myState = state;
           updateFlags |= CFG_DEVICE_STATE;
         }
       }
 
       // TODO: Is this redundant with the stuff above?
-      if (myDevice != null && myState == null) {
-        myState = myDevice.getDefaultState();
+      if (mySpecificDevice != null && myState == null) {
+        setDeviceStateName(mySpecificDevice.getDefaultState().getName());
+        myState = mySpecificDevice.getDefaultState();
         updateFlags |= CFG_DEVICE_STATE;
       }
 
@@ -660,7 +758,34 @@ public class Configuration implements Disposable {
    */
   public void setDeviceState(State state) {
     if (myState != state) {
+      if (state != null) {
+        setDeviceStateName(state.getName());
+      } else {
+        myStateName = null;
+      }
       myState = state;
+
+      updated(CFG_DEVICE_STATE);
+    }
+  }
+
+  /**
+   * Sets the device state name
+   *
+   * @param stateName the device state name
+   */
+  public void setDeviceStateName(@Nullable String stateName) {
+    ScreenOrientationQualifier qualifier = myEditedConfig.getScreenOrientationQualifier();
+    if (qualifier != null) {
+      ScreenOrientation orientation = qualifier.getValue();
+      if (orientation != null) {
+        stateName = orientation.getShortDisplayValue(); // Also used as state names
+      }
+    }
+
+    if (!Objects.equal(stateName, myStateName)) {
+      myStateName = stateName;
+      myState = null;
 
       updated(CFG_DEVICE_STATE);
     }
@@ -754,7 +879,11 @@ public class Configuration implements Disposable {
     }
 
     // get the device config from the device/state combos.
-    FolderConfiguration config = DeviceConfigHelper.getFolderConfig(getDeviceState());
+    State deviceState = getDeviceState();
+    if (deviceState == null) {
+      deviceState = device.getDefaultState();
+    }
+    FolderConfiguration config = getFolderConfig(getModule(), deviceState, getLocale(), getTarget());
 
     // replace the config with the one from the device
     myFullConfig.set(config);
@@ -763,11 +892,13 @@ public class Configuration implements Disposable {
     Locale locale = getLocale();
     myFullConfig.setLanguageQualifier(locale.language);
     myFullConfig.setRegionQualifier(locale.region);
-    if (!locale.hasLanguage()) {
+    if (myEditedConfig.getLayoutDirectionQualifier() != null) {
+      myFullConfig.setLayoutDirectionQualifier(myEditedConfig.getLayoutDirectionQualifier());
+    } else if (!locale.hasLanguage()) {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
-    LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
+      LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
           myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
@@ -806,6 +937,7 @@ public class Configuration implements Disposable {
       FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(deviceState);
       if (folderConfig != null) {
         ScreenSizeQualifier qualifier = folderConfig.getScreenSizeQualifier();
+        assert qualifier != null;
         return qualifier.getValue();
       }
     }
@@ -818,6 +950,7 @@ public class Configuration implements Disposable {
         FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(state);
         if (folderConfig != null) {
           ScreenSizeQualifier qualifier = folderConfig.getScreenSizeQualifier();
+          assert qualifier != null;
           screenSize = qualifier.getValue();
           break;
         }
@@ -885,10 +1018,12 @@ public class Configuration implements Disposable {
     }
 
     // Search by name instead
-    String name = from.getName();
-    for (int i = 0; i < states.size(); i++) {
-      if (states.get(i).getName().equals(name)) {
-        return states.get((i + 1) % states.size());
+    if (from != null) {
+      String name = from.getName();
+      for (int i = 0; i < states.size(); i++) {
+        if (states.get(i).getName().equals(name)) {
+          return states.get((i + 1) % states.size());
+        }
       }
     }
 
@@ -951,7 +1086,8 @@ public class Configuration implements Disposable {
     if (myManager.getStateVersion() != myProjectStateVersion) {
       myNotifyDirty |= MASK_PROJECT_STATE;
       myFolderConfigDirty |= MASK_PROJECT_STATE;
-      // TODO: Update myProjectStateVersion?
+      myDevice = null;
+      myState = null;
     }
 
     if (myBulkEditingCount == 0) {
@@ -1048,5 +1184,23 @@ public class Configuration implements Disposable {
 
   @Override
   public void dispose() {
+  }
+
+  public void setEffectiveDevice(@Nullable Device device, @Nullable State state) {
+    int updateFlags = 0;
+    if (myDevice != device) {
+      updateFlags = CFG_DEVICE;
+      myDevice = device;
+    }
+
+    if (myState != state) {
+      myState = state;
+      myStateName = state != null ? state.getName() : null;
+      updateFlags |= CFG_DEVICE_STATE;
+    }
+
+    if (updateFlags != 0) {
+      updated(updateFlags);
+    }
   }
 }

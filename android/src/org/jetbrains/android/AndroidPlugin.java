@@ -43,7 +43,7 @@ public class AndroidPlugin implements ApplicationComponent {
     final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu();
 
     if (menu != null) {
-      newGroup.add(menu, new Constraints(Anchor.AFTER, "NewDir"));
+      newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
     }
   }
 

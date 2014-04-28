@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;

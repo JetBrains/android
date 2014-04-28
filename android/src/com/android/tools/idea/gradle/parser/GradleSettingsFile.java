@@ -19,20 +19,34 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiType;
+import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * GradleSettingsFile uses PSI to parse settings.gradle files and provides high-level methods to read and mutate the file.
@@ -44,6 +58,7 @@ public class GradleSettingsFile extends GradleGroovyFile {
   private static final Logger LOG = Logger.getInstance(GradleGroovyFile.class.getName());
 
   public static final String INCLUDE_METHOD = "include";
+  public static final String CUSTOM_LOCATION_FORMAT = "project('%1$s').projectDir = new File('%2$s')";
   private static final Iterable<String> EMPTY_ITERABLE = Arrays.asList(new String[] {});
 
   @Nullable
@@ -73,15 +88,19 @@ public class GradleSettingsFile extends GradleGroovyFile {
     checkInitialized();
     String moduleGradlePath = getModuleGradlePath(module);
     if (moduleGradlePath != null) {
-      addModule(moduleGradlePath);
+      VirtualFile moduleFile = module.getModuleFile();
+      assert moduleFile != null;
+      addModule(moduleGradlePath, VfsUtilCore.virtualToIoFile(moduleFile.getParent()));
     }
   }
 
   /**
    * Adds a reference to the module to the settings file, if there is not already one. The module path must be colon separated, with a
    * leading colon, e.g. ":project:subproject". Must be run inside a write action.
+   *
+   * If the file does not match the default module location, this method will override the location.
    */
-  public void addModule(@NotNull String modulePath) {
+  public void addModule(@NotNull String modulePath, @NotNull File location) {
     checkInitialized();
     commitDocumentChanges();
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
@@ -94,15 +113,29 @@ public class GradleSettingsFile extends GradleGroovyFile {
     GrMethodCall includeStatement = getMethodCall(myGroovyFile, INCLUDE_METHOD);
     if (includeStatement != null) {
       GrArgumentList argList = includeStatement.getArgumentList();
-      if (argList != null) {
-        GrLiteral literal = GroovyPsiElementFactory.getInstance(myProject).createLiteralFromValue(modulePath);
-        argList.addAfter(literal, argList.getLastChild());
-        return;
-      }
+      GrLiteral literal = GroovyPsiElementFactory.getInstance(myProject).createLiteralFromValue(modulePath);
+      argList.addAfter(literal, argList.getLastChild());
+    } else {
+      GrStatement statement =
+        GroovyPsiElementFactory.getInstance(myProject).createStatementFromText(INCLUDE_METHOD + " '" + modulePath + "'");
+      myGroovyFile.add(statement);
     }
-    GrStatement statement =
-      GroovyPsiElementFactory.getInstance(myProject).createStatementFromText(INCLUDE_METHOD + " '" + modulePath + "'");
-    myGroovyFile.add(statement);
+    // We get location relative to this file parent
+    VirtualFile parent = getFile().getParent();
+    File defaultLocation = GradleUtil.getDefaultSubprojectLocation(parent, modulePath);
+    if (!FileUtil.filesEqual(defaultLocation, location)) {
+      final String path;
+      File parentFile = VfsUtilCore.virtualToIoFile(parent);
+      if (FileUtil.isAncestor(parentFile, location, true)) {
+        path = PathUtil.toSystemIndependentName(FileUtil.getRelativePath(parentFile, location));
+      }
+      else {
+        path = PathUtil.toSystemIndependentName(location.getAbsolutePath());
+      }
+      String locationAssignment = String.format(CUSTOM_LOCATION_FORMAT, modulePath, path);
+      GrStatement locationStatement = GroovyPsiElementFactory.getInstance(myProject).createStatementFromText(locationAssignment);
+      myGroovyFile.add(locationStatement);
+    }
   }
 
   /**
@@ -123,10 +156,12 @@ public class GradleSettingsFile extends GradleGroovyFile {
   public void removeModule(@NotNull String modulePath) {
     checkInitialized();
     commitDocumentChanges();
+    boolean removedAnyIncludes = false;
     for (GrMethodCall includeStatement : getMethodCalls(myGroovyFile, INCLUDE_METHOD)) {
       for (GrLiteral lit : getLiteralArguments(includeStatement)) {
         if (modulePath.equals(lit.getValue())) {
           lit.delete();
+          removedAnyIncludes = true;
           if (getArguments(includeStatement).length == 0) {
             includeStatement.delete();
             // If this happens we will fall through both for loops before we get into iteration trouble. We want to keep iterating in
@@ -135,6 +170,25 @@ public class GradleSettingsFile extends GradleGroovyFile {
         }
       }
     }
+    if (removedAnyIncludes) {
+      for (Pair<String, GrAssignmentExpression> pair : getAllProjectLocationStatements()) {
+        if (modulePath.equals(pair.first)) {
+          pair.second.delete();
+        }
+      }
+    }
+  }
+
+  private Iterable<Pair<String, GrAssignmentExpression>> getAllProjectLocationStatements() {
+    List<PsiElement> allStatements = Arrays.asList(myGroovyFile.getChildren());
+    Iterable<GrAssignmentExpression> assignments = Iterables.filter(allStatements, GrAssignmentExpression.class);
+    return FluentIterable.from(assignments).transform(new Function<GrAssignmentExpression, Pair<String, GrAssignmentExpression>>() {
+      @Override
+      public Pair<String, GrAssignmentExpression> apply(GrAssignmentExpression assignment) {
+        String projectName = getProjectName(assignment.getLValue());
+        return projectName == null ? null : Pair.create(projectName, assignment);
+      }
+    }).filter(Predicates.notNull());
   }
 
   /**
@@ -166,6 +220,67 @@ public class GradleSettingsFile extends GradleGroovyFile {
         }
       }
     }));
+  }
+
+  /**
+   * Parses settings.gradle and obtains module locations. Paths are not validated (e.g. may point to non-existing location or to file
+   * instead of directory) and may be relative or absolute.
+   *
+   * @return a {@link java.util.Map} mapping module names to module locations.
+   */
+  @NotNull
+  public Map<String, File> getModulesWithLocation() {
+    checkInitialized();
+    Map<String, File> moduleLocations = Maps.newHashMap();
+    for (String module : getModules()) {
+      Iterable<String> segments = Splitter.on(SdkConstants.GRADLE_PATH_SEPARATOR).omitEmptyStrings().split(module);
+      String defaultLocation = Joiner.on(File.separator).join(segments);
+      moduleLocations.put(module, new File(defaultLocation));
+    }
+    for (Pair<String, GrAssignmentExpression> pair : getAllProjectLocationStatements()) {
+      if (moduleLocations.containsKey(pair.first)) {
+        GrExpression value = pair.second.getRValue();
+        File location = getProjectLocation(value);
+        if (location != null) {
+          moduleLocations.put(pair.first, location);
+        }
+      }
+    }
+    return moduleLocations;
+  }
+
+  /**
+   * Obtains custom module location from the Gradle script. Currently it only recognizes File ctor invocation with a string constant.
+   */
+  @Nullable
+  private static File getProjectLocation(@Nullable GrExpression rValue) {
+    if (rValue instanceof GrNewExpression) {
+      PsiType type = rValue.getType();
+      String typeName = type != null ? type.getCanonicalText() : null;
+      if (File.class.getName().equals(typeName)
+          || File.class.getSimpleName().equals(typeName)) {
+        String path = getSingleStringArgumentValue(((GrNewExpression)rValue));
+        return path == null ? null : new File(path);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getProjectName(GrExpression lValue) {
+    if (lValue instanceof GrReferenceExpression) {
+      GrReferenceExpression reference = (GrReferenceExpression)lValue;
+      if ("projectDir".equals(reference.getCanonicalText())) {
+        GrExpression qualifier = reference.getQualifier();
+        if (qualifier instanceof GrMethodCall) {
+          GrMethodCall methodCall = (GrMethodCall)qualifier;
+          if ("project".equals(getMethodCallName(methodCall))) {
+            return getSingleStringArgumentValue(methodCall);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /**

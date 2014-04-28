@@ -16,6 +16,8 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -40,28 +42,28 @@ public class AndroidImportProjectActionTest extends IdeaTestCase {
   }
 
   public void testFindImportTargetWithDirectoryAndWithoutGradleOrEclipseFiles() {
-    assertSame(myProjectRootDir, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
+    assertSame(myProjectRootDir, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithDirectoryAndGradleBuildFile() throws IOException {
     VirtualFile file = createChildFile(SdkConstants.FN_BUILD_GRADLE);
-    assertSame(file, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
+    assertSame(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithDirectoryAndGradleSettingsFile() throws IOException {
     VirtualFile file = createChildFile(SdkConstants.FN_SETTINGS_GRADLE);
-    assertSame(file, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
+    assertSame(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithDirectoryAndEclipseFiles() throws IOException {
-    createChildFile(AndroidImportProjectAction.ECLIPSE_CLASSPATH_FILE_NAME);
-    VirtualFile file = createChildFile(AndroidImportProjectAction.ECLIPSE_PROJECT_FILE_NAME);
-    assertSame(file, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
+    createChildFile(GradleImport.ECLIPSE_DOT_CLASSPATH);
+    VirtualFile file = createChildFile(GradleImport.ECLIPSE_DOT_PROJECT);
+    assertSame(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithEclipseProjectFile() throws IOException {
-    VirtualFile file = createChildFile(AndroidImportProjectAction.ECLIPSE_PROJECT_FILE_NAME);
-    assertSame(file, AndroidImportProjectAction.findImportTarget(file));
+    VirtualFile file = createChildFile(GradleImport.ECLIPSE_DOT_PROJECT);
+    assertSame(file, ProjectImportUtil.findImportTarget(file));
   }
 
   @NotNull

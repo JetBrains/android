@@ -25,24 +25,34 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.io.File;
 
 public class SelectSdkDialog extends DialogWrapper {
   private JPanel myPanel;
   private TextFieldWithBrowseButton myJdkTextFieldWithButton;
   private TextFieldWithBrowseButton mySdkTextFieldWithButton;
-  private JBLabel myDescriptionLabel;
-  private JBLabel mySelectJdkLabel;
+  private JBLabel mySelectSdkDescriptionLabel;
+  private HyperlinkLabel mySdkHyperlinkLabel;
   private JBLabel mySelectSdkLabel;
+  private JBLabel mySelectJdkDescriptionLabel;
+  private HyperlinkLabel myJdkHyperlinkLabel;
+  private JBLabel mySelectJdkLabel;
+  private JBLabel mySpacer;
 
   private String myJdkHome = "";
   private String mySdkHome = "";
+
+  private OpenSdkManagerAction myOpenSdkManagerAction;
 
   /**
    * Displays SDK selection dialog.
@@ -71,18 +81,30 @@ public class SelectSdkDialog extends DialogWrapper {
       }
     }
 
+    mySelectSdkDescriptionLabel.setText("Please provide the path to the Android SDK.");
+    mySdkHyperlinkLabel.setHyperlinkTarget("http://d.android.com");
+    mySdkHyperlinkLabel.setHyperlinkText("If you do not have the Android SDK, you can obtain it from ", "d.android.com", ".");
+
+    mySelectJdkDescriptionLabel.setText("Please provide the path to a Java Development Kit (JDK) installation.");
+    myJdkHyperlinkLabel.setHyperlinkTarget("http://www.oracle.com/technetwork/java/javase/downloads/index.html");
+    myJdkHyperlinkLabel.setHyperlinkText("If you do not have a JDK installed, you can obtain one ", "here", ".");
+
     if (jdkPath == null && sdkPath == null) {
-      myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.both"));
+      mySpacer.setVisible(true);
     }
     else if (jdkPath == null) {
-      myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.jdk"));
-      mySdkTextFieldWithButton.setVisible(false);
+      mySpacer.setVisible(false);
+      mySelectSdkDescriptionLabel.setVisible(false);
+      mySdkHyperlinkLabel.setVisible(false);
       mySelectSdkLabel.setVisible(false);
+      mySdkTextFieldWithButton.setVisible(false);
     }
     else {
-      myDescriptionLabel.setText(AndroidBundle.message("android.startup.missing.sdk"));
-      myJdkTextFieldWithButton.setVisible(false);
+      mySpacer.setVisible(false);
+      mySelectJdkDescriptionLabel.setVisible(false);
+      myJdkHyperlinkLabel.setVisible(false);
       mySelectJdkLabel.setVisible(false);
+      myJdkTextFieldWithButton.setVisible(false);
     }
 
     myJdkTextFieldWithButton.setTextFieldPreferredWidth(50);
@@ -106,15 +128,35 @@ public class SelectSdkDialog extends DialogWrapper {
     mySdkTextFieldWithButton.addBrowseFolderListener(null, listener);
   }
 
+  @Override
+  protected void createDefaultActions() {
+    super.createDefaultActions();
+    myOpenSdkManagerAction = new OpenSdkManagerAction();
+    myOpenSdkManagerAction.setEnabled(false);
+  }
+
+  @NotNull
+  @Override
+  protected Action[] createLeftSideActions() {
+    return new Action[] {myOpenSdkManagerAction};
+  }
+
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
     return myPanel;
   }
 
+  @Override
+  protected boolean postponeValidation() {
+    return false;
+  }
+
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
+    myOpenSdkManagerAction.setEnabled(false);
+
     String jdkHome = myJdkTextFieldWithButton.getText().trim();
     String jdkError = validateJdk(jdkHome);
     if (jdkError != null) {
@@ -128,6 +170,9 @@ public class SelectSdkDialog extends DialogWrapper {
     }
     VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(androidHome);
     if (!result.isCompatibleVersion()) {
+      myOpenSdkManagerAction.setEnabled(true);
+      myOpenSdkManagerAction.androidHome = androidHome;
+
       String msg = AndroidBundle.message("android.version.check.too.old", VersionCheck.MIN_TOOLS_REV, result.getRevision());
       return new ValidationInfo(msg, mySdkTextFieldWithButton.getTextField());
     }
@@ -197,6 +242,20 @@ public class SelectSdkDialog extends DialogWrapper {
       return myDefaultPath == null
              ? LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(PathManager.getHomePath()))
              : LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(myDefaultPath));
+    }
+  }
+
+  private static class OpenSdkManagerAction extends AbstractAction {
+    String androidHome;
+
+    OpenSdkManagerAction() {
+      super("Open Android SDK Manager");
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      assert androidHome != null;
+      RunAndroidSdkManagerAction.runSpecificSdkManager(null, new File(androidHome));
     }
   }
 }

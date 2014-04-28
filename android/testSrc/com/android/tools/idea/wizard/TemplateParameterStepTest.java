@@ -77,11 +77,11 @@ public class TemplateParameterStepTest extends AndroidTestCase {
 
   public void testDeriveValuesValidThumb() throws Exception {
     File imageFolder = new File(TemplateManager.getTemplateRootFolder(),
-                                                 FileUtil.join("activities", "BlankActivity"));
-    File imageFile = new File(imageFolder, "template_blank_activity_drawer.png");
+                                                 FileUtil.join("activities", "TabbedActivity"));
+    File imageFile = new File(imageFolder, "template_blank_activity_dropdown.png");
 
     assertTrue(imageFile.exists());
-    when(myTemplateMetadata.getThumbnailPath(myState)).thenReturn("template_blank_activity_drawer.png");
+    when(myTemplateMetadata.getThumbnailPath(myState)).thenReturn("template_blank_activity_dropdown.png");
     when(myTemplate.getRootPath()).thenReturn(imageFolder);
 
     myStep.deriveValues();

@@ -1,382 +1,238 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <item name="android.content.res.AssetFileDescriptor AssetFileDescriptor(android.os.ParcelFileDescriptor, long, long) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.AssetFileDescriptor android.os.ParcelFileDescriptor getParcelFileDescriptor()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.AssetFileDescriptor java.io.FileDescriptor getFileDescriptor()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.AssetFileDescriptor java.io.FileInputStream createInputStream()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.AssetFileDescriptor java.io.FileOutputStream createOutputStream()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.content.res.AssetFileDescriptor void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetFileDescriptor.AutoCloseInputStream AutoCloseInputStream(android.content.res.AssetFileDescriptor) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetFileDescriptor.AutoCloseInputStream int read(byte[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetFileDescriptor.AutoCloseOutputStream AutoCloseOutputStream(android.content.res.AssetFileDescriptor) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetFileDescriptor.AutoCloseOutputStream void write(byte[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openFd(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openNonAssetFd(int, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager android.content.res.AssetFileDescriptor openNonAssetFd(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.AssetManager android.content.res.XmlResourceParser openXmlResourceParser(int, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.AssetManager android.content.res.XmlResourceParser openXmlResourceParser(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager java.io.InputStream open(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager java.io.InputStream open(java.lang.String, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager java.lang.String[] getLocales()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager java.lang.String[] list(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.AssetManager.AssetInputStream int read(byte[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.ColorStateList CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ColorStateList ColorStateList(int[][], int[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ColorStateList android.content.res.ColorStateList createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ColorStateList android.content.res.ColorStateList createFromXml(android.content.res.Resources, org.xmlpull.v1.XmlPullParser) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.ColorStateList android.content.res.ColorStateList valueOf(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ColorStateList android.content.res.ColorStateList withAlpha(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ColorStateList void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Configuration Configuration(android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.Configuration boolean equals(android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Configuration int compareTo(android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Configuration int diff(android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Configuration int updateFrom(android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.Configuration locale">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Configuration void readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Configuration void setTo(android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Configuration void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ObbInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.ObbScanner android.content.res.ObbInfo getObbInfo(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.ObbScanner android.content.res.ObbInfo getObbInfo(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources Resources(android.content.res.AssetManager, android.util.DisplayMetrics, android.content.res.Configuration) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources android.content.res.AssetFileDescriptor openRawResourceFd(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{raw}" />
-    </annotation>
-  </item>
-  <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.RawRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.ColorStateList getColorStateList(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{color}" />
-    </annotation>
-  </item>
-  <item name="android.content.res.Resources android.content.res.Resources getSystem()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.ColorRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.Resources.Theme newTheme()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.Resources android.content.res.TypedArray obtainAttributes(android.util.AttributeSet, int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources android.content.res.TypedArray obtainAttributes(android.util.AttributeSet, int[]) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.Resources android.content.res.TypedArray obtainTypedArray(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources android.content.res.TypedArray obtainTypedArray(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{array, styleable}" />
-    </annotation>
-  </item>
-  <item name="android.content.res.Resources android.content.res.XmlResourceParser getAnimation(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.ArrayRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getAnimation(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{anim}" />
-    </annotation>
-  </item>
-  <item name="android.content.res.Resources android.content.res.XmlResourceParser getLayout(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.AnimRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getLayout(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{layout}" />
-    </annotation>
-  </item>
-  <item name="android.content.res.Resources android.content.res.XmlResourceParser getXml(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
   <item name="android.content.res.Resources android.content.res.XmlResourceParser getXml(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{xml}" />
-    </annotation>
+    <annotation name="android.support.annotation.XmlRes" />
   </item>
-  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.content.res.Resources android.graphics.Movie getMovie(int) 0">
+    <annotation name="android.support.annotation.RawRes" />
   </item>
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawable(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{drawable}" />
-    </annotation>
-  </item>
-  <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.content.res.Resources android.graphics.drawable.Drawable getDrawableForDensity(int, int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{drawable}" />
-    </annotation>
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.content.res.Resources boolean getBoolean(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{bool}" />
-    </annotation>
+    <annotation name="android.support.annotation.BoolRes" />
   </item>
   <item name="android.content.res.Resources float getDimension(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{dimen}" />
-    </annotation>
+    <annotation name="android.support.annotation.DimenRes" />
   </item>
   <item name="android.content.res.Resources float getFraction(int, int, int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{fraction}" />
-    </annotation>
+    <annotation name="android.support.annotation.FractionRes" />
   </item>
   <item name="android.content.res.Resources int getColor(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{color}" />
-    </annotation>
+    <annotation name="android.support.annotation.ColorRes" />
   </item>
   <item name="android.content.res.Resources int getDimensionPixelOffset(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{dimen}" />
-    </annotation>
+    <annotation name="android.support.annotation.DimenRes" />
   </item>
   <item name="android.content.res.Resources int getDimensionPixelSize(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{dimen}" />
-    </annotation>
-  </item>
-  <item name="android.content.res.Resources int getIdentifier(java.lang.String, java.lang.String, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.DimenRes" />
   </item>
   <item name="android.content.res.Resources int getInteger(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{integer}" />
-    </annotation>
+    <annotation name="android.support.annotation.IntegerRes" />
   </item>
   <item name="android.content.res.Resources int[] getIntArray(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{array, styleable}" />
-    </annotation>
+    <annotation name="android.support.annotation.ArrayRes" />
   </item>
   <item name="android.content.res.Resources java.io.InputStream openRawResource(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{raw}" />
-    </annotation>
+    <annotation name="android.support.annotation.RawRes" />
   </item>
   <item name="android.content.res.Resources java.io.InputStream openRawResource(int, android.util.TypedValue) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{raw}" />
-    </annotation>
+    <annotation name="android.support.annotation.RawRes" />
   </item>
   <item name="android.content.res.Resources java.io.InputStream openRawResource(int, android.util.TypedValue) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources java.lang.CharSequence getQuantityText(int, int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{plurals}" />
-    </annotation>
+    <annotation name="android.support.annotation.PluralsRes" />
   </item>
   <item name="android.content.res.Resources java.lang.CharSequence getText(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{string}" />
-    </annotation>
+    <annotation name="android.support.annotation.StringRes" />
   </item>
-  <item name="android.content.res.Resources java.lang.CharSequence getText(int, java.lang.CharSequence)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.content.res.Resources java.lang.CharSequence getText(int, java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.content.res.Resources java.lang.CharSequence[] getTextArray(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{array, styleable}" />
-    </annotation>
+    <annotation name="android.support.annotation.ArrayRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getQuantityString(int, int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{plurals}" />
-    </annotation>
+    <annotation name="android.support.annotation.PluralsRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getQuantityString(int, int, java.lang.Object...) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{plurals}" />
-    </annotation>
+    <annotation name="android.support.annotation.PluralsRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getResourceEntryName(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{}" />
-    </annotation>
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getResourceName(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{}" />
-    </annotation>
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getResourcePackageName(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{}" />
-    </annotation>
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getResourceTypeName(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{}" />
-    </annotation>
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getString(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{string, styleable}" />
-    </annotation>
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String getString(int, java.lang.Object...) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{string, styleable}" />
-    </annotation>
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.content.res.Resources java.lang.String[] getStringArray(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{array, styleable}" />
-    </annotation>
+    <annotation name="android.support.annotation.ArrayRes" />
+  </item>
+  <item name="android.content.res.Resources void getValue(int, android.util.TypedValue, boolean) 0">
+    <annotation name="android.support.annotation.AnyRes" />
+  </item>
+  <item name="android.content.res.Resources void getValueForDensity(int, int, android.util.TypedValue, boolean) 0">
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.res.Resources void parseBundleExtra(java.lang.String, android.util.AttributeSet, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources void parseBundleExtra(java.lang.String, android.util.AttributeSet, android.os.Bundle) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources void parseBundleExtras(android.content.res.XmlResourceParser, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources void parseBundleExtras(android.content.res.XmlResourceParser, android.os.Bundle) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(android.util.AttributeSet, int[], int, int) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(int, int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(int, int[]) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources.Theme android.content.res.TypedArray obtainStyledAttributes(int[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources.Theme boolean resolveAttribute(int, android.util.TypedValue, boolean) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.Resources.Theme void setTo(android.content.res.Resources.Theme) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.TypedArray android.content.res.ColorStateList getColorStateList(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.TypedArray android.graphics.drawable.Drawable getDrawable(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.TypedArray android.util.TypedValue peekValue(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.res.TypedArray boolean getValue(int, android.util.TypedValue) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.content.res.TypedArray java.lang.CharSequence getText(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.TypedArray java.lang.CharSequence[] getTextArray(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.content.res.TypedArray java.lang.String getNonResourceString(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.content.res.TypedArray int getResourceId(int, int)">
+    <annotation name="android.support.annotation.AnyRes" />
   </item>
   <item name="android.content.res.TypedArray java.lang.String getPositionDescription()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.content.res.TypedArray java.lang.String getString(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

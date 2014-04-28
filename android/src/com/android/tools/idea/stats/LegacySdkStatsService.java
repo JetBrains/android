@@ -115,8 +115,8 @@ public class LegacySdkStatsService {
     try {
       URL url = createPingUrl(nApp, nVersion, id, extras);
       actuallySendPing(url);
-    } catch (IOException e) {
-      LOG.error("AndroidSdk.SendPing failed", e);
+    } catch (Exception e) {
+      LOG.warn("AndroidSdk.SendPing failed", e);
     }
   }
 

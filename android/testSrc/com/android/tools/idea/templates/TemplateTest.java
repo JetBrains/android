@@ -219,6 +219,30 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BlankActivity", true);
   }
 
+  public void testNewTabbedActivity() throws Exception {
+    checkCreateTemplate("activities", "TabbedActivity", false);
+  }
+
+  public void testNewProjectWithTabbedActivity() throws Exception {
+    checkCreateTemplate("activities", "TabbedActivity", true);
+  }
+
+  public void testNewNavigationDrawerActivity() throws Exception {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", false);
+  }
+
+  public void testNewProjectWithNavigationDrawerActivity() throws Exception {
+    checkCreateTemplate("activities", "NavigationDrawerActivity", true);
+  }
+
+  public void testNewBlankActivityWithFragment() throws Exception {
+    checkCreateTemplate("activities", "BlankActivityWithFragment", false);
+  }
+
+  public void testNewProjectWithBlankActivityWithFragment() throws Exception {
+    checkCreateTemplate("activities", "BlankActivityWithFragment", true);
+  }
+
   public void testNewMasterDetailFlow() throws Exception {
     checkCreateTemplate("activities", "MasterDetailFlow", false);
   }
@@ -307,6 +331,21 @@ public class TemplateTest extends AndroidGradleTestCase {
   public void testNewPlusOneFragment() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "PlusOneFragment");
+  }
+
+  public void testNewAidlFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AidlFile");
+  }
+
+  public void testNewLayoutResourceFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "LayoutResourceFile");
+  }
+
+  public void testNewValueResourceFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ValueResourceFile");
   }
 
   public void testCreateRemainingTemplates() throws Exception {
@@ -511,11 +550,6 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertNotNull(projectMetadata);
 
       int lowestSupportedApi = Math.max(projectMetadata.getMinSdk(), activityMetadata.getMinSdk());
-
-      if (templateFile.getName().equals("BlankActivity")) {
-        // BlankActivity incorrectly requires minSdk 7; we should fix that
-        lowestSupportedApi = Math.max(lowestSupportedApi, 7);
-      }
 
       for (int minSdk = lowestSupportedApi;
            minSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
@@ -741,6 +775,9 @@ public class TemplateTest extends AndroidGradleTestCase {
                             @NonNull NewProjectWizardState projectValues,
                             @Nullable final TemplateWizardState templateValues) throws Exception {
     ourCount++;
+    projectValues.put(ATTR_RES_OUT, null);
+    projectValues.put(ATTR_SRC_OUT, null);
+    projectValues.put(ATTR_MANIFEST_OUT, null);
 
     JavaCodeInsightTestFixture fixture = null;
     File projectDir = null;
@@ -762,6 +799,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       createProject(fixture, projectValues, syncModel);
 
       if (templateValues != null && !projectValues.getBoolean(ATTR_CREATE_ACTIVITY)) {
+        templateValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
@@ -769,6 +807,13 @@ public class TemplateTest extends AndroidGradleTestCase {
             Template template = templateValues.getTemplate();
             assert template != null;
             File moduleRoot = new File(projectRoot, projectName);
+            templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
+            try {
+              templateValues.populateDirectoryParameters();
+            }
+            catch (IOException e) {
+              throw new RuntimeException(e);
+            }
             template.render(moduleRoot, moduleRoot, templateValues.getParameters());
             if (Template.ourMostRecentException != null) {
               fail(Template.ourMostRecentException.getMessage());

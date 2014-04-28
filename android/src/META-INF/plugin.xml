@@ -1,4 +1,4 @@
-<idea-plugin version="2">
+<idea-plugin version="2" xmlns:xi="http://www.w3.org/2001/XInclude">
   <name>Android Support</name>
   <id>org.jetbrains.android</id>
   <description>
@@ -224,7 +224,8 @@
     <completion.contributor language="XML" implementationClass="org.jetbrains.android.AndroidCompletionContributor"
                             id="compositieAttributeValues" order="first"/>
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor" order="first"/>
-
+    <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
+                            id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
     <completion.contributor language="TEXT" implementationClass="org.jetbrains.android.run.AndroidActivityAliasCompletionContributor" order="first"/>
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
@@ -264,6 +265,10 @@
                      key="android.inspections.non.constant.res.ids.in.switch.name" groupKey="android.inspections.group.name"
                      enabledByDefault="true" level="ERROR"
                      implementationClass="org.jetbrains.android.inspections.AndroidNonConstantResIdsInSwitchInspection"/>
+    <localInspection language="JAVA" shortName="ResourceType" displayName="Constant and Resource Type Mismatches" bundle="messages.AndroidBundle"
+                     key="android.inspections.typedef"
+                     groupKey="android.inspections.group.name" enabledByDefault="true" level="ERROR"
+                     implementationClass="org.jetbrains.android.inspections.ResourceTypeInspection" />
 
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAaptCrash" displayName="Potential AAPT crash" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAaptCrashInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAdapterViewChildren" displayName="AdapterViews cannot have children in XML" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAdapterViewChildrenInspection"/>
@@ -319,6 +324,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintIconNoDpi" displayName="Icon appears in both -nodpi and dpi folders" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintIconNoDpiInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintIconXmlAndPng" displayName="Icon is specified both as .xml file and as a bitmap" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintIconXmlAndPngInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintIllegalResourceRef" displayName="Name and version must be integer or string, not resource" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintIllegalResourceRefInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintIncludeLayoutParam" displayName="Ignored layout params on include" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintIncludeLayoutParamInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInflateParams" displayName="Layout Inflation without a Parent" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintInflateParamsInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInOrMmUsage" displayName="Using mm or in dimensions" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintInOrMmUsageInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInconsistentArrays" displayName="Inconsistencies in array element counts" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintInconsistentArraysInspection"/>
@@ -456,9 +462,9 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.PostProjectSyncTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.GradleSyncState"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.variant.VariantSelectionVerifier"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.messages.ProjectSyncMessages"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
 
     <projectService serviceInterface="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
@@ -484,7 +490,7 @@
     <projectService serviceInterface="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"
                     serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceInterface="com.intellij.openapi.roots.ui.configuration.ProjectSettingsService"
-                    serviceImplementation="com.android.tools.idea.structure.AndroidProjectSettingsService"
+                    serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectSettingsService"
                     overrides="true"/>
 
 
@@ -557,7 +563,6 @@
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidImplicitUsagesProvider"/>
     <spellchecker.support language="XML" implementationClass="org.jetbrains.android.spellchecker.AndroidXmlSpellcheckingStrategy" order="before xml"/>
-    <projectService serviceImplementation="com.android.tools.idea.structure.AndroidModuleStructureConfigurable"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
   </extensions>
@@ -571,4 +576,30 @@
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint name="refactoringContextProvider" interface="org.jetbrains.android.refactoring.AndroidRefactoringContextProvider"/>
   </extensionPoints>
+
+  <!-- Layout editor -->
+
+  <xi:include href="/META-INF/DesignerCorePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <fileEditorProvider implementation="com.intellij.android.designer.AndroidDesignerEditorProvider"/>
+
+    <projectService serviceInterface="com.intellij.android.designer.model.ViewsMetaManager"
+                    serviceImplementation="com.intellij.android.designer.model.ViewsMetaManager"/>
+  </extensions>
+
+  <project-components>
+    <component>
+      <implementation-class>com.intellij.android.designer.designSurface.BuildProjectListener</implementation-class>
+    </component>
+  </project-components>
+
+  <extensions defaultExtensionNs="org.jetbrains.android">
+    <refactoringContextProvider implementation="com.intellij.android.designer.AndroidDesignerRefactoringContextProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="Designer">
+    <customizations implementation="com.intellij.android.designer.AndroidDesignerCustomizations" />
+  </extensions>
+
 </idea-plugin>

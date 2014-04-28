@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+
+  <!-- Some of the errors are missing; I suspect that's because from the unit tests we are using an old version
+   of the SDK and the types used by the test can't be resolved -->
+
+  <problem>
+    <file>X.java</file>
+    <line>61</line>
+    <description>Must be one of: Context.POWER_SERVICE, Context.WINDOW_SERVICE, Context.LAYOUT_INFLATER_SERVICE, Context.ACCOUNT_SERVICE, Context.ACTIVITY_SERVICE, Context.ALARM_SERVICE, Context.NOTIFICATION_SERVICE, Context.ACCESSIBILITY_SERVICE, android.content.Context.CAPTIONING_SERVICE, Context.KEYGUARD_SERVICE, Context.LOCATION_SERVICE, Context.SEARCH_SERVICE, Context.SENSOR_SERVICE, Context.STORAGE_SERVICE, Context.WALLPAPER_SERVICE, Context.VIBRATOR_SERVICE, Context.CONNECTIVITY_SERVICE, Context.WIFI_SERVICE, Context.WIFI_P2P_SERVICE, Context.NSD_SERVICE, Context.AUDIO_SERVICE, Context.MEDIA_ROUTER_SERVICE, Context.TELEPHONY_SERVICE, Context.CLIPBOARD_SERVICE, Context.INPUT_METHOD_SERVICE, Context.TEXT_SERVICES_MANAGER_SERVICE, Context.DROPBOX_SERVICE, Context.DEVICE_POLICY_SERVICE, Context.UI_MODE_SERVICE, Context.DOWNLOAD_SERVICE, Context.NFC_SERVICE, android.content.Context.BLUETOOTH_SERVICE, Context.USB_SERVICE, Context.INPUT_SERVICE, android.content.Context.DISPLAY_SERVICE, android.content.Context.USER_SERVICE, android.content.Context.PRINT_SERVICE</description>
+  </problem>
+
+
+  <problem>
+    <file>X.java</file>
+    <line>91</line>
+    <description>Must be one of: Context.BIND_AUTO_CREATE, Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>93</line>
+    <description>Must be one of: Context.BIND_AUTO_CREATE, Context.BIND_AUTO_CREATE, Context.BIND_DEBUG_UNBIND, Context.BIND_NOT_FOREGROUND, Context.BIND_ABOVE_CLIENT, Context.BIND_ALLOW_OOM_MANAGEMENT, Context.BIND_WAIVE_PRIORITY</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>26</line>
+    <description>Expected resource of type dimen</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>27</line>
+    <description>Expected resource of type bool</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>28</line>
+    <description>Expected resource of type bool</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>35</line>
+    <description>Expected resource of type bool</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>41</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>29</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+</problems>

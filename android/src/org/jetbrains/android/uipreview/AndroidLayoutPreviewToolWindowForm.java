@@ -19,8 +19,8 @@ package org.jetbrains.android.uipreview;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderedImage;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
-import com.android.tools.idea.rendering.ScalableImage;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -56,7 +56,8 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   private JPanel myContentPanel;
   private AndroidLayoutPreviewPanel myPreviewPanel;
   private JBScrollPane myScrollPane;
-  private JPanel myComboPanel;
+  private JPanel mySecondToolBarPanel;
+  private JPanel myFirstToolbarPanel;
   private PsiFile myFile;
   private Configuration myConfiguration;
   private AndroidFacet myFacet;
@@ -77,39 +78,16 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     actionGroup.addSeparator();
     actionGroup.add(new RefreshRenderAction(this));
     actionGroup.add(new SaveScreenshotAction(this));
-    myActionToolBar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
+    myActionToolBar = ActionManager.getInstance().createActionToolbar("LayoutPreview", actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
 
-    final ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption()
+    ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption()
       .addRetinaOption().build();
-    final JComponent toolbar = myActionToolBar.getComponent();
-    final JPanel toolBarWrapper = new JPanel(new BorderLayout());
-    toolBarWrapper.add(toolbar, BorderLayout.CENTER);
-    Dimension preferredToolbarSize = toolbar.getPreferredSize();
-    Dimension minimumToolbarSize = toolbar.getMinimumSize();
-    toolBarWrapper.setPreferredSize(new Dimension(preferredToolbarSize.width, minimumToolbarSize.height));
-    toolBarWrapper.setMinimumSize(new Dimension(Math.max(10, preferredToolbarSize.width), minimumToolbarSize.height));
-
-    final JPanel fullToolbarComponent = new JPanel(new BorderLayout());
-    fullToolbarComponent.add(toolBarWrapper, BorderLayout.CENTER);
-    fullToolbarComponent.add(optionsToolBar.getComponent(), BorderLayout.EAST);
-
+    JComponent toolbar = myActionToolBar.getComponent();
     ConfigurationToolBar configToolBar = new ConfigurationToolBar(this);
-
-    final GridBagConstraints gb = new GridBagConstraints();
-    gb.fill = GridBagConstraints.HORIZONTAL;
-    gb.anchor = GridBagConstraints.CENTER;
-    gb.insets = new Insets(0, 2, 2, 2);
-    gb.weightx = 1;
-    gb.gridx = 0;
-    gb.gridy = 0;
-    gb.gridwidth = 1;
-    myComboPanel.add(configToolBar, gb);
-    gb.fill = GridBagConstraints.NONE;
-    gb.anchor = GridBagConstraints.EAST;
-    gb.gridx = 0;
-    gb.gridy++;
-    myComboPanel.add(fullToolbarComponent, gb);
+    myFirstToolbarPanel.add(configToolBar, BorderLayout.CENTER);
+    mySecondToolBarPanel.add(optionsToolBar.getComponent(), BorderLayout.EAST);
+    mySecondToolBarPanel.add(toolbar, BorderLayout.CENTER);
 
     myContentPanel.addComponentListener(new ComponentListener() {
       @Override
@@ -228,6 +206,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public void requestRender() {
     if (myFile != null) {
       myToolWindowManager.render();
+      myToolWindowManager.flush();
       myPreviewPanel.update();
     }
   }
@@ -290,9 +269,9 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public BufferedImage getRenderedImage() {
     RenderResult result = myPreviewPanel.getRenderResult();
     if (result != null) {
-      ScalableImage scalableImage = result.getImage();
-      if (scalableImage != null) {
-        return scalableImage.getOriginalImage();
+      RenderedImage renderedImage = result.getImage();
+      if (renderedImage != null) {
+        return renderedImage.getOriginalImage();
       }
     }
     return null;

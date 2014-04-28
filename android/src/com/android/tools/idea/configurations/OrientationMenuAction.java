@@ -26,6 +26,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -98,7 +99,15 @@ public class OrientationMenuAction extends FlatComboAction {
         }
 
         for (State config : states) {
-          group.add(new SetDeviceStateAction(myRenderContext, config.getName(), config, config == current, false));
+          String stateName = config.getName();
+          String title = stateName;
+
+          VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, stateName, null, null);
+          if (better != null) {
+            title = ConfigurationAction.getBetterMatchLabel(stateName, better, configuration.getFile());
+          }
+
+          group.add(new SetDeviceStateAction(myRenderContext, title, config, config == current, false));
         }
         group.addSeparator();
       }
@@ -169,10 +178,12 @@ public class OrientationMenuAction extends FlatComboAction {
 
     public void perform() {
       tryUpdateConfiguration();
+      updatePresentation();
+      myRenderContext.requestRender();
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setDeviceState(myState);
     }
   }
@@ -189,7 +200,7 @@ public class OrientationMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setUiMode(myUiMode);
     }
   }
@@ -206,7 +217,7 @@ public class OrientationMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setNightMode(myNightMode);
     }
   }

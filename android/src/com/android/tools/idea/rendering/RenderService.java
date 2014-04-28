@@ -35,7 +35,6 @@ import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -72,8 +71,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService implements IImageFactory {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
-
   @NotNull
   private final Module myModule;
 
@@ -84,7 +81,7 @@ public class RenderService implements IImageFactory {
   private final RenderLogger myLogger;
 
   @NotNull
-  private final ProjectCallback myProjectCallback;
+  private final LayoutlibCallback myLayoutlibCallback;
 
   private final int myMinSdkVersion;
 
@@ -219,8 +216,8 @@ public class RenderService implements IImageFactory {
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
-    myProjectCallback = new ProjectCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential);
-    myProjectCallback.loadAndParseRClass();
+    myLayoutlibCallback = new LayoutlibCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential, this);
+    myLayoutlibCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
     myTargetSdkVersion = moduleInfo.getTargetSdkVersion();
@@ -298,8 +295,8 @@ public class RenderService implements IImageFactory {
   }
 
   public void dispose() {
-    myProjectCallback.setLogger(null);
-    myProjectCallback.setResourceResolver(null);
+    myLayoutlibCallback.setLogger(null);
+    myLayoutlibCallback.setResourceResolver(null);
   }
 
   /**
@@ -450,7 +447,7 @@ public class RenderService implements IImageFactory {
     ILayoutPullParser modelParser = LayoutPullParserFactory.create(this);
     ILayoutPullParser topParser = modelParser;
 
-    myProjectCallback.reset();
+    myLayoutlibCallback.reset();
 
     // Code to support editing included layout
     if (myIncludedWithin != null) {
@@ -466,8 +463,8 @@ public class RenderService implements IImageFactory {
             // Get the name of the layout actually being edited, without the extension
             // as it's what IXmlPullParser.getParser(String) will receive.
             String queryLayoutName = ResourceHelper.getResourceName(myPsiFile);
-            myProjectCallback.setLayoutParser(queryLayoutName, modelParser);
-            topParser = LayoutFilePullParser.create(myProjectCallback, layoutFile);
+            myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
+            topParser = LayoutFilePullParser.create(myLayoutlibCallback, layoutFile);
           }
           catch (IOException e) {
             myLogger.error(null, String.format("Could not read layout file %1$s", layoutFile), e);
@@ -481,7 +478,7 @@ public class RenderService implements IImageFactory {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
-      new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
+      new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
 
     // Request margin and baseline information.
@@ -517,7 +514,6 @@ public class RenderService implements IImageFactory {
         String activity = myConfiguration.getActivity();
         if (activity != null) {
           params.setActivityName(activity);
-          myProjectCallback.getActionBarCallback().setActivityName(activity);
           ActivityAttributes attributes = manifestInfo.getActivityAttributes(activity);
           if (attributes != null) {
             if (attributes.getLabel() != null) {
@@ -547,8 +543,8 @@ public class RenderService implements IImageFactory {
     }
 
     try {
-      myProjectCallback.setLogger(myLogger);
-      myProjectCallback.setResourceResolver(resolver);
+      myLayoutlibCallback.setLogger(myLogger);
+      myLayoutlibCallback.setResourceResolver(resolver);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
         @Nullable
@@ -671,7 +667,7 @@ public class RenderService implements IImageFactory {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myProjectCallback, myMinSdkVersion,
+      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback, myMinSdkVersion,
                          myTargetSdkVersion, myLogger);
     params.setForceNoDecor();
     Result result = myLayoutLib.renderDrawable(params);
@@ -706,13 +702,17 @@ public class RenderService implements IImageFactory {
 //    }
 
   @NotNull
-  public ProjectCallback getProjectCallback() {
-    return myProjectCallback;
+  public LayoutlibCallback getLayoutlibCallback() {
+    return myLayoutlibCallback;
   }
 
   @NotNull
   public XmlFile getPsiFile() {
     return myPsiFile;
+  }
+
+  public boolean supportsCapability(@NotNull Capability capability) {
+    return myLayoutLib.supports(capability);
   }
 
   public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target, @NotNull Capability capability) {
@@ -912,7 +912,7 @@ public class RenderService implements IImageFactory {
       return null;
     }
 
-    myProjectCallback.reset();
+    myLayoutlibCallback.reset();
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params = new SessionParams(
@@ -921,7 +921,7 @@ public class RenderService implements IImageFactory {
       myModule /* projectKey */,
       hardwareConfig,
       resolver,
-      myProjectCallback,
+      myLayoutlibCallback,
       myMinSdkVersion,
       myTargetSdkVersion,
       myLogger);
@@ -937,8 +937,8 @@ public class RenderService implements IImageFactory {
     }
 
     try {
-      myProjectCallback.setLogger(myLogger);
-      myProjectCallback.setResourceResolver(resolver);
+      myLayoutlibCallback.setLogger(myLogger);
+      myLayoutlibCallback.setResourceResolver(resolver);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
         @Nullable

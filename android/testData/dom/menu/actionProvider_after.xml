@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" >
+
+    <item android:id="@+id/action_about"
+        android:title="About"
+        android:orderInCategory="180"
+        android:showAsAction="never" />
+
+    <item android:id="@+id/action_upgrade"
+        android:actionProviderClass="p1.p2.MyProvider"
+    />
+</menu>

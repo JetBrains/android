@@ -71,7 +71,7 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
 
     for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplate(template);
-      if (metadata.getTitle().equals(NewModuleWizard.MODULE_NAME)) {
+      if (metadata.getTitle().equals(TemplateWizardModuleBuilder.MODULE_NAME)) {
         androidTemplateFile = template;
       } else if (metadata.getTitle().equals("Java Library")) {
         javaTemplateFile = template;
