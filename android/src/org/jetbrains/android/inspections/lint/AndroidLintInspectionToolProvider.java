@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -272,6 +274,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintParcelCreatorInspection extends AndroidLintInspectionBase {
+    public AndroidLintParcelCreatorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.parcel.creator"), ParcelDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintPrivateResourceInspection extends AndroidLintInspectionBase {
     public AndroidLintPrivateResourceInspection() {
       super(AndroidBundle.message("android.lint.inspections.private.resource"), PrivateResourceDetector.ISSUE);
@@ -444,6 +452,18 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintUsesMinSdkAttributesInspection extends AndroidLintInspectionBase {
     public AndroidLintUsesMinSdkAttributesInspection() {
       super(AndroidBundle.message("android.lint.inspections.uses.min.sdk.attributes"), ManifestDetector.USES_SDK);
+    }
+  }
+
+  public static class AndroidLintValidFragmentInspection extends AndroidLintInspectionBase {
+    public AndroidLintValidFragmentInspection() {
+      super(AndroidBundle.message("android.lint.inspections.valid.fragment"), ISSUE);
+    }
+  }
+
+  public static class AndroidLintViewConstructorInspection extends AndroidLintInspectionBase {
+    public AndroidLintViewConstructorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.view.constructor"), ViewConstructorDetector.ISSUE);
     }
   }
 
@@ -799,6 +819,11 @@ public class AndroidLintInspectionToolProvider {
 
   // I think DefaultLocale is already handled by a regular IDEA code check.
 
+  public static class AndroidLintAddJavascriptInterfaceInspection extends AndroidLintInspectionBase {
+    public AndroidLintAddJavascriptInterfaceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.add.javascript.interface"), AddJavascriptInterfaceDetector.ISSUE);
+    }
+  }
   public static class AndroidLintAllowBackupInspection extends AndroidLintInspectionBase {
     public AndroidLintAllowBackupInspection() {
       super(AndroidBundle.message("android.lint.inspections.allow.backup"), ManifestDetector.ALLOW_BACKUP);
@@ -1044,6 +1069,11 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintWorldReadableFilesInspection extends AndroidLintInspectionBase {
     public AndroidLintWorldReadableFilesInspection() {
       super(AndroidBundle.message("android.lint.inspections.world.readable.files"), SecurityDetector.WORLD_READABLE);
+    }
+  }
+  public static class AndroidLintWrongCallInspection extends AndroidLintInspectionBase {
+    public AndroidLintWrongCallInspection() {
+      super(AndroidBundle.message("android.lint.inspections.wrong.call"), WrongCallDetector.ISSUE);
     }
   }
   public static class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
