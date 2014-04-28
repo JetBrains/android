@@ -104,7 +104,7 @@ public class Template {
   public static final String GRADLE_PROJECT_SETTINGS_FILE = "settings.gradle";
 
   /** Finds include ':module_name_1', ':module_name_2',... statements in settings.gradle files */
-  private static final Pattern INCLUDE_PATTERN = Pattern.compile("include +(':[^']+', *)*':[^']+'");
+  private static final Pattern INCLUDE_PATTERN = Pattern.compile("(^|\\n)\\s*include +(':[^']+', *)*':[^']+'");
 
   /** Finds compile '<maven coordinates' in build.gradle files */
   private static final Pattern COMPILE_PATTERN = Pattern.compile("compile[ \\t]*'([^'\\n]+)'");
