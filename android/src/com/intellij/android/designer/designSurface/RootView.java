@@ -15,8 +15,11 @@
  */
 package com.intellij.android.designer.designSurface;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.rendering.Overlay;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedImage;
+import com.google.common.collect.Lists;
 import com.intellij.android.designer.designSurface.graphics.DesignerGraphics;
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +35,9 @@ import java.util.List;
  * Root component used for the Android designer.
  */
 public class RootView extends JComponent implements TransformedComponent {
+  public static final int EMPTY_COMPONENT_SIZE = 5;
+  public static final int VISUAL_EMPTY_COMPONENT_SIZE = 14;
+
   @Nullable private List<EmptyRegion> myEmptyRegions;
   @NotNull private final AndroidDesignerEditorPanel myPanel;
   protected int myX;
@@ -43,10 +49,6 @@ public class RootView extends JComponent implements TransformedComponent {
     myY = y;
     myPanel = panel;
     myRenderedImage = renderResult.getImage();
-  }
-
-  private RootView(@NotNull AndroidDesignerEditorPanel panel) {
-    myPanel = panel;
   }
 
   @NotNull
@@ -73,7 +75,7 @@ public class RootView extends JComponent implements TransformedComponent {
    * @param image The image to be rendered
    */
   public void setRenderedImage(@Nullable RenderedImage image) {
-    myEmptyRegions = null;
+    clearEmptyRegions();
     myRenderedImage = image;
     updateBounds(true);
     repaint();
@@ -125,19 +127,25 @@ public class RootView extends JComponent implements TransformedComponent {
     }
   }
 
+  public void clearEmptyRegions() {
+    myEmptyRegions = null;
+  }
+
   public void addEmptyRegion(int x, int y, int width, int height) {
     if (myRenderedImage == null) {
       return;
     }
     BufferedImage image = myRenderedImage.getOriginalImage();
-    if (new Rectangle(0, 0, image.getWidth(), image.getHeight()).contains(x, y)) {
+    int imageWidth = image.getWidth();
+    int imageHeight = image.getHeight();
+    if (x >= 0 && x <= imageWidth && y >= 0 && y <= imageHeight) {
       EmptyRegion r = new EmptyRegion();
-      r.myX = x;
-      r.myY = y;
+      r.myX = Math.max(0, Math.min(x, imageWidth - VISUAL_EMPTY_COMPONENT_SIZE));
+      r.myY = Math.max(0, Math.min(y, imageHeight - VISUAL_EMPTY_COMPONENT_SIZE));
       r.myWidth = width;
       r.myHeight = height;
       //noinspection UseJBColor
-      r.myColor = new Color(~image.getRGB(x, y));
+      r.myColor = new Color(~image.getRGB(r.myX, r.myY));
       if (myEmptyRegions == null) {
         myEmptyRegions = new ArrayList<EmptyRegion>();
       }
@@ -166,6 +174,8 @@ public class RootView extends JComponent implements TransformedComponent {
         }
       }
     }
+
+    Overlay.paintOverlays(myPanel, this, g, 0, 0);
   }
 
   /** Returns the width of the image itself, when scaled */
@@ -227,6 +237,17 @@ public class RootView extends JComponent implements TransformedComponent {
       }
     }
     return 0;
+  }
+
+  @VisibleForTesting
+  public List<Rectangle> getEmptyRegions() {
+    List<Rectangle> list = Lists.newArrayList();
+    if (myEmptyRegions != null) {
+      for (EmptyRegion region : myEmptyRegions) {
+        list.add(new Rectangle(region.myX, region.myY, region.myWidth, region.myHeight));
+      }
+    }
+    return list;
   }
 
   private static class EmptyRegion {

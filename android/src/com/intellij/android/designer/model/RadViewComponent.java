@@ -15,7 +15,6 @@
  */
 package com.intellij.android.designer.model;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.designer.AndroidMetaModel;
 import com.android.tools.idea.designer.Insets;
@@ -58,14 +57,18 @@ public class RadViewComponent extends RadVisualComponent {
   private List<Property> myProperties;
   private PaletteItem myPaletteItem;
 
+  public RadViewComponent() {
+  }
+
+  @NotNull
   public XmlTag getTag() {
-    if (myTag != null && (myTag.getParent() == null || !myTag.isValid())) {
+    if (myTag == null || myTag.getParent() == null || !myTag.isValid()) {
       return EmptyXmlTag.INSTANCE;
     }
     return myTag;
   }
 
-  public void setTag(XmlTag tag) {
+  public void setTag(@Nullable XmlTag tag) {
     myTag = tag;
   }
 
@@ -113,10 +116,6 @@ public class RadViewComponent extends RadVisualComponent {
     myMargins = null;
   }
 
-  public int getViewInfoCount() {
-    return 1;
-  }
-
   @Override
   public AndroidMetaModel getMetaModel() {
     return (AndroidMetaModel)super.getMetaModel();
@@ -131,15 +130,17 @@ public class RadViewComponent extends RadVisualComponent {
   public String ensureId() {
     String id = getId();
     if (id == null) {
-      id = IdManager.get(this).createId(this);
+      IdManager idManager = IdManager.get(this);
+      if (idManager != null) {
+        id = idManager.createId(this);
+      }
     }
     return id;
   }
 
   @Nullable
   public String getId() {
-    String idValue = getTag().getAttributeValue("id", SdkConstants.NS_RESOURCES);
-    return StringUtil.isEmpty(idValue) ? null : idValue;
+    return StringUtil.nullize(getTag().getAttributeValue(ATTR_ID, ANDROID_URI), false);
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////

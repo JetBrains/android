@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import com.android.io.FileWrapper;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
-import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

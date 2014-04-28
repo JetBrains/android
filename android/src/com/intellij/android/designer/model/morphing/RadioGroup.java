@@ -17,7 +17,7 @@ package com.intellij.android.designer.model.morphing;
 
 import com.android.SdkConstants;
 import com.intellij.android.designer.model.ComponentMorphingTool;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.RadLinearLayout;
 import com.intellij.android.designer.model.layout.RadRadioGroupLayout;
@@ -46,7 +46,7 @@ public class RadioGroup {
       @Override
       protected void convertTag() {
         if (horizontal) {
-          ModelParser.deleteAttribute(myNewComponent, "orientation");
+          RadComponentOperations.deleteAttribute(myNewComponent, "orientation");
         }
         else {
           myNewComponent.getTag().setAttribute("orientation", SdkConstants.NS_RESOURCES, "vertical");

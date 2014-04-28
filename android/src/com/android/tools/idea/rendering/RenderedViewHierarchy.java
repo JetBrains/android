@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.google.common.collect.Lists;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
@@ -25,22 +26,50 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The {@linkplain com.android.tools.idea.rendering.RenderedViewHierarchy} builds up and queries a hierarchy of
+ * {@link com.android.tools.idea.rendering.RenderedView}, which corresponds to a {@link com.android.ide.common.rendering.api.ViewInfo}
+ * tree returned from layoutlib. In addition to building it up, it provides methods to find views corresponding to {@code x,y} coordinates
+ * as well as to find the corresponding bounds for views, identified by {@link XmlTag} elements.
+ */
 public class RenderedViewHierarchy {
   private final List<RenderedView> myRoots;
   private final PsiFile myFile;
+  private final List<RenderedView> myIncludedRoots;
 
-  private RenderedViewHierarchy(@NotNull PsiFile file, @NotNull List<RenderedView> roots) {
+  private RenderedViewHierarchy(@NotNull PsiFile file, @NotNull List<RenderedView> roots, boolean computeIncludeBounds) {
     myFile = file;
     myRoots = roots;
+
+    if (computeIncludeBounds) {
+      myIncludedRoots = Lists.newArrayList();
+      for (RenderedView root : myRoots) {
+        addIncludedBounds(root);
+      }
+    } else {
+      myIncludedRoots = null;
+    }
   }
 
   @NotNull
-  public static RenderedViewHierarchy create(@NotNull PsiFile file, @NotNull List<ViewInfo> roots) {
-    return new RenderedViewHierarchy(file, convert(null, roots, 0, 0));
+  public static RenderedViewHierarchy create(@NotNull PsiFile file, @NotNull List<ViewInfo> roots, boolean computeIncludeBounds) {
+    return new RenderedViewHierarchy(file, convert(null, roots, 0, 0), computeIncludeBounds);
   }
 
   public List<RenderedView> getRoots() {
     return myRoots;
+  }
+
+  /**
+   * Returns the list of root views that were included in a layout that was rendered as included in another. This is typically
+   * just one view, but can be more than one when the {@code <include/>} tag loads a layout whose root tag is a {@code <merge/>}.
+   * Can be null when there are no included views.
+   *
+   * @return a list of included view roots, or null
+   */
+  @Nullable
+  public List<RenderedView> getIncludedRoots() {
+    return myIncludedRoots;
   }
 
   @NotNull
@@ -81,6 +110,16 @@ public class RenderedViewHierarchy {
   //
   //  return count;
   //}
+
+  private void addIncludedBounds(RenderedView view) {
+    if (view.tag != null) {
+      myIncludedRoots.add(view);
+    } else {
+      for (RenderedView child : view.getChildren()) {
+        addIncludedBounds(child);
+      }
+    }
+  }
 
   @Nullable
   public List<RenderedView> findByOffset(int offset) {
