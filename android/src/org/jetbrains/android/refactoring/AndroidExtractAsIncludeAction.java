@@ -4,6 +4,8 @@ package org.jetbrains.android.refactoring;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.IncludeReference;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -221,6 +223,10 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
         }
       }
     }
+
+    String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + ResourceHelper.getResourceName(file);
+    IncludeReference.setIncludingLayout(project, newFile, includingLayout);
+
     final String resourceName = AndroidCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), newFile.getName());
     final XmlTag includeTag = elementFactory.createTagFromText("<include layout=\"@layout/" + resourceName + "\"/>");
     parentTag.addAfter(includeTag, to);

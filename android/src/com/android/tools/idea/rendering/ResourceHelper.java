@@ -24,7 +24,9 @@ import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -192,8 +194,21 @@ public class ResourceHelper {
   }
 
   @Nullable
-  public static ResourceFolderType getFolderType(@Nullable PsiFile file) {
+  public static ResourceFolderType getFolderType(@Nullable final PsiFile file) {
     if (file != null) {
+      if (!file.isValid()) {
+        // getVirtualFile is safe without read access!
+        return getFolderType(file.getVirtualFile());
+      }
+      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+        return ApplicationManager.getApplication().runReadAction(new Computable<ResourceFolderType>() {
+          @Nullable
+          @Override
+          public ResourceFolderType compute() {
+            return getFolderType(file);
+          }
+        });
+      }
       PsiDirectory parent = file.getParent();
       if (parent != null) {
         return ResourceFolderType.getFolderType(parent.getName());
@@ -466,6 +481,48 @@ public class ResourceHelper {
               LOG.warn(String.format("Failed parsing color file %1$s", file.getName()), e);
             }
           }
+          return file;
+        } else {
+          return null;
+        }
+      }
+
+      depth++;
+    }
+
+    return null;
+  }
+
+  /**
+   * Tries to resolve the given resource value to an actual layout file.
+   *
+   * @param resources the resource resolver to use to follow layout references
+   * @param layout the layout to resolve
+   * @return the corresponding {@link File}, or null
+   */
+  @Nullable
+  public static File resolveLayout(@NotNull RenderResources resources, @Nullable ResourceValue layout) {
+    if (layout != null) {
+      layout = resources.resolveResValue(layout);
+    }
+    if (layout == null) {
+      return null;
+    }
+    String value = layout.getValue();
+
+    int depth = 0;
+    while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
+      if (value.startsWith(PREFIX_RESOURCE_REF)) {
+        boolean isFramework = layout.isFramework();
+        layout = resources.findResValue(value, isFramework);
+        if (layout != null) {
+          value = layout.getValue();
+        } else {
+          break;
+        }
+      } else {
+        File file = new File(value);
+        if (file.exists()) {
           return file;
         } else {
           return null;

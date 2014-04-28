@@ -16,7 +16,7 @@
         tag="merge"
         delete="false">
 
-    <palette title="Device Screen (#merge)" icon="AndroidIcons.Views.DeviceScreen"/>
+    <palette title="Device Screen (#merge)" icon="AndroidIcons.Views.Merge"/>
   </meta>
 
   <meta model="com.intellij.android.designer.model.RadRequestFocus"

@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

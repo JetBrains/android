@@ -43,7 +43,7 @@ public class LinearLayout {
           myNewComponent.getTag().setAttribute("orientation", SdkConstants.NS_RESOURCES, "horizontal");
         }
         else {
-          ModelParser.deleteAttribute(myNewComponent, "orientation");
+          RadComponentOperations.deleteAttribute(myNewComponent, "orientation");
         }
       }
     }.result();
@@ -67,25 +67,25 @@ public class LinearLayout {
         List<RadComponent> oldChildren = new ArrayList<RadComponent>(myOldComponent.getChildren());
 
         if (horizontal) {
-          RadViewComponent newRowComponent = ModelParser.createComponent(null, tableRowModel);
-          ModelParser.addComponent(myNewComponent, newRowComponent, null);
+          RadViewComponent newRowComponent = RadComponentOperations.createComponent(null, tableRowModel);
+          RadComponentOperations.addComponent(myNewComponent, newRowComponent, null);
 
           for (RadComponent childComponent : oldChildren) {
-            ModelParser.moveComponent(newRowComponent, (RadViewComponent)childComponent, null);
+            RadComponentOperations.moveComponent(newRowComponent, (RadViewComponent)childComponent, null);
           }
         }
         else {
           for (RadComponent childComponent : oldChildren) {
-            RadViewComponent newRowComponent = ModelParser.createComponent(null, tableRowModel);
-            ModelParser.addComponent(myNewComponent, newRowComponent, null);
-            ModelParser.moveComponent(newRowComponent, (RadViewComponent)childComponent, null);
+            RadViewComponent newRowComponent = RadComponentOperations.createComponent(null, tableRowModel);
+            RadComponentOperations.addComponent(myNewComponent, newRowComponent, null);
+            RadComponentOperations.moveComponent(newRowComponent, (RadViewComponent)childComponent, null);
           }
         }
       }
 
       @Override
       protected void convertTag() {
-        ModelParser.deleteAttribute(myNewComponent, "orientation");
+        RadComponentOperations.deleteAttribute(myNewComponent, "orientation");
       }
 
       @Override

@@ -16,13 +16,13 @@
 package com.intellij.android.designer.componentTree;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.rendering.IncludeReference;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar;
-import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.componentTree.AttributeWrapper;
 import com.intellij.designer.componentTree.TreeComponentDecorator;
 import com.intellij.designer.model.*;
@@ -38,6 +38,7 @@ import icons.AndroidIcons;
 import javax.swing.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.IncludeReference.ATTR_RENDER_IN;
 
 /**
  * Tree decorator for the component tree in Android.
@@ -63,11 +64,13 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
       if (attribute != null) {
         String cls = attribute.getValue();
         if (!StringUtil.isEmpty(cls)) {
-          ModuleProvider moduleProvider = component.getRoot().getClientProperty(ModelParser.MODULE_KEY);
-          MetaManager metaManager = ViewsMetaManager.getInstance(moduleProvider.getProject());
-          MetaModel classModel = metaManager.getModelByTarget(cls);
-          if (classModel != null) {
-            metaModel = classModel;
+          Project project = RadModelBuilder.getProject(component);
+          if (project != null) {
+            MetaManager metaManager = ViewsMetaManager.getInstance(project);
+            MetaModel classModel = metaManager.getModelByTarget(cls);
+            if (classModel != null) {
+              metaModel = classModel;
+            }
           }
         }
       }
@@ -75,7 +78,11 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
     decorate(component, metaModel, renderer, wrapper, full);
   }
 
-  private void decorate(RadComponent component, MetaModel metaModel, SimpleColoredComponent renderer, AttributeWrapper wrapper, boolean full) {
+  private static void decorate(RadComponent component,
+                               MetaModel metaModel,
+                               SimpleColoredComponent renderer,
+                               AttributeWrapper wrapper,
+                               boolean full) {
     String id = component.getPropertyValue(ATTR_ID);
     id = LintUtils.stripIdPrefix(id);
     id = StringUtil.nullize(id);
@@ -102,6 +109,14 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
 
     if (id == null && type == null)  {
       type = tagName;
+    }
+
+    // For the root node, show the including layout when rendering in included contexts
+    if (RadModelBuilder.ROOT_NODE_TAG.equals(tagName)) {
+      IncludeReference includeContext = component.getClientProperty(ATTR_RENDER_IN);
+      if (includeContext != null && includeContext != IncludeReference.NONE) {
+        type = "Shown in " + includeContext.getFromResourceUrl();
+      }
     }
 
     // Don't display the type if it's obvious from the id (e.g.
@@ -153,9 +168,8 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
 
       // Annotate icons with lint warnings or errors, if applicable
       HighlightDisplayLevel displayLevel = null;
-      ModuleProvider moduleProvider = component.getRoot().getClientProperty(ModelParser.MODULE_KEY);
-      if (moduleProvider != null) {
-        Project project = moduleProvider.getProject();
+      Project project = RadModelBuilder.getProject(component);
+      if (project != null) {
         SeverityRegistrar severityRegistrar = SeverityRegistrar.getSeverityRegistrar(project);
         for (ErrorInfo errorInfo : RadComponent.getError(component)) {
           if (displayLevel == null || severityRegistrar.compare(errorInfo.getLevel().getSeverity(), displayLevel.getSeverity()) > 0) {
