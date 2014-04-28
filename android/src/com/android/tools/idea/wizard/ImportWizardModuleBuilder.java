@@ -39,6 +39,7 @@ import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +56,7 @@ import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LO
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
 public class ImportWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
+  @Nullable private final VirtualFile myImportSource;
   @NotNull protected final List<ModuleWizardStep> mySteps;
   @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
 
@@ -67,11 +69,13 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   public ImportWizardModuleBuilder(@Nullable File templateFile,
                                    @Nullable Project project,
+                                   @Nullable VirtualFile importSource,
                                    @Nullable Icon sidePanelIcon,
                                    @NotNull List<ModuleWizardStep> steps,
                                    @NotNull Disposable disposable,
                                    boolean inGlobalWizard) {
     myProject = project;
+    myImportSource = importSource;
     mySteps = steps;
 
     if (project == null) {
@@ -121,7 +125,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
     ImportSourceModulePath importSourcesPath =
-      new ImportSourceModulePath(myWizardState, new WizardContext(project), disposable, this);
+      new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), disposable, this);
 
     addSteps(importSourcesPath);
     return new WizardPath[]{importSourcesPath};
