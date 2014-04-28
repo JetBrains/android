@@ -16,7 +16,6 @@
 package com.intellij.android.designer.propertyTable;
 
 import com.android.resources.ResourceType;
-import com.intellij.android.designer.model.RadIncludeLayout;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.android.designer.propertyTable.renderers.ResourceRenderer;
@@ -34,6 +33,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.SdkConstants.ATTR_LAYOUT;
 
 /**
  * @author Alexander Lobas
@@ -60,7 +61,7 @@ public class IncludeLayoutProperty extends Property<RadViewComponent> implements
 
   @Override
   public Object getValue(@NotNull RadViewComponent component) throws Exception {
-    String layout = component.getTag().getAttributeValue("layout");
+    String layout = component.getTag().getAttributeValue(ATTR_LAYOUT);
     return layout == null ? "" : layout;
   }
 
@@ -70,8 +71,7 @@ public class IncludeLayoutProperty extends Property<RadViewComponent> implements
       ApplicationManager.getApplication().runWriteAction(new Runnable() {
         @Override
         public void run() {
-          ((RadIncludeLayout)component).clearViewInfoCount();
-          component.getTag().setAttribute("layout", (String)value);
+          component.getTag().setAttribute(ATTR_LAYOUT, (String)value);
         }
       });
     }
@@ -100,6 +100,6 @@ public class IncludeLayoutProperty extends Property<RadViewComponent> implements
 
   @Override
   public boolean checkAttribute(RadViewComponent component, XmlAttribute attribute) {
-    return component.getTag().getAttribute("layout") == attribute;
+    return component.getTag().getAttribute(ATTR_LAYOUT) == attribute;
   }
 }

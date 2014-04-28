@@ -349,7 +349,7 @@ public class RenderPreview implements Disposable {
       return myAlternateInput;
     }
     else if (myIncludedWithin != null) {
-      return myIncludedWithin.getFile();
+      return myIncludedWithin.getFromFile();
     }
 
     return null;
@@ -1097,7 +1097,7 @@ public class RenderPreview implements Disposable {
 
     if (showFile && (myAlternateInput != null || myIncludedWithin != null)) {
       // Draw file flag, and parent folder name
-      VirtualFile file = myAlternateInput != null ? myAlternateInput : myIncludedWithin.getFile();
+      VirtualFile file = myAlternateInput != null ? myAlternateInput : myIncludedWithin.getFromFile();
       assert file != null;
       String fileName = file.getParent().getName() + File.separator + file.getName();
       Rectangle2D extent = fontMetrics.getStringBounds(fileName, gc);

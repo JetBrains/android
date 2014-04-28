@@ -16,7 +16,7 @@
 package com.intellij.android.designer.designSurface.layout;
 
 import com.intellij.android.designer.designSurface.layout.grid.GridOperation;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.android.designer.model.grid.GridInfo;
@@ -154,8 +154,8 @@ public class TableLayoutOperation extends GridOperation {
       else {
         RadViewComponent newRowComponent = null;
         for (int i = rows.size(); i <= myRow; i++) {
-          newRowComponent = ModelParser.createComponent(null, tableRowModel);
-          ModelParser.addComponent(container, newRowComponent, null);
+          newRowComponent = RadComponentOperations.createComponent(null, tableRowModel);
+          RadComponentOperations.addComponent(container, newRowComponent, null);
         }
 
         execute(myContext, newRowComponent, myComponents, null);
@@ -237,8 +237,8 @@ public class TableLayoutOperation extends GridOperation {
       insertBefore = rows.get(row + 1);
     }
 
-    RadViewComponent newRowComponent = ModelParser.createComponent(null, tableRowModel);
-    ModelParser.addComponent((RadViewComponent)myContainer, newRowComponent, (RadViewComponent)insertBefore);
+    RadViewComponent newRowComponent = RadComponentOperations.createComponent(null, tableRowModel);
+    RadComponentOperations.addComponent((RadViewComponent)myContainer, newRowComponent, (RadViewComponent)insertBefore);
 
     execute(myContext, newRowComponent, myComponents, null);
     RadTableLayoutComponent.setCellIndex(myComponents.get(0), column);
@@ -249,9 +249,9 @@ public class TableLayoutOperation extends GridOperation {
                                            MetaModel tableRowModel,
                                            int column)
     throws Exception {
-    RadViewComponent newRowComponent = ModelParser.createComponent(null, tableRowModel);
-    ModelParser.addComponent((RadViewComponent)myContainer, newRowComponent, rowComponent);
-    ModelParser.moveComponent(newRowComponent, rowComponent, null);
+    RadViewComponent newRowComponent = RadComponentOperations.createComponent(null, tableRowModel);
+    RadComponentOperations.addComponent((RadViewComponent)myContainer, newRowComponent, rowComponent);
+    RadComponentOperations.moveComponent(newRowComponent, rowComponent, null);
 
     RadComponent editComponent = myComponents.get(0);
     if (!insertBefore || editComponent != rowComponent) {
