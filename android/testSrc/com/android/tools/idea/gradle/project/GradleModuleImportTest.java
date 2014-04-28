@@ -32,6 +32,7 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -401,7 +402,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     }
     File file = modulesWithLocation.get(pathToGradleName(module(2)));
     assertNotNull(modulesWithLocation.toString(), file);
-    assertEquals(module, baseDir.findFileByRelativePath(file.getPath()));
+    assertEquals(module, baseDir.findFileByRelativePath(FileUtil.toSystemIndependentName(file.getPath())));
 
     VirtualFile[] files = baseDir.getChildren();
     if (files.length != 3) {

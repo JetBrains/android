@@ -90,7 +90,7 @@ public class GradleSettingsFileTest extends IdeaTestCase {
    * Module should be imported and its locations should be set to absolute path.
    */
   public void testAddModuleWithNondefaultLocationOutsideProject() throws IOException {
-    final String modulePath = "/directory/module";
+    final String modulePath = FileUtil.toSystemIndependentName(FileUtil.getTempDirectory()) + "/directory/module";
     File moduleLocation = new File(modulePath);
     final GradleSettingsFile file = getSimpleTestFile();
     assertModuleWithNonDefaultLocation(file, ":mymodule", modulePath, moduleLocation);
