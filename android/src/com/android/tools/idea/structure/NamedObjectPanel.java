@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,205 +17,325 @@ package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.google.common.base.Objects;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBoxTableRenderer;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.TextBrowseFolderListener;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.*;
-import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.CellEditorComponentWithBrowseButton;
-import com.intellij.util.ui.LocalPathCellEditor;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBTextField;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
-/**
- * A Project Structure Android-Gradle module editor panel that handles editing of a group of generic {@linkplain NamedObject} instances
- * in a build.gradle file.
- */
-public class NamedObjectPanel extends BuildFilePanel {
-  protected final BuildFileKey myRoot;
-  protected final List<BuildFileKey> myProperties;
-  private final JBTable myTable;
-  @Nullable private final NamedObjectTableModel myModel;
-  private AnActionButton myRemoveButton;
+public class NamedObjectPanel extends BuildFilePanel implements ListSelectionListener, DocumentListener, ItemListener {
+  private JPanel myPanel;
+  private JBList myList;
+  private JTextField myObjectName;
+  private JSplitPane mySplitPane;
+  private JPanel myRightPane;
+  private JPanel myDetailsPane;
+  private final BuildFileKey myBuildFileKey;
   private final String myNewItemName;
+  private final DefaultListModel myListModel;
+  private NamedObject myCurrentObject;
+  private final BiMap<BuildFileKey, JComponent> myProperties = HashBiMap.create();
+  private boolean myIsUpdating;
 
-  /**
-   * A Boolean-like enum that also permits a "not present" state.
-   */
-  public enum ThreeStateBoolean {
-    EMPTY("-", null),
-    TRUE("true", Boolean.TRUE),
-    FALSE("false", Boolean.FALSE);
 
-    private final String myName;
-    private final Boolean myValue;
-
-    ThreeStateBoolean(String name, Boolean value) {
-      myName = name;
-      myValue = value;
-    }
-
-    @Override
-    public String toString() {
-      return myName;
-    }
-
-    @Nullable
-    public Boolean getValue() {
-      return myValue;
-    }
-
-    @NotNull
-    public static ThreeStateBoolean forValue(@Nullable Boolean b) {
-      if (b == null) {
-        return EMPTY;
-      } else if (b) {
-        return TRUE;
-      } else {
-        return FALSE;
-      }
-    }
-  }
-
-  public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey root, String newItemName) {
+  public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey buildFileKey,
+                          @NotNull String newItemName) {
     super(project, moduleName);
+    myBuildFileKey = buildFileKey;
     myNewItemName = newItemName;
-    NamedObject.Factory objectFactory = (NamedObject.Factory)root.getValueFactory();
-    if (objectFactory == null) {
-      throw new IllegalArgumentException("Can't instantiate a NamedObjectPanel for BuildFileKey " + root.toString());
-    }
-    myRoot = root;
-    myProperties = objectFactory.getProperties();
-    myModel = myGradleBuildFile != null ? new NamedObjectTableModel(myGradleBuildFile, root, myProperties) : null;
-    myTable = new JBTable(myGradleBuildFile != null ? myModel : new DefaultTableModel());
-    myTable.setShowGrid(false);
-    myTable.setDragEnabled(false);
-    myTable.setIntercellSpacing(new Dimension(0, 0));
-    myTable.setCellSelectionEnabled(false);
-    LocalPathCellEditor editor = new FileCellEditor();
-    myTable.setDefaultEditor(File.class, editor);
+    myListModel = new DefaultListModel();
+    myObjectName.getDocument().addDocumentListener(this);
 
-    JComboBox booleanEditor = new JComboBox(new EnumComboBoxModel<ThreeStateBoolean>(ThreeStateBoolean.class));
-    myTable.setDefaultEditor(ThreeStateBoolean.class, new DefaultCellEditor(booleanEditor));
-    myTable.setDefaultRenderer(ThreeStateBoolean.class, new ComboBoxTableRenderer<ThreeStateBoolean>(ThreeStateBoolean.values()));
-  }
-
-  private void updateButtons() {
-    if (myRemoveButton != null) {
-      myRemoveButton.setEnabled(myTable.getSelectedRows().length > 0);
-    }
-  }
-
-  private void removeSelectedItems(@NotNull final List removedRows) {
-    if (myModel == null) {
-      return;
-    }
-    if (removedRows.isEmpty()) {
-      return;
-    }
-    final int[] selectedRows = myTable.getSelectedRows();
-    myModel.fireTableDataChanged();
-    TableUtil.selectRows(myTable, selectedRows);
-  }
-
-  @Override
-  protected void addItems(@NotNull JPanel parent) {
-    myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+    myList = new JBList();
+    myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myList.addListSelectionListener(this);
+    myList.setModel(myListModel);
+    myList.setCellRenderer(new DefaultListCellRenderer() {
       @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          return;
-        }
-        updateButtons();
+      public Component getListCellRendererComponent(JList jList, Object o, int i, boolean b, boolean b2) {
+        return super.getListCellRendererComponent(jList, ((NamedObject)o).getName(), i, b, b2);
       }
     });
-
-    final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myTable);
+    ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myList);
     decorator.setAddAction(new AnActionButtonRunnable() {
       @Override
       public void run(AnActionButton button) {
-        if (myModel == null) {
-          return;
-        }
-        myModel.addRow();
-        myTable.clearSelection();
-        int row = myTable.getRowCount() - 1;
-        myTable.setRowSelectionInterval(row, row);
-        myModel.setValueAt(getUniqueObjectName(), row, 0);
-        myTable.editCellAt(row, 0);
+        addObject();
       }
     });
     decorator.setRemoveAction(new AnActionButtonRunnable() {
       @Override
-      public void run(AnActionButton button) {
-        removeSelectedItems(TableUtil.removeSelectedItems(myTable));
+      public void run(AnActionButton anActionButton) {
+        removeObject();
       }
     });
+    decorator.disableUpDownActions();
+    mySplitPane.setLeftComponent(decorator.createPanel());
+    mySplitPane.setDividerLocation(200);
+    myRightPane.setBorder(IdeBorderFactory.createBorder());
 
-    final JPanel panel = decorator.createPanel();
-    myRemoveButton = ToolbarDecorator.findRemoveButton(panel);
-    add(panel, BorderLayout.CENTER);
-
-    if (myTable.getRowCount() > 0) {
-      myTable.getSelectionModel().setSelectionInterval(0, 0);
+    NamedObject.Factory objectFactory = (NamedObject.Factory)myBuildFileKey.getValueFactory();
+    if (objectFactory == null) {
+      throw new IllegalArgumentException("Can't instantiate a NamedObjectPanel for BuildFileKey " + myBuildFileKey.toString());
     }
 
-    DefaultActionGroup actionGroup = new DefaultActionGroup();
-    actionGroup.add(myRemoveButton);
-    PopupHandler.installPopupHandler(myTable, actionGroup, ActionPlaces.UNKNOWN, ActionManager.getInstance());
+    GridLayoutManager layout = new GridLayoutManager(objectFactory.getProperties().size(), 2);
+    myDetailsPane.setLayout(layout);
+    GridConstraints constraints = new GridConstraints();
+    constraints.setAnchor(GridConstraints.ANCHOR_WEST);
+    for (BuildFileKey property : objectFactory.getProperties()) {
+      constraints.setColumn(0);
+      constraints.setFill(GridConstraints.FILL_NONE);
+      constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
+      myDetailsPane.add(new JBLabel(property.getDisplayName()), constraints);
+      constraints.setColumn(1);
+      constraints.setFill(GridConstraints.FILL_HORIZONTAL);
+      constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
+      JComponent component;
+      switch(property.getType()) {
+        case BOOLEAN:
+          constraints.setFill(GridConstraints.FILL_NONE);
+          ComboBox comboBox = new ComboBox(new EnumComboBoxModel<ThreeStateBoolean>(ThreeStateBoolean.class));
+          comboBox.addItemListener(this);
+          component = comboBox;
+          break;
+        case FILE:
+        case FILE_AS_STRING:
+          TextFieldWithBrowseButton fileField = new TextFieldWithBrowseButton();
+          FileChooserDescriptor d = new FileChooserDescriptor(true, false, false, true, false, false);
+          d.setShowFileSystemRoots(true);
+          fileField.addBrowseFolderListener(new TextBrowseFolderListener(d));
+          fileField.getTextField().getDocument().addDocumentListener(this);
+          component = fileField;
+          break;
+        case STRING:
+        case REFERENCE:
+        case INTEGER:
+        default:
+          JBTextField textField = new JBTextField();
+          textField.getDocument().addDocumentListener(this);
+          component = textField;
+          break;
+      }
+      myDetailsPane.add(component, constraints);
+      myProperties.put(property, component);
+      constraints.setRow(constraints.getRow() + 1);
+    }
+  }
+
+  @Override
+  public void init() {
+    super.init();
+    if (myGradleBuildFile == null) {
+      return;
+    }
+    List<NamedObject> namedObjects = (List<NamedObject>)myGradleBuildFile.getValue(myBuildFileKey);
+    if (namedObjects != null) {
+      for (NamedObject object : namedObjects) {
+        myListModel.addElement(object);
+      }
+    }
+    myList.updateUI();
+    updateUiFromCurrentObject();
   }
 
   @Override
   public void apply() {
-    if (myModel != null) {
-      myModel.apply();
+    if (!myModified ||  myGradleBuildFile == null) {
+      return;
+    }
+    List<NamedObject> objects = Lists.newArrayList();
+    for (int i = 0; i < myListModel.size(); i++) {
+      objects.add((NamedObject)myListModel.get(i));
+    }
+    myGradleBuildFile.setValue(myBuildFileKey, objects);
+
+    myModified = false;
+  }
+
+  private void addObject() {
+    int num = 1;
+    String name = myNewItemName;
+    while (getNamedItem(name) != null) {
+      name = myNewItemName + num++;
+    }
+    myListModel.addElement(new NamedObject(name));
+    myList.setSelectedIndex(myListModel.size() - 1);
+    myList.updateUI();
+    myModified = true;
+  }
+
+  private void removeObject() {
+    int selectedIndex = myList.getSelectedIndex();
+    if (selectedIndex < 0) {
+      return;
+    }
+    myListModel.remove(selectedIndex);
+    myList.setSelectedIndex(Math.max(0, Math.min(selectedIndex, myListModel.size() - 1)));
+    myList.updateUI();
+    myModified = true;
+  }
+
+  @Nullable
+  private NamedObject getNamedItem(@NotNull String name) {
+    for (int i = 0; i < myListModel.size(); i++) {
+      NamedObject object = (NamedObject)myListModel.get(i);
+      if (object.getName().equals(name)) {
+        return object;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void insertUpdate(@NotNull DocumentEvent documentEvent) {
+    updateCurrentObjectFromUi();
+  }
+
+  @Override
+  public void removeUpdate(@NotNull DocumentEvent documentEvent) {
+    updateCurrentObjectFromUi();
+  }
+
+  @Override
+  public void changedUpdate(@NotNull DocumentEvent documentEvent) {
+    updateCurrentObjectFromUi();
+  }
+
+  @Override
+  public void itemStateChanged(ItemEvent event) {
+    if (event.getStateChange() == ItemEvent.SELECTED) {
+      updateCurrentObjectFromUi();
     }
   }
 
   @Override
+  protected void addItems(@NotNull JPanel parent) {
+    add(myPanel, BorderLayout.CENTER);
+  }
+
+  @Override
   public boolean isModified() {
-    return myModel != null && myModel.isModified();
+    return myModified;
   }
 
-  @NotNull
-  protected String getUniqueObjectName() {
-    int num = 1;
-    String name;
-    do {
-      name = myNewItemName + num++;
-    } while (myModel != null && myModel.hasObjectNamed(name));
-    return name;
+  @Override
+  public void valueChanged(@NotNull ListSelectionEvent listSelectionEvent) {
+    updateUiFromCurrentObject();
   }
 
-  private class FileCellEditor extends LocalPathCellEditor {
-    public FileCellEditor() {
-      super("", myProject);
+  /**
+   * Reads the state of the UI form objects and writes them into the currently selected object in the list, setting the dirty bit as
+   * appropriate.
+   */
+  private void updateCurrentObjectFromUi() {
+    if (myIsUpdating || myCurrentObject == null) {
+      return;
     }
+    String newName = myObjectName.getText();
+    if (newName != null && !myCurrentObject.getName().equals(newName)) {
+      myCurrentObject.setName(newName);
+      myList.updateUI();
+      myModified = true;
+    }
+    for (Map.Entry<BuildFileKey, JComponent> entry : myProperties.entrySet()) {
+      BuildFileKey key = entry.getKey();
+      JComponent component = entry.getValue();
+      Object currentValue = myCurrentObject.getValue(key);
+      Object newValue;
+      switch(key.getType()) {
+        case BOOLEAN:
+          newValue = ((ThreeStateBoolean)((ComboBox)component).getSelectedItem()).getValue();
+          break;
+        case FILE:
+        case FILE_AS_STRING:
+          newValue = ((TextFieldWithBrowseButton)component).getText();
+          if ("".equals(newValue)) {
+            newValue = null;
+          }
+          if (newValue != null) {
+            newValue = new File(newValue.toString());
+          }
+          break;
+        case INTEGER:
+          try {
+            newValue = Integer.valueOf(((JBTextField)component).getText());
+          } catch (Exception e) {
+            newValue = null;
+          }
+          break;
+        case STRING:
+        case REFERENCE:
+        default:
+          newValue = ((JBTextField)component).getText();
+          if ("".equals(newValue)) {
+            newValue = null;
+          }
+          break;
+      }
+      if (!Objects.equal(currentValue, newValue)) {
+        myCurrentObject.setValue(key, newValue);
+        myModified = true;
+      }
+    }
+  }
 
-    @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-      Component component = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-      ((CellEditorComponentWithBrowseButton<?>)component).getChildComponent().setBorder(new LineBorder(Color.black));
-      return component;
+  /**
+   * Updates the form UI objects to reflect the currently selected object. Clears the objects and disables them if there is no selected
+   * object.
+   */
+  private void updateUiFromCurrentObject() {
+    myIsUpdating = true;
+    int selectedIndex = myList.getSelectedIndex();
+    NamedObject currentObject = selectedIndex >= 0 ? (NamedObject)myListModel.get(selectedIndex) : null;
+    myCurrentObject = currentObject;
+    myObjectName.setText(currentObject != null ? currentObject.getName() : "");
+    myObjectName.setEnabled(currentObject != null);
+    for (Map.Entry<BuildFileKey, JComponent> entry : myProperties.entrySet()) {
+      BuildFileKey key = entry.getKey();
+      JComponent component = entry.getValue();
+      Object value = currentObject != null ? currentObject.getValue(key) : null;
+      switch(key.getType()) {
+        case BOOLEAN:
+          ((ComboBox)component).setSelectedIndex(ThreeStateBoolean.forValue((Boolean)value).ordinal());
+          break;
+        case FILE:
+        case FILE_AS_STRING:
+          ((TextFieldWithBrowseButton)component).setText(value != null ? value.toString() : "");
+          break;
+        case INTEGER:
+        case STRING:
+        case REFERENCE:
+        default:
+          ((JBTextField)component).setText(value != null ? value.toString() : "");
+          break;
+      }
+      component.setEnabled(currentObject != null);
     }
-
-    @Override
-    public FileChooserDescriptor getFileChooserDescriptor() {
-      FileChooserDescriptor d = new FileChooserDescriptor(true, false, false, true, false, false);
-      d.setShowFileSystemRoots(true);
-      return d;
-    }
+    myIsUpdating = false;
   }
 }
