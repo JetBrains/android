@@ -39,8 +39,6 @@ import org.jetbrains.android.AndroidTestCase;
 
 import java.util.List;
 
-import static org.jetbrains.android.inspections.lint.LombokPsiConverter.SKIP_UNUSED_NODES;
-
 public class LombokPsiConverterTest extends AndroidTestCase {
   /**
    * Check that AST positions are okay? This works by comparing the
@@ -639,14 +637,14 @@ public class LombokPsiConverterTest extends AndroidTestCase {
                  "import java.util.Map;\n" +
                  "import java.util.TreeMap;\n" +
                  "\n" +
-                 "class Java7LanguageFeatureTest {\n" +
-                 "    void testDiamondOperator() {\n" +
+                 "public class Java7LanguageFeatureTest {\n" +
+                 "    public void testDiamondOperator() {\n" +
                  "        Map<String, List<Integer>> map = new TreeMap();\n" +
                  "    }\n" +
                  "    \n" +
-                 "    int testStringSwitches(String value) {\n" +
-                 "        String first = \"first\";\n" +
-                 "        String second = \"second\";\n" +
+                 "    public int testStringSwitches(String value) {\n" +
+                 "        final String first = \"first\";\n" +
+                 "        final String second = \"second\";\n" +
                  "        switch (value) {\n" +
                  "        case first:\n" +
                  "            return 41;\n" +
@@ -657,19 +655,19 @@ public class LombokPsiConverterTest extends AndroidTestCase {
                  "        }\n" +
                  "    }\n" +
                  "    \n" +
-                 "    String testTryWithResources(String path) throws IOException {\n" +
+                 "    public String testTryWithResources(String path) throws IOException {\n" +
                  "        try {\n" +
                  "            return br.readLine();\n" +
                  "        }\n" +
                  "    }\n" +
                  "    \n" +
-                 "    void testNumericLiterals() {\n" +
+                 "    public void testNumericLiterals() {\n" +
                  "        int thousand = 1_000;\n" +
                  "        int million = 1_000_000;\n" +
                  "        int binary = 0B01010101;\n" +
                  "    }\n" +
                  "    \n" +
-                 "    void testMultiCatch() {\n" +
+                 "    public void testMultiCatch() {\n" +
                  "        try {\n" +
                  "            Class.forName(\"java.lang.Integer\").getMethod(\"toString\").invoke(null);\n" +
                  "        } catch (?!?INVALID_IDENTIFIER: IllegalAccessException | InvocationTargetException | NoSuchMethodException?!? e) {\n" +
@@ -712,20 +710,6 @@ public class LombokPsiConverterTest extends AndroidTestCase {
     TextFormatter formatter = new TextFormatter();
     node.accept(new SourcePrinter(formatter));
     String actual = formatter.finish();
-
-    if (SKIP_UNUSED_NODES) {
-      source = source.replaceAll("\\bpublic\\b", "");
-      source = source.replaceAll("\\bprotected\\b", "");
-      source = source.replaceAll("\\bprivate\\b", "");
-      source = source.replaceAll("\\babstract\\b", "");
-      source = source.replaceAll("\\bfinal\\b", "");
-
-      // Remove static, but leave import static alone
-      source = source.replaceAll("\\bimport static\\b", "<<IMPORT STATIC>>");
-      source = source.replaceAll("\\bstatic\\b", "");
-      source = source.replaceAll("<<IMPORT STATIC>>", "import static");
-    }
-
 
     Node expectedNode = parse(source);
     assertNotNull(expectedNode);

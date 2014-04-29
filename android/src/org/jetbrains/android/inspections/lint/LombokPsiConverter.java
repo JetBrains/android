@@ -70,13 +70,6 @@ public class LombokPsiConverter {
    */
   private static final boolean EXPAND_TYPES = false;
 
-  /**
-   * If true, create a subset of the AST, eliminating information not used
-   * by lint, such as modifier keyword nodes
-   */
-  @VisibleForTesting
-  static final boolean SKIP_UNUSED_NODES = true;
-
   private static final Splitter DOT_SPLITTER = Splitter.on('.').omitEmptyStrings();
 
   private static final PositionFactory POSITION_FACTORY = new PositionFactory() {
@@ -542,40 +535,37 @@ public class LombokPsiConverter {
       annotations.addToEnd(toAnnotation(annotation));
     }
 
-    //noinspection ConstantConditions
-    if (!SKIP_UNUSED_NODES) {
-      StrictListAccessor<KeywordModifier, Modifiers> keywords = modifiers.astKeywords();
-      if (list.hasExplicitModifier(PsiModifier.PUBLIC)) {
-        KeywordModifier keyword = KeywordModifier.PUBLIC();
-        bind(keyword, null);
-        keywords.addToEnd(keyword);
-      } else if (list.hasExplicitModifier(PsiModifier.PROTECTED)) {
-        KeywordModifier keyword = KeywordModifier.PROTECTED();
-        bind(keyword, null);
-        keywords.addToEnd(keyword);
-      } else if (list.hasExplicitModifier(PsiModifier.PRIVATE)) {
-        KeywordModifier keyword = KeywordModifier.PRIVATE();
-        bind(keyword, null);
-        keywords.addToEnd(keyword);
-      }
-      if (list.hasExplicitModifier(PsiModifier.STATIC)) {
-        KeywordModifier keyword = KeywordModifier.STATIC();
-        bind(keyword, null);
-        keywords.addToEnd(keyword);
-      }
-      if (list.hasExplicitModifier(PsiModifier.ABSTRACT)) {
-        KeywordModifier keyword = new KeywordModifier().astName("abstract");
-        bind(keyword, null);
-        keywords.addToEnd(keyword);
-      }
-      if (list.hasExplicitModifier(PsiModifier.FINAL)) {
-        KeywordModifier keyword = KeywordModifier.FINAL();
-        bind(keyword, null);
-        keywords.addToEnd(keyword);
-      }
-      // TODO: Finish the rest. PsiFormatUtils#formatModifiers has some sample code
-      //KeywordModifier.fromReflectModifiers(0);
+    StrictListAccessor<KeywordModifier, Modifiers> keywords = modifiers.astKeywords();
+    if (list.hasExplicitModifier(PsiModifier.PUBLIC)) {
+      KeywordModifier keyword = KeywordModifier.PUBLIC();
+      bind(keyword, null);
+      keywords.addToEnd(keyword);
+    } else if (list.hasExplicitModifier(PsiModifier.PROTECTED)) {
+      KeywordModifier keyword = KeywordModifier.PROTECTED();
+      bind(keyword, null);
+      keywords.addToEnd(keyword);
+    } else if (list.hasExplicitModifier(PsiModifier.PRIVATE)) {
+      KeywordModifier keyword = KeywordModifier.PRIVATE();
+      bind(keyword, null);
+      keywords.addToEnd(keyword);
     }
+    if (list.hasExplicitModifier(PsiModifier.STATIC)) {
+      KeywordModifier keyword = KeywordModifier.STATIC();
+      bind(keyword, null);
+      keywords.addToEnd(keyword);
+    }
+    if (list.hasExplicitModifier(PsiModifier.ABSTRACT)) {
+      KeywordModifier keyword = new KeywordModifier().astName("abstract");
+      bind(keyword, null);
+      keywords.addToEnd(keyword);
+    }
+    if (list.hasExplicitModifier(PsiModifier.FINAL)) {
+      KeywordModifier keyword = KeywordModifier.FINAL();
+      bind(keyword, null);
+      keywords.addToEnd(keyword);
+    }
+    // TODO: Finish the rest. PsiFormatUtils#formatModifiers has some sample code
+    //KeywordModifier.fromReflectModifiers(0);
 
     return modifiers;
   }
