@@ -162,10 +162,9 @@ public class GradleFileMerger {
           PsiElement comment = factory.createGroovyFile(RepositoryUrlManager.getHelpComment(highest), false, null);
           toRoot.addBefore(comment, toRoot.getLastChild());
         }
-
-        PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, highest.toString()));
-        toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }
+      PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, highest.toString()));
+      toRoot.addBefore(dependencyElement, toRoot.getLastChild());
     }
   }
 
