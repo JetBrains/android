@@ -70,7 +70,9 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
     mySteps.add(new ChooseAndroidAndJavaSdkStep());
     mySteps.add(myTemplateParameterStep);
 
-    mySteps.add(0, buildChooseModuleStep(project));
+    if (!myInGlobalWizard) {
+      mySteps.add(0, buildChooseModuleStep(project));
+    }
     addSteps(myNewAndroidModulePath);
     return ArrayUtil.append(paths, myNewAndroidModulePath);
   }
