@@ -146,6 +146,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintAppCompatMethodInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppCompatMethodInspection() {
+      super(AndroidBundle.message("android.lint.inspections.app.compat.method"), AppCompatCallDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintAppCompatResourceInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppCompatResourceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.app.compat.resource"), AppCompatResourceDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintAssertInspection extends AndroidLintInspectionBase {
     public AndroidLintAssertInspection() {
       super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.ISSUE);
