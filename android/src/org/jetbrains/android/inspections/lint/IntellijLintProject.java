@@ -46,6 +46,7 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.*;
 
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.android.SdkConstants.SUPPORT_LIB_ARTIFACT;
 
 /**
@@ -785,6 +786,34 @@ class IntellijLintProject extends Project {
         }
 
         return mSupportLib;
+      } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+        if (mAppCompat == null) {
+          if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
+            IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
+            Dependencies dependencies = gradleProject.getSelectedVariant().getMainArtifact().getDependencies();
+            for (AndroidLibrary library : dependencies.getLibraries()) {
+              File bundle = library.getBundle();
+              if (bundle.getName().startsWith("appcompat-v7")) {
+                mAppCompat = true;
+                return true;
+              }
+            }
+          }
+
+          for (Project dependency : getDirectLibraries()) {
+            Boolean b = dependency.dependsOn(artifact);
+            if (b != null && b) {
+              mAppCompat = true;
+              break;
+            }
+          }
+
+          if (mAppCompat == null) {
+            mAppCompat = false;
+          }
+        }
+
+        return mAppCompat;
       } else {
         return super.dependsOn(artifact);
       }
