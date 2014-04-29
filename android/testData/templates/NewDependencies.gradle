@@ -1,4 +1,5 @@
 dependencies {
   compile 'com.android.support:support-v4:18.0.+'
   compile 'com.android.support:appcompat-v7:+'
+  compile 'com.nineoldandroids:library:+'
 }
