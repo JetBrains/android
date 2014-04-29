@@ -278,6 +278,35 @@ public class GradleBuildFileTest extends IdeaTestCase {
                            .replaceAll("debuggable false\n", "debuggable false\n            zipAlign true\n"));
   }
 
+  public void testRemovePropertyFromNamedValue() throws Exception {
+    String contents =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        release {\n" +
+      "            debuggable false\n" +
+      "            zipAlign true\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+    final GradleBuildFile file = getTestFile(contents);
+    Object value = file.getValue(BuildFileKey.BUILD_TYPES);
+    assert value != null;
+    assert value instanceof List;
+    final List<NamedObject> buildTypes = (List<NamedObject>)value;
+    assertEquals(1, buildTypes.size());
+    NamedObject buildType = buildTypes.get(0);
+    assertEquals("release", buildType.getName());
+    buildType.setValue(BuildFileKey.DEBUGGABLE, null);
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
+      }
+    });
+    assertContents(file,
+                   contents.replaceAll(" *debuggable false\n", ""));
+  }
+
   public void testCreateStringValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
