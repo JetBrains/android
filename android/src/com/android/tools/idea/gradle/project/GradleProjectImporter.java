@@ -239,21 +239,8 @@ public class GradleProjectImporter {
    */
   private static void rethrowAsProperlyTypedException(Throwable throwable) throws IOException, ConfigurationException {
     if (throwable != null) {
-      if (throwable instanceof IOException) {
-        throw (IOException)throwable;
-      }
-      else if (throwable instanceof ConfigurationException) {
-        throw (ConfigurationException)throwable;
-      }
-      else if (throwable instanceof Error) {
-        throw (Error)throwable;
-      }
-      else if (throwable instanceof RuntimeException) {
-        throw (RuntimeException)throwable;
-      }
-      else {
-        throw new IllegalStateException(throwable);
-      }
+      Throwables.propagateIfPossible(throwable, IOException.class, ConfigurationException.class);
+      throw new IllegalStateException(throwable);
     }
   }
 

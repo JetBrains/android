@@ -57,7 +57,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      @NotNull List<ModuleWizardStep> steps,
                                      @NotNull Disposable disposable,
                                      boolean inGlobalWizard) {
-    super(templateLocation, project, sidePanelIcon, steps, disposable, inGlobalWizard);
+    super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
     myWizardState.myIsModuleImport = false;
     myMetadata = metadata;
   }

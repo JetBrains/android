@@ -75,12 +75,14 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private ModulesTable myModulesList;
   private JBLabel myModuleImportLabel;
   private AsyncProcessIcon myValidationProgress;
+  private JBLabel myLocationLabel;
   private AsyncValidator<?> validator;
   private PathValidationResult myPageValidationResult;
   private boolean myValidating = false;
   private PageStatus myStatus;
 
   public ImportSourceLocationStep(@NotNull WizardContext context,
+                                  @Nullable VirtualFile importSource,
                                   @NotNull NewModuleWizardState state,
                                   @NotNull Disposable disposable,
                                   @Nullable TemplateWizardStep.UpdateListener listener) {
@@ -92,10 +94,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       }
     } : listener;
     myState = state;
-    FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor();
-    descriptor.setTitle("Select Source Location");
-    descriptor.setDescription("Select location of your existing ");
-    mySourceLocation.addBrowseFolderListener(new TextBrowseFolderListener(descriptor));
     PropertyChangeListener modulesListener = new PropertyChangeListener() {
       @SuppressWarnings("unchecked")
       @Override
@@ -119,15 +117,9 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
         return checkPath(mySourceLocation.getText());
       }
     };
-    applyBackgroundOperationResult(checkPath(mySourceLocation.getText()));
     myErrorWarning.setText("");
     myErrorWarning.setIcon(null);
-    mySourceLocation.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        invalidate();
-      }
-    });
+    setupSourceLocationControls(importSource);
     myDelayedValidationProgressDisplay = new Timer(VALIDATION_STATUS_DISPLAY_DELAY, new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -136,6 +128,27 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
         }
       }
     });
+  }
+
+  private void setupSourceLocationControls(@Nullable VirtualFile importSource) {
+    if (importSource == null) {
+      FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor();
+      descriptor.setTitle("Select Source Location");
+      descriptor.setDescription("Select existing ADT or Gradle project to import as a new subproject");
+      mySourceLocation.addBrowseFolderListener(new TextBrowseFolderListener(descriptor));
+      mySourceLocation.getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
+        @Override
+        protected void textChanged(DocumentEvent e) {
+          invalidate();
+        }
+      });
+    }
+    else {
+      mySourceLocation.setVisible(false);
+      myLocationLabel.setVisible(false);
+      mySourceLocation.setText(importSource.getPath());
+    }
+    applyBackgroundOperationResult(checkPath(mySourceLocation.getText()));
   }
 
   private static String multiLineJLabelText(String... messages) {
