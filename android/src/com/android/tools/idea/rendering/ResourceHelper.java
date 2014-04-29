@@ -20,17 +20,22 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -533,5 +538,36 @@ public class ResourceHelper {
     }
 
     return null;
+  }
+
+  /**
+   * Returns the given resource name, and possibly prepends a project-configured prefix to the name
+   * if set on the Gradle module.
+   *
+   * @param module the corresponding module
+   * @param name the resource name
+   * @return the resource name, possibly with a new prefix at the beginning of it
+   */
+  @Contract("_, !null -> !null")
+  @Nullable
+  public static String prependResourcePrefix(@Nullable Module module, @Nullable String name) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        IdeaAndroidProject p = facet.getIdeaAndroidProject();
+        if (p != null) {
+          String resourcePrefix = LintUtils.computeResourcePrefix(p.getDelegate());
+          if (resourcePrefix != null) {
+            if (name != null) {
+              return LintUtils.computeResourceName(resourcePrefix, name);
+            } else {
+              return resourcePrefix;
+            }
+          }
+        }
+      }
+    }
+
+    return name;
   }
 }
