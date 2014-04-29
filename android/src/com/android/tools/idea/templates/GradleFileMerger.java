@@ -58,6 +58,8 @@ public class GradleFileMerger {
   public static final String COMPILE_FORMAT = "compile '%s'\n";
 
   public static String mergeGradleFiles(@NotNull String source, @NotNull String dest, @Nullable Project project) {
+    source = source.replace("\r", "");
+    dest = dest.replace("\r", "");
     final Project project2;
     boolean projectNeedsCleanup = false;
     if (project != null) {
