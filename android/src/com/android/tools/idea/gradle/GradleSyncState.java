@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.ProjectValidator;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -88,6 +89,11 @@ public class GradleSyncState {
   }
 
   public void syncEnded() {
+    // Temporary: Clear resourcePrefix flag in case it was set to false when working with
+    // an older model. TODO: Remove this when we no longer support models older than 0.10.
+    //noinspection AssignmentToStaticFieldFromInstanceMethod
+    LintUtils.sTryPrefixLookup = true;
+
     syncFinished();
     syncPublisher(new Runnable() {
       @Override
