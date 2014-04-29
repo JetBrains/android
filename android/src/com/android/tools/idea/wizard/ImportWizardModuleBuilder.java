@@ -66,6 +66,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   protected final NewModuleWizardState myWizardState;
   @VisibleForTesting
   protected boolean myInitializationComplete = false;
+  protected final boolean myInGlobalWizard;
 
   public ImportWizardModuleBuilder(@Nullable File templateFile,
                                    @Nullable Project project,
@@ -77,6 +78,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     myProject = project;
     myImportSource = importSource;
     mySteps = steps;
+    myInGlobalWizard = inGlobalWizard;
 
     if (project == null) {
       myWizardState = new NewProjectWizardState() {
@@ -124,6 +126,9 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   }
 
   protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
+    if (myInGlobalWizard) {
+      return new WizardPath[0];
+    }
     ImportSourceModulePath importSourcesPath =
       new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), disposable, this);
 
