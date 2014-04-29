@@ -23,15 +23,19 @@ import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
 import lombok.ast.*;
 import org.jetbrains.annotations.Contract;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 public class LombokPsiParser extends JavaParser {
@@ -186,7 +190,7 @@ public class LombokPsiParser extends JavaParser {
       PsiJavaCodeReferenceElement r = (PsiJavaCodeReferenceElement)element;
       String qualifiedName = r.getQualifiedName();
       if (qualifiedName != null) {
-        return new ResolvedPsiClassName(qualifiedName);
+        return new ResolvedPsiClassName(element.getManager(), qualifiedName);
       }
     }
 
@@ -267,13 +271,9 @@ public class LombokPsiParser extends JavaParser {
 
     @NonNull
     @Override
-    public TypeDescriptor getContainingClass() {
+    public ResolvedClass getContainingClass() {
       PsiClass containingClass = myMethod.getContainingClass();
-      String qualifiedName = "";
-      if (containingClass != null) {
-        qualifiedName = containingClass.getQualifiedName();
-      }
-      return new DefaultTypeDescriptor(qualifiedName);
+      return new ResolvedPsiClass(containingClass);
     }
 
     @Override
@@ -376,10 +376,14 @@ public class LombokPsiParser extends JavaParser {
     }
   }
 
-  private static class ResolvedPsiClassName extends ResolvedClass {
+  private static class ResolvedPsiClassName extends ResolvedPsiClass {
     private final String myName;
+    private final PsiManager myManager;
+    private boolean myInitialized;
 
-    private ResolvedPsiClassName(String name) {
+    private ResolvedPsiClassName(PsiManager manager, String name) {
+      super(null);
+      myManager = manager;
       myName = name;
     }
 
@@ -394,15 +398,64 @@ public class LombokPsiParser extends JavaParser {
       return name.equals(myName);
     }
 
+    private void ensureInitialized() {
+      if (myInitialized) {
+        return;
+      }
+      myInitialized = true;
+      Project project = myManager.getProject();
+      myClass = JavaPsiFacade.getInstance(project).findClass(myName, GlobalSearchScope.allScope(project));
+    }
+
     @Nullable
     @Override
-    public TypeDescriptor getSuperClass() {
+    public ResolvedClass getSuperClass() {
+      ensureInitialized();
+      if (myClass != null) {
+        return super.getSuperClass();
+      }
       return null;
     }
 
     @Nullable
     @Override
-    public TypeDescriptor getContainingClass() {
+    public ResolvedClass getContainingClass() {
+      ensureInitialized();
+      if (myClass != null) {
+        return super.getContainingClass();
+      }
+      return null;
+    }
+
+    @Override
+    public boolean isSubclassOf(@NonNull String name, boolean strict) {
+      if (!strict && name.equals(myName)) {
+        return true;
+      }
+      ensureInitialized();
+      if (myClass != null) {
+        return super.isSubclassOf(name, strict);
+      }
+      return false;
+    }
+
+    @NonNull
+    @Override
+    public Iterable<ResolvedMethod> getMethods(@NonNull String name) {
+      ensureInitialized();
+      if (myClass != null) {
+        return super.getMethods(name);
+      }
+      return Collections.emptyList();
+    }
+
+    @Nullable
+    @Override
+    public ResolvedField getField(@NonNull String name) {
+      ensureInitialized();
+      if (myClass != null) {
+        return super.getField(name);
+      }
       return null;
     }
 
@@ -413,21 +466,25 @@ public class LombokPsiParser extends JavaParser {
   }
 
   private static class ResolvedPsiClass extends ResolvedClass {
-    private final PsiClass myClass;
+    @Nullable protected PsiClass myClass;
 
-    private ResolvedPsiClass(PsiClass cls) {
+    private ResolvedPsiClass(@Nullable PsiClass cls) {
       myClass = cls;
     }
 
     @NonNull
     @Override
     public String getName() {
-      String qualifiedName = myClass.getQualifiedName();
-      if (qualifiedName != null) {
-        return qualifiedName;
-      } else {
-        return myClass.getName();
+      if (myClass != null) {
+        String qualifiedName = myClass.getQualifiedName();
+        if (qualifiedName != null) {
+          return qualifiedName;
+        }
+        else {
+          return myClass.getName();
+        }
       }
+      return "";
     }
 
     @Override
@@ -437,14 +494,12 @@ public class LombokPsiParser extends JavaParser {
 
     @Nullable
     @Override
-    public TypeDescriptor getSuperClass() {
-      PsiClass superClass = myClass.getSuperClass();
-      if (superClass != null) {
-        String name = superClass.getQualifiedName();
-        if (name == null) {
-          name = superClass.getName();
+    public ResolvedClass getSuperClass() {
+      if (myClass != null) {
+        PsiClass superClass = myClass.getSuperClass();
+        if (superClass != null) {
+          return new ResolvedPsiClass(superClass);
         }
-        return new DefaultTypeDescriptor(name);
       }
 
       return null;
@@ -452,14 +507,57 @@ public class LombokPsiParser extends JavaParser {
 
     @Nullable
     @Override
-    public TypeDescriptor getContainingClass() {
-      PsiClass containingClass = myClass.getContainingClass();
-      if (containingClass != null) {
-        String name = containingClass.getQualifiedName();
-        if (name == null) {
-          name = containingClass.getName();
+    public ResolvedClass getContainingClass() {
+      if (myClass != null) {
+        PsiClass containingClass = myClass.getContainingClass();
+        if (containingClass != null) {
+          return new ResolvedPsiClass(containingClass);
         }
-        return new DefaultTypeDescriptor(name);
+      }
+      return null;
+    }
+
+    @Override
+    public boolean isSubclassOf(@NonNull String name, boolean strict) {
+      if (myClass != null) {
+        PsiClass cls = myClass;
+        if (strict) {
+          cls = cls.getSuperClass();
+        }
+        while (cls != null) {
+          if (name.equals(cls.getQualifiedName())) {
+            return true;
+          }
+          cls = cls.getSuperClass();
+        }
+      }
+      return false;
+    }
+
+    @NonNull
+    @Override
+    public Iterable<ResolvedMethod> getMethods(@NonNull String name) {
+      if (myClass != null) {
+        PsiMethod[] methods = myClass.findMethodsByName(name, true);
+        if (methods.length > 0) {
+          List<ResolvedMethod> result = Lists.newArrayListWithExpectedSize(methods.length);
+          for (PsiMethod method : methods) {
+            result.add(new ResolvedPsiMethod(method));
+          }
+          return result;
+        }
+      }
+      return Collections.emptyList();
+    }
+
+    @Nullable
+    @Override
+    public ResolvedField getField(@NonNull String name) {
+      if (myClass != null) {
+        PsiField field = myClass.findFieldByName(name, true);
+        if (field != null) {
+          return new ResolvedPsiField(field);
+        }
       }
       return null;
     }
