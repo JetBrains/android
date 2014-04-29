@@ -217,6 +217,12 @@ public class AndroidProjectStub implements AndroidProject {
     return myBuildFolder;
   }
 
+  @Nullable
+  @Override
+  public String getResourcePrefix() {
+    return null;
+  }
+
   /**
    * Deletes this project's directory structure.
    */
