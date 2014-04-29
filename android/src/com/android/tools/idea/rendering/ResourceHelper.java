@@ -201,10 +201,6 @@ public class ResourceHelper {
   @Nullable
   public static ResourceFolderType getFolderType(@Nullable final PsiFile file) {
     if (file != null) {
-      if (!file.isValid()) {
-        // getVirtualFile is safe without read access!
-        return getFolderType(file.getVirtualFile());
-      }
       if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
         return ApplicationManager.getApplication().runReadAction(new Computable<ResourceFolderType>() {
           @Nullable
@@ -213,6 +209,9 @@ public class ResourceHelper {
             return getFolderType(file);
           }
         });
+      }
+      if (!file.isValid()) {
+        return getFolderType(file.getVirtualFile());
       }
       PsiDirectory parent = file.getParent();
       if (parent != null) {
