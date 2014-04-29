@@ -43,11 +43,13 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   }
 
   public static void createModule(@Nullable Project project, boolean performGradleSyncAfter) {
-    NewModuleWizard dialog = new NewModuleWizard(project);
-    dialog.show();
-    if (!dialog.isOK()) {
-      return;
+    if (project != null) {
+      NewModuleWizard dialog = NewModuleWizard.createNewModuleWizard(project);
+      dialog.show();
+      if (!dialog.isOK()) {
+        return;
+      }
+      dialog.createModule(performGradleSyncAfter);
     }
-    dialog.createModule(performGradleSyncAfter);
   }
 }
