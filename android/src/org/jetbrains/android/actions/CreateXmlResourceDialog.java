@@ -19,6 +19,7 @@ package org.jetbrains.android.actions;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -99,6 +100,9 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     super(module.getProject());
     myResourceType = resourceType;
 
+    if (chooseName) {
+      predefinedName = ResourceHelper.prependResourcePrefix(module, predefinedName);
+    }
     if (predefinedName != null && predefinedName.length() > 0) {
       if (!chooseName) {
         myNameLabel.setVisible(false);
@@ -404,6 +408,8 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     }
     else if (directoryNames.size() == 0) {
       return new ValidationInfo("choose directories", myDirectoriesList);
+    } else if (resourceName.equals(ResourceHelper.prependResourcePrefix(myModule, null))) {
+      return new ValidationInfo("specify more than resource prefix", myNameField);
     }
 
     final ValidationInfo info = checkIfResourceAlreadyExists(selectedModule, resourceName, myResourceType, directoryNames, fileName);
@@ -463,7 +469,8 @@ public class CreateXmlResourceDialog extends DialogWrapper {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    if (myNameField.getText().length() == 0) {
+    String name = myNameField.getText();
+    if (name.length() == 0 || name.equals(ResourceHelper.prependResourcePrefix(myModule, null))) {
       return myNameField;
     }
     else if (myValueField.isVisible()) {

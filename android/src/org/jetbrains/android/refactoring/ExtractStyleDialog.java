@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -77,6 +78,11 @@ class ExtractStyleDialog extends DialogWrapper {
     if (parentStyleName != null && parentStyleName.length() > 0) {
       myStyleNameField.setText(parentStyleName + ".");
       myStyleNameField.selectAll();
+    } else {
+      String prefix = ResourceHelper.prependResourcePrefix(module, null);
+      if (prefix != null) {
+        myStyleNameField.setText(prefix);
+      }
     }
 
     final Set<Module> modulesSet = new HashSet<Module>();
