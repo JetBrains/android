@@ -36,6 +36,7 @@ public class NewProjectWizardState extends NewModuleWizardState {
 
   static final String MODULE_TEMPLATE_NAME = "NewAndroidModule";
   static final String PROJECT_TEMPLATE_NAME = "NewAndroidProject";
+  static final String IMPORT_EXISTING_PROJECT_TEMPLATE_NAME = "ImportExistingProject";
   static final String APPLICATION_NAME = "My Application";
 
   protected Template myProjectTemplate;
