@@ -66,13 +66,19 @@ public class LocaleMenuAction extends FlatComboAction {
     List<Locale> locales = getRelevantLocales();
 
     Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration != null && configuration.getEditedConfig().getLanguageQualifier() == null && locales.size() > 0) {
+    if (configuration != null && locales.size() > 0) {
       group.add(new SetLocaleAction(myRenderContext, getLocaleLabel(Locale.ANY, false), Locale.ANY));
       group.addSeparator();
 
       Collections.sort(locales, Locale.LANGUAGE_CODE_COMPARATOR);
       for (Locale locale : locales) {
         String title = getLocaleLabel(locale, false);
+
+        VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, null, locale, null);
+        if (better != null) {
+          title = ConfigurationAction.getBetterMatchLabel(getLocaleLabel(locale, true), better, configuration.getFile());
+        }
+
         group.add(new SetLocaleAction(myRenderContext, title, locale));
       }
 
@@ -113,9 +119,6 @@ public class LocaleMenuAction extends FlatComboAction {
       return Collections.emptyList();
     }
     Module module = configuration.getConfigurationManager().getModule();
-    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
-    SortedSet<String> languages = projectResources.getLanguages();
-
     LanguageQualifier specificLanguage = configuration.getEditedConfig().getLanguageQualifier();
     RegionQualifier specificRegion = configuration.getEditedConfig().getRegionQualifier();
 
@@ -135,6 +138,8 @@ public class LocaleMenuAction extends FlatComboAction {
       }
     }
 
+    LocalResourceRepository projectResources = ProjectResourceRepository.getProjectResources(module, true);
+    Set<String> languages = projectResources != null ? projectResources.getLanguages() : Collections.<String>emptySet();
     for (String language : languages) {
       if (specificLanguage != null && !language.equals(specificLanguage.getValue())) {
         continue;
@@ -143,13 +148,15 @@ public class LocaleMenuAction extends FlatComboAction {
       LanguageQualifier languageQualifier = new LanguageQualifier(language);
       locales.add(Locale.create(languageQualifier));
 
-      SortedSet<String> regions = projectResources.getRegions(language);
-      for (String region : regions) {
-        if (specificRegion != null && !region.equals(specificRegion.getValue())) {
-          continue;
-        }
+      if (projectResources != null) {
+        SortedSet<String> regions = projectResources.getRegions(language);
+        for (String region : regions) {
+          if (specificRegion != null && !region.equals(specificRegion.getValue())) {
+            continue;
+          }
 
-        locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
+          locales.add(Locale.create(languageQualifier, new RegionQualifier(region)));
+        }
       }
     }
 
@@ -271,17 +278,21 @@ public class LocaleMenuAction extends FlatComboAction {
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
-      if (configuration == myRenderContext.getConfiguration()) {
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      if (commit) {
         setProjectWideLocale();
       } else {
+        // The locale can affect the direction qualifier: don't constrain best match
+        // search to the current direction
+        configuration.getEditedConfig().setLayoutDirectionQualifier(null);
+
         configuration.setLocale(myLocale);
       }
     }
 
     @Override
-    protected void pickedBetterMatch(@NotNull VirtualFile file) {
-      super.pickedBetterMatch(file);
+    protected void pickedBetterMatch(@NotNull VirtualFile file, @NotNull VirtualFile old) {
+      super.pickedBetterMatch(file, old);
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         // Save project-wide configuration; not done by regular listening scheme since the previous configuration was not switched

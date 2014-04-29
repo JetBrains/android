@@ -34,6 +34,7 @@ public class AndroidIcons {
   public static final Icon RenderError = load("/icons/renderError.png");
   public static final Icon RefreshPreview = load("/icons/refreshPreview.png"); // 16x16
   public static final Icon ArrowDown = load("/icons/comboArrow.png"); // 16x16
+  public static final Icon NotMatch = load("/icons/notMatch.png");
 
   public static final Icon AndroidFile = load("/icons/android_file.png"); // 16x16
   public static final Icon Configuration = load("/icons/configuration.png"); // 16x16
@@ -75,6 +76,7 @@ public class AndroidIcons {
     public static final Icon TextInput = load("/icons/text_input.png");
     public static final Icon Touch = load("/icons/touch.png");
     public static final Icon Width = load("/icons/width.png");
+    public static final Icon LayoutDirection = load("/icons/direction.png");
   }
 
   public static class Ddms {

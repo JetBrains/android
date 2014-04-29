@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.structure.AndroidModuleStructureConfigurable;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -36,7 +36,7 @@ public class AndroidShowStructureSettingsAction extends AndroidActionRemover {
   public void actionPerformed(AnActionEvent e) {
     Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
     if (AndroidStudioSpecificInitializer.isAndroidStudio() && project != null && Projects.isGradleProject(project)) {
-      AndroidModuleStructureConfigurable.showDialog(project, null, null);
+      AndroidProjectStructureConfigurable.getInstance(project).showDialog();
     }
     else {
       super.actionPerformed(e);

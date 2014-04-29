@@ -17,6 +17,7 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.util.Projects;
@@ -64,10 +65,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
   /**
-   * A map from launch configuration name to set of devices used in that launch configuration.
+   * A map from launch configuration name to the state of devices at the time of the launch.
    * We want this list of devices persisted across launches, but not across invocations of studio, so we use a static variable.
    */
-  private static Map<String,Set<String>> ourLastUsedDevices = new ConcurrentHashMap<String, Set<String>>();
+  private static Map<String, DeviceStateAtLaunch> ourLastUsedDevices = new ConcurrentHashMap<String, DeviceStateAtLaunch>();
 
   public String TARGET_SELECTION_MODE = TargetSelectionMode.EMULATOR.name();
   public boolean USE_LAST_SELECTED_DEVICE = false;
@@ -168,12 +169,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     TARGET_SELECTION_MODE = mode.name();
   }
 
-  public void setDevicesUsedInLaunch(@NotNull Set<String> devices) {
-    ourLastUsedDevices.put(getName(), devices);
+  public void setDevicesUsedInLaunch(@NotNull Set<IDevice> usedDevices, @NotNull Set<IDevice> availableDevices) {
+    ourLastUsedDevices.put(getName(), new DeviceStateAtLaunch(usedDevices, availableDevices));
   }
 
   @Nullable
-  public Set<String> getDevicesUsedInLastLaunch() {
+  public DeviceStateAtLaunch getDevicesUsedInLastLaunch() {
     return ourLastUsedDevices.get(getName());
   }
 

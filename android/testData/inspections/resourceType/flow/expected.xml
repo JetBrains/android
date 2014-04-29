@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+
+  <problem>
+    <file>X.java</file>
+    <line>26</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>33</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>13</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>43</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+  <problem>
+    <file>X.java</file>
+    <line>18</line>
+    <description>Expected resource of type drawable</description>
+  </problem>
+
+</problems>

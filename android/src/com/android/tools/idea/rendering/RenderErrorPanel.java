@@ -711,7 +711,7 @@ public class RenderErrorPanel extends JPanel {
                           "which can cause rendering failures. Fix resource problems first.");
           builder.newline().newline();
         }
-      } else if (renderService.getProjectCallback() != null && renderService.getProjectCallback().isUsed()) {
+      } else if (renderService.getLayoutlibCallback() != null && renderService.getLayoutlibCallback().isUsed()) {
         boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(new Condition<VirtualFile>() {
           @Override
           public boolean value(VirtualFile virtualFile) {

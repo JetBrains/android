@@ -61,7 +61,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * TemplateWizardStep is the base class for step pages in Freemarker template-based wizards.
  */
 public abstract class TemplateWizardStep extends ModuleWizardStep
-  implements ActionListener, FocusListener, DocumentListener, ChangeListener {
+  implements ActionListener, FocusListener, DocumentListener, ChangeListener, AndroidStudioWizardStep {
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardStep.class.getName());
 
   protected static final String LAST_USED_CLASS_PREFIX_KEY = "LAST_USED_CLASS_PREFIX";
@@ -179,6 +179,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   }
 
   /** Returns true if the data in this wizard step is correct and the user is permitted to move to the next step. */
+  @Override
   public boolean isValid() {
     return myIsValid;
   }
@@ -212,7 +213,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       Parameter param = myTemplateState.hasTemplate() ? myTemplateState.getTemplateMetadata().getParameter(paramName) : null;
       Object oldValue = myTemplateState.get(paramName);
       JComponent component = myParamFields.get(paramName);
-      if (component == focusedComponent) {
+      if (component == focusedComponent || component.isAncestorOf(focusedComponent)) {
         String help = param != null && param.help != null && param.help.length() > 0 ? param.help : getHelpText(paramName);
         setDescriptionHtml(help);
       }
@@ -289,6 +290,18 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
       boolean visible = myStringEvaluator.evaluateBooleanExpression(param.visibility, myTemplateState.getParameters(), true);
       if (visible) {
         myTemplateState.myHidden.remove(param.id);
+        // Update the newly shown parameter if necessary
+        if (param.suggest != null) {
+          final String updated = myStringEvaluator.evaluate(param.suggest, myTemplateState.getParameters());
+          if (updated != null && !updated.equals(myTemplateState.get(param.id))) {
+            updateDerivedValue(param.id, (JTextField)myParamFields.get(param.id), new Callable<String>() {
+              @Override
+              public String call() throws Exception {
+                return updated;
+              }
+            });
+          }
+        }
       }
       else {
         myTemplateState.myHidden.add(param.id);
@@ -354,7 +367,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
 
     for (Parameter param : myTemplateState.myTemplate.getMetadata().getParameters()) {
-      if (param.initial != null) {
+      if (param.initial != null && !myTemplateState.myModified.contains(param.id)) {
         myTemplateState.myParameters.remove(param.id);
       }
     }
@@ -586,6 +599,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     myParamFields.put(paramName, (JComponent)field);
     field.addFocusListener(this);
     field.getTextField().getDocument().addDocumentListener(this);
+    field.getTextField().addFocusListener(this);
   }
 
   protected void register(@NotNull String paramName, @NotNull ColorPanel colorPanel) {

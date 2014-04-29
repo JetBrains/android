@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.designSurface.graphics;
 
+import com.intellij.ui.Gray;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,12 +51,14 @@ public class DrawingStyle {
                                                                     new float[] { 8, 4 }, 0.0f);
   private static final BasicStroke THICK_PATTERN_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
                                                                           new float[] { 8, 4 }, 0.0f);
+  public static final Gray DESIGNER_BACKGROUND_COLOR = Gray._150;
+
 
   /**
    * The style used to draw the selected views
    */
   public static final DrawingStyle SELECTION = new DrawingStyle(new Color(0x00, 0x99, 0xFF, 192),
-                                                                new Color(0x00, 0x99, 0xFF, 192), SOLID_STROKE);
+                                                                new Color(0x00, 0x99, 0xFF, 32), SOLID_STROKE);
 
   /**
    * The style used to draw guidelines - overlay lines which indicate
@@ -88,13 +91,15 @@ public class DrawingStyle {
    * The style used for hovered views (e.g. when the mouse is directly on top
    * of the view)
    */
-  public static final DrawingStyle HOVER = new DrawingStyle(null, new Color(0xFF, 0xFF, 0xFF, 40), DOTTED_STROKE);
+  public static final DrawingStyle HOVER = new DrawingStyle(new Color(0x7F, 0x7F, 0x7F, 100), new Color(0xFF, 0xFF, 0xFF, 40),
+                                                            DOTTED_STROKE);
 
   /**
    * The style used for hovered views (e.g. when the mouse is directly on top
    * of the view), when the hover happens to be the same object as the selection
    */
-  public static final DrawingStyle HOVER_SELECTION = new DrawingStyle(null, new Color(0xFF, 0xFF, 0xFF, 10), DOTTED_STROKE);
+  public static final DrawingStyle HOVER_SELECTION = new DrawingStyle(new Color(0x7F, 0x7F, 0x7F, 100), new Color(0xFF, 0xFF, 0xFF, 10),
+                                                                      DOTTED_STROKE);
 
   /**
    * The style used to draw anchors (lines to the other views the given view

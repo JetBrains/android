@@ -26,6 +26,7 @@ import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -35,12 +36,12 @@ import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -58,13 +59,13 @@ import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
+import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -72,8 +73,6 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderService implements IImageFactory {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderService");
-
   @NotNull
   private final Module myModule;
 
@@ -84,7 +83,7 @@ public class RenderService implements IImageFactory {
   private final RenderLogger myLogger;
 
   @NotNull
-  private final ProjectCallback myProjectCallback;
+  private final LayoutlibCallback myLayoutlibCallback;
 
   private final int myMinSdkVersion;
 
@@ -219,8 +218,8 @@ public class RenderService implements IImageFactory {
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     myLayoutLib = layoutLib;
     AppResourceRepository appResources = AppResourceRepository.getAppResources(facet, true);
-    myProjectCallback = new ProjectCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential);
-    myProjectCallback.loadAndParseRClass();
+    myLayoutlibCallback = new LayoutlibCallback(myLayoutLib, appResources, myModule, facet, myLogger, myCredential, this);
+    myLayoutlibCallback.loadAndParseRClass();
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     myMinSdkVersion = moduleInfo.getMinSdkVersion();
     myTargetSdkVersion = moduleInfo.getTargetSdkVersion();
@@ -298,8 +297,8 @@ public class RenderService implements IImageFactory {
   }
 
   public void dispose() {
-    myProjectCallback.setLogger(null);
-    myProjectCallback.setResourceResolver(null);
+    myLayoutlibCallback.setLogger(null);
+    myLayoutlibCallback.setResourceResolver(null);
   }
 
   /**
@@ -367,7 +366,8 @@ public class RenderService implements IImageFactory {
    *                        in the form of a AARRGGBB bitmask, or null to use no custom background.
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setOverrideBgColor(Integer overrideBgColor) {
+  @NotNull
+  public RenderService setOverrideBgColor(@Nullable Integer overrideBgColor) {
     myOverrideBgColor = overrideBgColor;
     return this;
   }
@@ -424,23 +424,34 @@ public class RenderService implements IImageFactory {
   /**
    * Sets the {@link IncludeReference} to an outer layout that this layout should be rendered
    * within. The outer layout <b>must</b> contain an include tag which points to this
-   * layout. The default is null.
+   * layout. If not set explicitly to {@link IncludeReference#NONE}, it will look at the
+   * root tag of the rendered layout and if {@link IncludeReference#ATTR_RENDER_IN} has
+   * been set it will use that layout.
    *
    * @param includedWithin a reference to an outer layout to render this layout within
    * @return this (such that chains of setters can be stringed together)
    */
-  public RenderService setIncludedWithin(IncludeReference includedWithin) {
+  @NotNull
+  public RenderService setIncludedWithin(@Nullable IncludeReference includedWithin) {
     myIncludedWithin = includedWithin;
     return this;
   }
 
   /**
+   * Returns the layout to be included
+   */
+  @NotNull
+  public IncludeReference getIncludedWithin() {
+    return myIncludedWithin != null ? myIncludedWithin : IncludeReference.NONE;
+  }
+
+  /**
    * Renders the model and returns the result as a {@link com.android.ide.common.rendering.api.RenderSession}.
    *
-   * @return the {@link com.android.ide.common.rendering.api.RenderSession} resulting from rendering the current model
+   * @return the {@link RenderResult resulting from rendering the current model
    */
   @Nullable
-  private RenderSession createRenderSession() {
+  private RenderResult createRenderSession() {
     ResourceResolver resolver = getResourceResolver();
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
@@ -448,40 +459,21 @@ public class RenderService implements IImageFactory {
     }
 
     ILayoutPullParser modelParser = LayoutPullParserFactory.create(this);
-    ILayoutPullParser topParser = modelParser;
-
-    myProjectCallback.reset();
-
-    // Code to support editing included layout
-    if (myIncludedWithin != null) {
-      // Outer layout name:
-      String contextLayoutName = myIncludedWithin.getName();
-
-      // Find the layout file.
-      ResourceValue contextLayout = resolver.findResValue(LAYOUT_RESOURCE_PREFIX + contextLayoutName, false  /* forceFrameworkOnly*/);
-      if (contextLayout != null) {
-        File layoutFile = new File(contextLayout.getValue());
-        if (layoutFile.isFile()) {
-          try {
-            // Get the name of the layout actually being edited, without the extension
-            // as it's what IXmlPullParser.getParser(String) will receive.
-            String queryLayoutName = ResourceHelper.getResourceName(myPsiFile);
-            myProjectCallback.setLayoutParser(queryLayoutName, modelParser);
-            topParser = LayoutFilePullParser.create(myProjectCallback, layoutFile);
-          }
-          catch (IOException e) {
-            myLogger.error(null, String.format("Could not read layout file %1$s", layoutFile), e);
-          }
-          catch (XmlPullParserException e) {
-            myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), e.getDetail() != null ? e.getDetail() : e);
-          }
-        }
-      }
+    if (modelParser == null) {
+      return null;
     }
+
+    myLayoutlibCallback.reset();
+
+    ILayoutPullParser includingParser = getIncludingLayoutParser(resolver, modelParser);
+    if (includingParser != null) {
+      modelParser = includingParser;
+    }
+
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
-      new SessionParams(topParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myProjectCallback,
+      new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
                         myMinSdkVersion, myTargetSdkVersion, myLogger);
 
     // Request margin and baseline information.
@@ -517,7 +509,6 @@ public class RenderService implements IImageFactory {
         String activity = myConfiguration.getActivity();
         if (activity != null) {
           params.setActivityName(activity);
-          myProjectCallback.getActionBarCallback().setActivityName(activity);
           ActivityAttributes attributes = manifestInfo.getActivityAttributes(activity);
           if (attributes != null) {
             if (attributes.getLabel() != null) {
@@ -547,13 +538,13 @@ public class RenderService implements IImageFactory {
     }
 
     try {
-      myProjectCallback.setLogger(myLogger);
-      myProjectCallback.setResourceResolver(resolver);
+      myLayoutlibCallback.setLogger(myLogger);
+      myLayoutlibCallback.setResourceResolver(resolver);
 
-      return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
-        @Nullable
+      RenderResult result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
+        @NotNull
         @Override
-        public RenderSession compute() {
+        public RenderResult compute() {
           RenderSecurityManager securityManager = createSecurityManager();
           securityManager.setActive(true, myCredential);
 
@@ -574,19 +565,73 @@ public class RenderService implements IImageFactory {
               retries++;
             }
 
-            return session;
+            return new RenderResult(RenderService.this, session, myPsiFile, myLogger);
           }
           finally {
             securityManager.dispose(myCredential);
           }
         }
       });
+      addDiagnostics(result.getSession());
+      result.setIncludedWithin(myIncludedWithin);
+      return result;
     }
     catch (RuntimeException t) {
       // Exceptions from the bridge
       myLogger.error(null, t.getLocalizedMessage(), t, null);
       throw t;
     }
+  }
+
+  @Nullable
+  private ILayoutPullParser getIncludingLayoutParser(ResourceResolver resolver, ILayoutPullParser modelParser) {
+    // Code to support editing included layout
+    if (myIncludedWithin == null) {
+      String layout = IncludeReference.getIncludingLayout(myPsiFile);
+      myIncludedWithin = layout != null ? IncludeReference.get(myModule, myPsiFile, resolver) : IncludeReference.NONE;
+    }
+    if (myIncludedWithin != IncludeReference.NONE) {
+      assert myIncludedWithin.getToFile() == myPsiFile.getVirtualFile();
+      // TODO: Validate that we're really including the same layout here!
+      //ResourceValue contextLayout = resolver.findResValue(myIncludedWithin.getFromResourceUrl(), false  /* forceFrameworkOnly*/);
+      //if (contextLayout != null) {
+      //  File layoutFile = new File(contextLayout.getValue());
+      //  if (layoutFile.isFile()) {
+      //
+      VirtualFile layoutVirtualFile = myIncludedWithin.getFromFile();
+
+      try {
+        // Get the name of the layout actually being edited, without the extension
+        // as it's what IXmlPullParser.getParser(String) will receive.
+        String queryLayoutName = ResourceHelper.getResourceName(myPsiFile);
+        myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
+
+        // Attempt to read from PSI
+        ILayoutPullParser topParser;
+        topParser = null;
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), layoutVirtualFile);
+        if (psiFile instanceof XmlFile) {
+          LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+          // For included layouts, don't see view cookies; we want the leaf to point back to the include tag
+          parser.setProvideViewCookies(false);
+          topParser = parser;
+        }
+
+        if (topParser == null) {
+          topParser = LayoutFilePullParser.create(myLayoutlibCallback, myIncludedWithin.getFromPath());
+        }
+
+        return topParser;
+      }
+      catch (IOException e) {
+        myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()), e);
+      }
+      catch (XmlPullParserException e) {
+        myLogger.error(null, String.format("XML parsing error: %1$s", e.getMessage()), e.getDetail() != null ? e.getDetail() : e);
+      }
+    }
+
+    return null;
   }
 
   private RenderSecurityManager createSecurityManager() {
@@ -610,7 +655,7 @@ public class RenderService implements IImageFactory {
 
   /** Returns true if the given file can be rendered */
   public static boolean canRender(@Nullable PsiFile file) {
-    return LayoutPullParserFactory.isSupported(file);
+    return file != null && LayoutPullParserFactory.isSupported(file);
   }
 
   private static final Object RENDERING_LOCK = new Object();
@@ -623,11 +668,7 @@ public class RenderService implements IImageFactory {
     synchronized (RENDERING_LOCK) {
       RenderResult renderResult;
       try {
-        RenderSession session = createRenderSession();
-        renderResult = new RenderResult(this, session, myPsiFile, myLogger);
-        if (session != null) {
-          addDiagnostics(session);
-        }
+        renderResult = createRenderSession();
       } catch (final Exception e) {
         String message = e.getMessage();
         if (message == null) {
@@ -642,7 +683,10 @@ public class RenderService implements IImageFactory {
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  private void addDiagnostics(RenderSession session) {
+  private void addDiagnostics(@Nullable RenderSession session) {
+    if (session == null) {
+      return;
+    }
     Result r = session.getResult();
     if (!myLogger.hasProblems() && !r.isSuccess()) {
       if (r.getException() != null || r.getErrorMessage() != null) {
@@ -651,6 +695,13 @@ public class RenderService implements IImageFactory {
         myLogger.error(null, "Rendering timed out.", null);
       } else {
         myLogger.error(null, "Unknown render problem: " + r.getStatus(), null);
+      }
+    } else if (myIncludedWithin != null && myIncludedWithin != IncludeReference.NONE) {
+      ILayoutPullParser layoutEmbeddedParser = myLayoutlibCallback.getLayoutEmbeddedParser();
+      if (layoutEmbeddedParser != null) {  // Should have been nulled out if used
+        myLogger.error(null, String.format("The surrounding layout (%1$s) did not actually include this layout. " +
+                                           "Remove tools:" + IncludeReference.ATTR_RENDER_IN + "=... from the root tag.",
+                                           myIncludedWithin.getFromResourceUrl()), null);
       }
     }
   }
@@ -671,7 +722,7 @@ public class RenderService implements IImageFactory {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myProjectCallback, myMinSdkVersion,
+      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback, myMinSdkVersion,
                          myTargetSdkVersion, myLogger);
     params.setForceNoDecor();
     Result result = myLayoutLib.renderDrawable(params);
@@ -685,34 +736,23 @@ public class RenderService implements IImageFactory {
     return null;
   }
 
-//    private static final String DEFAULT_APP_LABEL = "Android Application";
-//    private static String getAppLabelToShow(final AndroidFacet facet) {
-//        return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-//            @Override
-//            public String compute() {
-//                final Manifest manifest = facet.getManifest();
-//                if (manifest != null) {
-//                    final Application application = manifest.getApplication();
-//                    if (application != null) {
-//                        final String label = application.getLabel().getStringValue();
-//                        if (label != null) {
-//                            return label;
-//                        }
-//                    }
-//                }
-//                return DEFAULT_APP_LABEL;
-//            }
-//        });
-//    }
+  @NotNull
+  public LayoutLibrary getLayoutLib() {
+    return myLayoutLib;
+  }
 
   @NotNull
-  public ProjectCallback getProjectCallback() {
-    return myProjectCallback;
+  public LayoutlibCallback getLayoutlibCallback() {
+    return myLayoutlibCallback;
   }
 
   @NotNull
   public XmlFile getPsiFile() {
     return myPsiFile;
+  }
+
+  public boolean supportsCapability(@NotNull Capability capability) {
+    return myLayoutLib.supports(capability);
   }
 
   public static boolean supportsCapability(@NotNull final Module module, @NotNull IAndroidTarget target, @NotNull Capability capability) {
@@ -912,7 +952,7 @@ public class RenderService implements IImageFactory {
       return null;
     }
 
-    myProjectCallback.reset();
+    myLayoutlibCallback.reset();
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params = new SessionParams(
@@ -921,7 +961,7 @@ public class RenderService implements IImageFactory {
       myModule /* projectKey */,
       hardwareConfig,
       resolver,
-      myProjectCallback,
+      myLayoutlibCallback,
       myMinSdkVersion,
       myTargetSdkVersion,
       myLogger);
@@ -937,8 +977,8 @@ public class RenderService implements IImageFactory {
     }
 
     try {
-      myProjectCallback.setLogger(myLogger);
-      myProjectCallback.setResourceResolver(resolver);
+      myLayoutlibCallback.setLogger(myLogger);
+      myLayoutlibCallback.setResourceResolver(resolver);
 
       return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
         @Nullable

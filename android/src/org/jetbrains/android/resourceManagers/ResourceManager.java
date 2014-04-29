@@ -16,6 +16,7 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
@@ -147,13 +148,7 @@ public abstract class ResourceManager {
 
         if ((extensions.length == 0 || extensionSet.contains(extension)) &&
             (resName1 == null || AndroidUtils.equal(resName1, resName, distinguishDelimetersInName))) {
-          final PsiFile file = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-            @Override
-            @Nullable
-            public PsiFile compute() {
-              return PsiManager.getInstance(myProject).findFile(resFile);
-            }
-          });
+          final PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
           if (file != null) {
             result.add(file);
           }

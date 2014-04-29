@@ -17,7 +17,7 @@ package com.intellij.android.designer.model.layout.table;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewContainer;
 import com.intellij.android.designer.model.grid.GridInfo;
@@ -198,7 +198,7 @@ public class RadTableLayoutComponent extends RadViewContainer implements IGridPr
       public void run() {
         XmlTag tag = ((RadViewComponent)component).getTag();
         tag.setAttribute("layout_column", SdkConstants.NS_RESOURCES, Integer.toString(column));
-        ModelParser.deleteAttribute(tag, "layout_span");
+        RadComponentOperations.deleteAttribute(tag, "layout_span");
       }
     });
   }

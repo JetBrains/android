@@ -19,16 +19,17 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.stats.StatsKeys;
+import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.*;
+import com.google.common.collect.*;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
@@ -66,10 +67,13 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,8 +85,11 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.*;
 
+import static com.google.common.base.Predicates.in;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Predicates.notNull;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
@@ -166,16 +173,32 @@ public class GradleProjectImporter {
     createProjectFileForGradleProject(selectedFile, null);
   }
 
-  public void importModule(@NotNull final VirtualFile file, @NotNull final Project project, @Nullable final Callback callback)
-      throws IOException, ConfigurationException {
-    // TODO: Remove this check when module import location is customizable
-    if (project.getBaseDir().findChild(file.getName()) != null) {
-      throw new IOException("Target directory already exists");
+  /**
+   * Import set of gradle modules into existing Android Studio project. Note that no validation will be performed, modules will
+   * be copied as is and settings.xml will be updated for the imported modules. It is callers' responsibility to ensure content
+   * can be copied to the target directory and that module list is valid.
+   *
+   * @param modules  mapping between module names and locations on the filesystem. Neither name nor location should be null
+   * @param project  project to import the modules to
+   * @param listener optional object that gets notified of operation success or failure
+   */
+  public void importModules(final Map<String, VirtualFile> modules, final Project project, @Nullable final GradleSyncListener listener)
+    throws IOException, ConfigurationException {
+    String error = validateProjectsForImport(modules);
+    if (error != null) {
+      if (listener != null) {
+        listener.syncFailed(project, error);
+        return;
+      }
+      else {
+        throw new IOException(error);
+      }
     }
+
     Throwable throwable = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
-        copyAndRegisterModule(file, project, callback);
+        copyAndRegisterModule(modules, project, listener);
       }
 
       @Override
@@ -186,49 +209,86 @@ public class GradleProjectImporter {
     rethrowAsProperlyTypedException(throwable);
   }
 
-  private static void rethrowAsProperlyTypedException(Throwable throwable) throws IOException {
-    if (throwable != null) {
-      if (throwable instanceof IOException) {
-        throw (IOException)throwable;
+  /**
+   * Ensures that we know paths for all projects we are trying to import.
+   *
+   * @return message string if import is not possible or <code>null</code> otherwise
+   */
+  @Nullable
+  private static String validateProjectsForImport(@NotNull Map<String, VirtualFile> modules) {
+    Set<String> projects = new TreeSet<String>();
+    for (Map.Entry<String, VirtualFile> mapping : modules.entrySet()) {
+      if (mapping.getValue() == null) {
+        projects.add(mapping.getKey());
       }
-      else if (throwable instanceof Error) {
-        throw (Error)throwable;
-      }
-      else if (throwable instanceof RuntimeException) {
-        throw (RuntimeException)throwable;
-      }
-      else {
-        throw new IllegalStateException(throwable);
-      }
+    }
+    if (projects.isEmpty()) {
+      return null;
+    }
+    else if (projects.size() == 1) {
+      return String.format("Sources for module '%1$s' were not found", Iterables.getFirst(projects, null));
+    }
+    else {
+      String projectsList = Joiner.on("', '").join(projects);
+      return String.format("Sources were not found for modules '%1$s'", projectsList);
     }
   }
 
-  private void copyAndRegisterModule(@NotNull VirtualFile file, @NotNull Project project, @Nullable Callback callback)
-      throws IOException, ConfigurationException {
+  /**
+   * Recover actual type of the exception.
+   */
+  private static void rethrowAsProperlyTypedException(Throwable throwable) throws IOException, ConfigurationException {
+    if (throwable != null) {
+      Throwables.propagateIfPossible(throwable, IOException.class, ConfigurationException.class);
+      throw new IllegalStateException(throwable);
+    }
+  }
+
+  /**
+   * Copy modules and adds it to settings.gradle
+   */
+  private void copyAndRegisterModule(Map<String, VirtualFile> modules, Project project, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException {
     VirtualFile projectRoot = project.getBaseDir();
-    file.copy(this, projectRoot, file.getName());
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
       projectRoot.createChildData(this, SdkConstants.FN_SETTINGS_GRADLE);
     }
     GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
-    assert  gradleSettingsFile != null : "File should've been created";
-    gradleSettingsFile.addModule(file.getName());
-    reImportProject(project, false, callback);
+    assert gradleSettingsFile != null : "File should have been created";
+    for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
+      String name = module.getKey();
+      File targetFile = GradleUtil.getDefaultSubprojectLocation(projectRoot, name);
+      VirtualFile moduleSource = module.getValue();
+      if (moduleSource != null) {
+        if (!VfsUtilCore.isAncestor(projectRoot, moduleSource, true)) {
+          VirtualFile target = VfsUtil.createDirectoryIfMissing(targetFile.getAbsolutePath());
+          if (target == null) {
+            throw new IOException(String.format("Unable to create directory %1$s", targetFile));
+          }
+          moduleSource.copy(this, target.getParent(), target.getName());
+        }
+        else {
+          targetFile = VfsUtilCore.virtualToIoFile(moduleSource);
+        }
+      }
+      gradleSettingsFile.addModule(name, targetFile);
+    }
+    requestProjectSync(project, false, listener);
   }
 
   /**
    * Creates IntelliJ project file in the root of the project directory.
    *
-   * @param selectedFile <code>build.gradle</code> in the module folder.
+   * @param selectedFile  <code>build.gradle</code> in the module folder.
    * @param parentProject existing parent project or <code>null</code> if a new one should be created.
    */
   private void createProjectFileForGradleProject(@NotNull VirtualFile selectedFile, @Nullable Project parentProject) {
     VirtualFile projectDir = selectedFile.isDirectory() ? selectedFile : selectedFile.getParent();
     File projectDirPath = VfsUtilCore.virtualToIoFile(projectDir);
     try {
-      importProject(projectDir.getName(), projectDirPath, new NewProjectImportCallback() {
+      importProject(projectDir.getName(), projectDirPath, new NewProjectImportGradleSyncListener() {
         @Override
-        public void projectImported(@NotNull Project project) {
+        public void syncEnded(@NotNull Project project) {
           activateProjectView(project);
         }
       }, parentProject);
@@ -243,34 +303,48 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Re-imports an existing Android-Gradle project. If the project import is successful,
+   * Requests a project sync with Gradle. If the project import is successful,
    * {@link com.android.tools.idea.gradle.util.ProjectBuilder#generateSourcesOnly()} will be invoked at the end.
    *
    * @param project  the given project. This method does nothing if the project is not an Android-Gradle project.
-   * @param callback called after the project has been imported.
-   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   * @param listener called after the project has been imported.
    */
-  public void reImportProject(@NotNull final Project project, @Nullable Callback callback) throws ConfigurationException {
-    reImportProject(project, true, callback);
+  public void requestProjectSync(@NotNull final Project project, @Nullable GradleSyncListener listener) {
+    requestProjectSync(project, true, listener);
   }
 
   /**
-   * Re-imports an existing Android-Gradle project.
-   *
+   * Requests a project sync with Gradle.
    *
    * @param project                  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param generateSourcesOnSuccess indicates whether the IDE should invoke Gradle to generate Java sources after a successful project
    *                                 import.
-   * @param callback                 called after the project has been imported.
-   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   * @param listener                 called after the project has been imported.
    */
-  public void reImportProject(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable Callback callback)
-      throws ConfigurationException {
+  public void requestProjectSync(@NotNull final Project project,
+                                 final boolean generateSourcesOnSuccess,
+                                 @Nullable final GradleSyncListener listener) {
+    Runnable syncRequest = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          doRequestSync(project, generateSourcesOnSuccess, listener);
+        }
+        catch (ConfigurationException e) {
+          Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
+        }
+      }
+    };
+    AppUIUtil.invokeLaterIfProjectAlive(project, syncRequest);
+  }
+
+  private void doRequestSync(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable GradleSyncListener listener)
+    throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
-      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, callback);
+      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, listener);
     }
     else {
       Runnable notificationTask = new Runnable() {
@@ -333,15 +407,15 @@ public class GradleProjectImporter {
    *
    * @param projectName    name of the project.
    * @param projectRootDir root directory of the project.
-   * @param callback       called after the project has been imported.
+   * @param listener       called after the project has been imported.
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void importProject(@NotNull String projectName,
                             @NotNull File projectRootDir,
-                            @Nullable Callback callback,
+                            @Nullable GradleSyncListener listener,
                             @Nullable Project project) throws IOException, ConfigurationException {
-    importProject(projectName, projectRootDir, callback, project, null);
+    importProject(projectName, projectRootDir, listener, project, null);
   }
 
   /**
@@ -349,7 +423,7 @@ public class GradleProjectImporter {
    *
    * @param projectName          name of the project.
    * @param projectRootDir       root directory of the project.
-   * @param callback             called after the project has been imported.
+   * @param listener             called after the project has been imported.
    * @param initialLanguageLevel when creating a new project, sets the language level to the given version early on (this is because you
    *                             cannot set a language level later on in the process without telling the user that the language level has
    *                             changed and to re-open the project)
@@ -358,7 +432,7 @@ public class GradleProjectImporter {
    */
   public void importProject(@NotNull String projectName,
                             @NotNull File projectRootDir,
-                            @Nullable Callback callback,
+                            @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
     createTopLevelBuildFileIfNotExisting(projectRootDir);
@@ -371,12 +445,25 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, callback);
+    // temporarily disable to check whether this is the cause for broken tests
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      if (!newProject.isOpen()) {
+        Projects.open(newProject);
+      }
+      if (!ProjectValidator.validate(newProject, projectRootDir)) {
+        // The project failed validation. Bail out on Gradle import, but create a top-level module so that the entire project directory
+        // contents will show up in the project window and the user can edit files to fix the validation problems.
+        NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen(newProject);
+        return;
+      }
+    }
+
+    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, listener);
   }
 
-  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable Callback callback)
-      throws IOException, ConfigurationException {
-    importProject(projectName, projectRootDir, callback, null);
+  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException {
+    importProject(projectName, projectRootDir, listener, null);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
@@ -482,7 +569,7 @@ public class GradleProjectImporter {
                         final boolean newProject,
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
-                        @Nullable final Callback callback) throws ConfigurationException {
+                        @Nullable final GradleSyncListener listener) throws ConfigurationException {
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
 
@@ -491,6 +578,8 @@ public class GradleProjectImporter {
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
+
+    StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_TIME);
 
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
@@ -516,8 +605,8 @@ public class GradleProjectImporter {
               AndroidGradleProjectComponent projectComponent = ServiceManager.getService(project, AndroidGradleProjectComponent.class);
               projectComponent.configureGradleProject(false);
             }
-            if (callback != null) {
-              callback.projectImported(project);
+            if (listener != null) {
+              listener.syncEnded(project);
             }
           }
         };
@@ -537,10 +626,10 @@ public class GradleProjectImporter {
         String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
         LOG.info(newMessage);
 
-        GradleSyncState.getInstance(project).syncEnded();
+        GradleSyncState.getInstance(project).syncFailed(newMessage);
 
-        if (callback != null) {
-          callback.importFailed(project, newMessage);
+        if (listener != null) {
+          listener.syncFailed(project, newMessage);
         }
       }
     }, progressExecutionMode);
@@ -561,16 +650,82 @@ public class GradleProjectImporter {
 
                 Collection<DataNode<Message>> eventMessages =
                   ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
-                dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */ );
+                dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */);
 
                 Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
-                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */ );
+                dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */);
               }
             });
           }
         });
       }
     });
+  }
+
+  /**
+   * Find related modules that should be imported into Android Studio together with the project user chose so it could be built.
+   * <p/>
+   * Top-level use-cases:
+   * 1. If the user selects top-level project (e.g. the one with settings.gradle) Android Studio will import all its subprojects.
+   * 2. For leaf projects (ones with build.gradle), Android Studio will import selected project and the projects it depends on.
+   *
+   * @param sourceProject      the destinationProject that user wants to import
+   * @param destinationProject destination destinationProject
+   * @return mapping from module name to {@link com.intellij.openapi.vfs.VirtualFile} containing module contents. Values will be null
+   * if the module location was not found.
+   */
+  @NotNull
+  public Set<ModuleToImport> getRelatedProjects(@NotNull VirtualFile sourceProject, @NotNull Project destinationProject) {
+    VirtualFile settingsGradle = sourceProject.findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
+    if (settingsGradle != null) {
+      return buildModulesSet(getSubprojects(settingsGradle, destinationProject),
+                             GradleProjectDependencyParser.newInstance(destinationProject));
+    }
+    else {
+      return getRequiredProjects(sourceProject, destinationProject);
+    }
+  }
+
+  /**
+   * Find direct and transitive dependency projects.
+   */
+  @NotNull
+  private static Set<ModuleToImport> getRequiredProjects(VirtualFile sourceProject, Project destinationProject) {
+    GradleSiblingLookup subprojectLocations = new GradleSiblingLookup(sourceProject, destinationProject);
+    Function<VirtualFile, Iterable<String>> parser = GradleProjectDependencyParser.newInstance(destinationProject);
+    Map<String, VirtualFile> modules = Maps.newHashMap();
+    List<VirtualFile> toAnalyze = Lists.newLinkedList();
+    toAnalyze.add(sourceProject);
+
+    while (!toAnalyze.isEmpty()) {
+      Set<String> dependencies = Sets.newHashSet(Iterables.concat(Iterables.transform(toAnalyze, parser)));
+      Iterable<String> notAnalyzed = Iterables.filter(dependencies, not(in(modules.keySet())));
+      // Turns out, Maps#toMap does not allow null values...
+      Map<String, VirtualFile> dependencyToLocation = Maps.newHashMap();
+      for (String dependency : notAnalyzed) {
+        dependencyToLocation.put(dependency, subprojectLocations.apply(dependency));
+      }
+      modules.putAll(dependencyToLocation);
+      toAnalyze = FluentIterable.from(dependencyToLocation.values()).filter(notNull()).toList();
+    }
+    modules.put(subprojectLocations.getPrimaryProjectName(), sourceProject);
+    return buildModulesSet(modules, parser);
+  }
+
+  private static Set<ModuleToImport> buildModulesSet(Map<String, VirtualFile> modules,
+                                                     Function<VirtualFile, Iterable<String>> parser) {
+    Set<ModuleToImport> modulesSet = new HashSet<ModuleToImport>(modules.size());
+    for (Map.Entry<String, VirtualFile> entry : modules.entrySet()) {
+      modulesSet.add(new ModuleToImport(entry.getKey(), entry.getValue(), parser));
+    }
+    return modulesSet;
+  }
+
+  @NotNull
+  public static Map<String, VirtualFile> getSubprojects(@NotNull final VirtualFile settingsGradle, Project destinationProject) {
+    final GradleSettingsFile settingsFile = new GradleSettingsFile(settingsGradle, destinationProject);
+    Map<String, File> allProjects = settingsFile.getModulesWithLocation();
+    return Maps.transformValues(allProjects, new ResolvePath(VfsUtilCore.virtualToIoFile(settingsGradle.getParent())));
   }
 
   // Makes it possible to mock invocations to the Gradle Tooling API.
@@ -580,8 +735,8 @@ public class GradleProjectImporter {
                        @NotNull final ProgressExecutionMode progressExecutionMode) throws ConfigurationException {
       try {
         String externalProjectPath = FileUtil.toCanonicalPath(project.getBasePath());
-        ExternalSystemUtil.refreshProject(project, SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */,
-                                          progressExecutionMode, true /* always report import errors */);
+        ExternalSystemUtil
+          .refreshProject(project, SYSTEM_ID, externalProjectPath, callback, false /* resolve dependencies */, progressExecutionMode, true /* always report import errors */);
       }
       catch (RuntimeException e) {
         String externalSystemName = SYSTEM_ID.getReadableName();
@@ -590,14 +745,22 @@ public class GradleProjectImporter {
     }
   }
 
-  public interface Callback {
-    /**
-     * Invoked when a Gradle project has been imported. It is not guaranteed that the created IDEA project has been compiled.
-     *
-     * @param project the IDEA project created from the Gradle one.
-     */
-    void projectImported(@NotNull Project project);
+  /**
+   * Functor that resolves paths that may be either relative to provided directory or absolute.
+   */
+  private static class ResolvePath implements Function<File, VirtualFile> {
+    private final File mySourceDir;
 
-    void importFailed(@NotNull Project project, @NotNull String errorMessage);
+    public ResolvePath(File sourceDir) {
+      mySourceDir = sourceDir;
+    }
+
+    @Override
+    public VirtualFile apply(File path) {
+      if (!path.isAbsolute()) {
+        path = new File(mySourceDir, path.getPath());
+      }
+      return VfsUtil.findFileByIoFile(path, true);
+    }
   }
 }

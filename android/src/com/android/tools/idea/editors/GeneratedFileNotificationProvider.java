@@ -55,7 +55,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
     if (androidProject == null) {
       return null;
     }
-    VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidProject.getBuildFolder(), true);
+    VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidProject.getBuildFolder(), false);
     if (buildFolder == null || !buildFolder.isDirectory()) {
       return null;
     }

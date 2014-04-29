@@ -23,6 +23,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -62,7 +63,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
@@ -302,10 +302,10 @@ public final class AndroidSdkUtils {
 
   @Nullable
   public static Sdk createNewAndroidPlatform(@NotNull IAndroidTarget target,
-                                              @NotNull String sdkPath,
-                                              @NotNull String sdkName,
-                                              @Nullable Sdk jdk,
-                                              boolean addRoots) {
+                                             @NotNull String sdkPath,
+                                             @NotNull String sdkName,
+                                             @Nullable Sdk jdk,
+                                             boolean addRoots) {
     if (!VersionCheck.isCompatibleVersion(sdkPath)) {
       return null;
     }
@@ -432,7 +432,7 @@ public final class AndroidSdkUtils {
 
   private static void setupPlatform(@NotNull Module module) {
     String targetHashString = getTargetHashStringFromPropertyFile(module);
-    if (targetHashString != null && findAndSetSdkWithHashString(module, targetHashString, null)) {
+    if (targetHashString != null && findAndSetSdkWithHashString(module, targetHashString)) {
       return;
     }
 
@@ -460,48 +460,21 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  public static Sdk findSuitableAndroidSdk(@NotNull String targetHashString,
-                                           @Nullable String sdkPath,
-                                           @Nullable LanguageLevel javaLangLevel,
-                                           boolean promptUserIfNecessary) {
+  public static Sdk findSuitableAndroidSdk(@NotNull String targetHashString) {
     for (Sdk sdk : getAllAndroidSdks()) {
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      if (data == null) {
+      SdkAdditionalData originalData = sdk.getSdkAdditionalData();
+      if (!(originalData instanceof AndroidSdkAdditionalData)) {
         continue;
       }
+      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)originalData;
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
-      if (androidPlatform != null) {
-        String baseDir = FileUtil.toSystemDependentName(androidPlatform.getSdkData().getLocation().getPath());
-        boolean compatibleVersion = VersionCheck.isCompatibleVersion(baseDir);
-
+      if (androidPlatform == null) {
+        continue;
+      }
+      String baseDir = androidPlatform.getSdkData().getLocation().getPath();
+      if (VersionCheck.isCompatibleVersion(baseDir)) {
         String platformHashString = androidPlatform.getTarget().hashString();
-        boolean suitable = compatibleVersion && targetHashString.equals(platformHashString);
-
-        if (sdkPath != null && FileUtil.pathsEqual(baseDir, sdkPath)) {
-          if (suitable) {
-             return sdk;
-          }
-          if (promptUserIfNecessary) {
-            if (!compatibleVersion) {
-              // Old SDK, needs to be replaced.
-              Sdk jdk;
-              if (javaLangLevel == null) {
-                jdk = Jdks.chooseOrCreateJavaSdk();
-              }
-              else {
-                jdk = Jdks.chooseOrCreateJavaSdk(javaLangLevel);
-              }
-              String jdkPath = jdk == null ? null : jdk.getHomePath();
-              return promptUserForSdkCreation(androidPlatform.getTarget(), null, jdkPath);
-            }
-
-            if (!targetHashString.equals(platformHashString)) {
-              // This is the specified SDK (usually in local.properties file.) We try our best to fix it.
-              // TODO download platform;
-            }
-          }
-        }
-        else if (suitable) {
+        if (targetHashString.equals(platformHashString)) {
           return sdk;
         }
       }
@@ -515,52 +488,43 @@ public final class AndroidSdkUtils {
     return targetProp != null ? targetProp.getFirst() : null;
   }
 
-  private static boolean findAndSetSdkWithHashString(@NotNull Module module,
-                                                     @NotNull String targetHashString,
-                                                     @Nullable LanguageLevel javaLangLevel) {
+  private static boolean findAndSetSdkWithHashString(@NotNull Module module, @NotNull String targetHashString) {
     Pair<String, VirtualFile> sdkDirProperty = AndroidRootUtil.getPropertyValue(module, SdkConstants.FN_LOCAL_PROPERTIES, "sdk.dir");
     String sdkDir = sdkDirProperty != null ? sdkDirProperty.getFirst() : null;
-    return findAndSetSdk(module, targetHashString, sdkDir, javaLangLevel, false);
+    return findAndSetSdk(module, targetHashString, sdkDir);
   }
 
   /**
    * Finds a matching Android SDK and sets it in the given module.
    *
-   * @param module                the module to set the found SDK to.
-   * @param targetHashString      compile target.
-   * @param sdkPath               path, in the file system, of the Android SDK.
-   * @param javaLangLevel         Java language level to use.
-   * @param promptUserIfNecessary indicates whether user can be prompted to enter information in case an Android SDK cannot be found (e.g.
-   *                              download a platform, or enter the path of an Android SDK to use.)
+   * @param module           the module to set the found SDK to.
+   * @param targetHashString compile target.
+   * @param sdkPath          path, in the file system, of the Android SDK.
    * @return {@code true} if a matching Android SDK was found and set in the module; {@code false} otherwise.
    */
-  public static boolean findAndSetSdk(@NotNull Module module,
-                                      @NotNull String targetHashString,
-                                      @Nullable String sdkPath,
-                                      @Nullable LanguageLevel javaLangLevel,
-                                      boolean promptUserIfNecessary) {
+  public static boolean findAndSetSdk(@NotNull Module module, @NotNull String targetHashString, @Nullable String sdkPath) {
     if (sdkPath != null) {
       sdkPath = FileUtil.toSystemIndependentName(sdkPath);
     }
 
-    Sdk sdk = findSuitableAndroidSdk(targetHashString, sdkPath, javaLangLevel, promptUserIfNecessary);
+    Sdk sdk = findSuitableAndroidSdk(targetHashString);
     if (sdk != null) {
       ModuleRootModificationUtil.setModuleSdk(module, sdk);
       return true;
     }
 
-    if (sdkPath != null && tryToCreateAndSetAndroidSdk(module, sdkPath, targetHashString, promptUserIfNecessary)) {
+    if (sdkPath != null && tryToCreateAndSetAndroidSdk(module, sdkPath, targetHashString)) {
       return true;
     }
 
     String androidHomeValue = System.getenv(SdkConstants.ANDROID_HOME_ENV);
     if (androidHomeValue != null &&
-        tryToCreateAndSetAndroidSdk(module, FileUtil.toSystemIndependentName(androidHomeValue), targetHashString, false)) {
+        tryToCreateAndSetAndroidSdk(module, FileUtil.toSystemIndependentName(androidHomeValue), targetHashString)) {
       return true;
     }
 
     for (String dir : getAndroidSdkPathsFromExistingPlatforms()) {
-      if (tryToCreateAndSetAndroidSdk(module, dir, targetHashString, false)) {
+      if (tryToCreateAndSetAndroidSdk(module, dir, targetHashString)) {
         return true;
       }
     }
@@ -568,42 +532,27 @@ public final class AndroidSdkUtils {
   }
 
   @VisibleForTesting
-  static boolean tryToCreateAndSetAndroidSdk(@NotNull Module module,
-                                             @NotNull String sdkPath,
-                                             @NotNull String targetHashString,
-                                             boolean promptUserIfNecessary) {
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
-    if (sdkData != null) {
-      IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
-      if (target != null) {
-        Sdk androidSdk = createNewAndroidPlatform(target, sdkData.getLocation().getPath(), true);
-        if (androidSdk != null) {
-          ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
-          return true;
-        }
-        if (promptUserIfNecessary) {
-          // We got here most likely because we could not create a JDK. Prompt user.
-          androidSdk = promptUserForSdkCreation(target, sdkPath, null);
-          if (androidSdk != null) {
-            ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
-            return true;
-          }
-        }
-      }
-      else if (promptUserIfNecessary) {
-        // We got here because we couldn't get target for given SDK path. Most likely it is an old SDK.
-        String pathToShow = VersionCheck.isCompatibleVersion(sdkPath) ? sdkPath : null;
-        Sdk jdk = Jdks.chooseOrCreateJavaSdk();
-        String jdkPath = jdk == null ? null : jdk.getHomePath();
-        Sdk androidSdk = promptUserForSdkCreation(null, pathToShow, jdkPath);
-        // TODO check platform
-        if (androidSdk != null) {
-          ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
-          return true;
-        }
-      }
+  static boolean tryToCreateAndSetAndroidSdk(@NotNull Module module, @NotNull String sdkPath, @NotNull String targetHashString) {
+    File path = new File(FileUtil.toSystemDependentName(sdkPath));
+    Sdk sdk = tryToCreateAndroidSdk(path, targetHashString);
+    if (sdk != null) {
+      ModuleRootModificationUtil.setModuleSdk(module, sdk);
+      return true;
     }
     return false;
+  }
+
+  @Nullable
+  public static Sdk tryToCreateAndroidSdk(@NotNull File sdkPath, @NotNull String targetHashString) {
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
+    if (sdkData != null) {
+      sdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
+      IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
+      if (target != null) {
+        return createNewAndroidPlatform(target, sdkData.getLocation().getPath(), true);
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -669,7 +618,7 @@ public final class AndroidSdkUtils {
           String currentTargetHashString = platform.getTarget().hashString();
 
           if (targetHashString != null && !targetHashString.equals(currentTargetHashString)) {
-            findAndSetSdkWithHashString(module, targetHashString, null);
+            findAndSetSdkWithHashString(module, targetHashString);
           }
         }
       }

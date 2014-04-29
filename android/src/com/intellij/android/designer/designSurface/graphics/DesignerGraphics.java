@@ -91,6 +91,13 @@ public class DesignerGraphics {
     }
   }
 
+  public static void drawStrokeFilledRect(DrawingStyle style, Graphics gc, int x, int y, int width, int height) {
+    useStroke(style, gc);
+    if (style.getStrokeColor() != null) {
+      gc.fillRect(x, y, width, height);
+    }
+  }
+
   public void drawRect(int x, int y, int width, int height) {
     drawRect(myStyle, myGraphics, x, y, width, height);
   }

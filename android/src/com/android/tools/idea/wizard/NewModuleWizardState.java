@@ -17,12 +17,16 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
+import com.android.tools.idea.gradle.project.ImportSourceKind;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -43,6 +47,8 @@ public class NewModuleWizardState extends TemplateWizardState {
   public static final String APP_NAME = "app";
   public static final String LIB_NAME = "lib";
 
+  private static final String MODULE_IMPORT_NAME = "Import Existing Project";
+
   /**
    * State for the template wizard, used to embed an activity template
    */
@@ -52,6 +58,21 @@ public class NewModuleWizardState extends TemplateWizardState {
    * True if the module being created is an Android module (as opposed to a generic Java module with no Android support)
    */
   protected boolean myIsAndroidModule;
+
+  /**
+   * True if the module will be created from existing sources.
+   */
+  protected boolean myIsModuleImport;
+
+  /**
+   * Kind of the import to be performed. Only makes sense if myIsModuleImport is true.
+   */
+  private ImportSourceKind myImportKind;
+
+  /**
+   * Modules that will be imported.
+   */
+  private Map<String, VirtualFile> myModulesToImport;
 
   public NewModuleWizardState() {
     myActivityTemplateState = new TemplateWizardState();
@@ -79,6 +100,33 @@ public class NewModuleWizardState extends TemplateWizardState {
     myActivityTemplateState.myHidden.add(ATTR_ACTIVITY_TITLE);
 
     updateParameters();
+  }
+
+  public void templateChanged(@Nullable Project project, String templateName) {
+    myIsAndroidModule = false;
+    myIsModuleImport = MODULE_IMPORT_NAME.equals(templateName);
+
+    if (templateName.equals(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME)) {
+      myIsAndroidModule = true;
+      put(ATTR_IS_LIBRARY_MODULE, true);
+      put(ATTR_IS_LAUNCHER, false);
+      put(ATTR_CREATE_ICONS, false);
+      // Hide the create icons checkbox
+      myHidden.add(ATTR_CREATE_ICONS);
+    } else if (templateName.equals(TemplateWizardModuleBuilder.APP_TEMPLATE_NAME)) {
+      myIsAndroidModule = true;
+      put(ATTR_IS_LIBRARY_MODULE, false);
+      put(ATTR_IS_LAUNCHER, true);
+      put(ATTR_CREATE_ICONS, true);
+      // Show the create icons checkbox
+      myHidden.remove(ATTR_CREATE_ICONS);
+    }
+
+    if (myHidden.contains(ATTR_APP_TITLE)) {
+      // If the app title is hidden, set it to the existing app title
+      assert project != null : "Cannot be adding a module to a unknown project";
+      put(ATTR_APP_TITLE, project.getName());
+    }
   }
 
   public void putSdkDependentParams() {
@@ -152,5 +200,23 @@ public class NewModuleWizardState extends TemplateWizardState {
     for (String key : keys) {
       to.put(key, from.get(key));
     }
+  }
+
+  public void setImportKind(@Nullable ImportSourceKind importKind) {
+    myImportKind = importKind;
+  }
+
+  @Nullable
+  public ImportSourceKind getImportKind() {
+    return myImportKind;
+  }
+
+  public void setModulesToImport(@Nullable Map<String, VirtualFile> modulesToImport) {
+    myModulesToImport = modulesToImport;
+  }
+
+  @Nullable
+  public Map<String, VirtualFile> getModulesToImport() {
+    return myModulesToImport;
   }
 }

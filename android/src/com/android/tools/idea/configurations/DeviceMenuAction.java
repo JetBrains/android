@@ -16,7 +16,6 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -40,6 +39,7 @@ import java.util.*;
 import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 
 public class DeviceMenuAction extends FlatComboAction {
+  private static final boolean LIST_RECENT_DEVICES = false;
   private final RenderContext myRenderContext;
 
   public DeviceMenuAction(@NotNull RenderContext renderContext) {
@@ -117,15 +117,33 @@ public class DeviceMenuAction extends FlatComboAction {
     ConfigurationManager configurationManager = configuration.getConfigurationManager();
     List<Device> deviceList = configurationManager.getDevices();
 
+    if (LIST_RECENT_DEVICES) {
+      List<Device> recent = configurationManager.getDevices();
+      if (recent.size() > 1) {
+        boolean separatorNeeded = false;
+        for (Device device : recent) {
+          String label = getLabel(device, isNexus(device));
+          group.add(new SetDeviceAction(myRenderContext, label, device, device == current));
+          separatorNeeded = true;
+        }
+        if (separatorNeeded) {
+          group.addSeparator();
+        }
+      }
+    }
+
     AndroidFacet facet = AndroidFacet.getInstance(configurationManager.getModule());
-    assert facet != null;
+    if (facet == null) {
+      // Unlikely, but has happened - see http://b.android.com/68091
+      return group;
+    }
     final AvdManager avdManager = facet.getAvdManagerSilently();
     if (avdManager != null) {
       boolean separatorNeeded = false;
       for (AvdInfo avd : avdManager.getValidAvds()) {
         Device device = configurationManager.createDeviceForAvd(avd);
         if (device != null) {
-          String avdName = avd.getName();
+          String avdName = "AVD: " + avd.getName();
           boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
           group.add(new SetDeviceAction(myRenderContext, avdName, device, selected));
           separatorNeeded = true;
@@ -193,7 +211,8 @@ public class DeviceMenuAction extends FlatComboAction {
               continue;
             }
           }
-          group.add(new SetDeviceAction(myRenderContext, getNexusLabel(device), device, current == device));
+          String label = getLabel(device, true /*nexus*/);
+          group.add(new SetDeviceAction(myRenderContext, label, device, current == device));
         }
 
         group.addSeparator();
@@ -202,7 +221,8 @@ public class DeviceMenuAction extends FlatComboAction {
       // Generate the generic menu.
       Collections.reverse(generic);
       for (final Device device : generic) {
-        group.add(new SetDeviceAction(myRenderContext, getGenericLabel(device), device, current == device));
+        String label = getLabel(device, false /*nexus*/);
+        group.add(new SetDeviceAction(myRenderContext, label, device, current == device));
       }
     }
 
@@ -218,7 +238,20 @@ public class DeviceMenuAction extends FlatComboAction {
     return group;
   }
 
-  private static class SetDeviceAction extends ConfigurationAction {
+  private String getLabel(Device device, boolean isNexus) {
+    // See if there is a better match, and if so, display it in the menu action
+    Configuration configuration = myRenderContext.getConfiguration();
+    if (configuration != null) {
+      VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, device, null, null, null);
+      if (better != null) {
+        return ConfigurationAction.getBetterMatchLabel(device.getDisplayName(), better, configuration.getFile());
+      }
+    }
+
+    return isNexus ? getNexusLabel(device) : getGenericLabel(device);
+  }
+
+  private class SetDeviceAction extends ConfigurationAction {
     private final Device myDevice;
 
     public SetDeviceAction(@NotNull RenderContext renderContext,
@@ -229,27 +262,44 @@ public class DeviceMenuAction extends FlatComboAction {
       myDevice = device;
       if (select) {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
+      } else if (ConfigurationAction.isBetterMatchLabel(title)) {
+        getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
       }
     }
 
     @Override
-    protected void updateConfiguration(@NotNull Configuration configuration) {
+    protected void updatePresentation() {
+      DeviceMenuAction.this.updatePresentation(DeviceMenuAction.this.getTemplatePresentation());
+    }
+
+    @Override
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      // Attempt to jump to the default orientation of the new device; for example, if you're viewing a layout in
+      // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
+      // (its default) unless of course there is a different layout that is the best fit for that device.
       Device prevDevice = configuration.getDevice();
       State prevState = configuration.getDeviceState();
+      String newState = prevState != null ? prevState.getName() : null;
       if (prevDevice != null && prevState != null && configuration.getDeviceState() == prevDevice.getDefaultState() &&
-          !myDevice.getDefaultState().getName().equals(prevState.getName())) {
+          !myDevice.getDefaultState().getName().equals(prevState.getName()) &&
+          configuration.getEditedConfig().getScreenOrientationQualifier() == null) {
         VirtualFile file = configuration.getFile();
         if (file != null) {
-          configuration.setDevice(myDevice, false);
-          if (configuration.isBestMatchFor(file, configuration.getFullConfig())) {
-            return;
+          String name = myDevice.getDefaultState().getName();
+          if (ConfigurationMatcher.getBetterMatch(configuration, myDevice, name, null, null) == null) {
+            newState = name;
           }
-          configuration.setDevice(prevDevice, false);
-          configuration.setDeviceState(prevState);
         }
       }
 
-      configuration.setDevice(myDevice, true);
+      if (newState != null) {
+        configuration.setDeviceStateName(newState);
+      }
+      if (commit) {
+        configuration.getConfigurationManager().selectDevice(myDevice);
+      } else {
+        configuration.setDevice(myDevice, true);
+      }
     }
   }
 }

@@ -108,7 +108,7 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   @Nullable
-  private static AndroidArtifact findInstrumentationTestArtifact(@NotNull Variant variant) {
+  public static AndroidArtifact findInstrumentationTestArtifact(@NotNull Variant variant) {
     Collection<AndroidArtifact> extraAndroidArtifacts = variant.getExtraAndroidArtifacts();
     for (AndroidArtifact extraArtifact : extraAndroidArtifacts) {
       if (extraArtifact.getName().equals(AndroidProject.ARTIFACT_ANDROID_TEST)) {
@@ -194,5 +194,9 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull
   public String computePackageName() {
     return getSelectedVariant().getMainArtifact().getPackageName();
+  }
+
+  public boolean isLibrary() {
+    return getDelegate().isLibrary();
   }
 }

@@ -21,6 +21,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
@@ -109,7 +110,7 @@ public class GradleBuildFile extends GradleGroovyFile {
     if (root == null) {
       root = myGroovyFile;
     }
-    setValueStatic(root, key, value);
+    setValueStatic(root, key, value, true);
   }
 
   /**
@@ -155,12 +156,12 @@ public class GradleBuildFile extends GradleGroovyFile {
   }
 
   /**
-   * Returns a list of all the plugins used by the build file.
+   * Returns a list of all the plugins used by the given build file.
    */
   @NotNull
-  public List<String> getPlugins() {
+  public static List<String> getPlugins(GroovyFile buildScript) {
     List<String> plugins = Lists.newArrayListWithExpectedSize(1);
-    for (GrMethodCall methodCall : getMethodCalls(myGroovyFile, "apply")) {
+    for (GrMethodCall methodCall : getMethodCalls(buildScript, "apply")) {
       Map<String,Object> values = getNamedArgumentValues(methodCall);
       Object plugin = values.get("plugin");
       if (plugin != null) {
@@ -168,6 +169,14 @@ public class GradleBuildFile extends GradleGroovyFile {
       }
     }
     return plugins;
+  }
+
+  /**
+   * Returns a list of all the plugins used by the build file.
+   */
+  @NotNull
+  public List<String> getPlugins() {
+    return getPlugins(myGroovyFile);
   }
 
   /**

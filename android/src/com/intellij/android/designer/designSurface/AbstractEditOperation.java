@@ -15,7 +15,7 @@
  */
 package com.intellij.android.designer.designSurface;
 
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.designer.designSurface.OperationContext;
 import com.intellij.designer.model.RadComponent;
@@ -46,17 +46,17 @@ public abstract class AbstractEditOperation extends com.intellij.designer.design
                              @Nullable RadViewComponent insertBefore) throws Exception {
     if (context.isAdd() || context.isMove()) {
       for (RadComponent component : components) {
-        ModelParser.moveComponent(container, (RadViewComponent)component, insertBefore);
+        RadComponentOperations.moveComponent(container, (RadViewComponent)component, insertBefore);
       }
     }
     else if (context.isCreate()) {
       for (RadComponent component : components) {
-        ModelParser.addComponent(container, (RadViewComponent)component, insertBefore);
+        RadComponentOperations.addComponent(container, (RadViewComponent)component, insertBefore);
       }
     }
     else if (context.isPaste()) {
       for (RadComponent component : components) {
-        ModelParser.pasteComponent(container, (RadViewComponent)component, insertBefore);
+        RadComponentOperations.pasteComponent(container, (RadViewComponent)component, insertBefore);
       }
     }
   }

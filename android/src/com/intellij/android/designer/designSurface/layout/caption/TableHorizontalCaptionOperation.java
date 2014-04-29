@@ -15,7 +15,7 @@
  */
 package com.intellij.android.designer.designSurface.layout.caption;
 
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.layout.table.RadCaptionTableColumn;
 import com.intellij.android.designer.model.layout.table.RadTableLayoutComponent;
@@ -82,7 +82,7 @@ public class TableHorizontalCaptionOperation extends HorizontalCaptionFlowBaseOp
         if (insertBefore == null || insertBeforeColumn != null) {
           for (RadViewComponent component : editComponents) {
             if (component != insertBeforeColumn) {
-              ModelParser.moveComponent(container, component, insertBeforeColumn);
+              RadComponentOperations.moveComponent(container, component, insertBeforeColumn);
             }
           }
         }

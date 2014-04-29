@@ -25,9 +25,10 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
@@ -45,7 +46,6 @@ import com.intellij.facet.FacetTypeRegistry;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -85,6 +85,7 @@ import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.SystemResourceManager;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.android.util.*;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -792,13 +793,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull final PsiElement element) {
-    Module module = ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
-      @Nullable
-      @Override
-      public Module compute() {
-        return ModuleUtilCore.findModuleForPsiElement(element);
-      }
-    });
+    Module module = AndroidPsiUtils.getModuleSafely(element);
     if (module == null) return null;
     return getInstance(module);
   }
@@ -1060,6 +1055,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myConfigurationManager;
   }
 
+  @Contract("true -> !null")
   @Nullable
   public AppResourceRepository getAppResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
@@ -1071,6 +1067,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  @Contract("true -> !null")
   @Nullable
   public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis
@@ -1082,6 +1079,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  @Contract("true -> !null")
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
     //noinspection SynchronizeOnThis

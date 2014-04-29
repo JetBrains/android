@@ -1,0 +1,10 @@
+android {
+  productFlavors {
+    basic {
+      assets.srcDirs = ['bundled-assets']
+    }
+    paid {
+      assets.srcDirs = ['paid-assets', 'bundled-assets']
+    }
+  }
+}

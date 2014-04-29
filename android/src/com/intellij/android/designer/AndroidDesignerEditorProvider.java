@@ -15,37 +15,31 @@
  */
 package com.intellij.android.designer;
 
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import static org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID;
-
 /**
  * @author Alexander Lobas
  */
 public final class AndroidDesignerEditorProvider implements FileEditorProvider, DumbAware {
+  /** FileEditorProvider ID for the layout editor */
+  public static final String ANDROID_DESIGNER_ID = "android-designer";
+
   public static boolean acceptLayout(final @NotNull Project project, final @NotNull VirtualFile file) {
-    PsiFile psiFile = ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>() {
-      @Override
-      public PsiFile compute() {
-        return file.isValid() ? PsiManager.getInstance(project).findFile(file) : null;
-      }
-    });
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
     return psiFile instanceof XmlFile &&
            AndroidFacet.getInstance(psiFile) != null &&
            LayoutDomFileDescription.isLayoutFile((XmlFile)psiFile);

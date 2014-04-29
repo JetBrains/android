@@ -67,6 +67,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.OFFLINE_MODE_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 
@@ -310,29 +311,31 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         jvmArgs.add(androidSdkArg);
       }
 
-      jvmArgs.addAll(executionSettings.getGradleDaemonJvmOptions());
+      jvmArgs.addAll(executionSettings.getJvmOptions());
 
+      LOG.info("Build JVM args: " + jvmArgs);
       if (!jvmArgs.isEmpty()) {
-        LOG.info("Passing JVM args to Gradle Tooling API: " + jvmArgs);
         launcher.setJvmArguments(ArrayUtil.toStringArray(jvmArgs));
       }
 
-      List<String> args = Lists.newArrayList();
-      args.addAll(executionSettings.getGradleDaemonCommandLineOptions());
+      List<String> commandLineArgs = Lists.newArrayList();
+      commandLineArgs.addAll(executionSettings.getCommandLineOptions());
 
-      if (executionSettings.isParallelBuild() && !args.contains(PARALLEL_BUILD_OPTION)) {
-        LOG.info("Using 'parallel' build option");
-        args.add(PARALLEL_BUILD_OPTION);
+      if (executionSettings.isParallelBuild() && !commandLineArgs.contains(PARALLEL_BUILD_OPTION)) {
+        commandLineArgs.add(PARALLEL_BUILD_OPTION);
       }
 
-      if (executionSettings.isOfflineBuild() && !args.contains(OFFLINE_MODE_OPTION)) {
-        LOG.info("Using 'offline' mode option");
-        args.add(OFFLINE_MODE_OPTION);
+      if (executionSettings.isOfflineBuild() && !commandLineArgs.contains(OFFLINE_MODE_OPTION)) {
+        commandLineArgs.add(OFFLINE_MODE_OPTION);
       }
 
-      if (!args.isEmpty()) {
-        LOG.info("Passing command-line args to Gradle Tooling API: " + args);
-        launcher.withArguments(ArrayUtil.toStringArray(args));
+      if (executionSettings.isConfigureOnDemand() && !commandLineArgs.contains(CONFIGURE_ON_DEMAND_OPTION)) {
+        commandLineArgs.add(CONFIGURE_ON_DEMAND_OPTION);
+      }
+
+      LOG.info("Build command line args: " + commandLineArgs);
+      if (!commandLineArgs.isEmpty()) {
+        launcher.withArguments(ArrayUtil.toStringArray(commandLineArgs));
       }
 
       File javaHomeDir = executionSettings.getJavaHomeDir();
@@ -362,14 +365,14 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     if (connector instanceof DefaultGradleConnector) {
       DefaultGradleConnector defaultConnector = (DefaultGradleConnector)connector;
 
-      if (executionSettings.isEmbeddedGradleDaemonEnabled()) {
+      if (executionSettings.isEmbeddedModeEnabled()) {
         LOG.info("Using Gradle embedded mode.");
         defaultConnector.embedded(true);
       }
 
       defaultConnector.setVerboseLogging(executionSettings.isVerboseLoggingEnabled());
 
-      int daemonMaxIdleTimeInMs = executionSettings.getGradleDaemonMaxIdleTimeInMs();
+      int daemonMaxIdleTimeInMs = executionSettings.getMaxIdleTimeInMs();
       if (daemonMaxIdleTimeInMs > 0) {
         defaultConnector.daemonMaxIdleTime(daemonMaxIdleTimeInMs, TimeUnit.MILLISECONDS);
       }
