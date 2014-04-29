@@ -112,7 +112,7 @@ public class IntellijRegistrationDetector extends RegistrationDetector implement
     }
   }
 
-  private void report(JavaContext context, PsiClass clz, String internalName) {
+  private static void report(JavaContext context, PsiClass clz, String internalName) {
     // Unlike the superclass, we don't have to check that the tags are compatible;
     // IDEA already checks that as part of its XML validation
 

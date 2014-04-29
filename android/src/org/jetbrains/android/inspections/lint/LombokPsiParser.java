@@ -35,6 +35,7 @@ import lombok.ast.*;
 import org.jetbrains.annotations.Contract;
 
 import java.io.File;
+import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
 
@@ -217,6 +218,35 @@ public class LombokPsiParser extends JavaParser {
     return type != null ? new DefaultTypeDescriptor(type.getCanonicalText()) : null;
   }
 
+  private static int computeModifiers(@Nullable PsiModifierListOwner owner) {
+    // TODO: Find out if there is a PSI utility method somewhere to handle this
+    int modifiers = 0;
+    if (owner != null) {
+      if (owner.hasModifierProperty(PsiModifier.ABSTRACT)) {
+        modifiers |= Modifier.ABSTRACT;
+      }
+      if (owner.hasModifierProperty(PsiModifier.PUBLIC)) {
+        modifiers |= Modifier.PUBLIC;
+      }
+      if (owner.hasModifierProperty(PsiModifier.STATIC)) {
+        modifiers |= Modifier.STATIC;
+      }
+      if (owner.hasModifierProperty(PsiModifier.PRIVATE)) {
+        modifiers |= Modifier.PRIVATE;
+      }
+      if (owner.hasModifierProperty(PsiModifier.PROTECTED)) {
+        modifiers |= Modifier.PROTECTED;
+      }
+      if (owner.hasModifierProperty(PsiModifier.FINAL)) {
+        modifiers |= Modifier.FINAL;
+      }
+      // Other constants are not used by lint.
+    }
+
+    return modifiers;
+  }
+
+
   /* Handle for creating positions cheaply and returning full fledged locations later */
   private class LocationHandle implements Location.Handle {
     private final File myFile;
@@ -303,6 +333,33 @@ public class LombokPsiParser extends JavaParser {
     public String getSignature() {
       return myMethod.toString();
     }
+
+    @Override
+    public int getModifiers() {
+      // TODO: Find out if there is a PSI utility method somewhere to handle this
+      int modifiers = 0;
+      if (myMethod.hasModifierProperty(PsiModifier.ABSTRACT)) {
+        modifiers |= Modifier.ABSTRACT;
+      }
+      if (myMethod.hasModifierProperty(PsiModifier.PUBLIC)) {
+        modifiers |= Modifier.PUBLIC;
+      }
+      if (myMethod.hasModifierProperty(PsiModifier.STATIC)) {
+        modifiers |= Modifier.STATIC;
+      }
+      if (myMethod.hasModifierProperty(PsiModifier.PRIVATE)) {
+        modifiers |= Modifier.PRIVATE;
+      }
+      if (myMethod.hasModifierProperty(PsiModifier.PROTECTED)) {
+        modifiers |= Modifier.PROTECTED;
+      }
+      if (myMethod.hasModifierProperty(PsiModifier.FINAL)) {
+        modifiers |= Modifier.FINAL;
+      }
+      // Other constants are not used by lint.
+
+      return modifiers;
+    }
   }
 
   private static class ResolvedPsiVariable extends ResolvedVariable {
@@ -327,6 +384,11 @@ public class LombokPsiParser extends JavaParser {
     @Override
     public TypeDescriptor getType() {
       return getTypeDescriptor(myVariable.getType());
+    }
+
+    @Override
+    public int getModifiers() {
+      return computeModifiers(myVariable);
     }
 
     @Override
@@ -361,13 +423,13 @@ public class LombokPsiParser extends JavaParser {
 
     @NonNull
     @Override
-    public TypeDescriptor getContainingClass() {
-      PsiClass containingClass = myField.getContainingClass();
-      String qualifiedName = "";
-      if (containingClass != null) {
-        qualifiedName = containingClass.getQualifiedName();
-      }
-      return new DefaultTypeDescriptor(qualifiedName);
+    public ResolvedClass getContainingClass() {
+      return new ResolvedPsiClass(myField.getContainingClass());
+    }
+
+    @Override
+    public int getModifiers() {
+      return computeModifiers(myField);
     }
 
     @Override
@@ -441,6 +503,16 @@ public class LombokPsiParser extends JavaParser {
 
     @NonNull
     @Override
+    public Iterable<ResolvedMethod> getConstructors() {
+      ensureInitialized();
+      if (myClass != null) {
+        return super.getConstructors();
+      }
+      return Collections.emptyList();
+    }
+
+    @NonNull
+    @Override
     public Iterable<ResolvedMethod> getMethods(@NonNull String name) {
       ensureInitialized();
       if (myClass != null) {
@@ -457,6 +529,12 @@ public class LombokPsiParser extends JavaParser {
         return super.getField(name);
       }
       return null;
+    }
+
+    @Override
+    public int getModifiers() {
+      ensureInitialized();
+      return computeModifiers(myClass);
     }
 
     @Override
@@ -536,13 +614,31 @@ public class LombokPsiParser extends JavaParser {
 
     @NonNull
     @Override
+    public Iterable<ResolvedMethod> getConstructors() {
+      if (myClass != null) {
+        PsiMethod[] methods = myClass.getConstructors();
+        if (methods.length > 0) {
+          List<ResolvedMethod> result = Lists.newArrayListWithExpectedSize(methods.length);
+          for (PsiMethod method : methods) {
+            result.add(new ResolvedPsiMethod(method));
+          }
+          return result;
+        }
+      }
+      return Collections.emptyList();
+    }
+
+    @NonNull
+    @Override
     public Iterable<ResolvedMethod> getMethods(@NonNull String name) {
       if (myClass != null) {
         PsiMethod[] methods = myClass.findMethodsByName(name, true);
         if (methods.length > 0) {
           List<ResolvedMethod> result = Lists.newArrayListWithExpectedSize(methods.length);
           for (PsiMethod method : methods) {
-            result.add(new ResolvedPsiMethod(method));
+            if (!method.isConstructor()) {
+              result.add(new ResolvedPsiMethod(method));
+            }
           }
           return result;
         }
@@ -560,6 +656,11 @@ public class LombokPsiParser extends JavaParser {
         }
       }
       return null;
+    }
+
+    @Override
+    public int getModifiers() {
+      return computeModifiers(myClass);
     }
 
     @Override
