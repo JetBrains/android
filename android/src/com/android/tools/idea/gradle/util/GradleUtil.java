@@ -16,6 +16,10 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,6 +39,7 @@ import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
 import org.gradle.StartParameter;
@@ -79,6 +84,36 @@ public final class GradleUtil {
   private static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
 
   private GradleUtil() {
+  }
+
+  /**
+   * Returns the Gradle "logical" path (using colons as separators) if the given module represents a Gradle project or sub-project.
+   *
+   * @param module the given module.
+   * @return the Gradle path for the given module, or {@code null} if the module does not represent a Gradle project or sub-project.
+   */
+  @Nullable
+  public static String getGradlePath(@NotNull Module module) {
+    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+    return facet != null ? facet.getConfiguration().GRADLE_PROJECT_PATH : null;
+  }
+
+  /**
+   * Returns the library dependencies in the given variant. This method checks dependencies in the "main" and "instrumentation tests"
+   * artifacts. The dependency lookup is not transitive (only direct dependencies are returned.)
+   *
+   * @param variant the given variant.
+   * @return the library dependencies in the given variant.
+   */
+  @NotNull
+  public static List<AndroidLibrary> getDirectLibraryDependencies(@NotNull Variant variant) {
+    List<AndroidLibrary> libraries = Lists.newArrayList();
+    libraries.addAll(variant.getMainArtifact().getDependencies().getLibraries());
+    AndroidArtifact testArtifact = IdeaAndroidProject.findInstrumentationTestArtifact(variant);
+    if (testArtifact != null) {
+      libraries.addAll(testArtifact.getDependencies().getLibraries());
+    }
+    return libraries;
   }
 
   @Nullable
@@ -365,5 +400,28 @@ public final class GradleUtil {
 
   private static boolean isValidGradleHome(@NotNull File path) {
     return path.isDirectory() && ServiceManager.getService(GradleInstallationManager.class).isGradleSdkHome(path);
+  }
+
+  /**
+   * Convert a Gradle project name into a system dependent path relative to root project. Please note this is the default mapping from a
+   * Gradle "logical" path to a physical path. Users can override this mapping in settings.gradle and this mapping may not always be
+   * accurate.
+   * <p/>
+   * E.g. ":module" becomes "module" and ":directory:module" is converted to "directory/module"
+   */
+  @NotNull @VisibleForTesting
+  public static String getDefaultPhysicalPathFromGradlePath(@NotNull String name) {
+    List<String> segments = getPathSegments(name);
+    return FileUtil.join(segments.toArray(new String[segments.size()]));
+  }
+
+  /**
+   * Obtain default path for the Gradle subproject with the given name in the project.
+   */
+  @NotNull
+  public static File getDefaultSubprojectLocation(@NotNull VirtualFile project, @NotNull String gradlePath) {
+    assert gradlePath.length() > 0;
+    String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
+    return new File(VfsUtilCore.virtualToIoFile(project), relativePath);
   }
 }

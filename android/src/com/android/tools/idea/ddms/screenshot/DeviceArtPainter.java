@@ -117,9 +117,9 @@ public class DeviceArtPainter {
     return descriptor;
   }
 
-  private static boolean isTablet(Device device) {
+  public static boolean isTablet(@NotNull Device device) {
     boolean isTablet = false;
-    if (device.getName().contains("Tablet")) { // For example "10.1in WXGA (Tablet)"
+    if (device.getId().contains("Tablet")) { // For example "10.1in WXGA (Tablet)"
       isTablet = true;
     } else {
       Screen screen = device.getDefaultHardware().getScreen();

@@ -1,1372 +1,977 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <item name="android.view.AbsSavedState AbsSavedState(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.AbsSavedState AbsSavedState(android.os.Parcelable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.AbsSavedState CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.AbsSavedState android.os.Parcelable getSuperState()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.AbsSavedState void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.view.ActionMode android.view.MenuInflater getMenuInflater()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.ActionMode void setSubtitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
-  <item name="android.view.ActionMode android.view.View getCustomView()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.Choreographer void postFrameCallbackDelayed(android.view.Choreographer.FrameCallback, long) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.Choreographer void removeFrameCallback(android.view.Choreographer.FrameCallback) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.ActionMode void setTitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.view.ContextMenu android.view.ContextMenu setHeaderIcon(android.graphics.drawable.Drawable)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ContextMenu android.view.ContextMenu setHeaderIcon(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ContextMenu android.view.ContextMenu setHeaderIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.view.ContextMenu android.view.ContextMenu setHeaderTitle(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ContextMenu android.view.ContextMenu setHeaderTitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.view.ContextMenu android.view.ContextMenu setHeaderTitle(java.lang.CharSequence)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ContextMenu android.view.ContextMenu setHeaderView(android.view.View)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ContextThemeWrapper void onApplyThemeResource(android.content.res.Resources.Theme, int, boolean) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Display int getOrientation()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.Surface.ROTATION_0, android.view.Surface.ROTATION_90, android.view.Surface.ROTATION_180, android.view.Surface.ROTATION_270}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.Surface.ROTATION_0, android.view.Surface.ROTATION_90, android.view.Surface.ROTATION_180, android.view.Surface.ROTATION_270}" />
     </annotation>
   </item>
   <item name="android.view.Display int getRotation()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.Surface.ROTATION_0, android.view.Surface.ROTATION_90, android.view.Surface.ROTATION_180, android.view.Surface.ROTATION_270}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.Surface.ROTATION_0, android.view.Surface.ROTATION_90, android.view.Surface.ROTATION_180, android.view.Surface.ROTATION_270}" />
     </annotation>
   </item>
   <item name="android.view.Display void getCurrentSizeRange(android.graphics.Point, android.graphics.Point) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Display void getCurrentSizeRange(android.graphics.Point, android.graphics.Point) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Display void getRealSize(android.graphics.Point) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Display void getRectSize(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Display void getSize(android.graphics.Point) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.DragEvent CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.DragEvent android.content.ClipData getClipData()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.DragEvent android.content.ClipDescription getClipDescription()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.DragEvent java.lang.Object getLocalState()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.DragEvent void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.FocusFinder android.view.View findNearestTouchable(android.view.ViewGroup, int, int, int, int[])">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.FocusFinder android.view.View findNearestTouchable(android.view.ViewGroup, int, int, int, int[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.FocusFinder android.view.View findNextFocus(android.view.ViewGroup, android.view.View, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.FocusFinder android.view.View findNextFocus(android.view.ViewGroup, android.view.View, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.FocusFinder android.view.View findNextFocusFromRect(android.view.ViewGroup, android.graphics.Rect, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.FocusFinder android.view.View findNextFocusFromRect(android.view.ViewGroup, android.graphics.Rect, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.GestureDetector GestureDetector(android.content.Context, android.view.GestureDetector.OnGestureListener, android.os.Handler) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.GestureDetector boolean onTouchEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, android.graphics.Rect) 3">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, android.graphics.Rect) 4">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, android.graphics.Rect, int) 3">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, android.graphics.Rect, int) 4">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, int, int, android.graphics.Rect) 3">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, int, int, android.graphics.Rect) 6">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, int, int, android.graphics.Rect, int) 3">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void apply(int, int, int, android.graphics.Rect, int, int, android.graphics.Rect, int) 6">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void applyDisplay(int, android.graphics.Rect, android.graphics.Rect) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void applyDisplay(int, android.graphics.Rect, android.graphics.Rect) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void applyDisplay(int, android.graphics.Rect, android.graphics.Rect, int) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.Gravity void applyDisplay(int, android.graphics.Rect, android.graphics.Rect, int) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.InputDevice android.view.InputDevice.MotionRange getMotionRange(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.InputDevice android.view.InputDevice.MotionRange getMotionRange(int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.InputDevice android.view.KeyCharacterMap getKeyCharacterMap()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.InputDevice java.util.List&lt;android.view.InputDevice.MotionRange&gt; getMotionRanges()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.InputDevice void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.KeyCharacterMap android.view.KeyCharacterMap load(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyCharacterMap android.view.KeyEvent[] getEvents(char[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.KeyCharacterMap android.view.KeyEvent[] getEvents(char[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyCharacterMap boolean getKeyData(int, android.view.KeyCharacterMap.KeyData) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.KeyCharacterMap char getMatch(int, char[], int) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.KeyCharacterMap void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyCharacterMap.KeyData meta">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent KeyEvent(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent KeyEvent(android.view.KeyEvent, long, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent android.view.KeyEvent changeAction(android.view.KeyEvent, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent android.view.KeyEvent changeAction(android.view.KeyEvent, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent android.view.KeyEvent changeTimeRepeat(android.view.KeyEvent, long, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent android.view.KeyEvent changeTimeRepeat(android.view.KeyEvent, long, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent android.view.KeyEvent changeTimeRepeat(android.view.KeyEvent, long, int, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent android.view.KeyEvent changeTimeRepeat(android.view.KeyEvent, long, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent boolean dispatch(android.view.KeyEvent.Callback) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent boolean dispatch(android.view.KeyEvent.Callback, android.view.KeyEvent.DispatcherState, java.lang.Object) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.KeyEvent boolean dispatch(android.view.KeyEvent.Callback, android.view.KeyEvent.DispatcherState, java.lang.Object) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.KeyEvent int keyCodeFromString(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.KeyEvent java.lang.String getCharacters()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent.DispatcherState boolean isTracking(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent.DispatcherState void handleUpEvent(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent.DispatcherState void performedLongPress(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.KeyEvent.DispatcherState void startTracking(android.view.KeyEvent, java.lang.Object) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.LayoutInflater LayoutInflater(android.view.LayoutInflater, android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.LayoutInflater android.view.LayoutInflater from(android.content.Context)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.LayoutInflater android.view.LayoutInflater from(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.LayoutInflater.Factory getFactory()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.LayoutInflater.Factory2 getFactory2()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.LayoutInflater.Filter getFilter()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.View createView(java.lang.String, java.lang.String, android.util.AttributeSet) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.LayoutInflater android.view.View createView(java.lang.String, java.lang.String, android.util.AttributeSet) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 0">
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
-  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup, boolean)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.LayoutInflater android.view.View inflate(int, android.view.ViewGroup, boolean) 0">
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
   <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup, boolean)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup, boolean) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.LayoutInflater android.view.View inflate(org.xmlpull.v1.XmlPullParser, android.view.ViewGroup, boolean) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.LayoutInflater android.view.View onCreateView(android.view.View, java.lang.String, android.util.AttributeSet) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.LayoutInflater android.view.View onCreateView(java.lang.String, android.util.AttributeSet) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.view.LayoutInflater void setFactory(android.view.LayoutInflater.Factory) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.Menu android.view.MenuItem add(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
-  <item name="android.view.LayoutInflater void setFactory2(android.view.LayoutInflater.Factory2) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.Menu android.view.MenuItem add(int, int, int, int) 3">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
-  <item name="android.view.LayoutInflater void setFilter(android.view.LayoutInflater.Filter) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.Menu android.view.SubMenu addSubMenu(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
-  <item name="android.view.LayoutInflater.Factory android.view.View onCreateView(java.lang.String, android.content.Context, android.util.AttributeSet)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.Menu android.view.SubMenu addSubMenu(int, int, int, int) 3">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
-  <item name="android.view.LayoutInflater.Factory2 android.view.View onCreateView(android.view.View, java.lang.String, android.content.Context, android.util.AttributeSet)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.MenuInflater void inflate(int, android.view.Menu) 0">
+    <annotation name="android.support.annotation.MenuRes" />
   </item>
-  <item name="android.view.Menu android.view.MenuItem findItem(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.MenuItem android.view.MenuItem setActionView(int) 0">
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
-  <item name="android.view.MenuItem android.graphics.drawable.Drawable getIcon()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.MenuItem android.view.MenuItem setIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
-  <item name="android.view.MenuItem android.view.ActionProvider getActionProvider()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MenuItem android.view.ContextMenu.ContextMenuInfo getMenuInfo()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MenuItem android.view.SubMenu getSubMenu()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MenuItem android.view.View getActionView()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MenuItem java.lang.CharSequence getTitleCondensed()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtain(android.view.MotionEvent)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtain(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtain(long, long, int, float, float, float, float, int, float, float, int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtain(long, long, int, float, float, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtain(long, long, int, int, android.view.MotionEvent.PointerProperties[], android.view.MotionEvent.PointerCoords[], int, int, float, float, int, int, int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtain(long, long, int, int, float, float, float, float, int, float, float, int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtain(long, long, int, int, int[], android.view.MotionEvent.PointerCoords[], int, float, float, int, int, int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtainNoHistory(android.view.MotionEvent)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent android.view.MotionEvent obtainNoHistory(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent int axisFromString(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.MotionEvent void transform(android.graphics.Matrix) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.MenuItem android.view.MenuItem setTitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.view.MotionEvent void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.MotionEvent.PointerCoords PointerCoords(android.view.MotionEvent.PointerCoords) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.MotionEvent.PointerCoords void copyFrom(android.view.MotionEvent.PointerCoords) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.MotionEvent.PointerProperties PointerProperties(android.view.MotionEvent.PointerProperties) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.MotionEvent.PointerProperties void copyFrom(android.view.MotionEvent.PointerProperties) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.OrientationEventListener OrientationEventListener(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.OrientationEventListener OrientationEventListener(android.content.Context, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ScaleGestureDetector ScaleGestureDetector(android.content.Context, android.view.ScaleGestureDetector.OnScaleGestureListener) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ScaleGestureDetector boolean onTouchEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setHeaderIcon(android.graphics.drawable.Drawable)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setHeaderIcon(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.SubMenu android.view.SubMenu setHeaderIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setHeaderTitle(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.SubMenu android.view.SubMenu setHeaderTitle(int) 0">
+    <annotation name="android.support.annotation.StringRes" />
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setHeaderTitle(java.lang.CharSequence)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setHeaderView(android.view.View)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setIcon(android.graphics.drawable.Drawable)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SubMenu android.view.SubMenu setIcon(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.view.Surface CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.Surface Surface(android.graphics.SurfaceTexture) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.SubMenu android.view.SubMenu setIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.view.Surface android.graphics.Canvas lockCanvas(android.graphics.Rect)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.Surface void readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.Surface void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.SurfaceHolder android.graphics.Canvas lockCanvas()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.SurfaceHolder android.graphics.Canvas lockCanvas(android.graphics.Rect)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.SurfaceHolder android.graphics.Rect getSurfaceFrame()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SurfaceView SurfaceView(android.content.Context, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SurfaceView SurfaceView(android.content.Context, android.util.AttributeSet, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.SurfaceView android.view.SurfaceHolder getHolder()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.SurfaceView boolean gatherTransparentRegion(android.graphics.Region) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SurfaceView void dispatchDraw(android.graphics.Canvas) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.SurfaceView void draw(android.graphics.Canvas) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.TextureView TextureView(android.content.Context, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.TextureView TextureView(android.content.Context, android.util.AttributeSet, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Bitmap getBitmap()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Bitmap getBitmap(android.graphics.Bitmap)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Bitmap getBitmap(android.graphics.Bitmap) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Bitmap getBitmap(int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Canvas lockCanvas()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Canvas lockCanvas(android.graphics.Rect)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Matrix getTransform(android.graphics.Matrix)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.Matrix getTransform(android.graphics.Matrix) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView android.graphics.SurfaceTexture getSurfaceTexture()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.TextureView void setSurfaceTexture(android.graphics.SurfaceTexture) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.TextureView void unlockCanvasAndPost(android.graphics.Canvas) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.TouchDelegate TouchDelegate(android.graphics.Rect, android.view.View) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.TouchDelegate boolean onTouchEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.VelocityTracker android.view.VelocityTracker obtain()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.VelocityTracker void addMovement(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View View(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View android.content.Context getContext()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.content.res.Resources getResources()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.graphics.Bitmap getDrawingCache()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.graphics.Bitmap getDrawingCache(boolean)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.graphics.drawable.Drawable getBackground()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.os.Handler getHandler()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.os.IBinder getApplicationWindowToken()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.os.IBinder getWindowToken()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.ActionMode startActionMode(android.view.ActionMode.Callback)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.ContextMenu.ContextMenuInfo getContextMenuInfo()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.Display getDisplay()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.KeyEvent.DispatcherState getKeyDispatcherState()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.TouchDelegate getTouchDelegate()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.View findFocus()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View android.view.View findViewById(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{id}" />
-    </annotation>
-  </item>
-  <item name="android.view.View android.view.View findViewWithTag(java.lang.Object)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.View findViewWithTag(java.lang.Object) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.View focusSearch(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.view.View android.view.View focusSearch(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
   </item>
-  <item name="android.view.View android.view.View getRootView()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.View.OnFocusChangeListener getOnFocusChangeListener()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.ViewGroup.LayoutParams getLayoutParams()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.ViewParent getParent()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.ViewParent getParentForAccessibility()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.ViewPropertyAnimator animate()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.ViewTreeObserver getViewTreeObserver()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.WindowId getWindowId()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.accessibility.AccessibilityNodeProvider getAccessibilityNodeProvider()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.animation.Animation getAnimation()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View android.view.inputmethod.InputConnection onCreateInputConnection(android.view.inputmethod.EditorInfo)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.view.View boolean dispatchGenericMotionEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean dispatchHoverEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean dispatchKeyEvent(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean dispatchKeyEventPreIme(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean dispatchKeyShortcutEvent(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean dispatchTouchEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean dispatchUnhandledMove(android.view.View, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
   </item>
   <item name="android.view.View boolean fitSystemWindows(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean getGlobalVisibleRect(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean getGlobalVisibleRect(android.graphics.Rect, android.graphics.Point) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View boolean getGlobalVisibleRect(android.graphics.Rect, android.graphics.Point) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean getLocalVisibleRect(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean onFilterTouchEventForSecurity(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean onHoverEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean onKeyDown(int, android.view.KeyEvent) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean onTouchEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View boolean removeCallbacks(java.lang.Runnable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean requestRectangleOnScreen(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean requestRectangleOnScreen(android.graphics.Rect, boolean) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View boolean startDrag(android.content.ClipData, android.view.View.DragShadowBuilder, java.lang.Object, int) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View int getDrawingCacheQuality()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
     </annotation>
   </item>
+  <item name="android.view.View int getId()">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.view.View int getLayoutDirection()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
   <item name="android.view.View int getScrollBarStyle()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
     </annotation>
   </item>
   <item name="android.view.View int getTextAlignment()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.TEXT_ALIGNMENT_INHERIT, android.view.View.TEXT_ALIGNMENT_GRAVITY, android.view.View.TEXT_ALIGNMENT_CENTER, android.view.View.TEXT_ALIGNMENT_TEXT_START, android.view.View.TEXT_ALIGNMENT_TEXT_END, android.view.View.TEXT_ALIGNMENT_VIEW_START, android.view.View.TEXT_ALIGNMENT_VIEW_END}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.TEXT_ALIGNMENT_INHERIT, android.view.View.TEXT_ALIGNMENT_GRAVITY, android.view.View.TEXT_ALIGNMENT_CENTER, android.view.View.TEXT_ALIGNMENT_TEXT_START, android.view.View.TEXT_ALIGNMENT_TEXT_END, android.view.View.TEXT_ALIGNMENT_VIEW_START, android.view.View.TEXT_ALIGNMENT_VIEW_END}" />
     </annotation>
   </item>
   <item name="android.view.View int getVisibility()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View int getWindowVisibility()">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
-  <item name="android.view.View int[] getDrawableState()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.view.View int[] mergeDrawableStates(int[], int[])">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View int[] mergeDrawableStates(int[], int[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View int[] mergeDrawableStates(int[], int[]) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View java.lang.CharSequence getContentDescription()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View java.lang.Object getTag(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View java.util.ArrayList&lt;android.view.View&gt; getFocusables(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View java.util.ArrayList&lt;android.view.View&gt; getFocusables(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
   </item>
   <item name="android.view.View java.util.ArrayList&lt;android.view.View&gt; getTouchables()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void addChildrenForAccessibility(java.util.ArrayList&lt;android.view.View&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void addFocusables(java.util.ArrayList&lt;android.view.View&gt;, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
   </item>
-  <item name="android.view.View void addFocusables(java.util.ArrayList&lt;android.view.View&gt;, int, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.view.View void addFocusables(java.util.ArrayList&lt;android.view.View&gt;, int, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
   </item>
   <item name="android.view.View void addFocusables(java.util.ArrayList&lt;android.view.View&gt;, int, int) 2">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.FOCUSABLES_ALL, android.view.View.FOCUSABLES_TOUCH_MODE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUSABLES_ALL, android.view.View.FOCUSABLES_TOUCH_MODE}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.view.View void addTouchables(java.util.ArrayList&lt;android.view.View&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void createContextMenu(android.view.ContextMenu) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void dispatchDisplayHint(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View void dispatchRestoreInstanceState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void dispatchSaveInstanceState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void dispatchVisibilityChanged(android.view.View, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void dispatchVisibilityChanged(android.view.View, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View void dispatchWindowVisibilityChanged(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View void draw(android.graphics.Canvas) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void findViewsWithText(java.util.ArrayList&lt;android.view.View&gt;, java.lang.CharSequence, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View void findViewsWithText(java.util.ArrayList&lt;android.view.View&gt;, java.lang.CharSequence, int) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void findViewsWithText(java.util.ArrayList&lt;android.view.View&gt;, java.lang.CharSequence, int) 2">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="flags" val="{android.view.View.FIND_VIEWS_WITH_TEXT, android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FIND_VIEWS_WITH_TEXT, android.view.View.FIND_VIEWS_WITH_CONTENT_DESCRIPTION}" />
+      <val name="flag" val="true" />
     </annotation>
   </item>
   <item name="android.view.View void getDrawingRect(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void getFocusedRect(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void getHitRect(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View void getLocationInWindow(int[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void getWindowVisibleDisplayFrame(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void initializeFadingEdge(android.content.res.TypedArray) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void initializeScrollbars(android.content.res.TypedArray) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void invalidate(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void invalidateDrawable(android.graphics.drawable.Drawable) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void onDisplayHint(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View void onFocusChanged(boolean, int, android.graphics.Rect) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.FOCUS_BACKWARD, android.view.View.FOCUS_FORWARD, android.view.View.FOCUS_LEFT, android.view.View.FOCUS_UP, android.view.View.FOCUS_RIGHT, android.view.View.FOCUS_DOWN}" />
     </annotation>
   </item>
   <item name="android.view.View void onFocusChanged(boolean, int, android.graphics.Rect) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.View void onInitializeAccessibilityEvent(android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void onInitializeAccessibilityNodeInfo(android.view.accessibility.AccessibilityNodeInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View void onRestoreInstanceState(android.os.Parcelable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void onRtlPropertiesChanged(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL}" />
     </annotation>
   </item>
   <item name="android.view.View void onVisibilityChanged(android.view.View, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void onVisibilityChanged(android.view.View, int) 1">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View void onWindowVisibilityChanged(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View void restoreHierarchyState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void saveHierarchyState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View void scheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable, long) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void sendAccessibilityEventUnchecked(android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View void setAnimation(android.view.animation.Animation) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View void setBackgroundDrawable(android.graphics.drawable.Drawable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View void setBackgroundResource(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{drawable}" />
-    </annotation>
-  </item>
-  <item name="android.view.View void setContentDescription(java.lang.CharSequence) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.view.View void setDrawingCacheQuality(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.DRAWING_CACHE_QUALITY_LOW, android.view.View.DRAWING_CACHE_QUALITY_HIGH, android.view.View.DRAWING_CACHE_QUALITY_AUTO}" />
     </annotation>
   </item>
   <item name="android.view.View void setId(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{id}" />
-    </annotation>
+    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.view.View void setLabelFor(int) 0">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{id}" />
-    </annotation>
-  </item>
-  <item name="android.view.View void setLayerPaint(android.graphics.Paint) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View void setLayerType(int, android.graphics.Paint) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.view.View void setLayoutDirection(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL, android.view.View.LAYOUT_DIRECTION_INHERIT, android.view.View.LAYOUT_DIRECTION_LOCALE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.LAYOUT_DIRECTION_LTR, android.view.View.LAYOUT_DIRECTION_RTL, android.view.View.LAYOUT_DIRECTION_INHERIT, android.view.View.LAYOUT_DIRECTION_LOCALE}" />
     </annotation>
   </item>
-  <item name="android.view.View void setLayoutParams(android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
   <item name="android.view.View void setScrollBarStyle(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.SCROLLBARS_INSIDE_OVERLAY, android.view.View.SCROLLBARS_INSIDE_INSET, android.view.View.SCROLLBARS_OUTSIDE_OVERLAY, android.view.View.SCROLLBARS_OUTSIDE_INSET}" />
     </annotation>
   </item>
   <item name="android.view.View void setTextAlignment(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.TEXT_ALIGNMENT_INHERIT, android.view.View.TEXT_ALIGNMENT_GRAVITY, android.view.View.TEXT_ALIGNMENT_CENTER, android.view.View.TEXT_ALIGNMENT_TEXT_START, android.view.View.TEXT_ALIGNMENT_TEXT_END, android.view.View.TEXT_ALIGNMENT_VIEW_START, android.view.View.TEXT_ALIGNMENT_VIEW_END}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.TEXT_ALIGNMENT_INHERIT, android.view.View.TEXT_ALIGNMENT_GRAVITY, android.view.View.TEXT_ALIGNMENT_CENTER, android.view.View.TEXT_ALIGNMENT_TEXT_START, android.view.View.TEXT_ALIGNMENT_TEXT_END, android.view.View.TEXT_ALIGNMENT_VIEW_START, android.view.View.TEXT_ALIGNMENT_VIEW_END}" />
     </annotation>
   </item>
   <item name="android.view.View void setVisibility(int) 0">
-    <annotation name="org.intellij.lang.annotations.MagicConstant">
-      <val name="intValues" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.View.VISIBLE, android.view.View.INVISIBLE, android.view.View.GONE}" />
     </annotation>
   </item>
   <item name="android.view.View void startAnimation(android.view.animation.Animation) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View void unscheduleDrawable(android.graphics.drawable.Drawable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View void unscheduleDrawable(android.graphics.drawable.Drawable, java.lang.Runnable) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.View.AccessibilityDelegate android.view.accessibility.AccessibilityNodeProvider getAccessibilityNodeProvider(android.view.View)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate boolean dispatchPopulateAccessibilityEvent(android.view.View, android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate boolean onRequestSendAccessibilityEvent(android.view.ViewGroup, android.view.View, android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate boolean performAccessibilityAction(android.view.View, int, android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void onInitializeAccessibilityEvent(android.view.View, android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void onInitializeAccessibilityEvent(android.view.View, android.view.accessibility.AccessibilityEvent) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void onInitializeAccessibilityNodeInfo(android.view.View, android.view.accessibility.AccessibilityNodeInfo) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void onInitializeAccessibilityNodeInfo(android.view.View, android.view.accessibility.AccessibilityNodeInfo) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void onPopulateAccessibilityEvent(android.view.View, android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void sendAccessibilityEvent(android.view.View, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void sendAccessibilityEventUnchecked(android.view.View, android.view.accessibility.AccessibilityEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.AccessibilityDelegate void sendAccessibilityEventUnchecked(android.view.View, android.view.accessibility.AccessibilityEvent) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.View.DragShadowBuilder android.view.View getView()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.DragShadowBuilder void onDrawShadow(android.graphics.Canvas) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.DragShadowBuilder void onProvideShadowMetrics(android.graphics.Point, android.graphics.Point) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.DragShadowBuilder void onProvideShadowMetrics(android.graphics.Point, android.graphics.Point) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.View.MeasureSpec java.lang.String toString(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewConfiguration android.view.ViewConfiguration get(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewDebug void dumpCapturedView(java.lang.String, java.lang.Object) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup ViewGroup(android.content.Context, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup ViewGroup(android.content.Context, android.util.AttributeSet, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewGroup android.view.ActionMode startActionModeForChild(android.view.View, android.view.ActionMode.Callback)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewGroup android.view.View focusSearch(android.view.View, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewGroup android.view.View getChildAt(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewGroup android.view.View getFocusedChild()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewGroup android.view.ViewGroup.LayoutParams generateLayoutParams(android.util.AttributeSet)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewGroup android.view.ViewGroup.LayoutParams generateLayoutParams(android.view.ViewGroup.LayoutParams)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewGroup android.view.ViewParent invalidateChildInParent(int[], android.graphics.Rect)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup android.view.ViewParent invalidateChildInParent(int[], android.graphics.Rect) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean addViewInLayout(android.view.View, int, android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean addViewInLayout(android.view.View, int, android.view.ViewGroup.LayoutParams, boolean) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewGroup boolean checkLayoutParams(android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchDragEvent(android.view.DragEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchGenericFocusedEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchGenericPointerEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchHoverEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchKeyEvent(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchKeyEventPreIme(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchKeyShortcutEvent(android.view.KeyEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean dispatchTouchEvent(android.view.MotionEvent) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean drawChild(android.graphics.Canvas, android.view.View, long) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean drawChild(android.graphics.Canvas, android.view.View, long) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean fitSystemWindows(android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewGroup boolean gatherTransparentRegion(android.graphics.Region) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean getChildVisibleRect(android.view.View, android.graphics.Rect, android.graphics.Point) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup boolean getChildVisibleRect(android.view.View, android.graphics.Rect, android.graphics.Point) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewGroup boolean getChildVisibleRect(android.view.View, android.graphics.Rect, android.graphics.Point) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addChildrenForAccessibility(java.util.ArrayList&lt;android.view.View&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addFocusables(java.util.ArrayList&lt;android.view.View&gt;, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addTouchables(java.util.ArrayList&lt;android.view.View&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addView(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addView(android.view.View, android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addView(android.view.View, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addView(android.view.View, int, android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void addView(android.view.View, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void attachLayoutAnimationParameters(android.view.View, android.view.ViewGroup.LayoutParams, int, int) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void attachViewToParent(android.view.View, int, android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void bringChildToFront(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void cleanupLayoutState(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void dispatchDraw(android.graphics.Canvas) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void dispatchFreezeSelfOnly(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void dispatchRestoreInstanceState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void dispatchSaveInstanceState(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void dispatchThawSelfOnly(android.util.SparseArray&lt;android.os.Parcelable&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void endViewTransition(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void findViewsWithText(java.util.ArrayList&lt;android.view.View&gt;, java.lang.CharSequence, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void invalidateChild(android.view.View, android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void invalidateChild(android.view.View, android.graphics.Rect) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void measureChild(android.view.View, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void measureChildWithMargins(android.view.View, int, int, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void offsetDescendantRectToMyCoords(android.view.View, android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void offsetDescendantRectToMyCoords(android.view.View, android.graphics.Rect) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void offsetRectIntoDescendantCoords(android.view.View, android.graphics.Rect) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void offsetRectIntoDescendantCoords(android.view.View, android.graphics.Rect) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void removeDetachedView(android.view.View, boolean) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void removeView(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void removeViewInLayout(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewGroup void requestTransparentRegion(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void startViewTransition(android.view.View) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup void updateViewLayout(android.view.View, android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup.LayoutParams LayoutParams(android.content.Context, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup.LayoutParams LayoutParams(android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup.LayoutParams void setBaseAttributes(android.content.res.TypedArray, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup.MarginLayoutParams MarginLayoutParams(android.content.Context, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup.MarginLayoutParams MarginLayoutParams(android.view.ViewGroup.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewGroup.MarginLayoutParams MarginLayoutParams(android.view.ViewGroup.MarginLayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewParent android.view.ActionMode startActionModeForChild(android.view.View, android.view.ActionMode.Callback)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewParent android.view.View focusSearch(android.view.View, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewParent android.view.ViewParent getParent()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewParent android.view.ViewParent getParentForAccessibility()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.ViewParent android.view.ViewParent invalidateChildInParent(int[], android.graphics.Rect)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator alpha(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator alphaBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator rotation(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator rotationBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator rotationX(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator rotationXBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator rotationY(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator rotationYBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator scaleX(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator scaleXBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator scaleY(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator scaleYBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator setDuration(long)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator setInterpolator(android.animation.TimeInterpolator)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator setListener(android.animation.Animator.AnimatorListener)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator setStartDelay(long)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator translationX(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator translationXBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator translationY(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator translationYBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator withEndAction(java.lang.Runnable)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator withEndAction(java.lang.Runnable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator withLayer()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator withStartAction(java.lang.Runnable)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator withStartAction(java.lang.Runnable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator x(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator xBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator y(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewPropertyAnimator android.view.ViewPropertyAnimator yBy(float)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewStub ViewStub(android.content.Context, android.util.AttributeSet) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.ViewStub ViewStub(android.content.Context, android.util.AttributeSet, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.ViewStub ViewStub(android.content.Context, int) 1">
+    <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.view.ViewStub int getInflatedId()">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.view.ViewStub int getLayoutResource()">
+    <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.view.ViewStub void setInflatedId(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
+  <item name="android.view.ViewStub void setLayoutResource(int) 0">
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
   <item name="android.view.Window android.view.LayoutInflater getLayoutInflater()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.Window android.view.View findViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.view.Window android.view.View getCurrentFocus()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.Window android.view.Window getContainer()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.Window android.view.WindowManager.LayoutParams getAttributes()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.view.Window void setContainer(android.view.Window) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.Window void setBackgroundDrawableResource(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
+  </item>
+  <item name="android.view.Window void setContentView(int) 0">
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
   <item name="android.view.Window void setFeatureDrawableResource(int, int) 1">
-    <annotation name="android.annotation.ResourceInt">
-      <val name="value" val="{drawable}" />
-    </annotation>
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
-  <item name="android.view.Window void setWindowManager(android.view.WindowManager, android.os.IBinder, java.lang.String, boolean) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.Window void setIcon(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
-  <item name="android.view.Window.Callback android.view.ActionMode onWindowStartingActionMode(android.view.ActionMode.Callback)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.Window.Callback android.view.View onCreatePanelView(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.WindowId CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+  <item name="android.view.Window void setLogo(int) 0">
+    <annotation name="android.support.annotation.DrawableRes" />
   </item>
   <item name="android.view.WindowId void registerFocusObserver(android.view.WindowId.FocusObserver) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.WindowId void unregisterFocusObserver(android.view.WindowId.FocusObserver) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.WindowId void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.WindowManager.LayoutParams LayoutParams(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.WindowManager.LayoutParams int copyFrom(android.view.WindowManager.LayoutParams) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.WindowManager.LayoutParams java.lang.CharSequence getTitle()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.WindowManager.LayoutParams java.lang.String debug(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.view.WindowManager.LayoutParams packageName">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.WindowManager.LayoutParams token">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.view.WindowManager.LayoutParams void setTitle(java.lang.CharSequence) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.view.WindowManager.LayoutParams void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

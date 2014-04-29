@@ -16,14 +16,14 @@
 package com.intellij.android.designer.propertyTable.editors;
 
 import com.android.resources.ResourceType;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.propertyTable.renderers.EventHandlerEditorRenderer;
-import com.intellij.designer.ModuleProvider;
 import com.intellij.designer.model.PropertiesContainer;
 import com.intellij.designer.model.PropertyContext;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadPropertyContext;
 import com.intellij.designer.propertyTable.InplaceContext;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.util.ArrayUtil;
@@ -74,13 +74,15 @@ public class EventHandlerEditor extends ResourceEditor {
     JComboBox combo = getCombo();
     combo.setModel(model);
 
-    ModuleProvider moduleProvider = myRootComponent.getClientProperty(ModelParser.MODULE_KEY);
+    Module module = RadModelBuilder.getModule(myRootComponent);
     Set<String> names = new HashSet<String>();
 
-    for (PsiClass psiClass : ChooseClassDialog.findInheritors(moduleProvider.getModule(), "android.app.Activity", true)) {
-      for (PsiMethod method : psiClass.getMethods()) {
-        if (OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) && names.add(method.getName())) {
-          model.addElement(new PsiMethodWrapper(method));
+    if (module != null) {
+      for (PsiClass psiClass : ChooseClassDialog.findInheritors(module, "android.app.Activity", true)) {
+        for (PsiMethod method : psiClass.getMethods()) {
+          if (OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) && names.add(method.getName())) {
+            model.addElement(new PsiMethodWrapper(method));
+          }
         }
       }
     }

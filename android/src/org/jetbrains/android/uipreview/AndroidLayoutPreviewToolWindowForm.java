@@ -17,11 +17,11 @@ package org.jetbrains.android.uipreview;
 
 
 import com.android.tools.idea.configurations.*;
-import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.SaveScreenshotAction;
-import com.android.tools.idea.rendering.ScalableImage;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
+import com.android.tools.idea.rendering.HoverOverlay;
+import com.android.tools.idea.rendering.IncludeOverlay;
+import com.android.tools.idea.rendering.Overlay;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.fileEditor.TextEditor;
@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBScrollPane;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -45,6 +46,7 @@ import java.awt.*;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,16 +54,19 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public class AndroidLayoutPreviewToolWindowForm implements Disposable, ConfigurationListener, RenderContext,
-                                                           ResourceFolderManager.ResourceFolderListener {
+                                                           OverlayContainer, ResourceFolderManager.ResourceFolderListener {
   private JPanel myContentPanel;
   private AndroidLayoutPreviewPanel myPreviewPanel;
   private JBScrollPane myScrollPane;
-  private JPanel myComboPanel;
+  private JPanel mySecondToolBarPanel;
+  private JPanel myFirstToolbarPanel;
   private PsiFile myFile;
   private Configuration myConfiguration;
   private AndroidFacet myFacet;
   private final AndroidLayoutPreviewToolWindowManager myToolWindowManager;
   private final ActionToolbar myActionToolBar;
+  private final HoverOverlay myHover = new HoverOverlay(this);
+  private final List<Overlay> myOverlays = Arrays.asList(myHover, new IncludeOverlay(this));
 
   public AndroidLayoutPreviewToolWindowForm(final Project project, AndroidLayoutPreviewToolWindowManager toolWindowManager) {
     Disposer.register(this, myPreviewPanel);
@@ -77,39 +82,16 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     actionGroup.addSeparator();
     actionGroup.add(new RefreshRenderAction(this));
     actionGroup.add(new SaveScreenshotAction(this));
-    myActionToolBar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
+    myActionToolBar = ActionManager.getInstance().createActionToolbar("LayoutPreview", actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
 
-    final ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption()
+    ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption()
       .addRetinaOption().build();
-    final JComponent toolbar = myActionToolBar.getComponent();
-    final JPanel toolBarWrapper = new JPanel(new BorderLayout());
-    toolBarWrapper.add(toolbar, BorderLayout.CENTER);
-    Dimension preferredToolbarSize = toolbar.getPreferredSize();
-    Dimension minimumToolbarSize = toolbar.getMinimumSize();
-    toolBarWrapper.setPreferredSize(new Dimension(preferredToolbarSize.width, minimumToolbarSize.height));
-    toolBarWrapper.setMinimumSize(new Dimension(Math.max(10, preferredToolbarSize.width), minimumToolbarSize.height));
-
-    final JPanel fullToolbarComponent = new JPanel(new BorderLayout());
-    fullToolbarComponent.add(toolBarWrapper, BorderLayout.CENTER);
-    fullToolbarComponent.add(optionsToolBar.getComponent(), BorderLayout.EAST);
-
+    JComponent toolbar = myActionToolBar.getComponent();
     ConfigurationToolBar configToolBar = new ConfigurationToolBar(this);
-
-    final GridBagConstraints gb = new GridBagConstraints();
-    gb.fill = GridBagConstraints.HORIZONTAL;
-    gb.anchor = GridBagConstraints.CENTER;
-    gb.insets = new Insets(0, 2, 2, 2);
-    gb.weightx = 1;
-    gb.gridx = 0;
-    gb.gridy = 0;
-    gb.gridwidth = 1;
-    myComboPanel.add(configToolBar, gb);
-    gb.fill = GridBagConstraints.NONE;
-    gb.anchor = GridBagConstraints.EAST;
-    gb.gridx = 0;
-    gb.gridy++;
-    myComboPanel.add(fullToolbarComponent, gb);
+    myFirstToolbarPanel.add(configToolBar, BorderLayout.CENTER);
+    mySecondToolBarPanel.add(optionsToolBar.getComponent(), BorderLayout.EAST);
+    mySecondToolBarPanel.add(toolbar, BorderLayout.CENTER);
 
     myContentPanel.addComponentListener(new ComponentListener() {
       @Override
@@ -132,6 +114,9 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
     myScrollPane.getHorizontalScrollBar().setUnitIncrement(5);
     myScrollPane.getVerticalScrollBar().setUnitIncrement(5);
+
+    myPreviewPanel.setOverlayContainer(this);
+    myPreviewPanel.installHover(myHover);
   }
 
   public JPanel getContentPanel() {
@@ -228,6 +213,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public void requestRender() {
     if (myFile != null) {
       myToolWindowManager.render();
+      myToolWindowManager.flush();
       myPreviewPanel.update();
     }
   }
@@ -290,10 +276,20 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   public BufferedImage getRenderedImage() {
     RenderResult result = myPreviewPanel.getRenderResult();
     if (result != null) {
-      ScalableImage scalableImage = result.getImage();
-      if (scalableImage != null) {
-        return scalableImage.getOriginalImage();
+      RenderedImage renderedImage = result.getImage();
+      if (renderedImage != null) {
+        return renderedImage.getOriginalImage();
       }
+    }
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public RenderedViewHierarchy getViewHierarchy() {
+    RenderResult result = myPreviewPanel.getRenderResult();
+    if (result != null) {
+      return result.getHierarchy();
     }
     return null;
   }
@@ -335,6 +331,37 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   @Override
   public void zoomFit(boolean onlyZoomOut, boolean allowZoomIn) {
     myPreviewPanel.setZoomToFit(true);
+  }
+
+  // ---- Implements OverlayContainer ----
+
+  @Override
+  @NotNull
+  public Rectangle fromModel(@NotNull Component target, @NotNull Rectangle rectangle) {
+    assert myPreviewPanel != null;
+    assert target == myPreviewPanel.getPaintComponent().getParent(); // Currently point conversion only supports this configuration
+    Rectangle converted = myPreviewPanel.fromModelToScreen(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    return converted != null ? converted : rectangle;
+  }
+
+  @Override
+  @NotNull
+  public Rectangle toModel(@NotNull Component source, @NotNull Rectangle rectangle) {
+    assert myPreviewPanel != null;
+    assert source == myPreviewPanel.getPaintComponent().getParent(); // Currently point conversion only supports this configuration
+    Rectangle converted = myPreviewPanel.fromScreenToModel(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    return converted != null ? converted : rectangle;
+  }
+
+  @Override
+  @Nullable
+  public List<Overlay> getOverlays() {
+    return myOverlays;
+  }
+
+  @Override
+  public boolean isSelected(@NotNull XmlTag tag) {
+    return myPreviewPanel.isSelected(tag);
   }
 
   // ---- Implements ConfigurationListener ----

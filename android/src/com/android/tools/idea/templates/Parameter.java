@@ -28,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -37,6 +38,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +62,8 @@ public class Parameter {
     STRING,
     BOOLEAN,
     ENUM,
-    SEPARATOR;
+    SEPARATOR,
+    EXTERNAL;
     // TODO: Numbers?
 
     public static Type get(String name) {
@@ -133,6 +136,9 @@ public class Parameter {
     /** The associated value should represent a valid id resource name */
     ID,
 
+    /** The associated value should represent a valid source directory name */
+    SOURCE_SET_FOLDER,
+
     /** The associated value should represent a valid string resource name */
     STRING;
 
@@ -191,6 +197,12 @@ public class Parameter {
   @Nullable
   public final String visibility;
 
+  /**
+   * A URL for externally sourced values.
+   */
+  @Nullable
+  public final String sourceUrl;
+
   /** Help for the parameter, if any */
   @Nullable
   public final String help;
@@ -215,6 +227,7 @@ public class Parameter {
     initial = parameter.getAttribute(ATTR_DEFAULT);
     suggest = parameter.getAttribute(ATTR_SUGGEST);
     visibility = parameter.getAttribute(ATTR_VISIBILITY);
+    sourceUrl = type == Type.EXTERNAL ? parameter.getAttribute(ATTR_SOURCE_URL) : null;
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
@@ -246,6 +259,7 @@ public class Parameter {
     initial = null;
     suggest = null;
     visibility = null;
+    sourceUrl = null;
     name = id;
     help = null;
     constraints = EnumSet.noneOf(Constraint.class);
@@ -269,6 +283,7 @@ public class Parameter {
   public String validate(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                          @Nullable String packageName, @Nullable Object value) {
     switch (type) {
+      case EXTERNAL:
       case STRING:
         return getErrorMessageForStringType(project, module, provider, packageName, value.toString());
       case BOOLEAN:
@@ -438,6 +453,19 @@ public class Parameter {
         violations.add(Constraint.STRING);
       }
       // TODO: Existence check
+    }
+    if (constraints.contains(Constraint.SOURCE_SET_FOLDER)) {
+      if (module != null) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null) {
+          String modulePath = AndroidRootUtil.getModuleDirPath(module);
+          if (modulePath != null) {
+            File file = new File(FileUtil.toSystemDependentName(modulePath), value);
+            VirtualFile vFile = VfsUtil.findFileByIoFile(file, true);
+            exists = !IdeaSourceProvider.getSourceProvidersForFile(facet, vFile, null).isEmpty();
+          }
+        }
+      }
     }
 
     if (constraints.contains(Constraint.UNIQUE) && exists) {

@@ -21,7 +21,7 @@ import com.intellij.android.designer.designSurface.graphics.DirectionResizePoint
 import com.intellij.android.designer.designSurface.graphics.DrawingStyle;
 import com.intellij.android.designer.designSurface.graphics.RectangleFeedback;
 import com.intellij.android.designer.designSurface.layout.grid.GridSelectionDecorator;
-import com.intellij.android.designer.model.ModelParser;
+import com.intellij.android.designer.model.RadComponentOperations;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.grid.GridInfo;
 import com.intellij.android.designer.model.grid.IGridProvider;
@@ -417,7 +417,7 @@ public abstract class LayoutSpanOperation implements EditOperation {
 
     int spanValue = mySpans[myIndex];
     if (spanValue == 1) {
-      ModelParser.deleteAttribute(tag, span);
+      RadComponentOperations.deleteAttribute(tag, span);
     }
     else {
       tag.setAttribute(span, SdkConstants.NS_RESOURCES, Integer.toString(spanValue));

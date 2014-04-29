@@ -96,7 +96,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
                                  @Nullable String templateCategory,
                                  @Nullable String templateName,
                                  @Nullable Set<String> excluded) {
-    super("New " + templateCategory, project);
+    super("New " + (templateName != null ? templateName : templateCategory), project);
     myProject = project;
     myModule = module;
     myTemplateCategory = templateCategory;
@@ -217,6 +217,12 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       myWizardState.put(ATTR_MANIFEST_DIR, manifestPath);
       myWizardState.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
     }
+    File aidlDir = findAidlDir(sourceProvider);
+    if (aidlDir != null) {
+      String aidlPath = FileUtil.getRelativePath(ioModuleDir, aidlDir);
+      myWizardState.put(ATTR_AIDL_DIR, aidlPath);
+      myWizardState.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
+    }
 
     // Calculate package name
     String applicationPackageName = gradleProject.computePackageName();
@@ -248,6 +254,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       myWizardState.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getPath()));
     }
     myWizardState.put(ATTR_PACKAGE_NAME, packageName);
+    myWizardState.put(ATTR_SOURCE_PROVIDER_NAME, sourceProvider.getName());
 
     myWizardState.setSourceProvider(sourceProvider);
   }
@@ -270,6 +277,19 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     File resDir = null;
     if (!resDirectories.isEmpty()) {
       resDir = resDirectories.iterator().next();
+    }
+    return resDir;
+  }
+
+  /**
+   * Finds and returns the main res directory for the given project or null if one cannot be found.
+   */
+  @Nullable
+  public static File findAidlDir(@NotNull SourceProvider sourceProvider) {
+    Collection<File> aidlDirectories = sourceProvider.getAidlDirectories();
+    File resDir = null;
+    if (!aidlDirectories.isEmpty()) {
+      resDir = aidlDirectories.iterator().next();
     }
     return resDir;
   }
@@ -337,7 +357,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
           if (contentRoots.length > 0) {
             VirtualFile rootDir = contentRoots[0];
             File moduleRoot = VfsUtilCore.virtualToIoFile(rootDir);
-            myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
+            myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters, myProject);
             // Render the assets if necessary
             if (myAssetSetStep.isStepVisible()) {
               myAssetSetStep.createAssets(myModule);
@@ -379,5 +399,19 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     if (myGradleProject != null) {
       selectSourceProvider(sourceProvider, myGradleProject);
     }
+  }
+
+  @Override
+  protected boolean canFinish() {
+    if (!super.canFinish()) {
+      return false;
+    }
+    TemplateMetadata metadata = myWizardState.getTemplateMetadata();
+    int minApi = myWizardState.getInt(ATTR_MIN_API_LEVEL);
+    if (metadata != null && metadata.getMinSdk() > minApi) {
+      ((TemplateWizardStep)getCurrentStepObject()).setErrorHtml("This template requires a minimum API level of " + metadata.getMinSdk());
+      return false;
+    }
+    return true;
   }
 }

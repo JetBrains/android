@@ -208,6 +208,5 @@ public class AndroidPlatform {
       }
     }
     return null;
-
   }
 }

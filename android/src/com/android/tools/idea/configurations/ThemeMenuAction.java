@@ -91,6 +91,7 @@ public class ThemeMenuAction extends FlatAction {
         String theme = dialog.getTheme();
         if (theme != null) {
           configuration.setTheme(theme);
+          myRenderContext.requestRender();
         }
       }
     }

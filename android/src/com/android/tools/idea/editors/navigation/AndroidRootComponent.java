@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
+import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -28,7 +29,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.JBColor;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +63,7 @@ public class AndroidRootComponent extends JComponent {
       OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
       FileEditorManager manager = FileEditorManager.getInstance(project);
       manager.openEditor(descriptor, true);
-      manager.setSelectedEditor(virtualFile, AndroidLayoutPreviewPanel.ANDROID_DESIGNER_ID);
+      manager.setSelectedEditor(virtualFile, AndroidDesignerEditorProvider.ANDROID_DESIGNER_ID);
     }
   }
 
@@ -163,8 +163,8 @@ public class AndroidRootComponent extends JComponent {
   @Nullable
   private Image getScaledImage() {
     if (myScaledImage == null || myScaledImage.getWidth(null) != getWidth() || myScaledImage.getHeight(null) != getHeight()) {
-      ScalableImage scalableImage = (myRenderResult == null) ? null : myRenderResult.getImage();
-      BufferedImage image = (scalableImage == null) ? null : scalableImage.getOriginalImage();
+      RenderedImage renderedImage = (myRenderResult == null) ? null : myRenderResult.getImage();
+      BufferedImage image = (renderedImage == null) ? null : renderedImage.getOriginalImage();
       myScaledImage = (image == null) ? null : ImageUtils.scale(image, transform.myScale, transform.myScale, 0, 0);
     }
     return myScaledImage;

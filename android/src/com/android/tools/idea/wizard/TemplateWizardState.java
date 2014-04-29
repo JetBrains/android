@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.tools.idea.templates.Parameter;
@@ -99,6 +100,7 @@ public class TemplateWizardState {
 
     put(ATTR_SRC_DIR, "src/main/java");
     put(ATTR_RES_DIR, "src/main/res");
+    put(ATTR_AIDL_DIR, "src/main/aidl");
     put(ATTR_MANIFEST_DIR, "src/main");
   }
 
@@ -107,19 +109,26 @@ public class TemplateWizardState {
    * a number of files go. The templates use these globals to allow them to service both old-style Ant builds with the old directory
    * structure and new-style Gradle builds with the new structure.
    */
-  protected void populateDirectoryParameters() throws IOException {
+  @VisibleForTesting
+  public void populateDirectoryParameters() throws IOException {
     File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
 
     // Set Res directory if we don't have one
-    if (!myParameters.containsKey(ATTR_RES_OUT)) {
+    if (!myParameters.containsKey(ATTR_RES_OUT) || myParameters.get(ATTR_RES_OUT) == null) {
       File resourceSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.RESOURCE_SOURCE_PATH);
       put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     }
 
+    // Set AIDL directory if we don't have one
+    if (!myParameters.containsKey(ATTR_AIDL_OUT) || get(ATTR_AIDL_OUT) == null) {
+      File aidlRoot = new File(mainFlavorSourceRoot, TemplateWizard.AIDL_SOURCE_PATH);
+      put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlRoot.getPath()));
+    }
+
     // Set Src directory if we don't have one
-    if (!myParameters.containsKey(ATTR_SRC_OUT)) {
+    if (!myParameters.containsKey(ATTR_SRC_OUT)  || myParameters.get(ATTR_SRC_OUT) == null) {
       File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
       File javaSourcePackageRoot;
       if (myParameters.containsKey(ATTR_PACKAGE_ROOT)) {
@@ -134,7 +143,7 @@ public class TemplateWizardState {
     }
 
     // Set Manifest directory if we don't have one
-    if (!myParameters.containsKey(ATTR_MANIFEST_OUT)) {
+    if (!myParameters.containsKey(ATTR_MANIFEST_OUT) || myParameters.get(ATTR_MANIFEST_OUT) == null) {
       put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
     }
 

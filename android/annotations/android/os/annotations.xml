@@ -1,859 +1,466 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
   <item name="android.os.AsyncTask Result get(long, java.util.concurrent.TimeUnit) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.AsyncTask android.os.AsyncTask.Status getStatus()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; execute(Params...)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; executeOnExecutor(java.util.concurrent.Executor, Params...)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.AsyncTask android.os.AsyncTask&lt;Params,Progress,Result&gt; executeOnExecutor(java.util.concurrent.Executor, Params...) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.AsyncTask void execute(java.lang.Runnable) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Binder android.os.IInterface queryLocalInterface(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Binder android.os.UserHandle getCallingUserHandle()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Binder boolean onTransact(int, android.os.Parcel, android.os.Parcel, int) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Binder boolean onTransact(int, android.os.Parcel, android.os.Parcel, int) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Binder boolean transact(int, android.os.Parcel, android.os.Parcel, int) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Binder boolean transact(int, android.os.Parcel, android.os.Parcel, int) 2">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle Bundle(android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle EMPTY">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Bundle T getParcelable(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle android.os.Bundle getBundle(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle android.os.IBinder getBinder(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle android.os.Parcelable[] getParcelableArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle android.util.SparseArray&lt;T&gt; getSparseParcelableArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle boolean[] getBooleanArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle byte[] getByteArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle char[] getCharArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle double[] getDoubleArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle float[] getFloatArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle int[] getIntArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.io.Serializable getSerializable(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.lang.CharSequence getCharSequence(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.lang.CharSequence getCharSequence(java.lang.String, java.lang.CharSequence)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.lang.CharSequence[] getCharSequenceArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle java.lang.Object clone()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Bundle java.lang.String getString(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.lang.String getString(java.lang.String, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.lang.String[] getStringArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.util.ArrayList&lt;T&gt; getParcelableArrayList(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.CharSequence&gt; getCharSequenceArrayList(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.Integer&gt; getIntegerArrayList(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle java.util.ArrayList&lt;java.lang.String&gt; getStringArrayList(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle java.util.Set&lt;java.lang.String&gt; keySet()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Bundle long[] getLongArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Bundle short[] getShortArray(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle void putAll(android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle void readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Bundle void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.CancellationSignal void setOnCancelListener(android.os.CancellationSignal.OnCancelListener) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.CountDownTimer android.os.CountDownTimer start()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Debug.MemoryInfo java.lang.String getOtherLabel(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Debug.MemoryInfo void readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Debug.MemoryInfo void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.DropBoxManager android.os.DropBoxManager.Entry getNextEntry(java.lang.String, long)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager void addData(java.lang.String, byte[], int) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager void addFile(java.lang.String, java.io.File, int) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long, android.os.ParcelFileDescriptor, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long, android.os.ParcelFileDescriptor, int) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long, byte[], int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long, byte[], int) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long, java.io.File, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry Entry(java.lang.String, long, java.lang.String) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry java.io.InputStream getInputStream()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry java.lang.String getTag()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.DropBoxManager.Entry java.lang.String getText(int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.DropBoxManager.Entry void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_ALARMS">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_DCIM">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_DOWNLOADS">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_MOVIES">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_MUSIC">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_NOTIFICATIONS">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_PICTURES">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_PODCASTS">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment DIRECTORY_RINGTONES">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment java.io.File getDataDirectory()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment java.io.File getDownloadCacheDirectory()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment java.io.File getExternalStoragePublicDirectory(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Environment java.io.File getRootDirectory()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler Handler(android.os.Looper) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler Handler(android.os.Looper, android.os.Handler.Callback) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler boolean sendMessage(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler boolean sendMessageAtFrontOfQueue(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler boolean sendMessageAtTime(android.os.Message, long) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler boolean sendMessageDelayed(android.os.Message, long) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler java.lang.String getMessageName(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler void dispatchMessage(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Handler void dump(android.util.Printer, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.HandlerThread android.os.Looper getLooper()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.IBinder android.os.IInterface queryLocalInterface(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Looper android.os.MessageQueue myQueue()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Looper java.lang.Thread getThread()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.MemoryFile int readBytes(byte[], int, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.MemoryFile java.io.InputStream getInputStream()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.MemoryFile java.io.OutputStream getOutputStream()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.MemoryFile void writeBytes(byte[], int, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Message android.os.Bundle getData()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Bundle peekData()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Handler getTarget()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Handler)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Handler, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Handler, int, int, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Handler, int, int, int, java.lang.Object)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Handler, int, java.lang.Object)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Handler, java.lang.Runnable)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message android.os.Message obtain(android.os.Message)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Message android.os.Message obtain(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Message java.lang.Runnable getCallback()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message obj">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Message replyTo">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Message void copyFrom(android.os.Message) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Message void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.MessageQueue void addIdleHandler(android.os.MessageQueue.IdleHandler) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Messenger CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Messenger Messenger(android.os.Handler) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Messenger android.os.Messenger readMessengerOrNullFromParcel(android.os.Parcel)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Messenger android.os.Messenger readMessengerOrNullFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Messenger void writeMessengerOrNullToParcel(android.os.Messenger, android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Messenger void writeMessengerOrNullToParcel(android.os.Messenger, android.os.Parcel) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Messenger void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.OperationCanceledException OperationCanceledException(java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel T readParcelable(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel T[] createTypedArray(android.os.Parcelable.Creator&lt;T&gt;)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel T[] createTypedArray(android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Parcel android.os.Bundle readBundle()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel android.os.Bundle readBundle(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel android.os.Bundle readBundle(java.lang.ClassLoader) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel android.os.IBinder readStrongBinder()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Parcel android.os.IBinder[] createBinderArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel android.os.ParcelFileDescriptor readFileDescriptor()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel android.os.Parcelable[] readParcelableArray(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel android.util.SparseArray readSparseArray(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel android.util.SparseBooleanArray readSparseBooleanArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel boolean[] createBooleanArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel byte[] createByteArray()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel byte[] marshall()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Parcel char[] createCharArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel double[] createDoubleArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel float[] createFloatArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel int[] createIntArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel java.io.Serializable readSerializable()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel java.lang.Object readValue(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel java.lang.Object[] readArray(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel java.lang.String readString()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Parcel java.lang.String[] createStringArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel java.util.ArrayList readArrayList(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel java.util.ArrayList&lt;T&gt; createTypedArrayList(android.os.Parcelable.Creator&lt;T&gt;)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel java.util.ArrayList&lt;T&gt; createTypedArrayList(android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Parcel java.util.ArrayList&lt;android.os.IBinder&gt; createBinderArrayList()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel java.util.ArrayList&lt;java.lang.String&gt; createStringArrayList()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel java.util.HashMap readHashMap(java.lang.ClassLoader)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel long[] createLongArray()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void appendFrom(android.os.Parcel, int, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readBinderArray(android.os.IBinder[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readBinderList(java.util.List&lt;android.os.IBinder&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readBooleanArray(boolean[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readByteArray(byte[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readCharArray(char[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readDoubleArray(double[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readFloatArray(float[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readIntArray(int[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readList(java.util.List, java.lang.ClassLoader) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readLongArray(long[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readMap(java.util.Map, java.lang.ClassLoader) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readStringArray(java.lang.String[]) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readStringList(java.util.List&lt;java.lang.String&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readTypedArray(T[], android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readTypedArray(T[], android.os.Parcelable.Creator&lt;T&gt;) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readTypedList(java.util.List&lt;T&gt;, android.os.Parcelable.Creator&lt;T&gt;) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Parcel void readTypedList(java.util.List&lt;T&gt;, android.os.Parcelable.Creator&lt;T&gt;) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Parcel void writeArray(java.lang.Object[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeBinderArray(android.os.IBinder[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeBinderList(java.util.List&lt;android.os.IBinder&gt;) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeBooleanArray(boolean[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeBundle(android.os.Bundle) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeByteArray(byte[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeByteArray(byte[], int, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeCharArray(char[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeDoubleArray(double[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeFloatArray(float[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeIntArray(int[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeList(java.util.List) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeLongArray(long[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeParcelable(android.os.Parcelable, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeParcelableArray(T[], int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeSerializable(java.io.Serializable) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeSparseArray(android.util.SparseArray&lt;java.lang.Object&gt;) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeSparseBooleanArray(android.util.SparseBooleanArray) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeStringArray(java.lang.String[]) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeStringList(java.util.List&lt;java.lang.String&gt;) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeStrongInterface(android.os.IInterface) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeTypedArray(T[], int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeTypedList(java.util.List&lt;T&gt;) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.Parcel void writeValue(java.lang.Object) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor CREATOR">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor adoptFd(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor dup()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor dup(java.io.FileDescriptor)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromDatagramSocket(java.net.DatagramSocket)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromDatagramSocket(java.net.DatagramSocket) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromFd(int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromSocket(java.net.Socket)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor fromSocket(java.net.Socket) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor open(java.io.File, int)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor open(java.io.File, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor android.os.ParcelFileDescriptor[] createPipe()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.ParcelFileDescriptor java.io.FileDescriptor getFileDescriptor()">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor.AutoCloseInputStream AutoCloseInputStream(android.os.ParcelFileDescriptor) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelFileDescriptor.AutoCloseOutputStream AutoCloseOutputStream(android.os.ParcelFileDescriptor) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelUuid android.os.ParcelUuid fromString(java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ParcelUuid void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.Parcelable.Creator T createFromParcel(android.os.Parcel)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.PatternMatcher PatternMatcher(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.PatternMatcher void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.PowerManager android.os.PowerManager.WakeLock newWakeLock(int, java.lang.String)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.PowerManager.WakeLock void setWorkSource(android.os.WorkSource) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.Process android.os.UserHandle myUserHandle()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RecoverySystem void installPackage(android.content.Context, java.io.File) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RecoverySystem void installPackage(android.content.Context, java.io.File) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RecoverySystem void rebootWipeCache(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RecoverySystem void rebootWipeUserData(android.content.Context) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RecoverySystem void verifyPackage(java.io.File, android.os.RecoverySystem.ProgressListener, java.io.File) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.RecoverySystem void verifyPackage(java.io.File, android.os.RecoverySystem.ProgressListener, java.io.File) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.RecoverySystem void verifyPackage(java.io.File, android.os.RecoverySystem.ProgressListener, java.io.File) 2">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RemoteCallbackList boolean register(E) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RemoteCallbackList boolean register(E, java.lang.Object) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.RemoteCallbackList boolean unregister(E) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.ResultReceiver void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode android.os.StrictMode.ThreadPolicy allowThreadDiskReads()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode android.os.StrictMode.ThreadPolicy allowThreadDiskWrites()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode android.os.StrictMode.ThreadPolicy getThreadPolicy()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode android.os.StrictMode.VmPolicy getVmPolicy()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode void setThreadPolicy(android.os.StrictMode.ThreadPolicy) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode void setVmPolicy(android.os.StrictMode.VmPolicy) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder Builder(android.os.StrictMode.ThreadPolicy) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy build()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectAll()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectCustomSlowCalls()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectDiskReads()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectDiskWrites()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder detectNetwork()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDeath()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDeathOnNetwork()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDialog()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyDropBox()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyFlashScreen()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder penaltyLog()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitAll()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitCustomSlowCalls()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitDiskReads()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitDiskWrites()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.ThreadPolicy.Builder android.os.StrictMode.ThreadPolicy.Builder permitNetwork()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder Builder(android.os.StrictMode.VmPolicy) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy build()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectActivityLeaks()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectAll()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectLeakedClosableObjects()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectLeakedRegistrationObjects()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder detectLeakedSqlLiteObjects()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyDeath()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyDropBox()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder penaltyLog()">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder setClassInstanceLimit(java.lang.Class, int)">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.StrictMode.VmPolicy.Builder android.os.StrictMode.VmPolicy.Builder setClassInstanceLimit(java.lang.Class, int) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
-  </item>
-  <item name="android.os.TokenWatcher TokenWatcher(android.os.Handler, java.lang.String) 1">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.TokenWatcher void acquire(android.os.IBinder, java.lang.String) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.TokenWatcher void dump(java.io.PrintWriter) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserHandle UserHandle(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.UserHandle android.os.UserHandle readFromParcel(android.os.Parcel)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserHandle android.os.UserHandle readFromParcel(android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserHandle void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.UserHandle void writeToParcel(android.os.UserHandle, android.os.Parcel) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserHandle void writeToParcel(android.os.UserHandle, android.os.Parcel) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserManager android.os.Bundle getUserRestrictions(android.os.UserHandle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.UserManager android.os.UserHandle getUserForSerialNumber(long)">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserManager boolean isUserRunning(android.os.UserHandle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserManager boolean isUserRunningOrStopping(android.os.UserHandle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserManager long getSerialNumberForUser(android.os.UserHandle) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.UserManager void setUserRestrictions(android.os.Bundle, android.os.UserHandle) 1">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.WorkSource WorkSource(android.os.WorkSource) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.WorkSource boolean add(android.os.WorkSource) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.WorkSource boolean diff(android.os.WorkSource) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.WorkSource boolean remove(android.os.WorkSource) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
-  </item>
-  <item name="android.os.WorkSource void set(android.os.WorkSource) 0">
-    <annotation name="org.jetbrains.annotations.Nullable" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.os.WorkSource void writeToParcel(android.os.Parcel, int) 0">
-    <annotation name="org.jetbrains.annotations.NotNull" />
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

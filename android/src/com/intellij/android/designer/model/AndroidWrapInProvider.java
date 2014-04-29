@@ -32,12 +32,12 @@ public final class AndroidWrapInProvider extends WrapInProvider<RadViewComponent
 
   @Override
   public RadComponent wrapIn(RadViewComponent parent, List<RadViewComponent> components, MetaModel target) throws Exception {
-    RadViewComponent newParent = ModelParser.createComponent(null, target);
+    RadViewComponent newParent = RadComponentOperations.createComponent(null, target);
 
-    ModelParser.addComponent(parent, newParent, components.get(0));
+    RadComponentOperations.addComponent(parent, newParent, components.get(0));
 
     for (RadViewComponent component : components) {
-      ModelParser.moveComponent(newParent, component, null);
+      RadComponentOperations.moveComponent(newParent, component, null);
     }
 
     RadViewLayout layout = (RadViewLayout)parent.getLayout();

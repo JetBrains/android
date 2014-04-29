@@ -39,7 +39,19 @@ android {
     }
   }
 
+  sourceSets {
+    main {
+      aidl.srcDirs = ['src/main/aidl', 'src/main/aidl2/']
+    }
+    debug.setRoot('src/test/java')
+  }
+
   lintOptions {
     quiet true
+  }
+
+  // this should not be resolved as it only applies to android libraries
+  if (false) {
+    publishNonDefault true
   }
 }

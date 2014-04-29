@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 
 public class SyncProjectHyperlink extends NotificationHyperlink {
@@ -28,11 +26,6 @@ public class SyncProjectHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    try {
-      GradleProjectImporter.getInstance().reImportProject(project, null);
-    }
-    catch (ConfigurationException e) {
-      Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
-    }
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
 }

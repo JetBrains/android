@@ -25,7 +25,6 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -129,6 +128,26 @@ public class TemplateParameterStep extends TemplateWizardStep {
           if (myPreferredFocusComponent == null) {
             myPreferredFocusComponent = textField;
             textField.selectAll();
+          }
+          break;
+        case EXTERNAL:
+          final String url = parameter.sourceUrl;
+          if (url == null) {
+            break;
+          }
+
+          myParamContainer.add(label, c);
+          c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
+          TextFieldWithLaunchBrowserButton externalField = new TextFieldWithLaunchBrowserButton(url);
+          c.setColumn(1);
+          c.setColSpan(2);
+
+          register(parameter.id, externalField);
+
+          myParamContainer.add(externalField, c);
+          if (myPreferredFocusComponent == null) {
+            myPreferredFocusComponent = externalField;
+            externalField.getTextField().selectAll();
           }
           break;
       }
@@ -237,11 +256,13 @@ public class TemplateParameterStep extends TemplateWizardStep {
     return myPreferredFocusComponent;
   }
 
+  @NotNull
   @Override
   protected JLabel getDescription() {
     return myDescription;
   }
 
+  @NotNull
   @Override
   protected JLabel getError() {
     return myError;

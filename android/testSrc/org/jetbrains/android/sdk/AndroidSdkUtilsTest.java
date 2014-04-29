@@ -57,7 +57,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   }
 
   public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17", mySdkPath, null, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-17");
     assertNull(sdk);
   }
 
@@ -67,13 +67,13 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     assertNotNull(jdk);
     createAndroidSdk(mySdkPath, targetHashString, jdk);
 
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString, mySdkPath, null, false);
+    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString);
     assertNotNull(sdk);
     assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
   }
 
   public void DISABLEDtestTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17", false);
+    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-17");
     System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
     assertTrue(sdkSet);
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();

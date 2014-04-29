@@ -27,16 +27,17 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-import static com.android.tools.idea.rendering.ScalableImage.ShadowType;
+import static com.android.tools.idea.rendering.RenderedImage.ShadowType;
 
 public class RenderResult {
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
   @Nullable private final List<ViewInfo> myRootViews;
-  @Nullable private final ScalableImage myImage;
+  @Nullable private final RenderedImage myImage;
   @Nullable private RenderedViewHierarchy myHierarchy;
   @Nullable private final RenderService myRenderService;
   @Nullable private final RenderSession mySession; // TEMPORARY
+  @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
 
   public RenderResult(@Nullable RenderService renderService,
                       @Nullable RenderSession session,
@@ -55,7 +56,7 @@ public class RenderResult {
       if (shadowType == ShadowType.NONE && renderService.isNonRectangular()) {
         shadowType = ShadowType.ARBITRARY;
       }
-      myImage = new ScalableImage(configuration, image, alphaChannelImage, shadowType);
+      myImage = new RenderedImage(configuration, image, alphaChannelImage, shadowType);
     } else {
       myRootViews = null;
       myImage = null;
@@ -88,20 +89,15 @@ public class RenderResult {
   @Nullable
   public RenderedViewHierarchy getHierarchy() {
     if (myHierarchy == null && myRootViews != null) {
-      myHierarchy = RenderedViewHierarchy.create(myFile, myRootViews);
+      myHierarchy = RenderedViewHierarchy.create(myFile, myRootViews, myIncludedWithin != IncludeReference.NONE);
     }
 
     return myHierarchy;
   }
 
   @Nullable
-  public ScalableImage getImage() {
+  public RenderedImage getImage() {
     return myImage;
-  }
-
-  @Nullable
-  public List<ViewInfo> getRootViews() {
-    return myRootViews;
   }
 
   @NotNull
@@ -116,6 +112,18 @@ public class RenderResult {
 
   @NotNull
   public Module getModule() {
-    return myLogger.getModule();
+    Module module = myLogger.getModule();
+    // This method should only be called on a valid render result
+    assert module != null;
+    return module;
+  }
+
+  @Nullable
+  public IncludeReference getIncludedWithin() {
+    return myIncludedWithin;
+  }
+
+  public void setIncludedWithin(@Nullable IncludeReference includedWithin) {
+    myIncludedWithin = includedWithin;
   }
 }

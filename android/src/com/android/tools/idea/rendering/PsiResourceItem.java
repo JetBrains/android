@@ -181,6 +181,9 @@ class PsiResourceItem extends ResourceItem {
           }
         });
         break;
+      case STRING:
+        value = parseTextValue(new TextResourceValue(type, name, isFrameworks));
+        break;
       default:
         value = parseValue(new ResourceValue(type, name, isFrameworks));
         break;
@@ -315,6 +318,20 @@ class PsiResourceItem extends ResourceItem {
     StringBuilder sb = new StringBuilder(40);
     appendText(sb, tag);
     return sb.toString();
+  }
+
+  @NonNull
+  private TextResourceValue parseTextValue(@NonNull TextResourceValue value) {
+    assert myTag != null;
+    String text = getTextContent(myTag);
+    text = ValueXmlHelper.unescapeResourceString(text, true, true);
+    value.setValue(text);
+
+    if (myTag.getSubTags().length > 0) {
+      value.setRawXmlValue(myTag.getValue().getText());
+    }
+
+    return value;
   }
 
   private static String getXmlTextValue(XmlText element) {

@@ -187,4 +187,16 @@ public class AndroidMenuTest extends AndroidDomTest {
     myFixture.copyFileToProject(testFolder + "/Watson.java", "src/android/support/v4/app/Watson.java");
     myFixture.copyFileToProject(testFolder + "/MenuItem.java", "src/com/actionbarsherlock/view/MenuItem.java");
   }
+
+  public void testActionProviderClass() throws Throwable {
+    copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
+    copyFileToProject("MyView.java", "src/p1/p2/MyView.java");
+    toTestCompletion("actionProvider.xml", "actionProvider_after.xml");
+  }
+
+  public void testActionViewClass() throws Throwable {
+    copyFileToProject("MyProvider.java", "src/p1/p2/MyProvider.java");
+    copyFileToProject("MyView.java", "src/p1/p2/MyView.java");
+    toTestCompletion("actionView.xml", "actionView_after.xml");
+  }
 }

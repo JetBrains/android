@@ -127,10 +127,11 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     GradleSettings.getInstance(myProject).setOfflineWork(true);
     List<String> jvmArgs = Lists.newArrayList();
     AndroidGradleBuildProcessParametersProvider.populateJvmArgs(configuration, jvmArgs, myProject);
-    assertEquals(4, jvmArgs.size());
+    assertEquals(5, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.offline.mode=true", jvmArgs.get(0));
-    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.count=2", jvmArgs.get(1));
-    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.0=--stacktrace", jvmArgs.get(2));
-    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.1=--offline", jvmArgs.get(3));
+    assertEquals("-Dcom.android.studio.gradle.configuration.on.demand=true", jvmArgs.get(1));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.count=2", jvmArgs.get(2));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.0=--stacktrace", jvmArgs.get(3));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.1=--offline", jvmArgs.get(4));
   }
 }

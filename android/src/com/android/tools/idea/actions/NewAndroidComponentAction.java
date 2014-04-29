@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -35,12 +39,45 @@ public class NewAndroidComponentAction extends AnAction {
 
   private final String myTemplateCategory;
   private final String myTemplateName;
+  private final int myMinSdkVersion;
 
-  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName) {
+  public NewAndroidComponentAction(@NotNull String templateCategory, @NotNull String templateName, @Nullable TemplateMetadata metadata) {
     super(templateName, "Create a new " + templateName, null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
+    if (templateCategory.equals("Activity")) {
+      getTemplatePresentation().setIcon(AndroidIcons.Activity);
+    }
+    else {
+      getTemplatePresentation().setIcon(AndroidIcons.AndroidFile);
+    }
+    if (metadata != null) {
+      myMinSdkVersion = metadata.getMinSdk();
+    }
+    else {
+      myMinSdkVersion = 0;
+    }
   }
+
+  @Override
+  public void update(AnActionEvent e) {
+    final DataContext dataContext = e.getDataContext();
+    final Module module = LangDataKeys.MODULE.getData(dataContext);
+    if (module == null) {
+      return;
+    }
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+    if (moduleInfo == null) {
+      return;
+    }
+    int moduleMinSdkVersion = moduleInfo.getMinSdkVersion();
+    if (myMinSdkVersion > moduleMinSdkVersion) {
+      Presentation presentation = getTemplatePresentation();
+      presentation.setText(myTemplateName + " (Requires minSdk >= " + myMinSdkVersion + ")");
+      presentation.setEnabled(false);
+    }
+  }
+
 
   @Override
   public void actionPerformed(AnActionEvent e) {
@@ -58,10 +95,9 @@ public class NewAndroidComponentAction extends AnAction {
     assert facet != null;
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext),
-                                                                 LangDataKeys.MODULE.getData(dataContext),
-                                                                 targetFile,
-                                                                 myTemplateCategory, myTemplateName, EXCLUDED);
+    NewTemplateObjectWizard dialog =
+      new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext), LangDataKeys.MODULE.getData(dataContext), targetFile,
+                                  myTemplateCategory, myTemplateName, EXCLUDED);
 
     dialog.show();
     if (dialog.isOK()) {

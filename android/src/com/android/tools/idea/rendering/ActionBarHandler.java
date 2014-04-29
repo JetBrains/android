@@ -16,22 +16,43 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
+import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
 
+/**
+ * A callback to provide information related to the Action Bar as required by the
+ * {@link LayoutLibrary}
+ */
 public class ActionBarHandler extends ActionBarCallback {
 
-  @NotNull private ManifestInfo myManifestInfo;
-  @NotNull private String myActivityName;
+  @NotNull
+  private RenderService myRenderService;
+  @Nullable
+  private List<String> myMenus;
 
-  ActionBarHandler(@NotNull ManifestInfo manifestInfo) {
-    myManifestInfo = manifestInfo;
-    myActivityName = "";
+
+  ActionBarHandler(@NotNull RenderService renderService) {
+    myRenderService = renderService;
   }
 
   @Override
@@ -44,6 +65,27 @@ public class ActionBarHandler extends ActionBarCallback {
   }
 
   @Override
+  public boolean isOverflowPopupNeeded() {
+    return true;
+  }
+
+  @Override
+  public List<String> getMenuIdNames() {
+    if (myMenus != null) {
+      return myMenus;
+    }
+    String commaSeparatedMenus = getRootTagAttributeSafely(myRenderService.getPsiFile(), "menu", SdkConstants.TOOLS_URI);
+    if (commaSeparatedMenus != null) {
+      ArrayList<String> menus = new ArrayList<String>();
+      Iterables.addAll(menus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
+      if (menus.size() > 0) {
+        return menus;
+      }
+    }
+    return Collections.emptyList();
+  }
+
+  @Override
   public HomeButtonStyle getHomeButtonStyle() {
     ActivityAttributes attributes = getActivityAttributes();
     if (attributes != null && attributes.getParentActivity() != null) {
@@ -52,11 +94,41 @@ public class ActionBarHandler extends ActionBarCallback {
     return HomeButtonStyle.NONE;
   }
 
-  public void setActivityName(@NotNull String activityName) {
-    myActivityName = activityName;
+  public void setMenuIdNames(@Nullable List<String> menus) {
+    myMenus = menus;
   }
 
   private @Nullable ActivityAttributes getActivityAttributes() {
-    return myManifestInfo.getActivityAttributes(myActivityName);
+    ManifestInfo manifest = ManifestInfo.get(myRenderService.getModule(), false);
+    String activity = StringUtil.notNullize(myRenderService.getConfiguration().getActivity());
+    return manifest.getActivityAttributes(activity);
+  }
+
+  /**
+   * Get the value of an attribute in the {@link XmlFile} safely (meaning it will acquire the read lock first).
+   */
+  @Nullable
+  private static String getRootTagAttributeSafely(@NotNull final XmlFile file,
+                                                  @NotNull final String attribute,
+                                                  @Nullable final String namespace) {
+    Application application = ApplicationManager.getApplication();
+    if (!application.isReadAccessAllowed()) {
+      return application.runReadAction(new Computable<String>() {
+        @Nullable
+        @Override
+        public String compute() {
+          return getRootTagAttributeSafely(file, attribute, namespace);
+        }
+      });
+    } else {
+      XmlTag tag = file.getRootTag();
+      if (tag != null) {
+        XmlAttribute attr = tag.getAttribute(attribute, namespace);
+        if (attr != null) {
+          return attr.getValue();
+        }
+      }
+      return null;
+    }
   }
 }

@@ -25,7 +25,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
@@ -355,15 +354,7 @@ public final class DefaultSdks {
           // Don't sync in tests. For now.
           continue;
         }
-        try {
-          projectImporter.reImportProject(project, null);
-        }
-        catch (ConfigurationException e) {
-          LOG.info(e);
-          String msg =
-            String.format("Unable to sync project '%1$s' with Gradle files.\n\n" + "Cause: '%2$s'", project.getName(), getMessage(e));
-          Messages.showErrorDialog(project, msg, ERROR_DIALOG_TITLE);
-        }
+        projectImporter.requestProjectSync(project, null);
       }
     }
   }

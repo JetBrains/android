@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.google.common.collect.TreeBasedTable;
 import com.google.common.io.Files;
+import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -64,9 +65,10 @@ public class TemplateManager {
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final boolean USE_SDK_TEMPLATES = false;
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
+  private static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of("Empty Activity");
 
   /**
-   * Cache for {@link #getTemplate()}
+   * Cache for {@link #getTemplate(File)}
    */
   private Map<File, TemplateMetadata> myTemplateMap;
 
@@ -288,23 +290,34 @@ public class TemplateManager {
     } else {
       myTopGroup.removeAll();
     }
+    myTopGroup.addSeparator();
     ActionManager am = ActionManager.getInstance();
     for (String category : getCategoryTable(true).rowKeySet()) {
       if (EXCLUDED_CATEGORIES.contains(category)) {
         continue;
       }
-      DefaultActionGroup categoryGroup = new DefaultActionGroup(category, true) {
+      // Create the menu group item
+      NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
         @Override
         public void update(AnActionEvent e) {
           final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
           final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-          e.getPresentation().setVisible(facet != null && facet.isGradleProject());
+          Presentation presentation = e.getPresentation();
+          presentation.setVisible(getChildrenCount() > 0 && facet != null && facet.isGradleProject());
         }
       };
-      categoryGroup.getTemplatePresentation().setIcon(AndroidIcons.Android);
+      categoryGroup.setPopup(true);
+      Presentation presentation = categoryGroup.getTemplatePresentation();
+      presentation.setIcon(AndroidIcons.Android);
+      presentation.setText(category);
+
       Map<String, File> categoryRow = myCategoryTable.row(category);
       for (String templateName : categoryRow.keySet()) {
-        NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName);
+        if (EXCLUDED_TEMPLATES.contains(templateName)) {
+          continue;
+        }
+        TemplateMetadata metadata = getTemplate(myCategoryTable.get(category, templateName));
+        NewAndroidComponentAction templateAction = new NewAndroidComponentAction(category, templateName, metadata);
         String actionId = ACTION_ID_PREFIX + category + templateName;
         am.unregisterAction(actionId);
         am.registerAction(actionId, templateAction);
@@ -316,6 +329,9 @@ public class TemplateManager {
 
   private Table<String, String, File> getCategoryTable(boolean forceReload) {
     if (myCategoryTable== null || forceReload) {
+      if (myTemplateMap != null) {
+        myTemplateMap.clear();
+      }
       myCategoryTable = TreeBasedTable.create();
       for (File categoryDirectory : TemplateUtils.listFiles(getTemplateRootFolder())) {
         for (File newTemplate : TemplateUtils.listFiles(categoryDirectory)) {
@@ -338,8 +354,8 @@ public class TemplateManager {
     if (newMetadata != null) {
       String title = newMetadata.getTitle();
       if (title == null || (newMetadata.getCategory() == null &&
-          myCategoryTable.columnKeySet().contains(title) &&
-          myCategoryTable.get(CATEGORY_OTHER, title) == null)) {
+                            myCategoryTable.columnKeySet().contains(title) &&
+                            myCategoryTable.get(CATEGORY_OTHER, title) == null)) {
         // If this template is uncategorized, and we already have a template of this name that has a category,
         // that is NOT "Other," then ignore this new template since it's undoubtedly older.
         return;

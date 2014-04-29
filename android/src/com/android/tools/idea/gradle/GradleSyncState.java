@@ -16,27 +16,40 @@
 package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.ProjectValidator;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ThreeState;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
 public class GradleSyncState {
+  private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
+
+  public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
+    new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
+
   private static final Key<Long> PROJECT_LAST_SYNC_TIMESTAMP_KEY = Key.create("android.gradle.project.last.sync.timestamp");
 
   @NotNull private final Project myProject;
+  @NotNull private final MessageBus myMessageBus;
 
   private volatile boolean mySyncInProgress;
 
@@ -45,8 +58,9 @@ public class GradleSyncState {
     return ServiceManager.getService(project, GradleSyncState.class);
   }
 
-  public GradleSyncState(@NotNull Project project) {
+  public GradleSyncState(@NotNull Project project, @NotNull MessageBus messageBus) {
     myProject = project;
+    myMessageBus = messageBus;
   }
 
   public void syncStarted(boolean notifyUser) {
@@ -54,29 +68,72 @@ public class GradleSyncState {
     if (notifyUser) {
       notifyUser();
     }
+    syncPublisher(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncStarted(myProject);
+      }
+    });
+  }
+
+  public void syncFailed(@NotNull final String message) {
+    syncFinished();
+    syncPublisher(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
+        ProjectValidator.mergeQueuedMessages(myProject);
+      }
+    });
   }
 
   public void syncEnded() {
+    syncFinished();
+    syncPublisher(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncEnded(myProject);
+        ProjectValidator.mergeQueuedMessages(myProject);
+      }
+    });
+  }
+
+  private void syncFinished() {
     mySyncInProgress = false;
     myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
     notifyUser();
   }
 
-  public void notifyUser() {
-    Runnable notificationTask = new Runnable() {
+  private void syncPublisher(@NotNull final Runnable publishingTask) {
+    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
       @Override
       public void run() {
-        EditorNotifications.getInstance(myProject).updateAllNotifications();
+        ApplicationManager.getApplication().runWriteAction(publishingTask);
+      }
+    });
+  }
+
+  public void notifyUser() {
+    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
+      @Override
+      public void run() {
+        EditorNotifications notifications = EditorNotifications.getInstance(myProject);
+        VirtualFile[] files = FileEditorManager.getInstance(myProject).getOpenFiles();
+        for (VirtualFile file : files) {
+          try {
+            notifications.updateNotifications(file);
+          }
+          catch (Throwable e) {
+            String filePath = FileUtil.toSystemDependentName(file.getPath());
+            String msg = String.format("Failed to update editor notifications for file '%1$s'", filePath);
+            LOG.info(msg, e);
+          }
+        }
+
+        notifications.updateAllNotifications();
         BuildVariantView.getInstance(myProject).updateContents();
       }
-    };
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      notificationTask.run();
-    }
-    else {
-      application.invokeLater(notificationTask);
-    }
+    });
   }
 
   public boolean isSyncInProgress() {

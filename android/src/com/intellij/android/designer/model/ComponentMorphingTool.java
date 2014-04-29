@@ -65,9 +65,11 @@ public class ComponentMorphingTool {
       }
     });
 
-    PropertyParser propertyParser = newComponent.getRoot().getClientProperty(PropertyParser.KEY);
-    propertyParser.load(newComponent);
-    loadChildProperties(propertyParser);
+    PropertyParser propertyParser = RadModelBuilder.getPropertyParser(newComponent);
+    if (propertyParser != null) {
+      propertyParser.load(newComponent);
+      loadChildProperties(propertyParser);
+    }
   }
 
   protected void convertChildren() throws Exception {
