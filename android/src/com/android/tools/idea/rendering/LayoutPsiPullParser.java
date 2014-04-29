@@ -122,19 +122,27 @@ public class LayoutPsiPullParser extends LayoutPullParser {
   protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull RenderLogger logger) {
     myLogger = logger;
 
-    if (root != null && root.isValid()) {
+    if (root != null) {
       if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-        myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-        myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
-        myRoot = createSnapshot(root);
+        if (root.isValid()) {
+          myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
+          myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
+          myRoot = createSnapshot(root);
+        } else {
+          myRoot = null;
+        }
       } else {
         myRoot = ApplicationManager.getApplication().runReadAction(new Computable<Element>() {
 
           @Override
           public Element compute() {
-            myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
-            myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
-            return createSnapshot(root);
+            if (root.isValid()) {
+              myAndroidPrefix = root.getPrefixByNamespace(ANDROID_URI);
+              myToolsPrefix = root.getPrefixByNamespace(TOOLS_URI);
+              return createSnapshot(root);
+            } else {
+              return null;
+            }
           }
         });
       }
