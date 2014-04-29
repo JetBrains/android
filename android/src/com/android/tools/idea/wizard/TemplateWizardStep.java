@@ -367,7 +367,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
 
     for (Parameter param : myTemplateState.myTemplate.getMetadata().getParameters()) {
-      if (param.initial != null) {
+      if (param.initial != null && !myTemplateState.myModified.contains(param.id)) {
         myTemplateState.myParameters.remove(param.id);
       }
     }
