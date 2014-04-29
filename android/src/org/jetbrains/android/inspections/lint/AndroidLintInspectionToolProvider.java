@@ -754,6 +754,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.resource.cycle"), ResourceCycleDetector.CYCLE);
     }
   }
+  public static class AndroidLintResourceNameInspection extends AndroidLintInspectionBase {
+    public AndroidLintResourceNameInspection() {
+      super(AndroidBundle.message("android.lint.inspections.resource.name"), ResourcePrefixDetector.ISSUE);
+    }
+  }
   public static class AndroidLintRtlCompatInspection extends AndroidLintInspectionBase {
     public AndroidLintRtlCompatInspection() {
       super(AndroidBundle.message("android.lint.inspections.rtl.compat"), RtlDetector.COMPAT);
