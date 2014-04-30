@@ -48,7 +48,8 @@ public class RenderResult {
     myFile = file;
     myLogger = logger;
     if (session != null && session.getResult().isSuccess() && renderService != null) {
-      myRootViews = session.getRootViews();
+      List<ViewInfo> systemRootViews = session.getSystemRootViews();
+      myRootViews = systemRootViews != null ? systemRootViews : session.getRootViews();
       Configuration configuration = renderService.getConfiguration();
       BufferedImage image = session.getImage();
       boolean alphaChannelImage = session.isAlphaChannelImage() || renderService.requiresTransparency();
