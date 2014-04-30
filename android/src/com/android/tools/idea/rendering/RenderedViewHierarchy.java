@@ -87,7 +87,7 @@ public class RenderedViewHierarchy {
       int height = info.getBottom() - y;
       x += parentX;
       y += parentY;
-      RenderedView view = new RenderedView(parent, tag, x, y, width, height);
+      RenderedView view = new RenderedView(parent, info, tag, x, y, width, height);
       List<ViewInfo> children = info.getChildren();
       if (children != null && !children.isEmpty()) {
         view.setChildren(convert(view, children, x, y));
