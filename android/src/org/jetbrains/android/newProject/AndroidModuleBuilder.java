@@ -733,7 +733,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
   @Override
   public ModuleWizardStep modifySettingsStep(@NotNull final SettingsStep settingsStep) {
     if (myProjectType == null) {
-      return super.modifySettingsStep(settingsStep);
+      return super.modifyProjectTypeStep(settingsStep);
     }
     switch (myProjectType) {
 
@@ -745,7 +745,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
         return new AndroidTestModifiedSettingsStep(this, settingsStep);
       default:
         LOG.error("Unknown project type " + myProjectType);
-        return super.modifySettingsStep(settingsStep);
+        return super.modifyProjectTypeStep(settingsStep);
     }
   }
 
