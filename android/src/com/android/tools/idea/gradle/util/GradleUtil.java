@@ -48,6 +48,7 @@ import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -423,5 +424,25 @@ public final class GradleUtil {
     assert gradlePath.length() > 0;
     String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
     return new File(VfsUtilCore.virtualToIoFile(project), relativePath);
+  }
+
+  /**
+   * Prefixes string with colon if there isn't one already there.
+   */
+  @Nullable
+  @Contract ("null -> null")
+  public static String makeAbsolute(String string) {
+    if (string == null) {
+      return null;
+    }
+    else if (string.trim().length() == 0) {
+      return ":";
+    }
+    else if (!string.startsWith(":")) {
+      return ":" + string.trim();
+    }
+    else {
+      return string.trim();
+    }
   }
 }
