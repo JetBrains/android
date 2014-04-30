@@ -106,7 +106,7 @@ public final class LayoutlibCallback extends LegacyCallback {
     myModule = module;
     myCredential = credential;
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
-    myActionBarHandler = new ActionBarHandler(renderService);
+    myActionBarHandler = new ActionBarHandler(renderService, credential);
   }
 
   /** Resets the callback state for another render */
@@ -539,7 +539,9 @@ public final class LayoutlibCallback extends LegacyCallback {
    */
   private boolean isWithinIllegalParent(@NotNull Object viewObject, int depth) {
     String fqcn = viewObject.getClass().getName();
-    if (fqcn.endsWith(CALENDAR_VIEW) || !fqcn.startsWith(ANDROID_PKG_PREFIX)) {
+    if (fqcn.endsWith(CALENDAR_VIEW) || !(fqcn.startsWith(ANDROID_PKG_PREFIX)
+                                            // ActionBar at the root level
+                                          || fqcn.startsWith("com.android.internal.widget."))) {
       return true;
     }
 

@@ -16,6 +16,9 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.rendering.api.SystemViewCookie;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -27,12 +30,14 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLayeredPane;
@@ -47,15 +52,18 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.TAG_ITEM;
 import static com.android.tools.idea.rendering.RenderErrorPanel.SIZE_ERROR_PANEL_DYNAMICALLY;
 
 /** A panel displaying a layoutlib render result as well as errors */
 public class RenderedPanel extends JPanel implements Disposable {
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
+  private static final boolean DEBUG_SHOW_VIEWS = false;
 
   protected RenderResult myRenderResult;
   protected RenderPreviewManager myPreviewManager;
   protected List<RenderedView> mySelectedViews;
+  protected RenderContext myContext;
 
   private boolean myZoomToFit = true;
   private final List<ProgressIndicator> myProgressIndicators = new ArrayList<ProgressIndicator>();
@@ -119,6 +127,10 @@ public class RenderedPanel extends JPanel implements Disposable {
     previewPanel.add(myProgressPanel, LAYER_PROGRESS);
   }
 
+  public void setRenderContext(@Nullable RenderContext context) {
+    myContext = context;
+  }
+
   public Component getPaintComponent() {
     return myImagePanel;
   }
@@ -139,12 +151,69 @@ public class RenderedPanel extends JPanel implements Disposable {
   }
 
   protected void selectViewAt(int x, int y) {
-    RenderedView leaf = findLeaf(x, y);
+    RenderedView leaf = findLeaf(x, y, false);
+
+    if (handleMenu(leaf)) {
+      return;
+    }
+
+    while (leaf != null && leaf.tag == null) {
+      leaf = leaf.getParent();
+    }
+
     selectView(leaf);
   }
 
+  private boolean handleMenu(@Nullable RenderedView leaf) {
+    boolean showMenu = false;
+    if (leaf != null) {
+      ViewInfo view = leaf.view;
+      if (view != null && view.isSystemView()) {
+        XmlFile xmlFile = myContext.getXmlFile();
+        if (ResourceHelper.getFolderType(xmlFile) == ResourceFolderType.MENU) {
+          // When rendering a menu file, don't hide menu when clicking outside of it
+          showMenu = true;
+        }
+        Object cookie = view.getCookie();
+        if (cookie instanceof SystemViewCookie) {
+          SystemViewCookie svc = (SystemViewCookie)cookie;
+          if (svc.getType() == SystemViewCookie.ACTION_BAR_OVERFLOW) {
+            showMenu = !ActionBarHandler.isShowingMenu(myContext);
+          }
+        } else if (ActionBarHandler.isShowingMenu(myContext)) {
+          RenderedView v = leaf.getParent();
+          while (v != null) {
+            if (v.tag != null) {
+              // A view *containing* a system view is the menu
+              showMenu = true;
+              if (TAG_ITEM.equals(v.tag.getName())) {
+                PsiFile file = v.tag.getContainingFile();
+                if (file != null && file != xmlFile) {
+                  VirtualFile virtualFile = file.getVirtualFile();
+                  if (virtualFile != null) {
+                    Project project = file.getProject();
+                    int offset = v.tag.getTextOffset();
+                    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, offset);
+                    FileEditorManager.getInstance(project).openEditor(descriptor, true);
+                    return true;
+                  }
+                }
+              }
+              break;
+            }
+            v = v.getParent();
+          }
+        }
+      }
+    }
+
+    ActionBarHandler.showMenu(showMenu, myContext, true);
+
+    return false;
+  }
+
   @Nullable
-  protected RenderedView findLeaf(int x, int y) {
+  protected RenderedView findLeaf(int x, int y, boolean requireTag) {
     RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
     assert hierarchy != null; // because image != null
     RenderedView leaf = hierarchy.findLeafAt(x, y);
@@ -152,9 +221,12 @@ public class RenderedPanel extends JPanel implements Disposable {
     // If you've clicked on for example a list item, the view you clicked
     // on may not correspond to a tag, it could be a designtime preview item,
     // so search upwards for the nearest surrounding tag
-    while (leaf != null && leaf.tag == null) {
-      leaf = leaf.getParent();
+    if (requireTag) {
+      while (leaf != null && leaf.tag == null) {
+        leaf = leaf.getParent();
+      }
     }
+
     return leaf;
   }
 
@@ -260,6 +332,12 @@ public class RenderedPanel extends JPanel implements Disposable {
     RenderedImage image = myRenderResult.getImage();
     if (image != null) {
       image.paint(g, px, py);
+
+      // Paint hierarchy
+      if (DEBUG_SHOW_VIEWS) {
+        paintViews(g, px, py);
+      }
+
       List<RenderedView> selectedViews = mySelectedViews;
       if (selectedViews != null && !selectedViews.isEmpty() && !myErrorPanel.isVisible()) {
         for (RenderedView selected : selectedViews) {
@@ -278,6 +356,59 @@ public class RenderedPanel extends JPanel implements Disposable {
       return true;
     }
     return false;
+  }
+
+  private void paintViews(Graphics g, int px, int py) {
+    if (DEBUG_SHOW_VIEWS) {
+      Graphics2D g2d = (Graphics2D)g;
+      Composite prev = g2d.getComposite();
+      g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+      RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
+      if (hierarchy != null) {
+        for (RenderedView view : hierarchy.getRoots()) {
+          paintView(g, px, py, view);
+        }
+      }
+      g2d.setComposite(prev);
+    }
+  }
+
+  private void paintView(Graphics g, int px, int py, RenderedView view) {
+    if (DEBUG_SHOW_VIEWS) {
+      if (view.view == null || !view.view.isSystemView()) {
+        return;
+      }
+      Rectangle bounds = view.getBounds();
+      Rectangle r = fromModelToScreen(bounds.x, bounds.y, bounds.width, bounds.height);
+      if (r == null) {
+        return;
+      }
+      int x = r.x + px;
+      int y = r.y + py;
+      int w = Math.max(0, r.width - 1);
+      int h = Math.max(0, r.height - 1);
+
+      if (view.h <= 300) {
+        //noinspection UseJBColor
+        g.setColor(Color.RED);
+        g.fillRect(x, y, w, h);
+      }
+      //noinspection UseJBColor
+      g.setColor(Color.WHITE);
+      g.drawRect(x, y, w, h);
+      String className = view.view.getClassName();
+      if (className != null) {
+        className = className.substring(className.lastIndexOf('.') + 1);
+        Shape clip = g.getClip();
+        g.setClip(x, y, w, h);
+        g.drawString(className, x, y + h);
+        g.setClip(clip);
+      }
+
+      for (RenderedView child : view.getChildren()) {
+        paintView(g, px, py, child);
+      }
+    }
   }
 
   public void setRenderResult(@NotNull final RenderResult renderResult) {
