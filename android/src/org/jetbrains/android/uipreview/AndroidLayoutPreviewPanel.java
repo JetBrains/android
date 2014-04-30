@@ -16,12 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.tools.idea.configurations.OverlayContainer;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderedPanel;
-import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.RenderedViewHierarchy;
-import com.android.tools.idea.rendering.HoverOverlay;
-import com.android.tools.idea.rendering.Overlay;
+import com.android.tools.idea.rendering.*;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
@@ -49,9 +44,13 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
     @Override
     public void caretPositionChanged(CaretEvent e) {
       updateCaret();
+      if (!myIgnoreListener) {
+        ActionBarHandler.showMenu(false, myContext, true);
+      }
     }
   };
   private OverlayContainer myOverlayContainer;
+  private boolean myIgnoreListener;
 
   public AndroidLayoutPreviewPanel() {
     super(true);
@@ -72,7 +71,7 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
         RenderedView leaf = null;
         Point p = fromScreenToModel(x1, y1);
         if (p != null) {
-          leaf = findLeaf(p.x, p.y);
+          leaf = findLeaf(p.x, p.y, true);
         }
         if (overlay.setHoveredView(leaf)) {
           repaint();
@@ -114,14 +113,20 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
       int offset = leaf.tag.getTextOffset();
       if (offset != -1) {
         Editor editor = myEditor.getEditor();
-        editor.getCaretModel().moveToOffset(offset);
-        editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
+
+        myIgnoreListener = true;
+        try {
+          editor.getCaretModel().moveToOffset(offset);
+          editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
+        } finally {
+          myIgnoreListener = false;
+        }
       }
     }
   }
 
   private void updateCaret() {
-    if (myCaretModel != null) {
+    if (myCaretModel != null && !myIgnoreListener) {
       RenderedViewHierarchy hierarchy = myRenderResult.getHierarchy();
       if (hierarchy != null) {
         int offset = myCaretModel.getOffset();

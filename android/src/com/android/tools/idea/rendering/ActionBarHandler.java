@@ -16,43 +16,54 @@
 
 package com.android.tools.idea.rendering;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.ActionBarCallback;
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.VALUE_SPLIT_ACTION_BAR_WHEN_NARROW;
+import static com.android.SdkConstants.*;
 
 /**
  * A callback to provide information related to the Action Bar as required by the
  * {@link LayoutLibrary}
  */
 public class ActionBarHandler extends ActionBarCallback {
+  private static final String ON_CREATE_OPTIONS_MENU = "onCreateOptionsMenu";                   //$NON-NLS-1$
+  private static final String ATTR_MENU = "menu";                                               //$NON-NLS-1$
+  private static final Pattern MENU_FIELD_PATTERN = Pattern.compile("R\\.menu\\.([a-z0-9_]+)"); //$NON-NLS-1$
 
+  private final Object myCredential;
   @NotNull
   private RenderService myRenderService;
   @Nullable
   private List<String> myMenus;
 
-
-  ActionBarHandler(@NotNull RenderService renderService) {
+  ActionBarHandler(@NotNull RenderService renderService, @Nullable Object credential) {
     myRenderService = renderService;
+    myCredential = credential;
   }
 
   @Override
@@ -64,9 +75,29 @@ public class ActionBarHandler extends ActionBarCallback {
     return false;
   }
 
+  // TODO: Handle this per file instead
+  /** Flag which controls whether we should be showing the menu */
+  private static boolean ourShowMenu = false;
+
+  public static boolean isShowingMenu(@Nullable RenderContext context) {
+    return ourShowMenu;
+  }
+
+  public static boolean showMenu(boolean showMenu, @Nullable RenderContext context, boolean repaint) {
+    if (showMenu != ourShowMenu) {
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourShowMenu = showMenu;
+      if (context != null && repaint) {
+        context.requestRender();
+      }
+      return true;
+    }
+    return false;
+  }
+
   @Override
   public boolean isOverflowPopupNeeded() {
-    return true;
+    return ourShowMenu || ResourceHelper.getFolderType(myRenderService.getPsiFile()) == ResourceFolderType.MENU;
   }
 
   @Override
@@ -74,15 +105,57 @@ public class ActionBarHandler extends ActionBarCallback {
     if (myMenus != null) {
       return myMenus;
     }
-    String commaSeparatedMenus = getRootTagAttributeSafely(myRenderService.getPsiFile(), "menu", SdkConstants.TOOLS_URI);
-    if (commaSeparatedMenus != null) {
-      ArrayList<String> menus = new ArrayList<String>();
-      Iterables.addAll(menus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
-      if (menus.size() > 0) {
-        return menus;
+
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      XmlFile xmlFile = myRenderService.getPsiFile();
+      String commaSeparatedMenus = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
+      if (commaSeparatedMenus != null) {
+        myMenus = new ArrayList<String>();
+        Iterables.addAll(myMenus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
+      } else {
+        String context = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
+        if (context != null && !context.isEmpty()) {
+          // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
+          // This is just a simple textual search; we need to replace this with a proper model lookup.
+          boolean startsWithDot = context.charAt(0) == '.';
+          if (startsWithDot || context.indexOf('.') == -1) {
+            // Prepend application package
+            String pkg = ManifestInfo.get(myRenderService.getModule(), false).getPackage();
+            context = startsWithDot ? pkg + context : pkg + '.' + context;
+          }
+          Project project = xmlFile.getProject();
+          PsiClass clz = JavaPsiFacade.getInstance(project).findClass(context, GlobalSearchScope.allScope(project));
+          if (clz != null) {
+            for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
+              String matchText = method.getText();
+              Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
+              Set<String> menus = Sets.newTreeSet();
+              int index = 0;
+              while (true) {
+                if (matcher.find(index)) {
+                  menus.add(matcher.group(1));
+                  index = matcher.end();
+                } else {
+                  break;
+                }
+              }
+              if (!menus.isEmpty()) {
+                myMenus = new ArrayList<String>(menus);
+              }
+            }
+          }
+        }
       }
+
+      if (myMenus == null) {
+        myMenus = Collections.emptyList();
+      }
+    } finally {
+      RenderSecurityManager.exitSafeRegion(token);
     }
-    return Collections.emptyList();
+
+    return myMenus;
   }
 
   @Override
@@ -99,36 +172,13 @@ public class ActionBarHandler extends ActionBarCallback {
   }
 
   private @Nullable ActivityAttributes getActivityAttributes() {
-    ManifestInfo manifest = ManifestInfo.get(myRenderService.getModule(), false);
-    String activity = StringUtil.notNullize(myRenderService.getConfiguration().getActivity());
-    return manifest.getActivityAttributes(activity);
-  }
-
-  /**
-   * Get the value of an attribute in the {@link XmlFile} safely (meaning it will acquire the read lock first).
-   */
-  @Nullable
-  private static String getRootTagAttributeSafely(@NotNull final XmlFile file,
-                                                  @NotNull final String attribute,
-                                                  @Nullable final String namespace) {
-    Application application = ApplicationManager.getApplication();
-    if (!application.isReadAccessAllowed()) {
-      return application.runReadAction(new Computable<String>() {
-        @Nullable
-        @Override
-        public String compute() {
-          return getRootTagAttributeSafely(file, attribute, namespace);
-        }
-      });
-    } else {
-      XmlTag tag = file.getRootTag();
-      if (tag != null) {
-        XmlAttribute attr = tag.getAttribute(attribute, namespace);
-        if (attr != null) {
-          return attr.getValue();
-        }
-      }
-      return null;
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      ManifestInfo manifest = ManifestInfo.get(myRenderService.getModule(), false);
+      String activity = StringUtil.notNullize(myRenderService.getConfiguration().getActivity());
+      return manifest.getActivityAttributes(activity);
+    } finally {
+      RenderSecurityManager.exitSafeRegion(token);
     }
   }
 }

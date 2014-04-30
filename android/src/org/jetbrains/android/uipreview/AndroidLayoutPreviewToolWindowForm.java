@@ -117,6 +117,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
     myPreviewPanel.setOverlayContainer(this);
     myPreviewPanel.installHover(myHover);
+    myPreviewPanel.setRenderContext(this);
   }
 
   public JPanel getContentPanel() {
