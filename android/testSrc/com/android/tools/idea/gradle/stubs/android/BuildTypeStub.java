@@ -45,6 +45,11 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
+  public boolean isTestCoverageEnabled() {
+    return false;
+  }
+
+  @Override
   public boolean isJniDebugBuild() {
     throw new UnsupportedOperationException();
   }
