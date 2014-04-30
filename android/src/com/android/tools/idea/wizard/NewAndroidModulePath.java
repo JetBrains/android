@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -24,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +35,7 @@ import java.util.Collection;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICONS;
+import static com.android.tools.idea.wizard.ChooseTemplateStep.MetadataListItem;
 
 /**
  * This class deals with the "main" flow of the new module wizard when
@@ -40,14 +43,12 @@ import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CREATE_ICON
  */
 public final class NewAndroidModulePath implements WizardPath {
   private static final Logger LOG = Logger.getInstance(NewAndroidModulePath.class);
-
   @NotNull private final NewModuleWizardState myWizardState;
   @Nullable private final Project myProject;
   private ConfigureAndroidModuleStep myConfigureAndroidModuleStep;
   private AssetSetStep myAssetSetStep;
   private ChooseTemplateStep myChooseActivityStep;
   private TemplateParameterStep myActivityTemplateParameterStep;
-  private boolean myIsActivePath;
 
   public NewAndroidModulePath(@NotNull NewModuleWizardState wizardState,
                               @NotNull TemplateWizardModuleBuilder builder,
@@ -68,14 +69,14 @@ public final class NewAndroidModulePath implements WizardPath {
 
   @Override
   public void update() {
-    myIsActivePath = myWizardState.myIsAndroidModule;
-    myConfigureAndroidModuleStep.setVisible(myIsActivePath);
-    if (myIsActivePath) {
+    boolean isActivePath = myWizardState.myMode == NewModuleWizardState.Mode.ANDROID_MODULE;
+    myConfigureAndroidModuleStep.setVisible(isActivePath);
+    if (isActivePath) {
       myConfigureAndroidModuleStep.updateStep();
     }
-    myAssetSetStep.setVisible(myIsActivePath && myWizardState.getBoolean(ATTR_CREATE_ICONS));
+    myAssetSetStep.setVisible(isActivePath && myWizardState.getBoolean(ATTR_CREATE_ICONS));
 
-    boolean createActivity = myIsActivePath && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY);
+    boolean createActivity = isActivePath && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY);
     myChooseActivityStep.setVisible(createActivity);
     myActivityTemplateParameterStep.setVisible(createActivity);
   }
@@ -86,7 +87,9 @@ public final class NewAndroidModulePath implements WizardPath {
 
   @Override
   public void createModule() {
-    if (!myWizardState.myIsModuleImport && myProject != null) {
+    NewModuleWizardState.Mode mode = myWizardState.myMode;
+    // For historical reasons, this class handles project creation for both Java and Android module templates
+    if ((mode == NewModuleWizardState.Mode.ANDROID_MODULE || mode == NewModuleWizardState.Mode.JAVA_MODULE) && myProject != null) {
       try {
         myWizardState.populateDirectoryParameters();
         File projectRoot = new File(myProject.getBasePath());
@@ -121,6 +124,36 @@ public final class NewAndroidModulePath implements WizardPath {
 
   @Override
   public boolean isStepVisible(ModuleWizardStep step) {
-    return myIsActivePath && step.isStepVisible();
+    return myWizardState.myMode == NewModuleWizardState.Mode.ANDROID_MODULE && step.isStepVisible();
+  }
+
+  @Override
+  public Collection<MetadataListItem> getBuiltInTemplates() {
+    // Now, we're going to add in two pointers to the same template
+    File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
+                                   FileUtil.join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME));
+    TemplateManager manager = TemplateManager.getInstance();
+    TemplateMetadata metadata = manager.getTemplate(moduleTemplate);
+
+    assert metadata != null;
+
+    MetadataListItem appListItem = new ChooseTemplateStep.MetadataListItem(moduleTemplate, metadata) {
+      @Override
+      public String toString() {
+        return TemplateWizardModuleBuilder.APP_TEMPLATE_NAME;
+      }
+    };
+    MetadataListItem libListItem = new ChooseTemplateStep.MetadataListItem(moduleTemplate, metadata) {
+      @Override
+      public String toString() {
+        return TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME;
+      }
+    };
+    return ImmutableSet.of(appListItem, libListItem);
+  }
+
+  @Override
+  public Collection<String> getExcludedTemplates() {
+    return ImmutableSet.of(TemplateWizardModuleBuilder.MODULE_NAME, TemplateWizardModuleBuilder.PROJECT_NAME);
   }
 }
