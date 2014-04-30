@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlTag;
@@ -29,14 +30,16 @@ import java.util.List;
 public class RenderedView implements Iterable<RenderedView> {
   @Nullable public final RenderedView parent;
   @Nullable public final XmlTag tag;
+  public final ViewInfo view;
   public final int x;
   public final int y;
   public final int w;
   public final int h;
   private List<RenderedView> myChildren;
 
-  public RenderedView(@Nullable RenderedView parent, @Nullable XmlTag tag, int x, int y, int w, int h) {
+  public RenderedView(@Nullable RenderedView parent, @Nullable ViewInfo view, @Nullable XmlTag tag, int x, int y, int w, int h) {
     this.parent = parent;
+    this.view = view;
     this.x = x;
     this.y = y;
     this.w = w;
