@@ -25,16 +25,21 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiType;
 import com.intellij.util.PathUtil;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
@@ -44,6 +49,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
 import java.io.File;
+import java.io.IOError;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +67,28 @@ public class GradleSettingsFile extends GradleGroovyFile {
   public static final String INCLUDE_METHOD = "include";
   public static final String CUSTOM_LOCATION_FORMAT = "project('%1$s').projectDir = new File('%2$s')";
   private static final Iterable<String> EMPTY_ITERABLE = Arrays.asList(new String[] {});
+
+  /**
+   * Returns a handle to settings.gradle in project root or creates a new file if one does not already exist.
+   * <p/>
+   * This function should be called from within a write action even if the file exists. Use
+   * {@link #get(com.intellij.openapi.project.Project)} to open a file for reading.
+   */
+  @NotNull
+  public static GradleSettingsFile getOrCreate(Project project) throws IOException {
+    ApplicationManager.getApplication().assertWriteAccessAllowed();
+    if (project.isDefault()) {
+      throw new IOException("Not a real project");
+    }
+    final VirtualFile baseDir = project.getBaseDir();
+    assert baseDir != null;
+    VirtualFile settingsFile = baseDir.findFileByRelativePath(SdkConstants.FN_SETTINGS_GRADLE);
+    if (settingsFile == null) {
+      settingsFile = baseDir.createChildData(project, SdkConstants.FN_SETTINGS_GRADLE);
+      VfsUtil.saveText(settingsFile, "");
+    }
+    return new GradleSettingsFile(settingsFile, project);
+  }
 
   @Nullable
   public static GradleSettingsFile get(Project project) {
