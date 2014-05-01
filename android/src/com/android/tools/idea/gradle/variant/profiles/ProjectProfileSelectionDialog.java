@@ -19,7 +19,7 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.variant.Conflict;
+import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
@@ -46,6 +46,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.Function;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.BooleanCellRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -144,7 +145,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
-            textRenderer.setIcon(AllIcons.Modules.ModulesNode);
+            textRenderer.setIcon(AndroidIcons.Variant);
           }
           else if (data instanceof DependencyTreeElement) {
             DependencyTreeElement dependency = (DependencyTreeElement)data;
@@ -495,7 +496,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
-            textRenderer.setIcon(AllIcons.Modules.ModulesNode);
+            textRenderer.setIcon(AndroidIcons.Variant);
           }
         }
       }
@@ -559,11 +560,11 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
         getSelectionModel().setSelectionInterval(0, 0);
       }
 
-      TableColumn filterColumn = getColumn(ConflictsTableModel.FILTER_COLUMN);
+      TableColumn filterColumn = getColumnByIndex(ConflictsTableModel.FILTER_COLUMN);
       filterColumn.setCellEditor(new BooleanTableCellEditor());
       setUpBooleanColumn(filterColumn, true);
 
-      TableColumn resolvedColumn = getColumn(ConflictsTableModel.RESOLVED_COLUMN);
+      TableColumn resolvedColumn = getColumnByIndex(ConflictsTableModel.RESOLVED_COLUMN);
       setUpBooleanColumn(resolvedColumn, false);
     }
 
@@ -573,9 +574,8 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
       column.setMaxWidth(50);
     }
 
-    @SuppressWarnings("MethodOverloadsMethodOfSuperclass")
     @NotNull
-    public TableColumn getColumn(int index) {
+    private TableColumn getColumnByIndex(int index) {
       return getColumn(getColumnName(index));
     }
   }
