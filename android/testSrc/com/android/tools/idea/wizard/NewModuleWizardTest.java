@@ -64,7 +64,8 @@ public class NewModuleWizardTest extends AndroidTestCase {
       }
     }));
 
-    int expectedCount = templateDirFiles.size() - TemplateWizardModuleBuilder.EXCLUDED_TEMPLATES.size() + 2 /* NewApp and NewLib */;
+    int expectedCount = templateDirFiles.size() - 3 + 4 /* Less "ImportExistingProject", "NewAndroidModule" and "NewAndroidProject"
+                                                           added project, library, Gradle import and AAR/JAR import */;
 
     ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
     TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(),
@@ -76,7 +77,8 @@ public class NewModuleWizardTest extends AndroidTestCase {
       }
     };
 
-    ChooseTemplateStep chooseTemplateStep = myModuleBuilder.buildChooseModuleStep(myModule.getProject());
+    assertInstanceOf(steps.get(0), ChooseTemplateStep.class);
+    ChooseTemplateStep chooseTemplateStep = (ChooseTemplateStep)steps.get(0);
 
     // Make sure we've got an actual object
     assertNotNull(chooseTemplateStep);

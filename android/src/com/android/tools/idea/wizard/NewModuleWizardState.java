@@ -42,12 +42,16 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * {@link com.android.tools.idea.wizard.NewModuleWizard}
  */
 public class NewModuleWizardState extends TemplateWizardState {
+  public enum Mode {
+    ANDROID_MODULE, JAVA_MODULE, IMPORT_MODULE, WRAP_ARCHIVE
+  }
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
   public static final String APP_NAME = "app";
   public static final String LIB_NAME = "lib";
 
-  private static final String MODULE_IMPORT_NAME = "Import Existing Project";
+  public static final String MODULE_IMPORT_NAME = "Import Existing Project";
+  public static final String ARCHIVE_IMPORT_NAME = "Import .JAR or .AAR Package";
 
   /**
    * State for the template wizard, used to embed an activity template
@@ -55,14 +59,9 @@ public class NewModuleWizardState extends TemplateWizardState {
   protected final TemplateWizardState myActivityTemplateState;
 
   /**
-   * True if the module being created is an Android module (as opposed to a generic Java module with no Android support)
+   * Mode that the wizard is in.
    */
-  protected boolean myIsAndroidModule;
-
-  /**
-   * True if the module will be created from existing sources.
-   */
-  protected boolean myIsModuleImport;
+  protected Mode myMode = Mode.ANDROID_MODULE;
 
   /**
    * Kind of the import to be performed. Only makes sense if myIsModuleImport is true.
@@ -103,18 +102,17 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   public void templateChanged(@Nullable Project project, String templateName) {
-    myIsAndroidModule = false;
-    myIsModuleImport = MODULE_IMPORT_NAME.equals(templateName);
+    myMode = getModeFromTemplateName(templateName);
 
     if (templateName.equals(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME)) {
-      myIsAndroidModule = true;
+      myMode = Mode.ANDROID_MODULE;
       put(ATTR_IS_LIBRARY_MODULE, true);
       put(ATTR_IS_LAUNCHER, false);
       put(ATTR_CREATE_ICONS, false);
       // Hide the create icons checkbox
       myHidden.add(ATTR_CREATE_ICONS);
     } else if (templateName.equals(TemplateWizardModuleBuilder.APP_TEMPLATE_NAME)) {
-      myIsAndroidModule = true;
+      myMode = Mode.ANDROID_MODULE;
       put(ATTR_IS_LIBRARY_MODULE, false);
       put(ATTR_IS_LAUNCHER, true);
       put(ATTR_CREATE_ICONS, true);
@@ -126,6 +124,22 @@ public class NewModuleWizardState extends TemplateWizardState {
       // If the app title is hidden, set it to the existing app title
       assert project != null : "Cannot be adding a module to a unknown project";
       put(ATTR_APP_TITLE, project.getName());
+    }
+  }
+
+  private static Mode getModeFromTemplateName(String templateName) {
+    if (MODULE_IMPORT_NAME.equals(templateName)) {
+      return Mode.IMPORT_MODULE;
+    }
+    else if (ARCHIVE_IMPORT_NAME.equals(templateName)) {
+      return Mode.WRAP_ARCHIVE;
+    }
+    else if (TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME.equals(templateName) ||
+             TemplateWizardModuleBuilder.APP_TEMPLATE_NAME.equals(templateName)) {
+      return Mode.ANDROID_MODULE;
+    }
+    else {
+      return Mode.JAVA_MODULE;
     }
   }
 
@@ -151,7 +165,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   @Override
   public void setTemplateLocation(@NotNull File file) {
     super.setTemplateLocation(file);
-    myIsAndroidModule = myTemplate.getMetadata().getParameter(ATTR_MIN_API) != null;
+    //myMode = myTemplate.getMetadata().getParameter(ATTR_MIN_API) != null ? Mode.ANDROID_MODULE : Mode.JAVA_MODULE;
   }
 
   /**
