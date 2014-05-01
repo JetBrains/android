@@ -20,16 +20,14 @@ import com.android.builder.model.*;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.roots.LibraryOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -300,6 +298,49 @@ class IntellijLintProject extends Project {
     // the gradle data instead
   }
 
+  protected static boolean dependsOn(@NonNull Dependencies dependencies, @NonNull String artifact) {
+    for (AndroidLibrary library : dependencies.getLibraries()) {
+      if (dependsOn(library, artifact)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected static boolean dependsOn(@NonNull AndroidLibrary library, @NonNull String artifact) {
+    if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
+      if (library.getJarFile().getName().startsWith("support-v4-")) {
+        return true;
+      }
+
+    } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+      File bundle = library.getBundle();
+      if (bundle.getName().startsWith("appcompat-v7-")) {
+        return true;
+      }
+    }
+
+    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
+      if (dependsOn(dependency, artifact)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  protected static boolean depsDependsOn(@NonNull Project project, @NonNull String artifact) {
+    // Checks project dependencies only; used when there is no model
+    for (Project dependency : project.getDirectLibraries()) {
+      Boolean b = dependency.dependsOn(artifact);
+      if (b != null && b) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private static class LintModuleProject extends IntellijLintProject {
     private Module myModule;
 
@@ -494,20 +535,36 @@ class IntellijLintProject extends Project {
               }
             }
           }
-
-          for (Project dependency : getDirectLibraries()) {
-            Boolean b = dependency.dependsOn(artifact);
-            if (b != null && b) {
-              mSupportLib = true;
-              break;
-            }
-          }
           if (mSupportLib == null) {
-            mSupportLib = false;
+            mSupportLib = depsDependsOn(this, artifact);
           }
         }
-
         return mSupportLib;
+      } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+        if (mAppCompat == null) {
+          mAppCompat = false;
+          final OrderEntry[] entries = ModuleRootManager.getInstance(myFacet.getModule()).getOrderEntries();
+          for (int i = entries.length - 1; i >= 0; i--) {
+            final OrderEntry orderEntry = entries[i];
+            if (orderEntry instanceof ModuleOrderEntry) {
+              ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
+              Module module = moduleOrderEntry.getModule();
+              if (module == null || module == myFacet.getModule()) {
+                continue;
+              }
+              AndroidFacet facet = AndroidFacet.getInstance(module);
+              if (facet == null) {
+                continue;
+              }
+              ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+              if ("android.support.v7.appcompat".equals(manifestInfo.getPackage())) {
+                mAppCompat = true;
+                break;
+              }
+            }
+          }
+        }
+        return mAppCompat;
       } else {
         return super.dependsOn(artifact);
       }
@@ -764,55 +821,22 @@ class IntellijLintProject extends Project {
           if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
             IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
             Dependencies dependencies = gradleProject.getSelectedVariant().getMainArtifact().getDependencies();
-            for (File file : dependencies.getJars()) {
-              if (file.getName().startsWith("support-v4-")) {
-                mSupportLib = true;
-                break;
-              }
-            }
-          }
-
-          for (Project dependency : getDirectLibraries()) {
-            Boolean b = dependency.dependsOn(artifact);
-            if (b != null && b) {
-              mSupportLib = true;
-              break;
-            }
-          }
-
-          if (mSupportLib == null) {
-            mSupportLib = false;
+            mSupportLib = dependsOn(dependencies, artifact);
+          } else {
+            mSupportLib = depsDependsOn(this, artifact);
           }
         }
-
         return mSupportLib;
       } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
         if (mAppCompat == null) {
           if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
             IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
             Dependencies dependencies = gradleProject.getSelectedVariant().getMainArtifact().getDependencies();
-            for (AndroidLibrary library : dependencies.getLibraries()) {
-              File bundle = library.getBundle();
-              if (bundle.getName().startsWith("appcompat-v7")) {
-                mAppCompat = true;
-                return true;
-              }
-            }
-          }
-
-          for (Project dependency : getDirectLibraries()) {
-            Boolean b = dependency.dependsOn(artifact);
-            if (b != null && b) {
-              mAppCompat = true;
-              break;
-            }
-          }
-
-          if (mAppCompat == null) {
-            mAppCompat = false;
+            mAppCompat = dependsOn(dependencies, artifact);
+          } else {
+            mAppCompat = depsDependsOn(this, artifact);
           }
         }
-
         return mAppCompat;
       } else {
         return super.dependsOn(artifact);
@@ -935,24 +959,14 @@ class IntellijLintProject extends Project {
     public Boolean dependsOn(@NonNull String artifact) {
       if (SUPPORT_LIB_ARTIFACT.equals(artifact)) {
         if (mSupportLib == null) {
-          if (myLibrary.getJarFile().getName().startsWith("support-v4-")) {
-                mSupportLib = true;
-          }
-
-          for (Project dependency : getDirectLibraries()) {
-            Boolean b = dependency.dependsOn(artifact);
-            if (b != null && b) {
-              mSupportLib = true;
-              break;
-            }
-          }
-
-          if (mSupportLib == null) {
-            mSupportLib = false;
-          }
+          mSupportLib = dependsOn(myLibrary, artifact);
         }
-
         return mSupportLib;
+      } else if (APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+        if (mAppCompat == null) {
+          mAppCompat = dependsOn(myLibrary, artifact);
+        }
+        return mAppCompat;
       } else {
         return super.dependsOn(artifact);
       }
