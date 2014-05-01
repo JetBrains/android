@@ -66,11 +66,12 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
     assertTrue("{ " + Joiner.on(", ").join(modules) + " }", Iterables.contains(modules, gradlePath));
   }
 
-  private static void createModule(@NotNull Project project,
-                                   @NotNull File archive,
-                                   @NotNull String gradlePath) throws IOException {
+  private void createModule(@NotNull Project project,
+                            @NotNull File archive,
+                            @NotNull String gradlePath) throws IOException {
     NewModuleWizardState wizardState = new NewModuleWizardState();
-    WrapArchiveWizardPath path = new WrapArchiveWizardPath(wizardState, project, null);
+    WrapArchiveWizardPath path = new WrapArchiveWizardPath(wizardState, project, null,
+                                                           ((BaseFixture)myFixture).getTestRootDisposable());
 
     wizardState.templateChanged(project, NewModuleWizardState.ARCHIVE_IMPORT_NAME);
     wizardState.put(WrapArchiveWizardPath.KEY_ARCHIVE, archive.getAbsolutePath());

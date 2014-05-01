@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.intellij.ide.wizard.StepListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -49,10 +50,21 @@ public class WrapArchiveWizardPath implements WizardPath {
 
   public WrapArchiveWizardPath(@NotNull NewModuleWizardState wizardState,
                                @Nullable Project project,
-                               @Nullable TemplateWizardStep.UpdateListener listener) {
+                               @Nullable final TemplateWizardStep.UpdateListener listener,
+                               @NotNull Disposable disposable) {
     myWizardState = wizardState;
     myProject = project;
-    steps = Collections.<ModuleWizardStep>singleton(new WrapArchiveOptionsStep(project, wizardState, listener));
+    steps = Collections.<ModuleWizardStep>singleton(new WrapArchiveOptionsStep(project, wizardState, disposable));
+    if (listener != null) {
+      for (ModuleWizardStep step : steps) {
+        step.registerStepListener(new StepListener() {
+          @Override
+          public void stateChanged() {
+            listener.update();
+          }
+        });
+      }
+    }
   }
 
   @VisibleForTesting
