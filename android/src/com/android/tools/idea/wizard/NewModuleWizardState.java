@@ -19,6 +19,7 @@ package com.android.tools.idea.wizard;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.project.ImportSourceKind;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -127,7 +128,10 @@ public class NewModuleWizardState extends TemplateWizardState {
     }
   }
 
-  private static Mode getModeFromTemplateName(String templateName) {
+  private static Mode getModeFromTemplateName(@Nullable String templateName) {
+    if (templateName == null) {
+      return Mode.JAVA_MODULE;
+    }
     if (MODULE_IMPORT_NAME.equals(templateName)) {
       return Mode.IMPORT_MODULE;
     }
@@ -165,7 +169,16 @@ public class NewModuleWizardState extends TemplateWizardState {
   @Override
   public void setTemplateLocation(@NotNull File file) {
     super.setTemplateLocation(file);
-    //myMode = myTemplate.getMetadata().getParameter(ATTR_MIN_API) != null ? Mode.ANDROID_MODULE : Mode.JAVA_MODULE;
+    TemplateMetadata metadata = myTemplate.getMetadata();
+    if (metadata == null) {
+      myMode = Mode.JAVA_MODULE;
+    }
+    else {
+      myMode = getModeFromTemplateName(metadata.getTitle());
+      if (myMode == Mode.JAVA_MODULE && myTemplate.getMetadata().getParameter(ATTR_MIN_API) != null) {
+        myMode = Mode.ANDROID_MODULE;
+      }
+    }
   }
 
   /**
