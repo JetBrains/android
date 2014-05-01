@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -83,6 +84,14 @@ public final class GradleUtil {
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   private static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
+  /**
+   * Finds characters that shouldn't be used in the Gradle path.
+   *
+   * I was unable to find any specification for Gradle paths. In my
+   * experiments, Gradle only failed with slashes. This list may grow if
+   * we find any other unsupported characters.
+   */
+  public static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
 
   private GradleUtil() {
   }
@@ -443,6 +452,48 @@ public final class GradleUtil {
     }
     else {
       return string.trim();
+    }
+  }
+
+  /**
+   * Tests if the Gradle path is valid and return index of the offending
+   * character or -1 if none.
+   * <p/>
+
+   */
+  public static int isValidGradlePath(@NotNull String gradlePath) {
+    return ILLEGAL_GRADLE_PATH_CHARS_MATCHER.indexIn(gradlePath);
+  }
+
+  /**
+   * Checks if the project already has a module with given Gradle path.
+   */
+  public static boolean hasModule(@Nullable Project project,
+                                  @NotNull String gradlePath,
+                                  boolean checkProjectFolder) {
+    if (project == null) {
+      return false;
+    }
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      if (gradlePath.equals(getGradlePath(module))) {
+        return true;
+      }
+    }
+    if (checkProjectFolder) {
+      File location = getDefaultSubprojectLocation(project.getBaseDir(), gradlePath);
+      if (location.isFile()) {
+        return true;
+      }
+      else if (location.isDirectory()) {
+        File[] children = location.listFiles();
+        return children == null || children.length > 0;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
     }
   }
 }
