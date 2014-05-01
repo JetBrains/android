@@ -64,7 +64,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
     WizardPath[] paths = super.setupWizardPaths(project, sidePanelIcon, disposable);
     myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
-    WrapArchiveWizardPath wrapArchiveWizardPath = new WrapArchiveWizardPath(myWizardState, project, this);
+    WrapArchiveWizardPath wrapArchiveWizardPath = new WrapArchiveWizardPath(myWizardState, project, this, disposable);
     paths = ArrayUtil.append(paths, myNewAndroidModulePath);
     paths = ArrayUtil.append(paths, wrapArchiveWizardPath);
     myTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, this);
