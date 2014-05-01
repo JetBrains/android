@@ -297,7 +297,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
 
   @Override
   public boolean isStepVisible() {
-    return myState.myIsModuleImport;
+    return myState.myMode == NewModuleWizardState.Mode.IMPORT_MODULE;
   }
 
   @Override
