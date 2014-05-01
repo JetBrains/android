@@ -61,7 +61,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
 
   @Nullable private Project myProject;
-  @NotNull private final WizardPath[] paths;
+  @NotNull protected final WizardPath[] myPaths;
 
   protected final NewModuleWizardState myWizardState;
   @VisibleForTesting
@@ -96,7 +96,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
         }
       };
     }
-    myWizardState.myIsModuleImport = true;
     myWizardState.put(ATTR_IS_LAUNCHER, project == null);
     myWizardState.updateParameters();
 
@@ -111,7 +110,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     }
 
     Template.convertApisToInt(myWizardState.getParameters());
-    paths = setupWizardPaths(project, sidePanelIcon, disposable);
+    myPaths = setupWizardPaths(project, sidePanelIcon, disposable);
 
     if (project != null) {
       myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
@@ -146,7 +145,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     if (!myInitializationComplete) {
       return false;
     }
-    for (WizardPath path : paths) {
+    for (WizardPath path : myPaths) {
       path.update();
     }
     return true;
@@ -252,7 +251,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
    * @param performGradleSync if set to true, a sync will be triggered after the template has been created.
    */
   public void createModule(boolean performGradleSync) {
-    for (WizardPath path : paths) {
+    for (WizardPath path : myPaths) {
       path.createModule();
     }
     if (performGradleSync && myProject != null) {
@@ -262,7 +261,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   @Override
   public boolean isSuitableSdkType(SdkTypeId sdkType) {
-    return myWizardState.myIsAndroidModule
+    return myWizardState.myMode == NewModuleWizardState.Mode.IMPORT_MODULE
            ? AndroidSdkType.getInstance().equals(sdkType)
            : sdkType instanceof JavaSdkType;
   }
