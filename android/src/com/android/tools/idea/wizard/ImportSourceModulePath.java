@@ -20,11 +20,13 @@ import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.ImportSourceKind;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.ide.util.projectWizard.ProjectBuilder;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,7 +34,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +43,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
+
+import static com.android.tools.idea.wizard.ChooseTemplateStep.MetadataListItem;
 
 /**
  * Create a new module using existing ADT or Gradle source files.
@@ -68,6 +73,24 @@ public class ImportSourceModulePath implements WizardPath {
     mySteps = Lists.asList(locationStep, adtImportSteps);
   }
 
+  @NotNull
+  protected static MetadataListItem createImportTemplateWithCustomName(@NotNull final String importTemplateName) {
+    // Now, we're going to add in two pointers to the same template
+    File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
+                                   FileUtil.join(Template.CATEGORY_PROJECTS, "ImportExistingProject"));
+    TemplateManager manager = TemplateManager.getInstance();
+    TemplateMetadata metadata = manager.getTemplate(moduleTemplate);
+
+    assert metadata != null;
+
+    return new ChooseTemplateStep.MetadataListItem(moduleTemplate, metadata) {
+      @Override
+      public String toString() {
+        return importTemplateName;
+      }
+    };
+  }
+
   @Override
   public Collection<ModuleWizardStep> getSteps() {
     return mySteps;
@@ -75,7 +98,7 @@ public class ImportSourceModulePath implements WizardPath {
 
   @Override
   public void update() {
-    if (myWizardState.myIsModuleImport) {
+    if (isModuleImport()) {
       for (ModuleWizardStep step : mySteps) {
         step.updateStep();
       }
@@ -84,7 +107,7 @@ public class ImportSourceModulePath implements WizardPath {
 
   @Override
   public void createModule() {
-    if (myWizardState.myIsModuleImport) {
+    if (isModuleImport()) {
       Map<String, VirtualFile> modulesToImport = myWizardState.getModulesToImport();
       ImportSourceKind importKind = myWizardState.getImportKind();
       assert importKind != null && modulesToImport != null;
@@ -138,8 +161,22 @@ public class ImportSourceModulePath implements WizardPath {
 
   @Override
   public boolean isStepVisible(@NotNull ModuleWizardStep step) {
-    return myWizardState.myIsModuleImport && mySteps.contains(step) &&
+    return isModuleImport() && mySteps.contains(step) &&
            (myWizardState.getImportKind() == ImportSourceKind.ADT || step instanceof ImportSourceLocationStep) &&
            step.isStepVisible();
+  }
+
+  @Override
+  public Collection<String> getExcludedTemplates() {
+    return Collections.singleton(NewModuleWizardState.MODULE_IMPORT_NAME);
+  }
+
+  @Override
+  public Collection<MetadataListItem> getBuiltInTemplates() {
+    return Collections.singleton(createImportTemplateWithCustomName(NewModuleWizardState.MODULE_IMPORT_NAME));
+  }
+
+  private boolean isModuleImport() {
+    return myWizardState.myMode == NewModuleWizardState.Mode.IMPORT_MODULE;
   }
 }
