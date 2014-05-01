@@ -36,7 +36,6 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -97,11 +96,9 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     myModuleMap = moduleMap;
   }
 
-  private static boolean ourTryLintOptions = true;
-
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project) {
-    if (ourTryLintOptions && project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
+    if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
       AndroidProject model = project.getGradleProjectModel();
       if (model != null) {
         try {
@@ -136,14 +133,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
               }
             };
           }
-        } catch (UnsupportedMethodException e) {
-          // This happens if we're talking to an older model than 0.8 (should not happen). Ignore; fall through to
-          // normal handling.
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourTryLintOptions = false;
         } catch (Exception e) {
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourTryLintOptions = false;
           LOG.error(e);
         }
       }
