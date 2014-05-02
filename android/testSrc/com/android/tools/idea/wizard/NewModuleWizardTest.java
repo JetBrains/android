@@ -123,9 +123,11 @@ public class NewModuleWizardTest extends AndroidTestCase {
       assertEquals(firstStepNewModulePath, wizard.getNextStep(0));
 
       // Import path
-      assertFollowingTheRightPath(wizard, "Import Existing Project", 1, ImportSourceLocationStep.class);
+      assertFollowingTheRightPath(wizard, NewModuleWizardState.MODULE_IMPORT_NAME, 1, ImportSourceLocationStep.class);
       // New module path
       assertFollowingTheRightPath(wizard, TemplateWizardModuleBuilder.APP_TEMPLATE_NAME, firstStepNewModulePath, firstStepNewModuleClass);
+      // Import archive
+      assertFollowingTheRightPath(wizard, NewModuleWizardState.ARCHIVE_IMPORT_NAME, 13, WrapArchiveOptionsStep.class);
     }
     finally {
       Disposer.dispose(wizard.getDisposable());
