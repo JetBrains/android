@@ -98,29 +98,25 @@ public class ImportSourceModulePath implements WizardPath {
 
   @Override
   public void update() {
-    if (isModuleImport()) {
-      for (ModuleWizardStep step : mySteps) {
-        step.updateStep();
-      }
+    for (ModuleWizardStep step : mySteps) {
+      step.updateStep();
     }
   }
 
   @Override
   public void createModule() {
-    if (isModuleImport()) {
-      Map<String, VirtualFile> modulesToImport = myWizardState.getModulesToImport();
-      ImportSourceKind importKind = myWizardState.getImportKind();
-      assert importKind != null && modulesToImport != null;
-      switch (importKind) {
-        case ADT:
-          importAdtModules(modulesToImport);
-          break;
-        case GRADLE:
-          importGradleModule(modulesToImport);
-          break;
-        default:
-          LOG.error("Unsupported import kind: " + importKind);
-      }
+    Map<String, VirtualFile> modulesToImport = myWizardState.getModulesToImport();
+    ImportSourceKind importKind = myWizardState.getImportKind();
+    assert importKind != null && modulesToImport != null;
+    switch (importKind) {
+      case ADT:
+        importAdtModules(modulesToImport);
+        break;
+      case GRADLE:
+        importGradleModule(modulesToImport);
+        break;
+      default:
+        LOG.error("Unsupported import kind: " + importKind);
     }
   }
 
@@ -161,7 +157,7 @@ public class ImportSourceModulePath implements WizardPath {
 
   @Override
   public boolean isStepVisible(@NotNull ModuleWizardStep step) {
-    return isModuleImport() && mySteps.contains(step) &&
+    return mySteps.contains(step) &&
            (myWizardState.getImportKind() == ImportSourceKind.ADT || step instanceof ImportSourceLocationStep) &&
            step.isStepVisible();
   }
@@ -174,9 +170,5 @@ public class ImportSourceModulePath implements WizardPath {
   @Override
   public Collection<MetadataListItem> getBuiltInTemplates() {
     return Collections.singleton(createImportTemplateWithCustomName(NewModuleWizardState.MODULE_IMPORT_NAME));
-  }
-
-  private boolean isModuleImport() {
-    return myWizardState.myMode == NewModuleWizardState.Mode.IMPORT_MODULE;
   }
 }
