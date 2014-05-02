@@ -586,7 +586,12 @@
     <extensionPoint name="mavenProvider" interface="org.jetbrains.android.maven.AndroidMavenProvider"/>
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint name="refactoringContextProvider" interface="org.jetbrains.android.refactoring.AndroidRefactoringContextProvider"/>
+    <extensionPoint name="newModuleWizardPathFactory" interface="com.android.tools.idea.wizard.NewModuleWizardPathFactory"/>
   </extensionPoints>
+
+  <extensions defaultExtensionNs="org.jetbrains.android">
+    <newModuleWizardPathFactory implementation="com.android.tools.idea.wizard.WrapArchiveWizardPathFactory"/>
+  </extensions>
 
   <!-- Layout editor -->
 
