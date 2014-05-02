@@ -107,6 +107,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myAppNameLabel;
   boolean myInitializedPackageNameText = false;
   private boolean myInitialized = false;
+  private boolean myInitializing = false;
   private String myPackagePrefix = SAMPLE_PACKAGE_PREFIX;
   @Nullable private WizardContext myWizardContext;
 
@@ -290,9 +291,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   public void updateStep() {
-    if (!myInitialized) {
-      myInitialized = true;
+    if (!myInitializing) {
+      myInitializing = true;
       initialize();
+      myInitialized = true;
     }
 
     myCreateCustomLauncherIconCheckBox.setVisible(!myTemplateState.myHidden.contains(ATTR_CREATE_ICONS));
@@ -387,6 +389,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   public void updateParams() {
+    if (!myInitialized) {
+      return;
+    }
+
     super.updateParams();
 
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
