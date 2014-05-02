@@ -933,6 +933,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.label.for"), LabelForDetector.ISSUE);
     }
   }
+  public static class AndroidLintLocaleFolderInspection extends AndroidLintInspectionBase {
+    public AndroidLintLocaleFolderInspection() {
+      super(AndroidBundle.message("android.lint.inspections.locale.folder"), com.android.tools.lint.checks.LocaleFolderDetector.ISSUE);
+    }
+  }
   public static class AndroidLintLocalSuppressInspection extends AndroidLintInspectionBase {
     public AndroidLintLocalSuppressInspection() {
       super(AndroidBundle.message("android.lint.inspections.local.suppress"), AnnotationDetector.ISSUE);
