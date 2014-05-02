@@ -1030,6 +1030,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.show.toast"), ToastDetector.ISSUE);
     }
   }
+  public static class AndroidLintSignatureOrSystemPermissionsInspection extends AndroidLintInspectionBase {
+    public AndroidLintSignatureOrSystemPermissionsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.signature.or.system.permissions"), SignatureOrSystemDetector.ISSUE);
+    }
+  }
   public static class AndroidLintSmallSpInspection extends AndroidLintInspectionBase {
     public AndroidLintSmallSpInspection() {
       super(AndroidBundle.message("android.lint.inspections.small.sp"), PxUsageDetector.SMALL_SP_ISSUE);
