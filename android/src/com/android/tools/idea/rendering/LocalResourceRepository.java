@@ -279,10 +279,10 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       XmlFile xmlFile = (XmlFile)psiFile;
       ApplicationManager.getApplication().assertReadAccessAllowed();
       XmlTag rootTag = xmlFile.getRootTag();
-      if (rootTag != null) {
+      if (rootTag != null && rootTag.isValid()) {
         XmlTag[] subTags = rootTag.getSubTags();
         for (XmlTag tag : subTags) {
-          if (resourceName.equals(tag.getAttributeValue(SdkConstants.ATTR_NAME))) {
+          if (tag.isValid() && resourceName.equals(tag.getAttributeValue(SdkConstants.ATTR_NAME))) {
             return tag;
           }
         }
@@ -310,7 +310,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       if (file instanceof XmlFile) {
         XmlFile xmlFile = (XmlFile)file;
         XmlTag rootTag = xmlFile.getRootTag();
-        if (rootTag != null) {
+        if (rootTag != null && rootTag.isValid()) {
           return findViewTag(rootTag, id);
         }
       }
@@ -327,9 +327,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
 
     for (XmlTag sub : tag.getSubTags()) {
-      String found = findViewTag(sub, target);
-      if (found != null) {
-        return found;
+      if (sub.isValid()) {
+        String found = findViewTag(sub, target);
+        if (found != null) {
+          return found;
+        }
       }
     }
 
