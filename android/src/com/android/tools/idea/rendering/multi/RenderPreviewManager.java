@@ -894,7 +894,8 @@ public class RenderPreviewManager implements Disposable {
     boolean canScaleNinePatch = configuration.supports(Capability.FIXED_SCALABLE_NINE_PATCH);
 
     // TODO: Only do this if there is no *better* fit for the other orientation
-    boolean useDefaultState = configuration.getDeviceState() == configuration.getDevice().getDefaultState();
+    Device currentDevice = configuration.getDevice();
+    boolean useDefaultState = currentDevice == null || configuration.getDeviceState() == currentDevice.getDefaultState();
     if (configuration.getEditedConfig().getScreenOrientationQualifier() != null) {
       useDefaultState = false;
     }
@@ -922,7 +923,7 @@ public class RenderPreviewManager implements Disposable {
 
       FolderConfiguration c = DeviceConfigHelper.getFolderConfig(state);
       if (c != null) {
-        //noinspection ConstantIfStatement
+        //noinspection ConstantIfStatement,ConstantConditions
         if (false) { // only Nexus devices for now to make list shorter; they span everything from Nexus One up to Nexus 10 so wide range
           ScreenSizeQualifier sizeQualifier = c.getScreenSizeQualifier();
           if (sizeQualifier != null) {
@@ -954,7 +955,7 @@ public class RenderPreviewManager implements Disposable {
           continue;
         }
 
-        if (device == configuration.getDevice()) {
+        if (device == currentDevice) {
           // Show the OTHER devices
           continue;
         }
