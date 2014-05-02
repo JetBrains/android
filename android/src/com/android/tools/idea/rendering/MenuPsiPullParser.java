@@ -29,7 +29,7 @@ import static com.android.SdkConstants.FD_RES_MENU;
 public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParser {
 
   // List of attributes to omit.
-  private static final String[] FILTERS = {"onClick", "actionViewClass", "actionLayout", "actionProviderClass"};
+  private static final String[] FILTERS = {"onClick", "actionViewClass", "actionLayout"};
 
   public MenuPsiPullParser(XmlFile file, RenderLogger logger) {
     super(file, logger, new RenderService.AttributeFilter() {
