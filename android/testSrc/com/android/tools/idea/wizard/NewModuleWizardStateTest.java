@@ -84,12 +84,12 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     // Check that the android state is set correctly
     myState.setTemplateLocation(androidTemplateFile);
     assertEquals(myState.getTemplate().getRootPath(), androidTemplateFile);
-    assertEquals(NewModuleWizardState.Mode.ANDROID_MODULE, myState.myMode);
+    assertEquals(NewModuleWizardState.Mode.NEW_MODULE, myState.myMode);
 
     // Check that the android state is unset correctly
     myState.setTemplateLocation(javaTemplateFile);
     assertEquals(myState.getTemplate().getRootPath(), javaTemplateFile);
-    assertEquals(NewModuleWizardState.Mode.JAVA_MODULE, myState.myMode);
+    assertEquals(NewModuleWizardState.Mode.NEW_MODULE, myState.myMode);
   }
 
   public void testUpdateDependencies() throws Exception {
