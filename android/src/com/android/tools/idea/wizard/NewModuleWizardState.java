@@ -44,7 +44,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  */
 public class NewModuleWizardState extends TemplateWizardState {
   public enum Mode {
-    ANDROID_MODULE, JAVA_MODULE, IMPORT_MODULE, WRAP_ARCHIVE
+    NEW_MODULE, IMPORT_MODULE, WRAP_ARCHIVE
   }
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
@@ -62,7 +62,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   /**
    * Mode that the wizard is in.
    */
-  protected Mode myMode = Mode.ANDROID_MODULE;
+  protected Mode myMode = Mode.NEW_MODULE;
 
   /**
    * Kind of the import to be performed. Only makes sense if myIsModuleImport is true.
@@ -106,14 +106,12 @@ public class NewModuleWizardState extends TemplateWizardState {
     myMode = getModeFromTemplateName(templateName);
 
     if (templateName.equals(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME)) {
-      myMode = Mode.ANDROID_MODULE;
       put(ATTR_IS_LIBRARY_MODULE, true);
       put(ATTR_IS_LAUNCHER, false);
       put(ATTR_CREATE_ICONS, false);
       // Hide the create icons checkbox
       myHidden.add(ATTR_CREATE_ICONS);
     } else if (templateName.equals(TemplateWizardModuleBuilder.APP_TEMPLATE_NAME)) {
-      myMode = Mode.ANDROID_MODULE;
       put(ATTR_IS_LIBRARY_MODULE, false);
       put(ATTR_IS_LAUNCHER, true);
       put(ATTR_CREATE_ICONS, true);
@@ -129,21 +127,14 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   private static Mode getModeFromTemplateName(@Nullable String templateName) {
-    if (templateName == null) {
-      return Mode.JAVA_MODULE;
-    }
     if (MODULE_IMPORT_NAME.equals(templateName)) {
       return Mode.IMPORT_MODULE;
     }
     else if (ARCHIVE_IMPORT_NAME.equals(templateName)) {
       return Mode.WRAP_ARCHIVE;
     }
-    else if (TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME.equals(templateName) ||
-             TemplateWizardModuleBuilder.APP_TEMPLATE_NAME.equals(templateName)) {
-      return Mode.ANDROID_MODULE;
-    }
     else {
-      return Mode.JAVA_MODULE;
+      return Mode.NEW_MODULE;
     }
   }
 
@@ -164,21 +155,6 @@ public class NewModuleWizardState extends TemplateWizardState {
   @NotNull
   public TemplateWizardState getActivityTemplateState() {
     return myActivityTemplateState;
-  }
-
-  @Override
-  public void setTemplateLocation(@NotNull File file) {
-    super.setTemplateLocation(file);
-    TemplateMetadata metadata = myTemplate.getMetadata();
-    if (metadata == null) {
-      myMode = Mode.JAVA_MODULE;
-    }
-    else {
-      myMode = getModeFromTemplateName(metadata.getTitle());
-      if (myMode == Mode.JAVA_MODULE && myTemplate.getMetadata().getParameter(ATTR_MIN_API) != null) {
-        myMode = Mode.ANDROID_MODULE;
-      }
-    }
   }
 
   /**
