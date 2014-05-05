@@ -216,7 +216,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     createManifest();
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/" + before);
     myFixture.configureFromExistingVirtualFile(file);
-    findHandlerAndDoRename(newName, myFixture.getEditor(), myFixture.getProject(), myFixture.getFile());
+    myFixture.renameElementAtCaretUsingHandler(newName);
     myFixture.checkResultByFile(BASE_PATH + after);
   }
 
@@ -227,8 +227,7 @@ public class AndroidRenameTest extends AndroidTestCase {
 
     myFixture.copyFileToProject(BASE_PATH + "layoutStrUsage.xml", "res/layout/layoutStrUsage.xml");
     myFixture.copyFileToProject("R.java", R_JAVA_PATH);
-
-    findHandlerAndDoRename("str1", myFixture.getEditor(), myFixture.getProject(), myFixture.getFile());
+    myFixture.renameElementAtCaretUsingHandler("str1");
 
     myFixture.checkResultByFile(BASE_PATH + "strings_after.xml");
     myFixture.checkResultByFile(R_JAVA_PATH, "R.java", true);
