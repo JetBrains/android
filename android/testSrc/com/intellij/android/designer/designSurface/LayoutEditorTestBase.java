@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.android.designer.componentTree.AndroidTreeDecorator;
 import com.intellij.android.designer.model.RadComponentOperations;
+import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.designer.componentTree.AttributeWrapper;
@@ -89,7 +90,7 @@ public abstract class LayoutEditorTestBase extends AndroidTestCase {
     }
 
     SimpleColoredRenderer renderer = new SimpleColoredRenderer();
-    AndroidTreeDecorator decorator = new AndroidTreeDecorator();
+    AndroidTreeDecorator decorator = new AndroidTreeDecorator(RadModelBuilder.getProject(component));
     decorator.decorate(component, renderer, AttributeWrapper.DEFAULT, true);
     sb.append(renderer);
     sb.append('\n');

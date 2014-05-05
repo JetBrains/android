@@ -18,7 +18,6 @@ package com.intellij.android.designer.componentTree;
 import com.android.SdkConstants;
 import com.android.tools.idea.rendering.IncludeReference;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.ViewsMetaManager;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -34,11 +33,13 @@ import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.rendering.IncludeReference.ATTR_RENDER_IN;
+import static com.intellij.android.designer.model.RadModelBuilder.ROOT_NODE_TAG;
 
 /**
  * Tree decorator for the component tree in Android.
@@ -49,6 +50,12 @@ import static com.android.tools.idea.rendering.IncludeReference.ATTR_RENDER_IN;
  * if the corresponding tag has lint warnings.
  */
 public final class AndroidTreeDecorator implements TreeComponentDecorator {
+  @Nullable private final Project myProject;
+
+  public AndroidTreeDecorator(@Nullable Project project) {
+    myProject = project;
+  }
+
   @Override
   public void decorate(RadComponent component, SimpleColoredComponent renderer, AttributeWrapper wrapper, boolean full) {
     MetaModel metaModel = component.getMetaModel();
@@ -64,9 +71,8 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
       if (attribute != null) {
         String cls = attribute.getValue();
         if (!StringUtil.isEmpty(cls)) {
-          Project project = RadModelBuilder.getProject(component);
-          if (project != null) {
-            MetaManager metaManager = ViewsMetaManager.getInstance(project);
+          if (myProject != null) {
+            MetaManager metaManager = ViewsMetaManager.getInstance(myProject);
             MetaModel classModel = metaManager.getModelByTarget(cls);
             if (classModel != null) {
               metaModel = classModel;
@@ -78,7 +84,7 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
     decorate(component, metaModel, renderer, wrapper, full);
   }
 
-  private static void decorate(RadComponent component,
+  private void decorate(RadComponent component,
                                MetaModel metaModel,
                                SimpleColoredComponent renderer,
                                AttributeWrapper wrapper,
@@ -112,7 +118,7 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
     }
 
     // For the root node, show the including layout when rendering in included contexts
-    if (RadModelBuilder.ROOT_NODE_TAG.equals(tagName)) {
+    if (ROOT_NODE_TAG.equals(tagName)) {
       IncludeReference includeContext = component.getClientProperty(ATTR_RENDER_IN);
       if (includeContext != null && includeContext != IncludeReference.NONE) {
         type = "Shown in " + includeContext.getFromResourceUrl();
@@ -168,9 +174,8 @@ public final class AndroidTreeDecorator implements TreeComponentDecorator {
 
       // Annotate icons with lint warnings or errors, if applicable
       HighlightDisplayLevel displayLevel = null;
-      Project project = RadModelBuilder.getProject(component);
-      if (project != null) {
-        SeverityRegistrar severityRegistrar = SeverityRegistrar.getSeverityRegistrar(project);
+      if (myProject != null) {
+        SeverityRegistrar severityRegistrar = SeverityRegistrar.getSeverityRegistrar(myProject);
         for (ErrorInfo errorInfo : RadComponent.getError(component)) {
           if (displayLevel == null || severityRegistrar.compare(errorInfo.getLevel().getSeverity(), displayLevel.getSeverity()) > 0) {
             displayLevel = errorInfo.getLevel();
