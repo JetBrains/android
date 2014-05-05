@@ -392,9 +392,9 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   @Nullable
   public static Color showDialog(Component parent,
                                  String caption,
-                                 Color preselectedColor,
+                                 @Nullable Color preselectedColor,
                                  boolean enableOpacity,
-                                 ColorPickerListener[] listeners,
+                                 @Nullable ColorPickerListener[] listeners,
                                  boolean opacityInPercent) {
     final ColorPickerDialog dialog = new ColorPickerDialog(parent, caption, preselectedColor, enableOpacity, listeners, opacityInPercent);
     dialog.show();
@@ -963,7 +963,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
                              String caption,
                              @Nullable Color preselectedColor,
                              boolean enableOpacity,
-                             ColorPickerListener[] listeners,
+                             @Nullable ColorPickerListener[] listeners,
                              boolean opacityInPercent) {
       super(parent, true);
       myListeners = listeners;
@@ -992,6 +992,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     protected JComponent createCenterPanel() {
       if (myColorPicker == null) {
         myColorPicker = new ColorPicker(myDisposable, myPreselectedColor, true, myEnableOpacity, myListeners, myOpacityInPercent);
+        myColorPicker.pickARGB();
       }
 
       return myColorPicker;
