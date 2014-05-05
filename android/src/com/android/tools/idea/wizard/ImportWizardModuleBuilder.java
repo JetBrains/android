@@ -112,6 +112,10 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     Template.convertApisToInt(myWizardState.getParameters());
     myPaths = setupWizardPaths(project, sidePanelIcon, disposable);
 
+    for (WizardPath path : myPaths) {
+      addSteps(path);
+    }
+
     if (project != null) {
       myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
     }
@@ -122,11 +126,9 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     myInitializationComplete = true;
   }
 
-  protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
+  protected WizardPath[] setupWizardPaths(@Nullable Project project, @Nullable Icon sidePanelIcon, Disposable disposable) {
     ImportSourceModulePath importSourcesPath =
       new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), disposable, this);
-
-    addSteps(importSourcesPath);
     return new WizardPath[]{importSourcesPath};
   }
 
