@@ -360,8 +360,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   }
 
   public void refreshUiFromParameters() {
-    myTemplateState.myModified.clear();
-
     if (myTemplateState.myTemplate == null) {
       return;
     }
