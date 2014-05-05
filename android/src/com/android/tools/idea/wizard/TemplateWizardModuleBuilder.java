@@ -45,9 +45,8 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   protected static final String APP_TEMPLATE_NAME = "Android Application";
   protected static final String LIB_TEMPLATE_NAME = "Android Library";
 
-  @Nullable private final TemplateMetadata myMetadata;
+  @Nullable private final String myBuilderId;
   private NewAndroidModulePath myNewAndroidModulePath;
-  private TemplateParameterStep myTemplateParameterStep;
 
   public TemplateWizardModuleBuilder(@Nullable File templateLocation,
                                      @Nullable TemplateMetadata metadata,
@@ -57,7 +56,8 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      @NotNull Disposable disposable,
                                      boolean inGlobalWizard) {
     super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
-    myMetadata = metadata;
+    myBuilderId = metadata == null ? null : metadata.getTitle();
+    mySteps.add(0, buildChooseModuleStep(project));
   }
 
   @Override
@@ -65,18 +65,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
     WizardPath[] paths = super.setupWizardPaths(project, sidePanelIcon, disposable);
     myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
     WrapArchiveWizardPath wrapArchiveWizardPath = new WrapArchiveWizardPath(myWizardState, project, this, disposable);
-    paths = ArrayUtil.append(paths, myNewAndroidModulePath);
-    paths = ArrayUtil.append(paths, wrapArchiveWizardPath);
-    myTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, this);
-
-    mySteps.add(new ChooseAndroidAndJavaSdkStep());
-    mySteps.add(myTemplateParameterStep);
-
-    mySteps.add(0, buildChooseModuleStep(paths, project));
-
-    addSteps(myNewAndroidModulePath);
-    addSteps(wrapArchiveWizardPath);
-    return paths;
+    return ArrayUtil.append(ArrayUtil.append(paths, myNewAndroidModulePath), wrapArchiveWizardPath);
   }
 
   @Override
@@ -88,25 +77,13 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   @Nullable
   @Override
   public String getBuilderId() {
-    assert myMetadata != null;
-    return myMetadata.getTitle();
-  }
-
-  @Override
-  public boolean updateWizardSteps() {
-    if (super.updateWizardSteps()) {
-      myTemplateParameterStep.setVisible(myWizardState.myMode != NewModuleWizardState.Mode.ANDROID_MODULE);
-      return true;
-    }
-    else {
-      return false;
-    }
+    return myBuilderId;
   }
 
   /**
    * Create a template chooser step populated with the correct templates for the new modules.
    */
-  private ChooseTemplateStep buildChooseModuleStep(@NotNull WizardPath[] paths, @Nullable Project project) {
+  private ChooseTemplateStep buildChooseModuleStep(@Nullable Project project) {
     // We're going to build up our own list of templates here
     // This is a little hacky, we should clean this up later.
     ChooseTemplateStep chooseModuleStep =
@@ -121,7 +98,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
           return Collator.getInstance().compare(o1.toString(), o2.toString());
         }
       });
-    for (WizardPath path : paths) {
+    for (WizardPath path : myPaths) {
       excludedTemplates.addAll(path.getExcludedTemplates());
       builtinTemplateList.addAll(path.getBuiltInTemplates());
     }
