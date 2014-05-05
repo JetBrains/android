@@ -30,11 +30,13 @@ import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.ui.IdeBorderFactory;
@@ -260,7 +262,9 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
     DefaultActionGroup targetGroup = myDynamicBeforeGroup;
     AndroidDesignerEditorPanel designer = (AndroidDesignerEditorPanel)myDesigner;
     XmlFile xmlFile = designer.getXmlFile();
-    Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(xmlFile);
+    GlobalSearchScope useScope = GlobalSearchScope.projectScope(designer.getProject());
+    GlobalSearchScope scope = GlobalSearchScope.getScopeRestrictedByFileTypes(useScope, StdFileTypes.XML);
+    Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(xmlFile, scope);
     Iterator<PsiReference> iterator = allReferences.iterator();
 
     if (iterator.hasNext()) {
