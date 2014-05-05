@@ -338,7 +338,7 @@ public class GradleProjectImporter {
     AppUIUtil.invokeLaterIfProjectAlive(project, syncRequest);
   }
 
-  private void doRequestSync(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable GradleSyncListener listener)
+  private void doRequestSync(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable final GradleSyncListener listener)
     throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
@@ -355,6 +355,10 @@ public class GradleProjectImporter {
 
           NotificationListener notificationListener = new CustomNotificationListener(project, new OpenMigrationToGradleUrlHyperlink());
           notification.showBalloon("Project Sync", msg, NotificationType.ERROR, notificationListener);
+
+          if (listener != null) {
+            listener.syncFailed(project, msg);
+          }
         }
       };
       Application application = ApplicationManager.getApplication();
