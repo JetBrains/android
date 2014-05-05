@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -49,6 +50,7 @@ public final class NewAndroidModulePath implements WizardPath {
   private AssetSetStep myAssetSetStep;
   private ChooseTemplateStep myChooseActivityStep;
   private TemplateParameterStep myActivityTemplateParameterStep;
+  private TemplateParameterStep myJavaModuleTemplateParameterStep;
 
   public NewAndroidModulePath(@NotNull NewModuleWizardState wizardState,
                               @NotNull TemplateWizardModuleBuilder builder,
@@ -64,14 +66,21 @@ public final class NewAndroidModulePath implements WizardPath {
     myChooseActivityStep =
       new ChooseTemplateStep(state.getActivityTemplateState(), CATEGORY_ACTIVITIES, project, null, sidePanelIcon, builder, null);
     myActivityTemplateParameterStep = new TemplateParameterStep(state.getActivityTemplateState(), project, null, sidePanelIcon, builder);
+    myJavaModuleTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, builder);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
+  }
+
+  private static boolean isAndroidTemplate(@Nullable TemplateMetadata templateMetadata) {
+    return templateMetadata != null && templateMetadata.getParameter(TemplateMetadata.ATTR_MIN_API) != null;
   }
 
   @Override
   public void update() {
-    boolean isActivePath = myWizardState.myMode == NewModuleWizardState.Mode.ANDROID_MODULE;
+    boolean isActivePath = myWizardState.myMode == NewModuleWizardState.Mode.NEW_MODULE;
+    boolean isAndroidTemplate = isAndroidTemplate(myWizardState.getTemplateMetadata());
+    myJavaModuleTemplateParameterStep.setVisible(!isAndroidTemplate);
     myConfigureAndroidModuleStep.setVisible(isActivePath);
-    if (isActivePath) {
+    if (isActivePath && isAndroidTemplate) {
       myConfigureAndroidModuleStep.updateStep();
     }
     myAssetSetStep.setVisible(isActivePath && myWizardState.getBoolean(ATTR_CREATE_ICONS));
@@ -89,7 +98,7 @@ public final class NewAndroidModulePath implements WizardPath {
   public void createModule() {
     NewModuleWizardState.Mode mode = myWizardState.myMode;
     // For historical reasons, this class handles project creation for both Java and Android module templates
-    if ((mode == NewModuleWizardState.Mode.ANDROID_MODULE || mode == NewModuleWizardState.Mode.JAVA_MODULE) && myProject != null) {
+    if (mode == NewModuleWizardState.Mode.NEW_MODULE && myProject != null) {
       try {
         myWizardState.populateDirectoryParameters();
         File projectRoot = new File(myProject.getBasePath());
@@ -118,13 +127,21 @@ public final class NewAndroidModulePath implements WizardPath {
 
   @Override
   public Collection<ModuleWizardStep> getSteps() {
-    return ImmutableSet
-      .<ModuleWizardStep>of(myConfigureAndroidModuleStep, myAssetSetStep, myChooseActivityStep, myActivityTemplateParameterStep);
+    return ImmutableSet.of(new ChooseAndroidAndJavaSdkStep(), myJavaModuleTemplateParameterStep, myConfigureAndroidModuleStep,
+                           myAssetSetStep, myChooseActivityStep, myActivityTemplateParameterStep);
   }
 
   @Override
   public boolean isStepVisible(ModuleWizardStep step) {
-    return myWizardState.myMode == NewModuleWizardState.Mode.ANDROID_MODULE && step.isStepVisible();
+    if (!step.isStepVisible() || myWizardState.myMode != NewModuleWizardState.Mode.NEW_MODULE) {
+      return false;
+    }
+    else if (step instanceof ChooseAndroidAndJavaSdkStep) {
+      return true;
+    }
+    else {
+      return !isAndroidTemplate(myWizardState.getTemplateMetadata()) == (step == myJavaModuleTemplateParameterStep);
+    }
   }
 
   @Override
