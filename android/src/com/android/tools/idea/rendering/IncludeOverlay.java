@@ -71,9 +71,8 @@ public class IncludeOverlay extends Overlay {
     Composite prevComposite = gc.getComposite();
     gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, MASK_TRANSPARENCY / 255.0f));
 
-    Collection<Rectangle> masks = computeMasks(includedRoots);
-    for (Rectangle b : masks) {
-      Rectangle r = myContainer.fromModel(component, b);
+    Collection<Rectangle> masks = computeMasks(component, includedRoots);
+    for (Rectangle r : masks) {
       gc.fillRect(r.x + deltaX, r.y + deltaY, r.width, r.height);
     }
 
@@ -81,14 +80,16 @@ public class IncludeOverlay extends Overlay {
   }
 
   /** Computes the set of rectangles we should paint to cover everything up <b>except</b> for
-   * the included root bounds */
-  protected Collection<Rectangle> computeMasks(List<RenderedView> includedRoots) {
+   * the included root bounds. The coordinates will be in the coordinate system of the given
+   * component.
+   */
+  protected Collection<Rectangle> computeMasks(Component component, List<RenderedView> includedRoots) {
     Dimension fullImageSize = myContainer.getFullImageSize();
     Rectangle whole = new Rectangle(0, 0, fullImageSize.width, fullImageSize.height);
-    whole = new Rectangle(whole.x, whole.y, whole.width + 1, whole.height + 1);
+    whole = myContainer.fromModel(component, whole);
     List<Rectangle> includedBounds = Lists.newArrayListWithExpectedSize(includedRoots.size());
     for (RenderedView view : includedRoots) {
-      includedBounds.add(view.getBounds());
+      includedBounds.add(myContainer.fromModel(component, view.getBounds()));
     }
     return subtractRectangles(whole, includedBounds);
   }
@@ -102,8 +103,7 @@ public class IncludeOverlay extends Overlay {
    * @return a list of sub rectangles that remain after subtracting out the given list of holes
    */
   @VisibleForTesting
-  static Collection<Rectangle> subtractRectangles(
-    Rectangle rectangle, Collection<Rectangle> holes) {
+  static Collection<Rectangle> subtractRectangles(Rectangle rectangle, Collection<Rectangle> holes) {
     List<Rectangle> result = new ArrayList<Rectangle>();
     result.add(rectangle);
 
