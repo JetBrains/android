@@ -18,9 +18,7 @@ ______ENTRY_1:
 $ANDROID_SDK_DIR$/platform-tools/aapt.exe
 crunch
 -S
-$PROJECT_DIR$/root/res-overlay
--S
-$PROJECT_DIR$/root/res
+$COMBINED_RESOURCES_TMP$
 -C
 $DATA_STORAGE_ROOT$/android/res_cache/module
 
