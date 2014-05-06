@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,6 +57,11 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
     return "Java";
   }
 
+  @Override
+  public int getGroupWeight(String group) {
+    return JavaModuleBuilder.JAVA_MOBILE_WEIGHT;
+  }
+
   @NotNull
   @Override
   public ProjectTemplate[] createTemplates(String group, WizardContext context) {
@@ -70,6 +76,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
       final String templateName = template.getName();
 
       if (NewProjectWizardState.PROJECT_TEMPLATE_NAME.equals(templateName) ||
+          NewProjectWizardState.IMPORT_EXISTING_PROJECT_TEMPLATE_NAME.equals(templateName) ||
           project == null && !NewProjectWizardState.MODULE_TEMPLATE_NAME.equals(templateName)) {
         continue;
       }
