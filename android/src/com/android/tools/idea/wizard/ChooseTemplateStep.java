@@ -208,7 +208,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
     return null;
   }
 
-  protected static class MetadataListItem implements Comparable<MetadataListItem> {
+  public static class MetadataListItem implements Comparable<MetadataListItem> {
     private TemplateMetadata myMetadata;
     private final File myTemplate;
 
