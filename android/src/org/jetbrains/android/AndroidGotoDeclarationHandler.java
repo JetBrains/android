@@ -107,6 +107,10 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
           for (DeclareStyleable styleable : lrm.findStyleables(fieldName)) {
             resourceList.add(styleable.getName().getXmlAttributeValue());
           }
+
+          for (Attr styleable : lrm.findStyleableAttributesByFieldName(fieldName)) {
+            resourceList.add(styleable.getName().getXmlAttributeValue());
+          }
         }
       }
     }
