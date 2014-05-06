@@ -296,11 +296,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   }
 
   @Override
-  public boolean isStepVisible() {
-    return myState.myMode == NewModuleWizardState.Mode.IMPORT_MODULE;
-  }
-
-  @Override
   public void updateDataModel() {
     // Do nothing?
   }

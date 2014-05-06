@@ -79,20 +79,14 @@ public class WrapArchiveWizardPath implements WizardPath {
 
   @Override
   public void update() {
-    if (isActive()) {
-      for (ModuleWizardStep step : steps) {
-        step.updateStep();
-      }
+    for (ModuleWizardStep step : steps) {
+      step.updateStep();
     }
-  }
-
-  private boolean isActive() {
-    return myWizardState.myMode == NewModuleWizardState.Mode.WRAP_ARCHIVE;
   }
 
   @Override
   public void createModule() {
-    if (isActive() && myProject != null) {
+    if (myProject != null) {
       final File archivePath = new File(myWizardState.getString(KEY_ARCHIVE));
       String path = myWizardState.getString(KEY_GRADLE_PATH);
       final String gradlePath = GradleUtil.makeAbsolute(path);
@@ -104,7 +98,7 @@ public class WrapArchiveWizardPath implements WizardPath {
 
   @Override
   public boolean isStepVisible(ModuleWizardStep step) {
-    return isActive() && steps.contains(step);
+    return steps.contains(step);
   }
 
   @Override

@@ -56,7 +56,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      boolean inGlobalWizard) {
     super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
     myBuilderId = metadata == null ? null : metadata.getTitle();
-    mySteps.add(0, buildChooseModuleStep(project));
+    mySteps.add(0, buildChooseModuleStep(project, myNewAndroidModulePath));
   }
 
   @Override
@@ -93,7 +93,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   /**
    * Create a template chooser step populated with the correct templates for the new modules.
    */
-  private ChooseTemplateStep buildChooseModuleStep(@Nullable Project project) {
+  private ChooseTemplateStep buildChooseModuleStep(@Nullable Project project, @NotNull WizardPath defaultPath) {
     // We're going to build up our own list of templates here
     // This is a little hacky, we should clean this up later.
     ChooseTemplateStep chooseModuleStep =
@@ -110,8 +110,14 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
       });
     for (WizardPath path : myPaths) {
       excludedTemplates.addAll(path.getExcludedTemplates());
-      builtinTemplateList.addAll(path.getBuiltInTemplates());
+
+      Collection<ChooseTemplateStep.MetadataListItem> templates = path.getBuiltInTemplates();
+      builtinTemplateList.addAll(templates);
+      for (ChooseTemplateStep.MetadataListItem template : templates) {
+        myWizardState.associateTemplateWithPath(template.toString(), path);
+      }
     }
+    myWizardState.setDefaultWizardPath(defaultPath);
 
     // Get the list of templates to offer, but exclude the NewModule and NewProject template
     List<ChooseTemplateStep.MetadataListItem> templateList =
