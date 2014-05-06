@@ -18,7 +18,9 @@ import java.io.File;
 /**
 * @author Eugene.Kudelevsky
 */
-public class LazyValueResourceElementWrapper extends RenameableFakePsiElement implements PsiTarget {
+public class LazyValueResourceElementWrapper extends RenameableFakePsiElement implements PsiTarget,
+                                                                                         Comparable<LazyValueResourceElementWrapper> {
+
   private final ValueResourceInfo myResourceInfo;
   private final PsiElement myParent;
 
@@ -105,5 +107,11 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement im
       element = ((LazyValueResourceElementWrapper)element).computeElement();
     }
     return element;
+  }
+
+  // Comparator useful for comparing one wrapper for priority sorting without having to actually compute the XML elements
+  @Override
+  public int compareTo(@NotNull LazyValueResourceElementWrapper other) {
+    return myResourceInfo.compareTo(other.myResourceInfo);
   }
 }
