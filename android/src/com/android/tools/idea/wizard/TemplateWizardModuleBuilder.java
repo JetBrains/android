@@ -20,7 +20,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ArrayFactory;
 import com.intellij.util.ArrayUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.io.File;
 import java.text.Collator;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 
@@ -64,8 +63,19 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
     WizardPath[] paths = super.setupWizardPaths(project, sidePanelIcon, disposable);
     myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
-    WrapArchiveWizardPath wrapArchiveWizardPath = new WrapArchiveWizardPath(myWizardState, project, this, disposable);
-    return ArrayUtil.append(ArrayUtil.append(paths, myNewAndroidModulePath), wrapArchiveWizardPath);
+    List<WizardPath> extensionPaths = new ArrayList<WizardPath>();
+    paths = ArrayUtil.append(paths, myNewAndroidModulePath);
+    for (NewModuleWizardPathFactory factory : Extensions.getExtensions(NewModuleWizardPathFactory.EP_NAME)) {
+      extensionPaths.addAll(factory.createWizardPaths(myWizardState, this, project, sidePanelIcon, disposable));
+    }
+    paths = ArrayUtil.mergeArrayAndCollection(paths, extensionPaths, new ArrayFactory<WizardPath>() {
+      @NotNull
+      @Override
+      public WizardPath[] create(int count) {
+        return new WizardPath[count];
+      }
+    });
+    return paths;
   }
 
   @Override
