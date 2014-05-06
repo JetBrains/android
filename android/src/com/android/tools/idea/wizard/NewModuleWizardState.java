@@ -29,11 +29,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.templates.RepositoryUrlManager.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -43,36 +39,33 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * {@link com.android.tools.idea.wizard.NewModuleWizard}
  */
 public class NewModuleWizardState extends TemplateWizardState {
-  public enum Mode {
-    NEW_MODULE, IMPORT_MODULE, WRAP_ARCHIVE
-  }
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
   public static final String APP_NAME = "app";
   public static final String LIB_NAME = "lib";
-
   public static final String MODULE_IMPORT_NAME = "Import Existing Project";
   public static final String ARCHIVE_IMPORT_NAME = "Import .JAR or .AAR Package";
-
   /**
    * State for the template wizard, used to embed an activity template
    */
   protected final TemplateWizardState myActivityTemplateState;
-
-  /**
-   * Mode that the wizard is in.
-   */
-  protected Mode myMode = Mode.NEW_MODULE;
-
   /**
    * Kind of the import to be performed. Only makes sense if myIsModuleImport is true.
    */
   private ImportSourceKind myImportKind;
-
   /**
    * Modules that will be imported.
    */
   private Map<String, VirtualFile> myModulesToImport;
+  /**
+   * Map from a template name to the wizard path that has provided this template.
+   */
+  private Map<String, WizardPath> myTemplateToPathMap = new HashMap<String, WizardPath>();
+  /**
+   * The active wizard path.
+   */
+  private WizardPath myActiveWizardPath;
+  private WizardPath myDefaultPath;
 
   public NewModuleWizardState() {
     myActivityTemplateState = new TemplateWizardState();
@@ -102,8 +95,16 @@ public class NewModuleWizardState extends TemplateWizardState {
     updateParameters();
   }
 
+  public static boolean isAndroidTemplate(@Nullable TemplateMetadata templateMetadata) {
+    return templateMetadata != null && templateMetadata.getParameter(ATTR_MIN_API) != null;
+  }
+
+  public void setDefaultWizardPath(WizardPath defaultPath) {
+    myDefaultPath = defaultPath;
+  }
+
   public void templateChanged(@Nullable Project project, String templateName) {
-    myMode = getModeFromTemplateName(templateName);
+    setTemplateName(templateName);
 
     if (templateName.equals(TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME)) {
       put(ATTR_IS_LIBRARY_MODULE, true);
@@ -126,16 +127,13 @@ public class NewModuleWizardState extends TemplateWizardState {
     }
   }
 
-  private static Mode getModeFromTemplateName(@Nullable String templateName) {
-    if (MODULE_IMPORT_NAME.equals(templateName)) {
-      return Mode.IMPORT_MODULE;
-    }
-    else if (ARCHIVE_IMPORT_NAME.equals(templateName)) {
-      return Mode.WRAP_ARCHIVE;
-    }
-    else {
-      return Mode.NEW_MODULE;
-    }
+  private void setTemplateName(@Nullable String templateName) {
+    myActiveWizardPath = myTemplateToPathMap.get(templateName);
+  }
+
+  @NotNull
+  public WizardPath getActiveWizardPath() {
+    return myActiveWizardPath != null ? myActiveWizardPath : myDefaultPath;
   }
 
   public void putSdkDependentParams() {
@@ -205,21 +203,33 @@ public class NewModuleWizardState extends TemplateWizardState {
     }
   }
 
+  @Nullable
+  public ImportSourceKind getImportKind() {
+    return myImportKind;
+  }
+
   public void setImportKind(@Nullable ImportSourceKind importKind) {
     myImportKind = importKind;
   }
 
   @Nullable
-  public ImportSourceKind getImportKind() {
-    return myImportKind;
+  public Map<String, VirtualFile> getModulesToImport() {
+    return myModulesToImport;
   }
 
   public void setModulesToImport(@Nullable Map<String, VirtualFile> modulesToImport) {
     myModulesToImport = modulesToImport;
   }
 
-  @Nullable
-  public Map<String, VirtualFile> getModulesToImport() {
-    return myModulesToImport;
+  public void associateTemplateWithPath(String templateName, WizardPath path) {
+    myTemplateToPathMap.put(templateName, path);
+    // Initialize to the first existing wizard path by default.
+    if (myActiveWizardPath == null) {
+      myActiveWizardPath = path;
+    }
+  }
+
+  public boolean isOnDefaultWizardPath() {
+    return myActiveWizardPath == myDefaultPath;
   }
 }

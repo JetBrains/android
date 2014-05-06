@@ -140,16 +140,16 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   public boolean isStepVisible(ModuleWizardStep step) {
     WizardPath path = myStepsToPath.get(step);
-    return path == null ? step.isStepVisible() : path.isStepVisible(step);
+    return path == null
+           ? step.isStepVisible()
+           : path == myWizardState.getActiveWizardPath() && path.isStepVisible(step);
   }
 
   public boolean updateWizardSteps() {
     if (!myInitializationComplete) {
       return false;
     }
-    for (WizardPath path : myPaths) {
-      path.update();
-    }
+    myWizardState.getActiveWizardPath().update();
     return true;
   }
 
@@ -253,9 +253,8 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
    * @param performGradleSync if set to true, a sync will be triggered after the template has been created.
    */
   public void createModule(boolean performGradleSync) {
-    for (WizardPath path : myPaths) {
-      path.createModule();
-    }
+    WizardPath path = myWizardState.getActiveWizardPath();
+    path.createModule();
     if (performGradleSync && myProject != null) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
@@ -263,9 +262,9 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   @Override
   public boolean isSuitableSdkType(SdkTypeId sdkType) {
-    return myWizardState.myMode == NewModuleWizardState.Mode.IMPORT_MODULE
-           ? AndroidSdkType.getInstance().equals(sdkType)
-           : sdkType instanceof JavaSdkType;
+    boolean isJavaTemplate = myWizardState.isOnDefaultWizardPath() &&
+                             NewModuleWizardState.isAndroidTemplate(myWizardState.getTemplateMetadata());
+    return isJavaTemplate ? sdkType instanceof JavaSdkType : AndroidSdkType.getInstance().equals(sdkType);
   }
 
   @Override
