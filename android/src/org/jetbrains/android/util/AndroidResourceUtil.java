@@ -19,7 +19,9 @@ package org.jetbrains.android.util;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
@@ -63,13 +65,17 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.resources.ResourceType.ATTR;
+import static com.android.resources.ResourceType.STYLEABLE;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidResourceUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidResourceUtil");
-
-  public static final String NEW_ID_PREFIX = "@+id/";
 
   public static final Set<ResourceType> VALUE_RESOURCE_TYPES = EnumSet.of(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.DIMEN,
                                                                           ResourceType.STRING, ResourceType.STYLE, ResourceType.ARRAY,
@@ -119,12 +125,12 @@ public class AndroidResourceUtil {
 
   static {
     REFERRABLE_RESOURCE_TYPES.addAll(Arrays.asList(ResourceType.values()));
-    REFERRABLE_RESOURCE_TYPES.remove(ResourceType.ATTR);
-    REFERRABLE_RESOURCE_TYPES.remove(ResourceType.STYLEABLE);
+    REFERRABLE_RESOURCE_TYPES.remove(ATTR);
+    REFERRABLE_RESOURCE_TYPES.remove(STYLEABLE);
 
     ALL_VALUE_RESOURCE_TYPES.addAll(VALUE_RESOURCE_TYPES);
-    ALL_VALUE_RESOURCE_TYPES.add(ResourceType.ATTR);
-    ALL_VALUE_RESOURCE_TYPES.add(ResourceType.STYLEABLE);
+    ALL_VALUE_RESOURCE_TYPES.add(ATTR);
+    ALL_VALUE_RESOURCE_TYPES.add(STYLEABLE);
   }
 
   @NotNull
@@ -151,6 +157,42 @@ public class AndroidResourceUtil {
 
           if (field != null) {
             result.add(field);
+          }
+        }
+      }
+    }
+    return result.toArray(new PsiField[result.size()]);
+  }
+
+  /**
+   * Like {@link #findResourceFields(org.jetbrains.android.facet.AndroidFacet, String, String, boolean)} but
+   * can match than more than a single field name
+   */
+  @NotNull
+  public static PsiField[] findResourceFields(@NotNull AndroidFacet facet,
+                                              @NotNull String resClassName,
+                                              @NotNull Collection<String> resourceNames,
+                                              boolean onlyInOwnPackages) {
+    final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
+    final List<PsiField> result = new ArrayList<PsiField>();
+
+    for (PsiJavaFile rClassFile : rClassFiles) {
+      if (rClassFile == null) {
+        continue;
+      }
+      final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
+
+      if (rClass != null) {
+        final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+
+        if (resourceTypeClass != null) {
+          for (String resourceName : resourceNames) {
+            String fieldName = getRJavaFieldName(resourceName);
+            final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
+
+            if (field != null) {
+              result.add(field);
+            }
           }
         }
       }
@@ -272,25 +314,68 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    String fileResType = facet.getLocalResourceManager().getFileResourceType(tag.getContainingFile());
-    final String resourceType = "values".equals(fileResType)
+    ResourceFolderType fileResType = ResourceHelper.getFolderType(tag.getContainingFile());
+    final String resourceType = fileResType == ResourceFolderType.VALUES
                                 ? getResourceTypeByValueResourceTag(tag)
                                 : null;
     if (resourceType == null) {
       return PsiField.EMPTY_ARRAY;
     }
 
-    final String name = tag.getAttributeValue("name");
+    String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       return PsiField.EMPTY_ARRAY;
     }
+
     return findResourceFields(facet, resourceType, name, onlyInOwnPackages);
   }
 
   @NotNull
+  public static PsiField[] findStyleableAttributeFields(XmlTag tag, boolean onlyInOwnPackages) {
+    String tagName = tag.getName();
+    if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
+      String styleableName = tag.getAttributeValue(ATTR_NAME);
+      if (styleableName == null) {
+        return PsiField.EMPTY_ARRAY;
+      }
+      AndroidFacet facet = AndroidFacet.getInstance(tag);
+      if (facet == null) {
+        return PsiField.EMPTY_ARRAY;
+      }
+      Set<String> names = Sets.newHashSet();
+      for (XmlTag attr : tag.getSubTags()) {
+        if (TAG_ATTR.equals(attr.getName())) {
+          String attrName = attr.getAttributeValue(ATTR_NAME);
+          if (attrName != null) {
+            names.add(styleableName + '_' + attrName);
+          }
+        }
+      }
+      if (!names.isEmpty()) {
+        return findResourceFields(facet, STYLEABLE.getName(), names, onlyInOwnPackages);
+      }
+    } else if (TAG_ATTR.equals(tagName)) {
+      XmlTag parentTag = tag.getParentTag();
+      if (parentTag != null && TAG_DECLARE_STYLEABLE.equals(parentTag.getName())) {
+        String styleName = parentTag.getAttributeValue(ATTR_NAME);
+        String attributeName = tag.getAttributeValue(ATTR_NAME);
+        AndroidFacet facet = AndroidFacet.getInstance(tag);
+        if (facet != null && styleName != null && attributeName != null) {
+          return findResourceFields(facet, STYLEABLE.getName(), styleName + '_' + attributeName, onlyInOwnPackages);
+        }
+      }
+    }
+
+    return PsiField.EMPTY_ARRAY;
+  }
+
+  @NotNull
   public static String getRJavaFieldName(@NotNull String resourceName) {
+    if (resourceName.indexOf('.') == -1) {
+      return resourceName;
+    }
     final String[] identifiers = resourceName.split("\\.");
-    final StringBuilder result = new StringBuilder();
+    final StringBuilder result = new StringBuilder(resourceName.length());
 
     for (int i = 0, n = identifiers.length; i < n; i++) {
       result.append(identifiers[i]);
@@ -302,6 +387,7 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isCorrectAndroidResourceName(@NotNull String resourceName) {
+    // TODO: No, we need to check per resource folder type here. There is a validator for this!
     if (resourceName.length() == 0) {
       return false;
     }
@@ -381,11 +467,11 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isIdDeclaration(@Nullable String attrValue) {
-    return attrValue != null && attrValue.startsWith(NEW_ID_PREFIX);
+    return attrValue != null && attrValue.startsWith(SdkConstants.NEW_ID_PREFIX);
   }
 
   public static boolean isIdReference(@Nullable String attrValue) {
-    return attrValue != null && attrValue.startsWith("@id/");
+    return attrValue != null && attrValue.startsWith(SdkConstants.ID_PREFIX);
   }
 
   public static boolean isIdDeclaration(@NotNull XmlAttributeValue value) {
@@ -488,8 +574,8 @@ public class AndroidResourceUtil {
     if (VALUE_RESOURCE_TYPES.contains(type)) {
       return type.getName() + "s.xml";
     }
-    if (ResourceType.ATTR == type ||
-        ResourceType.STYLEABLE == type) {
+    if (ATTR == type ||
+        STYLEABLE == type) {
       return "attrs.xml";
     }
     return null;
@@ -694,13 +780,10 @@ public class AndroidResourceUtil {
       @Override
       public boolean process(ResourceElement element) {
         if (value.length() > 0) {
-          final String s = resourceType == ResourceType.STRING
-                           ? normalizeXmlResourceValue(value)
-                           : value;
+          final String s = resourceType == ResourceType.STRING ? normalizeXmlResourceValue(value) : value;
           element.setStringValue(s);
         }
-        else if (resourceType == ResourceType.STYLEABLE ||
-                 resourceType == ResourceType.STYLE) {
+        else if (resourceType == STYLEABLE || resourceType == ResourceType.STYLE) {
           element.setStringValue("value");
           element.getXmlTag().getValue().setText("");
         }
