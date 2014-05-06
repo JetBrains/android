@@ -113,6 +113,11 @@ public class WrapArchiveWizardPath implements WizardPath {
     return Collections.singleton(template);
   }
 
+  @Override
+  public boolean supportsGlobalWizard() {
+    return false;
+  }
+
   private static class CreateModuleFromArchiveAction extends WriteCommandAction<Object> {
     private final Project myProject;
     private final String myGradlePath;
