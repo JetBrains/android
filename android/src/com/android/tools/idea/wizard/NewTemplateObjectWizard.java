@@ -153,7 +153,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       myWizardState.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(getDebugKeystore(facet)));
     }
     catch (Exception e) {
-      LOG.error("Could not compute SHA1 hash of debug keystore.", e);
+      LOG.info("Could not compute SHA1 hash of debug keystore.", e);
       myWizardState.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
     }
 
