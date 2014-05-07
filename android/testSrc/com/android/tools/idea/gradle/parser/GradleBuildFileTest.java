@@ -915,6 +915,60 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(expected, file.getPlugins());
   }
 
+  public void testAddsSigningConfigsAtBeginning() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    compileSdkVersion 17\n" +
+      "}\n"
+    );
+    final NamedObject config = new NamedObject("config" );
+    config.setValue(BuildFileKey.KEY_ALIAS, "alias" );
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.SIGNING_CONFIGS, ImmutableList.of(config));
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        config {\n" +
+      "            keyAlias 'alias'\n" +
+      "        }\n" +
+      "    }\n" +
+      "    compileSdkVersion 17\n" +
+      "}\n";
+
+    assertContents(file, expected);
+  }
+
+  public void testAddsSigningConfigsToEmptyBlock() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "}\n"
+    );
+    final NamedObject config = new NamedObject("config");
+    config.setValue(BuildFileKey.KEY_ALIAS, "alias");
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.SIGNING_CONFIGS, ImmutableList.of(config));
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        config {\n" +
+      "            keyAlias 'alias'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n";
+
+    assertContents(file, expected);
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +
