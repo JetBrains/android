@@ -20,9 +20,7 @@ ______ENTRY_1:
 $ANDROID_SDK_DIR$/platform-tools/aapt.exe
 crunch
 -S
-$PROJECT_DIR$/root/app/res
--S
-$PROJECT_DIR$/root/myaar/res
+$COMBINED_RESOURCES_TMP$
 -C
 $DATA_STORAGE_ROOT$/android/res_cache/app
 
