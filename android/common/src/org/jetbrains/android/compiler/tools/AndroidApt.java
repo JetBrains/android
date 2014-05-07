@@ -23,6 +23,7 @@ import com.android.sdklib.internal.build.SymbolWriter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -50,6 +51,13 @@ public final class AndroidApt {
 
   @NonNls private static final String COMMAND_CRUNCH = "crunch";
   @NonNls private static final String COMMAND_PACKAGE = "package";
+
+  private static final FileFilter PNG_FILES_FILTER = new FileFilter() {
+    @Override
+    public boolean accept(File file) {
+      return file.isDirectory() || FileUtilRt.extensionEquals(file.getName(), AndroidCommonUtils.PNG_EXTENSION);
+    }
+  };
 
   private AndroidApt() {
   }
@@ -288,17 +296,40 @@ public final class AndroidApt {
     args.add(buildToolInfo.getPath(BuildToolInfo.PathId.AAPT));
 
     args.add(COMMAND_CRUNCH);
+    File tempDir = null;
+    try {
+      if (resPaths.size() > 0) {
+        if (resPaths.size() == 1) {
+          args.add("-S");
+          args.add(resPaths.get(0));
+        }
+        else {
+          tempDir = FileUtil.createTempDirectory("android_combined_resources", "tmp");
 
-    for (String path : resPaths) {
-      args.add("-S");
-      args.add(path);
+          for (int i = resPaths.size() - 1; i >= 0; i--) {
+            final String resDirPath = resPaths.get(i);
+            final File resDir = new File(resDirPath);
+
+            if (resDir.exists()) {
+              FileUtil.copyDir(resDir, tempDir, PNG_FILES_FILTER);
+            }
+          }
+          args.add("-S");
+          args.add(tempDir.getPath());
+        }
+      }
+
+      args.add("-C");
+      args.add(outputPath);
+
+      LOG.info(AndroidCommonUtils.command2string(args));
+      return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
     }
-
-    args.add("-C");
-    args.add(outputPath);
-
-    LOG.info(AndroidCommonUtils.command2string(args));
-    return AndroidExecutionUtil.doExecute(ArrayUtil.toStringArray(args));
+    finally {
+      if (tempDir != null) {
+        FileUtil.delete(tempDir);
+      }
+    }
   }
 
   public static Map<AndroidCompilerMessageKind, List<String>> packageResources(@NotNull IAndroidTarget target,
