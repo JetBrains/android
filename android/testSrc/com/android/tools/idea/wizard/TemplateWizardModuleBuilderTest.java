@@ -89,7 +89,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        moduleBuilder.createModule();
+        moduleBuilder.getDefaultPath().createModule();
         assertFilesExist(myProjectRoot,
                          "settings.gradle",
                          "app",
@@ -123,7 +123,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        moduleBuilder.createModule();
+        moduleBuilder.getDefaultPath().createModule();
         assertFilesExist(myProjectRoot,
                          "settings.gradle",
                          "lib",
@@ -156,7 +156,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
       public void run() {
-        moduleBuilder.createModule();
+        moduleBuilder.getDefaultPath().createModule();
         assertFilesExist(myProjectRoot,
                          "lib",
                          "lib/src/main/java/com/test/foo/FooClass.java",
