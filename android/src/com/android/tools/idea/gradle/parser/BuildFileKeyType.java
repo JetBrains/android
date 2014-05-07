@@ -112,7 +112,7 @@ public enum BuildFileKeyType {
       return "'" + escapeLiteralString(value.toString()) + "'";
     }
   },
-  REFERENCE(String.class, "reference") { // TODO: for reference types, encode the BuildFileKey of the target being referred to.
+  REFERENCE(String.class, "reference") {
     @Nullable
     @Override
     public Object getValue(@NotNull GroovyPsiElement arg) {

@@ -40,6 +40,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -132,8 +133,23 @@ public class NamedObjectPanel extends BuildFilePanel implements ListSelectionLis
           fileField.getTextField().getDocument().addDocumentListener(this);
           component = fileField;
           break;
-        case STRING:
         case REFERENCE:
+          ComboBox editableComboBox = new ComboBox();
+          BuildFileKey referencedType = property.getReferencedType();
+          if (referencedType != null && myGradleBuildFile != null) {
+            List<NamedObject> referencedObjects = (List<NamedObject>)myGradleBuildFile.getValue(referencedType);
+            if (referencedObjects != null) {
+              for (NamedObject o : referencedObjects) {
+                editableComboBox.addItem(o.getName());
+              }
+            }
+          }
+          editableComboBox.setEditable(true);
+          editableComboBox.addItemListener(this);
+          ((JTextComponent)editableComboBox.getEditor().getEditorComponent()).getDocument().addDocumentListener(this);
+          component = editableComboBox;
+          break;
+        case STRING:
         case INTEGER:
         default:
           JBTextField textField = new JBTextField();
@@ -248,6 +264,18 @@ public class NamedObjectPanel extends BuildFilePanel implements ListSelectionLis
     updateUiFromCurrentObject();
   }
 
+  @NotNull
+  private static String getReferencePrefix(@NotNull BuildFileKey key) {
+    BuildFileKey referencedType = key.getReferencedType();
+    if (referencedType != null) {
+      String path = referencedType.getPath();
+      String lastLeaf = path.substring(path.lastIndexOf('/') + 1);
+      return lastLeaf + ".";
+    } else {
+      return "";
+    }
+  }
+
   /**
    * Reads the state of the UI form objects and writes them into the currently selected object in the list, setting the dirty bit as
    * appropriate.
@@ -288,8 +316,19 @@ public class NamedObjectPanel extends BuildFilePanel implements ListSelectionLis
             newValue = null;
           }
           break;
-        case STRING:
         case REFERENCE:
+          newValue = ((ComboBox)component).getEditor().getItem();
+          String newStringValue = (String)newValue;
+          if (newStringValue != null && newStringValue.isEmpty()) {
+            newStringValue = null;
+          }
+          String prefix = getReferencePrefix(key);
+          if (newStringValue != null && !newStringValue.startsWith(prefix)) {
+            newStringValue = prefix + newStringValue;
+          }
+          newValue = newStringValue;
+          break;
+        case STRING:
         default:
           newValue = ((JBTextField)component).getText();
           if ("".equals(newValue)) {
@@ -327,9 +366,18 @@ public class NamedObjectPanel extends BuildFilePanel implements ListSelectionLis
         case FILE_AS_STRING:
           ((TextFieldWithBrowseButton)component).setText(value != null ? value.toString() : "");
           break;
+        case REFERENCE:
+          String stringValue = (String)value;
+          String prefix = getReferencePrefix(key);
+          if (stringValue == null) {
+            stringValue = "";
+          } else if (stringValue.startsWith(prefix)) {
+            stringValue = stringValue.substring(prefix.length());
+          }
+          ((ComboBox)component).setSelectedItem(stringValue);
+          break;
         case INTEGER:
         case STRING:
-        case REFERENCE:
         default:
           ((JBTextField)component).setText(value != null ? value.toString() : "");
           break;
