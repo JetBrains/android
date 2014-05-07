@@ -21,6 +21,9 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Functions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -61,12 +64,12 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
 
   @Nullable private Project myProject;
-  @NotNull protected final WizardPath[] myPaths;
+  @NotNull protected final Iterable<WizardPath> myPaths;
 
   protected final NewModuleWizardState myWizardState;
   @VisibleForTesting
   protected boolean myInitializationComplete = false;
-  protected final boolean myInGlobalWizard;
+  private ImportSourceModulePath myImportSourcesPath;
 
   public ImportWizardModuleBuilder(@Nullable File templateFile,
                                    @Nullable Project project,
@@ -78,7 +81,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     myProject = project;
     myImportSource = importSource;
     mySteps = steps;
-    myInGlobalWizard = inGlobalWizard;
 
     if (project == null) {
       myWizardState = new NewProjectWizardState() {
@@ -112,12 +114,24 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     }
 
     Template.convertApisToInt(myWizardState.getParameters());
-    myPaths = setupWizardPaths(project, sidePanelIcon, disposable);
+    Iterable<WizardPath> paths = setupWizardPaths(project, sidePanelIcon, disposable);
+    if (inGlobalWizard) {
+      myPaths = Iterables.filter(paths, new Predicate<WizardPath>() {
+        @Override
+        public boolean apply(WizardPath input) {
+          return input.supportsGlobalWizard();
+        }
+      });
+    }
+    else {
+      myPaths = paths;
+    }
 
     for (WizardPath path : myPaths) {
       addSteps(path);
     }
 
+    myWizardState.setDefaultWizardPath(getDefaultPath());
     if (project != null) {
       myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
     }
@@ -128,13 +142,13 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     myInitializationComplete = true;
   }
 
-  protected WizardPath[] setupWizardPaths(@Nullable Project project, @Nullable Icon sidePanelIcon, Disposable disposable) {
-    if (myInGlobalWizard) {
-      return new WizardPath[0];
-    }
-    ImportSourceModulePath importSourcesPath =
-      new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), disposable, this);
-    return new WizardPath[]{importSourcesPath};
+  protected WizardPath getDefaultPath() {
+    return myImportSourcesPath;
+  }
+
+  protected Iterable<WizardPath> setupWizardPaths(@Nullable Project project, @Nullable Icon sidePanelIcon, Disposable disposable) {
+    myImportSourcesPath = new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), disposable, this);
+    return ImmutableList.<WizardPath>of(myImportSourcesPath);
   }
 
   protected void addSteps(WizardPath path) {
