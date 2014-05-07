@@ -22,8 +22,6 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ArrayFactory;
-import com.intellij.util.ArrayUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,28 +54,25 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      boolean inGlobalWizard) {
     super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
     myBuilderId = metadata == null ? null : metadata.getTitle();
-    if (!myInGlobalWizard) {
-      mySteps.add(0, buildChooseModuleStep(project, myNewAndroidModulePath));
+    if (!inGlobalWizard) {
+      mySteps.add(0, buildChooseModuleStep(project));
     }
   }
 
   @Override
-  protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
-    WizardPath[] paths = super.setupWizardPaths(project, sidePanelIcon, disposable);
+  protected Iterable<WizardPath> setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
+    List<WizardPath> paths = Lists.newArrayList(super.setupWizardPaths(project, sidePanelIcon, disposable));
     myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
-    List<WizardPath> extensionPaths = new ArrayList<WizardPath>();
-    paths = ArrayUtil.append(paths, myNewAndroidModulePath);
+    paths.add(myNewAndroidModulePath);
     for (NewModuleWizardPathFactory factory : Extensions.getExtensions(NewModuleWizardPathFactory.EP_NAME)) {
-      extensionPaths.addAll(factory.createWizardPaths(myWizardState, this, project, sidePanelIcon, disposable));
+      paths.addAll(factory.createWizardPaths(myWizardState, this, project, sidePanelIcon, disposable));
     }
-    paths = ArrayUtil.mergeArrayAndCollection(paths, extensionPaths, new ArrayFactory<WizardPath>() {
-      @NotNull
-      @Override
-      public WizardPath[] create(int count) {
-        return new WizardPath[count];
-      }
-    });
     return paths;
+  }
+
+  @Override
+  protected WizardPath getDefaultPath() {
+    return myNewAndroidModulePath;
   }
 
   @Override
@@ -95,7 +90,7 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   /**
    * Create a template chooser step populated with the correct templates for the new modules.
    */
-  private ChooseTemplateStep buildChooseModuleStep(@Nullable Project project, @NotNull WizardPath defaultPath) {
+  private ChooseTemplateStep buildChooseModuleStep(@Nullable Project project) {
     // We're going to build up our own list of templates here
     // This is a little hacky, we should clean this up later.
     ChooseTemplateStep chooseModuleStep =
@@ -119,8 +114,6 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
         myWizardState.associateTemplateWithPath(template.toString(), path);
       }
     }
-    myWizardState.setDefaultWizardPath(defaultPath);
-
     // Get the list of templates to offer, but exclude the NewModule and NewProject template
     List<ChooseTemplateStep.MetadataListItem> templateList =
       ChooseTemplateStep.getTemplateList(myWizardState, CATEGORY_PROJECTS, excludedTemplates);

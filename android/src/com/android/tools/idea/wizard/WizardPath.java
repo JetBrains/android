@@ -54,4 +54,9 @@ public interface WizardPath {
    * @return built-in templates, the ones that are not loaded by TemplateManager
    */
   Collection<MetadataListItem> getBuiltInTemplates();
+
+  /**
+   * @return <code>true</code> if this path also works in a new project wizard.
+   */
+  boolean supportsGlobalWizard();
 }

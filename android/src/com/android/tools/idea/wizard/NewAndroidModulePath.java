@@ -161,6 +161,11 @@ public final class NewAndroidModulePath implements WizardPath {
   }
 
   @Override
+  public boolean supportsGlobalWizard() {
+    return true;
+  }
+
+  @Override
   public Collection<String> getExcludedTemplates() {
     return ImmutableSet.of(TemplateWizardModuleBuilder.MODULE_NAME, TemplateWizardModuleBuilder.PROJECT_NAME);
   }
