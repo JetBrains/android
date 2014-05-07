@@ -171,4 +171,9 @@ public class ImportSourceModulePath implements WizardPath {
   public Collection<MetadataListItem> getBuiltInTemplates() {
     return Collections.singleton(createImportTemplateWithCustomName(NewModuleWizardState.MODULE_IMPORT_NAME));
   }
+
+  @Override
+  public boolean supportsGlobalWizard() {
+    return false;
+  }
 }
