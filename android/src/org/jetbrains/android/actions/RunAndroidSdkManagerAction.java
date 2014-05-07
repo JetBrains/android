@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
+import com.android.tools.idea.sdk.wizard.SdkManagerWizard2;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.ide.DataManager;
@@ -96,7 +97,25 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
 
   @Override
   protected void doRunTool(@Nullable final Project project, @NotNull final String sdkPath) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
 
+        if ("2".equals(System.getenv("STUDIO_SDK_MANAGER"))) {
+          // Temporary: use SDK Manager 2 (SDK Manager Wizard integrated in Studio).
+          // Since this is work-in-progress, it needs to be enabled explicitely.
+          SdkManagerWizard2 smw = new SdkManagerWizard2(project);
+          smw.show();
+        } else {
+          // Use regular external SDK Manager from current SDK install
+          launchExternalSdkManager(project, sdkPath);
+        }
+      }
+    });
+  }
+
+
+  private static void launchExternalSdkManager(@Nullable final Project project, @NotNull final String sdkPath) {
     final ProgressWindow p = new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);

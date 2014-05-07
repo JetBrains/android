@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.sdk;
 
-import com.android.sdklib.repository.local.LocalSdk;
-import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.annotations.NonNull;
 import com.intellij.util.messages.Topic;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.android.sdk.AndroidSdkData;
 
 public interface SdkLifecycleListener {
   Topic<SdkLifecycleListener> TOPIC = Topic.create("Android SDK lifecycle notifications", SdkLifecycleListener.class);
 
-  void localSdkLoaded (@NotNull LocalSdk localSdk);
-  void remoteSdkLoaded(@NotNull RemoteSdk remoteSdk);
+  void localSdkLoaded (@NonNull AndroidSdkData sdkData);
+  void remoteSdkLoaded(@NonNull AndroidSdkData sdkData);
+  void updatesComputed(@NonNull AndroidSdkData sdkData);
 
   abstract class Adapter implements SdkLifecycleListener {
     @Override
-    public void localSdkLoaded(@NotNull LocalSdk localSdk) {}
+    public void localSdkLoaded(@NonNull AndroidSdkData sdkData) {}
 
     @Override
-    public void remoteSdkLoaded(@NotNull RemoteSdk remoteSdk) {}
+    public void remoteSdkLoaded(@NonNull AndroidSdkData sdkData) {}
+
+    @Override
+    public void updatesComputed(@NonNull AndroidSdkData sdkData) {}
   }
 }
