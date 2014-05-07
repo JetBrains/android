@@ -76,6 +76,7 @@ public class TemplateWizardProjectTemplateFactory extends ProjectTemplatesFactor
       final String templateName = template.getName();
 
       if (NewProjectWizardState.PROJECT_TEMPLATE_NAME.equals(templateName) ||
+          NewProjectWizardState.IMPORT_EXISTING_PROJECT_TEMPLATE_NAME.equals(templateName) ||
           project == null && !NewProjectWizardState.MODULE_TEMPLATE_NAME.equals(templateName)) {
         continue;
       }

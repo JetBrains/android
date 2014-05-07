@@ -56,7 +56,9 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      boolean inGlobalWizard) {
     super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
     myBuilderId = metadata == null ? null : metadata.getTitle();
-    mySteps.add(0, buildChooseModuleStep(project, myNewAndroidModulePath));
+    if (!myInGlobalWizard) {
+      mySteps.add(0, buildChooseModuleStep(project, myNewAndroidModulePath));
+    }
   }
 
   @Override
