@@ -117,10 +117,17 @@ public enum BuildFileKey {
                                        .of(DEBUGGABLE, JNI_DEBUG_BUILD, SIGNING_CONFIG, RENDERSCRIPT_DEBUG_BUILD, RENDERSCRIPT_OPTIM_LEVEL,
                                            RUN_PROGUARD, PROGUARD_FILE, PACKAGE_NAME_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
 
+  static {
+    SIGNING_CONFIG.myReferencedType = SIGNING_CONFIGS;
+    SIGNING_CONFIGS.myShouldInsertAtBeginning = true;
+  }
+
   private final String myPath;
   private final BuildFileKeyType myType;
   private final ValueFactory myValueFactory;
   private final String myDisplayName;
+  private BuildFileKey myReferencedType;
+  private boolean myShouldInsertAtBeginning;
 
   BuildFileKey(@NotNull String path, @NotNull BuildFileKeyType type) {
     this(path, null, type, null);
@@ -196,6 +203,25 @@ public enum BuildFileKey {
   @NotNull
   public String getPath() {
     return myPath;
+  }
+
+  /**
+   * For keys whose values are Groovy expressions that reference another object in the same build file, this returns the type of the
+   * referenced object. For example, the {@link SIGNING_CONFIGS} key returns a reference to the child {@link SIGNING_CONFIG} key.
+   */
+  @Nullable
+  public BuildFileKey getReferencedType() {
+    return myReferencedType;
+  }
+
+  /**
+   * True if this block should be inserted at the beginning of its parent's closure instead of at the end. For types that can be referenced
+   * from other keys, such as {@link SIGNING_CONFIGS}, the objects must appear in the file before references to them. Groovy executes the
+   * block sequentially at build file evaluation time, and any references must resolve to objects it's already seen.
+   * @return
+   */
+  public boolean shouldInsertAtBeginning() {
+    return myShouldInsertAtBeginning;
   }
 
   @Nullable
