@@ -439,7 +439,7 @@ public final class GradleUtil {
    * Prefixes string with colon if there isn't one already there.
    */
   @Nullable
-  @Contract ("null -> null")
+  @Contract ("null -> null;!null -> !null")
   public static String makeAbsolute(String string) {
     if (string == null) {
       return null;
