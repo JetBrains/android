@@ -15,16 +15,24 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
@@ -50,6 +58,8 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
   private JTextField myGradlePath;
   private TextFieldWithBrowseButton myArchivePath;
   private JBLabel myValidationStatus;
+  private JCheckBox myRemoveOriginalFileCheckBox;
+  private JCheckBox myReplaceFileDependencyWithCheckBox;
   private ValidationStatus myResult = ValidationStatus.EMPTY_PATH;
   private boolean myIsFirstUIUpdate = true;
 
@@ -118,6 +128,9 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
     myValidationStatus.setText(message);
     myValidationStatus.setIcon(icon);
 
+    myRemoveOriginalFileCheckBox.setVisible(result == ValidationStatus.IN_MODULE);
+    myReplaceFileDependencyWithCheckBox.setVisible(result == ValidationStatus.IN_MODULE);
+
     fireStateChanged();
   }
 
@@ -127,6 +140,7 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
       case MODULE_EXISTS:
         return String.format("Project already contains subproject with name %1$s", gradlePath);
       case OK:
+      case IN_MODULE:
         return "";
       case EMPTY_PATH:
         return "Archive file path is required";
@@ -135,7 +149,8 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
       case DOES_NOT_EXIST:
         return "File does not exist";
       case INVALID_MODULE_PATH:
-        return String.format("Character %1$c is not allowed in Gradle path", gradlePath.charAt(GradleUtil.isValidGradlePath(gradlePath)));
+        return String.format("Character %1$c is not allowed in a Gradle path",
+                             gradlePath.charAt(GradleUtil.isValidGradlePath(gradlePath)));
       default:
         throw new IllegalStateException(result.name());
     }
@@ -161,7 +176,13 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
     if (GradleUtil.hasModule(myProject, gradlePath, true)) {
       return ValidationStatus.MODULE_EXISTS;
     }
-    return ValidationStatus.OK;
+    VirtualFile vfile = VfsUtil.findFileByIoFile(archiveFile, false);
+    if (vfile != null && getContainingModule(vfile) != null) {
+      return ValidationStatus.IN_MODULE;
+    }
+    else {
+      return ValidationStatus.OK;
+    }
   }
 
   private void pathUpdated(@NotNull String newPath) {
@@ -195,6 +216,47 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
 
     myWizardState.put(WrapArchiveWizardPath.KEY_ARCHIVE, filePath);
     myWizardState.put(WrapArchiveWizardPath.KEY_GRADLE_PATH, gradlePath);
+
+    boolean move = false;
+    Module[] modules = new Module[0];
+    if (myResult == ValidationStatus.IN_MODULE) {
+      VirtualFile file = VfsUtil.findFileByIoFile(new File(myArchivePath.getText()), false);
+      if (file != null) {
+        move = myRemoveOriginalFileCheckBox.isSelected();
+        modules = new Module[]{getContainingModule(file)};
+      }
+    }
+    myWizardState.put(WrapArchiveWizardPath.KEY_MOVE_ARCHIVE, move);
+    myWizardState.put(WrapArchiveWizardPath.KEY_MODULES_FOR_DEPENDENCY_UPDATE, modules);
+  }
+
+  @Nullable
+  private Module getContainingModule(@NotNull VirtualFile file) {
+    Module bestMatch = null;
+    if (myProject != null) {
+      int bestMatchValue = Integer.MAX_VALUE;
+      for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+        AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+        if (facet != null) {
+          IdeaGradleProject gradleProject = facet.getGradleProject();
+          assert gradleProject != null;
+          VirtualFile buildFile = gradleProject.getBuildFile();
+          if (buildFile != null) {
+            VirtualFile root = buildFile.getParent();
+            if (VfsUtilCore.isAncestor(root, file, true)) {
+              String relativePath = VfsUtilCore.getRelativePath(file, root, '/');
+              if (relativePath != null) {
+                int value = Iterables.size(Splitter.on('/').split(relativePath));
+                if (value < bestMatchValue) {
+                  bestMatch = module;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return bestMatch;
   }
 
   @Override
@@ -203,11 +265,12 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
   }
 
   private enum ValidationStatus {
-    OK, EMPTY_PATH, DOES_NOT_EXIST, INVALID_MODULE_PATH, MODULE_EXISTS, EMPTY_GRADLE_PATH;
+    OK, EMPTY_PATH, DOES_NOT_EXIST, INVALID_MODULE_PATH, MODULE_EXISTS, EMPTY_GRADLE_PATH, IN_MODULE;
 
     public MessageType getMessageType() {
       switch (this) {
         case OK:
+        case IN_MODULE:
           return MessageType.INFO;
         default:
           return MessageType.ERROR;
