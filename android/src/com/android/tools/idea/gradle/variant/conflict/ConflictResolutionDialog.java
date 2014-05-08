@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -96,7 +95,7 @@ class ConflictResolutionDialog extends DialogWrapper {
         dependents.add(module);
       }
       if (dependents.size() > 1) {
-        Collections.sort(dependents, ModulesAlphaComparator.INSTANCE);
+        Collections.sort(dependents, ModuleTypeComparator.INSTANCE);
       }
       for (Module dependent : dependents) {
         DefaultMutableTreeNode moduleNode = new DefaultMutableTreeNode(dependent);
