@@ -216,9 +216,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
    */
   public void testImportSimpleGradleProject() throws IOException, ConfigurationException {
     VirtualFile moduleRoot = createGradleProjectToImport(dir, MODULE_NAME);
-    SuccessOrFailGradleSyncListener callback = new SuccessOrFailGradleSyncListener();
-    GradleProjectImporter.getInstance().importModules(Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject(), callback);
-    assertNull(callback.getErrorMessage());
+    GradleProjectImporter.getInstance().importModules(Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject(), null);
     assertModuleImported(getProject(), MODULE_NAME, moduleRoot);
   }
 
@@ -236,9 +234,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
       assertEquals(projectRoot.findFileByRelativePath(path), toImport.get(pathToGradleName(path)));
     }
 
-    SuccessOrFailGradleSyncListener callback = new SuccessOrFailGradleSyncListener();
-    importer.importModules(toImport, getProject(), callback);
-    assertNull(callback.getErrorMessage());
+    importer.importModules(toImport, getProject(), null);
 
     for (String path : paths) {
       VirtualFile moduleRoot = projectRoot.findFileByRelativePath(path);
@@ -259,9 +255,13 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     assertEquals(2, toImport.size());
     assertModuleRequiredButNotFound(module(2), toImport);
 
-    SuccessOrFailGradleSyncListener callback = new SuccessOrFailGradleSyncListener();
-    importer.importModules(toImport, getProject(), callback);
-    assertNotNull("Importing missing projects did not fail", callback.getErrorMessage());
+    try {
+      importer.importModules(toImport, getProject(), null);
+      fail();
+    }
+    catch (IOException e) {
+      // Expected
+    }
   }
 
   /**
@@ -277,7 +277,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     assert moduleLocation != null;
     assertEquals(moduleLocation, subprojects.get(pathToGradleName(SAMPLE_PROJECT_NAME)));
 
-    importer.importModules(subprojects, getProject(), new SuccessOrFailGradleSyncListener());
+    importer.importModules(subprojects, getProject(), null);
     assertModuleImported(getProject(), SAMPLE_PROJECT_NAME, moduleLocation);
   }
 
@@ -390,9 +390,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     assertEquals(2, importInput.size());
     assertEquals(module, importInput.get(pathToGradleName(module(2))));
 
-    SuccessOrFailGradleSyncListener listener = new SuccessOrFailGradleSyncListener();
-    importer.importModules(importInput,getProject(), listener);
-    assertNull(listener.getErrorMessage());
+    importer.importModules(importInput, getProject(), null);
 
     GradleSettingsFile settingsFile = GradleSettingsFile.get(getProject());
     assertNotNull(settingsFile);
@@ -453,31 +451,5 @@ public final class GradleModuleImportTest extends AndroidTestBase {
       });
     }
     super.tearDown();
-  }
-
-  private static class SuccessOrFailGradleSyncListener implements GradleSyncListener {
-    private String myErrorMessage = null;
-
-    @Override
-    public void syncEnded(@NotNull Project project) {
-      myErrorMessage = null;
-    }
-
-    @Override
-    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      myErrorMessage = errorMessage;
-    }
-
-    /**
-     * @return error message or <code>null</code> if the import was successful
-     */
-    public String getErrorMessage() {
-      return myErrorMessage;
-    }
-
-    @Override
-    public void syncStarted(@NotNull Project project) {
-
-    }
   }
 }
