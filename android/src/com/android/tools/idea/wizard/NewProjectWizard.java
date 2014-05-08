@@ -62,7 +62,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
   @VisibleForTesting AssetSetStep myAssetSetStep;
 
-  @VisibleForTesting ChooseTemplateStep myChooseActivityStep;
+  @VisibleForTesting TemplateGalleryStep myChooseActivityStep;
 
   @VisibleForTesting TemplateParameterStep myActivityParameterStep;
 
@@ -108,7 +108,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myAssetGenerator = new AssetStudioAssetGenerator(myWizardState);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
     myChooseActivityStep =
-      new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null, NewProjectSidePanel, this, null);
+      new TemplateGalleryStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null, NewProjectSidePanel, this, null);
     myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, null, NewProjectSidePanel, this);
 
     mySteps.add(myConfigureAndroidModuleStep);
