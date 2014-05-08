@@ -97,7 +97,7 @@ public class ASGallery<E> extends JComponent implements Scrollable {
   @NotNull private Function<? super E, String> myLabelProvider;
 
   public ASGallery() {
-    this(new DefaultListModel(), Functions.<Image>constant(null), Functions.<E>toStringFunction(), new Dimension(0, 0));
+    this(new DefaultListModel(), Functions.<Image>constant(null), Functions.toStringFunction(), new Dimension(0, 0));
   }
 
   public ASGallery(@NotNull ListModel model,
