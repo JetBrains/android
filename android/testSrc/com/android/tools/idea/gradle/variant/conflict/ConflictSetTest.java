@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.variant;
+package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -34,9 +34,9 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Tests for {@link ConflictResolution}
+ * Tests for {@link ConflictSet}
  */
-public class ConflictResolutionTest extends IdeaTestCase {
+public class ConflictSetTest extends IdeaTestCase {
   private Module myLibModule;
   private IdeaAndroidProject myApp;
   private IdeaAndroidProject myLib;
@@ -134,25 +134,25 @@ public class ConflictResolutionTest extends IdeaTestCase {
 
   public void testFindSelectionConflictsWithoutConflict() {
     setUpDependencyOnLibrary("debug");
-    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithoutEmptyVariantDependency() {
     setUpDependencyOnLibrary("");
-    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithoutNullVariantDependency() {
     setUpDependencyOnLibrary(null);
-    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithConflict() {
     setUpDependencyOnLibrary("release");
-    List<Conflict> conflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
+    List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertEquals(1, conflicts.size());
 
     Conflict conflict = conflicts.get(0);
