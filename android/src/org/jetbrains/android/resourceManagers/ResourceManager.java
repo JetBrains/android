@@ -184,7 +184,7 @@ public abstract class ResourceManager {
       if ((files == null || files.contains(file)) && file.isValid()) {
         final T element = AndroidUtils.loadDomElement(myProject, file, elementType);
         if (element != null) {
-          result.add(new Pair<T, VirtualFile>(element, file));
+          result.add(Pair.create(element, file));
         }
       }
     }
