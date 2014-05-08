@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.structure.AndroidModuleConfigurable;
 import com.google.common.collect.Maps;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -39,7 +38,6 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
-import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.ListItemDescriptor;
 import com.intellij.openapi.util.Disposer;
@@ -55,7 +53,6 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.messages.MessageBusConnection;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -234,7 +231,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         mySidePanel.removeModules();
 
         Module[] modules = moduleManager.getModules();
-        Arrays.sort(modules, ModulesAlphaComparator.INSTANCE);
+        Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
 
         for (Module module : modules) {
           if (addModule(module)) {
