@@ -35,7 +35,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -46,9 +45,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
-import com.intellij.refactoring.listeners.RefactoringElementAdapter;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
-import com.intellij.util.xmlb.Accessor;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -84,7 +81,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
-    return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+    return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
   }
 
   @Override

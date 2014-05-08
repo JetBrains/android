@@ -68,15 +68,15 @@ public class IdProperty extends AttributeProperty {
         public void run() {
           Pair<String, String> replace;
           if (oldId.startsWith("@android:id/")) {
-            replace = new Pair<String, String>(oldId, oldId);
+            replace = Pair.create(oldId, oldId);
           }
           else {
             String idValue = oldId.substring(oldId.indexOf('/') + 1);
-            replace = new Pair<String, String>("@id/" + idValue, "@+id/" + idValue);
+            replace = Pair.create("@id/" + idValue, "@+id/" + idValue);
           }
 
           IdManager.replaceIds((RadViewComponent)component.getRoot(),
-                               Arrays.asList(new Pair<Pair<String, String>, String>(replace, (String)value)));
+                               Arrays.asList(Pair.create(replace, (String)value)));
         }
       });
     }
