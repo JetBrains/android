@@ -58,6 +58,9 @@ public class AndroidIcons {
 
   public static final Icon Variant = load("/icons/variant.png");
 
+  public static final Icon AppModule = load("/icons/appModule.png");
+  public static final Icon LibraryModule = load("/icons/libraryModule.png");
+
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
     public static final Icon Night = load("/icons/nightmode.png");
