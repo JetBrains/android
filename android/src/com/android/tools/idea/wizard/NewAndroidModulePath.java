@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -52,19 +53,18 @@ public final class NewAndroidModulePath implements WizardPath {
   private TemplateParameterStep myJavaModuleTemplateParameterStep;
 
   public NewAndroidModulePath(@NotNull NewModuleWizardState wizardState,
-                              @NotNull TemplateWizardModuleBuilder builder,
+                              @NotNull TemplateWizardStep.UpdateListener builder,
                               @Nullable Project project,
                               @Nullable Icon sidePanelIcon,
                               @NotNull Disposable disposable) {
     myWizardState = wizardState;
     myProject = project;
-    NewModuleWizardState state = builder.myWizardState;
-    myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(state, project, sidePanelIcon, builder);
-    myAssetSetStep = new AssetSetStep(state, project, null, sidePanelIcon, builder, null);
+    myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(wizardState, project, sidePanelIcon, builder);
+    myAssetSetStep = new AssetSetStep(myWizardState, project, null, sidePanelIcon, builder, null);
     Disposer.register(disposable, myAssetSetStep);
     myChooseActivityStep =
-      new ChooseTemplateStep(state.getActivityTemplateState(), CATEGORY_ACTIVITIES, project, null, sidePanelIcon, builder, null);
-    myActivityTemplateParameterStep = new TemplateParameterStep(state.getActivityTemplateState(), project, null, sidePanelIcon, builder);
+      new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, project, null, sidePanelIcon, builder, null);
+    myActivityTemplateParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), project, null, sidePanelIcon, builder);
     myJavaModuleTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, builder);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
   }
