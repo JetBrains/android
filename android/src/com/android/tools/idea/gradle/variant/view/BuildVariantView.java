@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.variant.Conflict;
-import com.android.tools.idea.gradle.variant.ConflictResolution;
+import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -48,7 +47,9 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -211,7 +212,7 @@ public class BuildVariantView {
     return androidFacet != null ? androidFacet.getIdeaAndroidProject() : null;
   }
 
-  public void updateNotification(List<Conflict> conflicts) {
+  public void updateContents(@NotNull List<Conflict> conflicts) {
     myErrorPanel.removeAll();
     myConflicts.clear();
 
@@ -228,6 +229,7 @@ public class BuildVariantView {
     }
 
     myConflicts.addAll(conflicts);
+    updateContents();
   }
 
   public void selectAndScrollTo(@NotNull Module module) {
@@ -316,7 +318,7 @@ public class BuildVariantView {
             }
             component.setBackground(background);
 
-            String toolTip = conflictFound != null? ConflictResolution.getText(conflictFound) : null;
+            String toolTip = conflictFound != null? conflictFound.toString() : null;
             component.setToolTipText(toolTip);
 
             // add some padding to table cells. It is hard to read text of combo box.

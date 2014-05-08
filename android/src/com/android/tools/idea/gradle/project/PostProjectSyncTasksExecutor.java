@@ -27,11 +27,9 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.gradle.variant.Conflict;
-import com.android.tools.idea.gradle.variant.ConflictResolution;
-import com.android.tools.idea.gradle.variant.ConflictSet;
+import com.android.tools.idea.gradle.variant.conflict.Conflict;
+import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
-import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -70,6 +68,8 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.*;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
 public class PostProjectSyncTasksExecutor {
   @NotNull private final Project myProject;
@@ -337,34 +337,22 @@ public class PostProjectSyncTasksExecutor {
   }
 
   private void findAndShowVariantConflicts() {
-    ConflictSet conflicts = ConflictResolution.findConflicts(myProject);
+    ConflictSet conflicts = findConflicts(myProject);
 
     List<Conflict> structureConflicts = conflicts.getStructureConflicts();
-
-    if (!structureConflicts.isEmpty()) {
-      ConflictResolution.displayStructureConflicts(myProject, structureConflicts);
-      if (SystemProperties.getBooleanProperty("enable.project.profiles", false)) {
-        ProjectProfileSelectionDialog dialog = new ProjectProfileSelectionDialog(myProject, structureConflicts);
-        dialog.show();
-      }
+    if (!structureConflicts.isEmpty() && SystemProperties.getBooleanProperty("enable.project.profiles", false)) {
+      ProjectProfileSelectionDialog dialog = new ProjectProfileSelectionDialog(myProject, structureConflicts);
+      dialog.show();
     }
 
     List<Conflict> selectionConflicts = conflicts.getSelectionConflicts();
-    boolean atLeastOneSolved = false;
     if (!selectionConflicts.isEmpty()) {
-      for (Conflict conflict : selectionConflicts) {
-        boolean solved = ConflictResolution.solveSelectionConflict(conflict);
-        if (solved) {
-          atLeastOneSolved = true;
-        }
-      }
+      boolean atLeastOneSolved = solveSelectionConflicts(selectionConflicts);
       if (atLeastOneSolved) {
-        selectionConflicts = ConflictResolution.findConflicts(myProject).getSelectionConflicts();
+        conflicts = findConflicts(myProject);
       }
-      BuildVariantView view = BuildVariantView.getInstance(myProject);
-      view.updateNotification(selectionConflicts);
-      view.updateContents();
     }
+    conflicts.showSelectionConflicts();
 
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     if (!messages.isEmpty()) {
