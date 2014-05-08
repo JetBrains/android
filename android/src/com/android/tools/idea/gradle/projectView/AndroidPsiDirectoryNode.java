@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.ProjectRootsUtil;
@@ -28,18 +30,20 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.SimpleTextAttributes;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 
 /**
  * This node, in addition to displaying a directory in the "Project" view, changes the default text of the node (the path of the folder)
  * with the word "build" if:
  * <ul>
- *   <li>the directory is the "build directory" specified in Gradle</li>
- *   <li>the build directory is outside of the module's content root</li>
+ * <li>the directory is the "build directory" specified in Gradle</li>
+ * <li>the build directory is outside of the module's content root</li>
  * </ul>
  * The reason to do this is that it is useless (and confusing) to know the display the path of the build directory, just marking the
  * node as "build" is good enough.
@@ -69,21 +73,38 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
     if (ProjectRootsUtil.isModuleContentRoot(folder, project)) {
       Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(folder);
       if (module != null && parentValue instanceof Module) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-          if (androidProject != null) {
-            File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-            File folderPath = VfsUtilCore.virtualToIoFile(folder);
-            if (FileUtil.filesEqual(buildFolderPath, folderPath)) {
-              data.addText("build", SimpleTextAttributes.REGULAR_ATTRIBUTES);
-            }
-            setupIcon(data, directory);
+        AndroidProject androidProject = GradleUtil.getAndroidProject(module);
+        if (androidProject != null) {
+          File buildFolderPath = androidProject.getBuildFolder();
+          File folderPath = VfsUtilCore.virtualToIoFile(folder);
+          if (FileUtil.filesEqual(buildFolderPath, folderPath)) {
+            data.addText(folder.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
             return;
           }
         }
       }
     }
     super.updateImpl(data);
+  }
+
+  @Override
+  protected void setupIcon(PresentationData data, PsiDirectory psiDirectory) {
+    Project project = psiDirectory.getProject();
+    VirtualFile folder = psiDirectory.getVirtualFile();
+    Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(folder);
+    if (module != null && isModuleFolder(folder, module)) {
+      data.setIcon(patchIcon(GradleUtil.getModuleIcon(module), folder));
+      return;
+    }
+    super.setupIcon(data, psiDirectory);
+  }
+
+  private static boolean isModuleFolder(@NotNull VirtualFile folder, @NotNull Module module) {
+    VirtualFile moduleFile = module.getModuleFile();
+    if (moduleFile == null) {
+      return false;
+    }
+    VirtualFile parent = moduleFile.getParent();
+    return folder.equals(parent);
   }
 }
