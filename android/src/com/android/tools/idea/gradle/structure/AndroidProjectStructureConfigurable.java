@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.structure.AndroidModuleConfigurable;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
@@ -53,6 +55,7 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -473,7 +476,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         @Nullable
         public Icon getIconFor(Object value) {
           if (value instanceof Module) {
-            return AllIcons.Actions.Module;
+            return GradleUtil.getModuleIcon((Module)value);
           }
           return null;
         }

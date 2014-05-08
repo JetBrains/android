@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -28,6 +29,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -43,10 +45,12 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
+import icons.AndroidIcons;
 import org.gradle.StartParameter;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Contract;
@@ -59,6 +63,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
@@ -94,6 +99,27 @@ public final class GradleUtil {
   public static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
 
   private GradleUtil() {
+  }
+
+  @NotNull
+  public static Icon getModuleIcon(@NotNull Module module) {
+    AndroidProject androidProject = getAndroidProject(module);
+    if (androidProject != null) {
+      return androidProject.isLibrary() ? AndroidIcons.LibraryModule : AndroidIcons.AppModule;
+    }
+    return Projects.isGradleProject(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
+  }
+
+  @Nullable
+  public static AndroidProject getAndroidProject(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+      if (androidProject != null) {
+        return androidProject.getDelegate();
+      }
+    }
+    return null;
   }
 
   /**
@@ -202,7 +228,12 @@ public final class GradleUtil {
       return true;
     }
     finally {
-      Closeables.closeQuietly(out);
+      try {
+        Closeables.close(out, true);
+      }
+      catch (IOException unexpected) {
+        LOG.info(unexpected);
+      }
     }
   }
 
@@ -217,7 +248,12 @@ public final class GradleUtil {
       return properties;
     }
     finally {
-      Closeables.closeQuietly(fileInputStream);
+      try {
+        Closeables.close(fileInputStream, true);
+      }
+      catch (IOException unexpected) {
+        LOG.info(unexpected);
+      }
     }
   }
 
