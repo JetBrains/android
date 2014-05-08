@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.variant;
+package com.android.tools.idea.gradle.variant.conflict;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Conflict {
@@ -71,15 +73,6 @@ public class Conflict {
     return myAffectedModules;
   }
 
-  public boolean isAffectingDirectly(@NotNull Module module) {
-    for (AffectedModule affected : myAffectedModules) {
-      if (affected.getTarget().equals(module)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   public void refreshStatus() {
     int selectedVariantCount = 0;
     for (String variant : myAffectedModulesByExpectedVariant.keySet()) {
@@ -99,6 +92,46 @@ public class Conflict {
 
   public void setResolved(boolean resolved) {
     this.myResolved = resolved;
+  }
+
+  @Override
+  public String toString() {
+    String text = String.format("Module '%1$s' has variant '%2$s' selected, but", mySource.getName(), mySelectedVariant);
+
+    List<String> expectedVariants = Lists.newArrayList(getVariants());
+    if (expectedVariants.size() == 1) {
+      String expectedVariant = expectedVariants.get(0);
+      Collection<Conflict.AffectedModule> modules = getModulesExpectingVariant(expectedVariant);
+      String moduleNames = getModuleNames(modules);
+      String format = modules.size() == 1 ? " the module '%1$s' depends on variant '%2$s'" : " the modules %1$s depend on variant '%2$s'";
+      text += String.format(format, moduleNames, expectedVariant);
+    }
+    else {
+      Collections.sort(expectedVariants);
+      for (String expectedVariant : expectedVariants) {
+        Collection<Conflict.AffectedModule> modules = getModulesExpectingVariant(expectedVariant);
+        String moduleNames = getModuleNames(modules);
+        text += "\n- ";
+        String format = modules.size() == 1 ? "Module '%1$s' depends on variant '%2$s'" : "Modules %1$s depend on variant '%2$s'";
+        text += String.format(format, moduleNames, expectedVariant);
+      }
+    }
+    return text;
+  }
+
+  @NotNull
+  private static String getModuleNames(@NotNull Collection<Conflict.AffectedModule> modules) {
+    if (modules.size() == 1) {
+      Conflict.AffectedModule module = ContainerUtil.getFirstItem(modules);
+      assert module != null;
+      return "'" + module.getTarget().getName() + "'";
+    }
+    List<String> names = Lists.newArrayList();
+    for (Conflict.AffectedModule module : modules) {
+      names.add("'" + module.getTarget().getName() + "'");
+    }
+    Collections.sort(names);
+    return names.toString();
   }
 
   public static class AffectedModule {
