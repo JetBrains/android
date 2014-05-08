@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.variant;
+package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -29,32 +30,32 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.PROJECT_STRUCTURE_CONFLICTS;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
-public final class ConflictResolution {
-  private ConflictResolution() {
-  }
-
-  public static void updateConflicts(@NotNull Project project) {
-    ConflictSet conflicts = findConflicts(project);
-    List<Conflict> selectionConflicts = conflicts.getSelectionConflicts();
-    displaySelectionConflicts(project, selectionConflicts);
-    BuildVariantView view = BuildVariantView.getInstance(project);
-    view.updateNotification(selectionConflicts);
-    view.updateContents();
-  }
-
+/**
+ * Set of all variant-selection-related conflicts. We classify these conflicts in 2 groups:
+ * <ol>
+ * <li>
+ * <b>Selection conflicts.</b> These conflicts occur when module A depends on module B/variant X but module B has variant Y selected
+ * instead. These conflicts can be easily fixed by selecting the right variant in the "Build Variants" tool window.
+ * </li>
+ * <b>Structure conflicts.</b> These conflicts occur when there are multiple modules depending on different variants of a single module.
+ * For example, module A depends on module E/variant X, module B depends on module E/variant Y and module C depends on module E/variant Z.
+ * These conflicts cannot be resolved through the "Build Variants" tool window because regardless of the variant is selected on module E,
+ * we will always have a selection conflict. These conflicts can be resolved by importing a subset of modules into the IDE (i.e. project
+ * profiles.)
+ * </ol>
+ */
+public class ConflictSet {
   @NotNull
   public static ConflictSet findConflicts(@NotNull Project project) {
     Map<String, Conflict> selectionConflicts = Maps.newHashMap();
@@ -89,21 +90,22 @@ public final class ConflictResolution {
     }
 
     // Structural conflicts are the ones that have more than one group of modules depending on different variants of another module.
-    List<Conflict> structure = Lists.newArrayList();
+    List<Conflict> filteredStructureConflicts = Lists.newArrayList();
     for (Conflict conflict : structureConflicts.values()) {
       if (conflict.getVariants().size() > 1) {
-        structure.add(conflict);
+        filteredStructureConflicts.add(conflict);
       }
     }
+    return new ConflictSet(project, selectionConflicts.values(), filteredStructureConflicts);
+  }
 
-    List<Conflict> selection = Lists.newArrayList();
-    for (Conflict conflict : selectionConflicts.values()) {
-      if (conflict.getVariants().size() == 1) {
-        selection.add(conflict);
-      }
+  @Nullable
+  private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null || !facet.isGradleProject()) {
+      return null;
     }
-
-    return new ConflictSet(selection, structure);
+    return facet.getIdeaAndroidProject();
   }
 
   private static void addConflict(@NotNull Map<String, Conflict> allConflicts,
@@ -132,117 +134,67 @@ public final class ConflictResolution {
     return null;
   }
 
-  public static boolean solveSelectionConflict(@NotNull Conflict conflict) {
-    AndroidFacet facet = AndroidFacet.getInstance(conflict.getSource());
-    if (facet == null || !facet.isGradleProject()) {
-      // project structure may have changed and the conflict is not longer applicable.
-      return true;
-    }
-    IdeaAndroidProject source = facet.getIdeaAndroidProject();
-    if (source == null) {
-      return false;
-    }
-    Collection<String> variants = conflict.getVariants();
-    assert variants.size() == 1;
-    String expectedVariant = ContainerUtil.getFirstItem(variants);
-    if (StringUtil.isNotEmpty(expectedVariant)) {
-      source.setSelectedVariantName(expectedVariant);
-      facet.syncSelectedVariant();
-      return true;
-    }
-    return false;
+  @NotNull private final Project myProject;
+  @NotNull private final ImmutableList<Conflict> mySelectionConflicts;
+  @NotNull private final ImmutableList<Conflict> myStructureConflicts;
+
+  ConflictSet(@NotNull Project project, @NotNull Collection<Conflict> selectionConflicts, @NotNull Collection<Conflict> structureConflicts) {
+    myProject = project;
+    mySelectionConflicts = ImmutableList.copyOf(selectionConflicts);
+    myStructureConflicts = ImmutableList.copyOf(structureConflicts);
   }
 
-  @Nullable
-  private static IdeaAndroidProject getAndroidProject(@NotNull Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null || !facet.isGradleProject()) {
-      return null;
-    }
-    return facet.getIdeaAndroidProject();
+  @NotNull
+  public Project getProject() {
+    return myProject;
   }
 
-  public static void displaySelectionConflicts(@NotNull final Project project, @NotNull List<Conflict> conflicts) {
+  @NotNull
+  public List<Conflict> getSelectionConflicts() {
+    return mySelectionConflicts;
+  }
+
+  @NotNull
+  public List<Conflict> getStructureConflicts() {
+    return myStructureConflicts;
+  }
+
+  /**
+   * Shows the "variant selection" conflicts in the "Build Variant" and "Messages" windows.
+   */
+  public void showSelectionConflicts() {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
     String groupName = VARIANT_SELECTION_CONFLICTS;
-
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
     messages.removeMessages(groupName);
 
-    for (final Conflict conflict : conflicts) {
-      String text = getText(conflict);
-
+    for (final Conflict conflict : mySelectionConflicts) {
+      // Creates the "Select in 'Build Variants' window" hyperlink.
       final Module source = conflict.getSource();
       String hyperlinkText = String.format("Select '%1$s' in \"Build Variants\" window", source.getName());
-
       NotificationHyperlink selectInBuildVariantsWindowHyperlink =
         new NotificationHyperlink("select.conflict.in.variants.window", hyperlinkText) {
-        @Override
-        protected void execute(@NotNull Project project) {
-          BuildVariantView.getInstance(project).selectAndScrollTo(source);
-        }
-      };
+          @Override
+          protected void execute(@NotNull Project project) {
+            BuildVariantView.getInstance(project).selectAndScrollTo(source);
+          }
+        };
 
+      // Creates the "Fix problem" hyperlink.
       NotificationHyperlink quickFixHyperlink = new NotificationHyperlink("fix.conflict", "Fix problem") {
         @Override
         protected void execute(@NotNull Project project) {
           boolean solved = solveSelectionConflict(conflict);
           if (solved) {
-            updateConflicts(project);
+            ConflictSet conflicts = findConflicts(project);
+            conflicts.showSelectionConflicts();
           }
         }
       };
 
-      Message msg = new Message(groupName, Message.Type.ERROR, text);
+      Message msg = new Message(groupName, Message.Type.ERROR, conflict.toString());
       messages.add(msg, selectInBuildVariantsWindowHyperlink, quickFixHyperlink);
     }
-  }
 
-  @NotNull
-  public static String getText(@NotNull Conflict conflict) {
-    Module source = conflict.getSource();
-    String text = String.format("Module '%1$s' has variant '%2$s' selected, ", source.getName(), conflict.getSelectedVariant());
-
-    List<String> expectedVariants = Lists.newArrayList(conflict.getVariants());
-    assert expectedVariants.size() == 1;
-
-    String expectedVariant = expectedVariants.get(0);
-    List<String> modules = Lists.newArrayList();
-    for (Conflict.AffectedModule affected : conflict.getModulesExpectingVariant(expectedVariant)) {
-      modules.add("'" + affected.getTarget().getName() + "'");
-
-    }
-    Collections.sort(modules);
-    text += String.format("but variant '%1$s' is expected by module(s) %2$s.", expectedVariant, modules);
-
-    return text;
-  }
-
-  public static void displayStructureConflicts(@NotNull final Project project, @NotNull List<Conflict> conflicts) {
-    String groupName = PROJECT_STRUCTURE_CONFLICTS;
-
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
-    messages.removeMessages(groupName);
-
-    for (Conflict conflict : conflicts) {
-      List<String> text = Lists.newArrayList();
-      final Module conflictSource = conflict.getSource();
-      text.add(String.format("Module '%1$s' has variant '%2$s' selected.", conflictSource.getName(), conflict.getSelectedVariant()));
-
-      List<String> expectedVariants = Lists.newArrayList(conflict.getVariants());
-      Collections.sort(expectedVariants);
-
-      for (String expectedVariant : expectedVariants) {
-        List<String> modules = Lists.newArrayList();
-        for (Conflict.AffectedModule affected : conflict.getModulesExpectingVariant(expectedVariant)) {
-          modules.add("'" + affected.getTarget().getName() + "'");
-
-        }
-        Collections.sort(modules);
-        text.add(String.format("- Variant '%1$s' expected by module(s) %2$s.", expectedVariant, modules));
-        text.add("");
-      }
-
-      messages.add(new Message(groupName, Message.Type.ERROR, text.toArray(new String[text.size()])));
-    }
+    BuildVariantView.getInstance(myProject).updateContents(mySelectionConflicts);
   }
 }
