@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.variant.view;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -143,7 +143,7 @@ public class BuildVariantView {
       return;
     }
 
-    final List<String[]> rows = Lists.newArrayList();
+    final List<Object[]> rows = Lists.newArrayList();
     final List<BuildVariantItem[]> variantNamesPerRow = Lists.newArrayList();
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
@@ -167,7 +167,7 @@ public class BuildVariantView {
       }
 
       if (variantName != null) {
-        String[] row = {module.getName(), variantName};
+        Object[] row = {module, variantName};
         rows.add(row);
       }
     }
@@ -180,7 +180,8 @@ public class BuildVariantView {
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
       setModelTask.run();
-    } else {
+    }
+    else {
       application.invokeLater(setModelTask);
     }
   }
@@ -251,8 +252,8 @@ public class BuildVariantView {
      * <p/>
      * This notification occurs:
      * <ul>
-     *  <li>after the user selected a build variant from the drop-down</li>
-     *  <li>project structure has been updated according to selected build variant</li>
+     * <li>after the user selected a build variant from the drop-down</li>
+     * <li>project structure has been updated according to selected build variant</li>
      * </ul>
      * <p/>
      * This listener will not be invoked if the project structure update fails.
@@ -291,7 +292,7 @@ public class BuildVariantView {
     private final List<TableCellEditor> myCellEditors = Lists.newArrayList();
 
     BuildVariantTable() {
-      super(new BuildVariantTableModel(Collections.<String[]>emptyList()));
+      super(new BuildVariantTableModel(Collections.<Object[]>emptyList()));
       setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
@@ -300,7 +301,22 @@ public class BuildVariantView {
                                                        boolean hasFocus,
                                                        int row,
                                                        int column) {
-          Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+          Object newValue = value;
+          Icon icon = null;
+          if (newValue instanceof Module) {
+            Module module = (Module)newValue;
+            newValue = module.getName();
+            if (column == MODULE_COLUMN_INDEX) {
+              icon = GradleUtil.getModuleIcon(module);
+            }
+          }
+
+          Component c = super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, column);
+
+          if (c instanceof JLabel) {
+            ((JLabel)c).setIcon(icon);
+          }
+
           if (c instanceof JComponent) {
             JComponent component = (JComponent)c;
             Conflict conflictFound = null;
@@ -322,7 +338,7 @@ public class BuildVariantView {
             component.setToolTipText(toolTip);
 
             // add some padding to table cells. It is hard to read text of combo box.
-            component.setBorder(BorderFactory.createEmptyBorder(4, 3, 5, 3));
+            component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(), BorderFactory.createEmptyBorder(3, 2, 4, 2)));
           }
 
           return c;
@@ -339,12 +355,11 @@ public class BuildVariantView {
     }
 
     private void clearContents() {
-      List<String[]> content = ImmutableList.of();
-      setModel(new BuildVariantTableModel(content));
+      setModel(new BuildVariantTableModel(Collections.<Object[]>emptyList()));
       myCellEditors.clear();
     }
 
-    void setModel(@NotNull List<String[]> rows, @NotNull List<BuildVariantItem[]> variantNamesPerRow) {
+    void setModel(@NotNull List<Object[]> rows, @NotNull List<BuildVariantItem[]> variantNamesPerRow) {
       setLoading(false);
       if (rows.isEmpty()) {
         // This is most likely an old-style (pre-Gradle) Android project. Just leave the table empty.
@@ -353,7 +368,7 @@ public class BuildVariantView {
       }
 
       boolean hasVariants = !variantNamesPerRow.isEmpty();
-      List<String[]> content = hasVariants ? rows : ImmutableList.<String[]>of();
+      List<Object[]> content = hasVariants ? rows : Collections.<Object[]>emptyList();
 
       setModel(new BuildVariantTableModel(content));
       addBuildVariants(variantNamesPerRow);
@@ -414,7 +429,7 @@ public class BuildVariantView {
         for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
           listener.buildVariantSelected(facets);
         }
-     }
+      }
     };
 
     Application application = ApplicationManager.getApplication();
@@ -427,7 +442,7 @@ public class BuildVariantView {
   }
 
   private static class BuildVariantTableModel extends DefaultTableModel {
-    BuildVariantTableModel(List<String[]> rows) {
+    BuildVariantTableModel(List<Object[]> rows) {
       super(rows.toArray(new Object[rows.size()][TABLE_COLUMN_NAMES.length]), TABLE_COLUMN_NAMES);
     }
 

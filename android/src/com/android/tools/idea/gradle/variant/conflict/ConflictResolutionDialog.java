@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
@@ -70,7 +71,7 @@ class ConflictResolutionDialog extends DialogWrapper {
           if (data instanceof Module) {
             Module module = (Module)data;
             textRenderer.append(module.getName());
-            textRenderer.setIcon(AllIcons.Actions.Module);
+            textRenderer.setIcon(GradleUtil.getModuleIcon(module));
           }
         }
       }
