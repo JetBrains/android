@@ -41,7 +41,7 @@
             </constraints>
             <properties/>
           </component>
-          <component id="c4800" class="com.android.tools.idea.sdk.wizard.SmwConfirmationTable" binding="myTable">
+          <component id="c4800" class="com.intellij.ui.table.JBTable" binding="myTable">
             <constraints>
               <splitpane position="left"/>
             </constraints>

@@ -48,6 +48,7 @@ public class SmwSelectionTable extends JBTable {
   @Override
   public void setModel(@NotNull TableModel model) {
     super.setModel(model);
+
     if (!(model instanceof SmwSelectionTableModel)) {
       return;
     }
@@ -81,10 +82,15 @@ public class SmwSelectionTable extends JBTable {
 
   @Override
   public TableCellRenderer getCellRenderer(final int row, final int column) {
-    SmwSelectionTableModel model = (SmwSelectionTableModel) getModel();
-    final ColumnInfo columnInfo = model.getColumnInfo(column);
-    //noinspection ConstantConditions,unchecked
-    return columnInfo.getRenderer(model.getObjectAt(row));
+    TableModel model = getModel();
+    if (model instanceof SmwSelectionTableModel) {
+      SmwSelectionTableModel smwModel = (SmwSelectionTableModel)getModel();
+      final ColumnInfo columnInfo = smwModel.getColumnInfo(column);
+      //noinspection ConstantConditions,unchecked
+      return columnInfo.getRenderer(smwModel.getObjectAt(row));
+    } else {
+      return super.getCellRenderer(row, column);
+    }
   }
 
 }
