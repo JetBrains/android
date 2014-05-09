@@ -349,7 +349,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-        file.setValue(BuildFileKey.INCREMENTAL, true);
+        file.setValue(BuildFileKey.INCREMENTAL_DEX, true);
       }
     });
     StringBuilder expected = new StringBuilder(getSimpleTestFile());
@@ -359,7 +359,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
                     "        incremental true\n" +
                     "    }\n");
     assertContents(file, expected.toString());
-    assertEquals(true, file.getValue(BuildFileKey.INCREMENTAL));
+    assertEquals(true, file.getValue(BuildFileKey.INCREMENTAL_DEX));
   }
 
   public void testCreateFileValue() throws Exception {
