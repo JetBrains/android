@@ -81,8 +81,8 @@ public enum BuildFileKey {
   // Build type
   DEBUGGABLE("debuggable", BOOLEAN),
   JNI_DEBUG_BUILD("jniDebugBuild", BOOLEAN),
-  RENDERSCRIPT_DEBUG_BUILD("renderscriptDebugBuild", STRING),
-  RENDERSCRIPT_OPTIM_LEVEL("renderscriptOptimLevel", STRING),
+  RENDERSCRIPT_DEBUG_BUILD("renderscriptDebugBuild", BOOLEAN),
+  RENDERSCRIPT_OPTIM_LEVEL("renderscriptOptimLevel", INTEGER),
   RUN_PROGUARD("runProguard", BOOLEAN),
   PACKAGE_NAME_SUFFIX("packageNameSuffix", STRING),
   VERSION_NAME_SUFFIX("versionNameSuffix", STRING),
@@ -98,10 +98,10 @@ public enum BuildFileKey {
   BUILD_TOOLS_VERSION("android/buildToolsVersion", STRING),
   COMPILE_SDK_VERSION("android/compileSdkVersion", INTEGER),
   IGNORE_ASSETS_PATTERN("android/aaptOptions/ignoreAssetsPattern", STRING),
-  INCREMENTAL("android/dexOptions/incremental", BOOLEAN),
+  INCREMENTAL_DEX("android/dexOptions/incremental", "Incremental Dex", BOOLEAN, null),
   NO_COMPRESS("android/aaptOptions/noCompress", STRING), // TODO: Implement properly. This is not a simple literal.
-  SOURCE_COMPATIBILITY("android/compileOptions/sourceCompatibility", STRING),  // TODO: This is an assignment, not a method call.
-  TARGET_COMPATIBILITY("android/compileOptions/targetCompatibility", STRING),  // TODO: This is an assignment, not a method call.
+  SOURCE_COMPATIBILITY("android/compileOptions/sourceCompatibility", REFERENCE),
+  TARGET_COMPATIBILITY("android/compileOptions/targetCompatibility", REFERENCE),
 
   // These complex types are named entities that within them have key/value pairs where the keys are BuildFileKey instances themselves.
   // We can use a generic container class to deal with them.
