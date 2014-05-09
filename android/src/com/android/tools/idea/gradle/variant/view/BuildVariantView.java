@@ -21,8 +21,10 @@ import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
+import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -41,23 +43,28 @@ import com.intellij.ui.TableUtil;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.AbstractTableCellEditor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.text.Collator;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
 /**
  * The contents of the "Build Variants" tool window.
@@ -67,6 +74,8 @@ public class BuildVariantView {
 
   private static final int MODULE_COLUMN_INDEX = 0;
   private static final int VARIANT_COLUMN_INDEX = 1;
+
+  private static final Color CONFLICT_CELL_BACKGROUND = MessageType.ERROR.getPopupBackground();
 
   private final Project myProject;
   private BuildVariantUpdater myUpdater;
@@ -234,13 +243,13 @@ public class BuildVariantView {
   }
 
   public void selectAndScrollTo(@NotNull Module module) {
-    String name = module.getName();
     int rowCount = myVariantsTable.getRowCount();
     for (int row = 0; row < rowCount; row++) {
-      if (name.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
+      if (module.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
         myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
         myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(MODULE_COLUMN_INDEX, MODULE_COLUMN_INDEX);
         TableUtil.scrollSelectionToVisible(myVariantsTable);
+        myVariantsTable.requestFocusInWindow();
         break;
       }
     }
@@ -291,59 +300,28 @@ public class BuildVariantView {
     private boolean myLoading;
     private final List<TableCellEditor> myCellEditors = Lists.newArrayList();
 
+    private final ModuleTableCell myModuleCellRenderer = new ModuleTableCell();
+    private final ModuleTableCell myModuleCellEditor = new ModuleTableCell();
+    private final VariantsCellRenderer myVariantsCellRenderer = new VariantsCellRenderer();
+
     BuildVariantTable() {
       super(new BuildVariantTableModel(Collections.<Object[]>emptyList()));
-      setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(JTable table,
-                                                       Object value,
-                                                       boolean isSelected,
-                                                       boolean hasFocus,
-                                                       int row,
-                                                       int column) {
-          Object newValue = value;
-          Icon icon = null;
-          if (newValue instanceof Module) {
-            Module module = (Module)newValue;
-            newValue = module.getName();
-            if (column == MODULE_COLUMN_INDEX) {
-              icon = GradleUtil.getModuleIcon(module);
-            }
-          }
+    }
 
-          Component c = super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, column);
-
-          if (c instanceof JLabel) {
-            ((JLabel)c).setIcon(icon);
-          }
-
-          if (c instanceof JComponent) {
-            JComponent component = (JComponent)c;
-            Conflict conflictFound = null;
-            for (Conflict conflict : myConflicts) {
-              Object moduleName = table.getValueAt(row, MODULE_COLUMN_INDEX);
-              if (conflict.getSource().getName().equals(moduleName)) {
-                conflictFound = conflict;
-                break;
-              }
-            }
-
-            Color background = isSelected ? BuildVariantTable.this.getSelectionBackground() : BuildVariantTable.this.getBackground();
-            if (conflictFound != null) {
-              background = MessageType.ERROR.getPopupBackground();
-            }
-            component.setBackground(background);
-
-            String toolTip = conflictFound != null? conflictFound.toString() : null;
-            component.setToolTipText(toolTip);
-
-            // add some padding to table cells. It is hard to read text of combo box.
-            component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(), BorderFactory.createEmptyBorder(3, 2, 4, 2)));
-          }
-
-          return c;
+    @Nullable
+    Conflict findConflict(int row) {
+      for (Conflict conflict : myConflicts) {
+        Object module = getValueAt(row, MODULE_COLUMN_INDEX);
+        if (conflict.getSource().equals(module)) {
+          return conflict;
         }
-      });
+      }
+      return null;
+    }
+
+    @Override
+    public boolean isCellEditable(int row, int column) {
+      return true;
     }
 
     void setLoading(boolean loading) {
@@ -405,11 +383,16 @@ public class BuildVariantView {
     }
 
     @Override
+    public TableCellRenderer getCellRenderer(int row, int column) {
+      return column == MODULE_COLUMN_INDEX ? myModuleCellRenderer : myVariantsCellRenderer;
+    }
+
+    @Override
     public TableCellEditor getCellEditor(int row, int column) {
       if (column == VARIANT_COLUMN_INDEX && row >= 0 && row < myCellEditors.size()) {
         return myCellEditors.get(row);
       }
-      return super.getCellEditor(row, column);
+      return myModuleCellEditor;
     }
   }
 
@@ -445,11 +428,165 @@ public class BuildVariantView {
     BuildVariantTableModel(List<Object[]> rows) {
       super(rows.toArray(new Object[rows.size()][TABLE_COLUMN_NAMES.length]), TABLE_COLUMN_NAMES);
     }
+  }
+
+  private static class VariantsCellRenderer extends DefaultTableCellRenderer {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+      if (c instanceof JLabel) {
+        JLabel component = (JLabel)c;
+
+        Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
+        Conflict conflictFound = ((BuildVariantTable)table).findConflict(row);
+        if (conflictFound != null) {
+          background = CONFLICT_CELL_BACKGROUND;
+        }
+        component.setBackground(background);
+
+        String toolTip = conflictFound != null ? conflictFound.toString() : null;
+        component.setToolTipText(toolTip);
+
+        // add some padding to table cells. It is hard to read text of combo box.
+        component.setBorder(BorderFactory.createCompoundBorder(component.getBorder(), BorderFactory.createEmptyBorder(3, 2, 4, 2)));
+      }
+
+      return c;
+    }
+  }
+
+  private static class ModuleTableCell extends AbstractTableCellEditor implements TableCellRenderer {
+    private static final Border EMPTY_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
+
+    @Nullable private Conflict myConflict;
+
+    private JPanel myPanel;
+    private JLabel myModuleNameLabel;
+    private JPanel myButtonsPanel;
+    private JButton myInfoButton;
+    private JButton myFixButton;
+
+    private Object myValue;
+
+    ModuleTableCell() {
+      myModuleNameLabel = new JLabel();
+      myModuleNameLabel.setOpaque(false);
+
+      myInfoButton = createButton(AllIcons.General.BalloonInformation);
+      myInfoButton.setToolTipText("More info");
+      // This button will show a dialog displaying the dependencies and dependents of a module. The dialog is not implemented yet.
+      myInfoButton.setVisible(false);
+
+      myFixButton = createButton(AllIcons.Actions.QuickfixBulb);
+      myFixButton.setToolTipText("Fix problem");
+      myFixButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          if (myConflict != null) {
+            Project project = myConflict.getSource().getProject();
+            boolean solved = solveSelectionConflict(myConflict);
+            if (solved) {
+              ConflictSet conflicts = ConflictSet.findConflicts(project);
+              conflicts.showSelectionConflicts();
+            }
+          }
+          stopCellEditing();
+        }
+      });
+
+      myButtonsPanel = new JPanel();
+      myButtonsPanel.setOpaque(false);
+      myButtonsPanel.add(myInfoButton);
+      myButtonsPanel.add(myFixButton);
+
+      myPanel = new JPanel(new BorderLayout()) {
+        @Override
+        public String getToolTipText(MouseEvent e) {
+          String toolTip = getToolTipTextIfUnderX(myModuleNameLabel, e.getX());
+          if (toolTip != null) {
+            return toolTip;
+          }
+          int x = e.getX() - myButtonsPanel.getX();
+          toolTip = getToolTipTextIfUnderX(myInfoButton, x);
+          if (toolTip != null) {
+            return toolTip;
+          }
+          toolTip = getToolTipTextIfUnderX(myFixButton, x);
+          if (toolTip != null) {
+            return toolTip;
+          }
+          return super.getToolTipText(e);
+        }
+      };
+
+      myPanel.add(myModuleNameLabel, BorderLayout.CENTER);
+      myPanel.add(myButtonsPanel, BorderLayout.EAST);
+    }
+
+    @NotNull
+    private static JButton createButton(@NotNull Icon icon) {
+      JButton button = new JButton(icon);
+      button.setBorder(null);
+      button.setBorderPainted(false);
+      button.setContentAreaFilled(false);
+      return button;
+    }
+
+    @Nullable
+    private static String getToolTipTextIfUnderX(@NotNull JComponent c, int x) {
+      if (c.isVisible() && x >= c.getX() && x <= c.getX() + c.getWidth()) {
+        return c.getToolTipText();
+      }
+      return null;
+    }
 
     @Override
-    public boolean isCellEditable(int row, int column) {
-      // Only the "variant" column can be editable.
-      return column == VARIANT_COLUMN_INDEX;
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+      setUpComponent(table, value, true, true, row);
+      return myPanel;
+    }
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      setUpComponent(table, value, isSelected, hasFocus, row);
+      return myPanel;
+    }
+
+    private void setUpComponent(@NotNull JTable table, @Nullable Object value, boolean isSelected, boolean hasFocus, int row) {
+      myValue = value;
+
+      String moduleName = null;
+      Icon moduleIcon = null;
+      if (value instanceof Module) {
+        Module module = (Module)value;
+        if (!module.isDisposed()) {
+          moduleName = module.getName();
+          moduleIcon = GradleUtil.getModuleIcon(module);
+        }
+      }
+
+      myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
+      myModuleNameLabel.setIcon(moduleIcon);
+
+      myConflict = ((BuildVariantTable)table).findConflict(row);
+
+      myModuleNameLabel.setToolTipText(myConflict != null ? myConflict.toString() : null);
+      myFixButton.setVisible(myConflict != null);
+
+      Color background = isSelected ? table.getSelectionBackground() : table.getBackground();
+      if (myConflict != null) {
+        background = CONFLICT_CELL_BACKGROUND;
+      }
+      myPanel.setBackground(background);
+
+      Border border = hasFocus ? UIUtil.getTableFocusCellHighlightBorder() : EMPTY_BORDER;
+      myPanel.setBorder(border);
+    }
+
+    @Override
+    public Object getCellEditorValue() {
+      return myValue;
     }
   }
 }
