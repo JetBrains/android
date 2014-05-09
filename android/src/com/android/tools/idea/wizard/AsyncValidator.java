@@ -15,29 +15,44 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
+import com.android.annotations.concurrency.GuardedBy;
+import com.intellij.openapi.application.Application;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Simple utility that reruns task in another thread and reports the result back.
  * <p/>
- * The goal is to run validation in a non-UI thread. Some validation results may be dropped
- * as user input may change before validation completes.
+ * The goal is to run validation in a non-UI thread. Some validation results
+ * may be dropped as user input may change before validation completes.
+ * <p/>
+ * Some threading information:
+ * invalidate()           is called by client from any thread to signal that
+ *                        user input had changed and needs to be invalidated.
+ *                        This will mark this validator as dirty and schedule
+ *                        a runnable in the background thread if there is none
+ *                        pending/running.
+ *
+ * validate()             will be called on a background thread to obtain
+ *                        the validation result. This call can be repeated
+ *                        if the data is marked dirty before a call to
+ *                        validate() completes.
+ *
+ * showValidationResult() will be called on the UI thread with the data
+ *                        returned by validate() called on a background thread.
+ *                        Note that that data may be dropped if invalidate()
+ *                        was called at some point while the UI thread task
+ *                        was pending.
  */
-public abstract class AsyncValidator<V> implements Disposable {
-  private final ExecutorService myExecutor = Executors.newSingleThreadExecutor();
-  private final AtomicBoolean myIsScheduled = new AtomicBoolean(false);
-  private final AtomicReference<V> resultToReport = new AtomicReference<V>(null);
+public abstract class AsyncValidator<V> {
+  @NotNull private final Application myApplication;
+  private final ResultReporter myResultReporter = new ResultReporter();
+  @GuardedBy("this")
+  private boolean myIsDirty = false;
+  @GuardedBy("this")
+  private boolean myIsScheduled = false;
 
-  public AsyncValidator(@NotNull Disposable parent) {
-    Disposer.register(parent, this);
+  public AsyncValidator(@NotNull Application application) {
+    myApplication = application;
   }
 
   /**
@@ -45,38 +60,53 @@ public abstract class AsyncValidator<V> implements Disposable {
    * <p/>
    * Can be called on any thread.
    */
-  public final void invalidate() {
-    if (myIsScheduled.compareAndSet(false, true)) {
-      resultToReport.set(null);
-      if (myExecutor.isShutdown()) {
-        throw new IllegalStateException("Validator was already disposed");
-      }
-      myExecutor.execute(new Runnable() {
+  public synchronized final void invalidate() {
+    myIsDirty = true;
+    myResultReporter.setDirty();
+    if (!myIsScheduled) {
+      myIsScheduled = true;
+      myApplication.executeOnPooledThread(new Runnable() {
         @Override
         public void run() {
-          while (myIsScheduled.get()) {
-            resultToReport.set(null);
-            myIsScheduled.set(false);
-            resultToReport.set(validate());
-            if (!myIsScheduled.get()) {
-              SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                  report();
-                }
-              });
-            }
-          }
+          revalidateUntilClean();
         }
       });
     }
   }
 
-  private void report() {
-    V result = resultToReport.get();
-    if (result != null) {
-      showValidationResult(result);
+  /**
+   * Runs validation on the background thread, repeating it if it was reported
+   * that data was updated.
+   */
+  private void revalidateUntilClean() {
+    V result;
+    do {
+      markClean();
+      result = validate();
     }
+    while (!submit(result));
+  }
+
+  /**
+   * Submit will be canceled if the validator was marked dirty since we cleared the flag.
+   */
+  private synchronized boolean submit(@NotNull V result) {
+    myIsScheduled = myIsDirty;
+    if (!myIsScheduled) {
+      myResultReporter.report(result);
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  /**
+   * Marks validator status clean, meaning the validation result is in sync
+   * with user input.
+   */
+  private synchronized void markClean() {
+    myIsDirty = false;
   }
 
   /**
@@ -90,8 +120,38 @@ public abstract class AsyncValidator<V> implements Disposable {
   @NotNull
   protected abstract V validate();
 
-  @Override
-  public final void dispose() {
-    myExecutor.shutdownNow();
+  /**
+   * Sent to main thread to report result of the background operation.
+   */
+  private final class ResultReporter implements Runnable {
+    @GuardedBy("this")
+    private V myResult = null;
+    @GuardedBy("this")
+    private boolean myIsPending = false;
+
+    public synchronized void report(@NotNull V value) {
+      myResult = value;
+      if (!myIsPending) {
+        myIsPending = true;
+        myApplication.invokeLater(this, myApplication.getAnyModalityState());
+      }
+    }
+
+    @Override
+    public synchronized void run() {
+      V result = myResult;
+      myResult = null;
+      try {
+        if (result != null) {
+          showValidationResult(result);
+        }
+      } finally {
+        myIsPending = false;
+      }
+    }
+
+    public synchronized void setDirty() {
+      myResult = null;
+    }
   }
 }

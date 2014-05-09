@@ -26,6 +26,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -105,7 +106,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     };
     myModulesList.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, modulesListener);
 
-    validator = new AsyncValidator<PathValidationResult>(disposable) {
+    validator = new AsyncValidator<PathValidationResult>(ApplicationManager.getApplication()) {
       @Override
       protected void showValidationResult(PathValidationResult result) {
         applyBackgroundOperationResult(result);
