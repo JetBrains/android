@@ -30,7 +30,7 @@ public class SmwConfirmationStep extends SmwStep {
   private JPanel myContentPanel;
   private JTextArea myTextDescription; // TODO: display details based on selection
   private JBLabel myLabelSdkPath;
-  private SmwConfirmationTable myTable;
+  private JTable myTable;
 
   private SmwConfirmationTableModel myTableModel;
   private boolean myInitOnce = true;
