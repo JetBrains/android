@@ -25,6 +25,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -92,7 +93,7 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
     });
     myValidationStatus.setText("");
     myValidationStatus.setIcon(null);
-    myValidator = new AsyncValidator<ValidationStatus>(parentDisposable) {
+    myValidator = new AsyncValidator<ValidationStatus>(ApplicationManager.getApplication()) {
       @Override
       protected void showValidationResult(ValidationStatus result) {
         updateStep(result);

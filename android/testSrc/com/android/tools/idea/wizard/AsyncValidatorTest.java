@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
+import com.intellij.idea.IdeaTestApplication;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testFramework.PlatformTestCase;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test asynchronous validator class.
  */
 public final class AsyncValidatorTest extends TestCase {
   private static final int TIMEOUT = 1000; // ms
-  private Disposable parentDisposable = Disposer.newDisposable();
 
   @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
   private static void assertResult(Integer[] val, Integer expected) throws InterruptedException {
@@ -41,9 +46,24 @@ public final class AsyncValidatorTest extends TestCase {
     }
   }
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    // This should happen on some other thread - it will become the AWT event queue thread.
+    Future<IdeaTestApplication> application = Executors.newSingleThreadExecutor().
+      submit(new Callable<IdeaTestApplication>() {
+        @Override
+        public IdeaTestApplication call() throws Exception {
+          PlatformTestCase.autodetectPlatformPrefix();
+          return IdeaTestApplication.getInstance(null);
+        }
+      });
+    application.get(30, TimeUnit.SECONDS); // Wait for the application instantiation
+  }
+
   public void testBasicValidation() throws InterruptedException {
     final Integer[] val = { null };
-    AsyncValidator<Integer> validator = new AsyncValidator<Integer>(parentDisposable) {
+    AsyncValidator<Integer> validator = new AsyncValidator<Integer>(ApplicationManager.getApplication()) {
       @Override
       protected void showValidationResult(Integer result) {
         synchronized (val) {
@@ -69,7 +89,7 @@ public final class AsyncValidatorTest extends TestCase {
     final Integer[] output = { null };
     final int[] counter = {0};
 
-    AsyncValidator<Integer> validator = new AsyncValidator<Integer>(parentDisposable) {
+    AsyncValidator<Integer> validator = new AsyncValidator<Integer>(ApplicationManager.getApplication()) {
       @Override
       protected void showValidationResult(Integer result) {
         synchronized (output) {
@@ -97,11 +117,5 @@ public final class AsyncValidatorTest extends TestCase {
       Thread.sleep(2);
     }
     assertResult(output, EXPECTED_RESULT); // Validation happens after loop exit - hence, 100 and not 99 which is in-loop max
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    Disposer.dispose(parentDisposable);
-    super.tearDown();
   }
 }
