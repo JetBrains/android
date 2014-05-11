@@ -475,8 +475,16 @@ public class BuildVariantView {
 
       myInfoButton = createButton(AllIcons.General.BalloonInformation);
       myInfoButton.setToolTipText("More info");
-      // This button will show a dialog displaying the dependencies and dependents of a module. The dialog is not implemented yet.
-      myInfoButton.setVisible(false);
+      myInfoButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          if (myValue instanceof Module) {
+            Module module = (Module)myValue;
+            ModuleVariantsInfoDialog dialog = new ModuleVariantsInfoDialog(module);
+            dialog.show();
+          }
+        }
+      });
 
       myFixButton = createButton(AllIcons.Actions.QuickfixBulb);
       myFixButton.setToolTipText("Fix problem");
