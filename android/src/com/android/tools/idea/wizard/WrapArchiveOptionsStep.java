@@ -63,10 +63,12 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
   private JCheckBox myReplaceFileDependencyWithCheckBox;
   private ValidationStatus myResult = ValidationStatus.EMPTY_PATH;
   private boolean myIsFirstUIUpdate = true;
+  private Icon mySidePanelIcon;
 
   public WrapArchiveOptionsStep(@Nullable Project project,
                                 @NotNull TemplateWizardState state,
-                                @NotNull Disposable parentDisposable) {
+                                @Nullable Icon sidePanelIcon) {
+    mySidePanelIcon = sidePanelIcon;
     centerControls();
     myProject = project;
     myWizardState = state;
@@ -106,6 +108,11 @@ public final class WrapArchiveOptionsStep extends ModuleWizardStep implements An
       }
     };
     updateDataModel();
+  }
+
+  @Override
+  public Icon getIcon() {
+    return mySidePanelIcon;
   }
 
   /**
