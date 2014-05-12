@@ -21,12 +21,17 @@ import com.android.tools.idea.gradle.project.ProjectValidator;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -40,9 +45,17 @@ import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
+
+  private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
+    "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
+    "org.jetbrains.plugins.groovy.gant.GantConfigurable", "org.jetbrains.plugins.groovy.compiler.GroovyCompilerConfigurable",
+    "org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable", "org.jetbrains.idea.maven.utils.MavenSettings",
+    "com.intellij.compiler.options.CompilerConfigurable"
+  );
 
   public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
     new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
@@ -108,6 +121,7 @@ public class GradleSyncState {
     mySyncInProgress = false;
     myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
     notifyUser();
+    cleanUpProjectPreferences();
   }
 
   private void syncPublisher(@NotNull final Runnable publishingTask) {
@@ -197,4 +211,29 @@ public class GradleSyncState {
     }
     return false;
   }
+
+  private void cleanUpProjectPreferences() {
+    try {
+      ExtensionPoint<ConfigurableEP<Configurable>>
+        projectConfigurable = Extensions.getArea(myProject).getExtensionPoint(Configurable.PROJECT_CONFIGURABLE);
+
+      List<ConfigurableEP<Configurable>> nonGradleExtensions = Lists.newArrayList();
+
+      ConfigurableEP<Configurable>[] extensions = projectConfigurable.getExtensions();
+      for (ConfigurableEP<Configurable> extension : extensions) {
+        if (PROJECT_PREFERENCES_TO_REMOVE.contains(extension.instanceClass)) {
+          nonGradleExtensions.add(extension);
+        }
+      }
+
+      for (ConfigurableEP<Configurable> toRemove : nonGradleExtensions) {
+        projectConfigurable.unregisterExtension(toRemove);
+      }
+    }
+    catch (Throwable e) {
+      String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
+      LOG.info(msg, e);
+    }
+  }
+
 }
