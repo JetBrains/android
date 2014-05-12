@@ -15,7 +15,7 @@
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Destination Directory:"/>
+          <text value="Import Destination Directory:"/>
         </properties>
       </component>
       <component id="a77c9" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myDestDirText">
@@ -24,12 +24,17 @@
         </constraints>
         <properties/>
       </component>
+      <vspacer id="646a1">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
       <component id="7a06e" class="javax.swing.JLabel">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="7" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="&lt;html&gt;This wizard will import Eclipse Android projects. Note that the import will create a full copy of the project; it does not touch the original Eclipse project. At the end of the import, it will open a summary which shows how the old Eclipse directory structure was mapped to the new Gradle directory structure, and any other issues noticed during the import.&lt;/html&gt; "/>
+          <text value="&lt;html&gt;Importing a project creates a full copy of the project and does not alter the original Eclipse project.&lt;/html&gt; "/>
         </properties>
       </component>
       <vspacer id="2bd5d">
@@ -37,11 +42,6 @@
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false">
             <preferred-size width="-1" height="20"/>
           </grid>
-        </constraints>
-      </vspacer>
-      <vspacer id="646a1">
-        <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
     </children>
