@@ -40,6 +40,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -61,7 +62,7 @@ public class ImportSourceModulePath implements WizardPath {
   public ImportSourceModulePath(@Nullable VirtualFile importSource,
                                 @NotNull NewModuleWizardState wizardState,
                                 @NotNull WizardContext context,
-                                @NotNull Disposable disposable,
+                                @Nullable Icon sidePanelIcon,
                                 @Nullable TemplateWizardStep.UpdateListener listener) {
     myWizardState = wizardState;
     myContext = context;
@@ -69,7 +70,7 @@ public class ImportSourceModulePath implements WizardPath {
     context.setProjectBuilder(provider.getBuilder());
     ModuleWizardStep[] adtImportSteps = provider.createSteps(context);
     ImportSourceLocationStep locationStep = new ImportSourceLocationStep(context, importSource,
-                                                                         wizardState, disposable, listener);
+                                                                         wizardState, sidePanelIcon, listener);
     mySteps = Lists.asList(locationStep, adtImportSteps);
   }
 
