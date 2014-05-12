@@ -31,6 +31,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -104,6 +105,7 @@ public class ScreenRecorderAction {
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
+      int elapsedTime = 0; // elapsed time in seconds
       indicator.setIndeterminate(true);
       while (true) {
         try {
@@ -111,9 +113,15 @@ public class ScreenRecorderAction {
             break;
           }
 
+          // update elapsed time in seconds
+          elapsedTime++;
+          indicator.setText(String.format("Recording...%1$d %2$s elapsed", elapsedTime, StringUtil.pluralize("second", elapsedTime)));
+
           if (indicator.isCanceled()) {
             // explicitly cancel the running task
             myReceiver.cancel();
+
+            indicator.setText("Stopping...");
 
             // Wait for an additional second to make sure that the command
             // completed and screen recorder finishes writing the output
