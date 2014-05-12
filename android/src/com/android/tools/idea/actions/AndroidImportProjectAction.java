@@ -68,7 +68,7 @@ public class AndroidImportProjectAction extends AnAction {
   @NonNls private static final String LAST_IMPORTED_LOCATION = "last.imported.location";
   private static final Logger LOG = Logger.getInstance(AndroidImportProjectAction.class);
 
-  private static final String WIZARD_TITLE = "Select Gradle Project Import";
+  private static final String WIZARD_TITLE = "Select Eclipse or Gradle Project to Import";
   private static final String WIZARD_DESCRIPTION = "Select build.gradle or settings.gradle";
 
   public AndroidImportProjectAction() {
