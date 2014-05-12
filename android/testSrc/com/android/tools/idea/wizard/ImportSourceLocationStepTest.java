@@ -53,7 +53,7 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
     myFixture.setTestDataPath(getTestDataPath());
     myModule = GradleModuleImportTest.createGradleProjectToImport(new File(Files.createTempDir(), "project"), "gradleProject");
     myDisposable = Disposer.newDisposable();
-    myPage = new ImportSourceLocationStep(new WizardContext(getProject()), null, new NewModuleWizardState(), myDisposable, null);
+    myPage = new ImportSourceLocationStep(new WizardContext(getProject()), null, new NewModuleWizardState(), null, null);
   }
 
   @Override
