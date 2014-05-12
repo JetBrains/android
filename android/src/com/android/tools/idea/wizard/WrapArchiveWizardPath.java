@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,10 +60,10 @@ public class WrapArchiveWizardPath implements WizardPath {
   public WrapArchiveWizardPath(@NotNull NewModuleWizardState wizardState,
                                @Nullable Project project,
                                @Nullable final TemplateWizardStep.UpdateListener listener,
-                               @NotNull Disposable disposable) {
+                               @Nullable Icon sidePanelIcon) {
     myWizardState = wizardState;
     myProject = project;
-    steps = Collections.<ModuleWizardStep>singleton(new WrapArchiveOptionsStep(project, wizardState, disposable));
+    steps = Collections.<ModuleWizardStep>singleton(new WrapArchiveOptionsStep(project, wizardState, sidePanelIcon));
     if (listener != null) {
       for (ModuleWizardStep step : steps) {
         step.registerStepListener(new StepListener() {

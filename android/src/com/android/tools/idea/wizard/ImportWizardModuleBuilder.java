@@ -147,7 +147,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   }
 
   protected Iterable<WizardPath> setupWizardPaths(@Nullable Project project, @Nullable Icon sidePanelIcon, Disposable disposable) {
-    myImportSourcesPath = new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), disposable, this);
+    myImportSourcesPath = new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), sidePanelIcon, this);
     return ImmutableList.<WizardPath>of(myImportSourcesPath);
   }
 
