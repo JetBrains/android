@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.ProjectValidator;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -213,22 +214,14 @@ public class GradleSyncState {
   }
 
   private void cleanUpProjectPreferences() {
+    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      return;
+    }
     try {
       ExtensionPoint<ConfigurableEP<Configurable>>
         projectConfigurable = Extensions.getArea(myProject).getExtensionPoint(Configurable.PROJECT_CONFIGURABLE);
 
-      List<ConfigurableEP<Configurable>> nonGradleExtensions = Lists.newArrayList();
-
-      ConfigurableEP<Configurable>[] extensions = projectConfigurable.getExtensions();
-      for (ConfigurableEP<Configurable> extension : extensions) {
-        if (PROJECT_PREFERENCES_TO_REMOVE.contains(extension.instanceClass)) {
-          nonGradleExtensions.add(extension);
-        }
-      }
-
-      for (ConfigurableEP<Configurable> toRemove : nonGradleExtensions) {
-        projectConfigurable.unregisterExtension(toRemove);
-      }
+      GradleUtil.cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
     }
     catch (Throwable e) {
       String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
