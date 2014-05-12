@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <component>
-  <version codename="Preview" major="0" minor="5.8" eap="true"/>
+  <version codename="Preview" major="0" minor="5.9" eap="true"/>
   <company name="Google Inc." url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="136.1761"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
