@@ -405,6 +405,56 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/attrs12.xml", BASE_PATH + "attrs12_after.xml", true);
   }
 
+  public void testFileResourceAliases1() throws Throwable {
+    // Rename aliases involving drawables; ensure that they are handled correctly.
+    // This tests that both the <item name="<name>"> and @layout/<name> references are
+    // updated when name.xml is updated
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR10.java", "src/p1/p2/RefR10.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/drawable/pic.png");
+    myFixture.copyFileToProject(BASE_PATH + "pic.png", "res/drawable/pic2.png");
+    myFixture.copyFileToProject(BASE_PATH + "aliases.xml", "res/values-sw600dp/aliases.xml");
+    checkAndRename("newpic");
+    myFixture.checkResultByFile(BASE_PATH + "RefR10_after.java", true);
+    myFixture.checkResultByFile("res/values-sw600dp/aliases.xml", BASE_PATH + "aliases_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/drawable/newpic.png"));
+  }
+
+  public void testFileResourceAliases2() throws Throwable {
+    // Rename aliases involving layouts; this test checks that a layout reference like @layout/foo is
+    // updated when foo.xml is renamed
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR11.java", "src/p1/p2/RefR11.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/mainlayout.xml");
+    myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml");
+    //myFixture.copyFileToProject(BASE_PATH + "aliases2.xml", "res/values-sw600dp/aliases.xml");
+    myFixture.copyFileToProject(BASE_PATH + "aliases2.xml", "res/values-land/aliases.xml");
+    checkAndRename("newlayout");
+    myFixture.checkResultByFile(BASE_PATH + "RefR11_after.java", true);
+    myFixture.checkResultByFile("res/values-land/aliases.xml", BASE_PATH + "aliases2_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/layout/newlayout.xml"));
+  }
+
+  public void testFileResourceAliases3() throws Throwable {
+    // Rename aliases involving layouts; this test checks that a resource alias' name declaration (<item name="foo" type="layout">)
+    // is updated when foo.xml is renamed
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "RefR11.java", "src/p1/p2/RefR11.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/mainlayout.xml");
+    myFixture.copyFileToProject(BASE_PATH + "layout3.xml", "res/layout/layout3.xml");
+    myFixture.copyFileToProject(BASE_PATH + "aliases3.xml", "res/values-land/aliases.xml");
+    checkAndRename("newlayout");
+    myFixture.checkResultByFile(BASE_PATH + "RefR11_after.java", true);
+    myFixture.checkResultByFile("res/values-land/aliases.xml", BASE_PATH + "aliases3_after.xml", true);
+    assertNotNull(myFixture.findFileInTempDir("res/layout/newlayout.xml"));
+  }
+
   public void testRenameComponent() throws Throwable {
     doRenameComponentTest("MyActivity1");
   }
