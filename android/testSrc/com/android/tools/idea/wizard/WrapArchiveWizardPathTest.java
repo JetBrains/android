@@ -50,7 +50,6 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.testFramework.fixtures.impl.BaseFixture;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -157,13 +156,13 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
     }
   }
 
-  private void createModule(@NotNull Project project,
-                            @NotNull File archive,
-                            @NotNull String gradlePath,
-                            boolean moveFile,
-                            @Nullable Module[] modulesToUpdateDependency) throws IOException {
+  private static void createModule(@NotNull Project project,
+                                   @NotNull File archive,
+                                   @NotNull String gradlePath,
+                                   boolean moveFile,
+                                   @Nullable Module[] modulesToUpdateDependency) throws IOException {
     NewModuleWizardState wizardState = new NewModuleWizardState();
-    WrapArchiveWizardPath path = new WrapArchiveWizardPath(wizardState, project, null, ((BaseFixture)myFixture).getTestRootDisposable());
+    WrapArchiveWizardPath path = new WrapArchiveWizardPath(wizardState, project, null, null);
 
     wizardState.templateChanged(project, NewModuleWizardState.ARCHIVE_IMPORT_NAME);
     wizardState.put(WrapArchiveWizardPath.KEY_ARCHIVE, archive.getAbsolutePath());
