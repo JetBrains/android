@@ -32,10 +32,13 @@ import com.google.common.io.Closeables;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
@@ -530,6 +533,22 @@ public final class GradleUtil {
     }
     else {
       return false;
+    }
+  }
+
+  public static void cleanUpPreferences(@NotNull ExtensionPoint<ConfigurableEP<Configurable>> preferences,
+                                        @NotNull List<String> bundlesToRemove) {
+    List<ConfigurableEP<Configurable>> nonStudioExtensions = Lists.newArrayList();
+
+    ConfigurableEP<Configurable>[] extensions = preferences.getExtensions();
+    for (ConfigurableEP<Configurable> extension : extensions) {
+      if (bundlesToRemove.contains(extension.instanceClass)) {
+        nonStudioExtensions.add(extension);
+      }
+    }
+
+    for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
+      preferences.unregisterExtension(toRemove);
     }
   }
 }
