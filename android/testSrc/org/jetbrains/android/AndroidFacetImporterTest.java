@@ -917,7 +917,7 @@ public class AndroidFacetImporterTest extends FacetImporterTestCase<AndroidFacet
       importProject();
 
       sourceRoots = toRelativePaths(rootManager.getSourceRootUrls());
-      assertEquals(0, sourceRoots.length);
+      assertEquals(2, sourceRoots.length);
 
       excludedRootUrls = toRelativePaths(rootManager.getExcludeRootUrls());
       assertEquals(new HashSet<String>(Arrays.asList(
