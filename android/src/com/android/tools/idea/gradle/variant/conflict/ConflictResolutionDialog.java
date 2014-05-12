@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
+import com.android.tools.idea.gradle.variant.ui.VariantCheckboxTreeCellRenderer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -24,10 +24,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CheckboxTree;
 import com.intellij.ui.CheckedTreeNode;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.tree.TreeUtil;
-import icons.AndroidIcons;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,8 +37,22 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-import static com.intellij.ui.SimpleTextAttributes.*;
+import static com.android.tools.idea.gradle.util.ui.ToolWindowAlikePanel.createTreePanel;
 
+/**
+ * Displays the variants of a module and their dependents. The purpose of this dialog is to help users decide the build variant to choose
+ * when a "variant selection" conflict cannot be automatically solved.
+ * <p>
+ * A conflict cannot be automatically solved when multiple modules depend on more than one variant of another module. For example:
+ * <ul>
+ * <li>Module A depends on variant X in module C</li>
+ * <li>Module B depends on variant Y om module C</li>
+ * <li>Module C has variant Z selected in the "Build Variants" window</li>
+ * </ul>
+ * It is not possible to solve this conflict without creating a new one: if we select variant X, there will be a conflict with module B and
+ * if we select variant Y, there will be a conflict with module A.
+ * </p>
+ */
 class ConflictResolutionDialog extends DialogWrapper {
   private final JPanel myPanel;
   private final ConflictTree myTree;
@@ -55,22 +66,16 @@ class ConflictResolutionDialog extends DialogWrapper {
 
     init();
 
-    CheckboxTree.CheckboxTreeCellRenderer renderer = new CheckboxTree.CheckboxTreeCellRenderer() {
+    VariantCheckboxTreeCellRenderer renderer = new VariantCheckboxTreeCellRenderer() {
       @Override
       public void customizeRenderer(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         if (value instanceof DefaultMutableTreeNode) {
-          ColoredTreeCellRenderer textRenderer = getTextRenderer();
           Object data = ((DefaultMutableTreeNode)value).getUserObject();
           if (data instanceof String) {
-            textRenderer.append((String)data, REGULAR_ITALIC_ATTRIBUTES);
-            textRenderer.append(" ", REGULAR_ATTRIBUTES);
-            textRenderer.append("(Variant)", GRAY_ATTRIBUTES);
-            textRenderer.setIcon(AndroidIcons.Variant);
+            appendVariant((String)data);
           }
           if (data instanceof Module) {
-            Module module = (Module)data;
-            textRenderer.append(module.getName());
-            textRenderer.setIcon(GradleUtil.getModuleIcon(module));
+            appendModule((Module)data, null);
           }
         }
       }
@@ -107,15 +112,21 @@ class ConflictResolutionDialog extends DialogWrapper {
 
     JXLabel descriptionLabel = new JXLabel();
     descriptionLabel.setLineWrap(true);
+
+    String sourceName = conflict.getSource().getName();
+
     String text = "The conflict cannot be automatically solved.\n";
     text += String.format("Module '%1$s' has variant '%2$s' selected, but multiple modules require different variants.",
-                          conflict.getSource().getName(), conflict.getSelectedVariant());
+                          sourceName, conflict.getSelectedVariant());
+
     descriptionLabel.setText(text);
     // Leave some space between the description and the tree.
     descriptionLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 5, 2));
 
     myPanel.add(descriptionLabel, BorderLayout.NORTH);
-    myPanel.add(ScrollPaneFactory.createScrollPane(myTree), BorderLayout.CENTER);
+
+    String title = String.format("Variants in '%1$s' and their dependents", sourceName);
+    myPanel.add(createTreePanel(title, myTree), BorderLayout.CENTER);
   }
 
   @Override
