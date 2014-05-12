@@ -81,13 +81,15 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private PathValidationResult myPageValidationResult;
   private boolean myValidating = false;
   private PageStatus myStatus;
+  private Icon mySidePanelIcon;
 
   public ImportSourceLocationStep(@NotNull WizardContext context,
                                   @Nullable VirtualFile importSource,
                                   @NotNull NewModuleWizardState state,
-                                  @NotNull Disposable disposable,
+                                  @Nullable Icon sidePanelIcon,
                                   @Nullable TemplateWizardStep.UpdateListener listener) {
     myContext = context;
+    mySidePanelIcon = sidePanelIcon;
     myUpdateListener = listener == null ? new TemplateWizardStep.UpdateListener() {
       @Override
       public void update() {
@@ -131,6 +133,18 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     });
   }
 
+  private static String multiLineJLabelText(String... messages) {
+    StringBuilder builder = new StringBuilder("<html><body><p>");
+    Joiner.on("<br>").appendTo(builder, messages);
+    builder.append("</p></body></html>");
+    return builder.toString();
+  }
+
+  @Override
+  public Icon getIcon() {
+    return mySidePanelIcon;
+  }
+
   private void setupSourceLocationControls(@Nullable VirtualFile importSource) {
     if (importSource == null) {
       FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor();
@@ -150,13 +164,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       mySourceLocation.setText(importSource.getPath());
     }
     applyBackgroundOperationResult(checkPath(mySourceLocation.getText()));
-  }
-
-  private static String multiLineJLabelText(String... messages) {
-    StringBuilder builder = new StringBuilder("<html><body><p>");
-    Joiner.on("<br>").appendTo(builder, messages);
-    builder.append("</p></body></html>");
-    return builder.toString();
   }
 
   private void updateStatusDisplay(@NotNull PageStatus status, @Nullable Object details) {
