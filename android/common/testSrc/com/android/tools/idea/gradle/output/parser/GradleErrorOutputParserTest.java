@@ -348,11 +348,10 @@ public class GradleErrorOutputParserTest extends TestCase {
   }
 
   public void testRedirectValueLinksOutput() throws Exception {
-    String homePath = PathManager.getHomePath();
-    assertNotNull(homePath);
-    // The relative paths in the output file below is relative to the sdk-common directory in tools/base
-    // (it's from one of the unit tests there)
-    AbstractAaptOutputParser.ourRootDir = new File(homePath, ".." + File.separator + "base" + File.separator + "sdk-common");
+    if (!setupSdkHome()) {
+      System.out.println("Skipping testRedirectValueLinksOutput because sdk-common was not found");
+      return;
+    }
 
     // Need file to be named (exactly) values.xml
     File tempDir = Files.createTempDir();
@@ -460,12 +459,28 @@ public class GradleErrorOutputParserTest extends TestCase {
     return sourcePath == null ? null : FileUtil.toSystemIndependentName(sourcePath);
   }
 
-  public void testRedirectFileLinksOutput() throws Exception {
+  private static boolean setupSdkHome() {
     String homePath = PathManager.getHomePath();
     assertNotNull(homePath);
     // The relative paths in the output file below is relative to the sdk-common directory in tools/base
     // (it's from one of the unit tests there)
-    AbstractAaptOutputParser.ourRootDir = new File(homePath, ".." + File.separator + "base" + File.separator + "sdk-common");
+    File rootDir = new File(homePath, ".." + File.separator + "base" + File.separator + "sdk-common");
+    if (!rootDir.isDirectory()) {
+      // Also check for an IDEA project structure where sdk-common is located in this location:
+      rootDir = new File(homePath, "android" + File.separator + "tools-base" + File.separator + "sdk-common");
+      if (!rootDir.isDirectory()) {
+        return false;
+      }
+    }
+    AbstractAaptOutputParser.ourRootDir = rootDir;
+    return true;
+  }
+
+  public void testRedirectFileLinksOutput() throws Exception {
+    if (!setupSdkHome()) {
+      System.out.println("Skipping testRedirectFileLinksOutput because sdk-common was not found");
+      return;
+    }
 
     // Need file to be named (exactly) values.xml
     File tempDir = Files.createTempDir();
