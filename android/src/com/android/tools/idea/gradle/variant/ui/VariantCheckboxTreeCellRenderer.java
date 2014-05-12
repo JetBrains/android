@@ -32,8 +32,6 @@ public abstract class VariantCheckboxTreeCellRenderer extends CheckboxTree.Check
   protected void appendVariant(@NotNull String variant) {
     ColoredTreeCellRenderer textRenderer = getTextRenderer();
     textRenderer.append(variant, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
-    textRenderer.append(" ", REGULAR_ATTRIBUTES);
-    textRenderer.append("[Variant]", GRAY_ATTRIBUTES);
     textRenderer.setIcon(AndroidIcons.Variant);
   }
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -25,6 +24,7 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -36,8 +36,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.content.Content;
@@ -82,7 +80,7 @@ public class BuildVariantView {
 
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
-  private JPanel myErrorPanel;
+  private JPanel myNotificationPanel;
 
   private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
   private final List<Conflict> myConflicts = Lists.newArrayList();
@@ -119,15 +117,8 @@ public class BuildVariantView {
   private void createUIComponents() {
     myVariantsTable = new BuildVariantTable();
     new TableSpeedSearch(myVariantsTable);
-    myErrorPanel = new JPanel() {
-      @Override
-      public Color getBackground() {
-        // Same color as the editor notification panel (EditorComposite.TopBottomPanel.)
-        Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.GUTTER_BACKGROUND);
-        return color == null ? JBColor.GRAY : color;
-      }
-    };
-    myErrorPanel.setLayout(new BoxLayout(myErrorPanel, BoxLayout.Y_AXIS));
+    myNotificationPanel = new NotificationPanel();
+    myNotificationPanel.setVisible(false);
   }
 
   public void projectImportStarted() {
@@ -223,21 +214,9 @@ public class BuildVariantView {
   }
 
   public void updateContents(@NotNull List<Conflict> conflicts) {
-    myErrorPanel.removeAll();
+    myNotificationPanel.setVisible(!conflicts.isEmpty());
+    ((NotificationPanel)myNotificationPanel).myCurrentConflictIndex = -1;
     myConflicts.clear();
-
-    if (!conflicts.isEmpty()) {
-      EditorNotificationPanel notification = new EditorNotificationPanel();
-      notification.setText("Variant selection conflicts found.");
-      notification.createActionLabel("See conflicts", new Runnable() {
-        @Override
-        public void run() {
-          ProjectSyncMessages.getInstance(myProject).activateView();
-        }
-      });
-      myErrorPanel.add(notification);
-    }
-
     myConflicts.addAll(conflicts);
     updateContents();
   }
@@ -270,6 +249,73 @@ public class BuildVariantView {
      * @param facets the facets affected by the variant selection.
      */
     void buildVariantSelected(@NotNull List<AndroidFacet> facets);
+  }
+
+  private class NotificationPanel extends JPanel {
+    int myCurrentConflictIndex = -1;
+
+    NotificationPanel() {
+      super(new BorderLayout());
+      Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
+      setBackground(color == null ? UIUtil.getToolTipBackground() : color);
+      setBorder(BorderFactory.createEmptyBorder(1, 15, 1, 15)); // Same as EditorNotificationPanel
+      setPreferredSize(new Dimension(-1, 24));
+
+      JLabel textLabel = new JLabel("Variant selection conflicts found.");
+      textLabel.setOpaque(false);
+      add(textLabel, BorderLayout.CENTER);
+
+      DefaultActionGroup group = new DefaultActionGroup();
+      ActionManager actionManager = ActionManager.getInstance();
+
+      AnAction nextConflictAction = new AnAction() {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          navigateConflicts(true);
+        }
+      };
+      nextConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_NEXT_OCCURENCE));
+      group.add(nextConflictAction);
+
+      AnAction prevConflictAction = new AnAction() {
+        @Override
+        public void actionPerformed(AnActionEvent e) {
+          navigateConflicts(false);
+        }
+      };
+      prevConflictAction.copyFrom(actionManager.getAction(IdeActions.ACTION_PREVIOUS_OCCURENCE));
+      group.add(prevConflictAction);
+
+      ActionToolbar toolbar = actionManager.createActionToolbar("", group, true);
+      toolbar.setReservePlaceAutoPopupIcon(false);
+      toolbar.setMinimumButtonSize(new Dimension(23, 23)); // a little smaller than default (25 x 25)
+
+      JComponent toolbarComponent = toolbar.getComponent();
+      toolbarComponent.setBorder(null);
+      toolbarComponent.setOpaque(false);
+      add(toolbarComponent, BorderLayout.EAST);
+    }
+
+    private void navigateConflicts(boolean forward) {
+      int conflictCount = myConflicts.size();
+      if (conflictCount == 0) {
+        return;
+      }
+      if (forward) {
+        myCurrentConflictIndex++;
+        if (myCurrentConflictIndex >= conflictCount) {
+          myCurrentConflictIndex = 0;
+        }
+      }
+      else {
+        myCurrentConflictIndex--;
+        if (myCurrentConflictIndex < 0) {
+          myCurrentConflictIndex = conflictCount - 1;
+        }
+      }
+      Conflict conflict = myConflicts.get(myCurrentConflictIndex);
+      selectAndScrollTo(conflict.getSource());
+    }
   }
 
   private static class BuildVariantItem implements Comparable<BuildVariantItem> {
