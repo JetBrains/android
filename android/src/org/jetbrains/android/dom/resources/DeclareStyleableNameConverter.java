@@ -73,10 +73,15 @@ public class DeclareStyleableNameConverter extends Converter<String> implements 
       if (value == null || value.length() <= 0) {
         return ResolveResult.EMPTY_ARRAY;
       }
+
+      // Search for custom views with the same name as the declare styleable, such that
+      // you can navigate from the XML styleable declaration to the corresponding custom view
       final PsiClass[] classes = PsiShortNamesCache.getInstance(myElement.getProject())
         .getClassesByName(value, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+      if (classes.length == 0) {
+        return ResolveResult.EMPTY_ARRAY;
+      }
       final ResolveResult[] result = new ResolveResult[classes.length];
-
       for (int i = 0; i < result.length; i++) {
         result[i] = new PsiElementResolveResult(classes[i]);
       }

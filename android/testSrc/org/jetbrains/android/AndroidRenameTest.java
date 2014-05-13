@@ -342,6 +342,56 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/values/attrs9.xml", BASE_PATH + "attrs9_after.xml", true);
   }
 
+  public void testRenameDeclareStyleableFromJava() throws Throwable {
+    // Renaming an R styleable field should update the declare styleable declaration, as well as
+    // any field references, including those for the attributes
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "attrs10.xml", "res/values/attrs10.xml");
+    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView1.java", "src/p1/p2/MyView.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRename("NewName");
+    myFixture.checkResultByFile(BASE_PATH + "MyView1_after.java", true);
+    myFixture.checkResultByFile("res/values/attrs10.xml", BASE_PATH + "attrs10_after.xml", true);
+  }
+
+  public void testRenameDeclareStyleableFromXml() throws Throwable {
+    // Like testRenameDeclareStyleableFromJava, but the rename request originates from
+    // the XML declare-styleable reference rather than a Java field reference.
+    createManifest();
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    findHandlerAndDoRename("NewName");
+    myFixture.checkResultByFile(BASE_PATH + "attrs13_after.xml", true);
+    myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView4_after.java", true);
+  }
+
+  public void testRenameDeclareStyleableAttrFromJava() throws Throwable {
+    // Renaming a styleable field should update the attrs.xml and field references
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "attrs11.xml", "res/values/attrs11.xml");
+    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView2.java", "src/p1/p2/MyView.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRename("newname");
+    myFixture.checkResultByFile(BASE_PATH + "MyView2_after.java", true);
+    myFixture.checkResultByFile("res/values/attrs11.xml", BASE_PATH + "attrs11_after.xml", true);
+  }
+
+  public void testRenameDeclareStyleableAttrFromXml() throws Throwable {
+    createManifest();
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    myFixture.copyFileToProject(BASE_PATH + "MyView5.java", "src/p1/p2/MyView.java");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs14.xml", "res/values/attrs14.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    findHandlerAndDoRename("newname");
+    myFixture.checkResultByFile(BASE_PATH + "attrs14_after.xml", true);
+    myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView5_after.java", true);
+  }
+
   public void testRenameComponent() throws Throwable {
     doRenameComponentTest("MyActivity1");
   }
@@ -372,8 +422,8 @@ public class AndroidRenameTest extends AndroidTestCase {
 
   public void testRenamePackageFromTestModule() throws Throwable {
     doRenameComponentTest("p1.p3");
-    myFixture.checkResultByFile("additionalModules/module1/AndroidManifest.xml",
-                                BASE_PATH + getTestName(false) + "_module1_after.xml", true);
+    myFixture.checkResultByFile("additionalModules/module1/AndroidManifest.xml", BASE_PATH + getTestName(false) + "_module1_after.xml",
+                                true);
   }
 
   public void testMovePackage() throws Throwable {
@@ -582,6 +632,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     final AnActionEvent e = new TestActionEvent(DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()), action);
     action.update(e);
     assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
+    // Note: This fails when trying to rename XML attribute values: Use findHandlerAndDoRename instead!
     myFixture.renameElementAtCaret(newName);
   }
 }
