@@ -67,6 +67,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -552,19 +553,15 @@ public class GradleProjectImporter {
 
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setExternalProjectPath(FileUtil.toCanonicalPath(project.getBasePath()));
+
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-    DistributionType distributionType = settings.getDistributionType();
     if (wrapperPropertiesFile == null) {
-      if (!DistributionType.LOCAL.equals(distributionType)) {
+      DistributionType distributionType = settings.getDistributionType();
+      if (DistributionType.LOCAL != distributionType) {
         settings.setDistributionType(DistributionType.LOCAL);
       }
-      if (Strings.isNullOrEmpty(settings.getGradleHome())) {
+      if (StringUtil.isEmpty(settings.getGradleHome())) {
         settings.setGradleHome(getLastUsedGradleHome());
-      }
-    }
-    else {
-      if (!DistributionType.DEFAULT_WRAPPED.equals(distributionType)) {
-        settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
       }
     }
   }
