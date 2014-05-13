@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.openapi.components.ServiceManager;
@@ -121,7 +122,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     // hack to check if it is a real id attribute
     if (recommendedTypes.contains(ResourceType.ID.getName()) && recommendedTypes.size() == 1) {
-      result.add(ResourceValue.reference(AndroidResourceUtil.NEW_ID_PREFIX));
+      result.add(ResourceValue.reference(SdkConstants.NEW_ID_PREFIX));
     }
 
     XmlElement element = context.getXmlElement();
@@ -140,7 +141,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
       final char prefix = myWithPrefix ? '@' : 0;
 
-      if (value.startsWith(AndroidResourceUtil.NEW_ID_PREFIX)) {
+      if (value.startsWith(SdkConstants.NEW_ID_PREFIX)) {
         addVariantsForIdDeclaration(result, facet, prefix, value);
       }
 

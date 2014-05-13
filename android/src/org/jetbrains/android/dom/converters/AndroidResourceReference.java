@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -71,7 +72,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
 
   @Override
   public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
-    if (newElementName.startsWith(AndroidResourceUtil.NEW_ID_PREFIX)) {
+    if (newElementName.startsWith(SdkConstants.NEW_ID_PREFIX)) {
       newElementName = AndroidResourceUtil.getResourceNameByReferenceText(newElementName);
     }
     ResourceValue value = myValue.getValue();

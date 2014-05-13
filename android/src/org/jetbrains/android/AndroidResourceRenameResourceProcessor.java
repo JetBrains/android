@@ -30,6 +30,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
@@ -58,6 +59,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.SdkConstants.*;
+import static com.android.resources.ResourceType.STYLEABLE;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -111,7 +114,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       return;
     }
 
-    // todo: support renaming alternative value resources
+    // TODO: support renaming alternative value resources
 
     AndroidFacet facet = AndroidFacet.getInstance(element1);
     assert facet != null;
@@ -138,10 +141,8 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     String id = AndroidResourceUtil.getResourceNameByReferenceText(value.getValue());
     assert id != null;
     List<PsiElement> idDeclarations = manager.findIdDeclarations(id);
-    if (idDeclarations != null) {
-      for (PsiElement idDeclaration : idDeclarations) {
-        allRenames.put(new ValueResourceElementWrapper((XmlAttributeValue)idDeclaration), newName);
-      }
+    for (PsiElement idDeclaration : idDeclarations) {
+      allRenames.put(new ValueResourceElementWrapper((XmlAttributeValue)idDeclaration), newName);
     }
     String name = AndroidResourceUtil.getResourceNameByReferenceText(newName);
     if (name != null) {
@@ -165,6 +166,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
   private static void prepareResourceFieldRenaming(PsiField field, String newName, Map<PsiElement, String> allRenames) {
     new RenameJavaVariableProcessor().prepareRenaming(field, newName, allRenames);
     List<PsiElement> resources = AndroidResourceUtil.findResourcesByField(field);
+
     PsiElement res = resources.get(0);
     String resName = res instanceof XmlAttributeValue ? ((XmlAttributeValue)res).getValue() : ((PsiFile)res).getName();
     final String newResName = getResourceName(field.getProject(), newName, resName);
@@ -178,9 +180,37 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
       else if (resource instanceof XmlAttributeValue) {
         XmlAttributeValue value = (XmlAttributeValue)resource;
         final String s = AndroidResourceUtil.isIdDeclaration(value)
-                         ? AndroidResourceUtil.NEW_ID_PREFIX + newResName
+                         ? NEW_ID_PREFIX + newResName
                          : newResName;
         allRenames.put(new ValueResourceElementWrapper(value), s);
+
+        // Also rename the dependent fields, e.g. if you rename <declare-styleable name="Foo">,
+        // we have to rename not just R.styleable.Foo but the also R.styleable.Foo_* attributes
+        if (value.getParent() instanceof XmlAttribute) {
+          XmlAttribute parent = (XmlAttribute)value.getParent();
+          XmlTag tag = parent.getParent();
+          if (tag.getName().equals(TAG_DECLARE_STYLEABLE)) {
+            AndroidFacet facet = AndroidFacet.getInstance(tag);
+            String oldName = tag.getAttributeValue(ATTR_NAME);
+            if (facet != null && oldName != null) {
+              for (XmlTag attr : tag.getSubTags()) {
+                if (attr.getName().equals(TAG_ATTR)) {
+                  String name = attr.getAttributeValue(ATTR_NAME);
+                  if (name != null) {
+                    String oldAttributeName = oldName + '_' + name;
+                    PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, STYLEABLE.getName(), oldAttributeName, true);
+                    if (fields.length > 0) {
+                      String newAttributeName = newName + '_' + name;
+                      for (PsiField f : fields) {
+                        allRenames.put(f, newAttributeName);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -208,7 +238,34 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     }
     PsiField[] resFields = AndroidResourceUtil.findResourceFieldsForValueResource(tag, false);
     for (PsiField resField : resFields) {
-      allRenames.put(resField, AndroidResourceUtil.getFieldNameByResourceName(newName));
+      String escaped = AndroidResourceUtil.getFieldNameByResourceName(newName);
+      allRenames.put(resField, escaped);
+    }
+
+    // Also rename the dependent fields, e.g. if you rename <declare-styleable name="Foo">,
+    // we have to rename not just R.styleable.Foo but the also R.styleable.Foo_* attributes
+    PsiField[] styleableFields = AndroidResourceUtil.findStyleableAttributeFields(tag, false);
+    if (styleableFields.length > 0) {
+      String tagName = tag.getName();
+      boolean isDeclareStyleable = tagName.equals(TAG_DECLARE_STYLEABLE);
+      boolean isAttr = !isDeclareStyleable && tagName.equals(TAG_ATTR) && tag.getParentTag() != null;
+      assert isDeclareStyleable || isAttr;
+      String style = isAttr ? tag.getParentTag().getAttributeValue(ATTR_NAME) : null;
+      for (PsiField resField : styleableFields) {
+        String fieldName = resField.getName();
+        String newAttributeName;
+        if (isDeclareStyleable && fieldName.startsWith(name)) {
+          newAttributeName = newName + fieldName.substring(name.length());
+        }
+        else if (isAttr && style != null) {
+          newAttributeName = style + '_' + newName;
+        }
+        else {
+          newAttributeName = name;
+        }
+        String escaped = AndroidResourceUtil.getFieldNameByResourceName(newAttributeName);
+        allRenames.put(resField, escaped);
+      }
     }
   }
 
