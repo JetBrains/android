@@ -32,7 +32,7 @@ import java.io.IOException;
 
 public class AndroidShowNavigationEditor extends AnAction {
   public AndroidShowNavigationEditor() {
-    super("Show Navigation Editor", null, AndroidIcons.Display);
+    super("Navigation Editor", null, AndroidIcons.NavigationEditor);
   }
 
   @Nullable
