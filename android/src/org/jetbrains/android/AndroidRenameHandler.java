@@ -4,13 +4,11 @@ import com.android.annotations.Nullable;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -18,7 +16,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.refactoring.rename.PsiElementRenameHandler;
 import com.intellij.refactoring.rename.RenameDialog;
 import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.util.xml.DomElement;
@@ -91,7 +88,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (attributeValue == null) {
       return;
     }
-    showRenameDialog(dataContext, new RenameDialog(project, new ValueResourceElementWrapper(attributeValue), null, editor));
+    RenameDialog.showRenameDialog(dataContext, new RenameDialog(project, new ValueResourceElementWrapper(attributeValue), null, editor));
   }
 
   @Override
@@ -160,7 +157,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     if (module == null) {
       return;
     }
-    showRenameDialog(context, new RenameDialog(project, element, null, editor) {
+    RenameDialog.showRenameDialog(context, new RenameDialog(project, element, null, editor) {
       @NotNull
       @Override
       protected String getLabelText() {
@@ -183,17 +180,5 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
         super.canRun();
       }
     });
-  }
-
-  private static void showRenameDialog(DataContext dataContext, RenameDialog dialog) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      final String name = PsiElementRenameHandler.DEFAULT_NAME.getData(dataContext);
-      //noinspection TestOnlyProblems
-      dialog.performRename(name);
-      dialog.close(DialogWrapper.OK_EXIT_CODE);
-    }
-    else {
-      dialog.show();
-    }
   }
 }
