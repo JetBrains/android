@@ -39,6 +39,7 @@ import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -272,11 +273,13 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     for (Module m : ModuleManager.getInstance(myProject).getModules()) {
       Sdk moduleSdk = ModuleRootManager.getInstance(m).getSdk();
       if (moduleSdk != null) {
-        String path = moduleSdk.getHomePath();
-        if (path != null) {
-          File home = new File(path);
-          if (home.exists()) {
-            return home;
+        if (moduleSdk.getSdkType() instanceof AndroidSdkType) {
+          String path = moduleSdk.getHomePath();
+          if (path != null) {
+            File home = new File(path);
+            if (home.exists()) {
+              return home;
+            }
           }
         }
       }
