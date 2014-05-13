@@ -19,7 +19,9 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.configurations.RenderOptionsMenuBuilder;
 import com.android.tools.idea.rendering.IncludeReference;
 import com.android.tools.idea.rendering.RefreshRenderAction;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.SaveScreenshotAction;
+import com.google.common.collect.Sets;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.model.RadViewLayout;
 import com.intellij.designer.actions.DesignerActionPanel;
@@ -48,10 +50,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class AndroidDesignerActionPanel extends DesignerActionPanel {
   public AndroidDesignerActionPanel(DesignerEditorPanel designer, JComponent shortcuts) {
@@ -270,12 +270,22 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
     if (iterator.hasNext()) {
       boolean needSeparator = false;
 
+
+      VirtualFile skip = null;
       String includingLayout = IncludeReference.getIncludingLayout(designer.getXmlFile());
       if (includingLayout != null) {
-          targetGroup.add(new ShowIncludedIn(designer, null, "Hide Including Layout"));
-          targetGroup.addSeparator();
+        targetGroup.add(new ShowIncludedIn(designer, null, "Hide Including Layout"));
+        targetGroup.addSeparator();
+        RenderResult lastResult = designer.getLastRenderResult();
+        if (lastResult != null) {
+          IncludeReference includedWithin = lastResult.getIncludedWithin();
+          if (includedWithin != null && includedWithin != IncludeReference.NONE) {
+            skip = includedWithin.getFromFile();
+          }
+        }
       }
 
+      Set<VirtualFile> files = Sets.newHashSet();
       while (iterator.hasNext()) {
         PsiReference reference = iterator.next();
         PsiElement referenceElement = reference.getElement();
@@ -283,19 +293,37 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
           PsiFile file = referenceElement.getContainingFile();
           if (file != null && file != xmlFile) {
             VirtualFile fromFile = file.getVirtualFile();
-            if (fromFile != null) {
-              VirtualFile toFile = designer.getVirtualFile();
-              IncludeReference includeReference = IncludeReference.create(designer.getModule(), fromFile, toFile);
-              String title = String.format("Show Included In %1$s", includeReference.getFromDisplayName());
-              targetGroup.add(new ShowIncludedIn(designer, includeReference, title));
-              needSeparator = true;
+            if (fromFile != null && fromFile != skip) {
+              files.add(fromFile);
             }
           }
         }
       }
 
-      if (needSeparator) {
-        targetGroup.addSeparator();
+      if (!files.isEmpty()) {
+        List<VirtualFile> sorted = new ArrayList<VirtualFile>(files);
+        Collections.sort(sorted, new Comparator<VirtualFile>() {
+          @Override
+          public int compare(VirtualFile f1, VirtualFile f2) {
+            VirtualFile p1 = f1.getParent();
+            VirtualFile p2 = f2.getParent();
+            if (p1 != null && p2 != null) {
+              return p1.getName().compareTo(p2.getName());
+            }
+            return f1.getName().compareTo(f2.getName());
+          }
+        });
+        for (VirtualFile fromFile : sorted) {
+          VirtualFile toFile = designer.getVirtualFile();
+          IncludeReference includeReference = IncludeReference.create(designer.getModule(), fromFile, toFile);
+          String title = String.format("Show Included In %1$s", includeReference.getFromDisplayName());
+          targetGroup.add(new ShowIncludedIn(designer, includeReference, title));
+          needSeparator = true;
+        }
+
+        if (needSeparator) {
+          targetGroup.addSeparator();
+        }
       }
     }
   }
