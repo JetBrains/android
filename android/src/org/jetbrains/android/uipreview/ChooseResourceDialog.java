@@ -207,15 +207,19 @@ public class ChooseResourceDialog extends DialogWrapper implements TreeSelection
       resourceGroup = getSelectedElement(myProjectPanel.myTreeBuilder, ResourceItem.class).getGroup();
     }
 
-    if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceGroup.getType())) {
-      myNewResourceValueAction.getTemplatePresentation().setText("New " + resourceGroup + " Value...");
-      myNewResourceValueAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceGroup.getType());
-      actionGroup.add(myNewResourceValueAction);
-    }
     if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resourceGroup.getType())) {
       myNewResourceFileAction.getTemplatePresentation().setText("New " + resourceGroup + " File...");
       myNewResourceFileAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceGroup.getType());
       actionGroup.add(myNewResourceFileAction);
+    }
+    if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceGroup.getType())) {
+      String title = "New " + resourceGroup + " Value...";
+      if (resourceGroup.getType() == ResourceType.LAYOUT) {
+        title = "New Layout Alias";
+      }
+      myNewResourceValueAction.getTemplatePresentation().setText(title);
+      myNewResourceValueAction.getTemplatePresentation().putClientProperty(TYPE_KEY, resourceGroup.getType());
+      actionGroup.add(myNewResourceValueAction);
     }
     if (myTag != null && ResourceType.STYLE.equals(resourceGroup.getType())) {
       final boolean enabled = AndroidBaseLayoutRefactoringAction.getLayoutViewElement(myTag) != null &&

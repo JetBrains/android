@@ -1,0 +1,3 @@
+<resources>
+  <item type="layout" name="other_layout">@layout/layout3</string>
+</resources>
