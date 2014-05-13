@@ -1,0 +1,4 @@
+<resources>
+  <item type="drawable" name="newpic">@drawable/pic2</string>
+  <!--<item type="drawable" name="other_pic">@drawable/pic</string>-->
+</resources>
