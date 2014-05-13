@@ -112,6 +112,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
 
     replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
+    replaceAction("$Delete", new GradleAwareDeleteAction());
 
     try {
       // Setup JDK and Android SDK if necessary
