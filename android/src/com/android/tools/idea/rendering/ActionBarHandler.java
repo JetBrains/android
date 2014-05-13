@@ -53,7 +53,12 @@ import static com.android.SdkConstants.*;
 public class ActionBarHandler extends ActionBarCallback {
   private static final String ON_CREATE_OPTIONS_MENU = "onCreateOptionsMenu";                   //$NON-NLS-1$
   private static final String ATTR_MENU = "menu";                                               //$NON-NLS-1$
+  private static final String ATTR_NAV_MODE = "actionBarNavMode";                               //$NON-NLS-1$
   private static final Pattern MENU_FIELD_PATTERN = Pattern.compile("R\\.menu\\.([a-z0-9_]+)"); //$NON-NLS-1$
+
+  // The attribute values for ATTR_NAV_MODE.
+  private static final String VALUE_NAV_MODE_TABS = "tabs";                                           //$NON-NLS-1$
+  private static final String VALUE_NAV_MODE_LIST = "list";                                           //$NON-NLS-1$
 
   private final Object myCredential;
   @NotNull
@@ -165,6 +170,19 @@ public class ActionBarHandler extends ActionBarCallback {
       return HomeButtonStyle.SHOW_HOME_AS_UP;
     }
     return HomeButtonStyle.NONE;
+  }
+
+  @Override
+  public int getNavigationMode() {
+    XmlFile xmlFile = myRenderService.getPsiFile();
+    String navMode = StringUtil.notNullize(AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
+    if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_TABS)) {
+      return NAVIGATION_MODE_TABS;
+    }
+    if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_LIST)) {
+      return NAVIGATION_MODE_LIST;
+    }
+    return NAVIGATION_MODE_STANDARD;
   }
 
   public void setMenuIdNames(@Nullable List<String> menus) {
