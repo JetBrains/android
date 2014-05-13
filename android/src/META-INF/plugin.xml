@@ -57,7 +57,7 @@
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
     <action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"
-            icon="AndroidIcons.Display">
+            icon="AndroidIcons.NavigationEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync">
