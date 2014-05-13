@@ -396,11 +396,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                 AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
               final List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>();
 
-              if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resType)) {
-                fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
-              }
               if (AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resType)) {
                 fixes.add(new CreateFileResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
+              }
+              if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resType) && resType != ResourceType.LAYOUT) { // layouts: aliases only
+                fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
               }
               return fixes.toArray(new LocalQuickFix[fixes.size()]);
             }
