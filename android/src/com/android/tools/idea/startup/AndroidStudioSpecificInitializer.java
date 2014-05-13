@@ -23,6 +23,7 @@ import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.utils.Pair;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.AppLifecycleListener;
@@ -33,6 +34,10 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -59,11 +64,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 import java.util.Properties;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
+
+  private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList(
+    "org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable", "org.intellij.plugins.xpathView.XPathConfigurable",
+    "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl"
+  );
 
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
@@ -82,6 +93,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
+    cleanUpIdePreferences();
+
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
       replaceIdeaNewProjectActions();
     }
@@ -123,6 +136,18 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
 
     checkAndSetAndroidSdkSources();
+  }
+
+  private static void cleanUpIdePreferences() {
+    try {
+      ExtensionPoint<ConfigurableEP<Configurable>> ideConfigurable =
+        Extensions.getRootArea().getExtensionPoint(Configurable.APPLICATION_CONFIGURABLE);
+
+      GradleUtil.cleanUpPreferences(ideConfigurable, IDE_SETTINGS_TO_REMOVE);
+    }
+    catch (Throwable e) {
+      LOG.info("Failed to clean up IDE preferences", e);
+    }
   }
 
   private static void replaceIdeaNewProjectActions() {
