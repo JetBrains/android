@@ -50,4 +50,9 @@ public class IdResourceInfo extends ValueResourceInfoBase {
     });
     return result.get();
   }
+
+  @Override
+  protected int getSortingRank() {
+    return 0;
+  }
 }

@@ -63,4 +63,19 @@ public class ValueResourceInfoImpl extends ValueResourceInfoBase {
     final String resName = ((ResourceElement)domElement).getName().getStringValue();
     return myName.equals(resName) ? resDomElement : null;
   }
+
+  @Override
+  protected int getSortingRank() {
+    return 1;
+  }
+
+  @Override
+  public int compareTo(@NotNull ValueResourceInfo other) {
+    int delta = super.compareTo(other);
+    if (delta != 0) {
+      return delta;
+    }
+    assert other instanceof ValueResourceInfoImpl; // otherwise sorting rank should have ensured non-zero delta
+    return myOffset - ((ValueResourceInfoImpl)other).myOffset;
+  }
 }

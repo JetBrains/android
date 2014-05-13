@@ -1,0 +1,106 @@
+/*
+ * Copyright (C) 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.jetbrains.android;
+
+import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.android.dom.AndroidValueResourcesTest;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Note: There are some additional tests for goto declaration in {@link AndroidValueResourcesTest} such
+ * as {@link AndroidValueResourcesTest#testDeclareStyleableNameNavigation1}, as well as in
+ * {@link AndroidResourcesLineMarkerTest}
+ * <p>
+ * TODO: Test the manifest-oriented logic in {@link AndroidGotoDeclarationHandler}
+ */
+public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
+  private static final String BASE_PATH = "/gotoDeclaration/";
+
+  public void testGotoString() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "GotoString.java", "src/p1/p2/GotoString.java");
+    assertEquals("values/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
+  public void testGotoDynamicId() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "ids.xml", "res/values/ids.xml");
+    myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "GotoId.java", "src/p1/p2/GotoId.java");
+    assertEquals("layout/layout.xml:4:\n" +
+                 "  <EditText android:id=\"@+id/anchor\"/>\n" +
+                 "                       ~|~~~~~~~~~~~~ \n" +
+                 "values/ids.xml:2:\n" +
+                 "  <item name=\"anchor\" type=\"id\"/>\n" +
+                 "             ~|~~~~~~~           \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
+  public void testLanguageFolders() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values-no/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values-en/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values-en-rUS/strings.xml");
+    myFixture.copyFileToProject(BASE_PATH + "layout.xml", "res/layout/layout.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "GotoString.java", "src/p1/p2/GotoString.java");
+    assertEquals("values/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n" +
+                 "values-en-rUS/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n" +
+                 "values-en/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n" +
+                 "values-no/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
+  public void testGotoStringFromXml() throws Exception {
+    myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout2.xml");
+    assertEquals("values/strings.xml:2:\n" +
+                 "  <string name=\"hello\">hello</string>\n" +
+                 "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
+  @Nullable
+  private PsiElement[] getDeclarationsFrom(VirtualFile file) {
+    myFixture.configureFromExistingVirtualFile(file);
+
+    // AndroidGotoDeclarationHandler only handles .java files. We also want to check .xml files, so
+    // we use GotoDeclarationAction instead of creating AndroidGotoDeclarationHandler and invoking getGotoDeclarationTargets
+    // on it directly.
+    return GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+  }
+}
