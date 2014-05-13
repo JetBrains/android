@@ -16,6 +16,7 @@
 
 package org.jetbrains.android;
 
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -342,6 +343,66 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  describeUsages(references));
   }
 
+  public void testStyleable() throws Throwable {
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+
+    Collection<UsageInfo> references = findCodeUsages("MyView1.java", "src/p1/p2/MyView.java");
+    //noinspection SpellCheckingInspection
+    assertEquals("MyView.java:13:\n" +
+                 "  TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MyView);\n" +
+                 "                                                                   |~~~~~~ \n" +
+                 "MyView.java:14:\n" +
+                 "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
+                 "                                    |~~~~~~~~~~~~~    \n" +
+                 "R.java:46:\n" +
+                 "  <tr><td><code>{@link #MyView_answer p1.p2:answer}</code></td><td></td></tr>\n" +
+                 "                        |~~~~~~~~~~~~~                                       \n" +
+                 "R.java:48:\n" +
+                 "  @see #MyView_answer\n" +
+                 "        |~~~~~~~~~~~~\n" +
+                 "R.java:55:\n" +
+                 "  attribute's value can be found in the {@link #MyView} array.\n" +
+                 "                                                |~~~~~~       \n",
+
+                 // Note: the attrs.xml occurence of "MyView" is not a *reference* to the *field*,
+                 // the field is a reference to the XML:
+                 // I had earlier implemented this such the following showed up (by
+                 // making the resolveInner method in DeclareStyleableNameConverter also
+                 // look up AndroidResourceUtil.findResourceFields, but that isn't semantically correct
+                 // since "go to declaration" for the XML reference will jump to the derived generated
+                 // R class field (and some other highlighting tests will fail).
+                 //"values/attrs.xml:3:\n" +
+                 //"  <declare-styleable name=\"MyView\">\n" +
+                 //"                           |~~~~~~ \n",
+
+                 describeUsages(references));
+  }
+
+  public void testStyleableAttr() throws Throwable {
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+    Collection<UsageInfo> references = findCodeUsages("MyView2.java", "src/p1/p2/MyView.java");
+    assertEquals("MyView.java:12:\n" +
+                 "  int attribute = R.attr.answer;\n" +
+                 "                         |~~~~~~\n" +
+                 "MyView.java:14:\n" +
+                 "  int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
+                 "                                    |~~~~~~~~~~~~~    \n" +
+                 "R.java:46:\n" +
+                 "  <tr><td><code>{@link #MyView_answer p1.p2:answer}</code></td><td></td></tr>\n" +
+                 "                        |~~~~~~~~~~~~~                                       \n" +
+                 "R.java:48:\n" +
+                 "  @see #MyView_answer\n" +
+                 "        |~~~~~~~~~~~~\n" +
+                 "R.java:54:\n" +
+                 "  <p>This symbol is the offset where the {@link p1.p2.R.attr#answer}\n" +
+                 "                                                             |~~~~~~\n",
+                 describeUsages(references));
+  }
+
   private static Collection<UsageInfo> findUsages(String fileName, final JavaCodeInsightTestFixture fixture, String newFilePath)
     throws Throwable {
     VirtualFile file = fixture.copyFileToProject(BASE_PATH + fileName, newFilePath);
@@ -398,6 +459,19 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
       }
     });
 
+    // Remove duplicates: For some of the tests we manually add an R class with values
+    // which duplicates the dynamically augmented (light) fields
+    List<UsageInfo> unique = Lists.newArrayListWithExpectedSize(usages.size());
+    PsiElement prev = null;
+    for (UsageInfo usage : usages) {
+      if (prev == null || usage.getElement() == null || !prev.isEquivalentTo(usage.getElement())) {
+        unique.add(usage);
+      }
+      prev = usage.getElement();
+    }
+    usages = unique;
+
+    // Create golden file output
     StringBuilder sb = new StringBuilder();
     for (UsageInfo usage : usages) {
       PsiFile file = usage.getFile();

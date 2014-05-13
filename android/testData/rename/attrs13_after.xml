@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="NewName">
+        <attr name="answer">
+            <enum name="yes" value="0" />
+            <enum name="no" value="1" />
+        </attr>
+    </declare-styleable>
+</resources>

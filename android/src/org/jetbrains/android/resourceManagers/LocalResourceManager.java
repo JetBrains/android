@@ -248,6 +248,47 @@ public class LocalResourceManager extends ResourceManager {
         }
       }
     }
+
+    return list;
+  }
+
+  public List<Attr> findStyleableAttributesByFieldName(@NotNull String fieldName) {
+    int index = fieldName.lastIndexOf('_');
+
+    // Find the earlier _ where the next character is lower case. In other words, if we have
+    // this field name:
+    //    Eeny_Meeny_miny_moe
+    // we want to assume that the styleableName is "Eeny_Meeny" and the attribute name
+    // is "miny_moe".
+    while (index != -1) {
+      int prev = fieldName.lastIndexOf('_', index - 1);
+      if (prev == -1 || Character.isUpperCase(fieldName.charAt(prev + 1))) {
+        break;
+      }
+      index = prev;
+    }
+
+    if (index == -1) {
+      return Collections.emptyList();
+    }
+
+    String styleableName = fieldName.substring(0, index);
+    String attrName = fieldName.substring(index + 1);
+
+    List<Attr> list = new ArrayList<Attr>();
+    for (Pair<Resources, VirtualFile> pair : getResourceElements()) {
+      final Resources res = pair.getFirst();
+      for (DeclareStyleable styleable : res.getDeclareStyleables()) {
+        if (styleableName.equals(styleable.getName().getValue())) {
+          for (Attr attr : styleable.getAttrs()) {
+            if (attrName.equals(attr.getName().getValue())) {
+              list.add(attr);
+            }
+          }
+        }
+      }
+    }
+
     return list;
   }
 
@@ -285,6 +326,10 @@ public class LocalResourceManager extends ResourceManager {
     else if (resClassName.equals(ResourceType.STYLEABLE.getName())) {
       for (DeclareStyleable styleable : findStyleables(fieldName)) {
         targets.add(styleable.getName().getXmlAttributeValue());
+      }
+
+      for (Attr attr : findStyleableAttributesByFieldName(fieldName)) {
+        targets.add(attr.getName().getXmlAttributeValue());
       }
     }
     return targets;
