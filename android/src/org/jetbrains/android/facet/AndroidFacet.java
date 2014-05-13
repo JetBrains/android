@@ -1220,16 +1220,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @Override
     public Set<File> getAidlDirectories() {
       final VirtualFile dir = AndroidRootUtil.getAidlGenDir(AndroidFacet.this);
-      assert dir != null;
-      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull
     @Override
     public Set<File> getRenderscriptDirectories() {
       final VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(AndroidFacet.this);
-      assert dir != null;
-      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull
@@ -1243,19 +1241,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     public Set<File> getResDirectories() {
       String resRelPath = getProperties().RES_FOLDER_RELATIVE_PATH;
       final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(getModule(), resRelPath, true);
-      if (dir != null) {
-        return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
-      } else {
-        return Collections.emptySet();
-      }
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull
     @Override
     public Set<File> getAssetsDirectories() {
       final VirtualFile dir = AndroidRootUtil.getAssetsDir(AndroidFacet.this);
-      assert dir != null;
-      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull

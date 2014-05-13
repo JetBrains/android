@@ -16,6 +16,7 @@
 package org.jetbrains.android.facet;
 
 import com.android.builder.model.*;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
@@ -37,6 +38,8 @@ import java.util.Set;
 /**
  * Like {@link SourceProvider}, but for IntelliJ, which means it provides
  * {@link VirtualFile} references rather than {@link File} references.
+ *
+ * @see org.jetbrains.android.facet.AndroidSourceType
  */
 public abstract class IdeaSourceProvider {
   private IdeaSourceProvider() {
@@ -51,6 +54,9 @@ public abstract class IdeaSourceProvider {
   public static IdeaSourceProvider create(@NotNull final AndroidFacet facet) {
     return new IdeaSourceProvider.Legacy(facet);
   }
+
+  @NotNull
+  public abstract String getName();
 
   @Nullable
   public abstract VirtualFile getManifestFile();
@@ -84,6 +90,12 @@ public abstract class IdeaSourceProvider {
 
     private Gradle(@NotNull SourceProvider provider) {
       myProvider = provider;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return myProvider.getName();
     }
 
     @Nullable
@@ -161,6 +173,12 @@ public abstract class IdeaSourceProvider {
 
     private Legacy(@NotNull AndroidFacet facet) {
       myFacet = facet;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return "";
     }
 
     @Nullable
@@ -578,4 +596,61 @@ public abstract class IdeaSourceProvider {
 
     return files;
   }
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> MANIFEST_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      VirtualFile manifestFile = provider.getManifestFile();
+      return manifestFile == null ? Collections.<VirtualFile>emptyList() : Collections.singletonList(manifestFile);
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> RES_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getResDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> JAVA_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getJavaDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> RESOURCES_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getResourcesDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> AIDL_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getAidlDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> JNI_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getJniDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> ASSETS_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getAssetsDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> RS_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getRenderscriptDirectories());
+    }
+  };
 }
