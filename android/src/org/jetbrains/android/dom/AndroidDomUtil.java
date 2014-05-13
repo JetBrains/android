@@ -455,7 +455,7 @@ public class AndroidDomUtil {
     return null;
   }
 
-  private static boolean isInheritor(@NotNull PsiClass aClass, @NotNull String baseClassQName) {
+  public static boolean isInheritor(@NotNull PsiClass aClass, @NotNull String baseClassQName) {
     final Project project = aClass.getProject();
     final PsiClass baseClass = JavaPsiFacade.getInstance(project).findClass(baseClassQName, aClass.getResolveScope());
     return baseClass != null && aClass.isInheritor(baseClass, true);
