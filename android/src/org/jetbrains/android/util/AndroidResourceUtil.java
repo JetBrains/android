@@ -26,6 +26,7 @@ import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -80,7 +81,9 @@ public class AndroidResourceUtil {
   public static final Set<ResourceType> VALUE_RESOURCE_TYPES = EnumSet.of(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.DIMEN,
                                                                           ResourceType.STRING, ResourceType.STYLE, ResourceType.ARRAY,
                                                                           ResourceType.PLURALS, ResourceType.ID, ResourceType.BOOL,
-                                                                          ResourceType.INTEGER, ResourceType.FRACTION);
+                                                                          ResourceType.INTEGER, ResourceType.FRACTION,
+                                                                          // For aliases only
+                                                                          ResourceType.LAYOUT);
 
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
@@ -572,6 +575,14 @@ public class AndroidResourceUtil {
       return "strings.xml";
     }
     if (VALUE_RESOURCE_TYPES.contains(type)) {
+
+      if (type == ResourceType.LAYOUT
+          // Lots of unit tests assume drawable aliases are written in "drawables.xml" but going
+          // forward lets combine both layouts and drawables in refs.xml as is done in the templates:
+          || type == ResourceType.DRAWABLE && !ApplicationManager.getApplication().isUnitTestMode()) {
+        return "refs.xml";
+      }
+
       return type.getName() + "s.xml";
     }
     if (ATTR == type ||
