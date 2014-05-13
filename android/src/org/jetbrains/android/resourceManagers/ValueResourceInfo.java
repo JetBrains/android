@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Eugene.Kudelevsky
  */
-public interface ValueResourceInfo {
+public interface ValueResourceInfo extends Comparable<ValueResourceInfo> {
   @Nullable
   XmlAttributeValue computeXmlElement();
 
