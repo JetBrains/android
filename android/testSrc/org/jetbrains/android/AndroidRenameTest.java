@@ -25,6 +25,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
@@ -215,7 +216,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     createManifest();
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + before, "res/values/" + before);
     myFixture.configureFromExistingVirtualFile(file);
-    findHandlerAndDoRename(newName);
+    myFixture.renameElementAtCaretUsingHandler(newName);
     myFixture.checkResultByFile(BASE_PATH + after);
   }
 
@@ -226,28 +227,11 @@ public class AndroidRenameTest extends AndroidTestCase {
 
     myFixture.copyFileToProject(BASE_PATH + "layoutStrUsage.xml", "res/layout/layoutStrUsage.xml");
     myFixture.copyFileToProject("R.java", R_JAVA_PATH);
-
-    findHandlerAndDoRename("str1");
+    myFixture.renameElementAtCaretUsingHandler("str1");
 
     myFixture.checkResultByFile(BASE_PATH + "strings_after.xml");
     myFixture.checkResultByFile(R_JAVA_PATH, "R.java", true);
     myFixture.checkResultByFile("res/layout/layoutStrUsage.xml", BASE_PATH + "layoutStrUsage_after.xml", true);
-  }
-
-  private void findHandlerAndDoRename(final String newName) throws IOException {
-    final DataContext editorContext = ((EditorEx)myFixture.getEditor()).getDataContext();
-    final DataContext context = new DataContext() {
-      @Override
-      public Object getData(@NonNls String dataId) {
-        return PsiElementRenameHandler.DEFAULT_NAME.getName().equals(dataId)
-               ? newName
-               : editorContext.getData(dataId);
-      }
-    };
-    final RenameHandler renameHandler = RenameHandlerRegistry.getInstance().getRenameHandler(context);
-    assertNotNull(renameHandler);
-
-    renameHandler.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile(), context);
   }
 
   public void testJavaReferenceToFileResource() throws Throwable {
