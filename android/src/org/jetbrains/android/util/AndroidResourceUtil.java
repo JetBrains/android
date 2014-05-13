@@ -24,10 +24,10 @@ import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
@@ -54,6 +54,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -85,6 +86,28 @@ public class AndroidResourceUtil {
   static final String ROOT_TAG_PROPERTY = "ROOT_TAG";
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
+
+  /**
+   * Comparator which orders {@link com.intellij.psi.PsiElement} items into a priority order most suitable for presentation
+   * to the user; for example, it prefers base resource folders such as {@code values/} over resource
+   * folders such as {@code values-en-rUS}
+   */
+  public static final Comparator<PsiElement> RESOURCE_ELEMENT_COMPARATOR = new Comparator<PsiElement>() {
+    @Override
+    public int compare(PsiElement e1, PsiElement e2) {
+      if (e1 instanceof LazyValueResourceElementWrapper && e2 instanceof LazyValueResourceElementWrapper) {
+        return ((LazyValueResourceElementWrapper)e1).compareTo((LazyValueResourceElementWrapper)e2);
+      }
+
+      PsiFile file1 = e1.getContainingFile();
+      PsiFile file2 = e2.getContainingFile();
+      int delta = compareResourceFiles(file1, file2);
+      if (delta != 0) {
+        return delta;
+      }
+      return e1.getTextOffset() - e2.getTextOffset();
+    }
+  };
 
   private AndroidResourceUtil() {
   }
@@ -838,6 +861,76 @@ public class AndroidResourceUtil {
       return null;
     }
     return new MyReferredResourceFieldInfo(resClassName, resFieldName, false, fromManifest);
+  }
+
+  /**
+   * Utility method suitable for Comparator implementations which order resource files,
+   * which will sort files by base folder followed by alphabetical configurations. Prioritizes
+   * XML files higher than non-XML files.
+   */
+  public static int compareResourceFiles(@Nullable VirtualFile file1, @Nullable VirtualFile file2) {
+    if (file1 != null && file2 != null && file1 != file2) {
+      boolean xml1 = file1.getFileType() == StdFileTypes.XML;
+      boolean xml2 = file2.getFileType() == StdFileTypes.XML;
+      if (xml1 != xml2) {
+        return xml1 ? -1 : 1;
+      }
+      VirtualFile parent1 = file1.getParent();
+      VirtualFile parent2 = file2.getParent();
+      if (parent1 != null && parent2 != null && parent1 != parent2) {
+        boolean qualifier1 = parent1.getName().indexOf('-') != -1;
+        boolean qualifier2 = parent2.getName().indexOf('-') != -1;
+        if (qualifier1 != qualifier2) {
+          return qualifier1 ? 1 : -1;
+        }
+      }
+
+      return file1.getPath().compareTo(file2.getPath());
+    } else if (file1 != null) {
+      return -1;
+    } else if (file2 != null) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  /**
+   * Utility method suitable for Comparator implementations which order resource files,
+   * which will sort files by base folder followed by alphabetical configurations. Prioritizes
+   * XML files higher than non-XML files.
+   */
+  public static int compareResourceFiles(@Nullable PsiFile file1, @Nullable PsiFile file2) {
+    if (file1 != null && file2 != null && file1 != file2) {
+      boolean xml1 = file1.getFileType() == StdFileTypes.XML;
+      boolean xml2 = file2.getFileType() == StdFileTypes.XML;
+      if (xml1 != xml2) {
+        return xml1 ? -1 : 1;
+      }
+      PsiDirectory parent1 = file1.getParent();
+      PsiDirectory parent2 = file2.getParent();
+      if (parent1 != null && parent2 != null && parent1 != parent2) {
+        boolean qualifier1 = parent1.getName().indexOf('-') != -1;
+        boolean qualifier2 = parent2.getName().indexOf('-') != -1;
+
+        // TODO: Sort in FolderConfiguration order!
+
+        if (qualifier1 != qualifier2) {
+          return qualifier1 ? 1 : -1;
+        }
+      }
+
+      int delta = file1.getName().compareTo(file2.getName());
+      if (delta != 0) {
+        return delta;
+      }
+    } else if (file1 != null) {
+      return -1;
+    } else if (file2 != null) {
+      return 1;
+    }
+
+    return 0;
   }
 
   public static class MyReferredResourceFieldInfo {
