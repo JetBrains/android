@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.SdkConstants;
+import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.ImportSourceKind;
-import com.android.tools.idea.gradle.project.ProjectImportUtil;
+import com.android.tools.idea.gradle.project.*;
 import com.google.common.collect.Lists;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.impl.NewProjectUtil;
@@ -40,6 +40,7 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.projectImport.ProjectImportProvider;
 import com.intellij.util.ui.UIUtil;
@@ -139,36 +140,32 @@ public class AndroidImportProjectAction extends AnAction {
   }
 
   @Nullable
-  private static AddModuleWizard createImportWizard(@NotNull VirtualFile file)
-    throws IOException, ConfigurationException {
+  private static AddModuleWizard createImportWizard(@NotNull VirtualFile file) throws IOException, ConfigurationException {
 
-    ImportSourceKind kind = ProjectImportUtil.getImportLocationKind(file);
+    VirtualFile target = ProjectImportUtil.findImportTarget(file);
+    if (target == null) {
+      return null;
+    }
+    VirtualFile targetDir = target.isDirectory() ? target : target.getParent();
+    File targetDirFile = VfsUtilCore.virtualToIoFile(targetDir);
 
-    switch (kind) {
-      case ADT:
-        importAdtProject(file);
-        break;
-      case ECLIPSE:
-        if (!ApplicationManager.getApplication().isUnitTestMode()) {
-          Messages.showErrorDialog(String.format(
-            "%1$s is in an Eclipse project, but not an Android Eclipse project.\n\n" +
-            "Please select the directory of an Android Eclipse project (which for example will contain\n" +
-            "an AndroidManifest.xml file) and try again.",
-            file.getPath()), "Import Project");
-        }
-        break;
-      case GRADLE:
-        // Gradle file, we handle this ourselves.
-        GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
-        gradleImporter.importProject(file);
-        break;
-      case NOTHING:
-        // Nothing to import
-        break;
-      case OTHER:
-        return importWithExtensions(file);
-      default:
-        throw new IllegalArgumentException(kind.name());
+    if (AdtModuleImporter.isAdtProjectLocation(file)) {
+      importAdtProject(file);
+    }
+    else if (GradleImport.isEclipseProjectDir(targetDirFile) &&
+             targetDir.findChild(SdkConstants.FN_BUILD_GRADLE) == null &&
+             !ApplicationManager.getApplication().isUnitTestMode()) {
+      String message = String.format("%1$s is an Eclipse project, but not an Android Eclipse project.\n\n" +
+                                     "Please select the directory of an Android Eclipse project" +
+                                     "(which for example will contain\nan AndroidManifest.xml file) and try again.", file.getPath());
+      Messages.showErrorDialog(message, "Import Project");
+    }
+    else if (GradleModuleImporter.isGradleProject(target)) {
+      GradleProjectImporter gradleImporter = GradleProjectImporter.getInstance();
+      gradleImporter.importProject(file);
+    }
+    else {
+      return importWithExtensions(file);
     }
     return null;
   }
