@@ -18,8 +18,11 @@ package org.jetbrains.android;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.dom.AndroidValueResourcesTest;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Note: There are some additional tests for goto declaration in {@link AndroidValueResourcesTest} such
@@ -27,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link AndroidResourcesLineMarkerTest}
  * <p>
  * TODO: Test the manifest-oriented logic in {@link AndroidGotoDeclarationHandler}
+ * TODO: Test jumping from a layout to an XML declare styleable attribute!
  */
 public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
   private static final String BASE_PATH = "/gotoDeclaration/";
@@ -90,6 +94,17 @@ public class AndroidGotoDeclarationHandlerTest extends AndroidTestCase {
     assertEquals("values/strings.xml:2:\n" +
                  "  <string name=\"hello\">hello</string>\n" +
                  "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    );
+  }
+
+  public void testGotStyleableAttr() throws Exception {
+    myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView2.java", "src/p1/p2/MyView.java");
+    assertEquals("values/attrs.xml:4:\n" +
+                 "  <attr name=\"answer\">\n" +
+                 "             ~|~~~~~~~\n",
                  describeElements(getDeclarationsFrom(file))
     );
   }
