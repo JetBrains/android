@@ -392,6 +392,19 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView5_after.java", true);
   }
 
+  public void testRenameCustomView() throws Throwable {
+    // Make sure renaming a custom view causes the styleable references to be updated as well
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "attrs12.xml", "res/values/attrs12.xml");
+    myFixture.copyFileToProject(BASE_PATH + "R_MyView.java", "src/p1/p2/R.java");
+
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView3.java", "src/p1/p2/MyView.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRename("NewName");
+    myFixture.checkResultByFile(BASE_PATH + "MyView3_after.java", true);
+    myFixture.checkResultByFile("res/values/attrs12.xml", BASE_PATH + "attrs12_after.xml", true);
+  }
+
   public void testRenameComponent() throws Throwable {
     doRenameComponentTest("MyActivity1");
   }
