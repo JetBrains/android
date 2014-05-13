@@ -525,7 +525,6 @@ class IntellijLintProject extends Project {
               VirtualFile[] classes = libraryOrderEntry.getRootFiles(OrderRootType.CLASSES);
               if (classes != null) {
                 for (VirtualFile file : classes) {
-                  mJavaLibraries.add(VfsUtilCore.virtualToIoFile(file));
                   if (file.getName().equals("android-support-v4.jar")) {
                     mSupportLib = true;
                     break libraries;
