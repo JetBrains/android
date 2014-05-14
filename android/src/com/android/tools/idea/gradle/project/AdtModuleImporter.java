@@ -32,6 +32,7 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,10 +44,13 @@ import java.util.*;
 public final class AdtModuleImporter extends ModuleImporter {
   private final WizardContext myContext;
   private List<ModuleWizardStep> myWizardSteps;
+  private final AdtImportProvider myProvider;
 
   public AdtModuleImporter(WizardContext context) {
     super();
     myContext = context;
+    myProvider = new AdtImportProvider(false);
+    myContext.setProjectBuilder(myProvider.getBuilder());
   }
 
   public static boolean isAdtProjectLocation(VirtualFile importSource) {
@@ -61,20 +65,18 @@ public final class AdtModuleImporter extends ModuleImporter {
 
   @Override
   public List<? extends ModuleWizardStep> createWizardSteps() {
-    AdtImportProvider provider = new AdtImportProvider(false);
-    myContext.setProjectBuilder(provider.getBuilder());
-    ModuleWizardStep[] adtImportSteps = provider.createSteps(myContext);
+    ModuleWizardStep[] adtImportSteps = myProvider.createSteps(myContext);
     myWizardSteps = Lists.newArrayList(adtImportSteps);
     return myWizardSteps;
   }
 
   @Override
   public void importProjects(Map<String, VirtualFile> projects) {
-    AdtImportBuilder builder = AdtImportBuilder.getBuilder(myContext);
     Project project = myContext.getProject();
-    assert builder != null && project != null;
-    GradleImport importer = builder.getImporter();
-    assert importer != null;
+    assert project != null;
+    AdtImportBuilder builder = AdtImportBuilder.getBuilder(myContext);
+    assert builder != null;
+    GradleImport importer = getGradleImport();
     importer.setModulesToImport(Maps.transformValues(projects, new Function<VirtualFile, File>() {
       @Override
       public File apply(VirtualFile input) {
@@ -88,6 +90,15 @@ public final class AdtModuleImporter extends ModuleImporter {
       }
       builder.cleanup();
     }
+  }
+
+  @NotNull
+  private GradleImport getGradleImport() {
+    AdtImportBuilder builder = AdtImportBuilder.getBuilder(myContext);
+    assert builder != null;
+    GradleImport importer = builder.getImporter();
+    assert importer != null;
+    return importer;
   }
 
   @Override
@@ -105,7 +116,7 @@ public final class AdtModuleImporter extends ModuleImporter {
     AdtImportBuilder builder = (AdtImportBuilder)myContext.getProjectBuilder();
     assert builder != null;
     builder.setSelectedProject(VfsUtilCore.virtualToIoFile(importSource));
-    GradleImport gradleImport = new GradleImport();
+    GradleImport gradleImport = getGradleImport();
     gradleImport.importProjects(Collections.singletonList(VfsUtilCore.virtualToIoFile(importSource)));
     Map<String, File> adtProjects = gradleImport.getDetectedModuleLocations();
     Function<Object, Iterable<String>> resolver = Functions.<Iterable<String>>constant(Collections.<String>emptySet());
