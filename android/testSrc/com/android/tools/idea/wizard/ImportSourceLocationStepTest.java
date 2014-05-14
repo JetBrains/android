@@ -18,9 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.gradle.project.GradleModuleImportTest;
 import com.google.common.io.Files;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,7 +39,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 public final class ImportSourceLocationStepTest extends AndroidTestBase {
   private VirtualFile myModule;
   private ImportSourceLocationStep myPage;
-  private Disposable myDisposable;
 
   @Override
   public void setUp() throws Exception {
@@ -52,13 +49,11 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     myModule = GradleModuleImportTest.createGradleProjectToImport(new File(Files.createTempDir(), "project"), "gradleProject");
-    myDisposable = Disposer.newDisposable();
     myPage = new ImportSourceLocationStep(new WizardContext(getProject()), null, new NewModuleWizardState(), null, null);
   }
 
   @Override
   protected void tearDown() throws Exception {
-    Disposer.dispose(myDisposable);
     myFixture.tearDown();
     super.tearDown();
   }
@@ -66,7 +61,8 @@ public final class ImportSourceLocationStepTest extends AndroidTestBase {
   public void testValidation() {
     String modulePath = virtualToIoFile(myModule).getAbsolutePath();
     assertValidationResult(ImportSourceLocationStep.PageStatus.OK, modulePath);
-    assertValidationResult(ImportSourceLocationStep.PageStatus.DOES_NOT_EXIST, modulePath + "_it_cant_exists_I_even_add_random_numbers_201404021710");
+    assertValidationResult(ImportSourceLocationStep.PageStatus.DOES_NOT_EXIST,
+                           modulePath + "_it_cant_exists_I_even_add_random_numbers_201404021710");
     assertValidationResult(ImportSourceLocationStep.PageStatus.EMPTY_PATH, "");
     assertValidationResult(ImportSourceLocationStep.PageStatus.NOT_ADT_OR_GRADLE, virtualToIoFile(myModule.getParent()).getAbsolutePath());
   }
