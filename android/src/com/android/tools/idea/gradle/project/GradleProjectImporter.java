@@ -183,11 +183,13 @@ public class GradleProjectImporter {
    * @param project  project to import the modules to
    * @param listener optional object that gets notified of operation success or failure
    */
-  public void importModules(final Map<String, VirtualFile> modules, final Project project, @Nullable final GradleSyncListener listener)
+  public void importModules(final Map<String, VirtualFile> modules,
+                            @Nullable final Project project,
+                            @Nullable final GradleSyncListener listener)
     throws IOException, ConfigurationException {
     String error = validateProjectsForImport(modules);
     if (error != null) {
-      if (listener != null) {
+      if (listener != null && project != null) {
         listener.syncFailed(project, error);
         return;
       }
