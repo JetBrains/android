@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.ImportSourceKind;
+import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
-import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.android.tools.idea.wizard.NewModuleWizard;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -33,8 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Action for importing existing sources as an Android project modules.
@@ -65,22 +61,15 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
   }
 
   private static boolean performImportWithoutUI(VirtualFile importSource, Project destinationProject) throws IOException {
-    ImportSourceKind locationKind = ProjectImportUtil.getImportLocationKind(importSource);
-    Set<ModuleToImport> modules = ProjectImportUtil.findModules(importSource, destinationProject);
-    if (modules.size() == 0) {
-      throw new IOException("No project to import");
-    }
-    else if (modules.size() == 1 && locationKind == ImportSourceKind.GRADLE) { // No UI to show
-      ModuleToImport module = Iterables.getFirst(modules, null);
-      assert module != null;
-      try {
-        GradleProjectImporter.getInstance().importModules(Collections.singletonMap(module.name, module.location),
-                                                          destinationProject, null);
+    for (ModuleImporter importer : ModuleImporter.getAllImporters(destinationProject)) {
+      if (importer.canImport(importSource)) {
+        Map<String, VirtualFile> modules = Maps.newHashMap();
+        for (ModuleToImport module : importer.findModules(importSource)) {
+          modules.put(module.name, module.location);
+        }
+        importer.importProjects(modules);
+        return true;
       }
-      catch (ConfigurationException e) {
-        throw new IOException(e);
-      }
-      return true;
     }
     return false;
   }
