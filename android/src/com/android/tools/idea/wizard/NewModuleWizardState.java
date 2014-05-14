@@ -17,7 +17,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
-import com.android.tools.idea.gradle.project.ImportSourceKind;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.intellij.openapi.project.Project;
@@ -49,10 +48,6 @@ public class NewModuleWizardState extends TemplateWizardState {
    * State for the template wizard, used to embed an activity template
    */
   protected final TemplateWizardState myActivityTemplateState;
-  /**
-   * Kind of the import to be performed. Only makes sense if myIsModuleImport is true.
-   */
-  private ImportSourceKind myImportKind;
   /**
    * Modules that will be imported.
    */
@@ -201,15 +196,6 @@ public class NewModuleWizardState extends TemplateWizardState {
     for (String key : keys) {
       to.put(key, from.get(key));
     }
-  }
-
-  @Nullable
-  public ImportSourceKind getImportKind() {
-    return myImportKind;
-  }
-
-  public void setImportKind(@Nullable ImportSourceKind importKind) {
-    myImportKind = importKind;
   }
 
   @Nullable
