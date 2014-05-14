@@ -37,7 +37,7 @@ import java.util.Set;
 public final class GradleModuleImporter extends ModuleImporter {
   private final Logger LOG = Logger.getInstance(getClass());
 
-  @NotNull private final Project myProject;
+  @Nullable private final Project myProject;
   private final boolean myIsWizard;
   private final GradleProjectImporter myImporter;
 
@@ -51,7 +51,6 @@ public final class GradleModuleImporter extends ModuleImporter {
 
   private GradleModuleImporter(@Nullable Project project, boolean isWizard) {
     myIsWizard = isWizard;
-    assert project != null;
     myProject = project;
     myImporter = GradleProjectImporter.getInstance();
   }
@@ -102,6 +101,7 @@ public final class GradleModuleImporter extends ModuleImporter {
 
   @Override
   public Set<ModuleToImport> findModules(VirtualFile importSource) throws IOException {
+    assert myProject != null;
     return myImporter.getRelatedProjects(importSource, myProject);
   }
 }
