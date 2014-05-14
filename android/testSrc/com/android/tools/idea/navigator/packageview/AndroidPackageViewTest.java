@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AndroidPackageViewTest extends AndroidGradleTestCase {
-  public void test1() throws Exception {
+  public void testPackageViewSimple() throws Exception {
     loadProject("projects/navigator/packageview/simple");
 
     TestPackageTreeStructure structure = new TestPackageTreeStructure(getProject(), myTestRootDisposable);
@@ -67,17 +67,7 @@ public class AndroidPackageViewTest extends AndroidGradleTestCase {
       "    strings.xml\n" +
       "    styles.xml\n" +
       "   values-w820dp\n" +
-      "    dimens.xml\n" +
-      " lib (Android)\n" +
-      "  java\n" +
-      "   lib\n" +
-      "  manifests\n" +
-      "   AndroidManifest.xml [main]\n" +
-      "  res\n" +
-      "   drawable-mdpi\n" +
-      "    ic_launcher.png\n" +
-      "   values\n" +
-      "    strings.xml\n";
+      "    dimens.xml\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil.assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo),
                                              structure.getRootElement(), printInfo);
