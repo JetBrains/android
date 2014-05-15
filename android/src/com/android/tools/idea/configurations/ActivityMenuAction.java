@@ -16,7 +16,6 @@
 package com.android.tools.idea.configurations;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -30,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -125,12 +125,14 @@ public class ActivityMenuAction extends FlatComboAction {
       assert module != null;
       String activity = configuration.getActivity();
       String currentFqcn = null;
+      // Note: We need the manifest package, not the current variant's package, since
+      // the activity names etc are always relative to the manifest package, not the effective
+      // variant package
+      String pkg = ManifestInfo.get(module, false).getPackage();
       if (activity != null && !activity.isEmpty()) {
         int dotIndex = activity.indexOf('.');
         if (dotIndex <= 0) {
-          AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
-          if (moduleInfo != null) {
-            String pkg = moduleInfo.getPackage();
+          if (pkg != null) {
             activity = pkg + (dotIndex == -1 ? "." : "") + activity;
           }
           currentFqcn = activity;
@@ -149,12 +151,7 @@ public class ActivityMenuAction extends FlatComboAction {
       if (file != null) {
         String layoutName = ResourceHelper.getResourceName(file);
         Project project = module.getProject();
-        String pkg = null;
-        AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
-        if (moduleInfo != null) {
-          pkg = moduleInfo.getPackage();
-        }
-        String rLayoutFqcn = pkg + '.' + R_CLASS + '.' + ResourceType.LAYOUT.getName();
+        String rLayoutFqcn = StringUtil.notNullize(pkg) + '.' + R_CLASS + '.' + ResourceType.LAYOUT.getName();
         PsiClass layoutClass = JavaPsiFacade.getInstance(project).findClass(rLayoutFqcn, GlobalSearchScope.projectScope(project));
         if (layoutClass != null) {
           PsiClass activityBase = JavaPsiFacade.getInstance(project).findClass(CLASS_ACTIVITY, GlobalSearchScope.allScope(project));
@@ -239,8 +236,7 @@ public class ActivityMenuAction extends FlatComboAction {
           @Override
           protected void run(Result<Void> result) throws Throwable {
             String activity = myActivity;
-            AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
-            String pkg = moduleInfo != null ? moduleInfo.getPackage() : null;
+            String pkg = ManifestInfo.get(module, false).getPackage();
             if (pkg != null && activity.startsWith(pkg) && activity.length() > pkg.length()
                 && activity.charAt(pkg.length()) == '.') {
               activity = activity.substring(pkg.length());

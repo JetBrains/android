@@ -54,6 +54,7 @@ public class AndroidModuleInfo {
     return facet != null ? facet.getAndroidModuleInfo() : null;
   }
 
+  /** Obtains the package name for the current variant, or if not specified, from the primary manifest. */
   @Nullable
   public String getPackage() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
