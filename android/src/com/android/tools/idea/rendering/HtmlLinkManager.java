@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
@@ -387,11 +387,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
-      if (moduleInfo == null) {
-        return;
-      }
-      packageName = moduleInfo.getPackage();
+      packageName = ManifestInfo.get(module, false).getPackage();
       if (packageName == null) {
         return;
       }

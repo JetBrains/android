@@ -18,10 +18,7 @@ package com.android.tools.idea.model;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
-import com.intellij.psi.PsiClass;
-import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.Manifest;
 
 import java.util.List;
 import java.util.Set;
