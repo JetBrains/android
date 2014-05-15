@@ -479,7 +479,7 @@ public class AndroidRootUtil {
       final Properties properties = new Properties();
       try {
         properties.load(new FileInputStream(new File(vFile.getPath())));
-        return new Pair<Properties, VirtualFile>(properties, vFile);
+        return Pair.create(properties, vFile);
       }
       catch (IOException e) {
         LOG.info(e);
