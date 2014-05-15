@@ -204,4 +204,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     myDetailsPane.setCurrentObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
     myDetailsPane.updateUiFromCurrentObject();
   }
+
+  private void createUIComponents() {
+    myDetailsPane = new KeyValuePane(myProject);
+  }
 }

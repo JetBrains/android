@@ -18,15 +18,19 @@ package com.android.tools.idea.structure;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Splitter;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
@@ -55,6 +59,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
   private boolean myIsUpdating;
   private Map<BuildFileKey, Object> myCurrentObject;
   private boolean myModified;
+  private final Project myProject;
 
   private final Set<String> myInstalledApis = new LinkedHashSet<String>();
   private final Set<String> myInstalledBuildTools = new LinkedHashSet<String>();
@@ -73,7 +78,8 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       .put(BuildFileKey.TARGET_COMPATIBILITY, myJavaCompatibility)
       .build();
 
-  public KeyValuePane() {
+  public KeyValuePane(Project project) {
+    myProject = project;
     for (Sdk sdk : DefaultSdks.getEligibleAndroidSdks()) {
       AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
       if (sdkAdditionalData == null) {
@@ -96,7 +102,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
   }
 
   public void init(GradleBuildFile gradleBuildFile, Collection<BuildFileKey>properties) {
-    GridLayoutManager layout = new GridLayoutManager(properties.size(), 2);
+    GridLayoutManager layout = new GridLayoutManager(properties.size() + 1, 2);
     setLayout(layout);
     GridConstraints constraints = new GridConstraints();
     constraints.setAnchor(GridConstraints.ANCHOR_WEST);
@@ -131,7 +137,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           constraints.setFill(GridConstraints.FILL_NONE);
           comboBox = getComboBox(true);
           BuildFileKey referencedType = property.getReferencedType();
-          if (shouldUseCombBox(property)) {
+          if (shouldUseComboBox(property)) {
             for (String s : myKeysWithKnownValues.get(property)) {
               comboBox.addItem(s);
             }
@@ -145,10 +151,11 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           }
           component = comboBox;
           break;
+        case CLOSURE:
         case STRING:
         case INTEGER:
         default:
-          if (shouldUseCombBox(property)) {
+          if (shouldUseComboBox(property)) {
             constraints.setFill(GridConstraints.FILL_NONE);
             comboBox = getComboBox(true);
             for (String s : myKeysWithKnownValues.get(property)) {
@@ -166,6 +173,10 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       myProperties.put(property, component);
       constraints.setRow(constraints.getRow() + 1);
     }
+    constraints.setColumn(0);
+    constraints.setVSizePolicy(GridConstraints.FILL_VERTICAL);
+    constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
+    add(new JBLabel(""), constraints);
     updateUiFromCurrentObject();
   }
 
@@ -193,7 +204,8 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       JComponent component = entry.getValue();
       Object currentValue = myCurrentObject.get(key);
       Object newValue;
-      switch(key.getType()) {
+      BuildFileKeyType type = key.getType();
+      switch(type) {
         case BOOLEAN:
           newValue = ((ThreeStateBoolean)((ComboBox)component).getSelectedItem()).getValue();
           break;
@@ -209,7 +221,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           break;
         case INTEGER:
           try {
-            if (shouldUseCombBox(key)) {
+            if (shouldUseComboBox(key)) {
               newValue = Integer.valueOf(((ComboBox)component).getEditor().getItem().toString());
             } else {
               newValue = Integer.valueOf(((JBTextField)component).getText());
@@ -230,9 +242,10 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           }
           newValue = newStringValue;
           break;
+        case CLOSURE:
         case STRING:
         default:
-          if (shouldUseCombBox(key)) {
+          if (shouldUseComboBox(key)) {
             newValue = ((ComboBox)component).getEditor().getItem();
             if ("".equals(newValue)) {
               newValue = null;
@@ -242,6 +255,14 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
             if ("".equals(newValue)) {
               newValue = null;
             }
+          }
+
+          if (type == BuildFileKeyType.CLOSURE && newValue != null) {
+            List newListValue = new ArrayList();
+            for (String o : Splitter.on(',').omitEmptyStrings().trimResults().split((String)newValue)) {
+              newListValue.add(key.getValueFactory().parse(o, myProject));
+            }
+            newValue = newListValue;
           }
           break;
       }
@@ -280,10 +301,15 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           }
           ((ComboBox)component).setSelectedItem(stringValue);
           break;
+        case CLOSURE:
+          if (value instanceof List) {
+            value = Joiner.on(", ").join((List)value);
+          }
+          // Fall through to INTEGER/STRING/default case
         case INTEGER:
         case STRING:
         default:
-          if (shouldUseCombBox(key)) {
+          if (shouldUseComboBox(key)) {
             ((ComboBox)component).setSelectedItem(value != null ? value.toString() : "");
           } else {
             ((JBTextField)component).setText(value != null ? value.toString() : "");
@@ -295,7 +321,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     myIsUpdating = false;
   }
 
-  private boolean shouldUseCombBox(BuildFileKey key) {
+  private boolean shouldUseComboBox(BuildFileKey key) {
     return myKeysWithKnownValues.containsKey(key);
   }
 
