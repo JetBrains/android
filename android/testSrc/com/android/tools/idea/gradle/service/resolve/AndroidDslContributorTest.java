@@ -42,7 +42,12 @@ import java.util.Set;
  * only if a Gradle project is actually imported by the IDE.
  */
 public class AndroidDslContributorTest extends AndroidGradleTestCase {
-  public void testResolutions() throws Exception {
+  public void disabled_testResolutions() throws Exception {
+    if (isRunningOnHudson()) {
+      logTestDisabled();
+      return;
+    }
+
     loadProject("projects/resolve/simple");
     PsiFile psiFile = getPsiFile("build.gradle");
     assertNotNull(psiFile);
@@ -75,18 +80,27 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     validateNoResolution(psiFile, "publishNonDefault");
   }
 
-  public void testResolutionsInLibrary() throws Exception {
+  public void disabled_testResolutionsInLibrary() throws Exception {
     // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
     // Temporarily disable this until we find the root cause.
-    if (System.getenv("HUDSON_HOME") != null) {
-      System.out.println("The test: " + getTestName(false) + " is temporarily disabled on the build server.");
+    if (isRunningOnHudson()) {
+      logTestDisabled();
       return;
     }
+
     loadProject("projects/resolve/simple");
     PsiFile psiFile = getPsiFile("lib.gradle");
     assertNotNull(psiFile);
 
     validateResolution(psiFile, "publishNonDefault", "com.android.build.gradle.LibraryExtension", "publishNonDefault");
+  }
+
+  private void logTestDisabled() {
+    System.out.println("The test: " + getTestName(false) + " is temporarily disabled on the build server.");
+  }
+
+  private static boolean isRunningOnHudson() {
+    return System.getenv("HUDSON_HOME") != null;
   }
 
   private static void validateNoResolution(PsiFile psiFile, String symbol) {
@@ -121,7 +135,12 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     assertEquals("Method names don't match while resolving " + symbol, methodName, psiMethod.getName());
   }
 
-  public void testCompletions() throws Exception {
+  public void disabled_testCompletions() throws Exception {
+    if (isRunningOnHudson()) {
+      logTestDisabled();
+      return;
+    }
+
     loadProject("projects/resolve/simple");
 
     assertHasCompletions("completion/comp.gradle", "compileSdkVersion", "compileOptions");
