@@ -18,10 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Table;
-import com.google.common.collect.TreeBasedTable;
+import com.google.common.collect.*;
 import com.google.common.io.Files;
 import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.*;
@@ -275,6 +272,25 @@ public class TemplateManager {
       });
     }
 
+    return templates;
+  }
+
+  @NotNull
+  public static List<File> getTemplatesFromDirectory(@NotNull File externalDirectory, boolean recursive) {
+    List<File> templates = Lists.newArrayList();
+    if (new File(externalDirectory, TEMPLATE_XML_NAME).exists()) {
+      templates.add(externalDirectory);
+    }
+    if (recursive) {
+      File[] files = externalDirectory.listFiles();
+      if (files != null) {
+        for (File file : files) {
+          if (file.isDirectory()) {
+            templates.addAll(getTemplatesFromDirectory(file, true));
+          }
+        }
+      }
+    }
     return templates;
   }
 
