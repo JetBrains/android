@@ -309,7 +309,7 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testNewListFragment() throws Exception {
-    myApiSensitiveTemplate = false;
+    myApiSensitiveTemplate = true;
     checkCreateTemplate("other", "ListFragment");
   }
 
