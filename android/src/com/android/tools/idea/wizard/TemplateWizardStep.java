@@ -131,7 +131,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   @NotNull protected abstract JLabel getError();
 
   /** Wraps the given string in &lt;html&gt; and &lt;/html&gt; tags and sets it into the error label. */
-  protected void setErrorHtml(@Nullable String s) {
+  public void setErrorHtml(@Nullable String s) {
     if (s == null) {
       s = "";
     }
