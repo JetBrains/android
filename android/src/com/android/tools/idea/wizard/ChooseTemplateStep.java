@@ -86,8 +86,16 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
   protected static List<MetadataListItem> getTemplateList(TemplateWizardState state, String templateFolder, @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
     List<File> templates = manager.getTemplates(templateFolder);
-    List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templates.size());
-    for (File template : templates) {
+    return getTemplateList(state, templates, excluded);
+  }
+
+  /**
+   * Retrieve the metadata for the given list of template files, excluding the files from the excluded set.
+   */
+  protected static List<MetadataListItem> getTemplateList(TemplateWizardState state, List<File> templateFiles, @Nullable Set<String> excluded) {
+    TemplateManager manager = TemplateManager.getInstance();
+    List<MetadataListItem> metadataList = new ArrayList<MetadataListItem>(templateFiles.size());
+    for (File template : templateFiles) {
       TemplateMetadata metadata = manager.getTemplate(template);
       if (metadata == null || !metadata.isSupported()) {
         continue;
@@ -166,16 +174,9 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
           myTemplateImage.setIcon(AndroidIcons.Wizards.DefaultTemplate);
         }
         setDescriptionHtml(templateListItem.myMetadata.getDescription());
-        int minSdk = templateListItem.myMetadata.getMinSdk();
-        Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
-        if (minApi != null && minSdk > minApi) {
-          setErrorHtml(String.format("The component %s has a minimum SDK level of %d.", templateListItem.myMetadata.getTitle(), minSdk));
-          return false;
-        }
-        int minBuildApi = templateListItem.myMetadata.getMinBuildApi();
-        Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
-        if (buildApi != null && minSdk > buildApi) {
-          setErrorHtml(String.format("The component %s has a minimum build API level of %d.", templateListItem.myMetadata.getTitle(), minBuildApi));
+        String apiValidationError = validateApiLevels(templateListItem.myMetadata, myTemplateState);
+        if (apiValidationError != null) {
+          setErrorHtml(apiValidationError);
           return false;
         }
         if (myTemplateChangeListener != null && myPreviousSelection != index) {
@@ -185,6 +186,25 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
       }
     }
     return true;
+  }
+
+  @Nullable
+  protected static String validateApiLevels(@Nullable TemplateMetadata metadata, @NotNull TemplateWizardState templateState) {
+    if (metadata == null) {
+      return null;
+    }
+    int minSdk = metadata.getMinSdk();
+    Integer minApi = (Integer)templateState.get(ATTR_MIN_API);
+    if (minApi != null && minSdk > minApi) {
+      return String.format("The component %s has a minimum SDK level of %d.", metadata.getTitle(), minSdk);
+    }
+    int minBuildApi = metadata.getMinBuildApi();
+    Integer buildApi = (Integer)templateState.get(ATTR_BUILD_API);
+    if (buildApi != null && minSdk > buildApi) {
+      return String.format("The component %s has a minimum build API level of %d.", metadata.getTitle(), minBuildApi);
+    }
+
+    return null;
   }
 
   @NotNull
