@@ -59,9 +59,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
                                                                        ChooseSourceSetStep.SourceProviderSelectedListener {
   private static final Logger LOG = Logger.getInstance("#" + NewTemplateObjectWizard.class.getName());
 
-  @VisibleForTesting TemplateWizardState myWizardState;
-  private Project myProject;
-  private Module myModule;
+  protected TemplateWizardState myWizardState;
+  protected Project myProject;
+  protected Module myModule;
   private String myTemplateCategory;
   private String myTemplateName;
   private VirtualFile myTargetFolder;
@@ -70,12 +70,16 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   @VisibleForTesting ChooseTemplateStep myChooseTemplateStep;
   private List<SourceProvider> mySourceProviders;
   private IdeaAndroidProject myGradleProject;
+  protected TemplateParameterStep myTemplateParameterStep;
+  protected ChooseSourceSetStep myChooseSourceSetStep;
+  private File myTemplateFile;
 
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
                                  @Nullable VirtualFile invocationTarget,
                                  @Nullable String templateCategory) {
     this(project, module, invocationTarget, templateCategory, null, null);
+    init();
   }
 
   public NewTemplateObjectWizard(@Nullable Project project,
@@ -84,7 +88,32 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
                                  @Nullable String templateCategory,
                                  @Nullable String templateName) {
     this(project, module, invocationTarget, templateCategory, templateName, null);
+    init();
   }
+
+  public NewTemplateObjectWizard(@Nullable Project project,
+                                 @Nullable Module module,
+                                 @Nullable VirtualFile invocationTarget,
+                                 @Nullable String title,
+                                 @Nullable File templateFile) {
+    this(project, module, invocationTarget, null, title, null);
+    if (templateFile != null) {
+      myWizardState.setTemplateLocation(templateFile);
+      myTemplateFile = templateFile;
+    }
+    init();
+  }
+
+  public NewTemplateObjectWizard(@Nullable Project project,
+                                 @Nullable Module module,
+                                 @Nullable VirtualFile invocationTarget,
+                                 @Nullable String title,
+                                 @NotNull List<File> templateFiles) {
+    this(project, module, invocationTarget, null, title, null);
+    init();
+    myChooseTemplateStep.setListData(ChooseTemplateStep.getTemplateList(myWizardState, templateFiles, null));
+  }
+
 
   public NewTemplateObjectWizard(@Nullable Project project,
                                  @Nullable Module module,
@@ -108,13 +137,11 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     }
 
     myExcluded = excluded;
-
-    init();
+    myWizardState = new TemplateWizardState();
   }
 
   @Override
   protected void init() {
-    myWizardState = new TemplateWizardState();
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
@@ -153,17 +180,19 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       myWizardState.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
     }
 
-    File templateFile = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
+    File templateFile = myTemplateFile != null ? myTemplateFile : TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
     if (myTemplateName == null || templateFile == null) {
       myChooseTemplateStep = new ChooseTemplateStep(myWizardState, myTemplateCategory, myProject, myModule, null, this, this, myExcluded);
       mySteps.add(myChooseTemplateStep);
     } else {
       myWizardState.setTemplateLocation(templateFile);
     }
-    if (mySourceProviders.size() != 1) {
-      mySteps.add(new ChooseSourceSetStep(myWizardState, myProject, myModule, null, this, this, mySourceProviders));
+    if (mySourceProviders != null && mySourceProviders.size() != 1) {
+      myChooseSourceSetStep = new ChooseSourceSetStep(myWizardState, myProject, myModule, null, this, this, mySourceProviders);
+      mySteps.add(myChooseSourceSetStep);
     }
-    mySteps.add(new TemplateParameterStep(myWizardState, myProject, myModule, null, this));
+    myTemplateParameterStep = new TemplateParameterStep(myWizardState, myProject, myModule, null, this);
+    mySteps.add(myTemplateParameterStep);
     myAssetSetStep = new AssetSetStep(myWizardState, myProject, myModule, null, this, myTargetFolder);
     Disposer.register(getDisposable(), myAssetSetStep);
     mySteps.add(myAssetSetStep);
@@ -380,14 +409,18 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   public void templateChanged(String templateName) {
     if (myChooseTemplateStep != null) {
       TemplateMetadata chosenTemplateMetadata = myChooseTemplateStep.getSelectedTemplateMetadata();
-      if (chosenTemplateMetadata != null && chosenTemplateMetadata.getIconType() != null) {
-        myAssetSetStep.finalizeAssetType(chosenTemplateMetadata.getIconType());
-        myWizardState.put(ATTR_ICON_NAME, chosenTemplateMetadata.getIconName());
-        myAssetSetStep.setVisible(true);
-      }
-      else {
-        myAssetSetStep.setVisible(false);
-      }
+      updateAssetSetStep(chosenTemplateMetadata);
+    }
+  }
+
+  protected void updateAssetSetStep(@Nullable TemplateMetadata chosenTemplateMetadata) {
+    if (chosenTemplateMetadata != null && chosenTemplateMetadata.getIconType() != null) {
+      myAssetSetStep.finalizeAssetType(chosenTemplateMetadata.getIconType());
+      myWizardState.put(ATTR_ICON_NAME, chosenTemplateMetadata.getIconName());
+      myAssetSetStep.setVisible(true);
+    }
+    else {
+      myAssetSetStep.setVisible(false);
     }
   }
 
