@@ -150,7 +150,7 @@ public class IdManager {
             }
             else if (idValue != null && myIdList.contains(idValue)) {
               createId(viewComponent);
-              replaceList.add(new Pair<Pair<String, String>, String>(
+              replaceList.add(Pair.create(
                 new Pair<String, String>(ID_PREFIX + idValue, NEW_ID_PREFIX + idValue),
                 viewComponent.getId()));
             }
