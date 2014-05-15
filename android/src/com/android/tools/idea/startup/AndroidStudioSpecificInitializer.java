@@ -80,6 +80,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
   @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
+  @NonNls private static final String ENABLE_IMPORT_FROM_GITHUB = "enable.import.from.github";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -111,6 +112,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       hideIdeaNewFilePopupActions();
     }
 
+    if (Boolean.getBoolean(ENABLE_IMPORT_FROM_GITHUB)) {
+      registerGithubActions();
+    }
+
     replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
 
     try {
@@ -138,6 +143,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     checkAndSetAndroidSdkSources();
   }
 
+
   private static void cleanUpIdePreferences() {
     try {
       ExtensionPoint<ConfigurableEP<Configurable>> ideConfigurable =
@@ -148,6 +154,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     catch (Throwable e) {
       LOG.info("Failed to clean up IDE preferences", e);
     }
+  }
+
+  private static void registerGithubActions() {
+    ActionManager am = ActionManager.getInstance();
+    AnAction action = new NewFromGithubAction();
+    am.registerAction("NewFromGithubAction", action);
+    ((DefaultActionGroup)am.getAction("NewGroup")).add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
