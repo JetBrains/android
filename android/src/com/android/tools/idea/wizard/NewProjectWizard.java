@@ -164,6 +164,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
         if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
+          activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
           template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);

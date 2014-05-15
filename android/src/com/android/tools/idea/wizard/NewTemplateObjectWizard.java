@@ -17,15 +17,12 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
-import com.android.ide.common.res2.SourceSet;
-import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
-import com.google.common.base.Strings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -42,7 +39,6 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.awt.*;
 import java.io.File;
@@ -50,7 +46,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.templates.KeystoreUtils.*;
+import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -350,6 +346,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       public void run() {
         try {
           myWizardState.populateDirectoryParameters();
+          myWizardState.populateRelativePackage(myModule);
           File projectRoot = new File(myProject.getBasePath());
 
           ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(myModule);
