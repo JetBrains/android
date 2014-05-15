@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +41,7 @@ public class XmlValidationErrorParser implements CompilerOutputParser {
   private static final Pattern FILE_REFERENCE = Pattern.compile("Failed to parse (.+)");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     Matcher m1 = FATAL_ERROR.matcher(line);
     if (!m1.matches()) {

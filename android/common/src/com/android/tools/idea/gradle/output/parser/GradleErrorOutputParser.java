@@ -29,7 +29,9 @@ import java.util.List;
  * Parses Gradle's error output and creates error/warning messages when appropriate.
  */
 public class GradleErrorOutputParser {
-  private static final CompilerOutputParser[] PARSERS = {new AaptOutputParser(), new AndroidPluginOutputParser(), new JavacOutputParser()};
+  private static final CompilerOutputParser[] PARSERS = {
+    new AaptOutputParser(), new AndroidPluginOutputParser(), new JavacOutputParser(), new IgnoredMessagesOutputParser()
+  };
 
   /**
    * Parses the given Gradle output and creates error/warning messages when appropriate. This parser can parse errors from java and aapt.
@@ -70,7 +72,7 @@ public class GradleErrorOutputParser {
         // that users don't miss potentially vital output such as gradle plugin exceptions.
         // If there is predictable useless input we don't want to appear here, add a custom
         // parser to digest it.
-        messages.add(new GradleMessage(GradleMessage.Kind.INFO, line));
+        messages.add(new GradleMessage(GradleMessage.Kind.SIMPLE, line));
       }
     }
     return messages;
