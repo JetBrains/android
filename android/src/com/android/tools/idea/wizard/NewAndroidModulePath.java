@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -104,6 +103,7 @@ public final class NewAndroidModulePath implements WizardPath {
         }
         if (myActivityTemplateParameterStep.isStepVisible() && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = myWizardState.getActivityTemplateState();
+          activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
           template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
