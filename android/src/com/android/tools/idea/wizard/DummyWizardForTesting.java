@@ -179,8 +179,8 @@ public class DummyWizardForTesting extends AnAction {
       registerValueDeriver(DERIVED_KEY, new ValueDeriver<String>() {
         @Nullable
         @Override
-        public Set<Key> getTriggerKeys() {
-          Set<Key> filterKeys = new HashSet<Key>(1);
+        public Set<Key<?>> getTriggerKeys() {
+          Set<Key<?>> filterKeys = new HashSet<Key<?>>(1);
           filterKeys.add(INPUT_KEY);
           return filterKeys;
         }

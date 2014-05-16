@@ -85,7 +85,7 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.registerValueDeriver(textKey, new ValueDeriver<String>() {
       @Nullable
       @Override
-      public Set<Key> getTriggerKeys() {
+      public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(triggerKey);
       }
 
@@ -147,7 +147,7 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.registerValueDeriver(textKey, new ValueDeriver<String>() {
       @Nullable
       @Override
-      public Set<Key> getTriggerKeys() {
+      public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(triggerKey);
       }
 
@@ -209,7 +209,7 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.registerValueDeriver(booleanKey, new ValueDeriver<Boolean>() {
       @Nullable
       @Override
-      public Set<Key> getTriggerKeys() {
+      public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(triggerKey);
       }
 
@@ -270,7 +270,7 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.registerValueDeriver(integerKey, new ValueDeriver<Integer>() {
       @Nullable
       @Override
-      public Set<Key> getTriggerKeys() {
+      public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(triggerKey);
       }
 
@@ -337,7 +337,7 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.registerValueDeriver(colorKey, new ValueDeriver<Color>() {
       @Nullable
       @Override
-      public Set<Key> getTriggerKeys() {
+      public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(triggerKey);
       }
 
@@ -398,7 +398,7 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.registerValueDeriver(booleanKey, new ValueDeriver<Boolean>() {
       @Nullable
       @Override
-      public Set<Key> getTriggerKeys() {
+      public Set<Key<?>> getTriggerKeys() {
         return makeSetOf(triggerKey);
       }
 
