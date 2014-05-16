@@ -491,6 +491,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintNewerVersionAvailableInspection extends AndroidLintInspectionBase {
+    public AndroidLintNewerVersionAvailableInspection() {
+      super(AndroidBundle.message("android.lint.inspections.newer.version.available"), GradleDetector.REMOTE_VERSION);
+    }
+  }
+
   public static class AndroidLintNfcTechWhitespaceInspection extends AndroidLintInspectionBase {
     public AndroidLintNfcTechWhitespaceInspection() {
       super(AndroidBundle.message("android.lint.inspections.nfc.tech.whitespace"), NfcTechListDetector.ISSUE);
