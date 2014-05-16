@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,7 +37,7 @@ class Error4Parser extends AbstractAaptOutputParser {
     ImmutableList.of(Pattern.compile("^Error\\s+parsing\\s+XML\\s+file\\s(.+)$"), Pattern.compile("^(.+)\\s+at\\s+line\\s+(\\d+)$"));
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     Matcher m = MSG_PATTERNS.get(0).matcher(line);
     if (!m.matches()) {
