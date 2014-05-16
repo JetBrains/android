@@ -7,7 +7,7 @@ import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * A parser for errors that happen during resource merging, usually via
@@ -22,7 +22,7 @@ import java.util.Collection;
  */
 public class MergingExceptionParser implements CompilerOutputParser {
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     int messageIndex = line.indexOf(": Error: ");
     if (messageIndex == -1) {
