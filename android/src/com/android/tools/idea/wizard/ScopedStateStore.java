@@ -83,7 +83,7 @@ public class ScopedStateStore {
   @SuppressWarnings("unchecked")
   @NotNull
   public <T> Pair<T, Key<T>> get(@NotNull Key<T> key) {
-    if ((key.scope == null || myScope.equals(key.scope)) && myState.containsKey(key)) {
+    if (myScope.equals(key.scope) && myState.containsKey(key)) {
       T value = (T)myState.get(key);
       return new Pair<T, Key<T>>(value, createKey(key.name, key.expectedClass));
     } else if (myParent != null) {
@@ -104,17 +104,16 @@ public class ScopedStateStore {
    */
   public <T> boolean put(@NotNull Key<T> key, @Nullable T value) {
     boolean stateChanged;
-    Scope scope = key.scope == null ? myScope : key.scope;
-    key = new Key<T>(key.name, scope, key.expectedClass);
-    if (myScope.isGreaterThan(scope)) {
-      throw new IllegalArgumentException("Attempted to store a value of scope " + scope.name() + " in greater scope of " + myScope.name());
-    } else if (myScope.equals(scope)) {
+    key = new Key<T>(key.name, key.scope, key.expectedClass);
+    if (myScope.isGreaterThan(key.scope)) {
+      throw new IllegalArgumentException("Attempted to store a value of scope " + key.scope.name() + " in greater scope of " + myScope.name());
+    } else if (myScope.equals(key.scope)) {
       stateChanged = !myState.containsKey(key) || !equals(myState.get(key), value);
       myState.put(key, value);
-    } else if (scope.isGreaterThan(myScope) && myParent != null) {
+    } else if (key.scope.isGreaterThan(myScope) && myParent != null) {
       stateChanged = myParent.put(key, value);
     } else {
-      throw new IllegalArgumentException("Attempted to store a value of scope " + scope.toString() + " in lesser scope of "
+      throw new IllegalArgumentException("Attempted to store a value of scope " + key.scope.toString() + " in lesser scope of "
                                           + myScope.toString() + " which does not have a parent of the proper scope");
     }
     if (stateChanged) {
@@ -161,7 +160,7 @@ public class ScopedStateStore {
     } else if (myScope.equals(key.scope)) {
       stateChanged = myState.containsKey(key);
       myState.remove(key);
-    } else if ((key.scope == null || key.scope.isGreaterThan(myScope)) && myParent != null) {
+    } else if (key.scope.isGreaterThan(myScope) && myParent != null) {
       stateChanged = myParent.remove(key);
     } else {
       throw new IllegalArgumentException("Attempted to remove a value of scope " + key.scope + " from lesser scope of "
@@ -211,7 +210,7 @@ public class ScopedStateStore {
   /**
    * Get a key to allow storage in the state store.
    */
-  public static <T> Key<T> createKey(@NotNull String name, @Nullable Scope scope, @NotNull Class<T> clazz) {
+  public static <T> Key<T> createKey(@NotNull String name, @NotNull Scope scope, @NotNull Class<T> clazz) {
     return new Key<T>(name, scope, clazz);
   }
 
@@ -225,9 +224,9 @@ public class ScopedStateStore {
   public static class Key<T> {
     @NotNull final public Class<T> expectedClass;
     @NotNull final public String name;
-    @Nullable final public Scope scope;
+    @NotNull final public Scope scope;
 
-    private Key(@NotNull String name, @Nullable Scope scope, @NotNull Class<T> clazz) {
+    private Key(@NotNull String name, @NotNull Scope scope, @NotNull Class<T> clazz) {
       expectedClass = clazz;
       this.name = name;
       this.scope = scope;
@@ -251,7 +250,7 @@ public class ScopedStateStore {
     public int hashCode() {
       int result = expectedClass.hashCode();
       result = 31 * result + name.hashCode();
-      result = 31 * result + (scope != null ? scope.hashCode() : 0);
+      result = 31 * result + scope.hashCode();
       return result;
     }
 
