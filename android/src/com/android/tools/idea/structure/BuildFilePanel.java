@@ -16,8 +16,9 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
@@ -45,11 +46,9 @@ public abstract class BuildFilePanel extends EditorPanel {
 
     myProject = project;
 
-    GradleSettingsFile gradleSettingsFile = GradleSettingsFile.get(project);
-    if (gradleSettingsFile != null) {
-      myGradleBuildFile = gradleSettingsFile.getModuleBuildFile(moduleName);
-    } else {
-      myGradleBuildFile = null;
+    Module module = GradleUtil.findModuleByGradlePath(myProject, moduleName);
+    myGradleBuildFile = module != null ? GradleBuildFile.get(module) : null;
+    if (myGradleBuildFile == null) {
       LOG.warn("Unable to find Gradle build file for module " + moduleName);
     }
   }
