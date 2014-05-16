@@ -256,11 +256,7 @@ public class ScopedStateStore {
 
     @Override
     public String toString() {
-      return "Key{" +
-             "expectedClass=" + expectedClass +
-             ", name='" + name + '\'' +
-             ", scope=" + scope +
-             '}';
+      return "Key{" + expectedClass.getSimpleName() + " " + scope + "#" + name + '}';
     }
   }
 
