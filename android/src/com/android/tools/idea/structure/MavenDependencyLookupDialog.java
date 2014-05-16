@@ -65,7 +65,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     new Artifact(new MavenArtifactInfo("com.android.support", "support-v13", "+", null, null), "Support v13"),
     new Artifact(new MavenArtifactInfo("com.google.code.gson", "gson", "2.2.+", null, null), "GSON"),
     new Artifact(new MavenArtifactInfo("joda-time", "joda-time", "2.3", null, null), "Joda-time"),
-    new Artifact(new MavenArtifactInfo("com.squareup", "picasso", "2.2.+", null, null), "Picasso"),
+    new Artifact(new MavenArtifactInfo("com.squareup.picasso", "picasso", "2.2.+", null, null), "Picasso"),
     new Artifact(new MavenArtifactInfo("com.squareup", "otto", "1.3.+", null, null), "Otto"),
     new Artifact(new MavenArtifactInfo("org.slf4j", "slf4j-android", "1.6.1-RC1", null, null), "slf4j"),
     new Artifact(new MavenArtifactInfo("de.keyboardsurfer.android.widget", "crouton", "1.8.+", null, null), "Crouton"),
