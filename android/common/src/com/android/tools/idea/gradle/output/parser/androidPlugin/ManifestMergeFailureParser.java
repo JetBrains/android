@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.output.parser.OutputLineReader;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +37,7 @@ public class ManifestMergeFailureParser implements CompilerOutputParser {
   // Only allow : in the second position (Windows drive letter)
   private static final Pattern ERROR = Pattern.compile("\\[([^:].[^:]+):(\\d+)\\] (.+)");
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     Matcher m = ERROR.matcher(line);
     if (m.matches()) {
