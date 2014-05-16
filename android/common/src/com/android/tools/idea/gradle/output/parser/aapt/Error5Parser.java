@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,7 +42,7 @@ class Error5Parser extends AbstractAaptOutputParser {
   );
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     for (Pattern pattern : MSG_PATTERNS) {
       Matcher m = pattern.matcher(line);

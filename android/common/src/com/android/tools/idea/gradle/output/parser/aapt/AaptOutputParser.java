@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Parses aapt's output.
@@ -45,7 +45,7 @@ public class AaptOutputParser implements CompilerOutputParser {
   };
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages) {
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages) {
     for (AbstractAaptOutputParser parser : PARSERS) {
       try {
         if (parser.parse(line, reader, messages)) {

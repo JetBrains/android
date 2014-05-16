@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.output.parser.aapt;
+package com.android.tools.idea.gradle.output.parser;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Error3Parser extends AbstractAaptOutputParser {
-  /**
-   * Single-line aapt error
-   * <pre>
-   * &lt;path&gt; line &lt;line&gt;: &lt;error&gt;
-   * </pre>
-   */
-  private static final Pattern MSG_PATTERN = Pattern.compile("^(.+)\\sline\\s(\\d+):\\s(.+)$");
+class IgnoredMessagesOutputParser implements CompilerOutputParser {
+  private static final Pattern ERROR_COUNT_PATTERN = Pattern.compile("[\\d]+ error(s)?");
 
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
-    Matcher m = MSG_PATTERN.matcher(line);
-    if (!m.matches()) {
-      return false;
-    }
-    String sourcePath = m.group(1);
-    String lineNumber = m.group(2);
-    String msgText = m.group(3);
-
-    GradleMessage msg = createMessage(GradleMessage.Kind.ERROR, msgText, sourcePath, lineNumber);
-    messages.add(msg);
-    return true;
+    return line.trim().equalsIgnoreCase("FAILED") || ERROR_COUNT_PATTERN.matcher(line).matches();
   }
 }
