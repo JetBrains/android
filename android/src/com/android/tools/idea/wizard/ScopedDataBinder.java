@@ -16,10 +16,11 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.*;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,38 +30,32 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope;
-import static com.android.tools.idea.wizard.ScopedStateStore.unwrap;
+import static com.android.tools.idea.wizard.ScopedStateStore.*;
 
 /**
  * A data binding class that links Swing UI elements to a {@link ScopedStateStore}.
  */
 public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, FocusListener, ChangeListener, ActionListener,
                                          DocumentListener, ItemListener {
-  private static final Logger LOG = Logger.getInstance(ScopedDataBinder.class);
-
   // State store
   protected ScopedStateStore myState;
 
-  // Mapping of keys to UI Components. Must be 1 to 1
-  private Map<Key, JComponent> myComponents = Maps.newHashMap();
-
-  // Mapping of UI components to keys. May be 1 to many
-  private Multimap<Document, Key> myDocumentsToKeys = ArrayListMultimap.create();
-  private Multimap<JComponent, Key> myComponentsToKeys = ArrayListMultimap.create();
+  // Mapping documents to components.
+  private Map<Document, JComponent> myDocumentsToComponent = Maps.newIdentityHashMap();
 
   // Map of keys to custom value derivations
   private BiMap<Key, ValueDeriver> myValueDerivers = HashBiMap.create();
 
-  // Map of keys to custom component bindings
-  private BiMap<Key, ComponentBinding> myComponentBindings = HashBiMap.create();
+  // Table mapping components and keys to bindings
+  private Table<JComponent, Key<?>, ComponentBinding<?, ?>> myComponentBindings = HashBasedTable.create();
 
   // Record of keys that have already been changed or updated during a round to prevent
   // recursive derivations.
@@ -71,7 +66,9 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
 
   // Flags to guard against cyclical updates
   private boolean myAlreadySavingState;
-  private boolean myChangeComingFromUI;
+
+  // Binding that triggered the store update or null if none
+  private JComponent myUpdateTrigger;
 
   public ScopedDataBinder() {
     myState = new ScopedStateStore(Scope.STEP, null, this);
@@ -91,18 +88,17 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     // Update the UI value if the user has not caused this state change
     Object value = unwrap(myState.get(changedKey));
     if (value != null) {
-      if (myComponents.containsKey(changedKey) && !myChangeComingFromUI) {
-        ComponentBinding binding = myComponentBindings.get(changedKey);
-        JComponent component = myComponents.get(changedKey);
-        if (binding != null) {
+      for (Map.Entry<JComponent, ComponentBinding<?, ?>> entry : myComponentBindings.column(changedKey).entrySet()) {
+        JComponent component = entry.getKey();
+        if (!Objects.equal(component, myUpdateTrigger)) {
+          ComponentBinding binding = myComponentBindings.get(component, changedKey);
           try {
             binding.setValue(value, component);
-          } catch (UnsupportedOperationException e) {
+          }
+          catch (UnsupportedOperationException e) {
             // This binding is not two-way, and does not support setting the value.
             // Nothing to do here.
           }
-        } else {
-          setComponentValue(value, component);
         }
       }
 
@@ -130,7 +126,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   /**
    * Use the given deriver to update the value associated with the given key.
    */
-  private <T> void deriveValue(Key<T> key, ValueDeriver<T> deriver, Key changedKey) {
+  private <T> void deriveValue(Key<T> key, ValueDeriver<T> deriver, Key<?> changedKey) {
     Pair<T, Key<T>> scopedPair = myState.get(key);
     T newValue = deriver.deriveValue(myState, changedKey, scopedPair.first);
     myState.put(key, newValue);
@@ -141,49 +137,25 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    */
   @VisibleForTesting
   @SuppressWarnings("unchecked")
-  protected <T> void saveState(@Nullable Object source) {
+  protected <T> void saveState(@NotNull JComponent component) {
     if (myAlreadySavingState) {
       return;
     }
-    T value;
     myAlreadySavingState = true;
-    if (source instanceof JComponent) {
-      // Update all keys associated with this component
-      for (Key<T> key : myComponentsToKeys.get((JComponent)source)) {
-        if (myGuardedKeys.contains(key)) {
-          continue;
-        }
-        ComponentBinding<T, JComponent> binding = myComponentBindings.get(key);
-        if (binding != null) {
-          try {
-            value = binding.getValue((JComponent)source);
-          } catch (UnsupportedOperationException e) {
-            // This binding must be one-way, not supporting getting the value
-            // In this case, there is no update to do here
-            continue;
-          }
-        } else {
-          value = (T)getComponentValue((JComponent)source);
-        }
-        storeValue(key, value);
+    // Update all keys associated with this component
+    for (Map.Entry<Key<?>, ComponentBinding<?, ?>> entry :
+        myComponentBindings.row(component).entrySet()) {
+      if (myGuardedKeys.contains(entry.getKey())) {
+        continue;
       }
-    } else if (source instanceof Document) {
-      // Update all keys associated with this document
-      for (Key<T> key : myDocumentsToKeys.get((Document)source)) {
-        if (myGuardedKeys.contains(key)) {
-          continue;
-        }
-        try {
-          value = (T)((Document)source).getText(0, ((Document)source).getLength());
-        }
-        catch (BadLocationException e) {
-          LOG.error("Malformed Document registered for " + key);
-          throw new RuntimeException(e);
-        }
-        storeValue(key, value);
+      ComponentBinding<T, JComponent> binding = (ComponentBinding<T, JComponent>)entry.getValue();
+      try {
+        T value = binding.getValue(component);
+        storeValue((Key<T>)entry.getKey(), component, value);
+      } catch (UnsupportedOperationException e) {
+        // This binding must be one-way, not supporting getting the value
+        // In this case, there is no update to do here
       }
-    } else {
-      throw new IllegalArgumentException("Invalid UI Object: " + source);
     }
     myAlreadySavingState = false;
   }
@@ -191,15 +163,15 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   /**
    * Store the given element in the state store without invoking another update round.
    */
-  private <T> void storeValue(@NotNull Key<T> key, @Nullable T value) {
+  private <T> void storeValue(@NotNull Key<T> key, @NotNull JComponent updateTrigger, @Nullable T value) {
     T oldValue = unwrap(myState.get(key));
     // If the incoming value is new (not already reflected in the model) it must be from a user edit.
     if (oldValue != null && !oldValue.equals(value) && !myGuardedKeys.contains(key)) {
       myUserEditedKeys.add(key);
     }
-    myChangeComingFromUI = true;
+    myUpdateTrigger = updateTrigger;
     myState.put(key, value);
-    myChangeComingFromUI = false;
+    myUpdateTrigger = null;
   }
 
   /**
@@ -234,20 +206,22 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   /**
    * Set the value for the given JComponent
    */
-  protected void setComponentValue(@NotNull Object value, @NotNull JComponent component) {
+  protected void setComponentValue(@Nullable Object value, @NotNull JComponent component) {
     if (component instanceof JCheckBox) {
-      ((JCheckBox)component).setSelected((Boolean)value);
+      ((JCheckBox)component).setSelected(Boolean.TRUE.equals(value));
     } else if (component instanceof JComboBox) {
       setSelectedItem((JComboBox)component, value);
     } else if (component instanceof JTextField) {
       ((JTextField)component).setText((String)value);
     } else if (component instanceof TextFieldWithBrowseButton) {
-      ((TextFieldWithBrowseButton)component).setText((String)value);
+      ((TextFieldWithBrowseButton)component).setText(StringUtil.notNullize((String)value));
     } else if (component instanceof JSlider) {
+      assert value != null;
       ((JSlider)component).setValue((Integer)value);
     } else if (component instanceof JSpinner) {
       ((JSpinner)component).setValue(value);
     } else if (component instanceof ColorPanel) {
+      assert value != null;
       ((ColorPanel)component).setSelectedColor((Color)value);
     }
   }
@@ -270,13 +244,13 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
      * the trigger keys. Return null to trigger on every update.
      */
     @Nullable
-    public Set<Key> getTriggerKeys() {
+    public Set<Key<?>> getTriggerKeys() {
       return null;
     }
 
     @Nullable
-    protected static Set<Key> makeSetOf(Key... elements) {
-      Set<Key> keys = new HashSet<Key>(elements.length);
+    protected static Set<Key<?>> makeSetOf(Key<?>... elements) {
+      Set<Key<?>> keys = new HashSet<Key<?>>(elements.length);
       Collections.addAll(keys, elements);
       return keys;
     }
@@ -301,7 +275,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Allows clients of {@link ScopedDataBinder} to use custom JComponents by writing their own
    * setValue and getValue functions to support their custom implementations.
    */
-  public  static abstract class ComponentBinding<T, C extends JComponent> {
+  public static abstract class ComponentBinding<T, C extends JComponent> {
     /**
      * Set the given component to the given value, such that, given ExampleObject e,
      * calling setValue(e, sampleComponent) means that a subsequent call to
@@ -326,14 +300,45 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    */
   protected <T, C extends JComponent> void register(@NotNull Key<T> key, @NotNull C component,
                               @NotNull ComponentBinding<T, C> binding) {
-    myComponents.put(key, component);
-    myComponentsToKeys.put(component, key);
-    T value = unwrap(myState.get(key));
+    T value = bindAndGet(key, component, binding);
     if (value != null) {
       binding.setValue(value, component);
     } else {
-      myState.put(key, binding.getValue(component));
+      try {
+        myState.put(key, binding.getValue(component));
+      } catch (UnsupportedOperationException e) {
+        // Expected.
+      }
     }
+  }
+
+  /**
+   * This is a default binding implementation for controls that the framework supports directly.
+   *
+   * @see #getComponentValue(javax.swing.JComponent)
+   * @see #setComponentValue(Object, javax.swing.JComponent)
+   */
+  private class DefaultBinding extends ComponentBinding<Object, JComponent> {
+    @Override
+    public void setValue(@Nullable Object newValue, @NotNull JComponent component) {
+      setComponentValue(newValue, component);
+    }
+
+    @Nullable
+    @Override
+    public Object getValue(@NotNull JComponent component) {
+      return getComponentValue(component);
+    }
+  }
+
+  /**
+   * Registers a binding in the table and returns current key value.
+   */
+  @Nullable
+  private <T> T bindAndGet(@NotNull Key<T> key, @NotNull JComponent component, @Nullable ComponentBinding<T, ?> binding) {
+    ComponentBinding<?, ?> b = binding == null ? new DefaultBinding() : binding;
+    myComponentBindings.put(component, key, b);
+    return unwrap(myState.get(key));
   }
 
   /**
@@ -341,9 +346,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * need to trigger validation and UI updates.
    */
   protected void register(@NotNull Key<Boolean> key, @NotNull JCheckBox checkBox) {
-    myComponents.put(key, checkBox);
-    myComponentsToKeys.put(checkBox, key);
-    Boolean value = unwrap(myState.get(key));
+    Boolean value = bindAndGet(key, checkBox, null);
     if (value != null) {
       checkBox.setSelected(value);
     } else {
@@ -358,9 +361,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * and UI updates.
    */
   protected <T> void register(@NotNull Key<T> key, @NotNull JComboBox comboBox) {
-    myComponents.put(key, comboBox);
-    myComponentsToKeys.put(comboBox, key);
-    T value = unwrap(myState.get(key));
+    T value = bindAndGet(key, comboBox, null);
     if (value != null) {
       setSelectedItem(comboBox, value);
     }
@@ -371,7 +372,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   /**
    * Utility method for setting the selected index of a combo box by value.
    */
-  private static <T> void setSelectedItem(JComboBox comboBox, T value) {
+  private static <T> void setSelectedItem(JComboBox comboBox, @Nullable T value) {
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);
       if (!(item instanceof ComboBoxItem)) {
@@ -389,10 +390,8 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * and UI updates.
    */
   protected void register(@NotNull Key<String> key, @NotNull JTextField textField) {
-    myComponents.put(key, textField);
-    myComponentsToKeys.put(textField, key);
-    myDocumentsToKeys.put(textField.getDocument(), key);
-    String value = unwrap(myState.get(key));
+    myDocumentsToComponent.put(textField.getDocument(), textField);
+    String value = bindAndGet(key, textField, null);
     if (value != null) {
       textField.setText(value);
     } else {
@@ -407,9 +406,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * and UI updates.
    */
   protected <T> void register(@NotNull Key<T> key, @NotNull JRadioButton radioButton, @Nullable T defaultValue) {
-    myComponents.put(key, radioButton);
-    myComponentsToKeys.put(radioButton, key);
-    T currentValue = unwrap(myState.get(key));
+    T currentValue = bindAndGet(key, radioButton, null);
     radioButton.setSelected(currentValue != null && currentValue.equals(defaultValue));
     if (defaultValue != null) {
       myState.put(key, defaultValue);
@@ -423,9 +420,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * and UI updates.
    */
   protected void register(@NotNull Key<Integer> key, @NotNull JSlider paddingSlider) {
-    myComponents.put(key, paddingSlider);
-    myComponentsToKeys.put(paddingSlider, key);
-    Integer value = unwrap(myState.get(key));
+    Integer value = bindAndGet(key, paddingSlider, null);
     if (value != null) {
       paddingSlider.setValue(value);
     } else {
@@ -440,9 +435,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * and UI updates.
    */
   protected void register(@NotNull Key<Object> key, @NotNull JSpinner spinner) {
-    myComponents.put(key, spinner);
-    myComponentsToKeys.put(spinner, key);
-    Object value = unwrap(myState.get(key));
+    Object value = bindAndGet(key, spinner, null);
     if (value != null) {
       spinner.setValue(value);
     } else {
@@ -457,10 +450,8 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * changes that need to trigger validation and UI updates.
    */
   protected void register(@NotNull Key<String> key, @NotNull final TextFieldWithBrowseButton field) {
-    myComponents.put(key, field);
-    myComponentsToKeys.put(field, key);
-    myDocumentsToKeys.put(field.getTextField().getDocument(), key);
-    String value = unwrap(myState.get(key));
+    myDocumentsToComponent.put(field.getTextField().getDocument(), field);
+    String value = bindAndGet(key, field, null);
     if (value != null) {
       field.setText(value);
     } else {
@@ -476,9 +467,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * and UI updates.
    */
   protected void register(@NotNull Key<Color> key, @NotNull ColorPanel colorPanel) {
-    myComponents.put(key, colorPanel);
-    myComponentsToKeys.put(colorPanel, key);
-    Color value = unwrap(myState.get(key));
+    Color value = bindAndGet(key, colorPanel, null);
     if (value != null) {
       colorPanel.setSelectedColor(value);
     } else {
@@ -500,28 +489,28 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
 
   @Override
   public void stateChanged(ChangeEvent e) {
-    saveState(e.getSource());
+    saveState((JComponent)e.getSource());
   }
 
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    saveState(e.getSource());
+    saveState((JComponent)e.getSource());
   }
 
   @Override
   public void itemStateChanged(ItemEvent e) {
-    saveState(e.getSource());
+    saveState((JComponent)e.getSource());
   }
 
   @Override
   public void insertUpdate(DocumentEvent e) {
-    saveState(e.getDocument());
+    saveState(myDocumentsToComponent.get(e.getDocument()));
   }
 
   @Override
   public void removeUpdate(DocumentEvent e) {
-    saveState(e.getDocument());
+    saveState(myDocumentsToComponent.get(e.getDocument()));
   }
 
   @Override
