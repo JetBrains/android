@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.output.parser;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Parses the output of a compiler.
@@ -33,6 +33,6 @@ public interface CompilerOutputParser {
    * @return indicates whether this parser was able to parser the given line.
    * @throws ParsingFailedException if something goes wrong (e.g. malformed output.)
    */
-  boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException;
 }

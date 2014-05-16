@@ -22,12 +22,12 @@ import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import com.google.common.collect.Lists;
 import com.intellij.util.StringBuilderSpinAllocator;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,7 +39,7 @@ public class JavacOutputParser implements CompilerOutputParser {
   private static final String WARNING_PREFIX = "warning:"; // default value
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     int colonIndex1 = line.indexOf(COLON);
     if (colonIndex1 == 1) { // drive letter (Windows)
@@ -49,17 +49,19 @@ public class JavacOutputParser implements CompilerOutputParser {
     if (colonIndex1 >= 0) { // looks like found something like a file path.
       String part1 = line.substring(0, colonIndex1).trim();
       if (part1.equalsIgnoreCase("error") /* jikes */ || part1.equalsIgnoreCase("Caused by")) {
-        String text = line.substring(colonIndex1);
-        messages.add(new GradleMessage(GradleMessage.Kind.ERROR, text));
+        // +1 so we don't include the colon
+        String text = line.substring(colonIndex1 + 1).trim();
+        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, text), messages);
         return true;
       }
       if (part1.equalsIgnoreCase("warning")) {
-        String text = line.substring(colonIndex1);
-        messages.add(new GradleMessage(GradleMessage.Kind.WARNING, text));
+        // +1 so we don't include the colon
+        String text = line.substring(colonIndex1 + 1).trim();
+        addMessage(new GradleMessage(GradleMessage.Kind.WARNING, text), messages);
         return true;
       }
       if (part1.equalsIgnoreCase("javac")) {
-        messages.add(new GradleMessage(GradleMessage.Kind.ERROR, line));
+        addMessage(new GradleMessage(GradleMessage.Kind.ERROR, line), messages);
         return true;
       }
 
@@ -92,10 +94,12 @@ public class JavacOutputParser implements CompilerOutputParser {
             if (nextLine.trim().equals("^")) {
               column = nextLine.indexOf('^');
               String messageEnd = reader.readLine();
-              while(isMessageEnd(messageEnd)) {
+
+              while (isMessageEnd(messageEnd)) {
                 messageList.add(messageEnd.trim());
                 messageEnd = reader.readLine();
               }
+
               if (messageEnd != null) {
                 reader.pushBack(messageEnd);
               }
@@ -118,7 +122,7 @@ public class JavacOutputParser implements CompilerOutputParser {
                 buf.append(m);
               }
               GradleMessage msg = new GradleMessage(kind, buf.toString(), file.getAbsolutePath(), lineNumber, column + 1);
-              messages.add(msg);
+              addMessage(msg, messages);
             } finally {
               StringBuilderSpinAllocator.dispose(buf);
             }
@@ -131,13 +135,26 @@ public class JavacOutputParser implements CompilerOutputParser {
     }
 
     if (line.endsWith("java.lang.OutOfMemoryError")) {
-      messages.add(new GradleMessage(GradleMessage.Kind.ERROR, "Out of memory."));
+      addMessage(new GradleMessage(GradleMessage.Kind.ERROR, "Out of memory."), messages);
       return true;
     }
 
     return false;
   }
 
+  private static void addMessage(@NotNull GradleMessage message, @NotNull List<GradleMessage> messages) {
+    boolean duplicatesPrevious = false;
+    int messageCount = messages.size();
+    if (messageCount > 0) {
+      GradleMessage lastMessage = messages.get(messageCount - 1);
+      duplicatesPrevious = lastMessage.equals(message);
+    }
+    if (!duplicatesPrevious) {
+      messages.add(message);
+    }
+  }
+
+  @Contract("null -> false")
   private static boolean isMessageEnd(@Nullable String line) {
     return line != null && line.length() > 0 && Character.isWhitespace(line.charAt(0));
   }
