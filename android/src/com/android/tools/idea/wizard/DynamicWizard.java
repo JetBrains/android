@@ -89,6 +89,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
 
   protected JBLabel myCurrentStepLabel = new JBLabel();
   protected TallImageComponent myIcon;
+  private boolean myIsInitialized = false;
 
   // UI references
   private Map<Action, JButton> myActionToButtonMap = Maps.newHashMapWithExpectedSize(5);
@@ -228,6 +229,10 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
    *                             button will be enabled.
    */
   public final void updateButtons(boolean canGoPrev, boolean canGoNext, boolean canFinishCurrentPath) {
+    if (!myIsInitialized) {
+      // Buttons were not yet created
+      return;
+    }
     getPreviousButton().setEnabled(canGoPrev && hasPrevious());
     getNextButton().setEnabled(canGoNext && hasNext());
 
@@ -281,6 +286,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       myCurrentPath.onPathStarted(true);
       showStep(myCurrentPath.myCurrentStep);
     }
+    myIsInitialized = true;
     updateButtons(hasPrevious(), hasNext(), canFinish());
   }
 

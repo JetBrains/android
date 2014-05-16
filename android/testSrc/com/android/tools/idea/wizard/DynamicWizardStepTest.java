@@ -123,8 +123,8 @@ public class DynamicWizardStepTest extends TestCase {
       registerValueDeriver(DERIVED_KEY, new ValueDeriver<String>() {
         @Nullable
         @Override
-        public Set<ScopedStateStore.Key> getTriggerKeys() {
-          Set<ScopedStateStore.Key> filterKeys = new HashSet<ScopedStateStore.Key>(1);
+        public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
+          Set<ScopedStateStore.Key<?>> filterKeys = new HashSet<ScopedStateStore.Key<?>>(1);
           filterKeys.add(INPUT_KEY);
           return filterKeys;
         }
