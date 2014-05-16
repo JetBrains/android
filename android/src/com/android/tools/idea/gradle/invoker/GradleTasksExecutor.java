@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.invoker;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
+import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -33,13 +34,8 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
-import com.intellij.compiler.impl.CompilerErrorTreeView;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
 import com.intellij.ide.errorTreeView.impl.ErrorTreeViewConfiguration;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -77,7 +73,6 @@ import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.MessageCategory;
 import com.intellij.util.ui.UIUtil;
-import icons.AndroidIcons;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
@@ -98,6 +93,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
+import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 
 /**
  * Invokes Gradle tasks as a IDEA task in the background.
@@ -123,7 +119,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
   @NotNull private final Object myMessageViewLock = new Object();
-  @Nullable private NewErrorTreeViewPanel myErrorTreeView;
+  @Nullable private GradleBuildTreeViewPanel myErrorTreeView;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
   @NotNull private final List<String> myGradleTasks;
@@ -258,6 +254,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           if (myErrorTreeView != null && !getNotNullProject().isDisposed()) {
             addStatisticsMessage(CompilerBundle.message("statistics.error.count", myErrorCount));
             addStatisticsMessage(CompilerBundle.message("statistics.warnings.count", myWarningCount));
+
             addMessage(new GradleMessage(GradleMessage.Kind.INFO, "See complete output in console"), new OpenGradleConsole());
             myErrorTreeView.selectFirstMessage();
           }
@@ -295,10 +292,9 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         String executingTasksText =
           "Executing tasks: " + myGradleTasks + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator();
-        consoleView.print(executingTasksText, ConsoleViewContentType.NORMAL_OUTPUT);
+        consoleView.print(executingTasksText, NORMAL_OUTPUT);
 
-        ByteArrayOutputStream stdout = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.NORMAL_OUTPUT);
-        ByteArrayOutputStream stderr = new ConsoleAwareOutputStream(consoleView, ConsoleViewContentType.ERROR_OUTPUT);
+        GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
         List<GradleMessage> compilerMessages = Collections.emptyList();
 
@@ -325,16 +321,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
             launcher.setJavaHome(javaHome);
           }
           launcher.forTasks(ArrayUtil.toStringArray(myGradleTasks));
-          launcher.setStandardOutput(stdout);
-          launcher.setStandardError(stderr);
+          output.attachTo(launcher);
           launcher.run();
         }
         catch (BuildException e) {
-          compilerMessages = handleBuildException(e, stderr.toString());
+          compilerMessages = handleBuildException(e, output.toString());
         }
         finally {
-          Closeables.closeQuietly(stdout);
-          Closeables.closeQuietly(stderr);
+          output.close();
 
           stopwatch.stop();
 
@@ -435,21 +429,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
       default:
         // do nothing.
     }
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      openMessageView();
-      add(message, navigatable);
-    }
-    else {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          if (!getNotNullProject().isDisposed()) {
-            openMessageView();
-            add(message, navigatable);
-          }
-        }
-      }, ModalityState.NON_MODAL);
-    }
+    Runnable addMessageTask = new Runnable() {
+      @Override
+      public void run() {
+        openMessageView();
+        add(message, navigatable);
+      }
+    };
+    UIUtil.invokeLaterIfNeeded(addMessageTask);
   }
 
   private void prepareMessageView() {
@@ -498,24 +485,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         return;
       }
       //noinspection ConstantConditions
-      myErrorTreeView = new CompilerErrorTreeView(project, null) {
-        @Override
-        protected void fillRightToolbarGroup(DefaultActionGroup group) {
-          super.fillRightToolbarGroup(group);
-          group.add(new AnAction("Show Console Output", null, AndroidIcons.GradleConsole) {
-            @Override
-            public void actionPerformed(AnActionEvent e) {
-              activateGradleConsole();
-            }
-
-            @Override
-            public void update(AnActionEvent e) {
-              e.getPresentation().setEnabledAndVisible(true);
-            }
-          });
-        }
-      };
-
+      myErrorTreeView = new GradleBuildTreeViewPanel(project);
       myErrorTreeView.setProcessController(new NewErrorTreeViewPanel.ProcessController() {
         @Override
         public void stopProcess() {
@@ -607,6 +577,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
         return MessageCategory.ERROR;
       case STATISTICS:
         return MessageCategory.STATISTICS;
+      case SIMPLE:
+        return MessageCategory.SIMPLE;
       default:
         LOG.info("Unknown message kind: " + kind);
         return 0;
@@ -857,35 +829,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
     @Override
     protected void onProgressChange() {
       prepareMessageView();
-    }
-  }
-
-  private static class ConsoleAwareOutputStream extends ByteArrayOutputStream {
-    @NotNull private final GradleConsoleView myConsoleView;
-    @NotNull private final ConsoleViewContentType myContentType;
-
-    private volatile boolean myClosed;
-
-    ConsoleAwareOutputStream(@NotNull GradleConsoleView consoleView, @NotNull ConsoleViewContentType contentType) {
-      super(BUFFER_SIZE);
-      myConsoleView = consoleView;
-      myContentType = contentType;
-    }
-
-    @Override
-    public synchronized void write(byte[] b, int off, int len) {
-      if (!myClosed) {
-        // If we keep writing to the console after closing it we get NPEs pointing to native code, at least on MacOS.
-        String text = new String(b, off, len);
-        myConsoleView.print(text, myContentType);
-        super.write(b, off, len);
-      }
-    }
-
-    @Override
-    public void close() throws IOException {
-      myClosed = true;
-      super.close();
     }
   }
 
