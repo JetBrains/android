@@ -60,6 +60,10 @@
             icon="AndroidIcons.NavigationEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
+    <action id="Android.TestDummyWizard" class="com.android.tools.idea.wizard.DummyWizardForTesting"
+            icon="AndroidIcons.Display" text="Test New Wizard">
+      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
+    </action>
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
