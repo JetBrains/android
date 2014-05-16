@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.LightIdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +42,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myWizard = new DummyDynamicWizard(null, null, "TestWizard");
+    Disposer.register(getTestRootDisposable(), myWizard.getDisposable());
     myPath1 = new DummyDynamicWizardPath("TestPath1");
     myPath2 = new DummyDynamicWizardPath("TestPath2");
     myStep1 = new DummyDynamicWizardStep("TestStep1");
