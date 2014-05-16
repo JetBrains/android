@@ -22,17 +22,19 @@ import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * Parses output from the Android Gradle plugin.
  */
 public class AndroidPluginOutputParser implements CompilerOutputParser {
-  private static final CompilerOutputParser[] PARSERS =
-    {new XmlValidationErrorParser(), new GradleBuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser(), new DexExceptionParser()};
+  private static final CompilerOutputParser[] PARSERS = {
+    new XmlValidationErrorParser(), new GradleBuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser(),
+    new DexExceptionParser()
+  };
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages) {
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages) {
     for (CompilerOutputParser parser : PARSERS) {
       try {
         if (parser.parse(line, reader, messages)) {
