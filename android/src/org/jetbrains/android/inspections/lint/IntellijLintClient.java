@@ -36,6 +36,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
+import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -44,6 +45,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -110,9 +114,6 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
               @NonNull
               @Override
               public Severity getSeverity(@NonNull Issue issue) {
-                if (!getIssues().contains(issue)) {
-                  return Severity.IGNORE;
-                }
                 Integer severity = overrides.get(issue.getId());
                 if (severity != null) {
                   switch (severity.intValue()) {
@@ -128,6 +129,11 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                     default:
                       return Severity.IGNORE;
                   }
+                }
+
+                // This is a LIST lookup. I should make this faster!
+                if (!getIssues().contains(issue)) {
+                  return Severity.IGNORE;
                 }
 
                 return Severity.IGNORE;
@@ -636,6 +642,12 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     }
 
     return null;
+  }
+
+  @Nullable
+  @Override
+  public URLConnection openConnection(@NonNull URL url) throws IOException {
+    return HttpConfigurable.getInstance().openConnection(url.toExternalForm());
   }
 
   @NonNull
