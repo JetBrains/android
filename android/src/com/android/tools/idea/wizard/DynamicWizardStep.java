@@ -229,8 +229,8 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * Converts the given text to an HTML message if necessary, and then displays it to the user.
    * @param errorMessage the message to display
    */
-  public final void setErrorHtml(String errorMessage) {
-    if (!errorMessage.startsWith("<html>")) {
+  public final void setErrorHtml(@Nullable String errorMessage) {
+    if (errorMessage != null && !errorMessage.startsWith("<html>")) {
       errorMessage = "<html>" + errorMessage + "</html>";
     }
     getMessageLabel().setText(errorMessage);
