@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.SessionParams;
-import com.android.ide.common.rendering.api.SystemViewCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.rendering.api.ViewType;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
@@ -168,40 +168,39 @@ public class RenderedPanel extends JPanel implements Disposable {
     boolean showMenu = false;
     if (leaf != null) {
       ViewInfo view = leaf.view;
-      if (view != null && view.isSystemView()) {
-        XmlFile xmlFile = myContext.getXmlFile();
-        if (ResourceHelper.getFolderType(xmlFile) == ResourceFolderType.MENU) {
-          // When rendering a menu file, don't hide menu when clicking outside of it
-          showMenu = true;
-        }
-        Object cookie = view.getCookie();
-        if (cookie instanceof SystemViewCookie) {
-          SystemViewCookie svc = (SystemViewCookie)cookie;
-          if (svc.getType() == SystemViewCookie.ACTION_BAR_OVERFLOW) {
-            showMenu = !ActionBarHandler.isShowingMenu(myContext);
+      if (view != null) {
+        ViewType viewType = view.getViewType();
+        if (viewType != ViewType.USER) {
+          XmlFile xmlFile = myContext.getXmlFile();
+          if (ResourceHelper.getFolderType(xmlFile) == ResourceFolderType.MENU) {
+            // When rendering a menu file, don't hide menu when clicking outside of it
+            showMenu = true;
           }
-        } else if (ActionBarHandler.isShowingMenu(myContext)) {
-          RenderedView v = leaf.getParent();
-          while (v != null) {
-            if (v.tag != null) {
-              // A view *containing* a system view is the menu
-              showMenu = true;
-              if (TAG_ITEM.equals(v.tag.getName())) {
-                PsiFile file = v.tag.getContainingFile();
-                if (file != null && file != xmlFile) {
-                  VirtualFile virtualFile = file.getVirtualFile();
-                  if (virtualFile != null) {
-                    Project project = file.getProject();
-                    int offset = v.tag.getTextOffset();
-                    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, offset);
-                    FileEditorManager.getInstance(project).openEditor(descriptor, true);
-                    return true;
+          if (viewType == ViewType.ACTION_BAR_OVERFLOW) {
+            showMenu = !ActionBarHandler.isShowingMenu(myContext);
+          } else if (ActionBarHandler.isShowingMenu(myContext)) {
+            RenderedView v = leaf.getParent();
+            while (v != null) {
+              if (v.tag != null) {
+                // A view *containing* a system view is the menu
+                showMenu = true;
+                if (TAG_ITEM.equals(v.tag.getName())) {
+                  PsiFile file = v.tag.getContainingFile();
+                  if (file != null && file != xmlFile) {
+                    VirtualFile virtualFile = file.getVirtualFile();
+                    if (virtualFile != null) {
+                      Project project = file.getProject();
+                      int offset = v.tag.getTextOffset();
+                      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, offset);
+                      FileEditorManager.getInstance(project).openEditor(descriptor, true);
+                      return true;
+                    }
                   }
                 }
+                break;
               }
-              break;
+              v = v.getParent();
             }
-            v = v.getParent();
           }
         }
       }
@@ -375,7 +374,7 @@ public class RenderedPanel extends JPanel implements Disposable {
 
   private void paintView(Graphics g, int px, int py, RenderedView view) {
     if (DEBUG_SHOW_VIEWS) {
-      if (view.view == null || !view.view.isSystemView()) {
+      if (view.view == null || view.view.getViewType() == ViewType.USER) {
         return;
       }
       Rectangle bounds = view.getBounds();
