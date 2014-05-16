@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
 import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.*;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
@@ -39,31 +37,6 @@ public class ScopedStateStoreTest extends TestCase {
   private ScopedStateStore myStepState;
   private ScopedStateStore myPathState;
   private ScopedStateStore myWizardState;
-
-  private static class Update {
-    String key;
-    Scope scope;
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      Update update = (Update)o;
-
-      if (!key.equals(update.key)) return false;
-      if (scope != update.scope) return false;
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      int result = key.hashCode();
-      result = 31 * result + scope.hashCode();
-      return result;
-    }
-  }
 
   private List<Key> myUpdateHistory = Lists.newLinkedList();
 
@@ -81,6 +54,7 @@ public class ScopedStateStoreTest extends TestCase {
   }
 
   public void testBasics() throws Exception {
+    myPathState = new ScopedStateStore(PATH, null, myScopedStoreListener);
     Key<String> testKey = myPathState.createKey("test", String.class);
     myPathState = new ScopedStateStore(PATH, null, myScopedStoreListener);
     myPathState.put(testKey, "value");
@@ -134,11 +108,11 @@ public class ScopedStateStoreTest extends TestCase {
   public void testScoping() throws Exception {
     createAndLinkStates();
     Object value1 = new Object();
-    Key<Object> key1 = createKey("value1", null, Object.class);
+    Key<Object> key1 = createKey("value1", STEP, Object.class);
     myStepState.put(key1, value1);
     // The value should appear in the step state but not the other states
-    assertNull(myWizardState.get(key1));
-    assertNull(myPathState.get(key1));
+    assertNull(myWizardState.get(key1).second);
+    assertNull(myPathState.get(key1).second);
     Key<Object> scopedKey1 = myStepState.createKey("value1", Object.class);
     assertEquals(new Pair<Object, Key<Object>>(value1, scopedKey1), myStepState.get(key1));
     assertTrue(myUpdateHistory.contains(key1));
@@ -149,10 +123,9 @@ public class ScopedStateStoreTest extends TestCase {
     Object value2 = new Object();
     Key<Object> key2 = createKey("value2", PATH, Object.class);
     myStepState.put(key2, value2);
-    Key<Object> unscopedKey = createKey("value2", null, Object.class);
-    assertNull(myWizardState.get(unscopedKey).second);
-    assertEquals(new Pair<Object, Key<Object>>(value2, key2), myPathState.get(unscopedKey));
-    assertEquals(new Pair<Object, Key<Object>>(value2, key2), myStepState.get(unscopedKey));
+    assertNull(myWizardState.get(key2).second);
+    assertEquals(new Pair<Object, Key<Object>>(value2, key2), myPathState.get(key2));
+    assertEquals(new Pair<Object, Key<Object>>(value2, key2), myStepState.get(key2));
 
     // We should get an update for both the path state and the step state
     assertEquals(2, myUpdateHistory.size());
@@ -175,8 +148,10 @@ public class ScopedStateStoreTest extends TestCase {
     Map<Key<Object>,Object> myValues = ImmutableMap.of(key1, value1, key2, value2);
     myStepState.putAll(myValues);
 
-    assertEquals(myValues, myPathState.flatten());
-    assertEquals(myValues, myStepState.flatten());
+    Map<String, Object> expectedMap = ImmutableMap.of("value1", value1, "value2", value2);
+
+    assertEquals(expectedMap, myPathState.flatten());
+    assertEquals(expectedMap, myStepState.flatten());
     assertEquals(new HashMap<String, Object>(), myWizardState.flatten());
   }
 }
