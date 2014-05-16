@@ -85,7 +85,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.*;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -296,8 +295,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
         GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
-        List<GradleMessage> compilerMessages = Collections.emptyList();
-
+        BuildException buildError = null;
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
           List<String> commandLineArgs = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
@@ -325,9 +323,15 @@ class GradleTasksExecutor extends Task.Backgroundable {
           launcher.run();
         }
         catch (BuildException e) {
-          compilerMessages = handleBuildException(e, output.toString());
+          buildError = e;
         }
         finally {
+          String gradleOutput = output.toString();
+          List<GradleMessage> buildMessages = Lists.newArrayList(showMessages(gradleOutput));
+          if (buildMessages.isEmpty() && buildError != null) {
+            showBuildException(buildError, gradleOutput, buildMessages);
+          }
+
           output.close();
 
           stopwatch.stop();
@@ -346,7 +350,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
             }
           });
 
-          GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, compilerMessages);
+          GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, buildMessages);
           for (GradleInvoker.AfterGradleInvocationTask task : myAfterGradleInvocationTasks) {
             task.execute(result);
           }
@@ -380,24 +384,25 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
   }
 
-  /**
-   * Something went wrong while invoking Gradle. Since we cannot distinguish an execution error from compilation errors easily, we first try
-   * to show, in the "Problems" view, compilation errors by parsing the error output. If no errors are found, we show the stack trace in the
-   * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
-   */
-  private List<GradleMessage> handleBuildException(BuildException e, String stdErr) {
-    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(stdErr);
-    if (!compilerMessages.isEmpty()) {
-      for (GradleMessage msg : compilerMessages) {
-        addMessage(msg, null);
-      }
-      return compilerMessages;
+  @NotNull
+  private List<GradleMessage> showMessages(@NotNull String gradleOutput) {
+    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(gradleOutput);
+    for (GradleMessage msg : compilerMessages) {
+      addMessage(msg, null);
     }
+    return compilerMessages;
+  }
+
+  /**
+   * Something went wrong while invoking Gradle but the output parsers did not create any build messages. We show the stack trace in the
+   * "Messages" view.
+   */
+  private void showBuildException(@NotNull BuildException e, @NotNull String gradleOutput, @NotNull List<GradleMessage> buildMessages) {
     // There are no error messages to present. Show some feedback indicating that something went wrong.
-    if (!stdErr.isEmpty()) {
+    if (!gradleOutput.isEmpty()) {
       // Show the contents of stderr as a compiler error.
-      GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, stdErr);
-      compilerMessages.add(msg);
+      GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, gradleOutput);
+      buildMessages.add(msg);
       addMessage(msg, null);
     }
     else {
@@ -408,14 +413,13 @@ class GradleTasksExecutor extends Task.Backgroundable {
         e.printStackTrace(new PrintStream(out));
         String message = "Internal error:" + SystemProperties.getLineSeparator() + out.toString();
         GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, message);
-        compilerMessages.add(msg);
+        buildMessages.add(msg);
         addMessage(msg, null);
       }
       finally {
         Closeables.closeQuietly(out);
       }
     }
-    return compilerMessages;
   }
 
   private void addMessage(@NotNull final GradleMessage message, @Nullable final Navigatable navigatable) {
