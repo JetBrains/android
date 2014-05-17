@@ -73,7 +73,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     assertEquals(1, gradleMessages.size());
     GradleMessage message = gradleMessages.get(0);
     assertEquals(output, message.getText());
-    assertEquals(GradleMessage.Kind.INFO, message.getKind());
+    assertEquals(GradleMessage.Kind.SIMPLE, message.getKind());
   }
 
   public void testParseAaptOutputWithRange1() throws IOException {
@@ -297,8 +297,8 @@ public class GradleErrorOutputParserTest extends TestCase {
     assertEquals("0: Error:A problem occurred evaluating project ':project'.\n" +
                  "> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.\n" +
                  "\t" + sourceFilePath + ":9:0\n" +
-                 "1: Info:BUILD FAILED\n" +
-                 "2: Info:Total time: 18.303 secs\n",
+                 "1: Simple:BUILD FAILED\n" +
+                 "2: Simple:Total time: 18.303 secs\n",
                  toString(messages));
   }
 
@@ -309,7 +309,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     List<GradleMessage> messages = parser.parseErrorOutput(err.toString());
 
     assertEquals("0: Error:The element type \"error\" must be terminated by the matching end-tag \"</error>\".\n" +
-                 "1: Info:FAILURE: Build failed with an exception.\n",
+                 "1: Simple:FAILURE: Build failed with an exception.\n",
                  toString(messages));
   }
 
@@ -558,7 +558,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "1: Error:No resource found that matches the given name (at 'text' with value '@string/does_not_exist').\n" +
                  "\t" + sourceFilePath + ":5:27\n" +
                  "2: Error:Execution failed for task ':five:processDebugResources'.\n" +
-                 "3: Info:BUILD FAILED\n",
+                 "3: Simple:BUILD FAILED\n",
                  toString(parser.parseErrorOutput(err)));
   }
 
@@ -584,8 +584,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> Failed to notify project evaluation listener.\n" +
                  "   > Could not resolve all dependencies for configuration ':MyApplication1:_DebugCompile'.\n" +
                  "      > Problems pinging owner of lock '-7513739537696464924' at port: 55416\n" +
-                 "2: Info:BUILD FAILED\n" +
-                 "3: Info:Total time: 24.154 secs\n",
+                 "2: Simple:BUILD FAILED\n" +
+                 "3: Simple:Total time: 24.154 secs\n",
                  toString(parser.parseErrorOutput(output)));
   }
 
@@ -673,19 +673,19 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 6.462 secs";
 
-    assertEquals("0: Info::preBuild UP-TO-DATE\n" +
-                 "1: Info::preF2FaDebugBuild UP-TO-DATE\n" +
-                 "2: Info::prepareF2FaDebugDependencies\n" +
-                 "3: Info::compileF2FaDebugRenderscript UP-TO-DATE\n" +
-                 "4: Info::mergeF2FaDebugResources FAILED\n" +
+    assertEquals("0: Simple::preBuild UP-TO-DATE\n" +
+                 "1: Simple::preF2FaDebugBuild UP-TO-DATE\n" +
+                 "2: Simple::prepareF2FaDebugDependencies\n" +
+                 "3: Simple::compileF2FaDebugRenderscript UP-TO-DATE\n" +
+                 "4: Simple::mergeF2FaDebugResources FAILED\n" +
                  "5: Error:> Duplicate resources: " + path1 + ":string/group2_string, " + path2 + ":string/group2_string\n" +
                  "\t" + path1 + ":4:-1\n" +
                  "6: Error:Other duplicate occurrence here\n" +
                  "\t" + path2 + ":3:-1\n" +
                  "7: Error:Execution failed for task ':mergeF2FaDebugResources'.\n" +
                  "\t" + path1 + ":4:-1\n" +
-                 "8: Info:BUILD FAILED\n" +
-                 "9: Info:Total time: 6.462 secs\n",
+                 "8: Simple:BUILD FAILED\n" +
+                 "9: Simple:Total time: 6.462 secs\n",
                  toString(parser.parseErrorOutput(output)));
 
     file1.delete();
@@ -714,14 +714,14 @@ public class GradleErrorOutputParserTest extends TestCase {
       "* Try:\n" +
       "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n";
 
-    assertEquals("0: Info:This output is not expected.\n" +
-                 "1: Info:Nor is this.\n" +
-                 "2: Info:java.io.SurpriseSurpriseError: Bet you didn't expect to see this\n" +
-                 "3: Info:\tat com.android.ide.common.res2.ValueResourceParser2.checkSurpriseSurprise(ValueResourceParser2.java:249)\n" +
-                 "4: Info:\tat com.android.ide.common.res2.ValueResourceParser2.parseFile(ValueResourceParser2.java:103)\n" +
-                 "5: Info:\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
-                 "6: Info:\tat java.lang.Thread.run(Thread.java:680)\n" +
-                 "7: Info:More unexpected output.\n" +
+    assertEquals("0: Simple:This output is not expected.\n" +
+                 "1: Simple:Nor is this.\n" +
+                 "2: Simple:java.io.SurpriseSurpriseError: Bet you didn't expect to see this\n" +
+                 "3: Simple:\tat com.android.ide.common.res2.ValueResourceParser2.checkSurpriseSurprise(ValueResourceParser2.java:249)\n" +
+                 "4: Simple:\tat com.android.ide.common.res2.ValueResourceParser2.parseFile(ValueResourceParser2.java:103)\n" +
+                 "5: Simple:\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
+                 "6: Simple:\tat java.lang.Thread.run(Thread.java:680)\n" +
+                 "7: Simple:More unexpected output.\n" +
                  "8: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> I was surprised\n",
                  toString(parser.parseErrorOutput(output)));
@@ -762,24 +762,24 @@ public class GradleErrorOutputParserTest extends TestCase {
 
     assertEquals("0: Error:Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
                  "\t" + sourceFilePath + ":7:18\n" +
-                 "1: Info:java.io.IOException: org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
-                 "2: Info:\tat com.android.ide.common.res2.ValueResourceParser2.parseDocument(ValueResourceParser2.java:193)\n" +
-                 "3: Info:\tat com.android.ide.common.res2.ValueResourceParser2.parseFile(ValueResourceParser2.java:78)\n" +
-                 "4: Info:\tat com.android.ide.common.res2.ResourceSet.createResourceFile(ResourceSet.java:273)\n" +
-                 "5: Info:\tat com.android.ide.common.res2.ResourceSet.parseFolder(ResourceSet.java:248)\n" +
-                 "6: Info:\tat org.gradle.wrapper.WrapperExecutor.execute(WrapperExecutor.java:130)\n" +
-                 "7: Info:\tat org.gradle.wrapper.GradleWrapperMain.main(GradleWrapperMain.java:61)\n" +
-                 "8: Error:: org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
-                 "9: Info:\tat com.sun.org.apache.xerces.internal.parsers.DOMParser.parse(DOMParser.java:246)\n" +
-                 "10: Info:\tat com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl.parse(DocumentBuilderImpl.java:284)\n" +
-                 "11: Info:\tat com.android.ide.common.res2.ValueResourceParser2.parseDocument(ValueResourceParser2.java:189)\n" +
-                 "12: Info:\t... 109 more\n" +
-                 "13: Info::MyApp:mergeDebugResources FAILED\n" +
+                 "1: Simple:java.io.IOException: org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+                 "2: Simple:\tat com.android.ide.common.res2.ValueResourceParser2.parseDocument(ValueResourceParser2.java:193)\n" +
+                 "3: Simple:\tat com.android.ide.common.res2.ValueResourceParser2.parseFile(ValueResourceParser2.java:78)\n" +
+                 "4: Simple:\tat com.android.ide.common.res2.ResourceSet.createResourceFile(ResourceSet.java:273)\n" +
+                 "5: Simple:\tat com.android.ide.common.res2.ResourceSet.parseFolder(ResourceSet.java:248)\n" +
+                 "6: Simple:\tat org.gradle.wrapper.WrapperExecutor.execute(WrapperExecutor.java:130)\n" +
+                 "7: Simple:\tat org.gradle.wrapper.GradleWrapperMain.main(GradleWrapperMain.java:61)\n" +
+                 "8: Error:org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
+                 "9: Simple:\tat com.sun.org.apache.xerces.internal.parsers.DOMParser.parse(DOMParser.java:246)\n" +
+                 "10: Simple:\tat com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderImpl.parse(DocumentBuilderImpl.java:284)\n" +
+                 "11: Simple:\tat com.android.ide.common.res2.ValueResourceParser2.parseDocument(ValueResourceParser2.java:189)\n" +
+                 "12: Simple:\t... 109 more\n" +
+                 "13: Simple::MyApp:mergeDebugResources FAILED\n" +
                  "14: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
                  "\t" + sourceFilePath + ":7:18\n" +
-                 "15: Info:BUILD FAILED\n" +
-                 "16: Info:Total time: 7.245 secs\n",
+                 "15: Simple:BUILD FAILED\n" +
+                 "16: Simple:Total time: 7.245 secs\n",
                  toString(parser.parseErrorOutput(output)));
   }
 
@@ -812,12 +812,11 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":70:2\n" +
                  "1: Error:<identifier> expected\n" +
                  "\t" + sourceFilePath + ":71:14\n" +
-                 "2: Info:2 errors\n" +
-                 "3: Info::MyApp:compileDebug FAILED\n" +
-                 "4: Error:Execution failed for task ':MyApp:compileDebug'.\n" +
+                 "2: Simple::MyApp:compileDebug FAILED\n" +
+                 "3: Error:Execution failed for task ':MyApp:compileDebug'.\n" +
                  "> Compilation failed; see the compiler error output for details.\n" +
-                 "5: Info:BUILD FAILED\n" +
-                 "6: Info:Total time: 12.42 secs\n",
+                 "4: Simple:BUILD FAILED\n" +
+                 "5: Simple:Total time: 12.42 secs\n",
                  toString(parser.parseErrorOutput(output)));
   }
 
@@ -845,8 +844,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "   > A problem occurred configuring project ':facebook'.\n" +
                  "      > Failed to notify project evaluation listener.\n" +
                  "         > java.lang.OutOfMemoryError: PermGen space\n" +
-                 "1: Info:BUILD FAILED\n" +
-                 "2: Info:Total time: 24.154 secs\n",
+                 "1: Simple:BUILD FAILED\n" +
+                 "2: Simple:Total time: 24.154 secs\n",
                  toString(parser.parseErrorOutput(output)));
 
     String output2 =
@@ -866,12 +865,12 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 24.154 secs";
 
-    assertEquals("0: Info:To honour the JVM settings for this build a new JVM will be forked. Please consider using the daemon: http://gradle.org/docs/1.7/userguide/gradle_daemon.html.\n" +
+    assertEquals("0: Simple:To honour the JVM settings for this build a new JVM will be forked. Please consider using the daemon: http://gradle.org/docs/1.7/userguide/gradle_daemon.html.\n" +
                  "1: Error:A problem occurred configuring project ':MyNewApp'.\n" +
                  "> Failed to notify project evaluation listener.\n" +
                  "   > java.lang.OutOfMemoryError: Java heap space\n" +
-                 "2: Info:BUILD FAILED\n" +
-                 "3: Info:Total time: 24.154 secs\n",
+                 "2: Simple:BUILD FAILED\n" +
+                 "3: Simple:Total time: 24.154 secs\n",
                  toString(parser.parseErrorOutput(output2)));
   }
 
@@ -935,23 +934,23 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 5.435 secs";
 
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "2: Info::BlankProject1:prepareDebugDependencies\n" +
-                 "3: Info::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
-                 "4: Info::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
-                 "5: Info::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
-                 "6: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
-                 "7: Info::BlankProject1:processDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "2: Simple::BlankProject1:prepareDebugDependencies\n" +
+                 "3: Simple::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+                 "4: Simple::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+                 "5: Simple::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+                 "6: Simple::BlankProject1:processDebugManifest UP-TO-DATE\n" +
+                 "7: Simple::BlankProject1:processDebugResources\n" +
                  "8: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
                  "\t" + source.getPath() + ":5:28\n" +
-                 "9: Info::BlankProject1:processDebugResources FAILED\n" +
+                 "9: Simple::BlankProject1:processDebugResources FAILED\n" +
                  "10: Error:Error while executing aapt command\n" +
                  "11: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
                  "\t" + source.getPath() + ":5:28\n" +
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "13: Info:BUILD FAILED\n" +
-                 "14: Info:Total time: 5.435 secs\n",
+                 "13: Simple:BUILD FAILED\n" +
+                 "14: Simple:Total time: 5.435 secs\n",
                  toString(parser.parseErrorOutput(output)));
 
     sourceFile.delete();
@@ -1024,23 +1023,23 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 5.435 secs";
 
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "2: Info::BlankProject1:prepareDebugDependencies\n" +
-                 "3: Info::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
-                 "4: Info::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
-                 "5: Info::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
-                 "6: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
-                 "7: Info::BlankProject1:processDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "2: Simple::BlankProject1:prepareDebugDependencies\n" +
+                 "3: Simple::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+                 "4: Simple::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+                 "5: Simple::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+                 "6: Simple::BlankProject1:processDebugManifest UP-TO-DATE\n" +
+                 "7: Simple::BlankProject1:processDebugResources\n" +
                  "8: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
                  "\t" + source.getPath() + ":5:28\n" +
-                 "9: Info::BlankProject1:processDebugResources FAILED\n" +
+                 "9: Simple::BlankProject1:processDebugResources FAILED\n" +
                  "10: Error:Error while executing aapt command\n" +
                  "11: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
                  "\t" + source.getPath() + ":5:28\n" +
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "13: Info:BUILD FAILED\n" +
-                 "14: Info:Total time: 5.435 secs\n",
+                 "13: Simple:BUILD FAILED\n" +
+                 "14: Simple:Total time: 5.435 secs\n",
                  toString(parser.parseErrorOutput(output)));
 
     sourceFile.delete();
@@ -1131,27 +1130,27 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "BUILD FAILED\n";
 
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::BlankProject1:preBuild UP-TO-DATE\n" +
-                 "2: Info::BlankProject1:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::BlankProject1:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::BlankProject1:prepareDebugDependencies\n" +
-                 "6: Info::BlankProject1:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::BlankProject1:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
-                 "11: Info::BlankProject1:processDebugManifest UP-TO-DATE\n" +
-                 "12: Info::BlankProject1:processDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::BlankProject1:preBuild UP-TO-DATE\n" +
+                 "2: Simple::BlankProject1:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::BlankProject1:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::BlankProject1:prepareDebugDependencies\n" +
+                 "6: Simple::BlankProject1:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::BlankProject1:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::BlankProject1:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::BlankProject1:mergeDebugResources UP-TO-DATE\n" +
+                 "11: Simple::BlankProject1:processDebugManifest UP-TO-DATE\n" +
+                 "12: Simple::BlankProject1:processDebugResources\n" +
                  "13: Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
                  "\t" + source.getPath() + ":12:-1\n" +
-                 "14: Info::BlankProject1:processDebugResources FAILED\n" +
+                 "14: Simple::BlankProject1:processDebugResources FAILED\n" +
                  "15: Error:Error while executing aapt command\n" +
                  "16: Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
                  "\t" + source.getPath() + ":12:-1\n" +
                  "17: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "18: Info:BUILD FAILED\n",
+                 "18: Simple:BUILD FAILED\n",
                  toString(parser.parseErrorOutput(output)));
 
     sourceFile.delete();
@@ -1178,13 +1177,13 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 15.612 secs";
 
-    assertEquals("0: Info::MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
-                 "1: Info::MyApp:mergeReleaseResources FAILED\n" +
+    assertEquals("0: Simple::MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
+                 "1: Simple::MyApp:mergeReleaseResources FAILED\n" +
                  "2: Error:Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
                  "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "3: Info:BUILD FAILED\n" +
-                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+                 "3: Simple:BUILD FAILED\n" +
+                 "4: Simple:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
 
@@ -1207,13 +1206,13 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 15.612 secs";
 
-    assertEquals("0: Info::MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
-                 "1: Info::MyApp:mergeReleaseResources FAILED\n" +
+    assertEquals("0: Simple::MyApp:compileReleaseRenderscript UP-TO-DATE\n" +
+                 "1: Simple::MyApp:mergeReleaseResources FAILED\n" +
                  "2: Error:Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
                  "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'. This is an internal error in the incremental builds code; to work around it, try doing a full clean build.\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "3: Info:BUILD FAILED\n" +
-                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+                 "3: Simple:BUILD FAILED\n" +
+                 "4: Simple:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
 
@@ -1250,23 +1249,23 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 3.836 secs";
-    assertEquals("0: Info::AudioPlayer:prepareDebugDependencies\n" +
-                 "1: Info::AudioPlayer:compileDebugAidl UP-TO-DATE\n" +
-                 "2: Info::AudioPlayer:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "3: Info::AudioPlayer:mergeDebugAssets UP-TO-DATE\n" +
-                 "4: Info::AudioPlayer:compileDebugRenderscript UP-TO-DATE\n" +
-                 "5: Info::AudioPlayer:mergeDebugResources UP-TO-DATE\n" +
-                 "6: Info::AudioPlayer:processDebugManifest UP-TO-DATE\n" +
-                 "7: Info::AudioPlayer:processDebugResources\n" +
+    assertEquals("0: Simple::AudioPlayer:prepareDebugDependencies\n" +
+                 "1: Simple::AudioPlayer:compileDebugAidl UP-TO-DATE\n" +
+                 "2: Simple::AudioPlayer:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "3: Simple::AudioPlayer:mergeDebugAssets UP-TO-DATE\n" +
+                 "4: Simple::AudioPlayer:compileDebugRenderscript UP-TO-DATE\n" +
+                 "5: Simple::AudioPlayer:mergeDebugResources UP-TO-DATE\n" +
+                 "6: Simple::AudioPlayer:processDebugManifest UP-TO-DATE\n" +
+                 "7: Simple::AudioPlayer:processDebugResources\n" +
                  "8: Error:Error parsing XML: mismatched tag\n" +
                  "\t" + sourceFilePath + ":101:-1\n" +
-                 "9: Info::AudioPlayer:processDebugResources FAILED\n" +
+                 "9: Simple::AudioPlayer:processDebugResources FAILED\n" +
                  "10: Error:Error while executing aapt command\n" +
                  "11: Error:Error parsing XML: mismatched tag\n" +
                  "\t" + sourceFilePath + ":101:-1\n" +
                  "12: Error:Execution failed for task ':AudioPlayer:processDebugResources'.\n" +
-                 "13: Info:BUILD FAILED\n" +
-                 "14: Info:Total time: 3.836 secs\n",
+                 "13: Simple:BUILD FAILED\n" +
+                 "14: Simple:Total time: 3.836 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1302,25 +1301,25 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 4.861 secs";
 
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication589:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication589:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication589:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication589:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::MyApplication589:prepareDebugDependencies\n" +
-                 "6: Info::MyApplication589:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::MyApplication589:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::MyApplication589:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::MyApplication589:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::MyApplication589:mergeDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication589:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication589:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication589:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication589:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::MyApplication589:prepareDebugDependencies\n" +
+                 "6: Simple::MyApplication589:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::MyApplication589:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::MyApplication589:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::MyApplication589:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::MyApplication589:mergeDebugResources\n" +
                  "11: Error:Error: Duplicate resources: " + sourceFilePath +", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "12: Info::MyApplication589:mergeDebugResources FAILED\n" +
+                 "12: Simple::MyApplication589:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication589:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Duplicate resources: " + sourceFilePath + ", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "14: Info:BUILD FAILED\n" +
-                 "15: Info:Total time: 4.861 secs\n",
+                 "14: Simple:BUILD FAILED\n" +
+                 "15: Simple:Total time: 4.861 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1356,26 +1355,26 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 5.187 secs";
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::MyApplication:prepareDebugDependencies\n" +
-                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::MyApplication:mergeDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::MyApplication:prepareDebugDependencies\n" +
+                 "6: Simple::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::MyApplication:mergeDebugResources\n" +
                  "11: Error:The content of elements must consist of well-formed character data or markup.\n" +
                  "12: Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
                  "\t" + sourceFilePath + ":4:1\n" +
-                 "13: Info::MyApplication:mergeDebugResources FAILED\n" +
+                 "13: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "14: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4:1: Error: The content of elements must consist of well-formed character data or markup.\n" +
                  "\t" + sourceFilePath + ":4:1\n" +
-                 "15: Info:BUILD FAILED\n" +
-                 "16: Info:Total time: 5.187 secs\n",
+                 "15: Simple:BUILD FAILED\n" +
+                 "16: Simple:Total time: 5.187 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1430,26 +1429,26 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 4.951 secs";
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::MyApplication:prepareDebugDependencies\n" +
-                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::MyApplication:mergeDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::MyApplication:prepareDebugDependencies\n" +
+                 "6: Simple::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::MyApplication:mergeDebugResources\n" +
                  "11: Error:Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
                  "12: Error:Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
                  "\t" + sourceFilePath + ":2:16\n" +
-                 "13: Info::MyApplication:mergeDebugResources FAILED\n" +
+                 "13: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "14: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> "+ sourceFilePath + ":2:16: Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
                  "\t" + sourceFilePath + ":2:16\n" +
-                 "15: Info:BUILD FAILED\n" +
-                 "16: Info:Total time: 4.951 secs\n",
+                 "15: Simple:BUILD FAILED\n" +
+                 "16: Simple:Total time: 4.951 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1495,36 +1494,35 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 6.177 secs";
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::MyApplication:prepareDebugDependencies\n" +
-                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::MyApplication:mergeDebugResources UP-TO-DATE\n" +
-                 "11: Info::MyApplication:processDebugManifest UP-TO-DATE\n" +
-                 "12: Info::MyApplication:processDebugResources UP-TO-DATE\n" +
-                 "13: Info::MyApplication:generateDebugSources UP-TO-DATE\n" +
-                 "14: Info::MyApplication:compileDebug\n" +
-                 "15: Info:Ignoring platform 'android-1': build.prop is missing.\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::MyApplication:prepareDebugDependencies\n" +
+                 "6: Simple::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::MyApplication:mergeDebugResources UP-TO-DATE\n" +
+                 "11: Simple::MyApplication:processDebugManifest UP-TO-DATE\n" +
+                 "12: Simple::MyApplication:processDebugResources UP-TO-DATE\n" +
+                 "13: Simple::MyApplication:generateDebugSources UP-TO-DATE\n" +
+                 "14: Simple::MyApplication:compileDebug\n" +
+                 "15: Simple:Ignoring platform 'android-1': build.prop is missing.\n" +
                  "16: Error:not a statement\n" +
                  "\t" + sourceFilePath + ":12:-1\n" +
-                 "17: Info:x        super.onCreate(savedInstanceState);\n" +
-                 "18: Info:^\n" +
+                 "17: Simple:x        super.onCreate(savedInstanceState);\n" +
+                 "18: Simple:^\n" +
                  "19: Error:';' expected\n" +
                  "\t" + sourceFilePath + ":12:-1\n" +
-                 "20: Info:x        super.onCreate(savedInstanceState);\n" +
-                 "21: Info: ^\n" +
-                 "22: Info:2 errors\n" +
-                 "23: Info::MyApplication:compileDebug FAILED\n" +
-                 "24: Error:Execution failed for task ':MyApplication:compileDebug'.\n" +
+                 "20: Simple:x        super.onCreate(savedInstanceState);\n" +
+                 "21: Simple: ^\n" +
+                 "22: Simple::MyApplication:compileDebug FAILED\n" +
+                 "23: Error:Execution failed for task ':MyApplication:compileDebug'.\n" +
                  "> Compilation failed; see the compiler error output for details.\n" +
-                 "25: Info:BUILD FAILED\n" +
-                 "26: Info:Total time: 6.177 secs\n",
+                 "24: Simple:BUILD FAILED\n" +
+                 "25: Simple:Total time: 6.177 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1566,31 +1564,31 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 5.47 secs";
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication:preFreeDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication:preFreeReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication:preProDebugBuild UP-TO-DATE\n" +
-                 "5: Info::MyApplication:preProReleaseBuild UP-TO-DATE\n" +
-                 "6: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "7: Info::MyApplication:prepareFreeDebugDependencies\n" +
-                 "8: Info::MyApplication:compileFreeDebugAidl UP-TO-DATE\n" +
-                 "9: Info::MyApplication:compileFreeDebugRenderscript UP-TO-DATE\n" +
-                 "10: Info::MyApplication:generateFreeDebugBuildConfig UP-TO-DATE\n" +
-                 "11: Info::MyApplication:mergeFreeDebugAssets UP-TO-DATE\n" +
-                 "12: Info::MyApplication:mergeFreeDebugResources UP-TO-DATE\n" +
-                 "13: Info::MyApplication:processFreeDebugManifest UP-TO-DATE\n" +
-                 "14: Info::MyApplication:processFreeDebugResources UP-TO-DATE\n" +
-                 "15: Info::MyApplication:generateFreeDebugSources UP-TO-DATE\n" +
-                 "16: Info::MyApplication:compileFreeDebug\n" +
-                 "17: Info:Ignoring platform 'android-1': build.prop is missing.\n" +
-                 "18: Info::MyApplication:compileFreeDebug FAILED\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication:preFreeDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication:preFreeReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication:preProDebugBuild UP-TO-DATE\n" +
+                 "5: Simple::MyApplication:preProReleaseBuild UP-TO-DATE\n" +
+                 "6: Simple::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "7: Simple::MyApplication:prepareFreeDebugDependencies\n" +
+                 "8: Simple::MyApplication:compileFreeDebugAidl UP-TO-DATE\n" +
+                 "9: Simple::MyApplication:compileFreeDebugRenderscript UP-TO-DATE\n" +
+                 "10: Simple::MyApplication:generateFreeDebugBuildConfig UP-TO-DATE\n" +
+                 "11: Simple::MyApplication:mergeFreeDebugAssets UP-TO-DATE\n" +
+                 "12: Simple::MyApplication:mergeFreeDebugResources UP-TO-DATE\n" +
+                 "13: Simple::MyApplication:processFreeDebugManifest UP-TO-DATE\n" +
+                 "14: Simple::MyApplication:processFreeDebugResources UP-TO-DATE\n" +
+                 "15: Simple::MyApplication:generateFreeDebugSources UP-TO-DATE\n" +
+                 "16: Simple::MyApplication:compileFreeDebug\n" +
+                 "17: Simple:Ignoring platform 'android-1': build.prop is missing.\n" +
+                 "18: Simple::MyApplication:compileFreeDebug FAILED\n" +
                  "19: Error:Execution failed for task ':MyApplication:compileFreeDebug'.\n" +
                  // TODO: This is all we currently get. We should find a way to trap this and point to the
                  // right source file where the invalid source flag is set
                  "> invalid source release: 1.7\n" +
-                 "20: Info:BUILD FAILED\n" +
-                 "21: Info:Total time: 5.47 secs\n",
+                 "20: Simple:BUILD FAILED\n" +
+                 "21: Simple:Total time: 5.47 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1625,25 +1623,25 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 8.91 secs";
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication585:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication585:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::MyApplication585:prepareDebugDependencies\n" +
-                 "6: Info::MyApplication585:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::MyApplication585:mergeDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication585:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication585:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::MyApplication585:prepareDebugDependencies\n" +
+                 "6: Simple::MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::MyApplication585:mergeDebugResources\n" +
                  "11: Error:Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "12: Info::MyApplication585:mergeDebugResources FAILED\n" +
+                 "12: Simple::MyApplication585:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "14: Info:BUILD FAILED\n" +
-                 "15: Info:Total time: 8.91 secs\n",
+                 "14: Simple:BUILD FAILED\n" +
+                 "15: Simple:Total time: 8.91 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1677,25 +1675,25 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 8.91 secs";
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication585:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication585:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::MyApplication585:prepareDebugDependencies\n" +
-                 "6: Info::MyApplication585:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::MyApplication585:mergeDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication585:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication585:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication585:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::MyApplication585:prepareDebugDependencies\n" +
+                 "6: Simple::MyApplication585:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::MyApplication585:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::MyApplication585:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::MyApplication585:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::MyApplication585:mergeDebugResources\n" +
                  "11: Error:Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
                  "\t" + sourceFilePath + ":4:-1\n" +
-                 "12: Info::MyApplication585:mergeDebugResources FAILED\n" +
+                 "12: Simple::MyApplication585:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
                  "\t" + sourceFilePath + ":4:-1\n" +
-                 "14: Info:BUILD FAILED\n" +
-                 "15: Info:Total time: 8.91 secs\n",
+                 "14: Simple:BUILD FAILED\n" +
+                 "15: Simple:Total time: 8.91 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1730,25 +1728,25 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 5.623 secs";
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::MyApplication:preBuild UP-TO-DATE\n" +
-                 "2: Info::MyApplication:preDebugBuild UP-TO-DATE\n" +
-                 "3: Info::MyApplication:preReleaseBuild UP-TO-DATE\n" +
-                 "4: Info::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
-                 "5: Info::MyApplication:prepareDebugDependencies\n" +
-                 "6: Info::MyApplication:compileDebugAidl UP-TO-DATE\n" +
-                 "7: Info::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
-                 "8: Info::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
-                 "9: Info::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
-                 "10: Info::MyApplication:mergeDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
+                 "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
+                 "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
+                 "4: Simple::MyApplication:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
+                 "5: Simple::MyApplication:prepareDebugDependencies\n" +
+                 "6: Simple::MyApplication:compileDebugAidl UP-TO-DATE\n" +
+                 "7: Simple::MyApplication:compileDebugRenderscript UP-TO-DATE\n" +
+                 "8: Simple::MyApplication:generateDebugBuildConfig UP-TO-DATE\n" +
+                 "9: Simple::MyApplication:mergeDebugAssets UP-TO-DATE\n" +
+                 "10: Simple::MyApplication:mergeDebugResources\n" +
                  "11: Error:Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "12: Info::MyApplication:mergeDebugResources FAILED\n" +
+                 "12: Simple::MyApplication:mergeDebugResources FAILED\n" +
                  "13: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "14: Info:BUILD FAILED\n" +
-                 "15: Info:Total time: 5.623 secs\n",
+                 "14: Simple:BUILD FAILED\n" +
+                 "15: Simple:Total time: 5.623 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1778,8 +1776,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  // However, we have an import hyperlink helper to do it automatically, so may not be necessary
                  "> Gradle version 1.8 is required. Current version is 1.7. If using the gradle wrapper, try editing the distributionUrl in /some/path/gradle.properties to gradle-1.8-all.zip\n" +
                  "\t" + sourceFilePath + ":24:0\n" +
-                 "1: Info:BUILD FAILED\n" +
-                 "2: Info:Total time: 4.467 secs\n",
+                 "1: Simple:BUILD FAILED\n" +
+                 "2: Simple:Total time: 4.467 secs\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1799,11 +1797,11 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "* Try:\n" +
       "Run with --info or --debug option to get more log output.\n";
-    assertEquals("0: Info::processFlavor1DebugManifest\n" +
+    assertEquals("0: Simple::processFlavor1DebugManifest\n" +
                  "1: Error:Could not find element /manifest/application.\n" +
                  "\t" + sourceFilePath + ":1:-1\n" +
-                 "2: Info::processFlavor1DebugManifest FAILED\n" +
-                 "3: Info:FAILURE: Build failed with an exception.\n",
+                 "2: Simple::processFlavor1DebugManifest FAILED\n" +
+                 "3: Simple:FAILURE: Build failed with an exception.\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1823,11 +1821,11 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "* Try:\n" +
       "Run with --info or --debug option to get more log output.\n";
-    assertEquals("0: Info::processFlavor1DebugManifest\n" +
+    assertEquals("0: Simple::processFlavor1DebugManifest\n" +
                  "1: Error:Could not find element /manifest/application.\n" +
                  "\tC:\\Users\\Android\\AppData\\Local\\Temp\\com.android.tools.idea.gradle.output.parser.GradleErrorOutputParserTest4437574780178007978.xml:1:-1\n" +
-                 "2: Info::processFlavor1DebugManifest FAILED\n" +
-                 "3: Info:FAILURE: Build failed with an exception.\n",
+                 "2: Simple::processFlavor1DebugManifest FAILED\n" +
+                 "3: Simple:FAILURE: Build failed with an exception.\n",
                  toString(parser.parseErrorOutput(output)));
     sourceFile.delete();
   }
@@ -1867,14 +1865,13 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 9.491 secs";
-    assertEquals("0: Info::two:dexDebug\n" +
+    assertEquals("0: Simple::two:dexDebug\n" +
                  "1: Error:Class com.example.two.MainActivity has already been added to output. Please remove duplicate copies.\n" +
-                 "2: Info:1 error; aborting\n" +
-                 "3: Info: FAILED\n" +
-                 "4: Error:Execution failed for task ':two:dexDebug'.\n" +
+                 "2: Simple:1 error; aborting\n" +
+                 "3: Error:Execution failed for task ':two:dexDebug'.\n" +
                  "> Could not call IncrementalTask.taskAction() on task ':two:dexDebug'\n" +
-                 "5: Info:BUILD FAILED\n" +
-                 "6: Info:Total time: 9.491 secs\n",
+                 "4: Simple:BUILD FAILED\n" +
+                 "5: Simple:Total time: 9.491 secs\n",
                  toString(parser.parseErrorOutput(output)));
   }
 
@@ -1902,17 +1899,16 @@ public class GradleErrorOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 5.354 secs\n";
-    assertEquals("0: Info::two:compileDebug\n" +
+    assertEquals("0: Simple::two:compileDebug\n" +
                  "1: Error:incompatible types\n" +
                  "found   : java.util.ArrayList<java.lang.String>\n" +
                  "required: java.util.Set<java.lang.String>\n" +
                  "\t" + sourceFilePath + ":20:35\n" +
-                 "2: Info:1 error\n" +
-                 "3: Info::two:compileDebug FAILED\n" +
-                 "4: Error:Execution failed for task ':two:compileDebug'.\n" +
+                 "2: Simple::two:compileDebug FAILED\n" +
+                 "3: Error:Execution failed for task ':two:compileDebug'.\n" +
                  "> Compilation failed; see the compiler error output for details.\n" +
-                 "5: Info:BUILD FAILED\n" +
-                 "6: Info:Total time: 5.354 secs\n",
+                 "4: Simple:BUILD FAILED\n" +
+                 "5: Simple:Total time: 5.354 secs\n",
                  toString(parser.parseErrorOutput(output)).replaceAll("\r\n","\n"));
     sourceFile.delete();
   }
@@ -2016,23 +2012,23 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 7.024 secs";
 
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
-                 "2: Info::App:preBuild UP-TO-DATE\n" +
-                 "3: Info::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
-                 "4: Info::App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
-                 "5: Info::App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
-                 "6: Info::App:prepareDefaultFlavorDebugDependencies\n" +
-                 "7: Info::App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
-                 "8: Info::App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
-                 "9: Info::App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
-                 "10: Info::App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
-                 "11: Info::App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
-                 "12: Info::App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
-                 "13: Info::App:processDefaultFlavorDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
+                 "2: Simple::App:preBuild UP-TO-DATE\n" +
+                 "3: Simple::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
+                 "4: Simple::App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
+                 "5: Simple::App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
+                 "6: Simple::App:prepareDefaultFlavorDebugDependencies\n" +
+                 "7: Simple::App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
+                 "8: Simple::App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
+                 "9: Simple::App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
+                 "10: Simple::App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
+                 "11: Simple::App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
+                 "12: Simple::App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
+                 "13: Simple::App:processDefaultFlavorDebugResources\n" +
                  "14: Error:No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
                  "\t" + source.getPath() + ":13:23\n" +
-                 "15: Info::App:processDefaultFlavorDebugResources FAILED\n" +
+                 "15: Simple::App:processDefaultFlavorDebugResources FAILED\n" +
                  "16: Error:Execution failed for task ':App:processDefaultFlavorDebugResources'.\n" +
                  "> com.android.ide.common.internal.LoggedErrorException: Failed to run command:\n" +
                  "  \tSDK/build-tools/android-4.4/aapt package -f --no-crunch -I SDK/platforms/android-19/android.jar" +
@@ -2048,8 +2044,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
                  "\t" + source.getPath() + ":13:23\n" +
-                 "17: Info:BUILD FAILED\n" +
-                 "18: Info:Total time: 7.024 secs\n",
+                 "17: Simple:BUILD FAILED\n" +
+                 "18: Simple:Total time: 7.024 secs\n",
                  toString(parser.parseErrorOutput(output)));
 
     sourceFile.delete();
@@ -2166,23 +2162,23 @@ public class GradleErrorOutputParserTest extends TestCase {
       "\n" +
       "Total time: 7.024 secs";
 
-    assertEquals("0: Info:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
-                 "1: Info::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
-                 "2: Info::App:preBuild UP-TO-DATE\n" +
-                 "3: Info::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
-                 "4: Info::App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
-                 "5: Info::App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
-                 "6: Info::App:prepareDefaultFlavorDebugDependencies\n" +
-                 "7: Info::App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
-                 "8: Info::App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
-                 "9: Info::App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
-                 "10: Info::App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
-                 "11: Info::App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
-                 "12: Info::App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
-                 "13: Info::App:processDefaultFlavorDebugResources\n" +
+    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+                 "1: Simple::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
+                 "2: Simple::App:preBuild UP-TO-DATE\n" +
+                 "3: Simple::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
+                 "4: Simple::App:preDefaultFlavorReleaseBuild UP-TO-DATE\n" +
+                 "5: Simple::App:prepareComAndroidSupportAppcompatV71900Library UP-TO-DATE\n" +
+                 "6: Simple::App:prepareDefaultFlavorDebugDependencies\n" +
+                 "7: Simple::App:compileDefaultFlavorDebugAidl UP-TO-DATE\n" +
+                 "8: Simple::App:compileDefaultFlavorDebugRenderscript UP-TO-DATE\n" +
+                 "9: Simple::App:generateDefaultFlavorDebugBuildConfig UP-TO-DATE\n" +
+                 "10: Simple::App:mergeDefaultFlavorDebugAssets UP-TO-DATE\n" +
+                 "11: Simple::App:mergeDefaultFlavorDebugResources UP-TO-DATE\n" +
+                 "12: Simple::App:processDefaultFlavorDebugManifest UP-TO-DATE\n" +
+                 "13: Simple::App:processDefaultFlavorDebugResources\n" +
                  "14: Error:No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
                  "\t" + source.getPath() + ":13:23\n" +
-                 "15: Info::App:processDefaultFlavorDebugResources FAILED\n" +
+                 "15: Simple::App:processDefaultFlavorDebugResources FAILED\n" +
                  "16: Error:Execution failed for task ':App:processDefaultFlavorDebugResources'.\n" +
                  "> com.android.ide.common.internal.LoggedErrorException: Failed to run command:\n" +
                  "  \tSDK/build-tools/android-4.4/aapt package -f --no-crunch -I SDK/platforms/android-19/android.jar" +
@@ -2198,8 +2194,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
                  "\t" + source.getPath() + ":13:23\n" +
-                 "17: Info:BUILD FAILED\n" +
-                 "18: Info:Total time: 7.024 secs\n",
+                 "17: Simple:BUILD FAILED\n" +
+                 "18: Simple:Total time: 7.024 secs\n",
                  toString(parser.parseErrorOutput(output)));
 
     sourceFile.delete();
