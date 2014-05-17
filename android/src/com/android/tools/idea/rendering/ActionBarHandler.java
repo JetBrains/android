@@ -57,8 +57,8 @@ public class ActionBarHandler extends ActionBarCallback {
   private static final Pattern MENU_FIELD_PATTERN = Pattern.compile("R\\.menu\\.([a-z0-9_]+)"); //$NON-NLS-1$
 
   // The attribute values for ATTR_NAV_MODE.
-  private static final String VALUE_NAV_MODE_TABS = "tabs";                                           //$NON-NLS-1$
-  private static final String VALUE_NAV_MODE_LIST = "list";                                           //$NON-NLS-1$
+  private static final String VALUE_NAV_MODE_TABS = "tabs";                                     //$NON-NLS-1$
+  private static final String VALUE_NAV_MODE_LIST = "list";                                     //$NON-NLS-1$
 
   private final Object myCredential;
   @NotNull
