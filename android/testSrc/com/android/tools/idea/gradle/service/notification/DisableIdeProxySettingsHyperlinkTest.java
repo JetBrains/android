@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HTTPProxySettingsPanel;
 import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.annotations.NotNull;
+import junit.framework.TestCase;
 
-class OpenHttpSettingsHyperlink extends NotificationHyperlink {
-  OpenHttpSettingsHyperlink() {
-    super("openHttpSettings", "Open HTTP proxy settings");
-  }
-
-  @Override
-  protected void execute(@NotNull Project project) {
-    ShowSettingsUtil.getInstance().editConfigurable(project, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
+/**
+ * Tests for {@link DisableIdeProxySettingsHyperlink}.
+ */
+public class DisableIdeProxySettingsHyperlinkTest extends TestCase {
+  public void testDisableProxySettings() {
+    HttpConfigurable settings = new HttpConfigurable();
+    settings.USE_HTTP_PROXY = true;
+    DisableIdeProxySettingsHyperlink.disableProxySettings(settings);
+    assertFalse(settings.USE_HTTP_PROXY);
   }
 }
