@@ -137,7 +137,9 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    *                      to the beginning of the path. If false, it will be initialized to its ending state.
    */
   public void onPathStarted(boolean fromBeginning) {
-    assert mySteps.size() > 0;
+    if (mySteps.size() == 0) {
+      return;
+    }
     if (fromBeginning) {
       myCurrentStepIndex = 0;
     } else {
