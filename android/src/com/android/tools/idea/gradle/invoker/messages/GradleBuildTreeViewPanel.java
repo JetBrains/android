@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.invoker.messages;
 
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
+import com.google.common.base.Joiner;
 import com.intellij.ide.errorTreeView.*;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -28,6 +29,8 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.MultilineTreeCellRenderer;
+import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
@@ -35,7 +38,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 
 import static com.google.common.base.Strings.nullToEmpty;
@@ -71,6 +76,24 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
 
     scrollPane = MultilineTreeCellRenderer.installRenderer(myTree, new MessageTreeRenderer());
     parent.add(scrollPane, BorderLayout.CENTER);
+
+    new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
+      @Override
+      public String convert(TreePath treePath) {
+        Object last = treePath.getLastPathComponent();
+        if (last instanceof DefaultMutableTreeNode) {
+          Object data = ((DefaultMutableTreeNode)last).getUserObject();
+          if (data instanceof ErrorTreeNodeDescriptor) {
+            ErrorTreeElement e = ((ErrorTreeNodeDescriptor)data).getElement();
+            String[] text = e.getText();
+            if (text != null) {
+              return Joiner.on(' ').join(text);
+            }
+          }
+        }
+        return "";
+      }
+    });
   }
 
   @Override
@@ -90,6 +113,11 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
         e.getPresentation().setEnabledAndVisible(true);
       }
     });
+  }
+
+  @Override
+  protected boolean canHideWarnings() {
+    return false;
   }
 
   @Override
