@@ -200,6 +200,10 @@ public class AndroidTargetData {
     return myFrameworkResources;
   }
 
+  public synchronized void resetFrameworkResources() {
+    myFrameworkResources = null;
+  }
+
   @Nullable
   public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
