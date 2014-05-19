@@ -31,7 +31,6 @@ import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
@@ -40,10 +39,8 @@ import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,6 +52,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
@@ -133,7 +131,7 @@ public class PostProjectBuildTasksExecutor {
 
   public void onBuildCompletion(@NotNull GradleInvocationResult result) {
     Iterator<String> errors = Iterators.emptyIterator();
-    Collection<GradleMessage> errorMessages = result.getCompilerMessages(GradleMessage.Kind.ERROR);
+    List<GradleMessage> errorMessages = result.getCompilerMessages(GradleMessage.Kind.ERROR);
     if (!errorMessages.isEmpty()) {
       errors = new GradleMessageIterator(errorMessages);
     }
