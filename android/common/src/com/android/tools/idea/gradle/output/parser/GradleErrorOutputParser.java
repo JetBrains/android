@@ -29,17 +29,15 @@ import java.util.List;
  * Parses Gradle's error output and creates error/warning messages when appropriate.
  */
 public class GradleErrorOutputParser {
-  private static final CompilerOutputParser[] PARSERS = {
-    new AaptOutputParser(), new AndroidPluginOutputParser(), new JavacOutputParser(), new IgnoredMessagesOutputParser()
-  };
+  private static final CompilerOutputParser[] PARSERS =
+    {new AaptOutputParser(), new AndroidPluginOutputParser(), new JavacOutputParser(), new IgnoredMessagesOutputParser()};
 
   /**
    * Parses the given Gradle output and creates error/warning messages when appropriate. This parser can parse errors from java and aapt.
    *
-   *
-   * @param output                     the given error output.
+   * @param output the given error output.
    * @return error messages created from the given output. An empty list is returned if this parser did not recognize any errors in the
-   *         output or if an error occurred while parsing the given output.
+   * output or if an error occurred while parsing the given output.
    */
   @NotNull
   public List<GradleMessage> parseErrorOutput(@NotNull String output) {
