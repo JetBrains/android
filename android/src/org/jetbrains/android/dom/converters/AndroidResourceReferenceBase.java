@@ -22,10 +22,12 @@ import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -117,9 +119,14 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       }
     }
 
+    if (elements.size() > 1) {
+      Collections.sort(elements, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    }
+
     for (PsiElement target : elements) {
       result.add(new PsiElementResolveResult(target));
     }
+
     return result.toArray(new ResolveResult[result.size()]);
   }
 
