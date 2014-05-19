@@ -78,13 +78,25 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Triggered on every state change. Will call object's value derivers and value setters.
    */
   @Override
-  @SuppressWarnings("unchecked")
   public <T> void invokeUpdate(@Nullable Key<T> changedKey) {
     if (changedKey == null) {
-      return;
+      Set<Key<?>> allKeys = myComponentBindings.columnKeySet();
+      myGuardedKeys.addAll(allKeys);
+      for (Key<?> key : allKeys) {
+        internalUpdateKey(key);
+      }
     }
-    myGuardedKeys.add(changedKey);
+    else {
+      myGuardedKeys.add(changedKey);
+      internalUpdateKey(changedKey);
+    }
+  }
 
+  /**
+   * Unconditionally updates all bindings for a given key.
+   */
+  @SuppressWarnings("unchecked")
+  private <T> void internalUpdateKey(@NotNull Key<T> changedKey) {
     // Update the UI value if the user has not caused this state change
     Object value = unwrap(myState.get(changedKey));
     if (value != null) {
@@ -111,7 +123,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
           if (myUserEditedKeys.contains(key) && deriver.respectUserEdits()) {
             continue;
           }
-          Set<Key> triggerKeys = deriver.getTriggerKeys();
+          Set<Key<?>> triggerKeys = deriver.getTriggerKeys();
           // Respect the deriver's filter of triggers
           if (triggerKeys != null && !triggerKeys.contains(changedKey)) {
             continue;
