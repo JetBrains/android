@@ -53,15 +53,23 @@ public class GradleFileMergerTest extends AndroidTestCase {
   }
 
   public void testMergeDependencies() throws Exception {
-    File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName("templates/Base.gradle"));
+    checkDependencyMerge("templates/Base.gradle", "templates/NewDependencies.gradle", "templates/MergedNewDependencies.gradle");
+  }
+
+  public void testMergeCloudDependencies() throws Exception {
+    checkDependencyMerge("templates/Base.gradle", "templates/CloudDependencies.gradle", "templates/MergedCloudDependencies.gradle");
+  }
+
+  private void checkDependencyMerge(String destPath, String srcPath, String goldenPath) {
+    File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
     String dest = TemplateUtils.readTextFile(destFile);
     assertNotNull(dest);
 
-    File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName("templates/NewDependencies.gradle"));
+    File srcFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(srcPath));
     String source = TemplateUtils.readTextFile(srcFile);
     assertNotNull(source);
 
-    File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName("templates/MergedNewDependencies.gradle"));
+    File goldenFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(goldenPath));
     String golden = TemplateUtils.readTextFile(goldenFile);
     assertNotNull(golden);
 
