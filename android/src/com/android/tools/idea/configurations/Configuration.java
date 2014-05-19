@@ -1150,7 +1150,7 @@ public class Configuration implements Disposable {
   public ResourceRepository getFrameworkResources() {
     IAndroidTarget target = getTarget();
     if (target != null) {
-      return myManager.getResolverCache().getFrameworkResources(target);
+      return myManager.getResolverCache().getFrameworkResources(getFullConfig(), target);
     }
 
     return null;
