@@ -17,15 +17,14 @@ package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ListMultimap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
 public class GradleInvocationResult {
   @NotNull private final List<String> myTasks;
-  @NotNull private final Multimap<GradleMessage.Kind, GradleMessage> myCompilerMessagesByKind = ArrayListMultimap.create();
+  @NotNull private final ListMultimap<GradleMessage.Kind, GradleMessage> myCompilerMessagesByKind = ArrayListMultimap.create();
   private final int myErrorCount;
 
   GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<GradleMessage> compilerMessages) {
@@ -42,7 +41,7 @@ public class GradleInvocationResult {
   }
 
   @NotNull
-  public Collection<GradleMessage> getCompilerMessages(@NotNull GradleMessage.Kind kind) {
+  public List<GradleMessage> getCompilerMessages(@NotNull GradleMessage.Kind kind) {
     return myCompilerMessagesByKind.get(kind);
   }
 
