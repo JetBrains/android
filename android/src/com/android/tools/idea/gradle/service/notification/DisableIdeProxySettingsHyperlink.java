@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,28 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.intellij.openapi.options.ShowSettingsUtil;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HTTPProxySettingsPanel;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
-class OpenHttpSettingsHyperlink extends NotificationHyperlink {
-  OpenHttpSettingsHyperlink() {
-    super("openHttpSettings", "Open HTTP proxy settings");
+/**
+ * Configures the IDE's proxy settings to "No Proxy."
+ */
+class DisableIdeProxySettingsHyperlink extends NotificationHyperlink {
+  DisableIdeProxySettingsHyperlink() {
+    super("disable.proxy.settings", "Disable the IDE's proxy settings and sync project");
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    ShowSettingsUtil.getInstance().editConfigurable(project, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
+    disableProxySettings(HttpConfigurable.getInstance());
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+  }
+
+  @VisibleForTesting
+  static void disableProxySettings(@NotNull HttpConfigurable proxySettings) {
+    proxySettings.USE_HTTP_PROXY = false;
   }
 }
