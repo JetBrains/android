@@ -95,9 +95,8 @@ public class NewAndroidComponentAction extends AnAction {
     assert facet != null;
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    NewTemplateObjectWizard dialog =
-      new NewTemplateObjectWizard(module.getProject(), module, targetFile,
-                                  myTemplateCategory, myTemplateName, EXCLUDED);
+    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(module, targetFile, myTemplateCategory,
+                                                                 myTemplateName, EXCLUDED);
 
     dialog.show();
     if (dialog.isOK()) {
