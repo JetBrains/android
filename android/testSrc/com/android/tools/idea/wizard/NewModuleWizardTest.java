@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
@@ -29,10 +30,7 @@ import org.jetbrains.android.AndroidTestCase;
 import javax.swing.*;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Tests for {@link NewModuleWizard}
@@ -63,9 +61,20 @@ public class NewModuleWizardTest extends AndroidTestCase {
         return !name.startsWith(".");
       }
     }));
+    int expectedCount = templateDirFiles.size() - 3 + 3 /* Less "ImportExistingProject", "NewAndroidModule" and "NewAndroidProject"
+                                                           added project, library, Gradle import */;
+    NewModuleWizardPathFactory[] extensions = Extensions.getExtensions(NewModuleWizardPathFactory.EP_NAME);
+    for (NewModuleWizardPathFactory factory : extensions) {
+      Collection<WizardPath> paths = factory.createWizardPaths(new NewModuleWizardState(), new TemplateWizardStep.UpdateListener() {
+        @Override
+        public void update() {
 
-    int expectedCount = templateDirFiles.size() - 3 + 4 /* Less "ImportExistingProject", "NewAndroidModule" and "NewAndroidProject"
-                                                           added project, library, Gradle import and AAR/JAR import */;
+        }
+      }, null, null, getTestRootDisposable());
+      for (WizardPath path : paths) {
+        expectedCount += path.getBuiltInTemplates().size();
+      }
+    }
 
     ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
     TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(),
