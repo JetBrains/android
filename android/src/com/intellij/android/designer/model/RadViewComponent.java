@@ -18,6 +18,7 @@ package com.intellij.android.designer.model;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.designer.AndroidMetaModel;
 import com.android.tools.idea.designer.Insets;
+import com.android.tools.idea.rendering.IncludeReference;
 import com.android.tools.idea.rendering.RenderService;
 import com.intellij.android.designer.AndroidDesignerUtils;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
@@ -44,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.rendering.IncludeReference.ATTR_RENDER_IN;
+import static com.intellij.android.designer.model.RadModelBuilder.ROOT_NODE_TAG;
 
 /**
  * @author Alexander Lobas
@@ -323,7 +326,17 @@ public class RadViewComponent extends RadVisualComponent {
     // such that a marquee selection within the layout drag will select its children.
     // This will also make select all operate on the children of the layout.
     RadComponent parent = getParent();
-    return parent == null || parent.getParent() == null;
+    if (parent != null) {
+      if (parent.getParent() == null && !parent.getMetaModel().isTag(VIEW_MERGE)) {
+        IncludeReference includeContext = parent.getClientProperty(ATTR_RENDER_IN);
+        if (includeContext != null && includeContext != IncludeReference.NONE) {
+          return false;
+        }
+        return true;
+      }
+    }
+
+    return parent == null;
   }
 
   @Override
