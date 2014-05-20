@@ -17,34 +17,39 @@ package com.android.tools.idea.gradle.output.parser;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.aapt.AaptOutputParser;
-import com.android.tools.idea.gradle.output.parser.androidPlugin.AndroidPluginOutputParser;
+import com.android.tools.idea.gradle.output.parser.androidPlugin.DexExceptionParser;
+import com.android.tools.idea.gradle.output.parser.androidPlugin.ManifestMergeFailureParser;
+import com.android.tools.idea.gradle.output.parser.androidPlugin.MergingExceptionParser;
+import com.android.tools.idea.gradle.output.parser.androidPlugin.XmlValidationErrorParser;
 import com.android.tools.idea.gradle.output.parser.javac.JavacOutputParser;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Parses Gradle's error output and creates error/warning messages when appropriate.
+ * Parses Gradle's build output and creates the messages to be displayed in the "Messages" tool window.
  */
-public class GradleErrorOutputParser {
-  private static final CompilerOutputParser[] PARSERS =
-    {new AaptOutputParser(), new AndroidPluginOutputParser(), new JavacOutputParser(), new IgnoredMessagesOutputParser()};
+public class BuildOutputParser {
+  private static final PatternAwareOutputParser[] PARSERS = {
+    new GradleOutputParser(), new AaptOutputParser(), new XmlValidationErrorParser(), new BuildFailureParser(),
+    new MergingExceptionParser(), new ManifestMergeFailureParser(), new DexExceptionParser(), new JavacOutputParser(),
+  };
 
   /**
-   * Parses the given Gradle output and creates error/warning messages when appropriate. This parser can parse errors from java and aapt.
+   * Parses the given Gradle output and creates the messages to be displayed in the "Messages" tool window.
    *
-   * @param output the given error output.
+   * @param output the given Gradle output.
    * @return error messages created from the given output. An empty list is returned if this parser did not recognize any errors in the
    * output or if an error occurred while parsing the given output.
    */
   @NotNull
-  public List<GradleMessage> parseErrorOutput(@NotNull String output) {
+  public List<GradleMessage> parseGradleOutput(@NotNull String output) {
     OutputLineReader outputReader = new OutputLineReader(output);
 
     if (outputReader.getLineCount() == 0) {
-      return ImmutableList.of();
+      return Collections.emptyList();
     }
 
     List<GradleMessage> messages = Lists.newArrayList();
@@ -54,7 +59,7 @@ public class GradleErrorOutputParser {
         continue;
       }
       boolean handled = false;
-      for (CompilerOutputParser parser : PARSERS) {
+      for (PatternAwareOutputParser parser : PARSERS) {
         try {
           if (parser.parse(line, outputReader, messages)) {
             handled = true;
@@ -62,7 +67,7 @@ public class GradleErrorOutputParser {
           }
         }
         catch (ParsingFailedException e) {
-          return ImmutableList.of();
+          return Collections.emptyList();
         }
       }
       if (!handled) {
