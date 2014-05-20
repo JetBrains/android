@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.rendering.multi;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * The {@linkplain RenderPreviewMode} records what type of configurations to
@@ -58,6 +64,11 @@ public enum RenderPreviewMode {
   CUSTOM,
 
   /**
+   * Show the layout across major API levels.
+   */
+  API_LEVELS,
+
+  /**
    * No previews
    */
   NONE;
@@ -70,7 +81,34 @@ public enum RenderPreviewMode {
 
   /** Sets the current render preview mode (across layouts and projects). Not persisted. */
   public static void setCurrent(@NotNull RenderPreviewMode current) {
-    ourCurrent = current;
+    if (ourCurrent != current) {
+      ourCurrent = current;
+      ourDeletedIds = null;
+    }
+  }
+
+  private static Collection<String> ourDeletedIds;
+
+  /**
+   * Returns true if the given id has been marked as deleted
+   */
+  public static boolean isDeletedId(@Nullable String id) {
+    return ourDeletedIds != null && id != null && ourDeletedIds.contains(id);
+  }
+
+  /**
+   * Record the given preview id as deleted. This allows you to semi-persistently
+   * delete for example a given locale or screen size, and as you switch to other
+   * layouts (and the set of previews are updated for the new layout) the given
+   * type of preview continues to stay hidden -- until you switch preview modes.
+   */
+  public static void deleteId(@Nullable String id) {
+    if (id != null) {
+      if (ourDeletedIds == null) {
+        ourDeletedIds = Sets.newHashSet();
+      }
+      ourDeletedIds.add(id);
+    }
   }
 
   private static RenderPreviewMode ourCurrent = NONE;

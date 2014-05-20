@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -110,6 +111,14 @@ public class TargetMenuAction extends FlatComboAction {
       String title = getRenderingTargetLabel(target, false);
       boolean select = current == target;
       group.add(new SetTargetAction(myRenderContext, title, target, select));
+    }
+
+    group.addSeparator();
+    RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
+    if (currentMode != RenderPreviewMode.API_LEVELS) {
+      ConfigurationMenuAction.addApiLevelPreviewAction(myRenderContext, group);
+    } else {
+      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
     }
 
     return group;

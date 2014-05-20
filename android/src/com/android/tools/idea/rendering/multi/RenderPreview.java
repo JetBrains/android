@@ -113,8 +113,8 @@ public class RenderPreview implements Disposable {
   /** Whether current thumbnail actually has a device frame */
   private boolean myThumbnailHasFrame;
   private @Nullable Rectangle myViewBounds;
-
   private @Nullable Runnable myPendingRendering;
+  private @Nullable String myId;
 
   /**
    * If non null, points to a separate file containing the source
@@ -1275,6 +1275,15 @@ public class RenderPreview implements Disposable {
       // want to reuse the large rendering and just scale it down again
       myThumbnail = null;
     }
+  }
+
+  @Nullable
+  public String getId() {
+    return myId;
+  }
+
+  public void setId(@Nullable String id) {
+    myId = id;
   }
 
   public int getMaxWidth() {

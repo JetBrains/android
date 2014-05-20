@@ -19,14 +19,17 @@ import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ScreenSize;
+import com.android.sdklib.*;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
@@ -34,10 +37,12 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Alarm;
+import com.intellij.util.containers.IntArrayList;
 import com.intellij.util.ui.Animator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -306,6 +311,7 @@ public class RenderPreviewManager implements Disposable {
   @SuppressWarnings("ConstantConditions")
   public void deletePreview(@NotNull RenderPreview preview) {
     assert myPreviews != null;
+    RenderPreviewMode.deleteId(preview.getId());
     myPreviews.remove(preview);
     preview.dispose();
     layout(true);
@@ -571,6 +577,16 @@ public class RenderPreviewManager implements Disposable {
   }
 
   private void addPreview(@NotNull RenderPreview preview) {
+    String id = preview.getId();
+    if (id == null) {
+      id = preview.getDisplayName();
+      preview.setId(id);
+    }
+
+    if (RenderPreviewMode.isDeletedId(id)) {
+      return;
+    }
+
     if (myPreviews == null) {
       myPreviews = Lists.newArrayList();
     }
@@ -752,6 +768,9 @@ public class RenderPreviewManager implements Disposable {
       case RTL:
         addRtlPreviews();
         break;
+      case API_LEVELS:
+        addApiLevelPreviews();
+        break;
       case SCREENS:
         addScreenSizePreviews();
         break;
@@ -854,6 +873,115 @@ public class RenderPreviewManager implements Disposable {
         return String.format("%1$s (%2$s/%3$s)", languageName, languageCode, regionCode);
       }
       return String.format("%1$s/%2$s", languageCode, regionCode);
+    }
+  }
+
+  /**
+   * Adds previews across API levels
+   */
+  public void addApiLevelPreviews() {
+    // For performance reasons and because older layoutlib levels have a number of bugs not back-ported,
+    // we *simulate* older API levels by a combination of using a new layout library and
+    //   (1) Picking different themes according to API levels, e.g. Theme classic for API level < 11 and
+    //       Holo for API level > 11
+    //   (2) Tricking the resource resolvers, which produces a full configuration, to believe that it is
+    //       at an older level, such that if it is simulating API level 11 and it sees a -v14 folder, it
+    //       will not consider that a match
+    //   (3) Possibly mutating the computed resources slightly by pointing to older resource files
+    //       when available. E.g. if simulating Froyo, and you have API 8 installed, and a resource
+    //       value points to the ninepatch file for a text field, if we find the same one in API 8 use
+    //       that one instead. If we do this with XML resources we have to be prepared to resolve aliases
+    //       and theme resources from the older platform which seems iffy.
+    // TODO:
+    //   (4) Rewriting the Build.VERSION.SDK_INT field when loading classes from layoutlib such that it
+    //       returns the right value (for use by custom view logic)
+    //   (5) Revisit my RenderService to make sure choices based on minSdk and target there
+    //       reflect the compatibility render target!
+    Configuration configuration = myRenderContext.getConfiguration();
+    if (configuration == null) {
+      return;
+    }
+
+    IAndroidTarget currentTarget = configuration.getTarget();
+    if (currentTarget == null) {
+      return;
+    }
+    int currentApi = currentTarget.getVersion().getApiLevel();
+
+    IAndroidTarget[] targets = configuration.getConfigurationManager().getTargets();
+
+    IAndroidTarget highestTarget = null;
+    for (int i = targets.length - 1; i >= 0; i--) {
+      IAndroidTarget target = targets[i];
+      if (ConfigurationManager.isLayoutLibTarget(target)) {
+        highestTarget = target;
+        break;
+      }
+    }
+    if (highestTarget == null) {
+      return;
+    }
+
+    IntArrayList list = new IntArrayList();
+
+    Module module = myRenderContext.getModule();
+    if (module == null) {
+      return;
+    }
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
+    if (moduleInfo == null) {
+      return;
+    }
+    int minSdkVersion = moduleInfo.getMinSdkVersion();
+    int min = Math.max(8, minSdkVersion);
+    int max = Math.min(SdkVersionInfo.HIGHEST_KNOWN_API, highestTarget.getVersion().getApiLevel());
+
+    // Froyo: Doesn't look right when rendered with a newer layoutlib: assets are all wrong.
+    addIfWithinInclusive(min, max, 8, list); // Froyo
+    addIfWithinInclusive(min, max, 9, list); // Gingerbread
+    addIfWithinInclusive(min, max, 14, list); // ICS
+
+    for (int i = 0, n = list.size(); i < n; i++) {
+      int api = list.get(i);
+      if (api == currentApi) {
+        // Show the OTHER API levels
+        continue;
+      }
+
+      NestedConfiguration apiConfig = NestedConfiguration.create(configuration);
+      apiConfig.setOverrideTarget(true);
+
+      IAndroidTarget realTarget = null;
+      for (int j = targets.length - 1; j >= 0; j--) {
+        IAndroidTarget target = targets[j];
+        if (target.getVersion().getApiLevel() == api && ConfigurationManager.isLayoutLibTarget(target)) {
+          realTarget = target;
+          break;
+        }
+      }
+
+      IAndroidTarget target = new CompatibilityRenderTarget(api > currentApi ? highestTarget : currentTarget, api, realTarget);
+      apiConfig.setTarget(target);
+      String label = SdkVersionInfo.getCodeName(api);
+      if (label == null) {
+        label = Integer.toString(api);
+      }
+      apiConfig.setDisplayName(label);
+      apiConfig.setTheme(null);
+      RenderPreview preview = RenderPreview.create(this, apiConfig, true);
+      preview.setShowFrame(false);
+      addPreview(preview);
+    }
+
+    RenderPreview preview = RenderPreview.create(this, configuration, true);
+    preview.setShowFrame(false);
+    preview.setDisplayName(SdkVersionInfo.getCodeName(currentTarget.getVersion().getApiLevel()));
+    setStashedPreview(preview);
+  }
+
+  private static void addIfWithinInclusive(int min, int max, int value, IntArrayList list) {
+    if (value >= min && value <= max) {
+      list.add(value);
     }
   }
 
@@ -1692,4 +1820,5 @@ public class RenderPreviewManager implements Disposable {
       myAnimator = null;
     }
   }
+
 }

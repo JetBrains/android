@@ -16,8 +16,10 @@
 package com.android.tools.idea.model;
 
 import com.android.SdkConstants;
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.google.common.base.Charsets;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -118,12 +120,20 @@ class PrimaryManifestInfo extends ManifestInfo {
     // From manifest theme documentation:
     // "If that attribute is also not set, the default system theme is used."
 
-    int renderingTargetSdk = myTargetSdk;
-    if (renderingTarget != null) {
+    int targetSdk = myTargetSdk;
+    AndroidModuleInfo info = AndroidModuleInfo.get(myModule);
+    if (info != null) {
+      targetSdk = info.getTargetSdkVersion();
+    }
+    int renderingTargetSdk = targetSdk;
+    if (renderingTarget instanceof CompatibilityRenderTarget) {
+      renderingTargetSdk = renderingTarget.getVersion().getApiLevel();
+      //targetSdk = SdkVersionInfo.HIGHEST_KNOWN_API
+    } else if (renderingTarget != null) {
       renderingTargetSdk = renderingTarget.getVersion().getApiLevel();
     }
 
-    int apiLevel = Math.min(myTargetSdk, renderingTargetSdk);
+    int apiLevel = Math.min(targetSdk, renderingTargetSdk);
     // For now this theme works only on XLARGE screens. When it works for all sizes,
     // add that new apiLevel to this check.
     if (apiLevel >= 11 && screenSize == ScreenSize.XLARGE || apiLevel >= 14) {

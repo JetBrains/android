@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.rendering.Locale;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -27,8 +29,14 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTagValue;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.FrameworkResourceLoader;
 
 public class ResourceResolverCacheTest extends AndroidTestCase {
+  @Override
+  protected boolean requireRecentSdk() {
+    return true;
+  }
+
   public void test() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject("render/layout1.xml", "res/layout/layout1.xml");
     VirtualFile file2 = myFixture.copyFileToProject("render/layout2.xml", "res/layout/layout2.xml");
@@ -87,6 +95,22 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
         assertTrue(generation < resources.getModificationCount());
         assertNotSame(resolver1b, configuration1.getResourceResolver());
         assertEquals("FooBar", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
+      }
+    });
+
+    ResourceResolverCache cache = configuration1.getConfigurationManager().getResolverCache();
+    assertSame(cache, configuration2.getConfigurationManager().getResolverCache());
+
+    ResourceRepository frameworkResources = cache.getFrameworkResources(configuration1.getFullConfig(), configuration1.getTarget());
+    assertTrue(frameworkResources instanceof FrameworkResourceLoader.IdeFrameworkResources);
+    assertTrue(((FrameworkResourceLoader.IdeFrameworkResources)frameworkResources).getSkippedLocales());
+
+    configuration1.setLocale(Locale.create("no"));
+    assertTrue(((FrameworkResourceLoader.IdeFrameworkResources)frameworkResources).getSkippedLocales());
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        assertEquals("", configuration1.getResourceResolver().findResValue("@android:string/cancel", false).getValue());
       }
     });
   }
