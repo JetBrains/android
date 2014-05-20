@@ -21,16 +21,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * Parses the output of a compiler.
+ * Parses the build output. Implementations are specialized in particular output patterns.
  */
-public interface CompilerOutputParser {
+public interface PatternAwareOutputParser {
   /**
    * Parses the given output line.
    *
    * @param line     the line to parse.
    * @param reader   passed in case this parser needs to parse more lines in order to create a {@code GradleMessage}.
-   * @param messages stores the compiler messages created during parsing, if any.
-   * @return indicates whether this parser was able to parser the given line.
+   * @param messages stores the messages created during parsing, if any.
+   * @return {@code true} if this parser was able to parser the given line, {@code false} otherwise.
    * @throws ParsingFailedException if something goes wrong (e.g. malformed output.)
    */
   boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)

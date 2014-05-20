@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindo
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
+import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
@@ -386,7 +386,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull
   private List<GradleMessage> showMessages(@NotNull String gradleOutput) {
-    List<GradleMessage> compilerMessages = new GradleErrorOutputParser().parseErrorOutput(gradleOutput);
+    List<GradleMessage> compilerMessages = new BuildOutputParser().parseGradleOutput(gradleOutput);
     for (GradleMessage msg : compilerMessages) {
       addMessage(msg, null);
     }
@@ -603,7 +603,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull
   private String createStatusMessage(long durationMillis) {
-    String message = "Gradle invocation completed successfully";
+    String message = "Gradle build finished";
     if (myErrorCount > 0) {
       if (myWarningCount > 0) {
         message += String.format(" with %d error(s) and %d warning(s)", myErrorCount, myWarningCount);

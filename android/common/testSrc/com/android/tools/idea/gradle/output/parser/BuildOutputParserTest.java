@@ -41,22 +41,22 @@ import static com.android.SdkConstants.*;
 import static com.android.utils.SdkUtils.createPathComment;
 
 /**
- * Tests for {@link com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser}.
+ * Tests for {@link BuildOutputParser}.
  *
  * These tests MUST be executed on Windows too.
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "StringBufferReplaceableByString"})
-public class GradleErrorOutputParserTest extends TestCase {
+public class BuildOutputParserTest extends TestCase {
   private static final String NEWLINE = SystemProperties.getLineSeparator();
 
   private File sourceFile;
   private String sourceFilePath;
-  private GradleErrorOutputParser parser;
+  private BuildOutputParser parser;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    parser = new GradleErrorOutputParser();
+    parser = new BuildOutputParser();
   }
 
   @Override
@@ -69,7 +69,7 @@ public class GradleErrorOutputParserTest extends TestCase {
 
   public void testParseDisplayingUnhandledMessages() {
     String output = " **--- HELLO WORLD ---**";
-    List<GradleMessage> gradleMessages = parser.parseErrorOutput(output);
+    List<GradleMessage> gradleMessages = parser.parseGradleOutput(output);
     assertEquals(1, gradleMessages.size());
     GradleMessage message = gradleMessages.get(0);
     assertEquals(output, message.getText());
@@ -84,7 +84,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label='@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 4, 61);
   }
 
@@ -99,7 +99,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <application android:icon='@drawable/icon' android:label=", "      '@string/app_name2'>");
     String messageText = "No resource found that matches the given name (at 'label' with value " + "'@string/app_name2').";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 5, 8);
   }
 
@@ -116,7 +116,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Resource entry repeatedStyle1 already has bag item android:gravity.";
     String err = sourceFilePath + ":6: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 17);
   }
 
@@ -131,7 +131,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <item name='android:gravity'>left</item>");
     String messageText = "Originally defined here.";
     String err = sourceFilePath + ":3: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 5);
   }
 
@@ -144,7 +144,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "    <item name='nonexistent'>left</item>");
     String messageText = "No resource found that matches the given name: attr 'nonexistent'.";
     String err = sourceFilePath + ":3: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 17);
   }
 
@@ -155,7 +155,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <style>");
     String messageText = "A 'name' attribute is required for <style>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -165,7 +165,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'type' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -175,7 +175,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "  <item>");
     String messageText = "A 'name' attribute is required for <item>";
     String err = sourceFilePath + ":2: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 2, 3);
   }
 
@@ -186,7 +186,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        <item name='android:layout_width'></item>");
     String messageText = "String types not allowed (at 'android:layout_width' with value '').";
     String err = sourceFilePath + ":3: error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 3, 21);
   }
 
@@ -202,7 +202,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginTop' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 8, 34);
   }
 
@@ -219,7 +219,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        android:layout_marginLeft=''");
     String messageText = "String types not allowed (at 'layout_marginLeft' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 9, 35);
   }
 
@@ -233,7 +233,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                 "        android:id=''");
     String messageText = "String types not allowed (at 'id' with value '').";
     String err = sourceFilePath + ":5: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertHasCorrectErrorMessage(messages, messageText, 6, 20);
   }
 
@@ -252,7 +252,7 @@ public class GradleErrorOutputParserTest extends TestCase {
        .append("location: Test").append(NEWLINE)
        .append("    int v2 = v4").append(NEWLINE)
        .append("             ^");
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: cannot find symbol variable v4", 3, 14);
   }
 
@@ -265,7 +265,7 @@ public class GradleErrorOutputParserTest extends TestCase {
     err.append(sourceFilePath).append(":3: error: ").append("not a statement").append(NEWLINE)
        .append("    System.out.println();asd").append(NEWLINE)
        .append("                         ^").append(NEWLINE);
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err.toString());
     assertHasCorrectErrorMessage(messages, "error: not a statement", 3, 26);
   }
 
@@ -292,13 +292,13 @@ public class GradleErrorOutputParserTest extends TestCase {
       NEWLINE).append(NEWLINE);
     err.append("BUILD FAILED").append(NEWLINE).append(NEWLINE);
     err.append("Total time: 18.303 secs\n");
-    List<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    List<GradleMessage> messages = parser.parseGradleOutput(err.toString());
 
     assertEquals("0: Error:A problem occurred evaluating project ':project'.\n" +
                  "> Could not find method ERROR() for arguments [{plugin=android}] on project ':project'.\n" +
                  "\t" + sourceFilePath + ":9:0\n" +
-                 "1: Simple:BUILD FAILED\n" +
-                 "2: Simple:Total time: 18.303 secs\n",
+                 "1: Info:BUILD FAILED\n" +
+                 "2: Info:Total time: 18.303 secs\n",
                  toString(messages));
   }
 
@@ -306,20 +306,27 @@ public class GradleErrorOutputParserTest extends TestCase {
     StringBuilder err = new StringBuilder();
     err.append("[Fatal Error] :5:7: The element type \"error\" must be terminated by the matching end-tag \"</error>\".").append(NEWLINE);
     err.append("FAILURE: Build failed with an exception.").append(NEWLINE);
-    List<GradleMessage> messages = parser.parseErrorOutput(err.toString());
+    List<GradleMessage> messages = parser.parseGradleOutput(err.toString());
 
     assertEquals("0: Error:The element type \"error\" must be terminated by the matching end-tag \"</error>\".\n" +
                  "1: Simple:FAILURE: Build failed with an exception.\n",
                  toString(messages));
   }
 
-  private void createTempFile(String fileExtension) throws IOException {
-    sourceFile = File.createTempFile(GradleErrorOutputParserTest.class.getName(), fileExtension);
+  public void testParseIncubatingFeatureMessage() {
+    String out = "Parallel execution with configuration on demand is an incubating feature.";
+    List<GradleMessage> messages = parser.parseGradleOutput(out);
+    assertEquals("0: Warning:Parallel execution with configuration on demand is an incubating feature.\n",
+                 toString(messages));
+  }
+
+  private void createTempFile(@NotNull String fileExtension) throws IOException {
+    sourceFile = File.createTempFile(BuildOutputParserTest.class.getName(), fileExtension);
     sourceFilePath = sourceFile.getAbsolutePath();
   }
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
-  private void writeToFile(String... lines) throws IOException {
+  private void writeToFile(@NotNull String... lines) throws IOException {
     BufferedWriter out = null;
     try {
       out = new BufferedWriter(new FileWriter(sourceFile));
@@ -333,8 +340,8 @@ public class GradleErrorOutputParserTest extends TestCase {
     }
   }
 
-  private void assertHasCorrectErrorMessage(Collection<GradleMessage> messages,
-                                            String expectedText,
+  private void assertHasCorrectErrorMessage(@NotNull Collection<GradleMessage> messages,
+                                            @NotNull String expectedText,
                                             long expectedLine,
                                             long expectedColumn) {
     assertEquals("[message count]", 1, messages.size());
@@ -437,7 +444,7 @@ public class GradleErrorOutputParserTest extends TestCase {
 
     String messageText = "String types not allowed (at 'drawable_ref' with value '@drawable/stat_notify_sync_anim0').";
     String err = sourceFilePath + ":46: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
@@ -508,7 +515,7 @@ public class GradleErrorOutputParserTest extends TestCase {
 
     String messageText = "Random error message here";
     String err = sourceFilePath + ":4: error: Error: " + messageText;
-    Collection<GradleMessage> messages = parser.parseErrorOutput(err);
+    Collection<GradleMessage> messages = parser.parseGradleOutput(err);
     assertEquals(1, messages.size());
 
     assertEquals("[message count]", 1, messages.size());
@@ -558,8 +565,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "1: Error:No resource found that matches the given name (at 'text' with value '@string/does_not_exist').\n" +
                  "\t" + sourceFilePath + ":5:27\n" +
                  "2: Error:Execution failed for task ':five:processDebugResources'.\n" +
-                 "3: Simple:BUILD FAILED\n",
-                 toString(parser.parseErrorOutput(err)));
+                 "3: Info:BUILD FAILED\n",
+                 toString(parser.parseGradleOutput(err)));
   }
 
   public void testLockOwner() throws Exception {
@@ -584,9 +591,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "> Failed to notify project evaluation listener.\n" +
                  "   > Could not resolve all dependencies for configuration ':MyApplication1:_DebugCompile'.\n" +
                  "      > Problems pinging owner of lock '-7513739537696464924' at port: 55416\n" +
-                 "2: Simple:BUILD FAILED\n" +
-                 "3: Simple:Total time: 24.154 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "2: Info:BUILD FAILED\n" +
+                 "3: Info:Total time: 24.154 secs\n",
+                 toString(parser.parseGradleOutput(output)));
   }
 
   public void testDuplicateResources() throws Exception {
@@ -620,7 +627,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> Found item String/drawer_open more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseGradleOutput(output)));
 
     // Also test CRLF handling:
     output = output.replace("\n", "\r\n");
@@ -629,12 +636,12 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "1: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> Found item String/drawer_open more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseGradleOutput(output)));
   }
 
   public void testDuplicateResources2() throws Exception {
-    File file1 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
-    File file2 = File.createTempFile(GradleErrorOutputParserTest.class.getName(), DOT_XML);
+    File file1 = File.createTempFile(BuildOutputParserTest.class.getName(), DOT_XML);
+    File file2 = File.createTempFile(BuildOutputParserTest.class.getName(), DOT_XML);
     String path1 = file1.getPath();
     String path2 = file2.getPath();
 
@@ -684,9 +691,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + path2 + ":3:-1\n" +
                  "7: Error:Execution failed for task ':mergeF2FaDebugResources'.\n" +
                  "\t" + path1 + ":4:-1\n" +
-                 "8: Simple:BUILD FAILED\n" +
-                 "9: Simple:Total time: 6.462 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "8: Info:BUILD FAILED\n" +
+                 "9: Info:Total time: 6.462 secs\n",
+                 toString(parser.parseGradleOutput(output)));
 
     file1.delete();
     file2.delete();
@@ -724,7 +731,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "7: Simple:More unexpected output.\n" +
                  "8: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> I was surprised\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseGradleOutput(output)));
   }
 
   public void testXmlError() throws Exception {
@@ -778,9 +785,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "14: Error:Execution failed for task ':MyApp:mergeDebugResources'.\n" +
                  "> org.xml.sax.SAXParseException: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
                  "\t" + sourceFilePath + ":7:18\n" +
-                 "15: Simple:BUILD FAILED\n" +
-                 "16: Simple:Total time: 7.245 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "15: Info:BUILD FAILED\n" +
+                 "16: Info:Total time: 7.245 secs\n",
+                 toString(parser.parseGradleOutput(output)));
   }
 
   public void testJavac() throws Exception {
@@ -815,9 +822,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "2: Simple::MyApp:compileDebug FAILED\n" +
                  "3: Error:Execution failed for task ':MyApp:compileDebug'.\n" +
                  "> Compilation failed; see the compiler error output for details.\n" +
-                 "4: Simple:BUILD FAILED\n" +
-                 "5: Simple:Total time: 12.42 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "4: Info:BUILD FAILED\n" +
+                 "5: Info:Total time: 12.42 secs\n",
+                 toString(parser.parseGradleOutput(output)));
   }
 
   public void testOom() throws Exception {
@@ -844,9 +851,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "   > A problem occurred configuring project ':facebook'.\n" +
                  "      > Failed to notify project evaluation listener.\n" +
                  "         > java.lang.OutOfMemoryError: PermGen space\n" +
-                 "1: Simple:BUILD FAILED\n" +
-                 "2: Simple:Total time: 24.154 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "1: Info:BUILD FAILED\n" +
+                 "2: Info:Total time: 24.154 secs\n",
+                 toString(parser.parseGradleOutput(output)));
 
     String output2 =
       "To honour the JVM settings for this build a new JVM will be forked. Please consider using the daemon: http://gradle.org/docs/1.7/userguide/gradle_daemon.html.\n" +
@@ -869,9 +876,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "1: Error:A problem occurred configuring project ':MyNewApp'.\n" +
                  "> Failed to notify project evaluation listener.\n" +
                  "   > java.lang.OutOfMemoryError: Java heap space\n" +
-                 "2: Simple:BUILD FAILED\n" +
-                 "3: Simple:Total time: 24.154 secs\n",
-                 toString(parser.parseErrorOutput(output2)));
+                 "2: Info:BUILD FAILED\n" +
+                 "3: Info:Total time: 24.154 secs\n",
+                 toString(parser.parseGradleOutput(output2)));
   }
 
   public void test() throws Exception {
@@ -949,9 +956,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "11: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
                  "\t" + source.getPath() + ":5:28\n" +
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "13: Simple:BUILD FAILED\n" +
-                 "14: Simple:Total time: 5.435 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "13: Info:BUILD FAILED\n" +
+                 "14: Info:Total time: 5.435 secs\n",
+                 toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
     source.delete();
@@ -1038,9 +1045,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "11: Error:Integer types not allowed (at 'new_name' with value '50').\n" +
                  "\t" + source.getPath() + ":5:28\n" +
                  "12: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "13: Simple:BUILD FAILED\n" +
-                 "14: Simple:Total time: 5.435 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "13: Info:BUILD FAILED\n" +
+                 "14: Info:Total time: 5.435 secs\n",
+                 toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
     source.delete();
@@ -1150,8 +1157,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "16: Error:No resource identifier found for attribute 'slayout_alignParentTop' in package 'android'\n" +
                  "\t" + source.getPath() + ":12:-1\n" +
                  "17: Error:Execution failed for task ':BlankProject1:processDebugResources'.\n" +
-                 "18: Simple:BUILD FAILED\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "18: Info:BUILD FAILED\n",
+                 toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
     source.delete();
@@ -1182,8 +1189,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "2: Error:Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
                  "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "3: Simple:BUILD FAILED\n" +
-                 "4: Simple:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+                 "3: Info:BUILD FAILED\n" +
+                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1211,8 +1218,8 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "2: Error:Execution failed for task ':MyApp:mergeReleaseResources'.\n" +
                  "> In DataSet 'main', no data file for changedFile '" + sourceFilePath + "'. This is an internal error in the incremental builds code; to work around it, try doing a full clean build.\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "3: Simple:BUILD FAILED\n" +
-                 "4: Simple:Total time: 15.612 secs\n", toString(parser.parseErrorOutput(output)));
+                 "3: Info:BUILD FAILED\n" +
+                 "4: Info:Total time: 15.612 secs\n", toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1264,9 +1271,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "11: Error:Error parsing XML: mismatched tag\n" +
                  "\t" + sourceFilePath + ":101:-1\n" +
                  "12: Error:Execution failed for task ':AudioPlayer:processDebugResources'.\n" +
-                 "13: Simple:BUILD FAILED\n" +
-                 "14: Simple:Total time: 3.836 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "13: Info:BUILD FAILED\n" +
+                 "14: Info:Total time: 3.836 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1318,9 +1325,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "13: Error:Execution failed for task ':MyApplication589:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Duplicate resources: " + sourceFilePath + ", /some/other/path/src/main/res/values/strings.xml:string/action_settings\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "14: Simple:BUILD FAILED\n" +
-                 "15: Simple:Total time: 4.861 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 4.861 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1373,9 +1380,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "14: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4:1: Error: The content of elements must consist of well-formed character data or markup.\n" +
                  "\t" + sourceFilePath + ":4:1\n" +
-                 "15: Simple:BUILD FAILED\n" +
-                 "16: Simple:Total time: 5.187 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "15: Info:BUILD FAILED\n" +
+                 "16: Info:Total time: 5.187 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1394,7 +1401,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "3: Error:Error: The content of elements must consist of well-formed character data or markup.\n" +
                  "\t" + sourceFilePath + ":-1:-1\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1447,9 +1454,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "14: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> "+ sourceFilePath + ":2:16: Error: Open quote is expected for attribute \"{1}\" associated with an  element type  \"name\".\n" +
                  "\t" + sourceFilePath + ":2:16\n" +
-                 "15: Simple:BUILD FAILED\n" +
-                 "16: Simple:Total time: 4.951 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "15: Info:BUILD FAILED\n" +
+                 "16: Info:Total time: 4.951 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1521,9 +1528,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "22: Simple::MyApplication:compileDebug FAILED\n" +
                  "23: Error:Execution failed for task ':MyApplication:compileDebug'.\n" +
                  "> Compilation failed; see the compiler error output for details.\n" +
-                 "24: Simple:BUILD FAILED\n" +
-                 "25: Simple:Total time: 6.177 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "24: Info:BUILD FAILED\n" +
+                 "25: Info:Total time: 6.177 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1587,9 +1594,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  // TODO: This is all we currently get. We should find a way to trap this and point to the
                  // right source file where the invalid source flag is set
                  "> invalid source release: 1.7\n" +
-                 "20: Simple:BUILD FAILED\n" +
-                 "21: Simple:Total time: 5.47 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "20: Info:BUILD FAILED\n" +
+                 "21: Info:Total time: 5.47 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1640,9 +1647,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "13: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "14: Simple:BUILD FAILED\n" +
-                 "15: Simple:Total time: 8.91 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 8.91 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
   public void testInvalidLayoutName2() throws Exception {
@@ -1692,9 +1699,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "13: Error:Execution failed for task ':MyApplication585:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ":4: Error: Invalid file name: must contain only lowercase letters and digits ([a-z0-9_.])\n" +
                  "\t" + sourceFilePath + ":4:-1\n" +
-                 "14: Simple:BUILD FAILED\n" +
-                 "15: Simple:Total time: 8.91 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 8.91 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1745,9 +1752,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "13: Error:Execution failed for task ':MyApplication:mergeDebugResources'.\n" +
                  "> " + sourceFilePath + ": Error: Found item Dimension/activity_horizontal_margin more than one time\n" +
                  "\t" + sourceFilePath + ":-1:-1\n" +
-                 "14: Simple:BUILD FAILED\n" +
-                 "15: Simple:Total time: 5.623 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "14: Info:BUILD FAILED\n" +
+                 "15: Info:Total time: 5.623 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1776,9 +1783,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  // However, we have an import hyperlink helper to do it automatically, so may not be necessary
                  "> Gradle version 1.8 is required. Current version is 1.7. If using the gradle wrapper, try editing the distributionUrl in /some/path/gradle.properties to gradle-1.8-all.zip\n" +
                  "\t" + sourceFilePath + ":24:0\n" +
-                 "1: Simple:BUILD FAILED\n" +
-                 "2: Simple:Total time: 4.467 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "1: Info:BUILD FAILED\n" +
+                 "2: Info:Total time: 4.467 secs\n",
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1802,7 +1809,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":1:-1\n" +
                  "2: Simple::processFlavor1DebugManifest FAILED\n" +
                  "3: Simple:FAILURE: Build failed with an exception.\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1826,7 +1833,7 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "\tC:\\Users\\Android\\AppData\\Local\\Temp\\com.android.tools.idea.gradle.output.parser.GradleErrorOutputParserTest4437574780178007978.xml:1:-1\n" +
                  "2: Simple::processFlavor1DebugManifest FAILED\n" +
                  "3: Simple:FAILURE: Build failed with an exception.\n",
-                 toString(parser.parseErrorOutput(output)));
+                 toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }
 
@@ -1870,9 +1877,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "2: Simple:1 error; aborting\n" +
                  "3: Error:Execution failed for task ':two:dexDebug'.\n" +
                  "> Could not call IncrementalTask.taskAction() on task ':two:dexDebug'\n" +
-                 "4: Simple:BUILD FAILED\n" +
-                 "5: Simple:Total time: 9.491 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "4: Info:BUILD FAILED\n" +
+                 "5: Info:Total time: 9.491 secs\n",
+                 toString(parser.parseGradleOutput(output)));
   }
 
   public void testMultilineCompileError() throws Exception {
@@ -1907,9 +1914,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "2: Simple::two:compileDebug FAILED\n" +
                  "3: Error:Execution failed for task ':two:compileDebug'.\n" +
                  "> Compilation failed; see the compiler error output for details.\n" +
-                 "4: Simple:BUILD FAILED\n" +
-                 "5: Simple:Total time: 5.354 secs\n",
-                 toString(parser.parseErrorOutput(output)).replaceAll("\r\n","\n"));
+                 "4: Info:BUILD FAILED\n" +
+                 "5: Info:Total time: 5.354 secs\n",
+                 toString(parser.parseGradleOutput(output)).replaceAll("\r\n","\n"));
     sourceFile.delete();
   }
 
@@ -2044,9 +2051,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
                  "\t" + source.getPath() + ":13:23\n" +
-                 "17: Simple:BUILD FAILED\n" +
-                 "18: Simple:Total time: 7.024 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "17: Info:BUILD FAILED\n" +
+                 "18: Info:Total time: 7.024 secs\n",
+                 toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
     source.delete();
@@ -2194,9 +2201,9 @@ public class GradleErrorOutputParserTest extends TestCase {
                  "  Output:\n" +
                  "  \t" + sourceFilePath + ":7: error: Error: No resource found that matches the given name (at 'icon' with value '@drawable/ic_xlauncher').\n" +
                  "\t" + source.getPath() + ":13:23\n" +
-                 "17: Simple:BUILD FAILED\n" +
-                 "18: Simple:Total time: 7.024 secs\n",
-                 toString(parser.parseErrorOutput(output)));
+                 "17: Info:BUILD FAILED\n" +
+                 "18: Info:Total time: 7.024 secs\n",
+                 toString(parser.parseGradleOutput(output)));
 
     sourceFile.delete();
     source.delete();

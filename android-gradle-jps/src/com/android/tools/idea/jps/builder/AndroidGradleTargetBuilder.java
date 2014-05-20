@@ -16,7 +16,7 @@
 package com.android.tools.idea.jps.builder;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.GradleErrorOutputParser;
+import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
@@ -76,7 +76,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPT
  */
 public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuildTarget.RootDescriptor, AndroidGradleBuildTarget> {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTargetBuilder.class);
-  private static final GradleErrorOutputParser ERROR_OUTPUT_PARSER = new GradleErrorOutputParser();
 
   @NonNls private static final String BUILDER_NAME = "Android Gradle Target Builder";
 
@@ -399,7 +398,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
    * "Problems" view. The idea is that we need to somehow inform the user that something went wrong.
    */
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
-    Collection<GradleMessage> compilerMessages = ERROR_OUTPUT_PARSER.parseErrorOutput(stdErr);
+    Collection<GradleMessage> compilerMessages = new BuildOutputParser().parseGradleOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
       for (GradleMessage message : compilerMessages) {
         context.processMessage(AndroidGradleJps.createCompilerMessage(message));
