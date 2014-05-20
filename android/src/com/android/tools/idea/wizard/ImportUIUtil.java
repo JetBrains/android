@@ -17,17 +17,23 @@ package com.android.tools.idea.wizard;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility class for common import UI code.
  */
 public class ImportUIUtil {
+  private ImportUIUtil() {
+    // Do nothing
+  }
+
   /**
    * Formats a message picking the format string depending on number of arguments
    *
-   * @param values values that will be used as format argument.
-   * @param oneElementMessage message when only one value is in the list. Should accept one string argument.
-   * @param twoOrThreeElementsMessage message format when there's 2 or 3 values. Should accept two string arguments.
+   * @param values                       values that will be used as format argument.
+   * @param oneElementMessage            message when only one value is in the list. Should accept one string argument.
+   * @param twoOrThreeElementsMessage    message format when there's 2 or 3 values. Should accept two string arguments.
    * @param moreThenThreeElementsMessage message format for over 3 values. Should accept one string and one number.
    * @return formatted message string
    */
@@ -51,7 +57,11 @@ public class ImportUIUtil {
     return Joiner.on(", ").join(Iterables.limit(names, Math.min(size - 1, 2)));
   }
 
-  private ImportUIUtil() {
-    // Do nothing
+  @Nullable
+  public static String makeHtmlString(@Nullable String templateDescription) {
+    if (!StringUtil.isEmpty(templateDescription) && !templateDescription.startsWith("<html>")) {
+      templateDescription = String.format("<html>%1$s</html>", templateDescription.trim());
+    }
+    return templateDescription;
   }
 }
