@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.structure.AndroidModuleConfigurable;
+import com.android.tools.idea.structure.AndroidProjectConfigurable;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -87,6 +88,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @NotNull private final DefaultSdksConfigurable mySdksConfigurable = new DefaultSdksConfigurable(this);
   @NotNull private final Map<String, AndroidModuleConfigurable> myModuleConfigurablesByName = Maps.newHashMap();
+  @NotNull private final AndroidProjectConfigurable myProjectConfigurable;
 
   private JComponent myToFocus;
 
@@ -115,7 +117,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   public AndroidProjectStructureConfigurable(@NotNull Project project) {
     myProject = project;
     myUiState = new UiState(project);
-
+    myProjectConfigurable = new AndroidProjectConfigurable(project);
     myDisposable = new Disposable() {
       @Override
       public void dispose() {
@@ -177,7 +179,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @Override
   public boolean isModified() {
-    if (mySdksConfigurable.isModified()) {
+    if (mySdksConfigurable.isModified() || myProjectConfigurable.isModified()) {
       return true;
     }
     for (AndroidModuleConfigurable configurable : myModuleConfigurablesByName.values()) {
@@ -196,6 +198,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
 
     apply(mySdksConfigurable);
+    apply(myProjectConfigurable);
     for (AndroidModuleConfigurable configurable : myModuleConfigurablesByName.values()) {
       apply(configurable);
     }
@@ -219,6 +222,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     try {
       mySdksConfigurable.reset();
+      myProjectConfigurable.reset();
 
       myModuleConfigurablesByName.clear();
       if (myUiInitialized) {
@@ -299,6 +303,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     selectConfigurable(mySdksConfigurable, requestFocus);
   }
 
+  private void selectProjectPropertiesConfigurable(boolean requestFocus) {
+    selectConfigurable(myProjectConfigurable, requestFocus);
+  }
+
   private void selectModuleConfigurable(@NotNull Module module) {
     AndroidModuleConfigurable configurable = getConfigurableFor(module);
     if (configurable != null) {
@@ -345,6 +353,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     myUiState.proportion = mySplitter.getProportion();
 
     mySdksConfigurable.disposeUIResources();
+    myProjectConfigurable.disposeUIResources();
     for (AndroidModuleConfigurable configurable : myModuleConfigurablesByName.values()) {
       configurable.disposeUIResources();
     }
@@ -438,7 +447,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   private class SidePanel extends JPanel {
     private static final int SDKS_ELEMENT_INDEX = 0;
-    private static final int FIRST_MODULE_ELEMENT_INDEX = 1;
+    private static final int PROJECT_PROPERTIES_ELEMENT_INDEX = 1;
+    private static final int FIRST_MODULE_ELEMENT_INDEX = 2;
 
     @NotNull private final JBList myList;
     @NotNull private final DefaultListModel myListModel;
@@ -447,6 +457,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       super(new BorderLayout());
       myListModel = new DefaultListModel();
       myListModel.addElement("SDK Location");
+      myListModel.addElement("Project");
 
       myList = new JBList(myListModel);
 
@@ -501,6 +512,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           if (myList.getSelectedIndex() == SDKS_ELEMENT_INDEX) {
             selectSdkHomeConfigurable(true);
           }
+          else if (myList.getSelectedIndex() == PROJECT_PROPERTIES_ELEMENT_INDEX) {
+            selectProjectPropertiesConfigurable(true);
+          }
           else {
             Object selection = myList.getSelectedValue();
             if (selection instanceof Module) {
@@ -539,7 +553,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
     void removeModules() {
       int size = myListModel.getSize();
-      if (size > 1) {
+      if (size > FIRST_MODULE_ELEMENT_INDEX) {
         myListModel.removeRange(FIRST_MODULE_ELEMENT_INDEX, size - 1);
       }
     }

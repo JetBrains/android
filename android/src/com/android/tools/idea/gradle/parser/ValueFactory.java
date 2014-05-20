@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.parser;
 
 import com.android.annotations.Nullable;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
@@ -61,6 +62,14 @@ public abstract class ValueFactory<E> {
       }
     }
     GradleGroovyFile.reformatClosure(closure);
+  }
+
+  /**
+   * If your subclass supports parsing values from string, override this method to implement that functionality
+   */
+  @NotNull
+  public E parse(@NotNull String s, Project project) {
+    throw new UnsupportedOperationException("parse not implemented");
   }
 
   /**
