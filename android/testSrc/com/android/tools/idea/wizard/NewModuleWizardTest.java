@@ -70,7 +70,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
         public void update() {
 
         }
-      }, null, null, getTestRootDisposable());
+      }, getProject(), null, getTestRootDisposable());
       for (WizardPath path : paths) {
         expectedCount += path.getBuiltInTemplates().size();
       }
