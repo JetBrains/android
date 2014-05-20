@@ -35,7 +35,6 @@ import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
-import com.intellij.ide.errorTreeView.impl.ErrorTreeViewConfiguration;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -537,8 +536,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           myErrorTreeView.addMessage(type, text, null, navigatable, null, null, null);
         }
 
-        boolean autoActivate =
-          !myMessagesAutoActivated && (type == MessageCategory.ERROR || (type == MessageCategory.WARNING && !shouldHideWarnings()));
+        boolean autoActivate = !myMessagesAutoActivated && type == MessageCategory.ERROR;
         if (autoActivate) {
           myMessagesAutoActivated = true;
           activateMessageView();
@@ -564,11 +562,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
       return null;
     }
     return VfsUtil.findFileByIoFile(new File(sourcePath), true);
-  }
-
-  private boolean shouldHideWarnings() {
-    Project project = getNotNullProject();
-    return ErrorTreeViewConfiguration.getInstance(project).isHideWarnings();
   }
 
   private static int translateMessageKind(@NotNull GradleMessage.Kind kind) {
