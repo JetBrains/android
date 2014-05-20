@@ -18,6 +18,7 @@ package com.android.tools.idea.editors;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -85,7 +86,23 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   private AndroidProject getAndroidProject(@NotNull VirtualFile file) {
     Module module = ModuleUtilCore.findModuleForFile(file, myProject);
     if (module == null) {
-      return null;
+      if (Projects.isGradleProject(myProject)) {
+        // You've edited a file that does not correspond to a module in a Gradle project; you are
+        // most likely editing a file in an excluded folder under the build directory
+        VirtualFile base = myProject.getBaseDir();
+        VirtualFile parent = file.getParent();
+        while (parent != null && parent != base) {
+          module = ModuleUtilCore.findModuleForFile(parent, myProject);
+          if (module != null) {
+            break;
+          }
+          parent = parent.getParent();
+        }
+      }
+
+      if (module == null) {
+        return null;
+      }
     }
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
