@@ -941,7 +941,7 @@ public class BuildOutputParserTest extends TestCase {
       "\n" +
       "Total time: 5.435 secs";
 
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
                  "2: Simple::BlankProject1:prepareDebugDependencies\n" +
                  "3: Simple::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
@@ -1030,7 +1030,7 @@ public class BuildOutputParserTest extends TestCase {
       "\n" +
       "Total time: 5.435 secs";
 
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::BlankProject1:prepareComAndroidSupportAppcompatV71800Library UP-TO-DATE\n" +
                  "2: Simple::BlankProject1:prepareDebugDependencies\n" +
                  "3: Simple::BlankProject1:mergeDebugAssets UP-TO-DATE\n" +
@@ -1137,7 +1137,7 @@ public class BuildOutputParserTest extends TestCase {
       "\n" +
       "BUILD FAILED\n";
 
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::BlankProject1:preBuild UP-TO-DATE\n" +
                  "2: Simple::BlankProject1:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::BlankProject1:preReleaseBuild UP-TO-DATE\n" +
@@ -1308,7 +1308,7 @@ public class BuildOutputParserTest extends TestCase {
       "\n" +
       "Total time: 4.861 secs";
 
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication589:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication589:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication589:preReleaseBuild UP-TO-DATE\n" +
@@ -1362,7 +1362,7 @@ public class BuildOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 5.187 secs";
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
@@ -1436,7 +1436,7 @@ public class BuildOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 4.951 secs";
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
@@ -1501,7 +1501,7 @@ public class BuildOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 6.177 secs";
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
@@ -1571,7 +1571,7 @@ public class BuildOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 5.47 secs";
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication:preFreeDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication:preFreeReleaseBuild UP-TO-DATE\n" +
@@ -1630,7 +1630,7 @@ public class BuildOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 8.91 secs";
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication585:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication585:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
@@ -1682,7 +1682,7 @@ public class BuildOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 8.91 secs";
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication585:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication585:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication585:preReleaseBuild UP-TO-DATE\n" +
@@ -1735,7 +1735,7 @@ public class BuildOutputParserTest extends TestCase {
       "BUILD FAILED\n" +
       "\n" +
       "Total time: 5.623 secs";
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::MyApplication:preBuild UP-TO-DATE\n" +
                  "2: Simple::MyApplication:preDebugBuild UP-TO-DATE\n" +
                  "3: Simple::MyApplication:preReleaseBuild UP-TO-DATE\n" +
@@ -2019,7 +2019,7 @@ public class BuildOutputParserTest extends TestCase {
       "\n" +
       "Total time: 7.024 secs";
 
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
                  "2: Simple::App:preBuild UP-TO-DATE\n" +
                  "3: Simple::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
@@ -2169,7 +2169,7 @@ public class BuildOutputParserTest extends TestCase {
       "\n" +
       "Total time: 7.024 secs";
 
-    assertEquals("0: Simple:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
+    assertEquals("0: Warning:Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0\n" +
                  "1: Simple::App:compileDefaultFlavorDebugNdk UP-TO-DATE\n" +
                  "2: Simple::App:preBuild UP-TO-DATE\n" +
                  "3: Simple::App:preDefaultFlavorDebugBuild UP-TO-DATE\n" +
