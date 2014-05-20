@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.output.parser.androidPlugin;
+package com.android.tools.idea.gradle.output.parser;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import com.android.tools.idea.gradle.output.parser.aapt.AaptOutputParser;
 import com.android.tools.idea.gradle.output.parser.aapt.AbstractAaptOutputParser;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +49,7 @@ import java.util.regex.Pattern;
  * The Where section may not appear (it usually only shows up if there's a problem in the build.gradle file itself). We parse this
  * out to get the failure message and module, and the where output if it appears.
  */
-public class GradleBuildFailureParser implements CompilerOutputParser {
+class BuildFailureParser implements PatternAwareOutputParser {
   private static final Pattern[] BEGINNING_PATTERNS =
     {Pattern.compile("^FAILURE: Build failed with an exception."), Pattern.compile("^\\* What went wrong:")};
 
@@ -64,7 +61,7 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
 
   // If there's a failure executing a command-line tool, Gradle will output the complete command line of the tool and will embed the
   // output from that tool. We catch the command line, pull out the tool being invoked, and then take the output and run it through a
-  // subparser to generate parsed error messages.
+  // sub-parser to generate parsed error messages.
   private static final Pattern COMMAND_FAILURE_MESSAGE = Pattern.compile("^> Failed to run command:");
   private static final Pattern COMMAND_LINE_PARSER = Pattern.compile("^\\s+/([^/ ]+/)+([^/ ]+) (.*)");
   private static final Pattern COMMAND_LINE_ERROR_OUTPUT = Pattern.compile("^  Output:$");
@@ -80,12 +77,10 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
 
   private AaptOutputParser myAaptParser = new AaptOutputParser();
 
-  State myState;
-
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
-    myState = State.BEGINNING;
+    State state = State.BEGINNING;
     int pos = 0;
     String currentLine = line;
     String file = null;
@@ -97,16 +92,16 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
     // TODO: If the output isn't quite matching this format (for example, the "Try" statement is missing) this will eat
     // some of the output. We should fall back to emitting all the output in that case.
     while (true) {
-      switch (myState) {
+      switch (state) {
         case BEGINNING:
           if (WHERE_LINE_1.matcher(currentLine).matches()) {
-            myState = State.WHERE;
+            state = State.WHERE;
           }
           else if (!BEGINNING_PATTERNS[pos].matcher(currentLine).matches()) {
             return false;
           }
           else if (++pos >= BEGINNING_PATTERNS.length) {
-            myState = State.MESSAGE;
+            state = State.MESSAGE;
           }
           break;
         case WHERE:
@@ -117,15 +112,15 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
           file = matcher.group(1);
           lineNum = Integer.parseInt(matcher.group(2));
           column = 0;
-          myState = State.BEGINNING;
+          state = State.BEGINNING;
           break;
         case MESSAGE:
           if (ENDING_PATTERNS[0].matcher(currentLine).matches()) {
-            myState = State.ENDING;
+            state = State.ENDING;
             pos = 1;
           }
           else if (COMMAND_FAILURE_MESSAGE.matcher(currentLine).matches()) {
-            myState = State.COMMAND_FAILURE_COMMAND_LINE;
+            state = State.COMMAND_FAILURE_COMMAND_LINE;
           }
           else {
             // Determine whether the string starts with ">" (possibly indented by whitespace), and if so, where
@@ -187,16 +182,16 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
             messages.add(new GradleMessage(GradleMessage.Kind.ERROR, message));
           }
           else if (COMMAND_LINE_ERROR_OUTPUT.matcher(currentLine).matches()) {
-            myState = State.COMMAND_FAILURE_OUTPUT;
+            state = State.COMMAND_FAILURE_OUTPUT;
           }
           else if (ENDING_PATTERNS[0].matcher(currentLine).matches()) {
-            myState = State.ENDING;
+            state = State.ENDING;
             pos = 1;
           }
           break;
         case COMMAND_FAILURE_OUTPUT:
           if (ENDING_PATTERNS[0].matcher(currentLine).matches()) {
-            myState = State.ENDING;
+            state = State.ENDING;
             pos = 1;
           }
           else {
@@ -295,7 +290,7 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
     return null;
   }
 
-  private static boolean isGradleQuotedLine(String line) {
+  private static boolean isGradleQuotedLine(@NotNull String line) {
     for (int i = 0, n = line.length() - 1; i < n; i++) {
       char c = line.charAt(i);
       if (c == '>') {
@@ -309,7 +304,7 @@ public class GradleBuildFailureParser implements CompilerOutputParser {
     return false;
   }
 
-  private static String unquoteGradleLine(String line) {
+  private static String unquoteGradleLine(@NotNull String line) {
     assert isGradleQuotedLine(line);
     return line.substring(line.indexOf('>') + 2);
   }

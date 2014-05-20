@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.output.parser.aapt;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Parses aapt's output.
  */
-public class AaptOutputParser implements CompilerOutputParser {
+public class AaptOutputParser implements PatternAwareOutputParser {
   private static final AbstractAaptOutputParser[] PARSERS = {
     new SkippingHiddenFileParser(),
     new Error1Parser(),
