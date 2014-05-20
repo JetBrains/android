@@ -20,6 +20,7 @@ import com.intellij.android.designer.designSurface.graphics.NonResizeSelectionDe
 import com.intellij.android.designer.model.layout.actions.ToggleSizeAction;
 import com.intellij.designer.designSurface.ComponentDecorator;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
+import com.intellij.designer.designSurface.EmptyComponentDecorator;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadLayout;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -39,6 +40,9 @@ public class RadViewLayout extends RadLayout {
 
   @Override
   public ComponentDecorator getChildSelectionDecorator(RadComponent component, List<RadComponent> selection) {
+    if (component.isBackground()) {
+      return EmptyComponentDecorator.INSTANCE;
+    }
     return NON_RESIZE_DECORATOR;
   }
 
