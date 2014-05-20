@@ -16,33 +16,28 @@
 
 package org.jetbrains.android.sdk;
 
+import com.android.annotations.NonNull;
 import com.android.ide.common.resources.*;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.io.IAbstractFile;
 import com.android.io.IAbstractFolder;
 import com.android.io.IAbstractResource;
-import com.android.io.StreamException;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.BufferingFileWrapper;
 import org.jetbrains.android.util.BufferingFolderWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
 /** Loader which loads in a {@link com.android.ide.common.resources.FrameworkResources} */
 public class FrameworkResourceLoader {
   private static final Logger LOG = Logger.getInstance(FrameworkResourceLoader.class);
+  private static boolean ourNeedLocales;
 
   private FrameworkResourceLoader() {
   }
@@ -50,143 +45,95 @@ public class FrameworkResourceLoader {
   @Nullable
   public static FrameworkResources load(@NotNull IAndroidTarget myTarget) throws IOException {
     final ILogger logger = new LogWrapper(LOG);
-    final String resFolderPath = myTarget.getPath(IAndroidTarget.RESOURCES);
-    final VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(resFolderPath);
-    if (resFolder == null || !resFolder.isDirectory()) {
-      LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(resFolderPath)));
+    final File resFolder = myTarget.getFile(IAndroidTarget.RESOURCES);
+    if (!resFolder.isDirectory()) {
+      LOG.error(AndroidBundle.message("android.directory.cannot.be.found.error", resFolder.getPath()));
       return null;
     }
 
-    return loadPlatformResources(new File(resFolder.getPath()), logger);
+    return loadPlatformResources(resFolder, logger);
   }
 
   private static FrameworkResources loadPlatformResources(File resFolder, ILogger log) throws IOException {
     final IAbstractFolder resFolderWrapper = new BufferingFolderWrapper(resFolder);
-    final FrameworkResources resources = new FrameworkResources(resFolderWrapper);
-
-    loadResources(resources, null, null, resFolderWrapper);
-
+    final FrameworkResources resources = new IdeFrameworkResources(resFolderWrapper);
+    resources.ensureInitialized();
     resources.loadPublicResources(log);
     return resources;
   }
 
-  private static void loadResources(@NotNull ResourceRepository repository,
-                                    @Nullable final String layoutXmlFileText,
-                                    @Nullable VirtualFile layoutXmlFile,
-                                    @NotNull IAbstractFolder... rootFolders) throws IOException {
-    final ScanningContext scanningContext = new ScanningContext(repository);
+  public static void requestLocales(boolean needLocales) {
+    ourNeedLocales = needLocales;
+  }
 
-    for (IAbstractFolder rootFolder : rootFolders) {
-      for (IAbstractResource file : rootFolder.listMembers()) {
-        if (!(file instanceof IAbstractFolder)) {
-          continue;
-        }
+  public static class IdeFrameworkResources extends FrameworkResources {
+    private boolean mySkippedLocales;
 
-        final IAbstractFolder folder = (IAbstractFolder)file;
-        final ResourceFolder resFolder = repository.processFolder(folder);
+    public IdeFrameworkResources(@NonNull IAbstractFolder resFolder) {
+      super(resFolder);
+    }
 
-        if (resFolder != null) {
-          for (final IAbstractResource childRes : folder.listMembers()) {
+    private boolean myCleared = true;
+    private boolean myInitializing = false;
 
-            if (childRes instanceof IAbstractFile) {
-              final VirtualFile vFile;
+    @Override
+    public synchronized void clear() {
+      super.clear();
+      myCleared = true;
+    }
 
-              if (childRes instanceof BufferingFileWrapper) {
-                final BufferingFileWrapper fileWrapper = (BufferingFileWrapper)childRes;
-                final String filePath = FileUtil.toSystemIndependentName(fileWrapper.getOsLocation());
-                vFile = LocalFileSystem.getInstance().findFileByPath(filePath);
+    public synchronized boolean getSkippedLocales() {
+      return mySkippedLocales;
+    }
 
-                if (vFile != null && Comparing.equal(vFile, layoutXmlFile) && layoutXmlFileText != null) {
-                  resFolder.processFile(new MyFileWrapper(layoutXmlFileText, childRes), ResourceDeltaKind.ADDED, scanningContext);
-                }
-                else {
-                  resFolder.processFile((IAbstractFile)childRes, ResourceDeltaKind.ADDED, scanningContext);
-                }
+    @Override
+    public synchronized boolean ensureInitialized() {
+      if (myCleared && !myInitializing) {
+        mySkippedLocales = !ourNeedLocales;
+
+        ScanningContext context = new ScanningContext(this);
+        myInitializing = true;
+
+        IAbstractResource[] resources = getResFolder().listMembers();
+
+        for (IAbstractResource res : resources) {
+          if (res instanceof IAbstractFolder) {
+            IAbstractFolder folder = (IAbstractFolder)res;
+            String resFolderName = folder.getName();
+            if (resFolderName.startsWith("values-mcc") || resFolderName.startsWith("raw-")) {
+              continue;
+            }
+
+            // Skip locale-specific folders
+            if (mySkippedLocales && resFolderName.startsWith("values-")) {
+              // Can I find out which resources we use in layoutlib?
+              // Can I find out which ones we *expose* through public? I should filter JUST those!
+              // I guess I could cache this stuff...?
+              FolderConfiguration config = FolderConfiguration.getConfigForFolder(resFolderName);
+              if (config == null || config.getLanguageQualifier() != null) {
+                continue;
               }
-              else {
-                LOG.error("childRes must be instance of " + BufferingFileWrapper.class.getName());
+            }
+
+            ResourceFolder resFolder = processFolder(folder);
+            if (resFolder != null) {
+              IAbstractResource[] files = folder.listMembers();
+              for (IAbstractResource fileRes : files) {
+                if (fileRes instanceof IAbstractFile) {
+                  IAbstractFile file = (IAbstractFile)fileRes;
+                  resFolder.processFile(file, ResourceDeltaKind.ADDED, context);
+                }
               }
             }
           }
         }
+
+        myInitializing = false;
+        myCleared = false;
+        return true;
       }
-    }
 
-    final List<String> errors = scanningContext.getErrors();
-    if (errors != null && errors.size() > 0) {
-      LOG.debug(new IOException(merge(errors)));
-    }
-  }
-
-  private static String merge(@NotNull Collection<String> strs) {
-    final StringBuilder result = new StringBuilder();
-    for (Iterator<String> it = strs.iterator(); it.hasNext(); ) {
-      String str = it.next();
-      result.append(str);
-      if (it.hasNext()) {
-        result.append('\n');
-      }
-    }
-    return result.toString();
-  }
-
-  private static class MyFileWrapper implements IAbstractFile {
-    private final String myLayoutXmlFileText;
-    private final IAbstractResource myChildRes;
-
-    public MyFileWrapper(String layoutXmlFileText, IAbstractResource childRes) {
-      myLayoutXmlFileText = layoutXmlFileText;
-      myChildRes = childRes;
-    }
-
-    @Override
-    public InputStream getContents() throws StreamException {
-      return new ByteArrayInputStream(myLayoutXmlFileText.getBytes());
-    }
-
-    @Override
-    public void setContents(InputStream source) throws StreamException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws StreamException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PreferredWriteMode getPreferredWriteMode() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public long getModificationStamp() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getName() {
-      return myChildRes.getName();
-    }
-
-    @Override
-    public String getOsLocation() {
-      return myChildRes.getOsLocation();
-    }
-
-    @Override
-    public boolean exists() {
-      return true;
-    }
-
-    @Override
-    public IAbstractFolder getParentFolder() {
-      return myChildRes.getParentFolder();
-    }
-
-    @Override
-    public boolean delete() {
-      throw new UnsupportedOperationException();
+      return false;
     }
   }
 }
