@@ -96,17 +96,20 @@ public final class NewAndroidModulePath implements WizardPath {
         // TODO: handle return type of "mkdirs".
         projectRoot.mkdirs();
         myWizardState.updateParameters();
-        myWizardState.myTemplate.render(projectRoot, moduleRoot, myWizardState.myParameters);
-        if (myAssetSetStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
-          AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
-          assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
-        }
-        if (myActivityTemplateParameterStep.isStepVisible() && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
-          TemplateWizardState activityTemplateState = myWizardState.getActivityTemplateState();
-          activityTemplateState.populateRelativePackage(null);
-          Template template = activityTemplateState.getTemplate();
-          assert template != null;
-          template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
+        Template template = myWizardState.myTemplate;
+        template.render(projectRoot, moduleRoot, myWizardState.myParameters);
+        if (NewModuleWizardState.isAndroidTemplate(template.getMetadata())) {
+          if (myAssetSetStep.isStepVisible() && myWizardState.getBoolean(TemplateMetadata.ATTR_CREATE_ICONS)) {
+            AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
+            assetGenerator.outputImagesIntoDefaultVariant(moduleRoot);
+          }
+          if (myActivityTemplateParameterStep.isStepVisible() && myWizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
+            TemplateWizardState activityTemplateState = myWizardState.getActivityTemplateState();
+            activityTemplateState.populateRelativePackage(null);
+            Template activityTemplate = activityTemplateState.getTemplate();
+            assert activityTemplate != null;
+            activityTemplate.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
+          }
         }
       }
       catch (Exception e) {
