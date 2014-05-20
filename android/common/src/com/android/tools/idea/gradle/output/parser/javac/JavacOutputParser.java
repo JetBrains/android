@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.output.parser.javac;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import com.google.common.collect.Lists;
 import com.intellij.util.StringBuilderSpinAllocator;
@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Parses javac's output.
  */
-public class JavacOutputParser implements CompilerOutputParser {
+public class JavacOutputParser implements PatternAwareOutputParser {
   private static final char COLON = ':';
 
   private static final String WARNING_PREFIX = "warning:"; // default value
