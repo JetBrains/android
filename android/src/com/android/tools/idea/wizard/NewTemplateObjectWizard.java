@@ -115,12 +115,21 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
   }
 
 
-  public NewTemplateObjectWizard(@Nullable Project project,
-                                 @Nullable Module module,
+  public NewTemplateObjectWizard(@NotNull Module module,
                                  @Nullable VirtualFile invocationTarget,
                                  @Nullable String templateCategory,
                                  @Nullable String templateName,
                                  @Nullable Set<String> excluded) {
+    this(module.getProject(), module, invocationTarget, templateCategory, templateName, excluded);
+    init();
+  }
+
+  private NewTemplateObjectWizard(@Nullable Project project,
+                                  @Nullable Module module,
+                                  @Nullable VirtualFile invocationTarget,
+                                  @Nullable String templateCategory,
+                                  @Nullable String templateName,
+                                  @Nullable Set<String> excluded) {
     super("New " + (templateName != null ? templateName : templateCategory), project);
     myProject = project;
     myModule = module;
