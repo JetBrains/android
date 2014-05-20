@@ -21,12 +21,32 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.regex.Pattern;
 
-class IgnoredMessagesOutputParser implements CompilerOutputParser {
+class GradleOutputParser implements PatternAwareOutputParser {
   private static final Pattern ERROR_COUNT_PATTERN = Pattern.compile("[\\d]+ error(s)?");
 
   @Override
   public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
+    if (ignoreMessage(line)) {
+      return true;
+    }
+    if (line.endsWith("is an incubating feature.")) {
+      messages.add(new GradleMessage(GradleMessage.Kind.WARNING, line));
+      return true;
+    }
+    if (line.startsWith("Total time: ") || line.startsWith("BUILD ")) {
+      messages.add(new GradleMessage(GradleMessage.Kind.INFO, line));
+      return true;
+    }
+    if (line.contains("has been deprecated and is scheduled to be removed in Gradle")) {
+      messages.add(new GradleMessage(GradleMessage.Kind.WARNING, line));
+      return true;
+    }
+
+    return false;
+  }
+
+  private static boolean ignoreMessage(@NotNull String line) {
     return line.trim().equalsIgnoreCase("FAILED") || ERROR_COUNT_PATTERN.matcher(line).matches();
   }
 }

@@ -13,53 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.output.parser.androidPlugin;
+package com.android.tools.idea.gradle.output.parser;
 
-import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
-import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-/**
- * Parses output from the Android Gradle plugin.
- */
-public class AndroidPluginOutputParser implements CompilerOutputParser {
-  private static final CompilerOutputParser[] PARSERS = {
-    new XmlValidationErrorParser(), new GradleBuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser(),
-    new DexExceptionParser()
-  };
-
-  @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages) {
-    for (CompilerOutputParser parser : PARSERS) {
-      try {
-        if (parser.parse(line, reader, messages)) {
-          return true;
-        }
-      }
-      catch (ParsingFailedException e) {
-        // If there's an exception, it means a parser didn't like the input, so just ignore and let other parsers have a crack at it.
-      }
-    }
-    return false;
+public class ParserUtil {
+  private ParserUtil() {
   }
 
   @Nullable
-  public static String digestStackTrace(OutputLineReader reader) {
-    String message = null;
+  public static String digestStackTrace(@NotNull OutputLineReader reader) {
     String next = reader.peek(0);
     if (next == null) {
       return null;
     }
+
     int index = next.indexOf(':');
     if (index == -1) {
       return null;
     }
 
+    String message = null;
     String exceptionName = next.substring(0, index);
     if (exceptionName.endsWith("Exception") || exceptionName.endsWith("Error")) {
       message = next.substring(index + 1).trim();
