@@ -72,6 +72,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
@@ -100,6 +102,7 @@ public final class GradleUtil {
    * we find any other unsupported characters.
    */
   public static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
+  public static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
   }
@@ -238,6 +241,20 @@ public final class GradleUtil {
         LOG.info(unexpected);
       }
     }
+  }
+
+  @Nullable
+  public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
+    Properties properties = loadGradleWrapperProperties(propertiesFile);
+    String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
+    if (url == null) {
+      return null;
+    }
+    Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
+    if (m.matches()) {
+      return m.group(1);
+    }
+    return null;
   }
 
   @NotNull
