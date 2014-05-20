@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.messages.CommonMessageGroupNames;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
@@ -47,6 +48,9 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import javax.swing.*;
 import java.io.File;
 
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+
 /**
  * Utility methods for {@link Project}s.
  */
@@ -62,11 +66,18 @@ public final class Projects {
    */
   public static boolean lastGradleSyncFailed(@NotNull Project project) {
     return (!GradleSyncState.getInstance(project).isSyncInProgress() && isGradleProjectWithoutModel(project)) ||
-           hasProjectStructureErrors(project);
+           hasErrors(project);
   }
 
-  private static boolean hasProjectStructureErrors(@NotNull Project project) {
-    return ProjectSyncMessages.getInstance(project).getErrorCount() > 0;
+  private static boolean hasErrors(@NotNull Project project) {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+    int errorCount = messages.getErrorCount();
+    if (errorCount > 0) {
+      return false;
+    }
+    // Variant selection errors do not count as "sync failed" errors.
+    int variantSelectionErrorCount = messages.getMessageCount(VARIANT_SELECTION_CONFLICTS);
+    return errorCount != variantSelectionErrorCount;
   }
 
   /**
