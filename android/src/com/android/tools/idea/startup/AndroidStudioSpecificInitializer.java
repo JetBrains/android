@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.wizard.ChooseApiLevelDialog;
+import com.android.tools.idea.wizard.DummyWizardForTesting;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
@@ -80,7 +82,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
   @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
-  @NonNls private static final String ENABLE_IMPORT_FROM_GITHUB = "enable.import.from.github";
+  @NonNls private static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -112,8 +114,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       hideIdeaNewFilePopupActions();
     }
 
-    if (Boolean.getBoolean(ENABLE_IMPORT_FROM_GITHUB)) {
-      registerGithubActions();
+    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
+      registerExperimentalActions();
     }
 
     replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
@@ -156,11 +158,18 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     }
   }
 
-  private static void registerGithubActions() {
+  private static void registerExperimentalActions() {
     ActionManager am = ActionManager.getInstance();
     AnAction action = new NewFromGithubAction();
     am.registerAction("NewFromGithubAction", action);
     ((DefaultActionGroup)am.getAction("NewGroup")).add(action);
+    DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
+    action = new DummyWizardForTesting();
+    am.registerAction("TestDummyWizard", action);
+    androidToolsGroup.add(action);
+    action = new ChooseApiLevelDialog.LaunchMe();
+    am.registerAction("ChooseApiLevel", action);
+    androidToolsGroup.add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
