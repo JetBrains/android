@@ -32,6 +32,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -116,6 +117,9 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
 
         myIgnoreListener = true;
         try {
+          if (leaf != null) {
+            setSelectedViews(Collections.singletonList(leaf));
+          }
           editor.getCaretModel().moveToOffset(offset);
           editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
         } finally {
