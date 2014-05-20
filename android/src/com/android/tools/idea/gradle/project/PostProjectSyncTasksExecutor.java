@@ -23,8 +23,6 @@ import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.messages.navigatable.OpenAndroidSdkNavigatable;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -39,12 +37,8 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
-import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.module.*;
 import com.intellij.openapi.project.Project;
@@ -88,7 +82,7 @@ public class PostProjectSyncTasksExecutor {
 
   public void onProjectSetupCompletion() {
     if (ProjectSyncMessages.getInstance(myProject).getErrorCount() > 0) {
-      displayProjectSetupMessages();
+      addOpenSdkManagerLink();
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
     }
@@ -106,6 +100,7 @@ public class PostProjectSyncTasksExecutor {
     }
 
     findAndShowVariantConflicts();
+    addOpenSdkManagerLink();
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
@@ -353,15 +348,10 @@ public class PostProjectSyncTasksExecutor {
       }
     }
     conflicts.showSelectionConflicts();
-
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
-    if (!messages.isEmpty()) {
-      displayProjectSetupMessages();
-    }
   }
 
-  private void displayProjectSetupMessages() {
-    final ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+  private void addOpenSdkManagerLink() {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
     int sdkErrorCount = messages.getMessageCount(FAILED_TO_SET_UP_SDK);
     if (sdkErrorCount > 0) {
@@ -372,20 +362,6 @@ public class PostProjectSyncTasksExecutor {
       Message quickFixMsg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, quickFix, text);
       messages.add(quickFixMsg);
     }
-
-    // Now we only show one balloon, telling user that errors can be found in the "Messages" window.
-    String title = String.format("Failed to set up project '%1$s':\n", myProject.getName());
-    NotificationHyperlink hyperlink = new NotificationHyperlink("open.messages.view", "Open Messages Window") {
-      @Override
-      protected void execute(@NotNull Project project) {
-        messages.activateView();
-      }
-    };
-    String text = String.format("You can find all errors in the 'Messages' window, under the '%1$s' tab.\n",
-                                ExternalSystemNotificationManager.getContentDisplayName(NotificationSource.PROJECT_SYNC, GradleConstants.SYSTEM_ID));
-    text+= hyperlink.toString();
-    NotificationListener listener = new CustomNotificationListener(myProject, hyperlink);
-    AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, listener);
   }
 
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
