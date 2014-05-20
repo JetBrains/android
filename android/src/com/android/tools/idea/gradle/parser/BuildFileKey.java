@@ -61,6 +61,7 @@ public enum BuildFileKey {
       PLUGIN_CLASSPATH.setValue(arg, SdkConstants.GRADLE_PLUGIN_NAME + value);
     }
   },
+  ALLPROJECTS_LIBRARY_REPOSITORY("allprojects/repositories", "Default Library Repository", CLOSURE, Repository.getFactory()),
 
   LIBRARY_REPOSITORY("repositories", "Library Repository", CLOSURE, Repository.getFactory()),
 
@@ -102,6 +103,12 @@ public enum BuildFileKey {
   NO_COMPRESS("android/aaptOptions/noCompress", STRING), // TODO: Implement properly. This is not a simple literal.
   SOURCE_COMPATIBILITY("android/compileOptions/sourceCompatibility", REFERENCE),
   TARGET_COMPATIBILITY("android/compileOptions/targetCompatibility", REFERENCE),
+
+  // Non-Gradle build file keys
+
+  // These keys set values in places other than Gradle build files (e.g. the Gradle wrapper properties, which is a Java properties file)
+  // They are included here so that other code can reuse the infrastructure built up around BuildFileKeys.
+  GRADLE_WRAPPER_VERSION("", "Gradle version", STRING, NonGroovyValueFactory.getFactory()),
 
   // These complex types are named entities that within them have key/value pairs where the keys are BuildFileKey instances themselves.
   // We can use a generic container class to deal with them.
