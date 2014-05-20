@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.output.parser.aapt;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.MergedResourceWriter;
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
+import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import com.android.utils.SdkUtils;
@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 
 @VisibleForTesting
-public abstract class AbstractAaptOutputParser implements CompilerOutputParser {
+public abstract class AbstractAaptOutputParser implements PatternAwareOutputParser {
   private static final Logger LOG = Logger.getInstance(AbstractAaptOutputParser.class);
 
   @VisibleForTesting
