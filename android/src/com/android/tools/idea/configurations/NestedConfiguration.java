@@ -165,15 +165,20 @@ public class NestedConfiguration extends Configuration implements ConfigurationL
   @Override
   @Nullable
   public String getTheme() {
-    // Never overridden: this is a static attribute of a layout, not something which
-    // varies by configuration or at runtime
-    return myParent.getTheme();
+    if (isOverridingTarget()) {
+      return super.getTheme();
+    } else {
+      return myParent.getTheme();
+    }
   }
 
   @Override
-  public void setTheme(String theme) {
-    // Never overridden
-    myParent.setTheme(theme);
+  public void setTheme(@Nullable String theme) {
+    if (isOverridingTarget()) {
+      super.setTheme(theme);
+    } else {
+      myParent.setTheme(theme);
+    }
   }
 
   /**

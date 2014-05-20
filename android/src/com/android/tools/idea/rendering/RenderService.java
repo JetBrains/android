@@ -32,6 +32,7 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -499,7 +500,9 @@ public class RenderService implements IImageFactory {
         // ignore.
       }
     }
-    if (!myShowDecorations) {
+    IAndroidTarget target = myConfiguration.getTarget();
+    // Don't show navigation buttons on older platforms
+    if (!myShowDecorations || (target instanceof CompatibilityRenderTarget && target.getVersion().getApiLevel() < 14)) {
       params.setForceNoDecor();
     }
     else {
