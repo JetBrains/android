@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.sdk.AndroidSdkData;
 
 import javax.swing.*;
@@ -87,7 +88,7 @@ public class SmwSelectionStep extends SmwStep implements Disposable {
   private JPanel myContentPanel;
   private JTextArea myTextDescription;  // TODO: display details based on selection
   private JBLabel myLabelSdkPath;
-  private SmwSelectionTable myTable;
+  private JBTable myTable;
   private JPanel myToolbarPanel;
 
   private SmwSelectionTableModel myTableModel;
