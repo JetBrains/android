@@ -45,6 +45,9 @@ import java.util.List;
 /**
  * Model for Selection step table.
  * <p/>
+ * Implementation detail: Implements {@link Disposable} in order to drop the message bus connection
+ * automatically when disposed, and also do prevent in-flight async updates after disposal.
+ * <p/>
  * Inspiration source: PluginTableModel.
  */
 public class SmwSelectionTableModel extends AbstractTableModel implements Disposable {

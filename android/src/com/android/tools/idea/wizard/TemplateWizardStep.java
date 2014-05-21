@@ -94,7 +94,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   };
 
   public TemplateWizardStep(@NotNull TemplateWizardState state, @Nullable Project project, @Nullable Module module,
-                            @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
+                            @Nullable Icon sidePanelIcon, @Nullable UpdateListener updateListener) {
     myTemplateState = state;
     myProject = project;
     myModule = module;
@@ -108,7 +108,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     update();
   }
 
-  /** Override this to return a {@link JTextArea} that holds the description of the UI element that has focus. */
+  /** Override this to return a {@link JLabel} that holds the description of the UI element that has focus. */
   @NotNull protected abstract JLabel getDescription();
 
   /** Wraps the given string in &lt;html&gt; and &lt;/html&gt; tags and sets it into the description label. */
@@ -127,7 +127,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
   }
 
-  /** Override this to return a {@link JTextArea} that displays a validation error message. */
+  /** Override this to return a {@link JLabel} that displays a validation error message. */
   @NotNull protected abstract JLabel getError();
 
   /** Wraps the given string in &lt;html&gt; and &lt;/html&gt; tags and sets it into the error label. */
