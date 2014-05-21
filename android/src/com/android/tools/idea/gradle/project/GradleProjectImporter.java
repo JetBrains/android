@@ -556,15 +556,19 @@ public class GradleProjectImporter {
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setExternalProjectPath(FileUtil.toCanonicalPath(project.getBasePath()));
 
+    DistributionType distributionType = settings.getDistributionType();
+
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile == null) {
-      DistributionType distributionType = settings.getDistributionType();
       if (DistributionType.LOCAL != distributionType) {
         settings.setDistributionType(DistributionType.LOCAL);
       }
       if (StringUtil.isEmpty(settings.getGradleHome())) {
         settings.setGradleHome(getLastUsedGradleHome());
       }
+    }
+    else if (distributionType == null) {
+      settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
     }
   }
 
