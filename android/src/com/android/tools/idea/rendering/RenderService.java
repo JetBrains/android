@@ -40,6 +40,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -591,7 +592,7 @@ public class RenderService implements IImageFactory {
       myIncludedWithin = layout != null ? IncludeReference.get(myModule, myPsiFile, resolver) : IncludeReference.NONE;
     }
     if (myIncludedWithin != IncludeReference.NONE) {
-      assert myIncludedWithin.getToFile() == myPsiFile.getVirtualFile();
+      assert Comparing.equal(myIncludedWithin.getToFile(), myPsiFile.getVirtualFile());
       // TODO: Validate that we're really including the same layout here!
       //ResourceValue contextLayout = resolver.findResValue(myIncludedWithin.getFromResourceUrl(), false  /* forceFrameworkOnly*/);
       //if (contextLayout != null) {

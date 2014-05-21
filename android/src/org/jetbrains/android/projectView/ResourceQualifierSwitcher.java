@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.containers.BidirectionalMap;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -95,7 +96,7 @@ public class ResourceQualifierSwitcher extends EditorNotifications.Provider<Reso
     private final VirtualFile myFile;
     private final BidirectionalMap<String, VirtualFile> myQualifiers;
 
-    public ResourceQualifierSwitcherPanel(final Project project, final VirtualFile file, BidirectionalMap<String, VirtualFile> qualifiers) {
+    public ResourceQualifierSwitcherPanel(final Project project, @NotNull final VirtualFile file, BidirectionalMap<String, VirtualFile> qualifiers) {
       super(new BorderLayout());
       myProject = project;
       myFile = file;
@@ -126,7 +127,7 @@ public class ResourceQualifierSwitcher extends EditorNotifications.Provider<Reso
 
     private void switchToFile(String qualifier) {
       VirtualFile newFile = myQualifiers.get(qualifier);
-      if (newFile != myFile) {
+      if (!myFile.equals(newFile)) {
         FileEditorManager.getInstance(myProject).openFile(newFile, true);
       }
     }

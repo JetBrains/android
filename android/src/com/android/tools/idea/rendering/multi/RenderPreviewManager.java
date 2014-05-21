@@ -35,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Alarm;
@@ -1107,7 +1108,7 @@ public class RenderPreviewManager implements Disposable {
    * Updates the configuration preview thumbnails
    */
   public void renderPreviews() {
-    if (myRenderContext.getVirtualFile() != myCurrentFile) {
+    if (!Comparing.equal(myRenderContext.getVirtualFile(), myCurrentFile)) {
       recomputePreviews(true);
       return;
     }

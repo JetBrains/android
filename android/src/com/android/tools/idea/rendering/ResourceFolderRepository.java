@@ -375,7 +375,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       PsiDirectory parentDirectory = directory.getParentDirectory();
       if (parentDirectory != null) {
         VirtualFile dir = parentDirectory.getVirtualFile();
-        return dir == myResourceDir;
+        return dir.equals(myResourceDir);
       }
     }
     return false;
