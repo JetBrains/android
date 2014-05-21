@@ -10,7 +10,6 @@ import com.intellij.openapi.command.undo.UndoableAction;
 import com.intellij.openapi.command.undo.UnexpectedUndoException;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -19,47 +18,29 @@ import com.intellij.persistence.database.DataSourceInfo;
 import com.intellij.persistence.database.DataSourceTemplate;
 import com.intellij.persistence.database.dialects.DatabaseDialect;
 import com.intellij.persistence.database.dialects.SqliteDialect;
-import com.intellij.persistence.database.psi.*;
-import gnu.trove.THashMap;
+import com.intellij.persistence.database.psi.BasicDbPsiManager;
+import com.intellij.persistence.database.psi.DbDataSourceElement;
+import com.intellij.persistence.database.psi.DbElement;
+import com.intellij.persistence.database.psi.DbPsiFacade;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDbManager extends DbPsiManagerSpi {
+public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
   public static final String NOTIFICATION_GROUP_ID = "Android Data Source Manager";
   static final DataSourceTemplate DEFAULT_TEMPLATE = new AndroidDataSourceTemplate();
 
-  private final static Key<Map<AndroidDataSource, DbDataSourceElement>> DS_MAP_KEY = Key.create("ANDROID_DATASOURCE_MAP_KEY");
-
-  private final DbPsiFacade myDbFacade;
-
   public AndroidDbManager(@NotNull DbPsiFacade dbFacade) {
-    myDbFacade = dbFacade;
-    initElementMap(myDbFacade, this);
-  }
-
-  private static Map<AndroidDataSource, DbDataSourceElement> getElementsMap(final DbPsiFacade facade) {
-    return facade.getProjectElement().getUserData(DS_MAP_KEY);
-  }
-
-  private static void initElementMap(final DbPsiFacade facade, final AndroidDbManager manager) {
-    final THashMap<AndroidDataSource, DbDataSourceElement> map = new THashMap<AndroidDataSource, DbDataSourceElement>();
-    for (final AndroidDataSource source : AndroidDataSourceStorage.getInstance(facade.getProject()).getDataSources()) {
-      map.put(source, createDataSourceElement(facade, manager, source));
-    }
-    facade.getProjectElement().putUserData(DS_MAP_KEY, Collections.synchronizedMap(map));
-  }
-
-  @Override
-  public boolean isDataSourceElementValid(@NotNull DbDataSourceElement element) {
-    return getElementsMap(myDbFacade).containsKey((AndroidDataSource)element.getDelegate());
+    super(dbFacade, AndroidDataSourceStorage.getInstance(dbFacade.getProject()).getDataSources());
   }
 
   @Nullable
@@ -80,11 +61,6 @@ public class AndroidDbManager extends DbPsiManagerSpi {
   @Override
   public ModificationTracker getModificationTracker(@NotNull DbElement element) {
     return (AndroidDataSource)element.getDataSource().getDelegate();
-  }
-
-  @Override
-  public List<DbDataSourceElement> getDataSources() {
-    return new ArrayList<DbDataSourceElement>(getElementsMap(myDbFacade).values());
   }
 
   @Override
@@ -151,31 +127,21 @@ public class AndroidDbManager extends DbPsiManagerSpi {
   }
 
   private void removeDataSourceInner(final Project project, final AndroidDataSource dataSource) {
-    final DbPsiFacade facade = DbPsiFacade.getInstance(project);
-    final Map<AndroidDataSource, DbDataSourceElement> elementMap = getElementsMap(facade);
-    final AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
+    AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.removeDataSource(dataSource);
-    elementMap.remove(dataSource);
+    getElementsMap().remove(dataSource);
     clearCaches(null);
   }
 
   private void addDataSourceInner(final Project project, final AndroidDataSource dataSource) {
-    final DbPsiFacade facade = DbPsiFacade.getInstance(project);
-    final Map<AndroidDataSource, DbDataSourceElement> elementMap = getElementsMap(facade);
-    final AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
+    AndroidDataSourceStorage storage = AndroidDataSourceStorage.getInstance(project);
     storage.addDataSource(dataSource);
-    elementMap.put(dataSource, createDataSourceElement(facade, this, dataSource));
+    getElementsMap().put(dataSource, createDataSourceElement(dataSource));
     clearCaches(null);
   }
 
   private void clearCaches(@Nullable final DataSourceInfo info) {
     myDbFacade.clearCaches(info != null ? myDbFacade.findDataSource(info.getUniqueId()) : null);
-  }
-
-  private static DbDataSourceElement createDataSourceElement(final DbPsiFacade facade,
-                                                             final AndroidDbManager manager,
-                                                             final AndroidDataSource source) {
-    return ((DbPsiFacadeImpl)facade).createDataSourceWrapperElement(source, manager);
   }
 
   @Override
