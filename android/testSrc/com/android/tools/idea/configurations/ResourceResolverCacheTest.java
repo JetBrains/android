@@ -104,14 +104,5 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     ResourceRepository frameworkResources = cache.getFrameworkResources(configuration1.getFullConfig(), configuration1.getTarget());
     assertTrue(frameworkResources instanceof FrameworkResourceLoader.IdeFrameworkResources);
     assertTrue(((FrameworkResourceLoader.IdeFrameworkResources)frameworkResources).getSkippedLocales());
-
-    configuration1.setLocale(Locale.create("no"));
-    assertTrue(((FrameworkResourceLoader.IdeFrameworkResources)frameworkResources).getSkippedLocales());
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        assertEquals("", configuration1.getResourceResolver().findResValue("@android:string/cancel", false).getValue());
-      }
-    });
   }
 }
