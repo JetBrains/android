@@ -111,24 +111,22 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
       //noinspection ConstantConditions
 
       NavigatableMessageElement e = new NavigatableMessageElement(kind, grouping, message, navigatable, exportText, rendererTextPrefix);
+      myMessagesByType.put(kind, e);
       myGroupNameToMessagesMap.put(groupName, e);
 
-      addMessageElement(grouping);
+      myMessages.add(grouping);
       return;
     }
     //noinspection ConstantConditions
 
-    addMessageElement(new NavigatableMessageElement(kind, null, message, navigatable, exportText, rendererTextPrefix));
+    myMessages.add(new NavigatableMessageElement(kind, null, message, navigatable, exportText, rendererTextPrefix));
   }
 
   private void addSimpleMessage(@NotNull ErrorTreeElementKind kind, @NotNull String[] text, @Nullable Object data) {
     //noinspection ConstantConditions
-    addMessageElement(new SimpleMessageElement(kind, text, data));
-  }
-
-  public void addMessageElement(@NotNull ErrorTreeElement element) {
-    ErrorTreeElementKind kind = element.getKind();
+    SimpleMessageElement element = new SimpleMessageElement(kind, text, data);
     myMessagesByType.put(kind, element);
     myMessages.add(element);
   }
+
 }
