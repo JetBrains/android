@@ -291,7 +291,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   public void updateStep() {
-    if (!myInitializing) {
+    if (!myInitializing && AndroidSdkUtils.isAndroidSdkAvailable()) {
       myInitializing = true;
       initialize();
       myInitialized = true;
