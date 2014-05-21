@@ -199,6 +199,11 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     }
   }
 
+  @Override
+  protected boolean shouldShowFirstErrorInEditor() {
+    return true;
+  }
+
   private void selectElement(@NotNull ErrorTreeElement element, @Nullable Runnable onDone) {
     myBuilder.select(element, onDone);
   }
