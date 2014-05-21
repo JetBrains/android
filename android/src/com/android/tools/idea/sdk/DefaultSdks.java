@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -138,23 +139,24 @@ public final class DefaultSdks {
           defaultJdk = createJdk(virtualPath);
         }
       }
-
-      // Now iterate through all the JDKs and delete any that aren't the default one.
-      List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
-      if (defaultJdk != null) {
-        for (Sdk jdk : jdks) {
-          if (jdk.getName() != defaultJdk.getName()) {
-            sdksToDelete.add(defaultJdk);
-          }
-          else {
-            // This may actually be a different copy of the SDK than what we obtained from the JDK. Set its path to be sure.
-            setJdkPath(jdk, canonicalPath);
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        // Now iterate through all the JDKs and delete any that aren't the default one.
+        List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance());
+        if (defaultJdk != null) {
+          for (Sdk jdk : jdks) {
+            if (jdk.getName() != defaultJdk.getName()) {
+              sdksToDelete.add(defaultJdk);
+            }
+            else {
+              // This may actually be a different copy of the SDK than what we obtained from the JDK. Set its path to be sure.
+              setJdkPath(jdk, canonicalPath);
+            }
           }
         }
       }
-    }
-    for (final Sdk sdk : sdksToDelete) {
-      ProjectJdkTable.getInstance().removeJdk(sdk);
+      for (final Sdk sdk : sdksToDelete) {
+        ProjectJdkTable.getInstance().removeJdk(sdk);
+      }
     }
   }
 
