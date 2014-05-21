@@ -547,13 +547,13 @@ public abstract class IdeaSourceProvider {
 
     if (facet.isGradleProject()) {
       for (IdeaSourceProvider provider : getCurrentSourceProviders(facet)) {
-        if (provider.getManifestFile() == candidate) {
+        if (candidate.equals(provider.getManifestFile())) {
           return true;
         }
       }
       return false;
     } else {
-      return candidate == facet.getMainIdeaSourceSet().getManifestFile();
+      return candidate.equals(facet.getMainIdeaSourceSet().getManifestFile());
     }
   }
 
