@@ -71,7 +71,7 @@ public class UnparseableStatement extends BuildFileStatement {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null) {
+    if (o == null || o.getClass() != getClass()) {
       return false;
     }
 

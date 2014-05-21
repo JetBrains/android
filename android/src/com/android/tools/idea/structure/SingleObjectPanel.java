@@ -31,13 +31,14 @@ public class SingleObjectPanel extends BuildFilePanel {
   protected final GrClosableBlock myRoot;
   protected final Map<BuildFileKey, Object> myValues = Maps.newHashMap();
   protected final List<BuildFileKey> myProperties;
-  protected final KeyValuePane myDetailPane = new KeyValuePane();
+  protected final KeyValuePane myDetailPane;
 
   public SingleObjectPanel(@NotNull Project project, @NotNull String moduleName, @Nullable GrClosableBlock root,
                            @NotNull List<BuildFileKey> properties) {
     super(project, moduleName);
     myRoot = root;
     myProperties = properties;
+    myDetailPane = new KeyValuePane(project);
     if (myGradleBuildFile != null) {
       for (BuildFileKey key : properties) {
         Object value = myGradleBuildFile.getValue(myRoot, key);

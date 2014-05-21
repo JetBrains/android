@@ -66,6 +66,8 @@ public class Repository extends BuildFileStatement {
       return new Repository(Type.URL, s);
     } else if (s.startsWith("'") && s.endsWith("'")) {
       return new Repository(Type.URL, s.substring(1, s.length() - 1));
+    } else if (s.indexOf('.') >= 0) {
+      return new Repository(Type.URL, s);
     } else {
       return new UnparseableStatement(s, project);
     }
@@ -176,6 +178,12 @@ public class Repository extends BuildFileStatement {
         return getUnparseableStatements(statement);
       }
       return list;
+    }
+
+    @NotNull
+    @Override
+    public BuildFileStatement parse(@NotNull String s, Project project) {
+      return Repository.parse(s, project);
     }
   }
 }
