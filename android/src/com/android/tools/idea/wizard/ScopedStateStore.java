@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
@@ -38,7 +39,7 @@ import java.util.Set;
  * The store also allows for pulling change notifications rather than these pushed notifications via the
  * getRecentUpdates() and clearRecentUpdates() functions.
  */
-public class ScopedStateStore {
+public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Object> {
   // Map of the current state
   private Map<Key, Object> myState = Maps.newHashMap();
   // Set of changed key/scope pairs which have been modified since the last call to clearRecentUpdates()
@@ -84,7 +85,7 @@ public class ScopedStateStore {
   @NotNull
   public <T> Pair<T, Key<T>> get(@NotNull Key<T> key) {
     if (myScope.equals(key.scope) && myState.containsKey(key)) {
-      T value = (T)myState.get(key);
+      T value = key.expectedClass.cast(myState.get(key));
       return new Pair<T, Key<T>>(value, createKey(key.name, key.expectedClass));
     } else if (myParent != null) {
       return myParent.get(key);
@@ -104,7 +105,6 @@ public class ScopedStateStore {
    */
   public <T> boolean put(@NotNull Key<T> key, @Nullable T value) {
     boolean stateChanged;
-    key = new Key<T>(key.name, key.scope, key.expectedClass);
     if (myScope.isGreaterThan(key.scope)) {
       throw new IllegalArgumentException("Attempted to store a value of scope " + key.scope.name() + " in greater scope of " + myScope.name());
     } else if (myScope.equals(key.scope)) {
@@ -123,6 +123,16 @@ public class ScopedStateStore {
       }
     }
     return stateChanged;
+  }
+
+  /**
+   * Insert value into the context performing the type check at runtime. This is needed for cases when we don't know
+   * the type of the key parameter at compile time.
+   *
+   * @throws java.lang.ClassCastException if the value is not null and cannot be casted to the key type
+   */
+  public <T> void unsafePut(Key<T> key, @Nullable Object object) {
+    put(key, key.expectedClass.cast(object));
   }
 
   private static boolean equals(@Nullable Object o, @Nullable Object o2) {
@@ -219,6 +229,17 @@ public class ScopedStateStore {
    */
   public <T> Key<T> createKey(@NotNull String name, @NotNull Class<T> clazz) {
     return createKey(name, myScope, clazz);
+  }
+
+  /**
+   * This allows using this store as a {@link com.google.common.base.Function} when working with Guava utilities.
+   * <p/>
+   * E.g. this allows to use {@link com.google.common.collect.Maps#asMap(java.util.Set, com.google.common.base.Function)}
+   * to create a views on this context that implement {@link java.util.Map} interface.
+   */
+  @Override
+  public Object apply(Key<?> input) {
+    return get(input);
   }
 
   public static class Key<T> {
