@@ -381,11 +381,8 @@ public class Template {
         xml = processFreemarkerTemplate(freemarker, paramMap, file.getName());
       }
 
-      // Handle UTF-8 since processed file may contain file paths
-      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
-      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
-      InputSource inputSource = new InputSource(reader);
-      inputSource.setEncoding(Charsets.UTF_8.toString());
+      xml = XmlUtils.stripBom(xml);
+      InputSource inputSource = new InputSource(new StringReader(xml));
       SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
@@ -438,12 +435,8 @@ public class Template {
       myLoader.setTemplateFile(getTemplateFile(file));
       String xml = processFreemarkerTemplate(freemarker, paramMap, file.getName());
 
-      // Parse and execute the resulting instruction list. We handle UTF-8 since the processed file contains paths which may
-      // have UTF-8 characters.
-      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
-      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
-      InputSource inputSource = new InputSource(reader);
-      inputSource.setEncoding(Charsets.UTF_8.toString());
+      xml = XmlUtils.stripBom(xml);
+      InputSource inputSource = new InputSource(new StringReader(xml));
       SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {

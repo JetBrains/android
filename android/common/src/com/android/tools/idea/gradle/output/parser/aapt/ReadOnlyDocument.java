@@ -42,7 +42,11 @@ class ReadOnlyDocument {
    */
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   ReadOnlyDocument(@NotNull File file) throws IOException {
-    myContents = Files.toString(file, Charsets.UTF_8);
+    String xml = Files.toString(file, Charsets.UTF_8);
+    if (xml.startsWith("\uFEFF")) { // Strip byte order mark if necessary
+      xml = xml.substring(1);
+    }
+    myContents = xml;
     myFile = file;
     myLastModified = file.lastModified();
     myOffsets = Lists.newArrayListWithExpectedSize(myContents.length() / 30);
