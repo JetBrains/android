@@ -15,13 +15,29 @@
  */
 package com.android.tools.idea.lang.proguard;
 
+import com.android.SdkConstants;
+import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class ProguardFileTypeFactory extends FileTypeFactory {
+  @Override
+  public void createFileTypes(@NotNull FileTypeConsumer consumer) {
+    consumer.consume(ProguardFileType.INSTANCE, new ProguardNameMatcher());
+  }
+
+  private static class ProguardNameMatcher implements FileNameMatcher {
     @Override
-    public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-        consumer.consume(ProguardFileType.INSTANCE, ProguardFileType.EXT_PRO);
+    public boolean accept(@NonNls @NotNull String fileName) {
+      return fileName.endsWith(ProguardFileType.DOT_PRO) || fileName.endsWith(SdkConstants.DOT_TXT) && fileName.startsWith("proguard-");
     }
+
+    @NotNull
+    @Override
+    public String getPresentableString() {
+      return "*.pro or proguard-*.txt";
+    }
+  }
 }
