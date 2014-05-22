@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang.proguard;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,6 @@ public class ProguardFileType extends LanguageFileType {
   @Nullable
   @Override
   public Icon getIcon() {
-    return null;
+    return AllIcons.FileTypes.Text;
   }
 }
