@@ -99,37 +99,35 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   private <T> void internalUpdateKey(@NotNull Key<T> changedKey) {
     // Update the UI value if the user has not caused this state change
     Object value = unwrap(myState.get(changedKey));
-    if (value != null) {
-      for (Map.Entry<JComponent, ComponentBinding<?, ?>> entry : myComponentBindings.column(changedKey).entrySet()) {
-        JComponent component = entry.getKey();
-        if (!Objects.equal(component, myUpdateTrigger)) {
-          ComponentBinding binding = myComponentBindings.get(component, changedKey);
-          try {
-            binding.setValue(value, component);
-          }
-          catch (UnsupportedOperationException e) {
-            // This binding is not two-way, and does not support setting the value.
-            // Nothing to do here.
-          }
+    for (Map.Entry<JComponent, ComponentBinding<?, ?>> entry : myComponentBindings.column(changedKey).entrySet()) {
+      JComponent component = entry.getKey();
+      if (!Objects.equal(component, myUpdateTrigger)) {
+        ComponentBinding binding = myComponentBindings.get(component, changedKey);
+        try {
+          binding.setValue(value, component);
+        }
+        catch (UnsupportedOperationException e) {
+          // This binding is not two-way, and does not support setting the value.
+          // Nothing to do here.
         }
       }
+    }
 
-      // Loop over our value derivers and call them if necessary
-      for (Key key : myValueDerivers.keySet()) {
-        // Don't derive values that have already been updated this round
-        if (!myGuardedKeys.contains(key)) {
-          ValueDeriver deriver = myValueDerivers.get(key);
-          // Don't overwrite values that the user has manually entered
-          if (myUserEditedKeys.contains(key) && deriver.respectUserEdits()) {
-            continue;
-          }
-          Set<Key<?>> triggerKeys = deriver.getTriggerKeys();
-          // Respect the deriver's filter of triggers
-          if (triggerKeys != null && !triggerKeys.contains(changedKey)) {
-            continue;
-          }
-          deriveValue(key, deriver, changedKey);
+    // Loop over our value derivers and call them if necessary
+    for (Key key : myValueDerivers.keySet()) {
+      // Don't derive values that have already been updated this round
+      if (!myGuardedKeys.contains(key)) {
+        ValueDeriver deriver = myValueDerivers.get(key);
+        // Don't overwrite values that the user has manually entered
+        if (myUserEditedKeys.contains(key) && deriver.respectUserEdits()) {
+          continue;
         }
+        Set<Key<?>> triggerKeys = deriver.getTriggerKeys();
+        // Respect the deriver's filter of triggers
+        if (triggerKeys != null && !triggerKeys.contains(changedKey)) {
+          continue;
+        }
+        deriveValue(key, deriver, changedKey);
       }
     }
     myGuardedKeys.remove(changedKey);
@@ -311,7 +309,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * and sets a listener to pick up changes that need to trigger validation and UI updates.
    */
   protected <T, C extends JComponent> void register(@NotNull Key<T> key, @NotNull C component,
-                              @NotNull ComponentBinding<T, C> binding) {
+                        @NotNull ComponentBinding<T, ? super C> binding) {
     T value = bindAndGet(key, component, binding);
     if (value != null) {
       binding.setValue(value, component);
@@ -487,6 +485,40 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
     colorPanel.addFocusListener(this);
     colorPanel.addActionListener(this);
+  }
+
+  /**
+   * Removes all component bindings and listeners.
+   */
+  protected void deregister(JComponent component) {
+    if (myComponentBindings.rowMap().remove(component) != null) {
+      component.removeFocusListener(this);
+      if (component instanceof JCheckBox) {
+        ((JCheckBox)component).removeItemListener(this);
+      }
+      else if (component instanceof JComboBox) {
+        ((JComboBox)component).removeActionListener(this);
+      }
+      else if (component instanceof JTextField) {
+        ((JTextField)component).getDocument().removeDocumentListener(this);
+      }
+      else if (component instanceof JRadioButton) {
+        ((JRadioButton)component).removeActionListener(this);
+      }
+      else if (component instanceof JSlider) {
+        ((JSlider)component).removeChangeListener(this);
+      }
+      else if (component instanceof JSpinner) {
+        ((JSpinner)component).removeChangeListener(this);
+      }
+      else if (component instanceof TextFieldWithBrowseButton) {
+        ((TextFieldWithBrowseButton)component).getTextField().getDocument().removeDocumentListener(this);
+        ((TextFieldWithBrowseButton)component).getTextField().removeFocusListener(this);
+      }
+      else if (component instanceof ColorPanel) {
+        ((ColorPanel)component).removeActionListener(this);
+      }
+    }
   }
 
   @Override
