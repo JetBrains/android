@@ -164,7 +164,7 @@ public class AndroidProjectConfigurable extends NamedConfigurable {
     } catch (Exception e) {
       LOG.warn("Error while saving Gradle wrapper properties", e);
     }
-    myKeyValuePane.setCurrentObject(myProjectProperties);
+    myKeyValuePane.setCurrentBuildFileObject(myProjectProperties);
     myKeyValuePane.updateUiFromCurrentObject();
   }
 
