@@ -191,6 +191,9 @@
     <lang.syntaxHighlighterFactory key="AIDL" implementationClass="org.jetbrains.android.fileTypes.AndroidIdlSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory key="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory key="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
+
+    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
+
     <!--
     <lang.formatter language="AIDL" implementationClass="com.intellij.lang.java.JavaFormattingModelBuilder"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
