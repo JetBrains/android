@@ -99,7 +99,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
                          "app/libs",
                          "app/.gitignore",
                          "app/build.gradle",
-                         "app/proguard-rules.txt");
+                         "app/proguard-rules.pro");
         File buildGradleFile = new File(myProjectRoot, FileUtil.join("app", "build.gradle"));
         String contents = TemplateUtils.readTextFile(buildGradleFile);
         assertNotNull(contents);
@@ -133,7 +133,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
                          "lib/libs",
                          "lib/.gitignore",
                          "lib/build.gradle",
-                         "lib/proguard-rules.txt");
+                         "lib/proguard-rules.pro");
         File buildGradleFile = new File(myProjectRoot, FileUtil.join("lib", "build.gradle"));
         String contents = TemplateUtils.readTextFile(buildGradleFile);
         assertNotNull(contents);
