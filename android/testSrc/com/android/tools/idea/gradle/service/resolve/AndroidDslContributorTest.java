@@ -75,9 +75,9 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     validateNoResolution(psiFile, "publishNonDefault");
   }
 
-  public void testResolutionsInLibrary() throws Exception {
-    // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
-    // Temporarily disable this until we find the root cause.
+  // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
+  // Temporarily disable this until we find the root cause.
+  public void disabled_testResolutionsInLibrary() throws Exception {
     if (isRunningOnHudson()) {
       logTestDisabled();
       return;
