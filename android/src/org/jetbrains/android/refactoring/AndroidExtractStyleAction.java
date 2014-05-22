@@ -95,7 +95,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
     if (parentStyleValue != null) {
       parentStyle = parentStyleValue.getResourceName();
-      if (!ResourceType.STYLE.getName().equals(parentStyleValue.getResourceType()) || parentStyle == null || parentStyle.length() == 0) {
+      if (ResourceType.STYLE != parentStyleValue.getType() || parentStyle == null || parentStyle.length() == 0) {
         AndroidUtils.reportError(project, "Invalid parent style reference " + parentStyleValue.toString(), dialogTitle);
         return null;
       }
