@@ -230,8 +230,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       ((JSlider)component).setValue((Integer)value);
     } else if (component instanceof JSpinner) {
       ((JSpinner)component).setValue(value);
-    } else if (component instanceof ColorPanel) {
-      assert value != null;
+    } else if (component instanceof ColorPanel && value != null) {
       ((ColorPanel)component).setSelectedColor((Color)value);
     }
   }
