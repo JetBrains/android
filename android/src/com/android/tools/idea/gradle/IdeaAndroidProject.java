@@ -175,6 +175,16 @@ public class IdeaAndroidProject implements Serializable {
     return myVariantsByName.keySet();
   }
 
+  @NotNull
+  public Collection<String> getBuildTypeNames() {
+    return myBuildTypesByName.keySet();
+  }
+
+  @NotNull
+  public Collection<String> getProductFlavorNames() {
+    return myProductFlavorsByName.keySet();
+  }
+
   @Nullable
   public LanguageLevel getJavaLanguageLevel() {
     try {

@@ -55,7 +55,7 @@ public class SingleObjectPanel extends BuildFilePanel {
       return;
     }
     myDetailPane.init(myGradleBuildFile, myProperties);
-    myDetailPane.setCurrentObject(myValues);
+    myDetailPane.setCurrentBuildFileObject(myValues);
     myDetailPane.updateUiFromCurrentObject();
     myDetailPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     add(myDetailPane, BorderLayout.NORTH);

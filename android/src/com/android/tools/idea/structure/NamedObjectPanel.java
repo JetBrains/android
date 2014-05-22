@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.builder.model.BuildType;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.ProductFlavor;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -33,9 +41,16 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener {
+  private static final String DEFAULT_CONFIG = "defaultConfig";
+  private static final BuildFileKey[] DEFAULT_CONFIG_KEYS =
+      { BuildFileKey.PACKAGE_NAME, BuildFileKey.VERSION_CODE, BuildFileKey.VERSION_NAME, BuildFileKey.MIN_SDK_VERSION,
+        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.PACKAGE_NAME, BuildFileKey.TEST_INSTRUMENTATION_RUNNER };
+
   private JPanel myPanel;
   private JBList myList;
   private JTextField myObjectName;
@@ -46,7 +61,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private final String myNewItemName;
   private final DefaultListModel myListModel;
   private NamedObject myCurrentObject;
-
+  private Collection<NamedObject> myModelOnlyObjects = Lists.newArrayList();
+  private Map<String, Map<BuildFileKey, Object>> myModelObjects = Maps.newHashMap();
 
   public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey buildFileKey,
                           @NotNull String newItemName) {
@@ -97,13 +113,48 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
         myListModel.addElement(object);
       }
     }
-    myList.updateUI();
+    // If this is a flavor panel, add a synthetic flavor entry for defaultConfig.
+    if (myBuildFileKey == BuildFileKey.FLAVORS) {
+      GrStatementOwner defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+      NamedObject obj = new NamedObject("defaultConfig");
+      if (defaultConfig != null) {
+        for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
+          obj.setValue(key, myGradleBuildFile.getValue(defaultConfig, key));
+        }
+      }
+      myListModel.addElement(obj);
+    }
 
     NamedObject.Factory objectFactory = (NamedObject.Factory)myBuildFileKey.getValueFactory();
     if (objectFactory == null) {
       throw new IllegalArgumentException("Can't instantiate a NamedObjectPanel for BuildFileKey " + myBuildFileKey.toString());
     }
-    myDetailsPane.init(myGradleBuildFile, objectFactory.getProperties());
+    Collection<BuildFileKey> properties = objectFactory.getProperties();
+
+    // Query the model for its view of the world, and merge it with the build file-based view.
+    for (NamedObject obj : getObjectsFromModel(properties)) {
+      boolean found = false;
+      for (int i = 0; i < myListModel.size(); i++) {
+        if (((NamedObject)myListModel.get(i)).getName().equals(obj.getName())) {
+          found = true;
+        }
+      }
+      if (!found) {
+        NamedObject namedObject = new NamedObject(obj.getName());
+        myListModel.addElement(namedObject);
+
+        // Keep track of objects that are only in the model and not in the build file. We want to avoid creating them in the build file
+        // unless some value in them is changed to non-default.
+        myModelOnlyObjects.add(namedObject);
+      }
+      myModelObjects.put(obj.getName(), obj.getValues());
+    }
+    myList.updateUI();
+
+    myDetailsPane.init(myGradleBuildFile, properties);
+    if (myListModel.size() > 0) {
+      myList.setSelectedIndex(0);
+    }
     updateUiFromCurrentObject();
   }
 
@@ -114,12 +165,43 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     }
     List<NamedObject> objects = Lists.newArrayList();
     for (int i = 0; i < myListModel.size(); i++) {
-      objects.add((NamedObject)myListModel.get(i));
+      NamedObject obj = (NamedObject)myListModel.get(i);
+      // Save the defaultConfig separately and don't write it out as a regular flavor.
+      if (myBuildFileKey == BuildFileKey.FLAVORS && obj.getName().equals(DEFAULT_CONFIG)) {
+        GrStatementOwner defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+        if (defaultConfig == null) {
+          myGradleBuildFile.setValue(BuildFileKey.DEFAULT_CONFIG, "{}");
+          defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+        }
+        assert defaultConfig != null;
+        for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
+          Object value = obj.getValue(key);
+          if (value != null) {
+            myGradleBuildFile.setValue(defaultConfig, key, value);
+          } else {
+            myGradleBuildFile.removeValue(defaultConfig, key);
+          }
+        }
+      } else if (myModelOnlyObjects.contains(obj) && isObjectEmpty(obj)) {
+        // If this object wasn't in the build file to begin with and doesn't have non-default values, don't write it out.
+        continue;
+      } else {
+        objects.add(obj);
+      }
     }
     myGradleBuildFile.setValue(myBuildFileKey, objects);
 
     myModified = false;
     myDetailsPane.clearModified();
+  }
+
+  private static boolean isObjectEmpty(NamedObject obj) {
+    for (Object o : obj.getValues().values()) {
+      if (o != null) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private void addObject() {
@@ -201,11 +283,79 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     myCurrentObject = currentObject;
     myObjectName.setText(currentObject != null ? currentObject.getName() : "");
     myObjectName.setEnabled(currentObject != null);
-    myDetailsPane.setCurrentObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
+    myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
+    myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
     myDetailsPane.updateUiFromCurrentObject();
   }
 
   private void createUIComponents() {
     myDetailsPane = new KeyValuePane(myProject);
+  }
+
+  private Collection<NamedObject> getObjectsFromModel(Collection<BuildFileKey> properties) {
+     Collection<NamedObject> results = Lists.newArrayList();
+    if (myModule == null) {
+      return results;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      return results;
+    }
+    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+    if (gradleProject == null) {
+      return results;
+    }
+    switch(myBuildFileKey) {
+      case BUILD_TYPES:
+        for (String name : gradleProject.getBuildTypeNames()) {
+          BuildTypeContainer buildTypeContainer = gradleProject.findBuildType(name);
+          NamedObject obj = new NamedObject(name);
+          if (buildTypeContainer == null) {
+            break;
+          }
+          BuildType buildType = buildTypeContainer.getBuildType();
+          obj.setValue(BuildFileKey.DEBUGGABLE, buildType.isDebuggable());
+          obj.setValue(BuildFileKey.JNI_DEBUG_BUILD, buildType.isJniDebugBuild());
+          obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebugBuild());
+          obj.setValue(BuildFileKey.RENDERSCRIPT_OPTIM_LEVEL, buildType.getRenderscriptOptimLevel());
+          obj.setValue(BuildFileKey.PACKAGE_NAME_SUFFIX, buildType.getPackageNameSuffix());
+          obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, buildType.getVersionNameSuffix());
+          obj.setValue(BuildFileKey.RUN_PROGUARD, buildType.isRunProguard());
+          obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlign());
+          results.add(obj);
+        }
+        break;
+      case FLAVORS:
+        for (String name : gradleProject.getProductFlavorNames()) {
+          ProductFlavorContainer productFlavorContainer = gradleProject.findProductFlavor(name);
+          NamedObject obj = new NamedObject(name);
+          if (productFlavorContainer == null) {
+            break;
+          }
+          ProductFlavor flavor = productFlavorContainer.getProductFlavor();
+          obj.setValue(BuildFileKey.PACKAGE_NAME, flavor.getPackageName());
+          int versionCode = flavor.getVersionCode();
+          if (versionCode >= 0) {
+            obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
+          }
+          obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
+          int minSdkVersion = flavor.getMinSdkVersion();
+          if (minSdkVersion >= 0) {
+            obj.setValue(BuildFileKey.MIN_SDK_VERSION, minSdkVersion);
+          }
+          int targetSdkVersion = flavor.getTargetSdkVersion();
+          if (targetSdkVersion >= 0) {
+            obj.setValue(BuildFileKey.TARGET_SDK_VERSION, targetSdkVersion);
+          }
+          obj.setValue(BuildFileKey.TEST_PACKAGE_NAME, flavor.getTestPackageName());
+          obj.setValue(BuildFileKey.TEST_INSTRUMENTATION_RUNNER, flavor.getTestInstrumentationRunner());
+          results.add(obj);
+        }
+        results.add(new NamedObject(DEFAULT_CONFIG));
+        break;
+      default:
+        break;
+    }
+    return results;
   }
 }
