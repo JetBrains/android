@@ -54,6 +54,9 @@ public class AndroidProjectConfigurable extends NamedConfigurable {
                      BuildFileKey.ALLPROJECTS_LIBRARY_REPOSITORY);
 
   public AndroidProjectConfigurable(Project project) {
+    if (project.isDefault()) {
+      throw new IllegalArgumentException("Can't instantiate an AndroidProjectConfigurable with the default project.");
+    }
     myKeyValuePane = new KeyValuePane(project);
     myProject = project;
     VirtualFile vf = project.getBaseDir().findChild(SdkConstants.FN_BUILD_GRADLE);
@@ -149,6 +152,10 @@ public class AndroidProjectConfigurable extends NamedConfigurable {
   @Override
   public void reset() {
     myProjectProperties.clear();
+    if (myGradleBuildFile == null) {
+      return;
+    }
+
     for (BuildFileKey key : PROJECT_PROPERTIES) {
       Object value = myGradleBuildFile.getValue(key);
       if (value != null) {
