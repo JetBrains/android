@@ -24,8 +24,11 @@ import javax.swing.*;
 public class ProguardFileType extends LanguageFileType {
   public static final ProguardFileType INSTANCE = new ProguardFileType();
 
-  /** Default extension for ProGuard files. */
+  /** Default extension for ProGuard files (without dot) */
   public static final String EXT_PRO = "pro";
+
+  /** Default extension for ProGuard files (with dot) */
+  public static final String DOT_PRO = ".pro";
 
   private ProguardFileType() {
     super(ProguardLanguage.INSTANCE);
