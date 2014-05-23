@@ -35,6 +35,9 @@ import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.project.ContentRootData;
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -75,7 +78,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSI
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-
   @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
     "The project is using an unsupported version of the Android Gradle plug-in";
 
@@ -159,7 +161,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (gradleSettingsFile.isFile() && androidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+      populateContentRootsForProjectModule(gradleModule, ideModule);
       return;
     }
 
@@ -174,6 +176,32 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
       List<String> unresolved = javaModel.getUnresolvedDependencyNames();
       populateUnresolvedDependencies(ideModule, unresolved);
+    }
+  }
+
+  private void populateContentRootsForProjectModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    nextResolver.populateModuleContentRoots(gradleModule, ideModule);
+
+    ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
+    assert model != null;
+
+    String buildFolderPath = model.getBuildDir().getPath();
+
+    ContentRootData.SourceRoot buildFolderRoot = null;
+
+    for (DataNode<ContentRootData> contentRootNode : ExternalSystemApiUtil.getChildren(ideModule, ProjectKeys.CONTENT_ROOT)) {
+      ContentRootData contentRoot = contentRootNode.getData();
+      Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getRoots(ExternalSystemSourceType.EXCLUDED);
+      for (ContentRootData.SourceRoot root : excludedRoots) {
+        if (FileUtil.pathsEqual(buildFolderPath, root.getPath())) {
+          buildFolderRoot = root;
+          break;
+        }
+      }
+      if (buildFolderRoot != null) {
+        excludedRoots.remove(buildFolderRoot);
+        break;
+      }
     }
   }
 
@@ -209,7 +237,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule module) {
+  private static List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule module) {
     List<? extends IdeaDependency> dependencies = module.getDependencies().getAll();
     return (dependencies != null) ? dependencies : Collections.<IdeaDependency>emptyList();
   }
