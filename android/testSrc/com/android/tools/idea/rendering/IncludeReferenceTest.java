@@ -18,10 +18,8 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -40,11 +38,11 @@ public class IncludeReferenceTest extends AndroidTestCase {
     assertEquals("designtime.xml", reference.getFromDisplayName());
     assertEquals("designtime", reference.getFromResourceName());
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
-    assertSame(file1, reference.getFromFile());
-    assertSame(file2, reference.getToFile());
-    assertSame(file1, LocalFileSystem.getInstance().findFileByIoFile(reference.getFromPath()));
+    assertEquals(file1, reference.getFromFile());
+    assertEquals(file2, reference.getToFile());
+    assertEquals(file1, LocalFileSystem.getInstance().findFileByIoFile(reference.getFromPath()));
     //noinspection ConstantConditions
-    assertSame(file2, LocalFileSystem.getInstance().findFileByIoFile(reference.getToPath()));
+    assertEquals(file2, LocalFileSystem.getInstance().findFileByIoFile(reference.getToPath()));
     assertSame(myModule, reference.getModule());
 
     reference = IncludeReference.create(myModule, file3, file2);
@@ -72,11 +70,11 @@ public class IncludeReferenceTest extends AndroidTestCase {
     assertEquals("includer", reference.getFromResourceName());
     assertEquals("@layout/includer", reference.getFromResourceUrl());
 
-    assertSame(reference.getFromFile(), includer);
-    assertSame(reference.getToFile(), included);
+    assertEquals(reference.getFromFile(), includer);
+    assertEquals(reference.getToFile(), included);
 
     IncludeReference.setIncludingLayout(getProject(), psiFile, null);
-    assertSame(IncludeReference.NONE, IncludeReference.get(myModule, psiFile, resourceResolver));
+    assertEquals(IncludeReference.NONE, IncludeReference.get(myModule, psiFile, resourceResolver));
 
     VirtualFile other = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout-land/designtime.xml");
     assertNotNull(other);

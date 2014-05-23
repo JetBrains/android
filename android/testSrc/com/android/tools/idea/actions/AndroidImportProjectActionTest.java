@@ -42,28 +42,28 @@ public class AndroidImportProjectActionTest extends IdeaTestCase {
   }
 
   public void testFindImportTargetWithDirectoryAndWithoutGradleOrEclipseFiles() {
-    assertSame(myProjectRootDir, ProjectImportUtil.findImportTarget(myProjectRootDir));
+    assertEquals(myProjectRootDir, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithDirectoryAndGradleBuildFile() throws IOException {
     VirtualFile file = createChildFile(SdkConstants.FN_BUILD_GRADLE);
-    assertSame(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
+    assertEquals(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithDirectoryAndGradleSettingsFile() throws IOException {
     VirtualFile file = createChildFile(SdkConstants.FN_SETTINGS_GRADLE);
-    assertSame(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
+    assertEquals(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithDirectoryAndEclipseFiles() throws IOException {
     createChildFile(GradleImport.ECLIPSE_DOT_CLASSPATH);
     VirtualFile file = createChildFile(GradleImport.ECLIPSE_DOT_PROJECT);
-    assertSame(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
+    assertEquals(file, ProjectImportUtil.findImportTarget(myProjectRootDir));
   }
 
   public void testFindImportTargetWithEclipseProjectFile() throws IOException {
     VirtualFile file = createChildFile(GradleImport.ECLIPSE_DOT_PROJECT);
-    assertSame(file, ProjectImportUtil.findImportTarget(file));
+    assertEquals(file, ProjectImportUtil.findImportTarget(file));
   }
 
   @NotNull
