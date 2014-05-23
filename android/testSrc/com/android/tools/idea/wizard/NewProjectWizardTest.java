@@ -142,7 +142,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     assertFilesExist(moduleBase,
                      ".gitignore",
                      "build.gradle",
-                     "proguard-rules.txt",
+                     "proguard-rules.pro",
                      "src/main/res/values/strings.xml",
                      "src/main/AndroidManifest.xml");
 
