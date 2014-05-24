@@ -57,7 +57,9 @@ public class IncludeOverlay extends Overlay {
   @Override
   public void paint(@Nullable Component component, @NotNull Graphics2D gc, int deltaX, int deltaY) {
     RenderedViewHierarchy viewHierarchy = myContainer.getViewHierarchy();
-    assert viewHierarchy != null;
+    if (viewHierarchy == null) {
+      return;
+    }
     List<RenderedView> includedRoots = viewHierarchy.getIncludedRoots();
     if (includedRoots == null || includedRoots.size() == 0 || component == null) {
       // We don't support multiple included children yet. When that works,
