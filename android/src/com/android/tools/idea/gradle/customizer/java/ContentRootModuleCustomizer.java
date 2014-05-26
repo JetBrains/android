@@ -17,11 +17,10 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.facet.JavaModel;
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     List<ContentEntry> allEntries = Lists.newArrayList();
     for (IdeaContentRoot contentRoot : model.getContentRoots()) {
       File rootDirPath = contentRoot.getRootDirectory();
-      ContentEntry contentEntry = rootModel.addContentEntry(pathToUrl(rootDirPath));
+      ContentEntry contentEntry = rootModel.addContentEntry(FilePaths.pathToIdeaUrl(rootDirPath));
       allEntries.add(contentEntry);
     }
     return allEntries;
