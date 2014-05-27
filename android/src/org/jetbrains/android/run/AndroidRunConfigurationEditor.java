@@ -15,8 +15,11 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.base.Predicate;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.icons.AllIcons;
@@ -27,13 +30,16 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ThreeState;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -172,21 +178,42 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
   }
 
+  @Nullable
   private String getAvdCompatibilityWarning() {
     final String selectedAvdName = (String)myAvdCombo.getComboBox().getSelectedItem();
 
     if (selectedAvdName != null) {
       final Module module = getModuleSelector().getModule();
-      final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-      final AvdManager avdManager = facet != null ? facet.getAvdManagerSilently() : null;
+      if (module == null) {
+        return null;
+      }
 
-      if (avdManager != null) {
-        final AvdInfo avd = avdManager.getAvd(selectedAvdName, false);
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        return null;
+      }
 
-        if (avd != null && !facet.isCompatibleAvd(avd)) {
-          // todo: provide info about current module configuration
-          return "'" + selectedAvdName + "' may be incompatible with your configuration";
-        }
+      final AvdManager avdManager = facet.getAvdManagerSilently();
+      if (avdManager == null) {
+        return null;
+      }
+
+      final AvdInfo avd = avdManager.getAvd(selectedAvdName, false);
+      if (avd == null || avd.getTarget() == null) {
+        return null;
+      }
+
+      AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+      if (platform == null) {
+        return null;
+      }
+
+      AndroidVersion minSdk = AndroidModuleInfo.get(facet).getMinSdkVersion();
+      LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getTarget());
+      if (compatibility.isCompatible() == ThreeState.NO) {
+        // todo: provide info about current module configuration
+        return String.format("'%1$s' may be incompatible with your configuration (%2$s)", selectedAvdName,
+                             StringUtil.notNullize(compatibility.getReason()));
       }
     }
     return null;
