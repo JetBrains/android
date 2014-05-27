@@ -1,6 +1,7 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
@@ -18,6 +19,7 @@ public class DeviceChooserDialog extends DialogWrapper {
   private final DeviceChooser myDeviceChooser;
 
   public DeviceChooserDialog(@NotNull AndroidFacet facet,
+                             @NotNull IAndroidTarget projectTarget,
                              boolean multipleSelection,
                              @Nullable String[] selectedSerials,
                              @Nullable Condition<IDevice> filter) {
@@ -26,7 +28,7 @@ public class DeviceChooserDialog extends DialogWrapper {
 
     getOKAction().setEnabled(false);
 
-    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, filter);
+    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget, filter);
     Disposer.register(myDisposable, myDeviceChooser);
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
