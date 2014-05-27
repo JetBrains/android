@@ -38,7 +38,7 @@ WS = [ \t\f]+        // Whitespace
 
 FLAG_NAME = -[a-zA-Z0-9_]+  // Flag name that includes the leading "-"
 FLAG_ARG = [^ \n\r{#]+      // A single flag argument.
-LINE_CMT = [#][^\n\r]*      // A end of line comment, anything that starts with "#"
+LINE_CMT = #[^\n\r]*        // A end of line comment, anything that starts with "#"
 JAVA_DECL = [^\n\r}#]+;     // A single line of Java declaration in Java specification blocks.
 
 OPEN_BRACE = "{"
@@ -86,12 +86,12 @@ CLOSE_BRACE = "}"
     // Line comments.
     {LINE_CMT}      { return ProguardTypes.LINE_CMT; }
 
+    // Whitespace and newlines.
+    {WS}            { return TokenType.WHITE_SPACE; }
+    {CRLF}          { return ProguardTypes.CRLF; }
+
     // A single line of Java declration.
     {JAVA_DECL}     { return ProguardTypes.JAVA_DECL; }
-
-    // Whitespace and newlines.
-    {CRLF}          { return ProguardTypes.CRLF; }
-    {WS}            { return TokenType.WHITE_SPACE; }
 }
 
 // If we've reached here, then the character is unrecognized.
