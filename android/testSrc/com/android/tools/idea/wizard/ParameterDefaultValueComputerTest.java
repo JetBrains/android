@@ -85,7 +85,7 @@ public class ParameterDefaultValueComputerTest extends TestCase {
       ParameterDefaultValueComputer.newDefaultValuesMap(myParameterMap.values(), ImmutableMap.<Parameter, Object>of());
     assertEquals(Boolean.FALSE, defaultValuesMap.get(myParameterMap.get("p1")));
     assertEquals("Hello", defaultValuesMap.get(myParameterMap.get("p2")));
-    assertNull(defaultValuesMap.get(myParameterMap.get("p3")));
+    assertEquals("", defaultValuesMap.get(myParameterMap.get("p3")));
   }
 
   public void testComputedValuesDerival() {
