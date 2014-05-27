@@ -104,6 +104,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<AndroidFacet>("android");
   public static final String NAME = "Android";
 
+  private static final Object APP_RESOURCES_LOCK = new Object();
+  private static final Object PROJECT_RESOURCES_LOCK = new Object();
+  private static final Object MODULE_RESOURCES_LOCK = new Object();
+
   private AvdManager myAvdManager = null;
   private AndroidSdkData mySdkData;
 
@@ -1058,8 +1062,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Contract("true -> !null")
   @Nullable
   public AppResourceRepository getAppResources(boolean createIfNecessary) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
+    synchronized (APP_RESOURCES_LOCK) {
       if (myAppResources == null && createIfNecessary) {
         myAppResources = AppResourceRepository.create(this);
       }
@@ -1070,8 +1073,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Contract("true -> !null")
   @Nullable
   public ProjectResourceRepository getProjectResources(boolean createIfNecessary) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
+    synchronized (PROJECT_RESOURCES_LOCK) {
       if (myProjectResources == null && createIfNecessary) {
         myProjectResources = ProjectResourceRepository.create(this);
       }
@@ -1082,8 +1084,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   @Contract("true -> !null")
   @Nullable
   public LocalResourceRepository getModuleResources(boolean createIfNecessary) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
+    synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources == null && createIfNecessary) {
         myModuleResources = ModuleResourceRepository.create(this);
       }
@@ -1128,15 +1129,13 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   public void addListener(@NotNull GradleSyncListener listener) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
+    synchronized (myGradleSyncListeners) {
       myGradleSyncListeners.add(listener);
     }
   }
 
   public void removeListener(@NotNull GradleSyncListener listener) {
-    //noinspection SynchronizeOnThis
-    synchronized (this) {
+    synchronized (myGradleSyncListeners) {
       myGradleSyncListeners.remove(listener);
     }
   }
