@@ -334,13 +334,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.info("Unable to find Studio home directory");
     }
     else {
-      LOG.info(String.format("Found Studio home directory at: '1$%s'", studioHome));
+      LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
         String absolutePath = dir.getAbsolutePath();
-        LOG.info(String.format("Looking for Android SDK at '1$%s'", absolutePath));
+        LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
         if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
-          LOG.info(String.format("Found Android SDK at '1$%s'", absolutePath));
+          LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
           return new File(absolutePath);
         }
       }
