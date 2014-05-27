@@ -23,11 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.unwrap;
 
 /**
  * Tests for {@link DynamicWizardStep}
@@ -132,7 +128,7 @@ public class DynamicWizardStepTest extends TestCase {
         @NotNull
         @Override
         public String deriveValue(ScopedStateStore state, ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-          return unwrap(state.get(INPUT_KEY)) + "_derived!";
+          return state.get(INPUT_KEY) + "_derived!";
         }
       });
     }
@@ -145,15 +141,15 @@ public class DynamicWizardStepTest extends TestCase {
 
     @Override
     public boolean isStepVisible() {
-      Boolean visible = unwrap(myState.get(VISIBLE_KEY));
+      Boolean visible = myState.get(VISIBLE_KEY);
       return visible == null || visible;
     }
 
     @Override
     public boolean validate() {
-      String inputString = unwrap(myState.get(INPUT_KEY));
-      String derivedString = unwrap(myState.get(DERIVED_KEY));
-      Boolean validBool = unwrap(myState.get(VALID_KEY));
+      String inputString = myState.get(INPUT_KEY);
+      String derivedString = myState.get(DERIVED_KEY);
+      Boolean validBool = myState.get(VALID_KEY);
       if (inputString != null) {
         return derivedString != null && derivedString.equals(inputString + "_derived!");
       } else {
