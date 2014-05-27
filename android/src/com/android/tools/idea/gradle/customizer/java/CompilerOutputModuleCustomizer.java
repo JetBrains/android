@@ -21,6 +21,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
+
+import java.io.File;
 
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -31,6 +34,8 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     if (javaModel == null) {
       return;
     }
-    setOutputPaths(module, javaModel.getOutputDirPath(), javaModel.getTestOutputDirPath());
+    ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
+    File mainClassesFolder = compilerOutput.getMainClassesDir();
+    setOutputPaths(module, mainClassesFolder, compilerOutput.getTestClassesDir());
   }
 }

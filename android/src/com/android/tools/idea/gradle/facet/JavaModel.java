@@ -16,66 +16,70 @@
 package com.android.tools.idea.gradle.facet;
 
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
+import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class JavaModel {
   @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
+  @NotNull private final List<IdeaContentRoot> myContentRoots;
+  @NotNull private final List<IdeaModuleDependency> myModuleDependencies;
+  @NotNull private final List<IdeaSingleEntryLibraryDependency> myLibraryDependencies;
+  @NotNull private final List<String> myUnresolvedDependencyNames;
+  @NotNull private final ExtIdeaCompilerOutput myCompilerOutput;
 
-  @NotNull private final List<IdeaContentRoot> myContentRoots = Lists.newArrayList();
-  @NotNull private final List<IdeaModuleDependency> myModuleDependencies = Lists.newArrayList();
-  @NotNull private final List<IdeaSingleEntryLibraryDependency> myLibraryDependencies = Lists.newArrayList();
-  @NotNull private final List<String> myUnresolvedDependencyNames = Lists.newArrayList();
-  @NotNull private final File myOutputDirPath;
-  @NotNull private final File myTestOutputDirPath;
-
-  public JavaModel(@NotNull File moduleRootDirPath,
-                   @NotNull Collection<? extends IdeaContentRoot> contentRoots,
-                   @NotNull List<? extends IdeaDependency> dependencies,
-                   @Nullable IdeaCompilerOutput compilerOutput) {
-    for (IdeaContentRoot contentRoot : contentRoots) {
-      if (contentRoot != null) {
-        myContentRoots.add(contentRoot);
-      }
+  @NotNull
+  public static JavaModel newJavaModel(@NotNull IdeaModule module, @NotNull ModuleExtendedModel model) {
+    List<IdeaContentRoot> contentRoots = Lists.newArrayList();
+    for (IdeaContentRoot root : getContentRoots(module, model)) {
+      contentRoots.add(root);
     }
-    for (IdeaDependency dependency : dependencies) {
+
+    List<IdeaModuleDependency> moduleDependencies = Lists.newArrayList();
+    List<IdeaSingleEntryLibraryDependency> libraryDependencies = Lists.newArrayList();
+    List<String> unresolvedDependencyNames = Lists.newArrayList();
+
+    for (IdeaDependency dependency : getDependencies(module)) {
       if (dependency instanceof IdeaModuleDependency) {
-        myModuleDependencies.add((IdeaModuleDependency)dependency);
+        moduleDependencies.add((IdeaModuleDependency)dependency);
+        continue;
       }
-      else if (dependency instanceof IdeaSingleEntryLibraryDependency) {
+      if (dependency instanceof IdeaSingleEntryLibraryDependency) {
         IdeaSingleEntryLibraryDependency libDependency = (IdeaSingleEntryLibraryDependency)dependency;
         if (isResolved(libDependency)) {
-          myLibraryDependencies.add(libDependency);
+          libraryDependencies.add(libDependency);
+          continue;
         }
-        else {
-          String name = getUnresolvedDependencyName(libDependency);
-          if (name != null) {
-            myUnresolvedDependencyNames.add(name);
-          }
+        String name = getUnresolvedDependencyName(libDependency);
+        if (name != null) {
+          unresolvedDependencyNames.add(name);
         }
       }
     }
-    File outputDirPath = null;
-    File testOutputDirPath = null;
-    if (compilerOutput != null) {
-      outputDirPath = compilerOutput.getOutputDir();
-      testOutputDirPath = compilerOutput.getTestOutputDir();
+    return new JavaModel(contentRoots, moduleDependencies, libraryDependencies, unresolvedDependencyNames, model.getCompilerOutput());
+  }
+
+  @NotNull
+  private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule module, @NotNull ModuleExtendedModel model) {
+    Collection<? extends IdeaContentRoot> contentRoots = model.getContentRoots();
+    if (contentRoots == null) {
+      contentRoots = module.getContentRoots();
     }
-    if (outputDirPath == null) {
-      outputDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "main"));
-    }
-    if (testOutputDirPath == null) {
-      testOutputDirPath = new File(moduleRootDirPath, FileUtil.join("build", "classes", "test"));
-    }
-    myOutputDirPath = outputDirPath;
-    myTestOutputDirPath = testOutputDirPath;
+    return contentRoots != null ? contentRoots : Collections.<IdeaContentRoot>emptyList();
+  }
+
+  @NotNull
+  private static List<? extends IdeaDependency> getDependencies(IdeaModule module) {
+    List<? extends IdeaDependency> dependencies = module.getDependencies().getAll();
+    return dependencies != null ? dependencies : Collections.<IdeaDependency>emptyList();
   }
 
   private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
@@ -100,6 +104,18 @@ public class JavaModel {
     return binaryPath != null ? binaryPath.getName() : null;
   }
 
+  public JavaModel(@NotNull List<IdeaContentRoot> contentRoots,
+                   @NotNull List<IdeaModuleDependency> moduleDependencies,
+                   @NotNull List<IdeaSingleEntryLibraryDependency> libraryDependencies,
+                   @NotNull List<String> unresolvedDependencyNames,
+                   @NotNull ExtIdeaCompilerOutput compilerOutput) {
+    myContentRoots = contentRoots;
+    myModuleDependencies = moduleDependencies;
+    myLibraryDependencies = libraryDependencies;
+    myUnresolvedDependencyNames = unresolvedDependencyNames;
+    myCompilerOutput = compilerOutput;
+  }
+
   @NotNull
   public List<IdeaContentRoot> getContentRoots() {
     return myContentRoots;
@@ -121,12 +137,7 @@ public class JavaModel {
   }
 
   @NotNull
-  public File getOutputDirPath() {
-    return myOutputDirPath;
-  }
-
-  @NotNull
-  public File getTestOutputDirPath() {
-    return myTestOutputDirPath;
+  public ExtIdeaCompilerOutput getCompilerOutput() {
+    return myCompilerOutput;
   }
 }
