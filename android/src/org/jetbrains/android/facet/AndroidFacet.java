@@ -1095,6 +1095,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myModuleResources = null;
     myProjectResources = null;
     myAppResources = null;
+    myConfigurationManager.getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
   }
