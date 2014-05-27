@@ -65,6 +65,7 @@ public class AndroidSdkData {
   private static volatile boolean myDdmLibInitialized = false;
   private static volatile boolean myAdbCrashed = false;
   private static final Object myDdmsLock = new Object();
+  private static volatile boolean ourDdmLibTerminated = false;
 
   private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDatas =
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
@@ -335,6 +336,7 @@ public class AndroidSdkData {
     synchronized (myDdmsLock) {
       if (!myDdmLibInitialized) {
         myDdmLibInitialized = true;
+        ourDdmLibTerminated = false;
         DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
         DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
         AndroidDebugBridge.init(AndroidEnableAdbServiceAction.isAdbServiceEnabled());
@@ -361,14 +363,15 @@ public class AndroidSdkData {
   }
 
   private static void waitUntilConnect(@NotNull AndroidDebugBridge bridge) {
-    while (!bridge.isConnected() && !Thread.currentThread().isInterrupted()) {
-      try {
-        //noinspection BusyWait
-        Thread.sleep(1000);
-      }
-      catch (InterruptedException e) {
-        LOG.debug(e);
-        return;
+    while (!bridge.isConnected() && !Thread.currentThread().isInterrupted() && !ourDdmLibTerminated) {
+      synchronized (myDdmsLock) {
+        try {
+          myDdmsLock.wait(1000);
+        }
+        catch (InterruptedException e) {
+          LOG.debug(e);
+          return;
+        }
       }
     }
   }
@@ -389,6 +392,8 @@ public class AndroidSdkData {
 
   public static void terminateDdmlib() {
     synchronized (myDdmsLock) {
+      ourDdmLibTerminated = true;
+      myDdmsLock.notifyAll();
       AndroidDebugBridge.disconnectBridge();
       AndroidDebugBridge.terminate();
       LOG.info("DDMLib terminated");
