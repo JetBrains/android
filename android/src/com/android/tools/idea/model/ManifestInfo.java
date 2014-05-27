@@ -277,6 +277,12 @@ public abstract class ManifestInfo {
   public abstract boolean isRtlSupported();
 
   /**
+   * Returns the value for the debuggable flag set in the manifest. Returns null if not set.
+   */
+  @Nullable
+  public abstract Boolean getApplicationDebuggable();
+
+  /**
    * Returns the target SDK version
    *
    * @return the target SDK version
