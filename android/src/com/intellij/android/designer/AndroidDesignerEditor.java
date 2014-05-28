@@ -22,6 +22,7 @@ import com.intellij.designer.DesignerEditor;
 import com.intellij.designer.designSurface.DesignerEditorPanel;
 import com.intellij.designer.inspection.DesignerBackgroundEditorHighlighter;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -39,10 +40,13 @@ public final class AndroidDesignerEditor extends DesignerEditor {
 
   @Override
   @Nullable
-  protected Module findModule(final Project project, final VirtualFile file) {
-    Module module = super.findModule(project, file);
+  protected Module findModule(Project project, VirtualFile file) {
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module == null) {
       module = AndroidPsiUtils.getModuleSafely(project, file);
+    }
+    if (module == null) {
+      throw new IllegalArgumentException("No module for file " + file + " in project " + project);
     }
     return module;
   }
