@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -29,11 +30,17 @@ import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
  * A path to configure global details of a new Android project
  */
 public class ConfigureAndroidProjectPath extends DynamicWizardPath {
+  @NotNull
+  private final Disposable myParentDisposable;
+
+  public ConfigureAndroidProjectPath(@NotNull Disposable parentDisposable) {
+    myParentDisposable = parentDisposable;
+  }
 
   @Override
   protected void init() {
-    addStep(new ConfigureAndroidProjectStep());
-    addStep(new ConfigureFormFactorStep());
+    addStep(new ConfigureAndroidProjectStep(myParentDisposable));
+    addStep(new ConfigureFormFactorStep(myParentDisposable));
   }
 
   @Override
@@ -55,16 +62,18 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   }
 
   @Override
-  public void performFinishingActions() {
+  public boolean performFinishingActions() {
     String projectLocation = myState.get(ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY);
     if (projectLocation != null) {
       File projectRoot = new File(projectLocation);
       if (FileUtilRt.createDirectory(projectRoot)) {
         Template projectTemplate = Template.createFromName(CATEGORY_PROJECTS, NewProjectWizardState.PROJECT_TEMPLATE_NAME);
         projectTemplate.render(projectRoot, projectRoot, myState.flatten());
+        return true;
       }
     } else {
       // TODO: Complain
     }
+    return false;
   }
 }

@@ -36,6 +36,7 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -348,7 +349,7 @@ public class ASGallery<E> extends JComponent implements Scrollable {
   }
 
   @Nullable
-  public E getSelectedValue() {
+  public E getSelectedElement() {
     if (mySelectedIndex < 0) {
       return null;
     }
@@ -358,6 +359,20 @@ public class ASGallery<E> extends JComponent implements Scrollable {
 
   public int getSelectedIndex() {
     return mySelectedIndex;
+  }
+
+  public void setSelectedElement(@Nullable E element) {
+    final int index;
+    if (element == null) {
+      index = -1;
+    }
+    else {
+      index = getElementIndex(getModel(), element);
+      if (index < -1) {
+        throw new NoSuchElementException(element.toString());
+      }
+    }
+    setSelectedIndex(index);
   }
 
   public void setSelectedIndex(int selectedIndex) {
