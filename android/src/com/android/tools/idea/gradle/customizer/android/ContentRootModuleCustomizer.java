@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.customizer.android;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -31,18 +31,19 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import static com.android.builder.model.AndroidProject.FD_GENERATED;
+import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
+import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject> {
-  // TODO: Retrieve this information from Gradle.
-  private static final String[] EXCLUDED_OUTPUT_DIR_NAMES =
-    // Note that build/exploded-bundles and build/exploded-aar should *not* be excluded
-    {"apk", "assets", "bundles", "classes", "dependency-cache", "incremental", "libs", "manifests", "symbols", "tmp", "res"};
+  public static final List<String> EXCLUDED_OUTPUT_FOLDER_NAMES = Arrays.asList(FD_INTERMEDIATES, FD_OUTPUTS);
 
   @Override
   @NotNull
@@ -54,7 +55,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     List<ContentEntry> contentEntries = Lists.newArrayList(model.addContentEntry(rootDir));
     File buildFolderPath = androidProject.getDelegate().getBuildFolder();
     if (!FileUtil.isAncestor(rootDirPath, buildFolderPath, false)) {
-      contentEntries.add(model.addContentEntry(pathToUrl(buildFolderPath)));
+      contentEntries.add(model.addContentEntry(FilePaths.pathToIdeaUrl(buildFolderPath)));
     }
 
     return contentEntries;
@@ -175,21 +176,24 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull AndroidProject androidProject) {
-    for (ContentEntry contentEntry : contentEntries) {
-      VirtualFile file = contentEntry.getFile();
-      if (file != null) {
-        File rootDirPath = VfsUtilCore.virtualToIoFile(file);
-        for (File child : FileUtil.notNullize(rootDirPath.listFiles())) {
-          if (child.isDirectory() && child.getName().startsWith(".")) {
-            addExcludedFolder(contentEntry, child);
-          }
-        }
+    File buildFolderPath = androidProject.getBuildFolder();
+    ContentEntry parentContentEntry = findParentContentEntry(contentEntries, buildFolderPath);
+    assert parentContentEntry != null;
+
+    // Explicitly exclude the output folders created by the Android Gradle plug-in
+    for (String folderName : EXCLUDED_OUTPUT_FOLDER_NAMES) {
+      File excludedFolderPath = new File(buildFolderPath, folderName);
+      addExcludedFolder(parentContentEntry, excludedFolderPath);
+    }
+
+    // Iterate through the build folder's children, excluding any folders that are not "generated" and haven't been already excluded.
+    File[] children = FileUtil.notNullize(buildFolderPath.listFiles());
+    for (File child : children) {
+      String name = child.getName();
+      if (FD_GENERATED.equals(name) || EXCLUDED_OUTPUT_FOLDER_NAMES.contains(name)) {
+        continue;
       }
-      File buildFolder = androidProject.getBuildFolder();
-      for (String childName : EXCLUDED_OUTPUT_DIR_NAMES) {
-        File child = new File(buildFolder, childName);
-        addExcludedFolder(contentEntry, child);
-      }
+      addExcludedFolder(parentContentEntry, child);
     }
   }
 }
