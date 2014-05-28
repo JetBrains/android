@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -38,5 +39,19 @@ public class ComboBoxItem {
   @Override
   public String toString() {
     return label;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null || !obj.getClass().equals(getClass())) {
+      return false;
+    }
+    ComboBoxItem other = (ComboBoxItem)obj;
+    return Objects.equal(id, other.id) && Objects.equal(label, other.label);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(id, label);
   }
 }
