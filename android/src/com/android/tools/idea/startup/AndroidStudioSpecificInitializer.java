@@ -436,7 +436,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       public void appClosing() {
         try {
           for (Project p : ProjectManager.getInstance().getOpenProjects()) {
-            if (Projects.isGradleProject(p)) {
+            if (Projects.isBuildWithGradle(p)) {
               GradleUtil.stopAllGradleDaemons(false);
               return;
             }
