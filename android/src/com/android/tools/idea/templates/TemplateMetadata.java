@@ -86,7 +86,6 @@ public class TemplateMetadata {
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";
 
-
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
 
