@@ -179,8 +179,8 @@ public class DynamicWizardPathTest extends TestCase {
     }
 
     @Override
-    public void performFinishingActions() {
-
+    public boolean performFinishingActions() {
+      return true;
     }
   }
 }

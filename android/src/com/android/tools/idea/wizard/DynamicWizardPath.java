@@ -382,6 +382,8 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * Declare any finishing actions that will take place at the completion of the wizard.
    * This function is called inside of a {@link WriteCommandAction}.
+   *
+   * @return <code>true</code> signals that the operation completed succesfully and the wizard may procede.
    */
-  public abstract void performFinishingActions();
+  public abstract boolean performFinishingActions();
 }
