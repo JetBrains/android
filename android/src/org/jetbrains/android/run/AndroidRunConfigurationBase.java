@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
@@ -44,8 +45,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ConcurrentHashMap;
 import org.jdom.Element;
-import org.jetbrains.android.dom.manifest.Application;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -208,11 +207,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     boolean nonDebuggableOnDevice = false;
 
     if (debug) {
-      final Manifest manifest = facet.getManifest();
-      final Application application = manifest != null ? manifest.getApplication() : null;
-
-      nonDebuggableOnDevice = application != null && Boolean.FALSE.toString().
-        equals(application.getDebuggable().getStringValue());
+      Boolean isDebuggable = AndroidModuleInfo.get(facet).isDebuggable();
+      nonDebuggableOnDevice = isDebuggable != null && !isDebuggable;
 
       if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject(), new Computable<AndroidDebugBridge>() {
         @Nullable
