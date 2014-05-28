@@ -36,6 +36,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -305,7 +306,7 @@ public class Template {
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
 
     // Root folder of the templates
-    if (getTemplateRootFolder() != null) {
+    if (ApplicationManager.getApplication() != null && getTemplateRootFolder() != null) {
       paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
     }
 

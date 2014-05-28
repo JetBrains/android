@@ -121,7 +121,7 @@
 
     <properties
         inplace="text"
-        important="onClick"
+        important="onClick text"
         expert="editable password autoLink linksClickable numeric digits phoneNumber inputMethod autoText inputType textIsSelectable"
         />
 

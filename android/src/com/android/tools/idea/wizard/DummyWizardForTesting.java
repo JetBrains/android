@@ -102,6 +102,11 @@ public class DummyWizardForTesting extends AnAction {
     }
 
     @Override
+    protected void init() {
+      // Do nothing
+    }
+
+    @Override
     public void deriveValues(Set<Key> modified) {
       myState.put(DERIVED_KEY, "derived!");
     }

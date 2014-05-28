@@ -83,7 +83,13 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     for (String keyName : myCurrentValues.keySet()) {
       myState.put(myState.createKey(keyName, Object.class), myCurrentValues.get(keyName));
     }
+    init();
   }
+
+  /**
+   * Set up this path. Addition of steps and other instantiations should be done here.
+   */
+  protected abstract void init();
 
   /**
    * Add a new step to the end of this path.

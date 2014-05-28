@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.annotations.Nullable;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.wizard.TemplateWizardStep;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.Disposable;
@@ -24,7 +24,10 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -82,24 +85,34 @@ import java.awt.*;
  *   meta-data from the remote XML. It needs to provide the description and the new list-display fields
  *   (this is pending another CL that adds the feature to sdklib.)
  */
-public class SmwSelectionStep extends SmwStep implements Disposable {
+public class SmwSelectionStep extends TemplateWizardStep implements Disposable {
   private final SmwState myWizardState;
   private JPanel myContentPanel;
-  private JTextArea myTextDescription;  // TODO: display details based on selection
+  private JLabel myTextDescription;  // TODO: display details based on selection
   private JBLabel myLabelSdkPath;
-  private SmwSelectionTable myTable;
+  private JBTable myTable;
   private JPanel myToolbarPanel;
+  private JLabel myErrorLabel;
 
   private SmwSelectionTableModel myTableModel;
   private boolean myInitOnce = true;
 
-  public SmwSelectionStep(SmwState wizardState) {
+  public SmwSelectionStep(@NotNull SmwState wizardState, @Nullable UpdateListener updateListener) {
+    super(wizardState, null /*project*/, null /*module*/, null /*sidePanelIcon*/, updateListener);
     myWizardState = wizardState;
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @Override
   public JComponent getComponent() {
     return myContentPanel;
+  }
+
+  private void createUIComponents() {
+    myTable = new SmwSelectionTable();
   }
 
   /**
@@ -138,7 +151,8 @@ public class SmwSelectionStep extends SmwStep implements Disposable {
     myTableModel.addTableModelListener(new TableModelListener() {
       @Override
       public void tableChanged(TableModelEvent e) {
-        SmwSelectionStep.this.fireStateChanged();
+        // Invoked by the table model on the UI thread
+        SmwSelectionStep.this.update();
       }
     });
 
@@ -148,13 +162,19 @@ public class SmwSelectionStep extends SmwStep implements Disposable {
                          false,           // canBeCancelled
                          null,            // onSuccess
                          null);           // onError
-      myInitOnce = false;
     }
   }
 
+  @NotNull
   @Override
-  public boolean canGoNext() {
-    return myTableModel.getActions().size() > 0;
+  protected JLabel getDescription() {
+    return myTextDescription;
+  }
+
+  @NotNull
+  @Override
+  protected JLabel getError() {
+    return myErrorLabel;
   }
 
   /**
@@ -168,12 +188,17 @@ public class SmwSelectionStep extends SmwStep implements Disposable {
   }
 
   @Override
-  public void dispose() {
+  public boolean validate() {
+    if (myTableModel != null && myTableModel.getActions().isEmpty()) {
+      return false;
+    }
+
+    return super.validate();
   }
 
   protected ActionGroup getActionGroup(boolean inToolbar) {
     DefaultActionGroup actionGroup = new DefaultActionGroup();
-    actionGroup.add(new RefeshAction("Refresh", "Refresh list", AllIcons.Actions.Refresh));
+    actionGroup.add(new RefreshAction("Refresh", "Refresh list", AllIcons.Actions.Refresh));
     actionGroup.add(Separator.getInstance());
     actionGroup.add(new SdkStateNeededAction("Install", "Install item", AllIcons.Actions.Install));
     actionGroup.add(new SdkStateNeededAction("Uninstall", "Uninstall item", AllIcons.Actions.Uninstall));
@@ -197,8 +222,8 @@ public class SmwSelectionStep extends SmwStep implements Disposable {
     }
   }
 
-  protected class RefeshAction extends SdkStateNeededAction {
-    public RefeshAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
+  protected class RefreshAction extends SdkStateNeededAction {
+    public RefreshAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
       super(text, description, icon);
     }
 
