@@ -60,6 +60,11 @@ public class GradleFileMergerTest extends AndroidTestCase {
     checkDependencyMerge("templates/Base.gradle", "templates/CloudDependencies.gradle", "templates/MergedCloudDependencies.gradle");
   }
 
+  public void testMergeCloudDependenciesDuplicate() throws Exception {
+    checkDependencyMerge("templates/Base.gradle", "templates/CloudDependenciesDuplicate.gradle",
+                         "templates/MergedCloudDependenciesDuplicate.gradle");
+  }
+
   private void checkDependencyMerge(String destPath, String srcPath, String goldenPath) {
     File destFile = new File(getTestDataPath(), FileUtil.toSystemDependentName(destPath));
     String dest = TemplateUtils.readTextFile(destFile);
