@@ -127,4 +127,11 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   public int getSelectedApiLevel() {
     return mySelectedApiLevel;
   }
+
+  /**
+   * @return the percentage of supported devices for the given api level
+   */
+  public double getSupportedDistributionForApiLevel(int apiLevel) {
+    return myDistributionChart.getSupportedDistributionForApiLevel(apiLevel);
+  }
 }
