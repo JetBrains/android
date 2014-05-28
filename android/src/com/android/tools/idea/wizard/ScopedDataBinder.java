@@ -19,7 +19,6 @@ import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorPanel;
 import org.jetbrains.annotations.NotNull;
@@ -80,10 +79,13 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   @Override
   public <T> void invokeUpdate(@Nullable Key<T> changedKey) {
     if (changedKey == null) {
-      Set<Key<?>> allKeys = myComponentBindings.columnKeySet();
+      // Protect from concurrent modification failures
+      Set<Key<?>> allKeys = ImmutableSet.copyOf(myComponentBindings.columnKeySet());
       myGuardedKeys.addAll(allKeys);
       for (Key<?> key : allKeys) {
-        internalUpdateKey(key);
+        if (myComponentBindings.containsColumn(key)) {
+          internalUpdateKey(key);
+        }
       }
     }
     else {
@@ -98,10 +100,14 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   @SuppressWarnings("unchecked")
   private <T> void internalUpdateKey(@NotNull Key<T> changedKey) {
     // Update the UI value if the user has not caused this state change
-    Object value = unwrap(myState.get(changedKey));
-    for (Map.Entry<JComponent, ComponentBinding<?, ?>> entry : myComponentBindings.column(changedKey).entrySet()) {
+    Object value = myState.get(changedKey);
+    // We need to protect from concurrent binding modifications that may happen as a result of the update
+    Map<JComponent, ComponentBinding<?, ?>> keyBindings =
+        ImmutableMap.copyOf(myComponentBindings.column(changedKey));
+    for (Map.Entry<JComponent, ComponentBinding<?, ?>> entry : keyBindings.entrySet()) {
       JComponent component = entry.getKey();
-      if (!Objects.equal(component, myUpdateTrigger)) {
+      if (myComponentBindings.contains(component, changedKey) &&
+          !Objects.equal(component, myUpdateTrigger)) {
         ComponentBinding binding = myComponentBindings.get(component, changedKey);
         try {
           binding.setValue(value, component);
@@ -137,8 +143,14 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Use the given deriver to update the value associated with the given key.
    */
   private <T> void deriveValue(Key<T> key, ValueDeriver<T> deriver, Key<?> changedKey) {
-    Pair<T, Key<T>> scopedPair = myState.get(key);
-    T newValue = deriver.deriveValue(myState, changedKey, scopedPair.first);
+    T currentValue = myState.get(key);
+    T newValue = deriver.deriveValue(myState, changedKey, currentValue);
+    // Catch issues missed by the compiler due to erasure
+    if (newValue != null && !key.expectedClass.isInstance(newValue)) {
+      throw new IllegalArgumentException(String.format("Deriver %1$s returned value for key %2$s of type %3$s, should be %4$s",
+                                                       deriver.toString(), key.name, newValue.getClass().getName(),
+                                                       key.expectedClass.getName()));
+    }
     myState.put(key, newValue);
   }
 
@@ -174,7 +186,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Store the given element in the state store without invoking another update round.
    */
   private <T> void storeValue(@NotNull Key<T> key, @NotNull JComponent updateTrigger, @Nullable T value) {
-    T oldValue = unwrap(myState.get(key));
+    T oldValue = myState.get(key);
     // If the incoming value is new (not already reflected in the model) it must be from a user edit.
     if (oldValue != null && !oldValue.equals(value) && !myGuardedKeys.contains(key)) {
       myUserEditedKeys.add(key);
@@ -347,7 +359,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   private <T> T bindAndGet(@NotNull Key<T> key, @NotNull JComponent component, @Nullable ComponentBinding<T, ?> binding) {
     ComponentBinding<?, ?> b = binding == null ? new DefaultBinding() : binding;
     myComponentBindings.put(component, key, b);
-    return unwrap(myState.get(key));
+    return myState.get(key);
   }
 
   /**
@@ -382,16 +394,18 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
    * Utility method for setting the selected index of a combo box by value.
    */
   private static <T> void setSelectedItem(JComboBox comboBox, @Nullable T value) {
+    int index = -1;
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);
       if (!(item instanceof ComboBoxItem)) {
         continue;
       }
       if (((ComboBoxItem)item).id.equals(value)) {
-        comboBox.setSelectedIndex(i);
+        index = i;
         break;
       }
     }
+    comboBox.setSelectedIndex(index);
   }
 
   /**
