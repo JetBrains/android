@@ -143,6 +143,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_MIN_API, 8);
     myState.put(ATTR_BUILD_API, 19);
     myState.put(ATTR_TARGET_API, 19);
+    myState.put(ATTR_TARGET_API_STRING, "19");
     myState.put(ATTR_MIN_API_LEVEL, 8);
     myState.put(ATTR_JAVA_VERSION, "1.6");
     myState.put(ATTR_PROJECT_LOCATION, FileUtil.join(getProject().getBasePath(), "SafeTestLocation"));
@@ -184,6 +185,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     resetValues();
 
     myState.put(ATTR_TARGET_API, null);
+    myState.put(ATTR_TARGET_API_STRING, null);
     assertValidationError("Select a target SDK");
 
     resetValues();
@@ -200,6 +202,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
 
     myState.put(ATTR_MIN_API_LEVEL, 15);
     myState.put(ATTR_TARGET_API, 10);
+    myState.put(ATTR_TARGET_API, "10");
     assertValidationError("The target SDK version should be at least as high as the minimum SDK version");
 
     resetValues();

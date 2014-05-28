@@ -200,6 +200,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     myState.put(ATTR_BUILD_API, "19");
     myState.put(ATTR_MIN_API_LEVEL, 8);
     myState.put(ATTR_TARGET_API, "19");
+    myState.put(ATTR_TARGET_API_STRING, "19");
 
     Template.convertApisToInt(myState.getParameters());
 
@@ -207,12 +208,13 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     assertEquals(8, myState.getInt(ATTR_MIN_API));
     assertEquals(19, myState.getInt(ATTR_BUILD_API));
     assertEquals(19, myState.getInt(ATTR_TARGET_API));
+    assertEquals("19", myState.get(ATTR_TARGET_API_STRING));
 
     List<String> previewNames = Lists.newArrayList("Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread", "Honeycomb", "IceCreamSandwich",
                                                   "JellyBean", "Kitkat");
     int[] apis = new int[] {3, 4, 5, 8, 9, 11, 14, 16, 19};
 
-    // Test codename conversion
+    // Test API string conversion
     for (int i = 0; i < previewNames.size(); ++i) {
       myState.put(ATTR_TARGET_API, previewNames.get(i));
       Template.convertApisToInt(myState.getParameters());

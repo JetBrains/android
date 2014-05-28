@@ -70,7 +70,7 @@ public class NewAndroidComponentAction extends AnAction {
     if (moduleInfo == null) {
       return;
     }
-    int moduleMinSdkVersion = moduleInfo.getMinSdkVersion();
+    int moduleMinSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
     if (myMinSdkVersion > moduleMinSdkVersion) {
       Presentation presentation = getTemplatePresentation();
       presentation.setText(myTemplateName + " (Requires minSdk >= " + myMinSdkVersion + ")");

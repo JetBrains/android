@@ -17,8 +17,10 @@ package com.android.tools.idea.model;
 
 import com.android.builder.model.ApiVersion;
 import com.android.builder.model.BuildTypeContainer;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -68,12 +70,19 @@ public class AndroidModuleInfo {
     return ManifestInfo.get(myFacet.getModule(), false).getPackage();
   }
 
-  public int getMinSdkVersion() {
+  @NotNull
+  public AndroidVersion getMinSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      ApiVersion minSdkVersion = project.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-      if (minSdkVersion != null && minSdkVersion.getApiLevel() >= 1) {
-        return minSdkVersion.getApiLevel();
+      try {
+        ApiVersion minSdkVersion = project.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+        if (minSdkVersion != null) {
+          return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
+        }
+      } catch (UnsupportedMethodException e) {
+        // TODO: REMOVE ME
+        // This method was added in the 0.11 model. We'll need to drop support for 0.10 shortly
+        // but until 0.11 is available this is a stopgap measure
       }
       // Else: not specified in gradle files; fall back to manifest
     }
@@ -81,21 +90,19 @@ public class AndroidModuleInfo {
     return ManifestInfo.get(myFacet.getModule(), false).getMinSdkVersion();
   }
 
-  public String getMinSdkName() {
-    String codeName = ManifestInfo.get(myFacet.getModule(), false).getMinSdkCodeName();
-    if (codeName != null) {
-      return codeName;
-    }
-
-    return Integer.toString(getMinSdkVersion());
-  }
-
-  public int getTargetSdkVersion() {
+  @NotNull
+  public AndroidVersion getTargetSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      ApiVersion targetSdkVersion = project.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-      if (targetSdkVersion != null && targetSdkVersion.getApiLevel() >= 1) {
-        return targetSdkVersion.getApiLevel();
+      try {
+        ApiVersion targetSdkVersion = project.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+        if (targetSdkVersion != null) {
+          return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
+        }
+      } catch (UnsupportedMethodException e) {
+        // TODO: REMOVE ME
+        // This method was added in the 0.11 model. We'll need to drop support for 0.10 shortly
+        // but until 0.11 is available this is a stopgap measure
       }
       // Else: not specified in gradle files; fall back to manifest
     }
@@ -145,7 +152,8 @@ public class AndroidModuleInfo {
     return -1;
   }
 
-  public static int getTargetSdkVersion(@Nullable Module module) {
+  @NotNull
+  public static AndroidVersion getTargetSdkVersion(@Nullable Module module) {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -156,10 +164,11 @@ public class AndroidModuleInfo {
       }
     }
 
-    return -1;
+    return AndroidVersion.DEFAULT;
   }
 
-  public static int getMinSdkVersion(@Nullable Module module) {
+  @NotNull
+  public static AndroidVersion getMinSdkVersion(@Nullable Module module) {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -170,6 +179,6 @@ public class AndroidModuleInfo {
       }
     }
 
-    return -1;
+    return AndroidVersion.DEFAULT;
   }
 }
