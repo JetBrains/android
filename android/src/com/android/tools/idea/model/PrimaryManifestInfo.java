@@ -15,20 +15,14 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.SdkConstants;
-import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
-import com.google.common.base.Charsets;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -39,7 +33,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +57,7 @@ class PrimaryManifestInfo extends ManifestInfo {
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
   private Manifest myManifest;
+  private Boolean myApplicationDebuggable;
 
   PrimaryManifestInfo(Module module) {
     myModule = module;
@@ -162,6 +156,13 @@ class PrimaryManifestInfo extends ManifestInfo {
   public boolean isRtlSupported() {
     sync();
     return myApplicationSupportsRtl;
+  }
+
+  @Nullable
+  @Override
+  public Boolean getApplicationDebuggable() {
+    sync();
+    return myApplicationDebuggable;
   }
 
   @Override
@@ -272,6 +273,9 @@ class PrimaryManifestInfo extends ManifestInfo {
         myApplicationLabel = application.getAttributeValue(ATTRIBUTE_LABEL, ANDROID_URI);
         myManifestTheme = application.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
         myApplicationSupportsRtl = VALUE_TRUE.equals(application.getAttributeValue(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI));
+
+        String debuggable = application.getAttributeValue(ATTRIBUTE_DEBUGGABLE, ANDROID_URI);
+        myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
 
         XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
         for (XmlTag activity : activities) {
