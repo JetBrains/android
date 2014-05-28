@@ -152,9 +152,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @VisibleForTesting
   void populateJvmArgs(@NotNull GradleExecutionSettings executionSettings, @NotNull List<String> jvmArgs) {
-    long daemonMaxIdleTimeInMs = executionSettings.getRemoteProcessIdleTtlInMs();
-    jvmArgs.add(createJvmArg(GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
-
     String gradleHome = executionSettings.getGradleHome();
     if (gradleHome != null && !gradleHome.isEmpty()) {
       gradleHome = FileUtil.toSystemDependentName(gradleHome);
