@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk.wizard;
+package com.android.tools.idea.lang.proguard.grammar;
 
-import com.intellij.ide.wizard.StepAdapter;
+import com.intellij.lexer.FlexAdapter;
 
-public abstract class SmwStep extends StepAdapter {
+import java.io.Reader;
 
-  public abstract boolean canGoNext();
+public class ProguardLexer extends FlexAdapter {
+  public ProguardLexer() {
+    super(new _ProguardLexer((Reader)null));
+  }
 }

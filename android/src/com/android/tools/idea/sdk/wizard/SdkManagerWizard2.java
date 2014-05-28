@@ -18,14 +18,16 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.sdk.SdkState;
-import com.intellij.ide.wizard.AbstractWizard;
+import com.android.tools.idea.wizard.TemplateParameterStep;
+import com.android.tools.idea.wizard.TemplateWizard;
+import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 
-public class SdkManagerWizard2 extends AbstractWizard<SmwStep> {
+public class SdkManagerWizard2 extends TemplateWizard implements TemplateParameterStep.UpdateListener {
 
   private SmwState myWizardState;
   private SmwSelectionStep mySelectionStep;
@@ -49,15 +51,15 @@ public class SdkManagerWizard2 extends AbstractWizard<SmwStep> {
     // TODO even if we do have an SdkData structure, we should account for the path to
     // be invalid (folder missing or not an SDK) and include as first step JG's page
     // about setting up an SDK. TL;DR: this is temporary, need to adjust workflow.
-    mySelectionStep = new SmwSelectionStep(myWizardState);
-    myConfirmationStep = new SmwConfirmationStep(myWizardState);
-    myProgressStep = new SmwProgressStep(myWizardState);
+    mySelectionStep = new SmwSelectionStep(myWizardState, this);
+    myConfirmationStep = new SmwConfirmationStep(myWizardState, this);
+    myProgressStep = new SmwProgressStep(myWizardState, this);
 
     addStep(mySelectionStep);
     addStep(myConfirmationStep);
     addStep(myProgressStep);
 
-    for (SmwStep step : mySteps) {
+    for (ModuleWizardStep step : mySteps) {
       if (step instanceof Disposable) {
         Disposer.register(getDisposable(), (Disposable)step);
       }
@@ -76,12 +78,6 @@ public class SdkManagerWizard2 extends AbstractWizard<SmwStep> {
   @Nullable
   protected String getHelpID() {
     return null;
-  }
-
-  @Override
-  protected boolean canGoNext() {
-    SmwStep step = getCurrentStepObject();
-    return step != null && step.canGoNext();
   }
 
 }

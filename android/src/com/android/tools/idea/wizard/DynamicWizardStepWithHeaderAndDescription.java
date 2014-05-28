@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import java.awt.*;
 
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
@@ -60,6 +62,12 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myTitleLabel.setFont(font);
 
     myErrorWarningLabel.setForeground(JBColor.red);
+  }
+
+  protected static CompoundBorder createBodyBorder() {
+    int fontSize = UIUtil.getLabelFont().getSize();
+    Border insetBorder = BorderFactory.createEmptyBorder(fontSize * 4, fontSize * 2, fontSize * 4, fontSize * 2);
+    return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()), insetBorder);
   }
 
   protected final void setBodyComponent(JComponent component) {

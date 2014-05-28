@@ -316,6 +316,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintAccidentalOctalInspection extends AndroidLintInspectionBase {
+    public AndroidLintAccidentalOctalInspection() {
+      super(AndroidBundle.message("android.lint.inspections.accidental.octal"), GradleDetector.ACCIDENTAL_OCTAL);
+    }
+  }
+
   public static class AndroidLintAdapterViewChildrenInspection extends AndroidLintInspectionBase {
     public AndroidLintAdapterViewChildrenInspection() {
       super(AndroidBundle.message("android.lint.inspections.adapter.view.children"), ChildCountDetector.ADAPTER_VIEW_ISSUE);

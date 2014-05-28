@@ -144,6 +144,11 @@ public class DynamicWizardPathTest extends TestCase {
     }
 
     @Override
+    protected void init() {
+      // Do nothing
+    }
+
+    @Override
     public void deriveValues(Set<ScopedStateStore.Key> modified) {
       myState.put(DERIVED_KEY, "derived!");
     }

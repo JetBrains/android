@@ -343,12 +343,12 @@ public abstract class ResourceManager {
 
   // searches only declarations such as "@+id/..."
   @NotNull
-  public List<PsiElement> findIdDeclarations(@NotNull final String id) {
+  public List<XmlAttributeValue> findIdDeclarations(@NotNull final String id) {
     if (!isResourcePublic(ResourceType.ID.getName(), id)) {
       return Collections.emptyList();
     }
 
-    final List<PsiElement> declarations = new ArrayList<PsiElement>();
+    final List<XmlAttributeValue> declarations = new ArrayList<XmlAttributeValue>();
     final Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(AndroidIdIndex.INDEX_ID, "+" + id, GlobalSearchScope.allScope(myProject));
     final Set<VirtualFile> fileSet = new HashSet<VirtualFile>(files);
@@ -478,7 +478,7 @@ public abstract class ResourceManager {
                                                             @NotNull final String resourceName,
                                                             final boolean distinguishDelimetersInName,
                                                             boolean searchAttrs) {
-    final ResourceType type = ResourceType.getEnum(resourceType);
+    final ResourceType type = resourceType.startsWith("+") ? ResourceType.ID : ResourceType.getEnum(resourceType);
     if (type == null ||
         !AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(type) &&
         (type != ResourceType.ATTR || !searchAttrs)) {

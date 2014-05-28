@@ -37,8 +37,9 @@ public abstract class BuildFilePanel extends EditorPanel {
   @Nullable protected final GradleBuildFile myGradleBuildFile;
   protected boolean myModified = false;
   private final JPanel myPanel;
+  @Nullable protected final Module myModule;
 
-  public BuildFilePanel(@NotNull Project project, @NotNull String moduleName) {
+  public BuildFilePanel(@NotNull Project project, @NotNull String moduleGradlePath) {
     super(new BorderLayout());
     myPanel = new JPanel();
     JBScrollPane scrollPane = new JBScrollPane(myPanel);
@@ -46,10 +47,10 @@ public abstract class BuildFilePanel extends EditorPanel {
 
     myProject = project;
 
-    Module module = GradleUtil.findModuleByGradlePath(myProject, moduleName);
-    myGradleBuildFile = module != null ? GradleBuildFile.get(module) : null;
+    myModule = GradleUtil.findModuleByGradlePath(myProject, moduleGradlePath);
+    myGradleBuildFile = myModule != null ? GradleBuildFile.get(myModule) : null;
     if (myGradleBuildFile == null) {
-      LOG.warn("Unable to find Gradle build file for module " + moduleName);
+      LOG.info("Unable to find Gradle build file for module " + moduleGradlePath);
     }
   }
 
