@@ -327,4 +327,10 @@ public class ResourceResolverCache {
       }
     }
   }
+
+  public void reset() {
+    myCachedGeneration = 0;
+    myAppResourceMap.clear();
+    myResolverMap.clear();
+  }
 }
