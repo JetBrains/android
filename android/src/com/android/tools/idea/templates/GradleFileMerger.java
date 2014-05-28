@@ -187,6 +187,7 @@ public class GradleFileMerger {
       if (existingElem instanceof GrCall) {
         PsiElement reference = existingElem.getFirstChild();
         if (reference instanceof GrReferenceExpression && reference.getText().equalsIgnoreCase(COMPILE)) {
+          boolean parsed = false;
           GrArgumentList arguments = ((GrCall)existingElem).getArgumentList();
           if (arguments != null) {
             GrExpression[] expressionArguments = arguments.getExpressionArguments();
@@ -195,15 +196,18 @@ public class GradleFileMerger {
               if (value instanceof String) {
                 String coordinateText = (String)value;
                 GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
-                if (coordinate != null && !map.get(coordinate.getId()).contains(coordinate)) {
-                  map.put(coordinate.getId(), coordinate);
-                  existingElem.delete();
-                  wasMapUpdated = true;
+                if (coordinate != null) {
+                  parsed = true;
+                  if (!map.get(coordinate.getId()).contains(coordinate)) {
+                    map.put(coordinate.getId(), coordinate);
+                    existingElem.delete();
+                    wasMapUpdated = true;
+                  }
                 }
               }
             }
           }
-          if (!wasMapUpdated && unparseableDependencies != null) {
+          if (!parsed && unparseableDependencies != null) {
             unparseableDependencies.add(existingElem.getText());
           }
         }
