@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.wizard.AddActivityAction;
 import com.android.tools.idea.wizard.ChooseApiLevelDialog;
 import com.android.tools.idea.wizard.DummyWizardForTesting;
 import com.android.utils.Pair;
@@ -175,6 +176,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     androidToolsGroup.add(action);
     action = new DummyWizardForTesting.ClearPrefsAction();
     am.registerAction("ClearPrefs", action);
+    androidToolsGroup.add(action);
+    action = new AddActivityAction();
+    am.registerAction("AddActivity", action);
     androidToolsGroup.add(action);
   }
 
