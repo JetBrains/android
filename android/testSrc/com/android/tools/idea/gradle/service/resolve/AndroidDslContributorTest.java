@@ -42,7 +42,9 @@ import java.util.Set;
  * only if a Gradle project is actually imported by the IDE.
  */
 public class AndroidDslContributorTest extends AndroidGradleTestCase {
-  public void testResolutions() throws Exception {
+  // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
+  // Temporarily disable this until we find the root cause.
+  public void disabled_testResolutions() throws Exception {
     loadProject("projects/resolve/simple");
     PsiFile psiFile = getPsiFile("build.gradle");
     assertNotNull(psiFile);
@@ -75,9 +77,9 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     validateNoResolution(psiFile, "publishNonDefault");
   }
 
-  public void testResolutionsInLibrary() throws Exception {
-    // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
-    // Temporarily disable this until we find the root cause.
+  // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
+  // Temporarily disable this until we find the root cause.
+  public void disabled_testResolutionsInLibrary() throws Exception {
     if (isRunningOnHudson()) {
       logTestDisabled();
       return;
@@ -130,7 +132,9 @@ public class AndroidDslContributorTest extends AndroidGradleTestCase {
     assertEquals("Method names don't match while resolving " + symbol, methodName, psiMethod.getName());
   }
 
-  public void testCompletions() throws Exception {
+  // This test fails on the build server with the error: "Assertion failed: Already disposed", but works fine locally
+  // Temporarily disable this until we find the root cause.
+  public void disabled_testCompletions() throws Exception {
     loadProject("projects/resolve/simple");
 
     assertHasCompletions("completion/comp.gradle", "compileSdkVersion", "compileOptions");

@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.tools.idea.wizard.TemplateWizardStep;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class SmwProgressStep extends SmwStep {
+public class SmwProgressStep extends TemplateWizardStep implements Disposable {
   private final SmwState myWizardState;
   private JPanel myContentPanel;
   private JTextArea myTextArea1;
@@ -28,9 +32,15 @@ public class SmwProgressStep extends SmwStep {
   private JBLabel myLabelSdkPath;
   private JBLabel myLabelProgress1;
   private JBLabel myLabelProgress2;
+  private JLabel myErrorLabel;
 
-  public SmwProgressStep(SmwState wizardState) {
+  public SmwProgressStep(@NotNull SmwState wizardState, @Nullable TemplateWizardStep.UpdateListener updateListener) {
+    super(wizardState, null /*project*/, null /*module*/, null /*sidePanelIcon*/, updateListener);
     myWizardState = wizardState;
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @Override
@@ -39,13 +49,24 @@ public class SmwProgressStep extends SmwStep {
   }
 
   @Override
+  public void _init() {
+    super._init();
+  }
+
+  @Override
   public void _commit(boolean finishChosen) throws CommitStepException {
     super._commit(finishChosen);
   }
 
+  @NotNull
   @Override
-  public boolean canGoNext() {
-    // TODO
-    return true;
+  protected JLabel getDescription() {
+    return myErrorLabel;
+  }
+
+  @NotNull
+  @Override
+  protected JLabel getError() {
+    return myErrorLabel;
   }
 }

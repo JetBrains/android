@@ -622,6 +622,15 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("res/xml/custom_pref.xml", BASE_PATH + "custom_pref_after.xml", false);
   }
 
+  public void testRenameInlineIdDeclarations() throws Throwable {
+    createManifest();
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout15.xml", "res/layout/layout15.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.copyFileToProject("R.java", R_JAVA_PATH);
+    checkAndRename("newname");
+    myFixture.checkResultByFile(BASE_PATH + "layout15_after.xml");
+  }
+
   private void doMovePackageTest(String packageName, String newPackageName) throws Exception {
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);

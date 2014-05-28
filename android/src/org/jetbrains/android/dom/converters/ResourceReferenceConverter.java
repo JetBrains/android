@@ -44,6 +44,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -383,13 +385,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           ResourceValue resourceValue = ResourceValue.parse(value, false, myWithPrefix);
           if (resourceValue != null) {
             String aPackage = resourceValue.getPackage();
-            String resTypeName = resourceValue.getResourceType();
-            if (resTypeName == null && myResourceTypes.size() == 1) {
-              resTypeName = myResourceTypes.get(0);
+            ResourceType resType = resourceValue.getType();
+            if (resType == null && myResourceTypes.size() == 1) {
+              resType = ResourceType.getEnum(myResourceTypes.get(0));
             }
             final String resourceName = resourceValue.getResourceName();
-            final ResourceType resType = resTypeName != null ? ResourceType.getEnum(resTypeName) : null;
-
             if (aPackage == null &&
                 resType != null &&
                 resourceName != null &&
@@ -425,10 +425,25 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         ResourceValue resValue = value.getValue();
         if (resValue != null && resValue.isReference()) {
           String resType = resValue.getResourceType();
-          if (resType == null) return PsiReference.EMPTY_ARRAY;
-          if (resValue.getPackage() == null && "+id".equals(resValue.getResourceType())) {
+          if (resType == null) {
             return PsiReference.EMPTY_ARRAY;
           }
+
+          // Don't treat "+id" as a reference if it is actually defining an id locally; e.g.
+          //    android:layout_alignLeft="@+id/foo"
+          // is a reference to R.id.foo, but
+          //    android:id="@+id/foo"
+          // is not; it's the place we're defining it.
+          if (resValue.getPackage() == null && "+id".equals(resType)
+              && element != null && element.getParent() instanceof XmlAttribute) {
+            XmlAttribute attribute = (XmlAttribute)element.getParent();
+            if (ATTR_ID.equals(attribute.getLocalName()) && ANDROID_URI.equals(attribute.getNamespace())) {
+              // When defining an id, don't point to another reference
+              // TODO: Unless you use @id instead of @+id!
+              return PsiReference.EMPTY_ARRAY;
+            }
+          }
+
           return new PsiReference[]{new AndroidResourceReference(value, facet, resValue, null)};
         }
       }

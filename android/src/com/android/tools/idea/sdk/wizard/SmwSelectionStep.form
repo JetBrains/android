@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.sdk.wizard.SmwSelectionStep">
-  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="5" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myContentPanel" layout-manager="GridLayoutManager" row-count="4" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="427" height="325"/>
@@ -21,17 +21,9 @@
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <opaque value="true"/>
           <text value="&lt;placeholder path&gt;"/>
         </properties>
-      </component>
-      <component id="7ae93" class="javax.swing.JTextArea" binding="myTextDescription">
-        <constraints>
-          <grid row="3" column="0" row-span="2" col-span="2" vsize-policy="0" hsize-policy="6" anchor="1" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="50"/>
-            <maximum-size width="-1" height="200"/>
-          </grid>
-        </constraints>
-        <properties/>
       </component>
       <grid id="337b5" binding="myToolbarPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
@@ -41,18 +33,52 @@
         <border type="none"/>
         <children/>
       </grid>
-      <scrollpane id="3d81" class="com.intellij.ui.components.JBScrollPane">
+      <splitpane id="ca425">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="200" height="200"/>
+          </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <dividerLocation value="200"/>
+        </properties>
         <border type="none"/>
         <children>
-          <component id="343d9" class="com.android.tools.idea.sdk.wizard.SmwSelectionTable" binding="myTable">
-            <constraints/>
+          <component id="25ed9" class="javax.swing.JLabel" binding="myTextDescription">
+            <constraints>
+              <splitpane position="right"/>
+            </constraints>
+            <properties>
+              <background swing-color="TextPane.background"/>
+              <opaque value="true"/>
+              <text value="Label"/>
+              <verticalAlignment value="1"/>
+              <verticalTextPosition value="3"/>
+            </properties>
           </component>
+          <scrollpane id="3d81" class="com.intellij.ui.components.JBScrollPane">
+            <constraints>
+              <splitpane position="left"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="343d9" class="com.intellij.ui.table.JBTable" binding="myTable" custom-create="true">
+                <constraints/>
+                <properties/>
+              </component>
+            </children>
+          </scrollpane>
         </children>
-      </scrollpane>
+      </splitpane>
+      <component id="c2a40" class="javax.swing.JLabel" binding="myErrorLabel">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Label"/>
+        </properties>
+      </component>
     </children>
   </grid>
 </form>

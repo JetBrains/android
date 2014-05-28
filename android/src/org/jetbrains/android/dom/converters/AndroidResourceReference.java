@@ -77,18 +77,15 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
     }
     ResourceValue value = myValue.getValue();
     assert value != null;
-    String resType = value.getResourceType();
-
+    final ResourceType resType = value.getType();
     if (resType != null && newElementName != null) {
       // todo: do not allow new value resource name to contain dot, because it is impossible to check if it file or value otherwise
-      final ResourceType resTypeObj = ResourceType.getEnum(resType);
-
-      final String newResName = resTypeObj != null &&
-                                AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resTypeObj) &&
+      final String newResName = AndroidResourceUtil.XML_FILE_RESOURCE_TYPES.contains(resType) &&
                                 newElementName.contains(".") // it is file
-                                ? AndroidCommonUtils.getResourceName(resType, newElementName)
+                                ? AndroidCommonUtils.getResourceName(resType.getName(), newElementName)
                                 : newElementName;
-      myValue.setValue(ResourceValue.referenceTo(value.getPrefix(), value.getPackage(), resType, newResName));
+      // Note: We're using value.getResourceType(), not resType.getName() here, because we want the "+" in the new name
+      myValue.setValue(ResourceValue.referenceTo(value.getPrefix(), value.getPackage(), value.getResourceType(), newResName));
     }
     return myValue.getXmlTag();
   }

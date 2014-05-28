@@ -96,6 +96,7 @@ public enum BuildFileKey {
   STORE_PASSWORD("storePassword", STRING),
 
   // Android block
+  DEFAULT_CONFIG("android/defaultConfig", CLOSURE),
   BUILD_TOOLS_VERSION("android/buildToolsVersion", STRING),
   COMPILE_SDK_VERSION("android/compileSdkVersion", INTEGER),
   IGNORE_ASSETS_PATTERN("android/aaptOptions/ignoreAssetsPattern", STRING),
