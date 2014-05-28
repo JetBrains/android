@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -26,6 +28,10 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
@@ -35,24 +41,41 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
  *
  * Subclasses should call {@link #setBodyComponent(javax.swing.JComponent)} from the constructor.
  */
-public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicWizardStep {
+public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicWizardStep implements Disposable {
   protected static final Key<String> KEY_DESCRIPTION =
     createKey(DynamicWizardStepWithHeaderAndDescription.class + ".description", ScopedStateStore.Scope.STEP, String.class);
   protected static final Key<String> KEY_TITLE =
     createKey(DynamicWizardStepWithHeaderAndDescription.class + ".title", ScopedStateStore.Scope.STEP, String.class);
   protected static final Key<String> KEY_MESSAGE =
     createKey(DynamicWizardStepWithHeaderAndDescription.class + ".message", ScopedStateStore.Scope.STEP, String.class);
+
+  private static final String PROPERTY_FOCUS_OWNER = "focusOwner";
+
   @NotNull private final String myTitle;
   @Nullable private final String myMessage;
-
+  private PropertyChangeListener myFocusListener;
   private JPanel myRootPane;
   private JBLabel myTitleLabel;
   private JBLabel myMessageLabel;
   private JBLabel myIcon;
   private JLabel myDescriptionText;
   private JBLabel myErrorWarningLabel;
+  private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
 
+  /**
+   * @deprecated Use {@link #DynamicWizardStepWithHeaderAndDescription(String, String, javax.swing.Icon, com.intellij.openapi.Disposable)}
+   * to properly deregister focus listener when this page is no longer needed
+   */
+  @Deprecated
   public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message, @Nullable Icon icon) {
+    this(title, message, icon, Disposer.newDisposable());
+  }
+
+  public DynamicWizardStepWithHeaderAndDescription(@NotNull String title,
+                                                   @Nullable String message,
+                                                   @Nullable Icon icon,
+                                                   @NotNull Disposable parentDisposable) {
+    Disposer.register(parentDisposable, this);
     myTitle = title;
     myMessage = message;
     myIcon.setIcon(icon);
@@ -72,6 +95,35 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     int fontSize = UIUtil.getLabelFont().getSize();
     Border insetBorder = BorderFactory.createEmptyBorder(fontSize * 4, fontSize * 2, fontSize * 4, fontSize * 2);
     return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()), insetBorder);
+  }
+
+  protected void setControlDescription(Component control, @Nullable String description) {
+    if (myFocusListener == null) {
+      myFocusListener = new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+          updateDescription((JComponent)evt.getNewValue());
+        }
+      };
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PROPERTY_FOCUS_OWNER, myFocusListener);
+    }
+    if (StringUtil.isEmpty(description)) {
+      myControlDescriptions.remove(control);
+    }
+    else {
+      myControlDescriptions.put(control, description);
+    }
+  }
+
+  private void updateDescription(JComponent focusedComponent) {
+    myState.put(KEY_DESCRIPTION, myControlDescriptions.get(focusedComponent));
+  }
+
+  @Override
+  public void dispose() {
+    if (myFocusListener != null) {
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(PROPERTY_FOCUS_OWNER, myFocusListener);
+    }
   }
 
   protected final void setBodyComponent(JComponent component) {
