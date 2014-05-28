@@ -362,13 +362,7 @@ public final class GradleUtil {
   public static void stopAllGradleDaemons(boolean interactive) throws IOException {
     File gradleHome = findAnyGradleHome(interactive);
     if (gradleHome == null) {
-      if (ProjectManager.getInstance().getOpenProjects().length == 0) {
-        // if there are no open projects, then it is expected that we won't find gradleHome
-        LOG.warn("Unable to find GRADLE_HOME, it is possible that the Gradle daemon might still be running.");
-        return;
-      } else {
-        throw new FileNotFoundException("Unable to find path to Gradle home directory");
-      }
+      throw new FileNotFoundException("Unable to find path to Gradle home directory");
     }
     File gradleExecutable = new File(gradleHome, "bin" + File.separatorChar + GRADLE_EXECUTABLE_NAME);
     if (!gradleExecutable.isFile()) {
