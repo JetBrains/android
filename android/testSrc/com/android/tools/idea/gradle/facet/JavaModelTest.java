@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.facet;
 
-import com.google.common.collect.Lists;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaModuleStub;
+import com.android.tools.idea.gradle.stubs.gradle.IdeaProjectStub;
 import junit.framework.TestCase;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
-import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
+import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
+import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
 import java.util.List;
@@ -31,15 +34,16 @@ import static org.easymock.EasyMock.*;
  * Tests for {@link JavaModel}.
  */
 public class JavaModelTest extends TestCase {
+  private IdeaModuleStub myModule;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    IdeaProjectStub project = new IdeaProjectStub("javaModelTest");
+    myModule = project.addModule("lib");
   }
 
-  public void testConstructor() {
-    IdeaContentRoot contentRoot = createMock(IdeaContentRoot.class);
-    List<? extends IdeaContentRoot> allContentRoots = Lists.newArrayList(contentRoot, null);
-
+  public void testModelCreation() {
     IdeaModuleDependency moduleDependency = createMock(IdeaModuleDependency.class);
 
     IdeaSingleEntryLibraryDependency resolved = createMock(IdeaSingleEntryLibraryDependency.class);
@@ -50,14 +54,25 @@ public class JavaModelTest extends TestCase {
     File unresolvedFile = new File("unresolved dependency - commons-collections commons-collections 3.2");
     expect(unresolved.getFile()).andStubReturn(unresolvedFile);
 
-    List<? extends IdeaDependency> allDependencies = Lists.newArrayList(moduleDependency, resolved, unresolved, null);
+    myModule.addDependency(moduleDependency);
+    myModule.addDependency(resolved);
+    myModule.addDependency(unresolved);
 
-    replay(contentRoot, moduleDependency, resolved, unresolved);
+    ExtIdeaCompilerOutput compilerOutput = createMock(ExtIdeaCompilerOutput.class);
 
-    JavaModel model = new JavaModel(new File("module"), allContentRoots, allDependencies, null);
-    List<IdeaContentRoot> contentRoots = model.getContentRoots();
-    assertEquals(1, contentRoots.size());
-    assertSame(contentRoot, contentRoots.get(0));
+    ModuleExtendedModel extendedModel = createMock(ModuleExtendedModel.class);
+    expect(extendedModel.getContentRoots()).andStubReturn(null);
+    expect(extendedModel.getCompilerOutput()).andStubReturn(compilerOutput);
+
+
+    replay(moduleDependency, resolved, unresolved, extendedModel, compilerOutput);
+
+    JavaModel model = JavaModel.newJavaModel(myModule, extendedModel);
+
+    DomainObjectSet<? extends IdeaContentRoot> expectedContentRoots = myModule.getContentRoots();
+    List<IdeaContentRoot> actualContentRoots = model.getContentRoots();
+    assertEquals(expectedContentRoots.size(), actualContentRoots.size());
+    assertSame(expectedContentRoots.getAt(0), actualContentRoots.get(0));
 
     List<IdeaModuleDependency> moduleDependencies = model.getModuleDependencies();
     assertEquals(1, moduleDependencies.size());
@@ -71,6 +86,6 @@ public class JavaModelTest extends TestCase {
     assertEquals(1, unresolvedDependencyNames.size());
     assertEquals("commons-collections:commons-collections:3.2", unresolvedDependencyNames.get(0));
 
-    verify(contentRoot, moduleDependency, resolved, unresolved);
+    verify(moduleDependency, resolved, unresolved, extendedModel, compilerOutput);
   }
 }

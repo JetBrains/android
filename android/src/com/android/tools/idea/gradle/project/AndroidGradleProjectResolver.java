@@ -52,9 +52,6 @@ import com.intellij.util.containers.ContainerUtilRt;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.gradle.GradleScript;
-import org.gradle.tooling.model.idea.IdeaCompilerOutput;
-import org.gradle.tooling.model.idea.IdeaContentRoot;
-import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
@@ -171,7 +168,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     if (androidProject == null) {
       // This is a Java lib module.
-      JavaModel javaModel = createJavaModel(gradleModule, moduleRootDirPath);
+      ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
+      assert model != null;
+      JavaModel javaModel = JavaModel.newJavaModel(gradleModule, model);
       gradleProject.setJavaModel(javaModel);
 
       List<String> unresolved = javaModel.getUnresolvedDependencyNames();
@@ -216,30 +215,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       //noinspection unchecked
       populateUnresolvedDependencies((DataNode<ProjectData>)parent, unresolved);
     }
-  }
-
-  @NotNull
-  private JavaModel createJavaModel(@NotNull IdeaModule gradleModule, @NotNull File moduleRootDirPath) {
-    Collection<? extends IdeaContentRoot> contentRoots = getContentRootsFrom(gradleModule);
-    List<? extends IdeaDependency> dependencies = getDependencies(gradleModule);
-    IdeaCompilerOutput compilerOutput = gradleModule.getCompilerOutput();
-    return new JavaModel(moduleRootDirPath, contentRoots, dependencies, compilerOutput);
-  }
-
-  @NotNull
-  private Collection<? extends IdeaContentRoot> getContentRootsFrom(@NotNull IdeaModule module) {
-    ModuleExtendedModel model = resolverCtx.getExtraProject(module, ModuleExtendedModel.class);
-    Collection<? extends IdeaContentRoot> contentRoots = model != null ? model.getContentRoots() : module.getContentRoots();
-    if (contentRoots != null) {
-      return contentRoots;
-    }
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  private static List<? extends IdeaDependency> getDependencies(@NotNull IdeaModule module) {
-    List<? extends IdeaDependency> dependencies = module.getDependencies().getAll();
-    return (dependencies != null) ? dependencies : Collections.<IdeaDependency>emptyList();
   }
 
   @Override

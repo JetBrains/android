@@ -25,6 +25,7 @@ import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
@@ -85,23 +86,9 @@ public class IdeaModuleStub implements IdeaModule {
   }
 
   @Override
+  @Nullable
   public IdeaCompilerOutput getCompilerOutput() {
-    return new IdeaCompilerOutput() {
-      @Override
-      public boolean getInheritOutputDirs() {
-        return false;
-      }
-
-      @Override
-      public File getOutputDir() {
-        return new File("build", "output");
-      }
-
-      @Override
-      public File getTestOutputDir() {
-        return new File("build", "test-output");
-      }
-    };
+    return null;
   }
 
   public void addDependency(@NotNull IdeaDependency dependency) {
