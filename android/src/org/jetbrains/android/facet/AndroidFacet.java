@@ -30,6 +30,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -43,6 +44,7 @@ import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
 import com.intellij.facet.FacetTypeRegistry;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -106,6 +108,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private static final Object APP_RESOURCES_LOCK = new Object();
   private static final Object PROJECT_RESOURCES_LOCK = new Object();
   private static final Object MODULE_RESOURCES_LOCK = new Object();
+  private static boolean ourDynamicTemplateMenuCreated;
 
   private AvdManager myAvdManager = null;
   private AndroidSdkData mySdkData;
@@ -661,6 +664,20 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     }
   }
 
+  public static void createDynamicTemplateMenu() {
+    if (ourDynamicTemplateMenuCreated) {
+      return;
+    }
+    ourDynamicTemplateMenuCreated = true;
+    DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
+    newGroup.addSeparator();
+    final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu();
+
+    if (menu != null) {
+      newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
+    }
+  }
+
   @Override
   public void initFacet() {
     StartupManager.getInstance(getModule().getProject()).runWhenProjectIsInitialized(new Runnable() {
@@ -721,6 +738,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
         });
       }
     });
+    createDynamicTemplateMenu();
   }
 
   private void addResourceFolderToSdkRootsIfNecessary() {
