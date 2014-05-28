@@ -18,6 +18,8 @@ package com.android.tools.idea.lang.proguard;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.lookup.LookupElement;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -47,6 +49,24 @@ public class ProguardCompletionTest extends AndroidTestCase {
                                   "keepnames",
                                   "keeppackagenames",
                                   "keepclasseswithmembernames");
+  }
+
+  public void testNewlineAtEOFNotRequired() throws Throwable {
+    copyFileToProject("validfile_with_eol.pro");
+    copyFileToProject("validfile_without_eol.pro");
+
+    // Expect no errors or warnings for these files.
+    myFixture.testHighlighting(true, true, true, "validfile_with_eol.pro");
+    myFixture.testHighlighting(true, true, true, "validfile_without_eol.pro");
+  }
+
+  public void testInvalidProguardFile() throws Throwable {
+    copyFileToProject("invalidfile.pro");
+    List<HighlightInfo> highlights = myFixture.doHighlighting();
+    assertFalse("Expected at least one highlight", highlights.isEmpty());
+
+    HighlightInfo expectedError = highlights.get(0);
+    assertEquals("Expected a highlight of type ERROR", HighlightInfoType.ERROR, expectedError.type);
   }
 
   /**
