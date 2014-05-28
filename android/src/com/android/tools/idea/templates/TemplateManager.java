@@ -294,6 +294,18 @@ public class TemplateManager {
     return templates;
   }
 
+  /**
+   * @return a list of template files that declare the given category.
+   */
+  @NotNull
+  public List<File> getTemplatesInCategory(@NotNull String category) {
+    if (getCategoryTable(false).containsRow(category)) {
+      return Lists.newArrayList(getCategoryTable(false).row(category).values());
+    } else {
+      return Lists.newArrayList();
+    }
+  }
+
   @Nullable
   public ActionGroup getTemplateCreationMenu() {
     refreshDynamicTemplateMenu();
@@ -356,8 +368,10 @@ public class TemplateManager {
       }
 
       for (File rootDirectory : getExtraTemplateRootFolders()) {
-        for (File newTemplate : TemplateUtils.listFiles(rootDirectory)) {
-          addTemplateToTable(newTemplate);
+        for (File categoryDirectory : TemplateUtils.listFiles(rootDirectory)) {
+          for (File newTemplate : TemplateUtils.listFiles(categoryDirectory)) {
+            addTemplateToTable(newTemplate);
+          }
         }
       }
     }

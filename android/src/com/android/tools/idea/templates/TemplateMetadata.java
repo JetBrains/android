@@ -84,6 +84,7 @@ public class TemplateMetadata {
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
   public static final String TAG_CATEGORY = "category";
+  public static final String TAG_FORMFACTOR = "formfactor";
 
 
   private final Document myDocument;
@@ -91,6 +92,7 @@ public class TemplateMetadata {
 
   private final AssetStudioAssetGenerator.AssetType myIconType;
   private final String myIconName;
+  private String myFormFactor = null;
   private String myCategory = null;
 
   @VisibleForTesting
@@ -129,6 +131,14 @@ public class TemplateMetadata {
         myCategory = element.getAttribute(Template.ATTR_VALUE);
       }
     }
+
+    NodeList formFactors = myDocument.getElementsByTagName(TAG_FORMFACTOR);
+    if (formFactors.getLength() > 0) {
+      Element element = (Element) formFactors.item(0);
+      if (element.hasAttribute(Template.ATTR_VALUE)) {
+        myFormFactor = element.getAttribute(Template.ATTR_VALUE);
+      }
+    }
   }
 
   @Nullable
@@ -156,6 +166,11 @@ public class TemplateMetadata {
   @Nullable
   public String getCategory() {
     return myCategory;
+  }
+
+  @Nullable
+  public String getFormFactor() {
+    return myFormFactor;
   }
 
   @Nullable
