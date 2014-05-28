@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -110,6 +111,23 @@ public class AndroidModuleInfo {
     }
 
     return -1;
+  }
+
+  /**
+   * Returns whether the application is debuggable. For Gradle projects, this is a boolean value.
+   * For non Gradle projects, this returns a boolean value if the flag is set, or null if the flag unspecified in the manifest.
+   */
+  @Nullable
+  public Boolean isDebuggable() {
+    IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
+    if (project != null) {
+      BuildTypeContainer buildTypeContainer = project.findBuildType(project.getSelectedVariant().getBuildType());
+      if (buildTypeContainer != null) {
+        return buildTypeContainer.getBuildType().isDebuggable();
+      }
+    }
+
+    return ManifestInfo.get(myFacet.getModule(), false).getApplicationDebuggable();
   }
 
   public static int getBuildSdkVersion(@Nullable Module module) {
