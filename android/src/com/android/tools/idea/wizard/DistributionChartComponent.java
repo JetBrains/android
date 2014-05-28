@@ -311,4 +311,15 @@ public class DistributionChartComponent extends JPanel {
   public interface DistributionSelectionChangedListener {
     void onDistributionSelected(Distribution d);
   }
+
+  public double getSupportedDistributionForApiLevel(int apiLevel) {
+    double unsupportedSum = 0;
+    for (Distribution d : myDistributions) {
+      if (d.apiLevel >= apiLevel) {
+        break;
+      }
+      unsupportedSum += d.distributionPercentage;
+    }
+    return 1 - unsupportedSum;
+  }
 }

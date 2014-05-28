@@ -172,6 +172,14 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
   }
 
   /**
+   * Check to see if the given key is contained in this state store.
+   * @return true iff the given key corresponds to a value in the state store.
+   */
+  public <T> boolean containsKey(@NotNull Key<T> key) {
+    return myState.containsKey(key);
+  }
+
+  /**
    * @return a single map of the values "visible" from this store, that is the values contained in this store as well as
    * all values from the ancestor chain that are not overridden by values set at this scope level.
    */
