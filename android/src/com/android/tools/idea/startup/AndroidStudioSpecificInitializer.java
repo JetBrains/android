@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -40,6 +41,8 @@ import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableEP;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -429,7 +432,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       @Override
       public void appClosing() {
         try {
-          GradleUtil.stopAllGradleDaemons(false);
+          for (Project p : ProjectManager.getInstance().getOpenProjects()) {
+            if (Projects.isGradleProject(p)) {
+              GradleUtil.stopAllGradleDaemons(false);
+              return;
+            }
+          }
         }
         catch (IOException e) {
           LOG.error("Failed to stop Gradle daemons", e);
