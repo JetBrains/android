@@ -43,7 +43,6 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -56,6 +55,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManagerAdapter;
 import com.intellij.ui.content.ContentManagerEvent;
+import com.intellij.xdebugger.DefaultDebugProcessHandler;
 import com.intellij.xdebugger.XDebuggerBundle;
 import icons.AndroidIcons;
 import org.jetbrains.android.dom.manifest.Instrumentation;
@@ -79,10 +79,7 @@ import static com.intellij.execution.process.ProcessOutputTypes.STDOUT;
  * @author coyote
  */
 public class AndroidDebugRunner extends DefaultProgramRunner {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
-
   public static final Key<AndroidSessionInfo> ANDROID_SESSION_INFO = new Key<AndroidSessionInfo>("ANDROID_SESSION_INFO");
-  private static final Object myReaderLock = new Object();
 
   private static final Object myDebugLock = new Object();
   @NonNls private static final String ANDROID_DEBUG_SELECTED_TAB_PROPERTY = "ANDROID_DEBUG_SELECTED_TAB_";
@@ -220,6 +217,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     return null;
   }
 
+  @Nullable
   private static RunContentDescriptor embedToExistingSession(final Project project,
                                                              final Executor executor,
                                                              final AndroidRunningState state) throws ExecutionException {
@@ -263,12 +261,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     state.setTargetDevices(devices.toArray(new IDevice[devices.size()]));
     state.setConsole(oldConsole);
     final RunContentDescriptor oldDescriptor = oldSessionInfo.getDescriptor();
-    RemoteDebugProcessHandler newProcessHandler;
+    ProcessHandler newProcessHandler;
     if (oldDescriptor.getProcessHandler() instanceof RemoteDebugProcessHandler) {
-      newProcessHandler = (RemoteDebugProcessHandler)oldDescriptor.getProcessHandler();
+      newProcessHandler = oldDescriptor.getProcessHandler();
       newProcessHandler.destroyProcess();
     } else {
-      newProcessHandler = new RemoteDebugProcessHandler(project);
+      newProcessHandler = new DefaultDebugProcessHandler();
     }
     oldDescriptor.setProcessHandler(newProcessHandler);
     state.setProcessHandler(newProcessHandler);
@@ -277,6 +275,17 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     newProcessHandler.notifyTextAvailable("The session was restarted\n", STDOUT);
 
     showNotification(project, executor, oldDescriptor, "running", false, NotificationType.INFORMATION);
+    state.addListener(new AndroidRunningStateListener() {
+      @Override
+      public void executionFailed() {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            showNotification(project, executor, oldDescriptor, "error", false, NotificationType.ERROR);
+          }
+        });
+      }
+    });
 
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
       @Override

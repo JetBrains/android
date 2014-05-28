@@ -122,6 +122,12 @@ public class MergedManifestInfo extends ManifestInfo {
     throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
   }
 
+  @Nullable
+  @Override
+  public Boolean getApplicationDebuggable() {
+    throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
+  }
+
   @Override
   public int getTargetSdkVersion() {
     throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
