@@ -17,6 +17,7 @@ package com.android.tools.idea.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -287,33 +288,16 @@ public abstract class ManifestInfo {
    *
    * @return the target SDK version
    */
-  public abstract int getTargetSdkVersion();
+  @NotNull
+  public abstract AndroidVersion getTargetSdkVersion();
 
   /**
    * Returns the minimum SDK version
    *
    * @return the minimum SDK version
    */
-  public abstract int getMinSdkVersion();
-
-  /**
-   * Returns the minimum SDK version name (which may not be a numeric string, e.g.
-   * it could be a codename). It will never be null or empty; if no min sdk version
-   * was specified in the manifest, the return value will be "1". Use
-   * {@link #getMinSdkCodeName()} instead if you want to look up whether there is a code name.
-   *
-   * @return the minimum SDK version
-   */
   @NotNull
-  public abstract String getMinSdkName();
-
-  /**
-   * Returns the code name used for the minimum SDK version, if any.
-   *
-   * @return the minSdkVersion codename or null
-   */
-  @Nullable
-  public abstract String getMinSdkCodeName();
+  public abstract AndroidVersion getMinSdkVersion();
 
   /** @return the list activities defined in the manifest. */
   @NotNull

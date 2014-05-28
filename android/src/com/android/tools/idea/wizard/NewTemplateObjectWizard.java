@@ -173,11 +173,13 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       selectSourceProvider(sourceProvider, gradleProject);
     }
 
-    minSdkVersion = moduleInfo.getMinSdkVersion();
-    minSdkName = moduleInfo.getMinSdkName();
+    minSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
+    minSdkName = moduleInfo.getMinSdkVersion().getApiString();
 
     myWizardState.put(ATTR_MIN_API, minSdkName);
     myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
+    myWizardState.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
+    myWizardState.put(ATTR_TARGET_API_STRING, moduleInfo.getTargetSdkVersion().getApiString());
 
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
 
