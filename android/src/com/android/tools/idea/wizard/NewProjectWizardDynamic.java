@@ -48,7 +48,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   protected void init() {
-    addPath(new ConfigureAndroidProjectPath());
+    addPath(new ConfigureAndroidProjectPath(getDisposable()));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths()) {
       addPath(path);
     }

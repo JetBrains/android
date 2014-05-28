@@ -18,12 +18,10 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -32,10 +30,9 @@ import java.util.Set;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
-import static com.android.tools.idea.wizard.ScopedDataBinder.ValueDeriver;
-import static com.android.tools.idea.wizard.ScopedStateStore.*;
+import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
+import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * Module creation for a given form factor
@@ -141,7 +138,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   }
 
   @Override
-  public void performFinishingActions() {
+  public boolean performFinishingActions() {
     String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     if (projectLocation != null) {
       File projectRoot = new File(projectLocation);
@@ -149,6 +146,10 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       FileUtilRt.createDirectory(moduleRoot);
       Template template = Template.createFromPath(myTemplateFile);
       template.render(projectRoot, moduleRoot, FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten()));
+      return true;
+    }
+    else {
+      return false;
     }
   }
 }
