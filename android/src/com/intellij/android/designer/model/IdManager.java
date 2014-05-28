@@ -52,7 +52,7 @@ public class IdManager {
   }
 
   @Nullable
-  private static String parseIdValue(@Nullable String idValue) {
+  public static String getIdName(@Nullable String idValue) {
     if (idValue != null) {
       if (idValue.startsWith(NEW_ID_PREFIX)) {
         return idValue.substring(NEW_ID_PREFIX.length());
@@ -66,14 +66,14 @@ public class IdManager {
   }
 
   public void addComponent(RadViewComponent component) {
-    String idValue = parseIdValue(component.getId());
+    String idValue = getIdName(component.getId());
     if (idValue != null) {
       myIdList.add(idValue);
     }
   }
 
   public void removeComponent(RadViewComponent component, boolean withChildren) {
-    String idValue = parseIdValue(component.getId());
+    String idValue = getIdName(component.getId());
     if (idValue != null) {
       myIdList.remove(idValue); // Uh oh. What if it appears more than once? This would incorrectly assume it's no longer there! Needs to be a list or have a count!
     }
@@ -154,7 +154,7 @@ public class IdManager {
           @Override
           public void endVisit(RadComponent component) {
             RadViewComponent viewComponent = (RadViewComponent)component;
-            String idValue = parseIdValue(viewComponent.getId());
+            String idValue = getIdName(viewComponent.getId());
             if (component == container) {
               createId(viewComponent);
             }

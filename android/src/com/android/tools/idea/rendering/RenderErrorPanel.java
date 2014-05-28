@@ -505,6 +505,7 @@ public class RenderErrorPanel extends JPanel {
       builder.newline();
 // TODO: URLs
       builder.addLink("Do not warn about <fragment> tags in this session", myLinkManager.createIgnoreFragmentsUrl());
+      builder.newline();
     }
   }
 
@@ -631,7 +632,7 @@ public class RenderErrorPanel extends JPanel {
         warning.appendHtml(builder.getStringBuilder());
         final Object clientData = warning.getClientData();
         if (clientData != null) {
-          builder.addLink(" (Ignore for this session", myLinkManager.createRunnableLink(new Runnable() {
+          builder.addLink(" (Ignore for this session)", myLinkManager.createRunnableLink(new Runnable() {
             @Override
             public void run() {
               RenderLogger.ignoreFidelityWarning(clientData);

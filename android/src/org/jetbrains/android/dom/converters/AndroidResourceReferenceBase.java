@@ -104,7 +104,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       // Temporary workaround: AAR libraries may not have been picked up properly.
       // Use app resources to find these missing references, if applicable.
       LocalResourceRepository resources = AppResourceRepository.getAppResources(myFacet.getModule(), true);
-      ResourceType resourceType = ResourceType.getEnum(myResourceValue.getResourceType());
+      ResourceType resourceType = myResourceValue.getType();
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
         assert resources != null;
         List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
@@ -131,7 +131,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
   }
 
   private void collectTargets(AndroidFacet facet, ResourceValue resValue, List<PsiElement> elements, boolean attrReference) {
-    String resType = resValue.getResourceType();
+    ResourceType resType = resValue.getType();
     if (resType == null) {
       return;
     }
@@ -139,7 +139,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (manager != null) {
       String resName = resValue.getResourceName();
       if (resName != null) {
-        manager.collectLazyResourceElements(resType, resName, attrReference, myElement, elements);
+        manager.collectLazyResourceElements(resType.getName(), resName, attrReference, myElement, elements);
       }
     }
   }
