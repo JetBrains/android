@@ -74,6 +74,8 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
     assertTrue(myWizardState.hasAttr(ATTR_TARGET_API));
     assertTrue(myWizardState.get(ATTR_TARGET_API) instanceof Integer);
+    assertTrue(myWizardState.hasAttr(ATTR_TARGET_API_STRING));
+    assertTrue(myWizardState.get(ATTR_TARGET_API_STRING) instanceof String);
 
     assertEquals(4, myWizard.getStepCount());
     assertNotNull(myWizard.myAssetSetStep);

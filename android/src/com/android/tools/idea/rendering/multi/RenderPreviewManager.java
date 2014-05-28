@@ -932,7 +932,7 @@ public class RenderPreviewManager implements Disposable {
     if (moduleInfo == null) {
       return;
     }
-    int minSdkVersion = moduleInfo.getMinSdkVersion();
+    int minSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
     int min = Math.max(8, minSdkVersion);
     int max = Math.min(SdkVersionInfo.HIGHEST_KNOWN_API, highestTarget.getVersion().getApiLevel());
 

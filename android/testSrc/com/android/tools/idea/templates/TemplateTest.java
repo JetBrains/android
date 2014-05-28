@@ -648,6 +648,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_MIN_API, minSdk);
     projectValues.put(ATTR_MIN_API_LEVEL, minSdk);
     projectValues.put(ATTR_TARGET_API, targetSdk);
+    projectValues.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
     values.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
     assertNotNull(values);
 

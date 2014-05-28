@@ -557,7 +557,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private boolean canRunOnDevice(@NotNull IAndroidTarget projectTarget, @Nullable AndroidVersion deviceVersion) {
-    int minSdkVersion = AndroidModuleInfo.get(this).getMinSdkVersion();
+    int minSdkVersion = AndroidModuleInfo.get(this).getMinSdkVersion().getApiLevel();
     int baseApiLevel = deviceVersion != null ? deviceVersion.getApiLevel() : 1;
     AndroidVersion targetVersion = projectTarget.getVersion();
     if (minSdkVersion < 0) minSdkVersion = targetVersion.getApiLevel();
