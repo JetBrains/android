@@ -30,6 +30,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Collections;
@@ -51,7 +52,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   private Map<Document, JComponent> myDocumentsToComponent = Maps.newIdentityHashMap();
 
   // Map of keys to custom value derivations
-  private BiMap<Key, ValueDeriver> myValueDerivers = HashBiMap.create();
+  private Map<Key, ValueDeriver> myValueDerivers = Maps.newHashMap();
 
   // Table mapping components and keys to bindings
   private Table<JComponent, Key<?>, ComponentBinding<?, ?>> myComponentBindings = HashBasedTable.create();
@@ -313,6 +314,21 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     public T getValue(@NotNull C component) {
       throw new UnsupportedOperationException();
     }
+
+    /**
+     * Attach an action listener to the underlying component.
+     */
+    public void addActionListener(@NotNull ActionListener listener, @NotNull C component) {
+
+    }
+
+    /**
+     * @return the Document object of the underlying component or null if no such document exists.
+     */
+    @Nullable
+    public Document getDocument(@NotNull C component) {
+      return null;
+    }
   }
 
   /**
@@ -330,6 +346,13 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       } catch (UnsupportedOperationException e) {
         // Expected.
       }
+    }
+    component.addFocusListener(this);
+    binding.addActionListener(this, component);
+    Document document = binding.getDocument(component);
+    if (document != null) {
+      myDocumentsToComponent.put(document, component);
+      document.addDocumentListener(this);
     }
   }
 

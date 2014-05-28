@@ -173,6 +173,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     action = new ChooseApiLevelDialog.LaunchMe();
     am.registerAction("ChooseApiLevel", action);
     androidToolsGroup.add(action);
+    action = new DummyWizardForTesting.ClearPrefsAction();
+    am.registerAction("ClearPrefs", action);
+    androidToolsGroup.add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
