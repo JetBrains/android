@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.ScreenSize;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,9 +52,8 @@ class PrimaryManifestInfo extends ManifestInfo {
   private Map<String, ActivityAttributes> myActivityAttributesMap;
   private ManifestFile myManifestFile;
   private long myLastChecked;
-  private String myMinSdkName;
-  private int myMinSdk;
-  private int myTargetSdk;
+  private AndroidVersion myMinSdk;
+  private AndroidVersion myTargetSdk;
   private String myApplicationIcon;
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
@@ -114,10 +115,10 @@ class PrimaryManifestInfo extends ManifestInfo {
     // From manifest theme documentation:
     // "If that attribute is also not set, the default system theme is used."
 
-    int targetSdk = myTargetSdk;
+    int targetSdk = myTargetSdk.getApiLevel();
     AndroidModuleInfo info = AndroidModuleInfo.get(myModule);
     if (info != null) {
-      targetSdk = info.getTargetSdkVersion();
+      targetSdk = info.getTargetSdkVersion().getApiLevel();
     }
     int renderingTargetSdk = targetSdk;
     if (renderingTarget instanceof CompatibilityRenderTarget) {
@@ -165,38 +166,18 @@ class PrimaryManifestInfo extends ManifestInfo {
     return myApplicationDebuggable;
   }
 
+  @NotNull
   @Override
-  public int getTargetSdkVersion() {
+  public AndroidVersion getTargetSdkVersion() {
     sync();
     return myTargetSdk;
   }
 
+  @NotNull
   @Override
-  public int getMinSdkVersion() {
+  public AndroidVersion getMinSdkVersion() {
     sync();
     return myMinSdk;
-  }
-
-  @Override
-  @NotNull
-  public String getMinSdkName() {
-    sync();
-    if (myMinSdkName == null || myMinSdkName.isEmpty()) {
-      myMinSdkName = "1"; //$NON-NLS-1$
-    }
-
-    return myMinSdkName;
-  }
-
-  @Override
-  @Nullable
-  public String getMinSdkCodeName() {
-    String minSdkName = getMinSdkName();
-    if (!Character.isDigit(minSdkName.charAt(0))) {
-      return minSdkName;
-    }
-
-    return null;
   }
 
   @NotNull
@@ -244,9 +225,8 @@ class PrimaryManifestInfo extends ManifestInfo {
 
     myActivityAttributesMap = new HashMap<String, ActivityAttributes>();
     myManifestTheme = null;
-    myTargetSdk = 1; // Default when not specified
-    myMinSdk = 1; // Default when not specified
-    myMinSdkName = "1"; // Default when not specified
+    myTargetSdk = AndroidVersion.DEFAULT;
+    myMinSdk = AndroidVersion.DEFAULT;
     myPackage = ""; //$NON-NLS-1$
     myApplicationIcon = null;
     myApplicationLabel = null;
@@ -288,7 +268,7 @@ class PrimaryManifestInfo extends ManifestInfo {
       XmlTag[] usesSdks = root.findSubTags(NODE_USES_SDK);
       if (usesSdks.length > 0) {
         XmlTag usesSdk = usesSdks[0];
-        myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, 1);
+        myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, AndroidVersion.DEFAULT);
         myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
       }
 
@@ -299,32 +279,15 @@ class PrimaryManifestInfo extends ManifestInfo {
     }
   }
 
-  private int getApiVersion(XmlTag usesSdk, String attribute, int defaultApiLevel) {
+  private static AndroidVersion getApiVersion(XmlTag usesSdk, String attribute, AndroidVersion defaultApiLevel) {
     String valueString = usesSdk.getAttributeValue(attribute, ANDROID_URI);
-    if (attribute.equals(ATTRIBUTE_MIN_SDK_VERSION)) {
-      myMinSdkName = valueString;
-    }
-
     if (valueString != null) {
-      int apiLevel = -1;
-      try {
-        apiLevel = Integer.valueOf(valueString);
+      // TODO: Pass in platforms if we have them
+      AndroidVersion version = SdkVersionInfo.getVersion(valueString, null);
+      if (version != null) {
+        return version;
       }
-      catch (NumberFormatException e) {
-        // Handle codename
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        if (facet != null) {
-          IAndroidTarget target = facet.getTargetFromHashString("android-" + valueString);
-          if (target != null) {
-            // codename future API level is current api + 1
-            apiLevel = target.getVersion().getApiLevel() + 1;
-          }
-        }
-      }
-
-      return apiLevel;
     }
-
     return defaultApiLevel;
   }
 

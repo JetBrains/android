@@ -85,7 +85,7 @@ public class TargetMenuAction extends FlatComboAction {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion();
+        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel();
       }
     }
 
