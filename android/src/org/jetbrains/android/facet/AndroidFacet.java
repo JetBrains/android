@@ -76,7 +76,6 @@ import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
-import org.jetbrains.android.compiler.AndroidAptCompiler;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -683,7 +682,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
                 return;
               }
 
-              if (AndroidAptCompiler.isToCompileModule(module, getConfiguration())) {
+              if (true) {
                 AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AAPT);
               }
               AndroidCompileUtil.generate(module, AndroidAutogeneratorMode.AIDL);

@@ -17,7 +17,6 @@ package org.jetbrains.android.compiler;
 
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
-import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.server.BuildManager;
 import com.intellij.facet.ProjectFacetManager;
@@ -82,9 +81,6 @@ public class AndroidPrecompileTask implements CompileTask {
     // we do it here for internal mode and also to make there roots 'visibly excluded' in IDE settings
     createGenModulesAndSourceRoots(project);
 
-    if (!CompilerWorkspaceConfiguration.getInstance(project).useOutOfProcessBuild()) {
-      return prepareForCompilation(context);
-    }
     return true;
   }
 

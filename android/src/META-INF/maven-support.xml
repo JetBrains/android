@@ -3,10 +3,6 @@
     <importer implementation="org.jetbrains.android.maven.AndroidFacetImporter1"/>
     <importer implementation="org.jetbrains.android.maven.AndroidFacetImporter2"/>
   </extensions>
-  <extensions defaultExtensionNs="com.intellij">
-    <compiler implementation="org.jetbrains.android.compiler.AndroidExternalApklibExtractingCompiler" order="first"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidMavenResourcesCompiler" order="first"/>
-  </extensions>
   <extensions defaultExtensionNs="org.jetbrains">
     <android.mavenProvider implementation="org.jetbrains.android.maven.AndroidMavenProviderImpl"/>
   </extensions>
