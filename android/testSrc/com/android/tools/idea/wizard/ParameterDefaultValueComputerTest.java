@@ -82,7 +82,7 @@ public class ParameterDefaultValueComputerTest extends TestCase {
 
   public void testSimpleValuesDerival() {
     Map<Parameter, Object> defaultValuesMap =
-      ParameterDefaultValueComputer.newDefaultValuesMap(myParameterMap.values(), ImmutableMap.<String, Object>of());
+      ParameterDefaultValueComputer.newDefaultValuesMap(myParameterMap.values(), ImmutableMap.<Parameter, Object>of());
     assertEquals(Boolean.FALSE, defaultValuesMap.get(myParameterMap.get("p1")));
     assertEquals("Hello", defaultValuesMap.get(myParameterMap.get("p2")));
     assertNull(defaultValuesMap.get(myParameterMap.get("p3")));
@@ -90,21 +90,21 @@ public class ParameterDefaultValueComputerTest extends TestCase {
 
   public void testComputedValuesDerival() {
     Map<Parameter, Object> defaultValuesMap =
-      ParameterDefaultValueComputer.newDefaultValuesMap(myParameterMap.values(), ImmutableMap.<String, Object>of());
+      ParameterDefaultValueComputer.newDefaultValuesMap(myParameterMap.values(), ImmutableMap.<Parameter, Object>of());
     assertEquals("Hello, World", defaultValuesMap.get(myParameterMap.get("p4")));
     assertEquals("Hello, World!", defaultValuesMap.get(myParameterMap.get("p5")));
     assertEquals(Boolean.TRUE, defaultValuesMap.get(myParameterMap.get("p6")));
   }
 
   public void testComputedValuesDerivedFromNotNull() {
-    Map<String, Object> values = Maps.newHashMap();
+    Map<Parameter, Object> values = Maps.newHashMap();
     Map<Parameter, Object> defaultValuesMap =
       ParameterDefaultValueComputer.newDefaultValuesMap(myParameterMap.values(), values);
-    values.put("p2", "Goodbye");
+    values.put(myParameterMap.get("p2"), "Goodbye");
     assertEquals("Goodbye, World", defaultValuesMap.get(myParameterMap.get("p4")));
     assertEquals("Goodbye, World!", defaultValuesMap.get(myParameterMap.get("p5")));
 
-    values.put("p4", "Value");
+    values.put(myParameterMap.get("p4"), "Value");
     assertEquals("Value!", defaultValuesMap.get(myParameterMap.get("p5")));
   }
 
