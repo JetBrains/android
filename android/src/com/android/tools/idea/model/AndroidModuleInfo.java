@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.builder.model.ApiVersion;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
@@ -70,9 +71,9 @@ public class AndroidModuleInfo {
   public int getMinSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      int minSdkVersion = project.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-      if (minSdkVersion >= 1) {
-        return minSdkVersion;
+      ApiVersion minSdkVersion = project.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      if (minSdkVersion != null && minSdkVersion.getApiLevel() >= 1) {
+        return minSdkVersion.getApiLevel();
       }
       // Else: not specified in gradle files; fall back to manifest
     }
@@ -92,9 +93,9 @@ public class AndroidModuleInfo {
   public int getTargetSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      int targetSdkVersion = project.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-      if (targetSdkVersion >= 1) {
-        return targetSdkVersion;
+      ApiVersion targetSdkVersion = project.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+      if (targetSdkVersion != null && targetSdkVersion.getApiLevel() >= 1) {
+        return targetSdkVersion.getApiLevel();
       }
       // Else: not specified in gradle files; fall back to manifest
     }
