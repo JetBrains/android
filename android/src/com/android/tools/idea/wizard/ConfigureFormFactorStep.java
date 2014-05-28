@@ -24,6 +24,7 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -69,8 +70,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private List<String> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
 
-  public ConfigureFormFactorStep() {
-    super("Choose Platforms for your APKs", "Different platforms have varying requirements and will require separate APKs", null);
+  public ConfigureFormFactorStep(@NotNull Disposable disposable) {
+    super("Choose Platforms for your APKs", "Different platforms have varying requirements and will require separate APKs",
+          null, disposable);
     setBodyComponent(myPanel);
   }
 

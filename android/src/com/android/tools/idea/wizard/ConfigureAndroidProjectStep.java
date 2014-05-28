@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.project.Project;
@@ -76,8 +77,8 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   private JTextField myCompanyDomain;
   private LabelWithEditLink myPackageName;
 
-  public ConfigureAndroidProjectStep() {
-    super("Project Setup", "Provide information about yourself and your project", null);
+  public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
+    super("Project Setup", "Provide information about yourself and your project", null, disposable);
     setBodyComponent(myPanel);
   }
 
