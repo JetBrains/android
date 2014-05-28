@@ -740,9 +740,9 @@ class IntellijLintProject extends Project {
     public int getMinSdk() {
       IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
       if (ideaAndroidProject != null) {
-        int minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-        if (minSdkVersion >= 1) {
-          return minSdkVersion;
+        ApiVersion minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+        if (minSdkVersion != null && minSdkVersion.getApiLevel() >= 1) {
+          return minSdkVersion.getApiLevel();
         }
         // Else: not specified in gradle files; fall back to manifest
       }
@@ -754,9 +754,9 @@ class IntellijLintProject extends Project {
     public int getTargetSdk() {
       IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
       if (ideaAndroidProject != null) {
-        int targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-        if (targetSdkVersion >= 1) {
-          return targetSdkVersion;
+        ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+        if (targetSdkVersion != null && targetSdkVersion.getApiLevel() >= 1) {
+          return targetSdkVersion.getApiLevel();
         }
         // Else: not specified in gradle files; fall back to manifest
       }

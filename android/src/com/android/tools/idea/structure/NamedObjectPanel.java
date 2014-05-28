@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
-import com.android.builder.model.BuildType;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavor;
-import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
@@ -339,13 +336,13 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
             obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
           }
           obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
-          int minSdkVersion = flavor.getMinSdkVersion();
-          if (minSdkVersion >= 0) {
-            obj.setValue(BuildFileKey.MIN_SDK_VERSION, minSdkVersion);
+          ApiVersion minSdkVersion = flavor.getMinSdkVersion();
+          if (minSdkVersion != null && minSdkVersion.getApiLevel() >= 0) {
+            obj.setValue(BuildFileKey.MIN_SDK_VERSION, minSdkVersion.getApiLevel());
           }
-          int targetSdkVersion = flavor.getTargetSdkVersion();
-          if (targetSdkVersion >= 0) {
-            obj.setValue(BuildFileKey.TARGET_SDK_VERSION, targetSdkVersion);
+          ApiVersion targetSdkVersion = flavor.getTargetSdkVersion();
+          if (targetSdkVersion != null && targetSdkVersion.getApiLevel() >= 0) {
+            obj.setValue(BuildFileKey.TARGET_SDK_VERSION, targetSdkVersion.getApiLevel());
           }
           obj.setValue(BuildFileKey.TEST_PACKAGE_NAME, flavor.getTestPackageName());
           obj.setValue(BuildFileKey.TEST_INSTRUMENTATION_RUNNER, flavor.getTestInstrumentationRunner());
