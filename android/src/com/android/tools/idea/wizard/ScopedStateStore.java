@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,16 +62,6 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
   }
 
   /**
-   * Clients of the store can use this method if they are only interested in the value and not
-   * the scope of their returned value.
-   * @return the value of a pair returned from a call to get.
-   */
-  @Nullable
-  public static <T> T unwrap(Pair<T, Key<T>> scopedValue) {
-    return scopedValue.first;
-  }
-
-  /**
    * Get a value from our state store attempt to cast to the given type.
    * Will first check this state for the matching value, and if
    * not found, will query the parent scope.
@@ -81,17 +70,14 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * @return a pair where the first object is the requested value and the second is the scoped key of that value.
    *         will return Pair<null, null> if no value exists in the state for the given key.
    */
-  @SuppressWarnings("unchecked")
-  @NotNull
-  public <T> Pair<T, Key<T>> get(@NotNull Key<T> key) {
+  @Nullable
+  public <T> T get(@NotNull Key<T> key) {
     if (myScope.equals(key.scope) && myState.containsKey(key)) {
-      T value = key.expectedClass.cast(myState.get(key));
-      return new Pair<T, Key<T>>(value, createKey(key.name, key.expectedClass));
+      return key.expectedClass.cast(myState.get(key));
     } else if (myParent != null) {
       return myParent.get(key);
     } else {
-      //noinspection ConstantConditions
-      return new Pair<T, Key<T>>(null, null);
+      return null;
     }
   }
 

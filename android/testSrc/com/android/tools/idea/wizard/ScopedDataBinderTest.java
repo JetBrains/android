@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.wizard.ScopedDataBinder.ValueDeriver;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.unwrap;
 
 /**
  * Tests for {@link ScopedDataBinder}. These tests
@@ -62,21 +61,19 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.register(textKey, textField);
     myScopedDataBinder.register(textKey2, textField);
 
-    assertNotNull(myState.get(textKey).second); // myState contains the given key
-
     // Test binding UI -> Store
     textField.setText("Hello World!");
-    assertEquals("Hello World!", unwrap(myState.get(textKey)));
-    assertEquals("Hello World!", unwrap(myState.get(textKey2)));
+    assertEquals("Hello World!", myState.get(textKey));
+    assertEquals("Hello World!", myState.get(textKey2));
 
     // Test binding Store -> UI
     myState.put(textKey, "Awesome");
     assertEquals("Awesome", textField.getText());
-    assertEquals("Awesome", unwrap(myState.get(textKey2)));
+    assertEquals("Awesome", myState.get(textKey2));
 
     myState.put(textKey2, "Goodbye");
     assertEquals("Goodbye", textField.getText());
-    assertEquals("Goodbye", unwrap(myState.get(textKey)));
+    assertEquals("Goodbye", myState.get(textKey));
 
 
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
@@ -97,7 +94,7 @@ public class ScopedDataBinderTest extends TestCase {
       @NotNull
       @Override
       public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-        String trigger = unwrap(state.get(triggerKey));
+        String trigger = state.get(triggerKey);
         if (trigger == null) {
           return "UNEXPECTED NULL!";
         } else {
@@ -125,21 +122,19 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.register(textKey, textField);
     myScopedDataBinder.register(textKey2, textField);
 
-    assertNotNull(myState.get(textKey).second); // myState contains the given key
-
     // Test binding UI -> Store
     textField.setText("Hello World!");
-    assertEquals("Hello World!", unwrap(myState.get(textKey)));
-    assertEquals("Hello World!", unwrap(myState.get(textKey2)));
+    assertEquals("Hello World!", myState.get(textKey));
+    assertEquals("Hello World!", myState.get(textKey2));
 
     // Test binding Store -> UI
     myState.put(textKey, "Awesome");
     assertEquals("Awesome", textField.getText());
-    assertEquals("Awesome", unwrap(myState.get(textKey2)));
+    assertEquals("Awesome", myState.get(textKey2));
 
     myState.put(textKey2, "Goodbye");
     assertEquals("Goodbye", textField.getText());
-    assertEquals("Goodbye", unwrap(myState.get(textKey)));
+    assertEquals("Goodbye", myState.get(textKey));
 
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
@@ -159,7 +154,7 @@ public class ScopedDataBinderTest extends TestCase {
       @NotNull
       @Override
       public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-        String trigger = unwrap(state.get(triggerKey));
+        String trigger = state.get(triggerKey);
         if (trigger == null) {
           return "UNEXPECTED NULL!";
         } else {
@@ -187,21 +182,19 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.register(booleanKey, checkBox);
     myScopedDataBinder.register(booleanKey2, checkBox);
 
-    assertNotNull(myState.get(booleanKey).second); // myState contains the given key
-
     // Test binding UI -> Store
     checkBox.setSelected(true);
-    assertEquals(Boolean.TRUE, unwrap(myState.get(booleanKey)));
-    assertEquals(Boolean.TRUE, unwrap(myState.get(booleanKey2)));
+    assertEquals(Boolean.TRUE, myState.get(booleanKey));
+    assertEquals(Boolean.TRUE, myState.get(booleanKey2));
 
     // Test binding Store -> UI
     myState.put(booleanKey, Boolean.FALSE);
     assertEquals(false, checkBox.isSelected());
-    assertEquals(Boolean.FALSE, unwrap(myState.get(booleanKey2)));
+    assertEquals(Boolean.FALSE, myState.get(booleanKey2));
 
     myState.put(booleanKey2, true);
     assertEquals(true, checkBox.isSelected());
-    assertEquals(Boolean.TRUE, unwrap(myState.get(booleanKey)));
+    assertEquals(Boolean.TRUE, myState.get(booleanKey));
 
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
@@ -220,7 +213,7 @@ public class ScopedDataBinderTest extends TestCase {
 
       @Override
       public Boolean deriveValue(ScopedStateStore state, Key changedKey, @Nullable Boolean currentValue) {
-        String trigger = unwrap(state.get(triggerKey));
+        String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
         } else {
@@ -248,21 +241,19 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.register(integerKey, slider);
     myScopedDataBinder.register(integerKey2, slider);
 
-    assertNotNull(myState.get(integerKey).second); // myState contains the given key
-
     // Test binding UI -> Store
     slider.setValue(25);
-    assertEquals(Integer.valueOf(25), unwrap(myState.get(integerKey)));
-    assertEquals(Integer.valueOf(25), unwrap(myState.get(integerKey2)));
+    assertEquals(Integer.valueOf(25), myState.get(integerKey));
+    assertEquals(Integer.valueOf(25), myState.get(integerKey2));
 
     // Test binding Store -> UI
     myState.put(integerKey, 75);
     assertEquals(75, slider.getValue());
-    assertEquals(Integer.valueOf(75), unwrap(myState.get(integerKey2)));
+    assertEquals(Integer.valueOf(75), myState.get(integerKey2));
 
     myState.put(integerKey2, 33);
     assertEquals(33, slider.getValue());
-    assertEquals(Integer.valueOf(33), unwrap(myState.get(integerKey)));
+    assertEquals(Integer.valueOf(33), myState.get(integerKey));
 
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
@@ -281,7 +272,7 @@ public class ScopedDataBinderTest extends TestCase {
 
       @Override
       public Integer deriveValue(ScopedStateStore state, Key changedKey, @Nullable Integer currentValue) {
-        String trigger = unwrap(state.get(triggerKey));
+        String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
         } else {
@@ -309,27 +300,25 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.register(colorKey, colorPanel);
     myScopedDataBinder.register(colorKey2, colorPanel);
 
-    assertNotNull(myState.get(colorKey).second); // myState contains the given key
-
     // Test binding UI -> Store
     colorPanel.setSelectedColor(Color.BLUE);
     // ColorPanel doesn't call listeners on setSelectedColor, so we manually invoke here
     myScopedDataBinder.saveState(colorPanel);
-    assertEquals(Color.BLUE, unwrap(myState.get(colorKey)));
-    assertEquals(Color.BLUE, unwrap(myState.get(colorKey2)));
+    assertEquals(Color.BLUE, myState.get(colorKey));
+    assertEquals(Color.BLUE, myState.get(colorKey2));
 
     // Test binding Store -> UI
     myState.put(colorKey, Color.RED);
     // ColorPanel doesn't call listeners on setSelectedColor, so we manually invoke here
     myScopedDataBinder.saveState(colorPanel);
     assertEquals(Color.RED, colorPanel.getSelectedColor());
-    assertEquals(Color.RED, unwrap(myState.get(colorKey2)));
+    assertEquals(Color.RED, myState.get(colorKey2));
 
     myState.put(colorKey2, Color.GREEN);
     // ColorPanel doesn't call listeners on setSelectedColor, so we manually invoke here
     myScopedDataBinder.saveState(colorPanel);
     assertEquals(Color.GREEN, colorPanel.getSelectedColor());
-    assertEquals(Color.GREEN, unwrap(myState.get(colorKey)));
+    assertEquals(Color.GREEN, myState.get(colorKey));
 
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
@@ -348,7 +337,7 @@ public class ScopedDataBinderTest extends TestCase {
 
       @Override
       public Color deriveValue(ScopedStateStore state, Key changedKey, @Nullable Color currentValue) {
-        String trigger = unwrap(state.get(triggerKey));
+        String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
         } else {
@@ -376,21 +365,19 @@ public class ScopedDataBinderTest extends TestCase {
     myScopedDataBinder.register(booleanKey, checkBox);
     myScopedDataBinder.register(booleanKey2, checkBox);
 
-    assertNotNull(myState.get(booleanKey).second); // myState contains the given key
-
     // Test binding UI -> Store
     checkBox.setSelected(true);
-    assertEquals(Boolean.TRUE, unwrap(myState.get(booleanKey)));
-    assertEquals(Boolean.TRUE, unwrap(myState.get(booleanKey2)));
+    assertEquals(Boolean.TRUE, myState.get(booleanKey));
+    assertEquals(Boolean.TRUE, myState.get(booleanKey2));
 
     // Test binding Store -> UI
     myState.put(booleanKey, Boolean.FALSE);
     assertEquals(false, checkBox.isSelected());
-    assertEquals(Boolean.FALSE, unwrap(myState.get(booleanKey2)));
+    assertEquals(Boolean.FALSE, myState.get(booleanKey2));
 
     myState.put(booleanKey2, true);
     assertEquals(true, checkBox.isSelected());
-    assertEquals(Boolean.TRUE, unwrap(myState.get(booleanKey)));
+    assertEquals(Boolean.TRUE, myState.get(booleanKey));
 
     final AtomicBoolean respectsUserEdits = new AtomicBoolean(true);
 
@@ -409,7 +396,7 @@ public class ScopedDataBinderTest extends TestCase {
 
       @Override
       public Boolean deriveValue(ScopedStateStore state, Key changedKey, @Nullable Boolean currentValue) {
-        String trigger = unwrap(state.get(triggerKey));
+        String trigger = state.get(triggerKey);
         if (trigger == null) {
           return null;
         } else {

@@ -30,7 +30,7 @@ import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.ui.components.JBLabel;
+import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -87,7 +87,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   protected Action myNextAction = new NextAction();
   protected Action myFinishAction = new FinishAction();
 
-  protected JBLabel myCurrentStepLabel = new JBLabel();
   protected TallImageComponent myIcon;
   private boolean myIsInitialized = false;
 
@@ -125,16 +124,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     panel.add(myContentPanel, BorderLayout.CENTER);
     panel.add(myIcon, BorderLayout.WEST);
     return panel;
-  }
-
-  /**
-   * Create the breadcrumb panel in the top bar.
-   * @return
-   */
-  @Nullable
-  @Override
-  protected JComponent createNorthPanel() {
-    return myCurrentStepLabel;
   }
 
   /**
@@ -331,7 +320,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       myComponentToIdMap.put(component, id);
       myContentPanel.add(component, id);
     }
-    myCurrentStepLabel.setText(id);
     ((CardLayout)myContentPanel.getLayout()).show(myContentPanel, id);
 
     JComponent focusedComponent = step.getPreferredFocusedComponent();
@@ -498,7 +486,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
    * this method.
    */
   protected void doFinishAction() {
-    new WriteCommandAction<Void>(myProject, null) {
+    new WriteCommandAction<Void>(myProject, (PsiFile) null) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         for (DynamicWizardPath path : myPaths) {

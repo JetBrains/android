@@ -16,8 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
@@ -29,14 +27,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
-import static com.android.tools.idea.wizard.ScopedStateStore.unwrap;
 
 /**
  *
@@ -113,8 +106,8 @@ public class DummyWizardForTesting extends AnAction {
 
     @Override
     public boolean validate() {
-      Boolean valid = unwrap(myState.get(VALID_KEY));
-      String derivedString = unwrap(myState.get(DERIVED_KEY));
+      Boolean valid = myState.get(VALID_KEY);
+      String derivedString = myState.get(DERIVED_KEY);
       if (valid != null) {
         return valid;
       } else {
@@ -124,13 +117,13 @@ public class DummyWizardForTesting extends AnAction {
 
     @Override
     public boolean isPathVisible() {
-      Boolean visible = unwrap(myState.get(VISIBLE_KEY));
+      Boolean visible = myState.get(VISIBLE_KEY);
       return visible == null || visible;
     }
 
     @Override
     public boolean isPathRequired() {
-      Boolean required = unwrap(myState.get(REQUIRED_KEY));
+      Boolean required = myState.get(REQUIRED_KEY);
       return required == null || required;
     }
 
@@ -193,7 +186,7 @@ public class DummyWizardForTesting extends AnAction {
         @NotNull
         @Override
         public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-          return unwrap(state.get(INPUT_KEY)) + "_derived!";
+          return state.get(INPUT_KEY) + "_derived!";
         }
       });
     }
@@ -206,15 +199,15 @@ public class DummyWizardForTesting extends AnAction {
 
     @Override
     public boolean isStepVisible() {
-      Boolean visible = unwrap(myState.get(VISIBLE_KEY));
+      Boolean visible = myState.get(VISIBLE_KEY);
       return visible == null || visible;
     }
 
     @Override
     public boolean validate() {
-      String inputString = unwrap(myState.get(INPUT_KEY));
-      String derivedString = unwrap(myState.get(DERIVED_KEY));
-      Boolean validBool = unwrap(myState.get(VALID_KEY));
+      String inputString = myState.get(INPUT_KEY);
+      String derivedString = myState.get(DERIVED_KEY);
+      Boolean validBool = myState.get(VALID_KEY);
       if (inputString != null) {
         return derivedString != null && derivedString.equals(inputString + "_derived!");
       } else {

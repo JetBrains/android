@@ -33,15 +33,15 @@ import java.util.Set;
  * other parameters.
  */
 public final class ParameterDefaultValueComputer implements Function<Parameter, Object> {
-  private final Map<String, Object> nonDefaultValues;
+  private final Map<Parameter, Object> nonDefaultValues;
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
-  private final Map<String, Parameter> myParameterName;
+  private final Map<String, Parameter> myParameterIds;
   private Map<Parameter, Object> myDefaultsMap;
   private Set<Parameter> inComputation = Sets.newHashSet();
 
-  private ParameterDefaultValueComputer(Set<Parameter> parameterSet, Map<String, Object> nonCurrentValues) {
+  private ParameterDefaultValueComputer(Set<Parameter> parameterSet, Map<Parameter, Object> nonCurrentValues) {
     nonDefaultValues = nonCurrentValues;
-    myParameterName = Maps.uniqueIndex(parameterSet, new Function<Parameter, String>() {
+    myParameterIds = Maps.uniqueIndex(parameterSet, new Function<Parameter, String>() {
       @Override
       public String apply(Parameter input) {
         return input.id;
@@ -60,7 +60,7 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
    * @param values map of parameters with non-default values.
    * @return dynamic map
    */
-  public static Map<Parameter, Object> newDefaultValuesMap(Iterable<Parameter> parameters, Map<String, Object> values) {
+  public static Map<Parameter, Object> newDefaultValuesMap(Iterable<Parameter> parameters, Map<Parameter, Object> values) {
     Set<Parameter> parameterSet = FluentIterable.from(parameters).filter(new Predicate<Parameter>() {
       @Override
       public boolean apply(Parameter input) {
@@ -89,12 +89,11 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
 
   @Override
   public Object apply(Parameter parameter) {
-    if (nonDefaultValues.containsKey(parameter.id)) {
-      return nonDefaultValues.get(parameter.id);
+    if (nonDefaultValues.containsKey(parameter)) {
+      return nonDefaultValues.get(parameter);
     }
     else {
-      final String value = !StringUtil.isEmpty(parameter.initial) ? parameter.initial
-                                                                  : deriveValue(parameter);
+      final String value = !StringUtil.isEmpty(parameter.suggest) ? deriveValue(parameter) : parameter.initial;
       return decodeInitialValue(parameter, value);
     }
   }
@@ -110,9 +109,10 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
     inComputation.add(parameter);
     try {
       Function<Parameter, Object> values = Functions.forMap(myDefaultsMap);
-      Function<String, Parameter> name = Functions.forMap(myParameterName);
+      Function<String, Parameter> name = Functions.forMap(myParameterIds);
       Function<String, Object> nameToValue = Functions.compose(values, name);
-      return myStringEvaluator.evaluate(parameter.suggest, Maps.asMap(myParameterName.keySet(), nameToValue));
+      return myStringEvaluator.evaluate(parameter.suggest,
+                                        Maps.asMap(myParameterIds.keySet(), nameToValue));
     }
     finally {
       inComputation.remove(parameter);
