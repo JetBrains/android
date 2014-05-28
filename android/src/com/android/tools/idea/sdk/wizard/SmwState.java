@@ -17,28 +17,31 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.annotations.Nullable;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.wizard.TemplateWizardState;
 import com.android.utils.Pair;
 
 import java.util.List;
 
-public class SmwState {
-  @Nullable private final SdkState mySdkState;
-  private List<Pair<SmwSelectionAction, Object>> mySelectedActions;
+public class SmwState extends TemplateWizardState {
+  public static final String SDK_STATE = "SMW_SDK_STATE";
+  public static final String SELECTED_ACTIONS = "SMW_SELECTED_ACTIONS";
 
   public SmwState(@Nullable SdkState sdkState) {
-    mySdkState = sdkState;
+    put(SDK_STATE, sdkState);
   }
 
   @Nullable
   public SdkState getSdkState() {
-    return mySdkState;
+    return (SdkState) get(SDK_STATE);
   }
 
-  public void setSelectedActions(List<Pair<SmwSelectionAction, Object>> selectedActions) {
-    mySelectedActions = selectedActions;
+  public void setSelectedActions(@Nullable List<Pair<SmwSelectionAction, Object>> selectedActions) {
+    put(SELECTED_ACTIONS, selectedActions);
   }
 
+  @Nullable
   public List<Pair<SmwSelectionAction, Object>> getSelectedActions() {
-    return mySelectedActions;
+    //noinspection unchecked
+    return (List<Pair<SmwSelectionAction, Object>>) get(SELECTED_ACTIONS);
   }
 }

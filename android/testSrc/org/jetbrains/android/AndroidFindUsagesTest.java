@@ -403,6 +403,17 @@ public class AndroidFindUsagesTest extends AndroidTestCase {
                  describeUsages(references));
   }
 
+  public void testIdDeclarations() throws Throwable {
+    Collection<UsageInfo> references = findCodeUsages("fu12_layout.xml", "res/layout/f12_layout.xml");
+    assertEquals("layout/f12_layout.xml:26:\n" +
+                 "  android:layout_below=\"@+id/second\"\n" +
+                 "                        |~~~~~~~~~~~\n" +
+                 "layout/f12_layout.xml:27:\n" +
+                 "  android:labelFor=\"@id/second\"\n" +
+                 "                    |~~~~~~~~~~\n",
+                 describeUsages(references));
+  }
+
   private static Collection<UsageInfo> findUsages(String fileName, final JavaCodeInsightTestFixture fixture, String newFilePath)
     throws Throwable {
     VirtualFile file = fixture.copyFileToProject(BASE_PATH + fileName, newFilePath);

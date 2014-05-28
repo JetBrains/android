@@ -182,11 +182,18 @@
     <!--<frameworkSupport implementation="org.jetbrains.android.facet.AndroidSupportProvider"/>-->
 
     <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
+    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory" />
     <lang.parserDefinition language="AIDL" implementationClass="org.jetbrains.android.fileTypes.AndroidIdlParserDefinition"/>
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
+    <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
+
     <lang.syntaxHighlighterFactory key="AIDL" implementationClass="org.jetbrains.android.fileTypes.AndroidIdlSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory key="Renderscript" implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory key="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory" />
+
+    <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter" />
+
     <!--
     <lang.formatter language="AIDL" implementationClass="com.intellij.lang.java.JavaFormattingModelBuilder"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
@@ -227,6 +234,7 @@
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
                             id="resourceTypeCompletion" order="after javaBasic2ClassName"/>
     <completion.contributor language="TEXT" implementationClass="org.jetbrains.android.run.AndroidActivityAliasCompletionContributor" order="first"/>
+    <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor" />
 
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidResourceRenameResourceProcessor" order="first"/>
     <renamePsiElementProcessor implementation="org.jetbrains.android.AndroidApplicationPackageRenameProcessor" order="first"/>
@@ -271,6 +279,7 @@
                      implementationClass="org.jetbrains.android.inspections.ResourceTypeInspection" />
 
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAaptCrash" displayName="Potential AAPT crash" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAaptCrashInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintAccidentalOctal" displayName="Accidental Octal" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAccidentalOctalInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAdapterViewChildren" displayName="AdapterViews cannot have children in XML" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAdapterViewChildrenInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAddJavascriptInterface" displayName="addJavascriptInterface Called" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAddJavascriptInterfaceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAllowBackup" displayName="Missing allowBackup attribute" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintAllowBackupInspection"/>
