@@ -18,13 +18,9 @@ package com.android.tools.idea.wizard;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.wizard.DynamicWizardStepTest.DummyDynamicWizardStep;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.unwrap;
 
 /**
  * Tests for {@link DynamicWizardPath}
@@ -155,8 +151,8 @@ public class DynamicWizardPathTest extends TestCase {
 
     @Override
     public boolean validate() {
-      Boolean valid = unwrap(myState.get(VALID_KEY));
-      String derivedString = unwrap(myState.get(DERIVED_KEY));
+      Boolean valid = myState.get(VALID_KEY);
+      String derivedString = myState.get(DERIVED_KEY);
       if (valid != null) {
         return valid;
       } else {
@@ -166,13 +162,13 @@ public class DynamicWizardPathTest extends TestCase {
 
     @Override
     public boolean isPathVisible() {
-      Boolean visible = unwrap(myState.get(VISIBLE_KEY));
+      Boolean visible = myState.get(VISIBLE_KEY);
       return visible == null || visible;
     }
 
     @Override
     public boolean isPathRequired() {
-      Boolean required = unwrap(myState.get(REQUIRED_KEY));
+      Boolean required = myState.get(REQUIRED_KEY);
       return required == null || required;
     }
 
