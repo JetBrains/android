@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.intellij.ide.IdeView;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 /**
  * An explanation dialog that helps the user select an API level.
@@ -37,8 +37,12 @@ import java.awt.*;
 public class ChooseApiLevelDialog extends DialogWrapper implements DistributionChartComponent.DistributionSelectionChangedListener {
   private JPanel myPanel;
   private DistributionChartComponent myDistributionChart;
-  private JBLabel myDescription;
+  private JBLabel myDescriptionLeft;
   private JBScrollPane myScrollPane;
+  private JPanel myChartPanel;
+  private JBLabel myDescriptionRight;
+  private JBScrollPane myScrollPane2;
+  private JBLabel myIntroducedLabel;
   private int mySelectedApiLevel = -1;
 
   public static class LaunchMe extends AnAction {
@@ -51,13 +55,14 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     public void actionPerformed(AnActionEvent e) {
       final DataContext dataContext = e.getDataContext();
       Project project = CommonDataKeys.PROJECT.getData(dataContext);
-      ChooseApiLevelDialog dialog = new ChooseApiLevelDialog(project);
+      ChooseApiLevelDialog dialog = new ChooseApiLevelDialog(project, 16);
       dialog.show();
     }
   }
 
-  protected ChooseApiLevelDialog(@Nullable Project project) {
+  protected ChooseApiLevelDialog(@Nullable Project project, int selectedApiLevel) {
     super(project);
+    mySelectedApiLevel = selectedApiLevel;
 
     Window window = getWindow();
     // Allow creation in headless mode for tests
@@ -74,20 +79,37 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
+    myDistributionChart = new DistributionChartComponent();
     myDistributionChart.registerDistributionSelectionChangedListener(this);
+    myChartPanel.setLayout(new BorderLayout());
+    myChartPanel.add(myDistributionChart, BorderLayout.CENTER);
+    myDistributionChart.init();
     myScrollPane.getViewport().setOpaque(false);
     myScrollPane.setOpaque(false);
     myScrollPane.setBorder(null);
-    myDescription.setForeground(JBColor.foreground());
-    myDescription.setBackground(JBColor.background());
+    myScrollPane2.getViewport().setOpaque(false);
+    myScrollPane2.setOpaque(false);
+    myScrollPane2.setBorder(null);
+    myDescriptionLeft.setForeground(JBColor.foreground());
+    myDescriptionLeft.setBackground(JBColor.background());
+    myDescriptionRight.setForeground(JBColor.foreground());
+    myDescriptionRight.setBackground(JBColor.background());
     return myPanel;
   }
 
   @Override
   public void onDistributionSelected(DistributionChartComponent.Distribution d) {
+    int halfwayIndex = d.descriptionBlocks.size() / 2;
+    myDescriptionLeft.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(0, halfwayIndex + 1)));
+    myDescriptionRight.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(halfwayIndex, d.descriptionBlocks.size())));
+    mySelectedApiLevel = d.apiLevel;
+    myIntroducedLabel.setText(d.name);
+  }
+
+  private String getHtmlFromBlocks(List<DistributionChartComponent.Distribution.TextBlock> blocks) {
     StringBuilder sb = new StringBuilder();
     sb.append("<html>");
-    for (DistributionChartComponent.Distribution.TextBlock block : d.descriptionBlocks) {
+    for (DistributionChartComponent.Distribution.TextBlock block : blocks) {
       sb.append("<h3>");
       sb.append(block.title);
       sb.append("</h3>");
@@ -95,8 +117,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
       sb.append("<br>");
     }
     sb.append("</html>");
-    myDescription.setText(sb.toString());
-    mySelectedApiLevel = d.apiLevel;
+    return sb.toString();
   }
 
   /**
