@@ -832,9 +832,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private boolean prepareAndStartApp(IDevice device) {
     if (myDebugMode && myNonDebuggableOnDevice && !device.isEmulator()) {
-      message("Cannot debug the application " + myPackageName + " on device '" + device.getName() + "',\n" +
-              "because 'debuggable' attribute is set to 'false' in AndroidManifest.xml.\nYou may remove the attribute " +
-              "and the IDE will automatically assign it during debug and release builds.", STDERR);
+      message(AndroidBundle.message("android.cannot.debug.noDebugPermissions", myPackageName, device.getName()), STDERR);
+      fireExecutionFailed();
       return false;
     }
     if (!doPrepareAndStart(device)) {
@@ -1303,7 +1302,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                                                  AndroidBundle.message("deployment.failed.uninstall.prompt.text", reason),
                                                  AndroidBundle.message("deployment.failed.title"),
                                                  Messages.getQuestionIcon());
-        uninstall.set(result == 0);
+        uninstall.set(result == Messages.OK);
       }
     }, ModalityState.defaultModalityState());
 
