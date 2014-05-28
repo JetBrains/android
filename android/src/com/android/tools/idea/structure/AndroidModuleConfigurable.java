@@ -17,6 +17,7 @@ package com.android.tools.idea.structure;
 
 import com.android.SdkConstants;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
@@ -30,14 +31,14 @@ import javax.swing.*;
  * A standard {@linkplan Configurable} instance that shows panels for editing a single Android Gradle module in Project Structure.
  */
 public class AndroidModuleConfigurable extends NamedConfigurable {
-  private final String myModulePath;
   private final String myDisplayName;
   private final AndroidModuleEditor myModuleEditor;
+  private final Module myModule;
 
-  public AndroidModuleConfigurable(Project project, String modulePath) {
-    myModulePath = modulePath;
+  public AndroidModuleConfigurable(Project project, Module module, String modulePath) {
     myDisplayName = modulePath.substring(modulePath.lastIndexOf(SdkConstants.GRADLE_PATH_SEPARATOR) + 1);
     myModuleEditor = new AndroidModuleEditor(project, modulePath);
+    myModule = module;
   }
 
   @Override
@@ -46,7 +47,7 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
 
   @Override
   public Object getEditableObject() {
-    return myModulePath;
+    return myModule;
   }
 
   @Override

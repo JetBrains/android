@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.resources;
 
+import com.android.resources.ResourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,6 +152,18 @@ public class ResourceValue {
   @Nullable
   public String getResourceType() {
     return myResourceType;
+  }
+
+  @Nullable
+  public ResourceType getType() {
+    if (myResourceType == null) {
+      return null;
+    }
+    if (myResourceType.startsWith("+")) {
+      assert "+id".equals(myResourceType) : myResourceType;
+      return ResourceType.ID;
+    }
+    return ResourceType.getEnum(myResourceType);
   }
 
   @Nullable

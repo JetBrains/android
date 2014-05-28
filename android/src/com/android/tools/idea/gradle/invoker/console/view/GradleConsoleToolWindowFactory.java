@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.invoker.console.view;
 
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -22,7 +23,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 /**
  * Created the "Gradle Console" tool window.
  */
-public class GradleConsoleToolWindowFactory implements ToolWindowFactory {
+public class GradleConsoleToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final String ID = "Gradle Console";
 
   @Override

@@ -16,27 +16,39 @@
 package com.android.tools.idea.sdk.wizard;
 
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.wizard.TemplateWizardStep;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.Disposable;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
-public class SmwConfirmationStep extends SmwStep {
+public class SmwConfirmationStep extends TemplateWizardStep implements Disposable {
   private final SmwState myWizardState;
   private JPanel myContentPanel;
-  private JTextArea myTextDescription; // TODO: display details based on selection
+  private JLabel myTextDescription; // TODO: display details based on selection
   private JBLabel myLabelSdkPath;
-  private SmwConfirmationTable myTable;
+  private JBTable myTable;
+  private JLabel myErrorLabel;
 
   private SmwConfirmationTableModel myTableModel;
   private boolean myInitOnce = true;
+  private boolean myInInit;
 
-  public SmwConfirmationStep(SmwState wizardState) {
+  public SmwConfirmationStep(@NotNull SmwState wizardState, @Nullable UpdateListener updateListener) {
+    super(wizardState, null /*project*/, null /*module*/, null /*sidePanelIcon*/, updateListener);
     myWizardState = wizardState;
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @Override
@@ -44,46 +56,63 @@ public class SmwConfirmationStep extends SmwStep {
     return myContentPanel;
   }
 
+  private void createUIComponents() {
+    myTable = new SmwConfirmationTable();
+  }
+
   @Override
   public void _init() {
-    if (!myInitOnce) {
+    if (myInInit) {
       return;
     }
-    myInitOnce = false;
+    myInInit = true;
+    try {
+      if (myInitOnce) {
+        myInitOnce = false;
 
-    GuiUtils.replaceJSplitPaneWithIDEASplitter(myContentPanel);
-    super._init();
+        GuiUtils.replaceJSplitPaneWithIDEASplitter(myContentPanel);
+        super._init();
 
-    SdkState sdkState = myWizardState.getSdkState();
-    if (sdkState != null) {
-      AndroidSdkData sdkData = sdkState.getSdkData();
-      //noinspection ConstantConditions
-      myLabelSdkPath.setText(sdkData.getLocalSdk().getLocation().getPath());
-    }
+        SdkState sdkState = myWizardState.getSdkState();
+        if (sdkState != null) {
+          AndroidSdkData sdkData = sdkState.getSdkData();
+          //noinspection ConstantConditions
+          myLabelSdkPath.setText(sdkData.getLocalSdk().getLocation().getPath());
+        }
 
-    SmwConfirmationTableModel.LabelColumnInfo pkgColumn = new SmwConfirmationTableModel.LabelColumnInfo("Package");
-    SmwConfirmationTableModel.InstallColumnInfo selColumn = new SmwConfirmationTableModel.InstallColumnInfo("Accept");
-    myTableModel = new SmwConfirmationTableModel(pkgColumn, selColumn);
-    myTable.setModel(myTableModel);
+        SmwConfirmationTableModel.LabelColumnInfo pkgColumn = new SmwConfirmationTableModel.LabelColumnInfo("Package");
+        SmwConfirmationTableModel.InstallColumnInfo selColumn = new SmwConfirmationTableModel.InstallColumnInfo("Accept");
+        myTableModel = new SmwConfirmationTableModel(pkgColumn, selColumn);
+        myTable.setModel(myTableModel);
 
-    myTableModel.addTableModelListener(new TableModelListener() {
-      @Override
-      public void tableChanged(TableModelEvent e) {
-        SmwConfirmationStep.this.fireStateChanged();
+        myTableModel.addTableModelListener(new TableModelListener() {
+          @Override
+          public void tableChanged(TableModelEvent e) {
+            SmwConfirmationStep.this.fireStateChanged();
+          }
+        });
       }
-    });
 
-    myTableModel.fillModel(myWizardState.getSelectedActions());
+      myTableModel.fillModel(myWizardState.getSelectedActions());
+    } finally {
+      myInInit = false;
+    }
+  }
+
+  @NotNull
+  @Override
+  protected JLabel getDescription() {
+    return myTextDescription;
+  }
+
+  @NotNull
+  @Override
+  protected JLabel getError() {
+    return myErrorLabel;
   }
 
   @Override
   public void _commit(boolean finishChosen) throws CommitStepException {
     super._commit(finishChosen);
-  }
-
-  @Override
-  public boolean canGoNext() {
-    // TODO
-    return true;
   }
 }

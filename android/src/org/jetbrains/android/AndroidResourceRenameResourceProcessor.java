@@ -192,10 +192,22 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
     allRenames.remove(value);
     String id = AndroidResourceUtil.getResourceNameByReferenceText(value.getValue());
     assert id != null;
-    List<PsiElement> idDeclarations = manager.findIdDeclarations(id);
-    for (PsiElement idDeclaration : idDeclarations) {
-      allRenames.put(new ValueResourceElementWrapper((XmlAttributeValue)idDeclaration), newName);
+    List<XmlAttributeValue> idDeclarations = manager.findIdDeclarations(id);
+    for (XmlAttributeValue idDeclaration : idDeclarations) {
+      // Only include explicit definitions (android:id). References through
+      // these are found via the normal rename refactoring usage search in
+      // RenamePsiElementProcessor#findReferences.
+      //
+      // And unfortunately, if we include declaration+references like
+      // android:labelFor="@+id/foo", we hit an assertion from the refactoring
+      // framework which looks related to elements getting modified multiple times.
+      if (!ATTR_ID.equals(((XmlAttribute)idDeclaration.getParent()).getLocalName())) {
+        continue;
+      }
+
+      allRenames.put(new ValueResourceElementWrapper(idDeclaration), newName);
     }
+
     String name = AndroidResourceUtil.getResourceNameByReferenceText(newName);
     if (name != null) {
       for (PsiField resField : AndroidResourceUtil.findIdFields(value)) {
