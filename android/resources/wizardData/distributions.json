@@ -44,7 +44,7 @@
 {
   "name": "Honeycomb",
   "version": "3.2",
-  "apiLevel": 14,
+  "apiLevel": 13,
   "distributionPercentage": 0.001,
   "descriptionBlocks" : [
                             {
