@@ -519,7 +519,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
    * and UI updates.
    */
   protected void register(@NotNull String paramName, @NotNull JComboBox comboBox) {
-    myParamFields.put(paramName, (JComponent)comboBox);
+    myParamFields.put(paramName, comboBox);
     Object value = myTemplateState.get(paramName);
     if (value != null) {
       for (int i = 0; i < comboBox.getItemCount(); i++) {
@@ -548,7 +548,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     } else {
       myTemplateState.put(paramName, "");
     }
-    myParamFields.put(paramName, (JComponent)textField);
+    myParamFields.put(paramName, textField);
     textField.addFocusListener(this);
     textField.getDocument().addDocumentListener(this);
   }

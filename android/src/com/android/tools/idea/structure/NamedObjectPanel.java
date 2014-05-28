@@ -27,6 +27,7 @@ import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -336,13 +337,23 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
             obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
           }
           obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
-          ApiVersion minSdkVersion = flavor.getMinSdkVersion();
-          if (minSdkVersion != null && minSdkVersion.getApiLevel() >= 0) {
-            obj.setValue(BuildFileKey.MIN_SDK_VERSION, minSdkVersion.getApiLevel());
-          }
-          ApiVersion targetSdkVersion = flavor.getTargetSdkVersion();
-          if (targetSdkVersion != null && targetSdkVersion.getApiLevel() >= 0) {
-            obj.setValue(BuildFileKey.TARGET_SDK_VERSION, targetSdkVersion.getApiLevel());
+          try {
+            ApiVersion minSdkVersion = flavor.getMinSdkVersion();
+            if (minSdkVersion != null) {
+              obj.setValue(BuildFileKey.MIN_SDK_VERSION,
+                           minSdkVersion.getCodename() != null ? minSdkVersion.getCodename() : minSdkVersion.getApiLevel());
+            }
+            ApiVersion targetSdkVersion = flavor.getTargetSdkVersion();
+            if (targetSdkVersion != null) {
+              obj.setValue(BuildFileKey.TARGET_SDK_VERSION,
+                           targetSdkVersion.getCodename() != null ? targetSdkVersion.getCodename() : targetSdkVersion.getApiLevel());
+            }
+          } catch (UnsupportedMethodException e) {
+            // TODO: REMOVE ME
+            // This method was added in the 0.11 model. We'll need to drop support for 0.10 shortly
+            // but until 0.11 is available this is a stopgap measure
+            obj.setValue(BuildFileKey.MIN_SDK_VERSION, 1);
+            obj.setValue(BuildFileKey.TARGET_SDK_VERSION, 1);
           }
           obj.setValue(BuildFileKey.TEST_PACKAGE_NAME, flavor.getTestPackageName());
           obj.setValue(BuildFileKey.TEST_INSTRUMENTATION_RUNNER, flavor.getTestInstrumentationRunner());
