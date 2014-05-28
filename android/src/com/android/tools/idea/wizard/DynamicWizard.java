@@ -370,6 +370,8 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   protected boolean canFinish() {
     if (!myPathListIterator.hasNext() && (myCurrentPath == null || !myCurrentPath.hasNext())) {
       return true;
+    } else if (myCurrentPath != null && myCurrentPath.hasNext()) {
+      return false;
     }
 
     boolean canFinish = true;
@@ -490,7 +492,9 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         for (DynamicWizardPath path : myPaths) {
-          path.performFinishingActions();
+          if (path.isPathVisible()) {
+            path.performFinishingActions();
+          }
         }
         performFinishingActions();
       }
@@ -564,14 +568,15 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     }
 
     /**
-     * @return true iff there are more visible paths following the current location
+     * @return true iff there are more visible paths with steps following the current location
      */
     public boolean hasNext() {
       if (myCurrentIndex >= myList.size() - 1) {
         return false;
       }
       for (int i = myCurrentIndex + 1; i < myList.size(); i++) {
-        if (myList.get(i).isPathVisible()) {
+        DynamicWizardPath path = myList.get(i);
+        if (path.isPathVisible() && path.getVisibleStepCount() > 0) {
           return true;
         }
       }
