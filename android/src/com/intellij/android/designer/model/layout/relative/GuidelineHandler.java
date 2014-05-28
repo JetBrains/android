@@ -642,7 +642,7 @@ public class GuidelineHandler {
     AndroidFacet facet = AndroidDesignerUtils.getFacet(myContext.getArea());
     if (facet != null) {
       Module module = facet.getModule();
-      return getBuildSdkVersion(module) >= RTL_TARGET_SDK_START && getTargetSdkVersion(module) >= RTL_TARGET_SDK_START;
+      return getBuildSdkVersion(module) >= RTL_TARGET_SDK_START && getTargetSdkVersion(module).getApiLevel() >= RTL_TARGET_SDK_START;
     }
 
     return false;
@@ -652,7 +652,7 @@ public class GuidelineHandler {
     AndroidFacet facet = AndroidDesignerUtils.getFacet(myContext.getArea());
     if (facet != null) {
       Module module = facet.getModule();
-      return getMinSdkVersion(module) < RTL_TARGET_SDK_START;
+      return getMinSdkVersion(module).getApiLevel() < RTL_TARGET_SDK_START;
     }
 
     return true;

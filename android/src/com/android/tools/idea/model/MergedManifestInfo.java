@@ -16,6 +16,7 @@
 package com.android.tools.idea.model;
 
 import com.android.resources.ScreenSize;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -128,25 +129,15 @@ public class MergedManifestInfo extends ManifestInfo {
     throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
   }
 
+  @NotNull
   @Override
-  public int getTargetSdkVersion() {
-    throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
-  }
-
-  @Override
-  public int getMinSdkVersion() {
+  public AndroidVersion getTargetSdkVersion() {
     throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
   }
 
   @NotNull
   @Override
-  public String getMinSdkName() {
-    throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
-  }
-
-  @Nullable
-  @Override
-  public String getMinSdkCodeName() {
+  public AndroidVersion getMinSdkVersion() {
     throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
   }
 

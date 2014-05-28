@@ -32,8 +32,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/manifestOnly");
     assertNotNull(myAndroidFacet);
-    assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(18, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(18, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     //noinspection SpellCheckingInspection
     assertEquals("com.example.unittest", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
@@ -46,8 +46,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/gradleOnly");
     assertNotNull(myAndroidFacet);
-    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
@@ -59,8 +59,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/both");
     assertNotNull(myAndroidFacet);
-    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
@@ -76,8 +76,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(gradleProject);
     assertEquals("freeDebug", gradleProject.getSelectedVariant().getName());
 
-    assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("com.example.free.debug", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 

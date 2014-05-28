@@ -24,6 +24,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -86,9 +87,9 @@ public class RenderService implements IImageFactory {
   @NotNull
   private final LayoutlibCallback myLayoutlibCallback;
 
-  private final int myMinSdkVersion;
+  private final AndroidVersion myMinSdkVersion;
 
-  private final int myTargetSdkVersion;
+  private final AndroidVersion myTargetSdkVersion;
 
   @NotNull
   private final LayoutLibrary myLayoutLib;
@@ -475,7 +476,7 @@ public class RenderService implements IImageFactory {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
       new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
-                        myMinSdkVersion, myTargetSdkVersion, myLogger);
+                        myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -725,8 +726,8 @@ public class RenderService implements IImageFactory {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback, myMinSdkVersion,
-                         myTargetSdkVersion, myLogger);
+      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
+                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
     params.setForceNoDecor();
     Result result = myLayoutLib.renderDrawable(params);
     if (result != null && result.isSuccess()) {
@@ -965,8 +966,8 @@ public class RenderService implements IImageFactory {
       hardwareConfig,
       resolver,
       myLayoutlibCallback,
-      myMinSdkVersion,
-      myTargetSdkVersion,
+      myMinSdkVersion.getApiLevel(),
+      myTargetSdkVersion.getApiLevel(),
       myLogger);
     params.setLayoutOnly();
     params.setForceNoDecor();
