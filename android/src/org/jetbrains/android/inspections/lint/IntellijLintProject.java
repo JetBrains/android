@@ -740,9 +740,15 @@ class IntellijLintProject extends Project {
     public int getMinSdk() {
       IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
       if (ideaAndroidProject != null) {
-        ApiVersion minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-        if (minSdkVersion != null && minSdkVersion.getApiLevel() >= 1) {
-          return minSdkVersion.getApiLevel();
+        try {
+          ApiVersion minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+          if (minSdkVersion != null) {
+            return minSdkVersion.getApiLevel();
+          }
+        } catch (Throwable e) {
+          // TODO: REMOVE ME
+          // This method was added in the 0.11 model. We'll need to drop support
+          // for 0.10 shortly but until 0.11 is available this is a stopgap measure
         }
         // Else: not specified in gradle files; fall back to manifest
       }
@@ -754,10 +760,17 @@ class IntellijLintProject extends Project {
     public int getTargetSdk() {
       IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
       if (ideaAndroidProject != null) {
-        ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-        if (targetSdkVersion != null && targetSdkVersion.getApiLevel() >= 1) {
-          return targetSdkVersion.getApiLevel();
+        try {
+          ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+          if (targetSdkVersion != null) {
+            return targetSdkVersion.getApiLevel();
+          }
+        } catch (Throwable e) {
+          // TODO: REMOVE ME
+          // This method was added in the 0.11 model. We'll need to drop support
+          // for 0.10 shortly but until 0.11 is available this is a stopgap measure
         }
+
         // Else: not specified in gradle files; fall back to manifest
       }
 
