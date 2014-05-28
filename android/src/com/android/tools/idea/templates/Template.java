@@ -160,6 +160,7 @@ public class Template {
   public static final String CATEGORY_ACTIVITIES = "activities";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
+  public static final String CATEGORY_APPLICATION = "Application";
 
   public static final String BLOCK_DEPENDENCIES = "dependencies";
 
@@ -417,7 +418,7 @@ public class Template {
               executeRecipeFile(freemarker, recipeFile, paramMap);
             }
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
-                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY)) {
+                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY) && !name.equals(TAG_FORMFACTOR)) {
             LOG.error("WARNING: Unknown template directive " + name);
           }
         }
