@@ -58,21 +58,19 @@ public class ScopedStateStoreTest extends TestCase {
     Key<String> testKey = myPathState.createKey("test", String.class);
     myPathState = new ScopedStateStore(PATH, null, myScopedStoreListener);
     myPathState.put(testKey, "value");
-    assertEquals(new Pair<String, Key<String>>("value", testKey), myPathState.get(testKey));
+    assertEquals("value", myPathState.get(testKey));
     assertTrue(myUpdateHistory.contains(testKey));
     assertTrue(myPathState.getRecentUpdates().contains(testKey));
 
     assertEquals(1, myUpdateHistory.size());
     myPathState.remove(testKey);
     assertEquals(2, myUpdateHistory.size());
-    assertNull(myPathState.get(testKey).first);
-    assertNull(myPathState.get(testKey).second);
+    assertNull(myPathState.get(testKey));
 
     // Test null values
     Key<String> testKey2 = myPathState.createKey("test2", String.class);
     myPathState.put(testKey2, null);
-    assertNull(myPathState.get(testKey2).first);
-    assertNotNull(myPathState.get(testKey2).second);
+    assertNull(myPathState.get(testKey2));
 
     Key<String> testKeyStep = createKey("test2", STEP, String.class);
     try {
@@ -111,10 +109,7 @@ public class ScopedStateStoreTest extends TestCase {
     Key<Object> key1 = createKey("value1", STEP, Object.class);
     myStepState.put(key1, value1);
     // The value should appear in the step state but not the other states
-    assertNull(myWizardState.get(key1).second);
-    assertNull(myPathState.get(key1).second);
-    Key<Object> scopedKey1 = myStepState.createKey("value1", Object.class);
-    assertEquals(new Pair<Object, Key<Object>>(value1, scopedKey1), myStepState.get(key1));
+    assertEquals(value1, myStepState.get(key1));
     assertTrue(myUpdateHistory.contains(key1));
     assertEquals(1, myUpdateHistory.size());
 
@@ -123,9 +118,8 @@ public class ScopedStateStoreTest extends TestCase {
     Object value2 = new Object();
     Key<Object> key2 = createKey("value2", PATH, Object.class);
     myStepState.put(key2, value2);
-    assertNull(myWizardState.get(key2).second);
-    assertEquals(new Pair<Object, Key<Object>>(value2, key2), myPathState.get(key2));
-    assertEquals(new Pair<Object, Key<Object>>(value2, key2), myStepState.get(key2));
+    assertEquals(value2, myPathState.get(key2));
+    assertEquals(value2, myStepState.get(key2));
 
     // We should get an update for both the path state and the step state
     assertEquals(2, myUpdateHistory.size());

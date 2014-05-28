@@ -38,6 +38,12 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicWizardStep {
   protected static final Key<String> KEY_DESCRIPTION =
     createKey(DynamicWizardStepWithHeaderAndDescription.class + ".description", ScopedStateStore.Scope.STEP, String.class);
+  protected static final Key<String> KEY_TITLE =
+    createKey(DynamicWizardStepWithHeaderAndDescription.class + ".title", ScopedStateStore.Scope.STEP, String.class);
+  protected static final Key<String> KEY_MESSAGE =
+    createKey(DynamicWizardStepWithHeaderAndDescription.class + ".message", ScopedStateStore.Scope.STEP, String.class);
+  @NotNull private final String myTitle;
+  @Nullable private final String myMessage;
 
   private JPanel myRootPane;
   private JBLabel myTitleLabel;
@@ -47,10 +53,9 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   private JBLabel myErrorWarningLabel;
 
   public DynamicWizardStepWithHeaderAndDescription(@NotNull String title, @Nullable String message, @Nullable Icon icon) {
-    myTitleLabel.setText(title);
-    myMessageLabel.setText(message);
+    myTitle = title;
+    myMessage = message;
     myIcon.setIcon(icon);
-    myMessageLabel.setVisible(!StringUtil.isEmpty(message));
     int fontHeight = myMessageLabel.getFont().getSize();
     myTitleLabel.setBorder(BorderFactory.createEmptyBorder(fontHeight, 0, fontHeight, 0));
     myMessageLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, fontHeight, 0));
@@ -60,7 +65,6 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     }
     font = new Font(font.getName(), font.getStyle() | Font.BOLD, font.getSize() + 4);
     myTitleLabel.setFont(font);
-
     myErrorWarningLabel.setForeground(JBColor.red);
   }
 
@@ -76,10 +80,25 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
   @Override
   public void init() {
+    myState.put(KEY_TITLE, myTitle);
+    myState.put(KEY_MESSAGE, myMessage);
     register(KEY_DESCRIPTION, getDescriptionText(), new ComponentBinding<String, JLabel>() {
       @Override
       public void setValue(String newValue, @NotNull JLabel component) {
         setDescriptionText(newValue);
+      }
+    });
+    register(KEY_TITLE, myTitleLabel, new ComponentBinding<String, JBLabel>() {
+      @Override
+      public void setValue(@Nullable String newValue, @NotNull JBLabel component) {
+        component.setText(newValue);
+      }
+    });
+    register(KEY_MESSAGE, myMessageLabel, new ComponentBinding<String, JLabel>() {
+      @Override
+      public void setValue(@Nullable String newValue, @NotNull JLabel component) {
+        component.setVisible(!StringUtil.isEmpty(newValue));
+        component.setText(ImportUIUtil.makeHtmlString(newValue));
       }
     });
   }
