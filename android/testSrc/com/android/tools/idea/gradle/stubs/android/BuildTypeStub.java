@@ -93,6 +93,11 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
+  public boolean getEmbedMicroApp() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
     throw new UnsupportedOperationException();
