@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -23,10 +24,6 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.SourceFolder;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.JpsElement;
@@ -60,7 +57,7 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
 
       for (RootSourceFolder orphan : orphans) {
         File path = orphan.getPath();
-        ContentEntry contentEntry = rootModel.addContentEntry(pathToUrl(path));
+        ContentEntry contentEntry = rootModel.addContentEntry(FilePaths.pathToIdeaUrl(path));
         addSourceFolder(contentEntry, path, orphan.getType(), orphan.isGenerated());
       }
     }
@@ -90,11 +87,11 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
     addSourceFolder(parent, folderPath, type, generated);
   }
 
-  private void addSourceFolder(@NotNull ContentEntry contentEntry,
-                               @NotNull File folderPath,
-                               @NotNull JpsModuleSourceRootType type,
-                               boolean generated) {
-    String url = pathToUrl(folderPath);
+  private static void addSourceFolder(@NotNull ContentEntry contentEntry,
+                                      @NotNull File folderPath,
+                                      @NotNull JpsModuleSourceRootType type,
+                                      boolean generated) {
+    String url = FilePaths.pathToIdeaUrl(folderPath);
 
     SourceFolder sourceFolder = contentEntry.addSourceFolder(url, type);
 
@@ -108,37 +105,22 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
   }
 
   protected boolean addExcludedFolder(@NotNull ContentEntry contentEntry, @NotNull File dirPath) {
-    if (!isPathInContentEntry(dirPath, contentEntry)) {
+    if (!FilePaths.isPathInContentEntry(dirPath, contentEntry)) {
       return false;
     }
-    contentEntry.addExcludeFolder(pathToUrl(dirPath));
+    contentEntry.addExcludeFolder(FilePaths.pathToIdeaUrl(dirPath));
     return true;
   }
 
   @Nullable
   protected ContentEntry findParentContentEntry(@NotNull Collection<ContentEntry> contentEntries, @NotNull File dirPath) {
     for (ContentEntry contentEntry : contentEntries) {
-      if (isPathInContentEntry(dirPath, contentEntry)) {
+      if (FilePaths.isPathInContentEntry(dirPath, contentEntry)) {
         return contentEntry;
       }
     }
     LOG.info(String.format("Failed to find content entry for file '%1$s'", dirPath.getPath()));
     return null;
-  }
-
-  protected boolean isPathInContentEntry(@NotNull File path, @NotNull ContentEntry contentEntry) {
-    VirtualFile rootFile = contentEntry.getFile();
-    if (rootFile == null) {
-      return false;
-    }
-    File rootFilePath = VfsUtilCore.virtualToIoFile(rootFile);
-    return FileUtil.isAncestor(rootFilePath, path, false);
-  }
-
-  @NotNull
-  protected String pathToUrl(@NotNull File dirPath) {
-    String path = FileUtil.toSystemIndependentName(dirPath.getPath());
-    return VfsUtilCore.pathToUrl(path);
   }
 
   protected static class RootSourceFolder {

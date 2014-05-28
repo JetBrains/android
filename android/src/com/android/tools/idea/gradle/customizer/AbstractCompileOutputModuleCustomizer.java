@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.customizer;
 
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,18 +40,12 @@ public abstract class AbstractCompileOutputModuleCustomizer<T> implements Module
     }
     try {
       compilerSettings.inheritCompilerOutputPath(false);
-      compilerSettings.setCompilerOutputPath(toUrl(mainDirPath));
+      compilerSettings.setCompilerOutputPath(FilePaths.pathToIdeaUrl(mainDirPath));
       if (testDirPath != null) {
-        compilerSettings.setCompilerOutputPathForTests(toUrl(testDirPath));
+        compilerSettings.setCompilerOutputPathForTests(FilePaths.pathToIdeaUrl(testDirPath));
       }
     } finally {
       moduleSettings.commit();
     }
-  }
-
-  @NotNull
-  private static String toUrl(@NotNull File path) {
-    String s = FileUtil.toSystemIndependentName(path.getPath());
-    return VfsUtilCore.pathToUrl(s);
   }
 }
