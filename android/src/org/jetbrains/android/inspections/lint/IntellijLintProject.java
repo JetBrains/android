@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -58,6 +59,9 @@ class IntellijLintProject extends Project {
    * this might need some work before we enable it.
    */
   public static final boolean SUPPORT_CLASS_FILES = false;
+
+  protected AndroidVersion mMinSdkVersion;
+  protected AndroidVersion mTargetSdkVersion;
 
   IntellijLintProject(@NonNull LintClient client,
                       @NonNull File dir,
@@ -736,45 +740,59 @@ class IntellijLintProject extends Project {
       return null;
     }
 
+    @NonNull
     @Override
-    public int getMinSdk() {
-      IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-      if (ideaAndroidProject != null) {
-        try {
-          ApiVersion minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-          if (minSdkVersion != null) {
-            return minSdkVersion.getApiLevel();
+    public AndroidVersion getMinSdkVersion() {
+      if (mMinSdkVersion == null) {
+        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+        if (ideaAndroidProject != null) {
+          try {
+            ApiVersion minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+            if (minSdkVersion != null) {
+              mMinSdkVersion = LintUtils.convertVersion(minSdkVersion, null);
+              return mMinSdkVersion;
+            }
           }
-        } catch (Throwable e) {
-          // TODO: REMOVE ME
-          // This method was added in the 0.11 model. We'll need to drop support
-          // for 0.10 shortly but until 0.11 is available this is a stopgap measure
+          catch (Throwable e) {
+            // TODO: REMOVE ME
+            // This method was added in the 0.11 model. We'll need to drop support
+            // for 0.10 shortly but until 0.11 is available this is a stopgap measure
+          }
+          // Else: not specified in gradle files; fall back to manifest
         }
-        // Else: not specified in gradle files; fall back to manifest
+
+        mMinSdkVersion = super.getMinSdkVersion();
       }
 
-      return super.getMinSdk();
+      return mMinSdkVersion;
     }
 
+    @NonNull
     @Override
-    public int getTargetSdk() {
-      IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-      if (ideaAndroidProject != null) {
-        try {
-          ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-          if (targetSdkVersion != null) {
-            return targetSdkVersion.getApiLevel();
+    public AndroidVersion getTargetSdkVersion() {
+      if (mTargetSdkVersion == null) {
+        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+        if (ideaAndroidProject != null) {
+          try {
+            ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+            if (targetSdkVersion != null) {
+              mTargetSdkVersion = LintUtils.convertVersion(targetSdkVersion, null);
+              return mTargetSdkVersion;
+            }
           }
-        } catch (Throwable e) {
-          // TODO: REMOVE ME
-          // This method was added in the 0.11 model. We'll need to drop support
-          // for 0.10 shortly but until 0.11 is available this is a stopgap measure
+          catch (Throwable e) {
+            // TODO: REMOVE ME
+            // This method was added in the 0.11 model. We'll need to drop support
+            // for 0.10 shortly but until 0.11 is available this is a stopgap measure
+          }
+
+          // Else: not specified in gradle files; fall back to manifest
         }
 
-        // Else: not specified in gradle files; fall back to manifest
+        mTargetSdkVersion = super.getTargetSdkVersion();
       }
 
-      return super.getTargetSdk();
+      return mTargetSdkVersion;
     }
 
     @Override
