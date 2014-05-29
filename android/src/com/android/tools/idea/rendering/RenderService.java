@@ -474,10 +474,13 @@ public class RenderService implements IImageFactory {
     }
 
 
+    IAndroidTarget target = myConfiguration.getTarget();
+    int simulatedPlatform = target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0;
+
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
       new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
-                        myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
+                        myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -502,9 +505,9 @@ public class RenderService implements IImageFactory {
         // ignore.
       }
     }
-    IAndroidTarget target = myConfiguration.getTarget();
+
     // Don't show navigation buttons on older platforms
-    if (!myShowDecorations || (target instanceof CompatibilityRenderTarget && target.getVersion().getApiLevel() < 14)) {
+    if (!myShowDecorations) {
       params.setForceNoDecor();
     }
     else {
