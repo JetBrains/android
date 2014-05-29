@@ -99,7 +99,15 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     String msg = error.getMessage();
     if (msg != null && !msg.isEmpty()) {
       if (msg.startsWith(AndroidGradleProjectResolver.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-        updateNotification(notification, project, msg, new FixGradleModelVersionHyperlink());
+        NotificationHyperlink fixGradleModelHyperlink;
+        if (msg.contains(AndroidGradleProjectResolver.READ_MIGRATION_GUIDE_MSG)) {
+          fixGradleModelHyperlink = new FixGradleModelVersionHyperlink();
+        }
+        else {
+          fixGradleModelHyperlink = new FixGradleModelVersionHyperlink("Fix plug-in version and re-import project", false);
+        }
+
+        updateNotification(notification, project, msg, fixGradleModelHyperlink);
         return;
       }
 
