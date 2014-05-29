@@ -20,7 +20,6 @@ import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.ide.highlighter.ProjectFileType;
 import com.intellij.ide.util.projectWizard.ProjectWizardUtil;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
@@ -39,7 +38,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.intellij.openapi.components.StorageScheme.DIRECTORY_BASED;
@@ -86,8 +84,8 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
     descriptor.setDescription("Pick a directory to import the given Eclipse Android project into");
     myDestDirText.addBrowseFolderListener(new TextBrowseFolderListener(descriptor) {
       @Override
-      protected void onFileChoosen(@NotNull VirtualFile chosenFile) {
-        super.onFileChoosen(chosenFile);
+      protected void onFileChosen(@NotNull VirtualFile chosenFile) {
+        super.onFileChosen(chosenFile);
         myIsPathChangedByUser = true;
       }
 

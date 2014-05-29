@@ -88,12 +88,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
     if (!facet.isGradleProject()) {
       // Non Gradle projects always require an application
-      return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+      return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
 
     final IdeaAndroidProject project = facet.getIdeaAndroidProject();
     if (project == null) {
-      return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+      return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
 
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
