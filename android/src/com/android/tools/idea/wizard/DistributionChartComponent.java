@@ -44,7 +44,7 @@ public class DistributionChartComponent extends JPanel {
 
   // Because this text overlays colored components, it must stay white/gray, and does not change for dark themes. 
   private static final Color TEXT_COLOR = new Color(0xFEFEFE);
-  private static final Color API_LEVEL_COLOR = new Color(0xCCCCCC);
+  private static final Color API_LEVEL_COLOR = new Color(0, 0, 0, 77);
 
   private static final int INTER_SECTION_SPACING = 1;
 
@@ -79,18 +79,6 @@ public class DistributionChartComponent extends JPanel {
     new Color(0xd88d63),
     new Color(0xff9229),
     new Color(0xeabd2d)
-  };
-
-  private static final Color[] TEXT_COLORS = new Color[] {
-    new Color(0xb4ccb9),
-    new Color(0x4f8a60),
-    new Color(0x657d80),
-    new Color(0x9c8023),
-    new Color(0xbd2e2e),
-    new Color(0x428a9c),
-    new Color(0xa7643f),
-    new Color(0xca7019),
-    new Color(0xa6872f)
   };
 
 
@@ -252,7 +240,7 @@ public class DistributionChartComponent extends JPanel {
       g.drawString(d.name, leftGutter + NAME_OFFSET, currentMidY + halfVersionNameHeight);
 
       // Write the version number
-      g.setColor(TEXT_COLORS[i % RECT_COLORS.length]);
+      g.setColor(API_LEVEL_COLOR);
       g.setFont(VERSION_NUMBER_FONT);
       String versionString = d.version.toString().substring(0, 3);
       g.drawString(versionString, leftGutter + NUMBER_OFFSET, currentMidY + halfVersionNumberHeight);
