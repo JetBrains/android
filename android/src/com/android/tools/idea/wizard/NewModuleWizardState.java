@@ -17,8 +17,10 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.BuildToolInfo;
+import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.RepositoryUrlManager.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
@@ -38,6 +41,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * {@link com.android.tools.idea.wizard.NewModuleWizard}
  */
 public class NewModuleWizardState extends TemplateWizardState {
+  private static final Logger LOG = Logger.getInstance(NewModuleWizardState.class);
+
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
   public static final String APP_NAME = "app";
@@ -75,6 +80,13 @@ public class NewModuleWizardState extends TemplateWizardState {
     put(ATTR_IS_LIBRARY_MODULE, false);
 
     putSdkDependentParams();
+
+    try {
+      myActivityTemplateState.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(getOrCreateDefaultDebugKeystore()));
+    }
+    catch (Exception e) {
+      LOG.info("Could not compute SHA1 hash of debug keystore.", e);
+    }
 
     myActivityTemplateState.myHidden.add(ATTR_PACKAGE_NAME);
     myActivityTemplateState.myHidden.add(ATTR_APP_TITLE);
