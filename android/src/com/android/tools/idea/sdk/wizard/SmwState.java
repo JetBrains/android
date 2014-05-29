@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk.wizard;
 
 import com.android.annotations.Nullable;
+import com.android.sdklib.internal.repository.IListDescription;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.wizard.TemplateWizardState;
 import com.android.utils.Pair;
@@ -35,13 +36,13 @@ public class SmwState extends TemplateWizardState {
     return (SdkState) get(SDK_STATE);
   }
 
-  public void setSelectedActions(@Nullable List<Pair<SmwSelectionAction, Object>> selectedActions) {
+  public void setSelectedActions(@Nullable List<Pair<SmwSelectionAction, IListDescription>> selectedActions) {
     put(SELECTED_ACTIONS, selectedActions);
   }
 
   @Nullable
-  public List<Pair<SmwSelectionAction, Object>> getSelectedActions() {
+  public List<Pair<SmwSelectionAction, IListDescription>> getSelectedActions() {
     //noinspection unchecked
-    return (List<Pair<SmwSelectionAction, Object>>) get(SELECTED_ACTIONS);
+    return (List<Pair<SmwSelectionAction, IListDescription>>) get(SELECTED_ACTIONS);
   }
 }

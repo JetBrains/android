@@ -61,6 +61,9 @@ public class SmwProgressStep extends TemplateWizardStep implements Disposable {
   @NotNull
   @Override
   protected JLabel getDescription() {
+    // We're not using the Description field of the Template Wizard Step here.
+    // Since nullable isn't supported, share it with the error label (which is
+    // fine since, again, template wizard description field isn't useful here.)
     return myErrorLabel;
   }
 
