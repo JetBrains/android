@@ -561,7 +561,7 @@ public class ConfigurationMatcher {
       if (activeEditor != null) {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
-        if (file != null && file != myFile && file.getFileType() == StdFileTypes.XML
+        if (file != null && !file.equals(myFile) && file.getFileType() == StdFileTypes.XML
             && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();

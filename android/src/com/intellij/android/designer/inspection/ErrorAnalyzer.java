@@ -184,7 +184,7 @@ public final class ErrorAnalyzer {
       }
     }
 
-    return new Pair<RadComponent, String>(result[0], propertyName);
+    return Pair.create(result[0], propertyName);
   }
 
   private static Pair<XmlTag, XmlAttribute> extractTag(PsiElement element) {
@@ -203,6 +203,6 @@ public final class ErrorAnalyzer {
       element = element.getParent();
     }
 
-    return new Pair<XmlTag, XmlAttribute>(tag, attribute);
+    return Pair.create(tag, attribute);
   }
 }
