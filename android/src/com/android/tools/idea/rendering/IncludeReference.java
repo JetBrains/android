@@ -135,7 +135,7 @@ public class IncludeReference {
     // consider prepending layout/ on ids that don't have it (to make the display
     // more uniform) or ripping out all layout[-constraint] prefixes out and
     // instead prepending @ etc.
-    if (myToFile != null && myToFile.getParent() == myFromFile.getParent()) {
+    if (myToFile != null && myToFile.getParent() != null && myToFile.getParent().equals(myFromFile.getParent())) {
       return myFromFile.getName();
     }
 
