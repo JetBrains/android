@@ -39,7 +39,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.JBDefaultTreeCellRenderer;
-import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.content.Content;
@@ -463,10 +462,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   private static RunnerAndConfigurationSettings createRunConfiguration(Project project, String debugPort) {
     final RemoteConfigurationType remoteConfigurationType = RemoteConfigurationType.getInstance();
-
-    if (remoteConfigurationType == null) {
-      LOG.error("Cannot create remote configuration");
-    }
 
     final ConfigurationFactory factory = remoteConfigurationType.getFactory();
     final RunnerAndConfigurationSettings runSettings =

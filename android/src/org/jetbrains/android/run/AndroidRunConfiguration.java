@@ -81,7 +81,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Override
   protected Pair<Boolean, String> supportsRunningLibraryProjects(@NotNull AndroidFacet facet) {
-    return new Pair<Boolean, String>(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
+    return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
   }
 
   @Override
