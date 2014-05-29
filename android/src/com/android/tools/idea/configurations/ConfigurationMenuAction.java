@@ -89,7 +89,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
       if (variations.size() > 1) {
         for (VirtualFile file : variations) {
           String title = String.format("Switch to %1$s", file.getParent().getName());
-          group.add(new SwitchToVariationAction(title, project, file, virtualFile == file));
+          group.add(new SwitchToVariationAction(title, project, file, virtualFile.equals(file)));
         }
         group.addSeparator();
       }

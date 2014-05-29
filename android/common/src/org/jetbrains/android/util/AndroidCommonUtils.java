@@ -286,7 +286,7 @@ public class AndroidCommonUtils {
         path = path.substring(1);
       }
 
-      files.add(new Pair<File, String>(file, path));
+      files.add(Pair.create(file, path));
     }
   }
 

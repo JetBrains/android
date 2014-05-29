@@ -21,6 +21,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.*;
 import com.google.common.io.Files;
 import com.intellij.ide.actions.NonEmptyActionGroup;
+import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -328,10 +329,11 @@ public class TemplateManager {
       NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
         @Override
         public void update(AnActionEvent e) {
+          IdeView view = LangDataKeys.IDE_VIEW.getData(e.getDataContext());
           final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
           final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
           Presentation presentation = e.getPresentation();
-          presentation.setVisible(getChildrenCount() > 0 && facet != null && facet.isGradleProject());
+          presentation.setVisible(getChildrenCount() > 0 && view != null && facet != null && facet.isGradleProject());
         }
       };
       categoryGroup.setPopup(true);
@@ -384,8 +386,8 @@ public class TemplateManager {
     if (newMetadata != null) {
       String title = newMetadata.getTitle();
       if (title == null || (newMetadata.getCategory() == null &&
-          myCategoryTable.columnKeySet().contains(title) &&
-          myCategoryTable.get(CATEGORY_OTHER, title) == null)) {
+                            myCategoryTable.columnKeySet().contains(title) &&
+                            myCategoryTable.get(CATEGORY_OTHER, title) == null)) {
         // If this template is uncategorized, and we already have a template of this name that has a category,
         // that is NOT "Other," then ignore this new template since it's undoubtedly older.
         return;

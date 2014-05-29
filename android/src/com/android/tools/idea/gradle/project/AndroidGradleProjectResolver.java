@@ -190,7 +190,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     for (DataNode<ContentRootData> contentRootNode : ExternalSystemApiUtil.getChildren(ideModule, ProjectKeys.CONTENT_ROOT)) {
       ContentRootData contentRoot = contentRootNode.getData();
-      Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getRoots(ExternalSystemSourceType.EXCLUDED);
+      Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getPaths(ExternalSystemSourceType.EXCLUDED);
       for (ContentRootData.SourceRoot root : excludedRoots) {
         if (FileUtil.pathsEqual(buildFolderPath, root.getPath())) {
           buildFolderRoot = root;

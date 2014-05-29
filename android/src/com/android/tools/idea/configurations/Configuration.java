@@ -30,6 +30,7 @@ import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -271,7 +272,7 @@ public class Configuration implements Disposable {
    */
   @NotNull
   public static Configuration copyCompatible(@NotNull Configuration source, @NotNull Configuration destination) {
-    assert source.myFile != destination.myFile; // This method is intended to sync configurations for resource variations
+    assert !Comparing.equal(source.myFile, destination.myFile); // This method is intended to sync configurations for resource variations
 
     FolderConfiguration editedConfig = destination.getEditedConfig();
 
