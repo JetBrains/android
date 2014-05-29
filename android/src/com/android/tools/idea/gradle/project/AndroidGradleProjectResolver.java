@@ -78,6 +78,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
     "The project is using an unsupported version of the Android Gradle plug-in";
 
+  @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
+
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
   public AndroidGradleProjectResolver() {
@@ -340,9 +342,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
     if (modelVersion != null) {
       builder.append(String.format(" (%1$s)", modelVersion.toString()));
+      if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {
+        builder.append(".\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
+               .append(READ_MIGRATION_GUIDE_MSG)
+               .append(" to learn how to update your project.");
+      }
     }
-    builder.append(".\n\nVersion 0.9.0 introduced incompatible changes in the build language.\n")
-      .append("Please read the migration guide to learn how to update your project.");
     return builder.toString();
   }
 
