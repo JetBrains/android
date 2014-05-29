@@ -208,7 +208,8 @@ public class ConfigurationMenuAction extends FlatComboAction {
   }
 
   static void addApiLevelPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
-    group.add(new PreviewAction(context, "Preview Android Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.API_LEVELS, true));
+    boolean enabled = hasCapability(context, Capability.SIMULATE_PLATFORM);
+    group.add(new PreviewAction(context, "Preview Android Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.API_LEVELS, enabled));
   }
 
   private static boolean hasCapability(RenderContext context, Capability capability) {
