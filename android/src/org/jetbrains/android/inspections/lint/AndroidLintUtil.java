@@ -47,7 +47,7 @@ public class AndroidLintUtil {
     final AndroidLintInspectionBase inspection = (AndroidLintInspectionBase)profile.getUnwrappedTool(inspectionShortName, context);
     if (inspection == null) return null;
     final HighlightDisplayLevel errorLevel = profile.getErrorLevel(key, context);
-    return new Pair<AndroidLintInspectionBase, HighlightDisplayLevel>(inspection,
-                                                                      errorLevel != null ? errorLevel : HighlightDisplayLevel.WARNING);
+    return Pair.create(inspection,
+                       errorLevel != null ? errorLevel : HighlightDisplayLevel.WARNING);
   }
 }
