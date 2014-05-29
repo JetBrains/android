@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
-import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
+import com.android.tools.idea.gradle.util.GradleBuilds.*;
 import com.android.tools.idea.jps.AndroidGradleJps;
 import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.google.common.base.Strings;
@@ -64,12 +64,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
-import static com.android.tools.idea.gradle.util.GradleBuilds.OFFLINE_MODE_OPTION;
-import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
+import static com.android.tools.idea.gradle.util.GradleBuilds.*;
 
 /**
  * Builds Gradle-based Android project using Gradle.
@@ -370,11 +370,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
       }
 
       defaultConnector.setVerboseLogging(executionSettings.isVerboseLoggingEnabled());
-
-      int daemonMaxIdleTimeInMs = executionSettings.getMaxIdleTimeInMs();
-      if (daemonMaxIdleTimeInMs > 0) {
-        defaultConnector.daemonMaxIdleTime(daemonMaxIdleTimeInMs, TimeUnit.MILLISECONDS);
-      }
     }
 
     connector.forProjectDirectory(executionSettings.getProjectDir());

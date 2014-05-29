@@ -43,8 +43,6 @@ class BuilderExecutionSettings {
   @NotNull private final List<String> myCommandLineOptions;
   @NotNull private final List<String> myJvmOptions;
 
-  private final int myMaxIdleTimeInMs;
-
   private final boolean myEmbeddedModeEnabled;
   private final boolean myVerboseLoggingEnabled;
   private final boolean myParallelBuild;
@@ -53,7 +51,6 @@ class BuilderExecutionSettings {
 
   BuilderExecutionSettings() {
     myEmbeddedModeEnabled = SystemProperties.getBooleanProperty(USE_EMBEDDED_GRADLE_DAEMON, false);
-    myMaxIdleTimeInMs = SystemProperties.getIntProperty(GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, -1);
     myGradleHomeDir = findDir(GRADLE_HOME_DIR_PATH, "Gradle home");
     myGradleServiceDir = findDir(GRADLE_SERVICE_DIR_PATH, "Gradle service");
     myJavaHomeDir = findDir(GRADLE_JAVA_HOME_DIR_PATH, "Java home");
@@ -141,10 +138,6 @@ class BuilderExecutionSettings {
     return myVerboseLoggingEnabled;
   }
 
-  int getMaxIdleTimeInMs() {
-    return myMaxIdleTimeInMs;
-  }
-
   @NotNull
   List<String> getCommandLineOptions() {
     return myCommandLineOptions;
@@ -207,7 +200,6 @@ class BuilderExecutionSettings {
            ", gradleServiceDir=" + myGradleServiceDir +
            ", javaHomeDir=" + myJavaHomeDir +
            ", jvmOptions=" + myJvmOptions +
-           ", maxIdleTimeInMs=" + myMaxIdleTimeInMs +
            ", modulesToBuildNames=" + myModulesToBuildNames +
            ", offlineBuild=" + myOfflineBuildMode +
            ", parallelBuild=" + myParallelBuild +
