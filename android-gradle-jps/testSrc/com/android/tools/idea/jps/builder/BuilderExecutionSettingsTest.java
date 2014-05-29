@@ -69,8 +69,6 @@ public class BuilderExecutionSettingsTest extends TestCase {
   }
 
   public void testConstructorWithValidJvmArgs() {
-    System.setProperty(GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, "55");
-
     String gradleHomeDirPath = myGradleHomeDir.getPath();
     System.setProperty(GRADLE_HOME_DIR_PATH, gradleHomeDirPath);
 
@@ -116,7 +114,6 @@ public class BuilderExecutionSettingsTest extends TestCase {
     System.setProperty(MODULES_TO_BUILD_PROPERTY_PREFIX + 1, "lib");
 
     BuilderExecutionSettings settings = new BuilderExecutionSettings();
-    assertEquals(55, settings.getMaxIdleTimeInMs());
     assertEquals(gradleHomeDirPath, pathOf(settings.getGradleHomeDir()));
     assertEquals(gradleHomeServicePath, pathOf(settings.getGradleServiceDir()));
     assertEquals(javaHomePath, pathOf(settings.getJavaHomeDir()));
