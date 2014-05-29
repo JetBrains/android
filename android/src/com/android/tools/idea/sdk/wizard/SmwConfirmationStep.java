@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
@@ -94,6 +96,17 @@ public class SmwConfirmationStep extends TemplateWizardStep implements Disposabl
       }
 
       myTableModel.fillModel(myWizardState.getSelectedActions());
+
+      ListSelectionModel lsm = myTable.getSelectionModel();
+      lsm.addListSelectionListener(new ListSelectionListener() {
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+          onTableSelection(e);
+        }
+      });
+
+      onTableSelection(new ListSelectionEvent(lsm, lsm.getMinSelectionIndex(), lsm.getMaxSelectionIndex(), lsm.getValueIsAdjusting()));
+
     } finally {
       myInInit = false;
     }
@@ -102,7 +115,10 @@ public class SmwConfirmationStep extends TemplateWizardStep implements Disposabl
   @NotNull
   @Override
   protected JLabel getDescription() {
-    return myTextDescription;
+    // We're not using the Description field of the Template Wizard Step here.
+    // Since nullable isn't supported, share it with the error label (which is
+    // fine since, again, template wizard description field isn't useful here.)
+    return myErrorLabel;
   }
 
   @NotNull
@@ -114,5 +130,37 @@ public class SmwConfirmationStep extends TemplateWizardStep implements Disposabl
   @Override
   public void _commit(boolean finishChosen) throws CommitStepException {
     super._commit(finishChosen);
+  }
+
+  private void onTableSelection(ListSelectionEvent e) {
+    Object src = e.getSource();
+    if (!(src instanceof ListSelectionModel) || e.getValueIsAdjusting()) {
+      return;
+    }
+
+    ListSelectionModel lsm = (ListSelectionModel)src;
+
+    StringBuilder sb = new StringBuilder("<html>");
+
+    SmwConfirmationTableModel.LineInfo item = lsm.isSelectionEmpty() ? null : myTableModel.getObjectAt(lsm.getMinSelectionIndex());
+    if (item == null) {
+      sb.append("Please select a package to see its details.");
+
+    } else switch (item.getType()) {
+      case REMOVE:
+        sb.append(item.getRemovedPkg().getLongDescription());
+        break;
+      case UPDATE:
+        sb.append(item.getUpdatePkg().getLongDescription());
+        break;
+      case INSTALL:
+        sb.append(item.getInstallNewPkg().getLongDescription());
+        break;
+      default:
+        sb.append("Please select a package to see its details.");
+    }
+
+    sb.append("</html>");
+    myTextDescription.setText(sb.toString().replace("\n", "<br/>\n"));
   }
 }

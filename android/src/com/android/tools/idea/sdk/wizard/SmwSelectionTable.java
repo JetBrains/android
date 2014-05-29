@@ -27,8 +27,9 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 /**
- * Select table in SMW selection step.
- * Source: PluginTable.
+ * Select table in SMW selection step. <br/>
+ * The table is constructed with a {@link ListSelectionModel#SINGLE_SELECTION} mode.
+ * Source: PluginTable. <br/>
  */
 public class SmwSelectionTable extends JBTable {
 
