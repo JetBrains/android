@@ -332,7 +332,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(psiFile);
     VirtualFile parent = psiFile.getVirtualFile();
     assertNotNull(parent);
-    assertSame(dir, parent.getParent().getParent());
+    assertEquals(dir, parent.getParent().getParent());
   }
 
   static void assertStringIs(LocalResourceRepository repository, String key, String expected) {

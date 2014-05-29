@@ -1,5 +1,5 @@
 <idea-plugin url="http://www.jetbrains.com/idea">
-  <extensions xmlns="org.jetbrains.idea.maven">
+  <extensions defaultExtensionNs="org.jetbrains.idea.maven">
     <importer implementation="org.jetbrains.android.maven.AndroidFacetImporter1"/>
     <importer implementation="org.jetbrains.android.maven.AndroidFacetImporter2"/>
   </extensions>
