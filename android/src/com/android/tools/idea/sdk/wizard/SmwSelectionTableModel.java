@@ -45,6 +45,8 @@ import java.util.List;
 /**
  * Model for Selection step table.
  * <p/>
+ * The objects handled by this table are either {@link LocalPkgInfo} or {@link RemotePkgInfo}.
+ * <p/>
  * Implementation detail: Implements {@link Disposable} in order to drop the message bus connection
  * automatically when disposed, and also do prevent in-flight async updates after disposal.
  * <p/>
@@ -52,13 +54,13 @@ import java.util.List;
  */
 public class SmwSelectionTableModel extends AbstractTableModel implements Disposable {
 
-  @NonNull private final List<Object> myInfos = new ArrayList<Object>();
-  @NonNull private final Set<Object> myChanged = new HashSet<Object>();
+  @NonNull private final List<IListDescription> myInfos   = new ArrayList<IListDescription>();
+  @NonNull private final Set<IListDescription>  myChanged = new HashSet<IListDescription>();
 
   private boolean myIsDisposed;
   private final ColumnInfo[] myColumns;
 
-  public SmwSelectionTableModel(ColumnInfo... columns) {
+  public SmwSelectionTableModel(@NonNull ColumnInfo... columns) {
     myColumns = columns;
   }
 
@@ -72,13 +74,31 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     return myColumns.length;
   }
 
+  /**
+   * Returns the {@link ColumnInfo} for the given column index.
+   *
+   * @param columnIndex An index 0..size of columns-1.
+   * @return A non-null column info as given to the constructor.
+   * @throws java.lang.ArrayIndexOutOfBoundsException if {@code columnIndex} is invalid.
+   */
   @NonNull
   public ColumnInfo getColumnInfo(int columnIndex) {
     return myColumns[columnIndex];
   }
 
-  @NonNull
-  public Object getObjectAt(int rowIndex) {
+  /**
+   * Returns the object at the give row or null if the index is out of bounds.
+   * <p/>
+   * The objects handled by this table are either {@link LocalPkgInfo} or {@link RemotePkgInfo}.
+   *
+   * @param rowIndex A row index 0..numbers of rows-1.
+   * @return A row object or null if {@code rowIndex} is invalid.
+   */
+  @Nullable
+  public IListDescription getObjectAt(int rowIndex) {
+    if (rowIndex < 0 || rowIndex >= myInfos.size()) {
+      return null;
+    }
     return myInfos.get(rowIndex);
   }
 
@@ -157,7 +177,7 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     fireTableDataChanged();
   }
 
-  private SmwSelectionAction computeAction(Object item) {
+  private SmwSelectionAction computeAction(IListDescription item) {
     boolean changed = myChanged.contains(item);
 
     if (item instanceof LocalPkgInfo) {
@@ -181,9 +201,10 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     return SmwSelectionAction.KEEP_LOCAL;
   }
 
-  public List<Pair<SmwSelectionAction, Object>> getActions() {
-    List<Pair<SmwSelectionAction, Object>> actions = new ArrayList<Pair<SmwSelectionAction, Object>>(myChanged.size());
-    for (Object item : myChanged) {
+  public List<Pair<SmwSelectionAction, IListDescription>> getActions() {
+    List<Pair<SmwSelectionAction, IListDescription>> actions =
+      new ArrayList<Pair<SmwSelectionAction, IListDescription>>(myChanged.size());
+    for (IListDescription item : myChanged) {
       SmwSelectionAction action = computeAction(item);
       switch (action) {
         case INSTALL:
@@ -204,7 +225,7 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
 
   // ------------
 
-  public static class LabelColumnInfo extends ColumnInfo<Object, String> {
+  public static class LabelColumnInfo extends ColumnInfo<IListDescription, String> {
     private SmwSelectionTableModel myModel;
 
     public LabelColumnInfo(@NonNull String name) {
@@ -216,13 +237,10 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     }
 
     @Override
-    public String valueOf(Object item) {
+    public String valueOf(IListDescription item) {
       // TODO edit display text to something more user-friendly. This is just a placeholder.
 
-      String desc = "";
-      if (item instanceof IListDescription) {
-        desc = ((IListDescription)item).getListDescription();
-      }
+      String desc = desc = item.getListDescription();
 
       SmwSelectionAction action = myModel == null ? null : myModel.computeAction(item);
 
@@ -245,20 +263,20 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     }
 
     @Override
-    public boolean isCellEditable(Object item) {
+    public boolean isCellEditable(IListDescription item) {
       return false;
     }
 
     @Nullable
     @Override
-    public TableCellRenderer getRenderer(Object item) {
+    public TableCellRenderer getRenderer(IListDescription item) {
       return new DefaultTableCellRenderer();
     }
   }
 
   // ------------
 
-  public static class InstallColumnInfo extends ColumnInfo<Object, Boolean> {
+  public static class InstallColumnInfo extends ColumnInfo<IListDescription, Boolean> {
     private SmwSelectionTableModel myModel;
 
     public InstallColumnInfo(@NonNull String name) {
@@ -269,12 +287,12 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
       myModel = model;
     }
 
-    private boolean isChanged(Object item) {
+    private boolean isChanged(IListDescription item) {
       return myModel != null && myModel.myChanged.contains(item);
     }
 
     @Override
-    public Boolean valueOf(Object item) {
+    public Boolean valueOf(IListDescription item) {
       boolean installed = item instanceof LocalPkgInfo;
       if (isChanged(item)) {
         installed = !installed;
@@ -283,7 +301,7 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     }
 
     @Override
-    public boolean isCellEditable(Object item) {
+    public boolean isCellEditable(IListDescription item) {
       return item instanceof LocalPkgInfo || item instanceof RemotePkgInfo;
     }
 
@@ -293,13 +311,13 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     }
 
     @Override
-    public TableCellEditor getEditor(Object item) {
+    public TableCellEditor getEditor(IListDescription item) {
       return new BooleanTableCellEditor();
     }
 
     @Nullable
     @Override
-    public TableCellRenderer getRenderer(Object o) {
+    public TableCellRenderer getRenderer(IListDescription o) {
       return new BooleanTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(JTable table,
@@ -319,7 +337,7 @@ public class SmwSelectionTableModel extends AbstractTableModel implements Dispos
     }
 
     @Override
-    public void setValue(Object item, Boolean value) {
+    public void setValue(IListDescription item, Boolean value) {
       if (myModel != null) {
         boolean installed = item instanceof LocalPkgInfo;
         if (value.booleanValue() != installed) {
