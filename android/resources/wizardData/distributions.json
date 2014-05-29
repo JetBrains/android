@@ -4,6 +4,7 @@
   "version": "2.2",
   "apiLevel": 8,
   "distributionPercentage": 0.01,
+  "url": "https://developer.android.com/about/versions/android-2.2.html",
   "descriptionBlocks": [
                            {
                                "title": "Connectivity",
@@ -25,6 +26,7 @@
   "version": "2.3",
   "apiLevel": 10,
   "distributionPercentage": 0.162,
+  "url": "https://developer.android.com/about/versions/android-2.3.3.html",
   "descriptionBlocks" :[
                            {
                                "title": "Connectivity",
@@ -46,6 +48,7 @@
   "version": "3.2",
   "apiLevel": 13,
   "distributionPercentage": 0.001,
+  "url": "https://developer.android.com/about/versions/android-3.2.html",
   "descriptionBlocks" : [
                             {
                                 "title": "Screen Support",
@@ -64,9 +67,10 @@
 },
 {
   "name": "Ice Cream Sandwich",
-  "version": "4.0.4",
+  "version": "4.0",
   "apiLevel": 15,
   "distributionPercentage": 0.134,
+  "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
                             "title": "Contacts Provider",
@@ -115,6 +119,7 @@
   "version": "4.1",
   "apiLevel": 16,
   "distributionPercentage": 0.335,
+  "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
                             "title": "App Components",
@@ -163,6 +168,7 @@
   "version": "4.2",
   "apiLevel": 17,
   "distributionPercentage": 0.188,
+  "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
                             "title": "Screensaver",
@@ -195,6 +201,7 @@
   "version": "4.3",
   "apiLevel": 18,
   "distributionPercentage": 0.085,
+  "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
                             "title": "Restricted Profiles",
@@ -251,6 +258,7 @@
   "version": "4.4",
   "apiLevel": 19,
   "distributionPercentage": 0.085,
+  "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
                                 "title": "Printing Framework",
