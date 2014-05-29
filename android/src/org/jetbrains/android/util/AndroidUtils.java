@@ -44,12 +44,14 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.lang.java.JavaParserDefinition;
+import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.lexer.Lexer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.*;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -96,7 +98,6 @@ import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.manifest.*;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.run.AndroidRunConfiguration;
@@ -979,12 +980,7 @@ public class AndroidUtils {
   }
 
   public static boolean isIdentifier(@NotNull String candidate) {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-    Lexer lexer = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
-    lexer.start(candidate);
-    if (lexer.getTokenType() != JavaTokenType.IDENTIFIER) return false;
-    lexer.advance();
-    return lexer.getTokenType() == null;
+    return StringUtil.isJavaIdentifier(candidate) && !JavaLexer.isKeyword(candidate, LanguageLevel.JDK_1_5);
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project) {
