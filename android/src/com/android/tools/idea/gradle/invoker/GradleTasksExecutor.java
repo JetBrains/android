@@ -91,6 +91,7 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 
 /**
@@ -269,6 +270,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     final Project project = getNotNullProject();
 
     final GradleExecutionSettings executionSettings = GradleUtil.getGradleExecutionSettings(project);
+
     final String projectPath = project.getBasePath();
 
     Function<ProjectConnection, Void> executeTasksFunction = new Function<ProjectConnection, Void>() {
