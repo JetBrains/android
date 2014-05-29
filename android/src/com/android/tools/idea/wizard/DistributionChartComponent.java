@@ -24,6 +24,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.util.ResourceUtil;
 import com.intellij.util.ui.GraphicsUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,14 +48,15 @@ public class DistributionChartComponent extends JPanel {
 
   private static final int INTER_SECTION_SPACING = 1;
 
-  private static final double MIN_PERCENTAGE_HEIGHT = 0.08;
+  private static final double MIN_PERCENTAGE_HEIGHT = 0.06;
   private static final double EXPANSION_ON_SELECTION = 1.063882064;
   private static final double RIGHT_GUTTER_PERCENTAGE = 0.209708738;
   private static final int TOP_PADDING = 40;
-  private static final int NAME_OFFSET = 10;
+  private static final int NAME_OFFSET = 50;
   private static final int MIN_API_FONT_SIZE = 18;
   private static final int MAX_API_FONT_SIZE = 45;
   private static final int API_OFFSET = 120;
+  private static final int NUMBER_OFFSET = 10;
 
   private static Font MEDIUM_WEIGHT_FONT;
   private static Font REGULAR_WEIGHT_FONT;
@@ -70,27 +72,29 @@ public class DistributionChartComponent extends JPanel {
   private static final Color[] RECT_COLORS = new Color[] {
     new Color(0xcbdfcb),
     new Color(0x7dc691),
-    new Color(0x0),
+    new Color(0x92b2b7),
     new Color(0xdeba40),
     new Color(0xe55d5f),
     new Color(0x6ec0d2),
     new Color(0xd88d63),
-    new Color(0xff9229)
+    new Color(0xff9229),
+    new Color(0xeabd2d)
   };
 
   private static final Color[] TEXT_COLORS = new Color[] {
     new Color(0xb4ccb9),
     new Color(0x4f8a60),
-    new Color(0x0),
+    new Color(0x657d80),
     new Color(0x9c8023),
     new Color(0xbd2e2e),
     new Color(0x428a9c),
     new Color(0xa7643f),
-    new Color(0xca7019)
+    new Color(0xca7019),
+    new Color(0xa6872f)
   };
 
 
-  private List<Distribution> myDistributions = Lists.newArrayList();
+  private static List<Distribution> ourDistributions;
 
   private int[] myCurrentBottoms;
   private Distribution mySelectedDistribution;
@@ -106,7 +110,7 @@ public class DistributionChartComponent extends JPanel {
           ++i;
         }
         if (i < myCurrentBottoms.length) {
-          mySelectedDistribution = myDistributions.get(i);
+          mySelectedDistribution = ourDistributions.get(i);
           if (myListener != null) {
             myListener.onDistributionSelected(mySelectedDistribution);
           }
@@ -114,12 +118,14 @@ public class DistributionChartComponent extends JPanel {
         }
       }
     });
-    try {
-      String jsonString = ResourceUtil.loadText(ResourceUtil.getResource(this.getClass(), "wizardData", "distributions.json"));
-      loadDistributionsFromJson(jsonString);
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
+    if (ourDistributions == null) {
+      try {
+        String jsonString = ResourceUtil.loadText(ResourceUtil.getResource(this.getClass(), "wizardData", "distributions.json"));
+        ourDistributions = loadDistributionsFromJson(jsonString);
+      }
+      catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
     loadFonts();
   }
@@ -134,7 +140,8 @@ public class DistributionChartComponent extends JPanel {
     }
   }
 
-  private void loadDistributionsFromJson(String jsonString) {
+  @Nullable
+  private static List<Distribution> loadDistributionsFromJson(String jsonString) {
     Type fullRevisionType = new TypeToken<FullRevision>(){}.getType();
     GsonBuilder gsonBuilder = new GsonBuilder()
       .registerTypeAdapter(fullRevisionType, new JsonDeserializer<FullRevision>() {
@@ -146,11 +153,11 @@ public class DistributionChartComponent extends JPanel {
     Gson gson = gsonBuilder.create();
     Type listType = new TypeToken<ArrayList<Distribution>>() {}.getType();
     try {
-      myDistributions = gson.fromJson(jsonString, listType);
+      return gson.fromJson(jsonString, listType);
     } catch (JsonParseException e) {
       LOG.error(e);
     }
-    myCurrentBottoms = new int[myDistributions.size()];
+    return null;
   }
 
   public void registerDistributionSelectionChangedListener(@NotNull DistributionSelectionChangedListener listener) {
@@ -168,6 +175,10 @@ public class DistributionChartComponent extends JPanel {
     GraphicsUtil.setupAAPainting(g);
     super.paintComponent(g);
 
+    if (myCurrentBottoms == null) {
+      myCurrentBottoms = new int[ourDistributions.size()];
+    }
+
     // Draw the proportioned rectangles
     int startY = TOP_PADDING;
     int totalWidth = getBounds().width;
@@ -180,8 +191,9 @@ public class DistributionChartComponent extends JPanel {
     FontMetrics titleMetrics = g.getFontMetrics(TITLE_FONT);
     int titleHeight = titleMetrics.getHeight();
     FontMetrics versionNumberMetrics = g.getFontMetrics(VERSION_NUMBER_FONT);
-    int versionNumberHeight = versionNumberMetrics.getHeight() - versionNumberMetrics.getDescent();
+    int halfVersionNumberHeight = (versionNumberMetrics.getHeight() - versionNumberMetrics.getDescent()) / 2;
     FontMetrics versionNameMetrics = g.getFontMetrics(VERSION_NAME_FONT);
+    int halfVersionNameHeight = (versionNameMetrics.getHeight() - versionNameMetrics.getDescent()) / 2;
 
     // Draw the titles
     g.setFont(TITLE_FONT);
@@ -193,13 +205,13 @@ public class DistributionChartComponent extends JPanel {
     g.drawString(distributionTitle, totalWidth - titleMetrics.stringWidth(distributionTitle), titleHeight * 2);
 
     // We want a padding in between every element
-    int heightToDistribute = getBounds().height - INTER_SECTION_SPACING * (myDistributions.size() - 1) - TOP_PADDING;
+    int heightToDistribute = getBounds().height - INTER_SECTION_SPACING * (ourDistributions.size() - 1) - TOP_PADDING;
 
     // Keep track of how much of the distribution we've covered so far
     double percentageSum = 0;
 
     int smallItemCount = 0;
-    for (Distribution d : myDistributions) {
+    for (Distribution d : ourDistributions) {
       if (d.distributionPercentage < MIN_PERCENTAGE_HEIGHT) {
         smallItemCount++;
       }
@@ -207,7 +219,7 @@ public class DistributionChartComponent extends JPanel {
     heightToDistribute -= (int)Math.round(smallItemCount * MIN_PERCENTAGE_HEIGHT * heightToDistribute);
 
     int i = 0;
-    for (Distribution d : myDistributions) {
+    for (Distribution d : ourDistributions) {
       if (d.color == null) {
         d.color = RECT_COLORS[i % RECT_COLORS.length];
       }
@@ -216,13 +228,12 @@ public class DistributionChartComponent extends JPanel {
       g.setColor(d.color);
       double effectivePercentage = Math.max(d.distributionPercentage, MIN_PERCENTAGE_HEIGHT);
       int calculatedHeight = (int)Math.round(effectivePercentage * heightToDistribute);
-      int boxHeight = Math.max(1, (int)Math.round(d.distributionPercentage * heightToDistribute));
       int bottom = startY + calculatedHeight;
 
       if (d.equals(mySelectedDistribution)) {
-        g.fillRect(0, bottom - boxHeight, width, boxHeight);
+        g.fillRect(0, bottom - calculatedHeight, width, calculatedHeight);
       } else {
-        g.fillRect(leftGutter, bottom - boxHeight, normalBoxSize, boxHeight);
+        g.fillRect(leftGutter, bottom - calculatedHeight, normalBoxSize, calculatedHeight);
       }
 
       // Size our fonts according to the rectangle size
@@ -235,29 +246,25 @@ public class DistributionChartComponent extends JPanel {
 
       int currentMidY = startY + calculatedHeight/2;
       // Write the name
-      if (effectivePercentage == d.distributionPercentage) {
-        g.setColor(TEXT_COLOR);
-      } else {
-        g.setColor(TEXT_COLORS[i % RECT_COLORS.length]);
-      }
+      g.setColor(TEXT_COLOR);
       g.setFont(VERSION_NAME_FONT);
       myCurrentBottoms[i] = bottom;
-      g.drawString(d.name, leftGutter + NAME_OFFSET, Math.min(currentMidY, bottom));
+      g.drawString(d.name, leftGutter + NAME_OFFSET, currentMidY + halfVersionNameHeight);
 
       // Write the version number
       g.setColor(TEXT_COLORS[i % RECT_COLORS.length]);
       g.setFont(VERSION_NUMBER_FONT);
-      String versionString = d.version.toShortString();
-      g.drawString(versionString, leftGutter + NAME_OFFSET, Math.min(currentMidY + versionNumberHeight, bottom));
+      String versionString = d.version.toString().substring(0, 3);
+      g.drawString(versionString, leftGutter + NUMBER_OFFSET, currentMidY + halfVersionNumberHeight);
 
       // Write the API level
       g.setFont(apiLevelFont);
-      g.drawString(Integer.toString(d.apiLevel), width - API_OFFSET, Math.min(currentMidY + halfApiFontHeight, bottom));
+      g.drawString(Integer.toString(d.apiLevel), width - API_OFFSET, currentMidY + halfApiFontHeight);
 
       // Write the supported distribution
       percentageSum += d.distributionPercentage;
       // Write the percentage sum
-      if (i < myDistributions.size() - 1) {
+      if (i < ourDistributions.size() - 1) {
         g.setColor(JBColor.foreground());
         g.setFont(VERSION_NUMBER_FONT);
         String percentageString = new DecimalFormat("0.0%").format(.999 - percentageSum);
@@ -296,6 +303,7 @@ public class DistributionChartComponent extends JPanel {
     public String name;
     public Color color;
     public String description;
+    public String url;
     public List<TextBlock> descriptionBlocks;
 
     private Distribution() {
@@ -314,7 +322,7 @@ public class DistributionChartComponent extends JPanel {
 
   public double getSupportedDistributionForApiLevel(int apiLevel) {
     double unsupportedSum = 0;
-    for (Distribution d : myDistributions) {
+    for (Distribution d : ourDistributions) {
       if (d.apiLevel >= apiLevel) {
         break;
       }

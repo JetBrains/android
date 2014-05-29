@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.fileTemplates.impl.UrlUtil;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -28,8 +30,14 @@ import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An explanation dialog that helps the user select an API level.
@@ -43,6 +51,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   private JBLabel myDescriptionRight;
   private JBScrollPane myScrollPane2;
   private JBLabel myIntroducedLabel;
+  private JBLabel myLearnMoreLinkLabel;
   private int mySelectedApiLevel = -1;
 
   public static class LaunchMe extends AnAction {
@@ -94,6 +103,23 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     myDescriptionLeft.setBackground(JBColor.background());
     myDescriptionRight.setForeground(JBColor.foreground());
     myDescriptionRight.setBackground(JBColor.background());
+    myLearnMoreLinkLabel.setForeground(JBColor.blue);
+    myLearnMoreLinkLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    Font font = myLearnMoreLinkLabel.getFont();
+    Map attributes = font.getAttributes();
+    attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+    myLearnMoreLinkLabel.setFont(font.deriveFont(attributes));
+    myLearnMoreLinkLabel.addMouseListener(new MouseInputAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        try {
+          BrowserUtil.browse(new URL(myLearnMoreLinkLabel.getText()));
+        }
+        catch (MalformedURLException e1) {
+          // Pass
+        }
+      }
+    });
     return myPanel;
   }
 
@@ -104,6 +130,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     myDescriptionRight.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(halfwayIndex, d.descriptionBlocks.size())));
     mySelectedApiLevel = d.apiLevel;
     myIntroducedLabel.setText(d.name);
+    myLearnMoreLinkLabel.setText(d.url);
   }
 
   private String getHtmlFromBlocks(List<DistributionChartComponent.Distribution.TextBlock> blocks) {
