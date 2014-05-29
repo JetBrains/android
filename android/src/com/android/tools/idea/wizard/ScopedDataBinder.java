@@ -323,6 +323,13 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
 
     /**
+     * Attach an item listener to the underlying component.
+     */
+    public void addItemListener(@NotNull ItemListener listener, @NotNull C component) {
+
+    }
+
+    /**
      * @return the Document object of the underlying component or null if no such document exists.
      */
     @Nullable
@@ -353,6 +360,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
     component.addFocusListener(this);
     binding.addActionListener(this, component);
+    binding.addItemListener(this, component);
     Document document = binding.getDocument(component);
     if (document != null) {
       myDocumentsToComponent.put(document, component);

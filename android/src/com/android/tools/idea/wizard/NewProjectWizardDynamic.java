@@ -17,10 +17,13 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_GRADLE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT;
@@ -60,6 +63,13 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(IS_GRADLE_PROJECT_KEY, true);
     state.put(SDK_DIR_KEY, AndroidSdkUtils.tryToChooseAndroidSdk().getLocation().getPath());
     super.init();
+
+    Window window = getWindow();
+    if (window != null) {
+      window.setMaximumSize(new Dimension(1000, 800));
+    } else {
+      assert ApplicationManager.getApplication().isUnitTestMode();
+    }
   }
 
   @Override
