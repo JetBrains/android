@@ -49,7 +49,6 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   private JBScrollPane myScrollPane;
   private JPanel myChartPanel;
   private JBLabel myDescriptionRight;
-  private JBScrollPane myScrollPane2;
   private JBLabel myIntroducedLabel;
   private JBLabel myLearnMoreLinkLabel;
   private int mySelectedApiLevel = -1;
@@ -96,9 +95,6 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
     myScrollPane.getViewport().setOpaque(false);
     myScrollPane.setOpaque(false);
     myScrollPane.setBorder(null);
-    myScrollPane2.getViewport().setOpaque(false);
-    myScrollPane2.setOpaque(false);
-    myScrollPane2.setBorder(null);
     myDescriptionLeft.setForeground(JBColor.foreground());
     myDescriptionLeft.setBackground(JBColor.background());
     myDescriptionRight.setForeground(JBColor.foreground());
