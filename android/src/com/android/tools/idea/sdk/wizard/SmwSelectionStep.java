@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.sdklib.internal.repository.IDescription;
+import com.android.sdklib.internal.repository.IListDescription;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.wizard.TemplateWizardStep;
 import com.intellij.icons.AllIcons;
@@ -30,6 +33,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import java.awt.*;
@@ -156,11 +161,30 @@ public class SmwSelectionStep extends TemplateWizardStep implements Disposable {
       }
     });
 
+    ListSelectionModel lsm = myTable.getSelectionModel();
+    lsm.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        onTableSelection(e);
+      }
+    });
+
+    onTableSelection(new ListSelectionEvent(lsm, lsm.getMinSelectionIndex(), lsm.getMaxSelectionIndex(), lsm.getValueIsAdjusting()));
+
     if (sdkState != null) {
       myTableModel.linkToSdkState(sdkState);
+
+      Runnable onSuccess = new Runnable() {
+        @Override
+        public void run() {
+          ListSelectionModel lsm = myTable.getSelectionModel();
+          onTableSelection(new ListSelectionEvent(lsm, lsm.getMinSelectionIndex(), lsm.getMaxSelectionIndex(), lsm.getValueIsAdjusting()));
+        }
+      };
+
       sdkState.loadAsync(1000 * 60 * 10,  // 10 minutes timeout since last check
                          false,           // canBeCancelled
-                         null,            // onSuccess
+                         onSuccess,       // onSuccess
                          null);           // onError
     }
   }
@@ -168,7 +192,10 @@ public class SmwSelectionStep extends TemplateWizardStep implements Disposable {
   @NotNull
   @Override
   protected JLabel getDescription() {
-    return myTextDescription;
+    // We're not using the Description field of the Template Wizard Step here.
+    // Since nullable isn't supported, share it with the error label (which is
+    // fine since, again, template wizard description field isn't useful here.)
+    return myErrorLabel;
   }
 
   @NotNull
@@ -194,6 +221,41 @@ public class SmwSelectionStep extends TemplateWizardStep implements Disposable {
     }
 
     return super.validate();
+  }
+
+  private void onTableSelection(ListSelectionEvent e) {
+    Object src = e.getSource();
+    if (!(src instanceof ListSelectionModel) || e.getValueIsAdjusting()) {
+      return;
+    }
+
+    ListSelectionModel lsm = (ListSelectionModel)src;
+
+    StringBuilder sb = new StringBuilder("<html>");
+
+    IListDescription item = lsm.isSelectionEmpty() ? null : myTableModel.getObjectAt(lsm.getMinSelectionIndex());
+    if (item == null) {
+      sb.append("Please select a package to see its details.");
+
+    } else {
+
+      if (item instanceof IDescription) {
+        sb.append(((IDescription)item).getLongDescription());
+      } else {
+        sb.append(item.getListDescription());
+      }
+
+      if (item instanceof LocalPkgInfo) {
+        LocalPkgInfo lpi = (LocalPkgInfo)item;
+        if (lpi.hasUpdate()) {
+          assert lpi.getUpdate() != null;
+          sb.append("\n\n").append(lpi.getUpdate().getLongDescription());
+        }
+      }
+    }
+
+    sb.append("</html>");
+    myTextDescription.setText(sb.toString().replace("\n", "<br/>\n"));
   }
 
   protected ActionGroup getActionGroup(boolean inToolbar) {

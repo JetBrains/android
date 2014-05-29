@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk.wizard;
 
 import com.android.annotations.NonNull;
+import com.android.sdklib.internal.repository.IListDescription;
 import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.utils.Pair;
@@ -90,7 +91,7 @@ public class SmwConfirmationTableModel extends AbstractTableModel implements Dis
     }
   }
 
-  public void fillModel(List<Pair<SmwSelectionAction, Object>> selectedActions) {
+  public void fillModel(List<Pair<SmwSelectionAction, IListDescription>> selectedActions) {
     myLines.clear();
 
     // TODO compute install/updates dependencies.
@@ -98,7 +99,7 @@ public class SmwConfirmationTableModel extends AbstractTableModel implements Dis
     // right now just use the selection as-is.
 
     boolean needHeader = true;
-    for (Pair<SmwSelectionAction, Object> action : selectedActions) {
+    for (Pair<SmwSelectionAction, IListDescription> action : selectedActions) {
       if (action.getFirst() != SmwSelectionAction.UPDATE &&
           action.getFirst() != SmwSelectionAction.INSTALL) {
         continue;
@@ -116,7 +117,7 @@ public class SmwConfirmationTableModel extends AbstractTableModel implements Dis
 
     // Find all removable items and list them last
     needHeader = true;
-    for (Pair<SmwSelectionAction, Object> action : selectedActions) {
+    for (Pair<SmwSelectionAction, IListDescription> action : selectedActions) {
       if (action.getFirst() != SmwSelectionAction.REMOVE) {
         continue;
       }
@@ -151,18 +152,19 @@ public class SmwConfirmationTableModel extends AbstractTableModel implements Dis
   }
 
   static class LineInfo {
-    public LineType myType;
-    public String myHeader;
-    public LocalPkgInfo myRemovedPkg;
-    public LocalPkgInfo myUpdatePkg;
-    public RemotePkgInfo myInstallNewPkg;
-    public boolean myAccept;
+    private LineType myType;
+    private String myHeader;
+    private LocalPkgInfo myRemovedPkg;
+    private LocalPkgInfo myUpdatePkg;
+    private RemotePkgInfo myInstallNewPkg;
+    private boolean myAccept;
 
     public LineInfo(@NonNull String header) {
       myType = LineType.HEADER;
       myHeader = header;
     }
 
+    @SuppressWarnings("ConstantConditions")
     public LineInfo(@NonNull LocalPkgInfo info, LineType type) {
       assert type == LineType.REMOVE || type == LineType.UPDATE;
       myType = type;
@@ -176,6 +178,26 @@ public class SmwConfirmationTableModel extends AbstractTableModel implements Dis
     public LineInfo(@NonNull RemotePkgInfo info) {
       myType = LineType.INSTALL;
       myInstallNewPkg = info;
+    }
+
+    @NonNull
+    public LineType getType() {
+      return myType;
+    }
+
+    @Nullable
+    public LocalPkgInfo getRemovedPkg() {
+      return myRemovedPkg;
+    }
+
+    @Nullable
+    public LocalPkgInfo getUpdatePkg() {
+      return myUpdatePkg;
+    }
+
+    @Nullable
+    public RemotePkgInfo getInstallNewPkg() {
+      return myInstallNewPkg;
     }
   }
 
