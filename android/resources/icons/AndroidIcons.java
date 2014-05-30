@@ -111,6 +111,7 @@ public class AndroidIcons {
     public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
     public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
+    public static final Icon FormFactorPhoneTablet = load("/icons/wizards/phone_tablet.png"); // 64x64
   }
 
   public static class Views {
