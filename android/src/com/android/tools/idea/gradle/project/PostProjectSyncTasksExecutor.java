@@ -31,8 +31,6 @@ import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDia
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StatsKeys;
-import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -62,7 +60,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
-import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.*;
+import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
 public class PostProjectSyncTasksExecutor {
@@ -114,8 +112,6 @@ public class PostProjectSyncTasksExecutor {
     }
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu();
-
-    StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_TIME);
   }
 
   private void ensureAllModulesHaveSdk() {

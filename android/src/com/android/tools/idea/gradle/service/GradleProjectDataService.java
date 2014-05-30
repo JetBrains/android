@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.CompilerOutputModuleCustomizer;
@@ -28,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
@@ -46,6 +48,8 @@ import java.util.Map;
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
 public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
+  private static final Logger LOG = Logger.getInstance(GradleProjectDataService.class);
+
   private final List<ModuleCustomizer<JavaModel>> myCustomizers =
     ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
@@ -56,13 +60,20 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   }
 
   @Override
-  public void importData(@NotNull final Collection<DataNode<IdeaGradleProject>> toImport,
-                         @NotNull final Project project,
+  public void importData(@NotNull Collection<DataNode<IdeaGradleProject>> toImport,
+                         @NotNull Project project,
                          boolean synchronous) {
-    if (toImport.isEmpty()) {
-      return;
+    if (!toImport.isEmpty()) {
+      try {
+        doImport(toImport, project, synchronous);
+      } catch (RuntimeException e) {
+        LOG.info(String.format("Failed to set up modules in project '%1$s'", project.getName()), e);
+        GradleSyncState.getInstance(project).syncFailed(e.getMessage());
+      }
     }
+  }
 
+  private void doImport(final Collection<DataNode<IdeaGradleProject>> toImport, final Project project, boolean synchronous) {
     ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
