@@ -78,7 +78,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   private LabelWithEditLink myPackageName;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
-    super("Project Setup", "Provide information about yourself and your project", null, disposable);
+    super("Add information to your new project", null, null, disposable);
     setBodyComponent(myPanel);
   }
 
