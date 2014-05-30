@@ -93,7 +93,7 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  public boolean getEmbedMicroApp() {
+  public boolean isEmbedMicroApp() {
     throw new UnsupportedOperationException();
   }
 
