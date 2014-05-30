@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
+import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
 
 /**
  * @author Eugene.Kudelevsky
@@ -911,6 +912,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintIllegalResourceRefInspection extends AndroidLintInspectionBase {
     public AndroidLintIllegalResourceRefInspection() {
       super(AndroidBundle.message("android.lint.inspections.illegal.resource.ref"), ManifestDetector.ILLEGAL_REFERENCE);
+    }
+  }
+
+  public static class AndroidLintImpliedQuantityInspection extends AndroidLintInspectionBase {
+    public AndroidLintImpliedQuantityInspection() {
+      super(AndroidBundle.message("android.lint.inspections.implied.quantity"), IMPLIED_QUANTITY);
     }
   }
 
