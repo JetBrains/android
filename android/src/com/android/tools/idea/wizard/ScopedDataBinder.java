@@ -339,7 +339,11 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
                         @NotNull ComponentBinding<T, ? super C> binding) {
     T value = bindAndGet(key, component, binding);
     if (value != null) {
-      binding.setValue(value, component);
+      try {
+        binding.setValue(value, component);
+      } catch (UnsupportedOperationException e) {
+        // Expected.
+      }
     } else {
       try {
         myState.put(key, binding.getValue(component));
