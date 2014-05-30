@@ -69,11 +69,11 @@ public enum BuildFileKey {
   DEPENDENCIES("dependencies", null, CLOSURE, Dependency.getFactory()),
 
   // defaultConfig or build flavor
-  MIN_SDK_VERSION("minSdkVersion", INTEGER),
+  MIN_SDK_VERSION("minSdkVersion", INTEGER_OR_STRING),
   PACKAGE_NAME("packageName", STRING),
   PROGUARD_FILE("proguardFile", FILE_AS_STRING),
   SIGNING_CONFIG("signingConfig", REFERENCE),
-  TARGET_SDK_VERSION("targetSdkVersion", INTEGER),
+  TARGET_SDK_VERSION("targetSdkVersion", INTEGER_OR_STRING),
   TEST_INSTRUMENTATION_RUNNER("testInstrumentationRunner", STRING),
   TEST_PACKAGE_NAME("testPackageName", STRING),
   VERSION_CODE("versionCode", INTEGER),
@@ -98,7 +98,7 @@ public enum BuildFileKey {
   // Android block
   DEFAULT_CONFIG("android/defaultConfig", CLOSURE),
   BUILD_TOOLS_VERSION("android/buildToolsVersion", STRING),
-  COMPILE_SDK_VERSION("android/compileSdkVersion", INTEGER),
+  COMPILE_SDK_VERSION("android/compileSdkVersion", INTEGER_OR_STRING),
   IGNORE_ASSETS_PATTERN("android/aaptOptions/ignoreAssetsPattern", STRING),
   INCREMENTAL_DEX("android/dexOptions/incremental", "Incremental Dex", BOOLEAN, null),
   NO_COMPRESS("android/aaptOptions/noCompress", STRING), // TODO: Implement properly. This is not a simple literal.
