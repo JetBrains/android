@@ -71,7 +71,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
-    super("Choose Platforms for your APKs", "Different platforms have varying requirements and will require separate APKs",
+    super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs",
           null, disposable);
     setBodyComponent(myPanel);
   }
