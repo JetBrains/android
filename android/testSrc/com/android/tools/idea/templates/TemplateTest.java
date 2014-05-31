@@ -21,7 +21,10 @@ import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.*;
+import com.android.tools.idea.wizard.ConfigureAndroidModuleStep;
+import com.android.tools.idea.wizard.NewProjectWizardState;
+import com.android.tools.idea.wizard.StringEvaluator;
+import com.android.tools.idea.wizard.TemplateWizardState;
 import com.android.tools.lint.checks.ManifestDetector;
 import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Stopwatch;
@@ -650,6 +653,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_TARGET_API, targetSdk);
     projectValues.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));
     values.put(ATTR_BUILD_API, target.getVersion().getApiLevel());
+    values.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(target.getVersion()));
     assertNotNull(values);
 
     // Next check all other parameters, cycling through booleans and enums.

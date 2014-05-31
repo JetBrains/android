@@ -141,6 +141,18 @@ public class TargetMenuAction extends FlatComboAction {
 
     if (brief) {
       if (target.isPlatform()) {
+        String codename = version.getCodename();
+        if (codename != null && !codename.isEmpty()) {
+          // The target menu brief label is deliberately short; typically it's just a 2 digit
+          // API number. If this is a preview platform we should display the codename, but only
+          // if it's a really short codename; if not, just display the first letter (since Android
+          // platforms are typically identified by a letter anyway).
+          if (codename.length() <= 3) {
+            return codename;
+          } else {
+            return Character.toString(codename.charAt(0));
+          }
+        }
         return Integer.toString(version.getApiLevel());
       }
       else {
