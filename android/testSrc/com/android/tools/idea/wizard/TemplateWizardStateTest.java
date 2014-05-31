@@ -198,6 +198,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     // Test standard conversion
     myState.put(ATTR_MIN_API, "8");
     myState.put(ATTR_BUILD_API, "19");
+    myState.put(ATTR_BUILD_API_STRING, "19");
     myState.put(ATTR_MIN_API_LEVEL, 8);
     myState.put(ATTR_TARGET_API, "19");
     myState.put(ATTR_TARGET_API_STRING, "19");
@@ -209,6 +210,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     assertEquals(19, myState.getInt(ATTR_BUILD_API));
     assertEquals(19, myState.getInt(ATTR_TARGET_API));
     assertEquals("19", myState.get(ATTR_TARGET_API_STRING));
+    assertEquals("19", myState.get(ATTR_BUILD_API_STRING));
 
     List<String> previewNames = Lists.newArrayList("Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread", "Honeycomb", "IceCreamSandwich",
                                                   "JellyBean", "Kitkat");
