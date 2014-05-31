@@ -148,7 +148,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     if (highest != null) {
       myTemplateState.put(ATTR_BUILD_API, highest.getApiLevel());
+      myTemplateState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(highest));
       myTemplateState.myModified.add(ATTR_BUILD_API);
+      myTemplateState.myModified.add(ATTR_BUILD_API_STRING);
       if (highest.getApiLevel() >= SdkVersionInfo.HIGHEST_KNOWN_API) {
         myTemplateState.put(ATTR_TARGET_API, highest.getApiLevel());
         myTemplateState.put(ATTR_TARGET_API_STRING, highest.getApiString());
@@ -241,6 +243,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
             myTemplateState.put(ATTR_TARGET_API, apiLevel);
             myTemplateState.put(ATTR_TARGET_API_STRING, version.getApiString());
             myTemplateState.put(ATTR_BUILD_API, apiLevel);
+            myTemplateState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
             myCompileWith.setEnabled(false);
           }
         }
@@ -416,7 +419,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       if (item.target != null) {
         myTemplateState.put(ATTR_TARGET_API_STRING, item.target.getVersion().getApiString());
       } else {
-        myTemplateState.put(ATTR_TARGET_API_STRING, item.apiLevel);
+        myTemplateState.put(ATTR_TARGET_API_STRING, Integer.toString(item.apiLevel));
       }
     }
 
@@ -834,6 +837,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     static String getLabel(@NotNull IAndroidTarget target) {
       if (target.isPlatform()
           && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
+        if (target.getVersion().isPreview()) {
+          return "API " + Integer.toString(target.getVersion().getApiLevel()) + "+: " + target.getName();
+        }
         String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
         if (name == null) {
           return "API " + Integer.toString(target.getVersion().getApiLevel());
@@ -848,7 +854,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     @NotNull
     private static Object getId(@NotNull IAndroidTarget target) {
       if (target.getVersion().isPreview()) {
-        return target.getVersion().getCodename();
+        String codename = target.getVersion().getCodename();
+        assert codename != null; // because isPreview()
+        return codename;
       } else {
         return target.getVersion().getApiLevel();
       }
