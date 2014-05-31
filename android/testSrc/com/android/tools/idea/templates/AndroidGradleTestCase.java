@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
@@ -69,6 +70,7 @@ import java.util.*;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
 
 /** Base class for unit tests that operate on Gradle projects */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
@@ -309,7 +311,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     final BuildToolInfo buildTool = sdkData.getLatestBuildTool();
     projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     IAndroidTarget[] targets = sdkData.getTargets();
-    projectWizardState.put(ATTR_BUILD_API, targets[targets.length - 1].getVersion().getApiLevel());
+    AndroidVersion version = targets[targets.length - 1].getVersion();
+    projectWizardState.put(ATTR_BUILD_API, version.getApiLevel());
+    projectWizardState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
   }
 
   public void createProject(final NewProjectWizardState projectWizardState, boolean syncModel) throws Exception {
