@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.diagnostic.Logger;
 
 import com.android.annotations.VisibleForTesting;
@@ -46,6 +49,7 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_API = "minApi";
   public static final String ATTR_MIN_BUILD_API = "minBuildApi";
   public static final String ATTR_BUILD_API = "buildApi";
+  public static final String ATTR_BUILD_API_STRING = "buildApiString";
   public static final String ATTR_REVISION = "revision";
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
@@ -298,5 +302,17 @@ public class TemplateMetadata {
     } catch (RuntimeException e) {
       return defaultValue;
     }
+  }
+
+  /**
+   * Computes a suitable build api string, e.g. for API level 18 the build
+   * API string is "18".
+   */
+  @NotNull
+  public static String getBuildApiString(@NotNull AndroidVersion version) {
+    if (version.isPreview()) {
+      return AndroidTargetHash.getPlatformHashString(version);
+    }
+    return version.getApiString();
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.KeystoreUtils;
@@ -155,7 +156,9 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     assert facet != null;
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assert platform != null;
-    myWizardState.put(ATTR_BUILD_API, platform.getTarget().getVersion().getApiLevel());
+    AndroidVersion version = platform.getTarget().getVersion();
+    myWizardState.put(ATTR_BUILD_API, version.getApiLevel());
+    myWizardState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
 
     // Read minSdkVersion and package from manifest and/or build.gradle files
     int minSdkVersion;

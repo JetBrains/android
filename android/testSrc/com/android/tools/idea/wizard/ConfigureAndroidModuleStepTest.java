@@ -142,6 +142,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
     myState.put(ATTR_MODULE_NAME, "app");
     myState.put(ATTR_MIN_API, 8);
     myState.put(ATTR_BUILD_API, 19);
+    myState.put(ATTR_BUILD_API_STRING, "19");
     myState.put(ATTR_TARGET_API, 19);
     myState.put(ATTR_TARGET_API_STRING, "19");
     myState.put(ATTR_MIN_API_LEVEL, 8);
