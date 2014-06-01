@@ -36,8 +36,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Couple;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -972,7 +970,7 @@ public class RenderPreview implements Disposable {
       painter.draw(gc, new PairFunction<Integer, Integer, Couple<Integer>>() {
         @Override
         public Couple<Integer> fun(Integer width, Integer height) {
-          return Couple.newOne(xf, yf);
+          return Couple.of(xf, yf);
         }
       });
       gc.setClip(prevClip);
