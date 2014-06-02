@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
@@ -27,6 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
@@ -56,6 +58,8 @@ import java.util.Map;
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
  */
 public class AndroidProjectDataService implements ProjectDataService<IdeaAndroidProject, Void> {
+  private static final Logger LOG = Logger.getInstance(AndroidProjectDataService.class);
+
   private final List<ModuleCustomizer<IdeaAndroidProject>> myCustomizers;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
@@ -84,13 +88,24 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
    * @param synchronous indicates whether this operation is synchronous.
    */
   @Override
-  public void importData(@NotNull final Collection<DataNode<IdeaAndroidProject>> toImport,
-                         @NotNull final Project project,
+  public void importData(@NotNull Collection<DataNode<IdeaAndroidProject>> toImport,
+                         @NotNull Project project,
                          boolean synchronous) {
-    if (toImport.isEmpty()) {
-      return;
+    if (!toImport.isEmpty()) {
+      try {
+        doImport(toImport, project, synchronous);
+      }
+      catch (RuntimeException e) {
+        LOG.info(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
+        GradleSyncState.getInstance(project).syncFailed(e.getMessage());
+        return;
+      }
     }
 
+    PostProjectSyncTasksExecutor.getInstance(project).onProjectSetupCompletion();
+  }
+
+  private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project, boolean synchronous) {
     ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
       @Override
       public void execute() {
@@ -112,12 +127,12 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           jdk = Jdks.chooseOrCreateJavaSdk(javaLangVersion);
         }
         if (jdk == null) {
-            String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
-            LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
-            String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
-            msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
-            NotificationData notification = new NotificationData(title, msg, NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
-            ExternalSystemNotificationManager.getInstance(project).showNotification(GradleConstants.SYSTEM_ID, notification);
+          String title = String.format("Problems importing/refreshing Gradle project '%1$s':\n", project.getName());
+          LanguageLevel level = javaLangVersion != null ? javaLangVersion : LanguageLevel.JDK_1_6;
+          String msg = String.format("Unable to find a JDK %1$s installed.\n", level.getPresentableText());
+          msg += "After configuring a suitable JDK in the \"Project Structure\" dialog, sync the Gradle project again.";
+          NotificationData notification = new NotificationData(title, msg, NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
+          ExternalSystemNotificationManager.getInstance(project).showNotification(GradleConstants.SYSTEM_ID, notification);
         }
         else {
           String homePath = jdk.getHomePath();
@@ -130,8 +145,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
         }
       }
     });
-
-    PostProjectSyncTasksExecutor.getInstance(project).onProjectSetupCompletion();
   }
 
   @NotNull
