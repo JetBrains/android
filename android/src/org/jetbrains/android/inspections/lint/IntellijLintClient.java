@@ -137,7 +137,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                   return Severity.IGNORE;
                 }
 
-                return Severity.IGNORE;
+                return super.getSeverity(issue);
               }
             };
           }
