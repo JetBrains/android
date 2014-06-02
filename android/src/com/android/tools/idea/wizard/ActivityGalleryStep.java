@@ -44,8 +44,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   private final boolean myShowSkipEntry;
   private ASGallery<Optional<TemplateEntry>> myGallery;
 
-
-  public ActivityGalleryStep(@Nullable FormFactorUtils.FormFactor formFactor, @NotNull Icon icon, boolean showSkipEntry,
+  public ActivityGalleryStep(@Nullable FormFactorUtils.FormFactor formFactor, @Nullable Icon icon, boolean showSkipEntry,
                              Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
     super("Add an activity to " + formFactor, null, icon, disposable);
     myFormFactor = formFactor;

@@ -83,10 +83,5 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     public void performFinishingActions() {
 
     }
-
-    @Override
-    public void init() {
-      super.init();
-    }
   }
 }

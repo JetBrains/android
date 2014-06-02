@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
@@ -158,11 +159,16 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
     if (sdkPath == null) {
       return false;
     }
-    File sdkFile = new File(sdkPath);
+    final File sdkFile = new File(sdkPath);
     if (!sdkFile.exists() || !AndroidSdkType.validateAndroidSdk(sdkPath).getFirst()) {
       return false;
     }
-    DefaultSdks.setDefaultAndroidHome(sdkFile);
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        DefaultSdks.setDefaultAndroidHome(sdkFile);
+      }
+    });
     return true;
   }
 
