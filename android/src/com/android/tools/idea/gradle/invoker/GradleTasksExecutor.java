@@ -91,7 +91,6 @@ import java.util.concurrent.TimeUnit;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleInvocationJvmArgs;
-import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 
 /**
@@ -160,14 +159,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   private final static String[] STAT_KEYS = {
-    ":generate", StatsKeys.GRADLE_GENERATE_TIME,
-    ":assemble", StatsKeys.GRADLE_ASSEMBLE_TIME,
-    ":compile" , StatsKeys.GRADLE_COMPILE_TIME,
+    ":generate", StatsKeys.GRADLE_GENERATE_SRC_TIME_MS,
+    ":assemble", StatsKeys.GRADLE_ASSEMBLE_TIME_MS,
+    ":compile" , StatsKeys.GRADLE_COMPILE_TIME_MS,
   };
 
   private final static String[] STAT_CLEAN_KEYS = {
-    ":generate", StatsKeys.GRADLE_CLEAN_TIME,
-    ":compile" , StatsKeys.GRADLE_REBUILD_TIME,
+    ":generate", StatsKeys.GRADLE_CLEAN_TIME_MS,
+    ":compile" , StatsKeys.GRADLE_REBUILD_TIME_MS,
   };
 
   // Compute a stat key name to capture build times
@@ -188,7 +187,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         }
       }
     }
-    return StatsKeys.GRADLE_BUILD_TIME;
+    return StatsKeys.GRADLE_BUILD_TIME_MS;
   }
 
   @Override
