@@ -75,9 +75,13 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSI
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
+  /**
+   * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
+   * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
+   * loose, please do not use these constants, to prevent any unexpected side effects during project sync.
+   */
   @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
     "The project is using an unsupported version of the Android Gradle plug-in";
-
   @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
