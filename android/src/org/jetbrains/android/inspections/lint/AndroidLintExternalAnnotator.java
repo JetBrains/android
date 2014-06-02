@@ -138,8 +138,13 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         return state;
       }
 
+      Project project = state.getModule().getProject();
+      if (project.isDisposed()) {
+        return state;
+      }
+
       List<VirtualFile> files = Collections.singletonList(mainFile);
-      LintRequest request = new IntellijLintRequest(client, state.getModule().getProject(), files,
+      LintRequest request = new IntellijLintRequest(client, project, files,
                                                     Collections.singletonList(state.getModule()), true /* incremental */);
       request.setScope(scope);
 
