@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dependency;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.google.common.collect.Lists;
@@ -96,7 +97,7 @@ public abstract class Dependency {
   private static void populate(@NotNull DependencySet dependencies,
                                @NotNull AndroidArtifact androidArtifact,
                                @NotNull DependencyScope scope) {
-    populate(dependencies, androidArtifact.getDependencies().getJars(), scope);
+    addJavaLibraries(dependencies, androidArtifact.getDependencies().getJavaLibraries(), scope);
 
     Set<File> unique = Sets.newHashSet();
     for (AndroidLibrary lib : androidArtifact.getDependencies().getLibraries()) {
@@ -119,7 +120,7 @@ public abstract class Dependency {
         mainDependency.setBackupDependency(backupDependency);
       }
 
-      populate(dependencies, lib.getLocalJars(), scope);
+      addJars(dependencies, lib.getLocalJars(), scope);
     }
 
     for (String gradleProjectPath : androidArtifact.getDependencies().getProjects()) {
@@ -166,9 +167,17 @@ public abstract class Dependency {
     }
   }
 
-  private static void populate(@NotNull DependencySet dependencies, @NotNull Collection<File> jars, @NotNull DependencyScope scope) {
+  private static void addJavaLibraries(@NotNull DependencySet dependencies,
+                                       @NotNull Collection<JavaLibrary> libraries,
+                                       @NotNull DependencyScope scope) {
+    for (JavaLibrary library : libraries) {
+      File jar = library.getJarFile();
+      dependencies.add(new LibraryDependency(jar, scope));
+    }
+  }
+
+  private static void addJars(@NotNull DependencySet dependencies, @NotNull Collection<File> jars, @NotNull DependencyScope scope) {
     for (File jar : jars) {
-      //noinspection TestOnlyProblems
       dependencies.add(new LibraryDependency(jar, scope));
     }
   }
