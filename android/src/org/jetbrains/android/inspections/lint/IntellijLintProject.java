@@ -704,9 +704,10 @@ class IntellijLintProject extends Project {
         if (mJavaLibraries == null) {
           if (myFacet.isGradleProject() && myFacet.getIdeaAndroidProject() != null) {
             IdeaAndroidProject gradleProject = myFacet.getIdeaAndroidProject();
-            Collection<File> jars = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getJars();
-            mJavaLibraries = Lists.newArrayListWithExpectedSize(jars.size());
-            for (File jar : jars) {
+            Collection<JavaLibrary> libs = gradleProject.getSelectedVariant().getMainArtifact().getDependencies().getJavaLibraries();
+            mJavaLibraries = Lists.newArrayListWithExpectedSize(libs.size());
+            for (JavaLibrary lib : libs) {
+              File jar = lib.getJarFile();
               if (jar.exists()) {
                 mJavaLibraries.add(jar);
               }
