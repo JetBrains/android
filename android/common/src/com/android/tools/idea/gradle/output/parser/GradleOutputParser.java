@@ -30,16 +30,14 @@ class GradleOutputParser implements PatternAwareOutputParser {
     if (ignoreMessage(line)) {
       return true;
     }
-    if (line.endsWith("is an incubating feature.")) {
-      messages.add(new GradleMessage(GradleMessage.Kind.WARNING, line));
+    if (line.endsWith("is an incubating feature.") || line.contains("has been deprecated and is scheduled to be removed in Gradle")) {
+      // These are warnings about using incubating/internal Gradle APIs. They do not add any value to our users. In fact, we got reports
+      // that those warnings are confusing.
+      // We just hide the message.
       return true;
     }
     if (line.startsWith("Total time: ") || line.startsWith("BUILD ")) {
       messages.add(new GradleMessage(GradleMessage.Kind.INFO, line));
-      return true;
-    }
-    if (line.contains("has been deprecated and is scheduled to be removed in Gradle")) {
-      messages.add(new GradleMessage(GradleMessage.Kind.WARNING, line));
       return true;
     }
 
