@@ -25,10 +25,10 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StatsKeys;
-import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.*;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Throwables;
 import com.google.common.collect.*;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -88,9 +88,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.base.Predicates.in;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Predicates.*;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
@@ -183,7 +181,7 @@ public class GradleProjectImporter {
    * @param project  project to import the modules to
    * @param listener optional object that gets notified of operation success or failure
    */
-  public void importModules(final Map<String, VirtualFile> modules,
+  public void importModules(@NotNull final Map<String, VirtualFile> modules,
                             @Nullable final Project project,
                             @Nullable final GradleSyncListener listener)
     throws IOException, ConfigurationException {
@@ -198,6 +196,7 @@ public class GradleProjectImporter {
       }
     }
 
+    assert project != null;
     Throwable throwable = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -250,7 +249,9 @@ public class GradleProjectImporter {
   /**
    * Copy modules and adds it to settings.gradle
    */
-  private void copyAndRegisterModule(Map<String, VirtualFile> modules, Project project, @Nullable GradleSyncListener listener)
+  private void copyAndRegisterModule(@NotNull Map<String, VirtualFile> modules,
+                                     @NotNull Project project,
+                                     @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException {
     VirtualFile projectRoot = project.getBaseDir();
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
@@ -445,7 +446,7 @@ public class GradleProjectImporter {
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
-    final Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
+    Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
     setUpProject(newProject, initialLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -465,6 +466,7 @@ public class GradleProjectImporter {
       }
     }
 
+    assert newProject != null;
     doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, listener);
   }
 
@@ -585,8 +587,6 @@ public class GradleProjectImporter {
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
-
-    StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_TIME);
 
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
