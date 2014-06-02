@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.MavenCoordinates;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,6 +141,18 @@ public class AndroidLibraryStub implements AndroidLibrary {
   @Override
   @NotNull
   public File getLintJar() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  public MavenCoordinates getRequestedCoordinates() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  public MavenCoordinates getResolvedCoordinates() {
     throw new UnsupportedOperationException();
   }
 }
