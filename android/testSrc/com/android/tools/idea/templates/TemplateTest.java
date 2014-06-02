@@ -779,6 +779,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_RES_OUT, null);
     projectValues.put(ATTR_SRC_OUT, null);
     projectValues.put(ATTR_MANIFEST_OUT, null);
+    projectValues.put(ATTR_TEST_OUT, null);
 
     JavaCodeInsightTestFixture fixture = null;
     File projectDir = null;
