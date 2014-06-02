@@ -60,10 +60,12 @@ public class TemplateMetadata {
   public static final String ATTR_SRC_OUT = "srcOut";
   public static final String ATTR_RES_OUT = "resOut";
   public static final String ATTR_MANIFEST_OUT = "manifestOut";
+  public static final String ATTR_TEST_OUT = "testOut";
   public static final String ATTR_MAVEN_URL = "mavenUrl";
   public static final String ATTR_SRC_DIR = "srcDir";
   public static final String ATTR_RES_DIR = "resDir";
   public static final String ATTR_MANIFEST_DIR = "manifestDir";
+  public static final String ATTR_TEST_DIR = "testDir";
   public static final String ATTR_AIDL_DIR = "aidlDir";
   public static final String ATTR_AIDL_OUT = "aidlOut";
   public static final String ATTR_DEBUG_KEYSTORE_SHA1 = "debugKeystoreSha1";
