@@ -176,7 +176,13 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
    * @return true iff the given key corresponds to a value in the state store.
    */
   public <T> boolean containsKey(@NotNull Key<T> key) {
-    return myState.containsKey(key);
+    if (myScope.equals(key.scope)) {
+      return myState.containsKey(key);
+    } else if (myParent != null && key.scope.isGreaterThan(myScope)) {
+      return myParent.containsKey(key);
+    } else {
+      return false;
+    }
   }
 
   /**
