@@ -54,7 +54,7 @@ public class LaunchCompatibilityTest extends TestCase {
   public void testRequiredDeviceCharacteristic() {
     final AndroidVersion minSdkVersion = new AndroidVersion(8, null);
     final MockPlatformTarget projectTarget = new MockPlatformTarget(14, 0);
-    final EnumSet<IDevice.HardwareFeature> requiredFeatures = EnumSet.of(IDevice.HardwareFeature.WATCH);
+    EnumSet<IDevice.HardwareFeature> requiredFeatures = EnumSet.of(IDevice.HardwareFeature.WATCH);
 
     // cannot run if the device doesn't have a required feature
     LaunchCompatibility compatibility =
@@ -65,6 +65,13 @@ public class LaunchCompatibilityTest extends TestCase {
     compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, true), null);
     assertEquals(new LaunchCompatibility(ThreeState.YES, null), compatibility);
+
+    // cannot run apk's that don't specify uses-feature watch on a wear device
+    requiredFeatures = EnumSet.noneOf(IDevice.HardwareFeature.class);
+    compatibility =
+      LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, true), null);
+    assertEquals(new LaunchCompatibility(ThreeState.NO, "missing uses-feature watch, non-watch apks cannot be launched on a watch"),
+                 compatibility);
   }
 
   public void testRequiredAddons() {
@@ -95,7 +102,7 @@ public class LaunchCompatibilityTest extends TestCase {
     MockAddonTarget avdTarget = new MockAddonTarget("gapi", baseTarget, 1);
     compatibility =
       LaunchCompatibility.canRunOnDevice(minSdkVersion, projectTarget, requiredFeatures, createMockDevice(8, null, false), avdTarget);
-    assertEquals(new LaunchCompatibility(ThreeState.NO, "AVD Addon name (gapi) != Project target addon name (google)"), compatibility);
+    assertEquals(new LaunchCompatibility(ThreeState.NO, "AVD target name (gapi) != Project target name (google)"), compatibility);
 
     // should work as long as both vendor & names are the same
     avdTarget = new MockAddonTarget("google", baseTarget, 1);

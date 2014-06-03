@@ -20,15 +20,13 @@ import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.ActivityAlias;
+import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.manifest.Application;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -336,6 +334,22 @@ public abstract class ManifestInfo {
 
 
         return activityAliases;
+      }
+    });
+  }
+
+  @NotNull
+  public List<UsesFeature> getRequiredFeatures() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<List<UsesFeature>>() {
+      @Override
+      public List<UsesFeature> compute() {
+        List<UsesFeature> usesFeatures = Lists.newArrayList();
+
+        for (Manifest m : getManifests()) {
+          usesFeatures.addAll(m.getUsesFeatures());
+        }
+
+        return usesFeatures;
       }
     });
   }
