@@ -65,8 +65,13 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
-  public void testPackageSuffix() throws Exception {
+  public void testIdSuffix() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
+    doTest(inspection, null);
+  }
+
+  public void testPackage() throws Exception {
+    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 

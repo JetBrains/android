@@ -3,7 +3,7 @@ apply plugin: 'android'
 android {
     buildTypes {
         debug {
-            packageNameSuffix <warning>"debug"</warning>
+            applicationIdSuffix <warning>"debug"</warning>
         }
     }
 }
