@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.AndroidVersion;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -34,16 +35,20 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 /**
  * Gallery of Android activity templates.
  */
-public final class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescription {
+public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescription {
+  @SuppressWarnings("unchecked")
   public static final Key<TemplateEntry[]> KEY_TEMPLATES =
     ScopedStateStore.createKey("template.list", ScopedStateStore.Scope.STEP, TemplateEntry[].class);
   private final Key<TemplateEntry> myCurrentSelectionKey;
-  private ASGallery<TemplateEntry> myGallery;
+  private final boolean myShowSkipEntry;
+  private ASGallery<Optional<TemplateEntry>> myGallery;
 
-  public ActivityGalleryStep(Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
+  public ActivityGalleryStep(Key<TemplateEntry> currentSelectionKey, boolean showSkipEntry,
+                             @NotNull Disposable disposable) {
     super("Add an activity to Phone and Tablet", null,
           AndroidIcons.Wizards.FormFactorPhoneTablet, disposable);
     myCurrentSelectionKey = currentSelectionKey;
+    myShowSkipEntry = showSkipEntry;
     setBodyComponent(createGallery());
   }
 
@@ -57,18 +62,23 @@ public final class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDes
   }
 
   private JComponent createGallery() {
-    myGallery = new ASGallery<TemplateEntry>();
+    myGallery = new ASGallery<Optional<TemplateEntry>>();
     myGallery.setThumbnailSize(new Dimension(256, 256));
-    myGallery.setLabelProvider(new Function<TemplateEntry, String>() {
+    myGallery.setLabelProvider(new Function<Optional<TemplateEntry>, String>() {
       @Override
-      public String apply(TemplateEntry template) {
-        return template.getTitle();
+      public String apply(Optional<TemplateEntry> template) {
+        if (template.isPresent()) {
+          return template.get().getTitle();
+        }
+        else {
+          return getNoTemplateEntryName();
+        }
       }
     });
-    myGallery.setImageProvider(new Function<TemplateEntry, Image>() {
+    myGallery.setImageProvider(new Function<Optional<TemplateEntry>, Image>() {
       @Override
-      public Image apply(TemplateEntry input) {
-        return input.getImage();
+      public Image apply(Optional<TemplateEntry> input) {
+        return input.isPresent() ? input.get().getImage() : null;
       }
     });
     myGallery.addListSelectionListener(new ListSelectionListener() {
@@ -80,12 +90,16 @@ public final class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDes
     return new JBScrollPane(myGallery);
   }
 
+  protected String getNoTemplateEntryName() {
+    return "Add No Activity";
+  }
+
   @Override
   public boolean validate() {
     TemplateEntry template = myState.get(myCurrentSelectionKey);
-    PageStatus status;
+    final PageStatus status;
     if (template == null) {
-      status = PageStatus.NOTHING_SELECTED;
+      status = myShowSkipEntry ? PageStatus.OK : PageStatus.NOTHING_SELECTED;
     }
     else if (isIncompatibleMinSdk(template)) {
       status = PageStatus.INCOMPATIBLE_MAIN_SDK;
@@ -107,7 +121,6 @@ public final class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDes
 
   private boolean isIncompatibleMinSdk(@NotNull TemplateEntry template) {
     AndroidVersion minSdk = myState.get(AddAndroidActivityPath.KEY_MIN_SDK);
-    System.out.printf("Context: %s, Template: %d\n", minSdk, template.getMinSdk());
     return minSdk != null && minSdk.getApiLevel() < template.getMinSdk();
   }
 
@@ -116,30 +129,57 @@ public final class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDes
     super.init();
     TemplateListProvider templateListProvider = new TemplateListProvider();
     TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
-    myGallery.setModel(JBList.createDefaultListModel((Object[])list));
+    myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));
     myState.put(KEY_TEMPLATES, list);
     if (list.length > 0) {
-      myState.put(myCurrentSelectionKey, list[0]);
+      myState.put(myCurrentSelectionKey, myShowSkipEntry ? null : list[0]);
     }
-    register(myCurrentSelectionKey, myGallery, new ComponentBinding<TemplateEntry, ASGallery<TemplateEntry>>() {
+    register(myCurrentSelectionKey, myGallery, new ComponentBinding<TemplateEntry, ASGallery<Optional<TemplateEntry>>>() {
       @Override
-      public void setValue(TemplateEntry newValue, @NotNull ASGallery<TemplateEntry> component) {
-        component.setSelectedElement(newValue);
+      public void setValue(TemplateEntry newValue, @NotNull ASGallery<Optional<TemplateEntry>> component) {
+        component.setSelectedElement(Optional.fromNullable(newValue));
       }
 
       @Override
       @Nullable
-      public TemplateEntry getValue(@NotNull ASGallery<TemplateEntry> component) {
-        return component.getSelectedElement();
+      public TemplateEntry getValue(@NotNull ASGallery<Optional<TemplateEntry>> component) {
+        Optional<TemplateEntry> selection = component.getSelectedElement();
+        if (selection != null && selection.isPresent()) {
+          return selection.get();
+        }
+        else {
+          return null;
+        }
       }
     });
-    register(KEY_TEMPLATES, myGallery, new ComponentBinding<TemplateEntry[], ASGallery<TemplateEntry>>() {
+    register(KEY_TEMPLATES, myGallery, new ComponentBinding<TemplateEntry[], ASGallery<Optional<TemplateEntry>>>() {
       @Override
-      public void setValue(TemplateEntry[] newValue, @NotNull ASGallery<TemplateEntry> component) {
-        component.setModel(JBList.createDefaultListModel((Object[])newValue));
+      public void setValue(@Nullable TemplateEntry[] newValue, @NotNull ASGallery<Optional<TemplateEntry>> component) {
+        component.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(newValue)));
       }
     });
     registerValueDeriver(KEY_TEMPLATES, templateListProvider);
+  }
+
+  private Optional[] wrapInOptionals(@Nullable TemplateEntry[] newValue) {
+    if (newValue == null) {
+      return new Optional[0];
+    }
+    final Optional[] model;
+    int i;
+    if (myShowSkipEntry) {
+      model = new Optional[newValue.length + 1];
+      model[0] = Optional.absent();
+      i = 1;
+    }
+    else {
+      model = new Optional[newValue.length];
+      i = 0;
+    }
+    for (TemplateEntry entry : newValue) {
+      model[i++] = Optional.of(entry);
+    }
+    return model;
   }
 
   @Override
