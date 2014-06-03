@@ -61,7 +61,7 @@ public class AndroidArtifactStub implements AndroidArtifact {
 
   @Override
   @NotNull
-  public String getPackageName() {
+  public String getApplicationId() {
     throw new UnsupportedOperationException();
   }
 
