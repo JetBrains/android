@@ -16,6 +16,7 @@
 package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
@@ -54,6 +55,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
   @NonNls private static final String SELECTED_AVD_PROPERTY = "ANDROID_EXTENDED_DEVICE_CHOOSER_AVD";
 
   public ExtendedDeviceChooserDialog(@NotNull final AndroidFacet facet,
+                                     @NotNull IAndroidTarget projectTarget,
                                      boolean multipleSelection,
                                      boolean showReuseDevicesCheckbox,
                                      boolean selectReuseDevicesCheckbox) {
@@ -74,7 +76,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
     getOKAction().setEnabled(false);
 
-    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, null);
+    myDeviceChooser = new DeviceChooser(multipleSelection, getOKAction(), facet, projectTarget, null);
     Disposer.register(myDisposable, myDeviceChooser);
     myDeviceChooser.addListener(new DeviceChooserListener() {
       @Override
@@ -82,7 +84,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
         updateOkButton();
       }
     });
-    
+
     myAvdCombo = new AvdComboBox(false, true) {
       @Override
       public Module getModule() {
