@@ -18,7 +18,11 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ModalityState;
@@ -31,11 +35,13 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntArrayList;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.BooleanCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,16 +82,21 @@ public class DeviceChooser implements Disposable {
 
   private final AndroidFacet myFacet;
   private final Condition<IDevice> myFilter;
+  private final AndroidVersion myMinSdkVersion;
+  private final IAndroidTarget myProjectTarget;
 
   private int[] mySelectedRows;
 
   public DeviceChooser(boolean multipleSelection,
                        @NotNull final Action okAction,
                        @NotNull AndroidFacet facet,
+                       @NotNull IAndroidTarget projectTarget,
                        @Nullable Condition<IDevice> filter) {
     myFacet = facet;
     myFilter = filter;
-    
+    myMinSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
+    myProjectTarget = projectTarget;
+
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
     myPanel.setPreferredSize(new Dimension(450, 220));
@@ -113,7 +124,7 @@ public class DeviceChooser implements Disposable {
       }
     }.installOn(myDeviceTable);
 
-    myDeviceTable.setDefaultRenderer(Boolean.class, new BooleanCellRenderer());
+    myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
     myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceNameRenderer());
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
@@ -349,7 +360,8 @@ public class DeviceChooser implements Disposable {
         case DEVICE_STATE_COLUMN_INDEX:
           return getDeviceState(device);
         case COMPATIBILITY_COLUMN_INDEX:
-          return myFacet.isCompatibleDevice(device);
+          return LaunchCompatibility.canRunOnDevice(myMinSdkVersion, myProjectTarget, EnumSet.noneOf(IDevice.HardwareFeature.class), device,
+                                                    null);
       }
       return null;
     }
@@ -357,7 +369,7 @@ public class DeviceChooser implements Disposable {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex == COMPATIBILITY_COLUMN_INDEX) {
-        return Boolean.class;
+        return LaunchCompatibility.class;
       } else if (columnIndex == DEVICE_NAME_COLUMN_INDEX) {
         return IDevice.class;
       } else {
@@ -383,6 +395,32 @@ public class DeviceChooser implements Disposable {
       List<Pair<String, SimpleTextAttributes>> l = DevicePanel.renderDeviceName(device);
       for (Pair<String, SimpleTextAttributes> component : l) {
         append(component.getFirst(), component.getSecond());
+      }
+    }
+  }
+
+  private static class LaunchCompatibilityRenderer extends ColoredTableCellRenderer {
+    @Override
+    protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      if (!(value instanceof LaunchCompatibility)) {
+        return;
+      }
+
+      LaunchCompatibility compatibility = (LaunchCompatibility)value;
+      ThreeState compatible = compatibility.isCompatible();
+      if (compatible == ThreeState.YES) {
+        append("Yes");
+      } else {
+        if (compatible == ThreeState.NO) {
+          append("No", SimpleTextAttributes.ERROR_ATTRIBUTES);
+        } else {
+          append("Maybe");
+        }
+        String reason = compatibility.getReason();
+        if (reason != null) {
+          append(", ");
+          append(reason);
+        }
       }
     }
   }

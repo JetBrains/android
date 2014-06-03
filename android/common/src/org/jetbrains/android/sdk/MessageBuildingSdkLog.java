@@ -29,6 +29,7 @@ public class MessageBuildingSdkLog implements ILogger {
 
   private final StringBuilder builder = new StringBuilder();
 
+  @Override
   public void warning(@NonNull String warningFormat, Object... args) {
     LOG.info(String.format(warningFormat, args));
   }
