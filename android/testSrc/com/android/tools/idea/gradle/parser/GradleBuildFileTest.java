@@ -230,7 +230,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final List<NamedObject> flavors = (List<NamedObject>)value;
     assertEquals(2, flavors.size());
     NamedObject flavor3 = new NamedObject("flavor3");
-    flavor3.setValue(BuildFileKey.PACKAGE_NAME, "flavor3.packagename");
+    flavor3.setValue(BuildFileKey.APPLICATION_ID, "flavor3.packagename");
     flavors.add(flavor3);
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
@@ -247,7 +247,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     int position = expected.indexOf("}\n", expected.indexOf("flavor2 {\n")) + 2;
     expected.insert(position,
         "        flavor3 {\n" +
-        "            packageName 'flavor3.packagename'\n" +
+        "            applicationId 'flavor3.packagename'\n" +
         "        }\n"
                                );
     assertContents(file, expected.toString());
