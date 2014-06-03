@@ -76,7 +76,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
                                 @NotNull Disposable parentDisposable) {
     myIsNewModule = false;
     myTargetFolder = targetFolder;
-    myGalleryStep = new ActivityGalleryStep(KEY_SELECTED_TEMPLATE, parentDisposable);
+    myGalleryStep = new ActivityGalleryStep(KEY_SELECTED_TEMPLATE, false, parentDisposable);
     myParameterStep = new TemplateParameterStep2(predefinedParameterValues, myTargetFolder, parentDisposable);
   }
 
