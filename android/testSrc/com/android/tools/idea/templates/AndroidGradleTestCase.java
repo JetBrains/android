@@ -47,7 +47,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.PlatformTestCase;
@@ -296,19 +295,19 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     createGradleWrapper(baseDir);
 
     assertFilesExist(baseDir,
-                     "gradlew",
-                     "gradlew.bat",
-                     "gradle",
-                     "gradle/wrapper",
-                     "gradle/wrapper/gradle-wrapper.jar",
-                     "gradle/wrapper/gradle-wrapper.properties");
+                     FN_GRADLE_WRAPPER_UNIX,
+                     FN_GRADLE_WRAPPER_WIN,
+                     FD_GRADLE,
+                     FD_GRADLE_WRAPPER,
+                     FileUtil.join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_JAR),
+                     FileUtil.join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES));
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
-    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), NewProjectWizard.GRADLE_WRAPPER_PATH);
+    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
     if (!gradleWrapperSrc.exists()) {
       for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-        gradleWrapperSrc = new File(root, NewProjectWizard.GRADLE_WRAPPER_PATH);
+        gradleWrapperSrc = new File(root, FD_GRADLE_WRAPPER);
         if (gradleWrapperSrc.exists()) {
           break;
         } else {
@@ -397,7 +396,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   public void assertBuildsCleanly(Project project, boolean allowWarnings) throws Exception {
     File base = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-    File gradlew = new File(base, "gradlew" + (SystemInfo.isWindows ? ".bat" : ""));
+    File gradlew = new File(base, GradleUtil.GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?
