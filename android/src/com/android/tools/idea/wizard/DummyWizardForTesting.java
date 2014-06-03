@@ -63,8 +63,8 @@ public class DummyWizardForTesting extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
       PropertiesComponent properties = PropertiesComponent.getInstance();
-      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.PHONE_TABLET_FORM_FACTOR_NAME));
-      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey("Glass"));
+      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.PHONE_AND_TABLET));
+      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.PHONE_AND_TABLET));
       properties.unsetValue(ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN);
     }
   }

@@ -29,6 +29,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -76,7 +77,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
                                 @NotNull Disposable parentDisposable) {
     myIsNewModule = false;
     myTargetFolder = targetFolder;
-    myGalleryStep = new ActivityGalleryStep(KEY_SELECTED_TEMPLATE, false, parentDisposable);
+    myGalleryStep = new ActivityGalleryStep(null, AndroidIcons.Wizards.FormFactorPhoneTablet,
+                                            false, KEY_SELECTED_TEMPLATE, parentDisposable);
     myParameterStep = new TemplateParameterStep2(predefinedParameterValues, myTargetFolder, parentDisposable);
   }
 
