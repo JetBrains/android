@@ -158,6 +158,7 @@ public class Template {
   public static final String VALUE_MERGE_STRATEGY_REPLACE = "replace";
   public static final String VALUE_MERGE_STRATEGY_PRESERVE = "preserve";
   public static final String CATEGORY_ACTIVITIES = "activities";
+  public static final String CATEGORY_ACTIVITY = "Activity";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
   public static final String CATEGORY_APPLICATION = "Application";

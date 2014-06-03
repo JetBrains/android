@@ -34,17 +34,17 @@ import java.util.*;
 class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]> {
   private final TemplateEntry[] myTemplates;
 
-  public TemplateListProvider() {
-    // Hardcoded for now, will be unhardcoded later if needed
-    myTemplates = getTemplateList(Template.CATEGORY_ACTIVITIES, TemplateManager.EXCLUDED_TEMPLATES);
+  public TemplateListProvider(@Nullable String formFactor, @NotNull String category) {
+    myTemplates = getTemplateList(formFactor, category, Collections.<String>emptySet());
   }
 
   /**
    * Search the given folder for a list of templates and populate the display list.
    */
-  private static TemplateEntry[] getTemplateList(String category, @Nullable Set<String> excluded) {
+  private static TemplateEntry[] getTemplateList(@Nullable String formFactor, @NotNull String category,
+                                                 @Nullable Set<String> excluded) {
     TemplateManager manager = TemplateManager.getInstance();
-    List<File> templates = manager.getTemplates(category);
+    List<File> templates = manager.getTemplatesInCategory(category);
     List<TemplateEntry> metadataList = new ArrayList<TemplateEntry>(templates.size());
     for (File template : templates) {
       TemplateMetadata metadata = manager.getTemplate(template);
@@ -53,6 +53,10 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
       }
       // Don't include this template if it's been excluded
       if (excluded != null && excluded.contains(metadata.getTitle())) {
+        continue;
+      }
+      // If a form factor has been specified, ensure that requirement is met.
+      if (formFactor != null && !formFactor.equalsIgnoreCase(metadata.getFormFactor())) {
         continue;
       }
 
