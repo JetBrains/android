@@ -16,9 +16,11 @@
 package com.android.tools.idea.wizard;
 
 import com.google.common.collect.Maps;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -32,41 +34,61 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
  */
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
-  public static final String PHONE_TABLET_FORM_FACTOR_NAME = "Phone and Tablet";
+  public static enum FormFactor {
+    PHONE_AND_TABLET("Phone and Tablet", AndroidIcons.Wizards.FormFactorPhoneTablet);
+    
+    public final String id;
+    public final Icon icon;
 
-  public static ScopedStateStore.Key<Integer> getMinApiLevelKey(@NotNull String formFactorName) {
-    return createKey(formFactorName + ATTR_MIN_API_LEVEL, WIZARD, Integer.class);
+    FormFactor(@NotNull String id, @Nullable Icon icon) {
+      this.id = id;
+      this.icon = icon;
+    }
+
+    @Nullable
+    public static FormFactor get(@NotNull String id) {
+      for (FormFactor formFactor : FormFactor.values()) {
+        if (id.equalsIgnoreCase(formFactor.id)) {
+          return formFactor;
+        }
+      }
+      return null;
+    }
   }
 
-  public static ScopedStateStore.Key<Integer> getMinApiKey(@NotNull String formFactorName) {
-    return createKey(formFactorName + ATTR_MIN_API, WIZARD, Integer.class);
+  public static ScopedStateStore.Key<Integer> getMinApiLevelKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_MIN_API_LEVEL, WIZARD, Integer.class);
   }
 
-  public static ScopedStateStore.Key<Integer> getTargetApiLevelKey(@NotNull String formFactorName) {
-    return createKey(formFactorName + ATTR_TARGET_API, WIZARD, Integer.class);
+  public static ScopedStateStore.Key<Integer> getMinApiKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_MIN_API, WIZARD, Integer.class);
   }
 
-  public static ScopedStateStore.Key<Integer> getBuildApiLevelKey(@NotNull String formFactorName) {
-    return createKey(formFactorName + ATTR_BUILD_API, WIZARD, Integer.class);
+  public static ScopedStateStore.Key<Integer> getTargetApiLevelKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_TARGET_API, WIZARD, Integer.class);
   }
 
-  public static ScopedStateStore.Key<String> getLanguageLevelKey(@NotNull String formFactorName) {
-    return createKey(formFactorName + ATTR_JAVA_VERSION, WIZARD, String.class);
+  public static ScopedStateStore.Key<Integer> getBuildApiLevelKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_BUILD_API, WIZARD, Integer.class);
   }
 
-  public static ScopedStateStore.Key<Boolean> getInclusionKey(@NotNull String formFactorName) {
-    return createKey(formFactorName + INCLUDE_FORM_FACTOR, WIZARD, Boolean.class);
+  public static ScopedStateStore.Key<String> getLanguageLevelKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_JAVA_VERSION, WIZARD, String.class);
   }
 
-  public static ScopedStateStore.Key<String> getModuleNameKey(@NotNull String formFactorName) {
-    return createKey(formFactorName + ATTR_MODULE_NAME, WIZARD, String.class);
+  public static ScopedStateStore.Key<Boolean> getInclusionKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + INCLUDE_FORM_FACTOR, WIZARD, Boolean.class);
   }
 
-  public static Map<String, Object> scrubFormFactorPrefixes(@NotNull String formFactorName, @NotNull Map<String, Object> values) {
+  public static ScopedStateStore.Key<String> getModuleNameKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_MODULE_NAME, WIZARD, String.class);
+  }
+
+  public static Map<String, Object> scrubFormFactorPrefixes(@NotNull FormFactor formFactor, @NotNull Map<String, Object> values) {
     Map<String, Object> toReturn = Maps.newHashMapWithExpectedSize(values.size());
     for (String key : values.keySet()) {
-      if (key.startsWith(formFactorName)) {
-        toReturn.put(key.substring(formFactorName.length()), values.get(key));
+      if (key.startsWith(formFactor.id)) {
+        toReturn.put(key.substring(formFactor.id.length()), values.get(key));
       } else {
         toReturn.put(key, values.get(key));
       }
@@ -74,13 +96,13 @@ public class FormFactorUtils {
     return toReturn;
   }
 
-  public static String getPropertiesComponentMinSdkKey(@NotNull String formFactorName) {
-    return formFactorName + ATTR_MIN_API_LEVEL;
+  public static String getPropertiesComponentMinSdkKey(@NotNull FormFactor formFactor) {
+    return formFactor.id + ATTR_MIN_API_LEVEL;
   }
 
   @NotNull
-  public static String getModuleName(@NotNull String formFactor) {
-    String name = formFactor.replaceAll(INVALID_FILENAME_CHARS, "");
+  public static String getModuleName(@NotNull FormFactor formFactor) {
+    String name = formFactor.id.replaceAll(INVALID_FILENAME_CHARS, "");
     name = name.replaceAll("\\s", "_");
     return name.toLowerCase();
   }
