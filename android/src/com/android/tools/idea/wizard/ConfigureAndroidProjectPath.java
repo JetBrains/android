@@ -39,6 +39,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
 
   @Override
   protected void init() {
+    addStep(new GetSdkStep(myParentDisposable));
     addStep(new ConfigureAndroidProjectStep(myParentDisposable));
     addStep(new ConfigureFormFactorStep(myParentDisposable));
   }
