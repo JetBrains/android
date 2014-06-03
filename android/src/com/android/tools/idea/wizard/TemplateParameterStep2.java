@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.templates.Parameter;
@@ -26,10 +27,14 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
@@ -70,11 +75,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private JPanel myRootPanel;
   private JLabel myParameterDescription;
   private JSeparator myFooterSeparator;
-  private Map<Parameter, List<JComponent>> components = Maps.newHashMap();
-  private Map<Parameter, Object> myParameterDefaultValues = ImmutableMap.of();
+  private Map<String, Object> myParameterDefaultValues = Maps.newHashMap();
   private TemplateEntry myCurrentTemplate;
   private JComboBox mySourceSet;
   private JLabel mySourceSetLabel;
+  private boolean myUpdatingDefaults = false;
 
   /**
    * Creates a new template parameters wizard step.
@@ -83,7 +88,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
    *                         User will not be allowed to change their values.
    */
   public TemplateParameterStep2(Map<String, Object> presetParameters, @Nullable VirtualFile targetDirectory,
-                                @NotNull Disposable disposable) {
+                                @Nullable Disposable disposable) {
     super("Choose options for your new file", null, AndroidIcons.Wizards.FormFactorPhoneTablet, disposable);
     myPresetParameters = presetParameters;
     myTargetDirectory = targetDirectory;
@@ -164,13 +169,12 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private static Map<Parameter, Object> getParameterObjectMap(Collection<Parameter> parameters,
-                                                              Map<Parameter, Object> parametersWithDefaultValues,
-                                                              Map<Parameter, Object> parametersWithNonDefaultValues) {
-    Map<Parameter, Object> computedDefaultValues =
-      ParameterDefaultValueComputer.newDefaultValuesMap(parameters, parametersWithNonDefaultValues);
-    Map<Parameter, Object> parameterValues = Maps.newHashMap();
-    parameterValues.putAll(parametersWithDefaultValues);
+  private Map<Parameter, Object> getParameterObjectMap(Collection<Parameter> parameters,
+                                                       Map<Parameter, Object> parametersWithDefaultValues,
+                                                       Map<Parameter, Object> parametersWithNonDefaultValues) {
+    Map<Parameter, Object> computedDefaultValues = ParameterDefaultValueComputer.
+      newDefaultValuesMap(parameters, parametersWithNonDefaultValues, new DeduplicateValuesFunction());
+    Map<Parameter, Object> parameterValues = Maps.newHashMap(parametersWithDefaultValues);
     for (Map.Entry<Parameter, Object> entry : computedDefaultValues.entrySet()) {
       if (!parametersWithNonDefaultValues.keySet().contains(entry.getKey()) && entry.getValue() != null) {
         parameterValues.put(entry.getKey(), entry.getValue());
@@ -414,27 +418,42 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     });
   }
 
-  private void updateStateWithDefaults(Collection<Parameter> parameters) {
-    for (Parameter parameter : parameters) {
-      if (myPresetParameters.containsKey(parameter.id)) {
-        myState.unsafePut(getParameterKey(parameter), myPresetParameters.get(parameter.id));
+  @VisibleForTesting
+  protected void updateStateWithDefaults(Collection<Parameter> parameters) {
+    if (myUpdatingDefaults) {
+      return;
+    }
+    myUpdatingDefaults = true;
+    try {
+      for (Parameter parameter : parameters) {
+        if (myPresetParameters.containsKey(parameter.id)) {
+          myState.unsafePut(getParameterKey(parameter), myPresetParameters.get(parameter.id));
+        }
+      }
+      Map<Parameter, Object> parameterDefaults = refreshParameterDefaults(parameters, myParameterDefaultValues);
+      for (Map.Entry<Parameter, Object> entry : parameterDefaults.entrySet()) {
+        myState.unsafePut(getParameterKey(entry.getKey()), entry.getValue());
+        myParameterDefaultValues.put(entry.getKey().id, entry.getValue());
       }
     }
+    finally {
+      myUpdatingDefaults = false;
+    }
+  }
+
+  private Map<Parameter, Object> refreshParameterDefaults(Collection<Parameter> parameters, Map<String, Object> defaultValues) {
     final Map<Parameter, Object> parametersAtDefault = Maps.newHashMap();
     final Map<Parameter, Object> parametersAtNonDefault = Maps.newHashMap();
 
     for (Parameter parameter : parameters) {
-      if (isDefaultParameterValue(parameter)) {
-        parametersAtDefault.put(parameter, myParameterDefaultValues.get(parameter));
+      if (isDefaultParameterValue(parameter, defaultValues)) {
+        parametersAtDefault.put(parameter, defaultValues.get(parameter.id));
       }
       else {
         parametersAtNonDefault.put(parameter, getStateParameterValue(parameter));
       }
     }
-    myParameterDefaultValues = getParameterObjectMap(parameters, parametersAtDefault, parametersAtNonDefault);
-    for (Map.Entry<Parameter, Object> entry : myParameterDefaultValues.entrySet()) {
-      myState.unsafePut(getParameterKey(entry.getKey()), entry.getValue());
-    }
+    return getParameterObjectMap(parameters, parametersAtDefault, parametersAtNonDefault);
   }
 
   @NotNull
@@ -453,22 +472,19 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private boolean isDefaultParameterValue(Parameter parameter) {
+  private boolean isDefaultParameterValue(Parameter parameter, Map<String, Object> defaultValues) {
     Object stateValue = getStateParameterValue(parameter);
     if (stateValue == null) {
       return true;
     }
     else {
-      return Objects.equal(myParameterDefaultValues.get(parameter), stateValue);
+      Object defaultValue = defaultValues.get(parameter.id);
+      return Objects.equal(defaultValue, stateValue);
     }
   }
 
   private void addComponents(Parameter parameter, int row) {
-    List<JComponent> keyComponents = components.get(parameter);
-    if (keyComponents == null) {
-      keyComponents = createComponents(parameter);
-      components.put(parameter, keyComponents);
-    }
+    List<JComponent> keyComponents = createComponents(parameter);
     int column = 0;
     for (Iterator<JComponent> iterator = keyComponents.iterator(); iterator.hasNext(); ) {
       JComponent keyComponent = iterator.next();
@@ -507,6 +523,34 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       }
       assert input.id != null;
       return createKey(input.id, ScopedStateStore.Scope.PATH, clazz);
+    }
+  }
+
+  private class DeduplicateValuesFunction implements ParameterDefaultValueComputer.Deduplicator {
+    private final Project project;
+    private final Module module;
+    private final SourceProvider provider;
+    private final String packageName;
+
+    private DeduplicateValuesFunction() {
+      project = getProject();
+      module = getModule();
+      provider = myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER);
+      packageName = myState.get(AddAndroidActivityPath.KEY_PACKAGE_NAME);
+    }
+
+    @Override
+    @Nullable
+    public String deduplicate(@NotNull Parameter parameter, @Nullable String value) {
+      if (StringUtil.isEmpty(value) || !parameter.constraints.contains(Parameter.Constraint.UNIQUE)) {
+        return value;
+      }
+      int i = 2;
+      String suggested = value;
+      while (!parameter.uniquenessSatisfied(project, module, provider, packageName, suggested)) {
+        suggested = value + (i++);
+      }
+      return suggested;
     }
   }
 }

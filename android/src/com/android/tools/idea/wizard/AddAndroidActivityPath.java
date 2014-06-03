@@ -241,6 +241,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
     myState.put(KEY_MIN_SDK, minSdkVersion);
     myState.put(KEY_PACKAGE_NAME, getInitialPackageName(module, facet));
+    myState.put(KEY_OPEN_EDITORS, true);
     addStep(myGalleryStep);
     addStep(myParameterStep);
 
