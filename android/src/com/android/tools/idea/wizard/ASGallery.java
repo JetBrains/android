@@ -50,7 +50,7 @@ public class ASGallery<E> extends JComponent implements Scrollable {
   /**
    * Default insets around the cell contents.
    */
-  private static final Insets DEFAULT_CELL_MARGIN = new Insets(5, 5, 5, 5);
+  private static final Insets DEFAULT_CELL_MARGIN = new Insets(0, 0, 0, 0);
   /**
    * Insets around cell content (image and title).
    */
@@ -357,10 +357,6 @@ public class ASGallery<E> extends JComponent implements Scrollable {
     return (E)myModel.getElementAt(mySelectedIndex);
   }
 
-  public int getSelectedIndex() {
-    return mySelectedIndex;
-  }
-
   public void setSelectedElement(@Nullable E element) {
     final int index;
     if (element == null) {
@@ -373,6 +369,10 @@ public class ASGallery<E> extends JComponent implements Scrollable {
       }
     }
     setSelectedIndex(index);
+  }
+
+  public int getSelectedIndex() {
+    return mySelectedIndex;
   }
 
   public void setSelectedIndex(int selectedIndex) {
@@ -533,7 +533,8 @@ public class ASGallery<E> extends JComponent implements Scrollable {
 
   private void paintCell(Graphics g, int cell, Rectangle cellBounds) {
     if (cell == mySelectedIndex) {
-      g.setColor(UIUtil.getListSelectionBackground());
+      Color bg = UIUtil.getTreeSelectionBackground(hasFocus());
+      g.setColor(bg);
       g.fillRect(cellBounds.x, cellBounds.y, cellBounds.width, cellBounds.height);
       if (hasFocus()) {
         Border border = UIUtil.getTableFocusCellHighlightBorder();
@@ -559,7 +560,8 @@ public class ASGallery<E> extends JComponent implements Scrollable {
     if (label != null) {
       int width = fontMetrics.getStringBounds(label, g).getBounds().width;
       int textX = (cellBounds.width - myCellMargin.left - myCellMargin.right - width) / 2 + cellBounds.x + myCellMargin.left;
-      g.setColor(UIUtil.getListForeground(cell == mySelectedIndex));
+      Color fg = (hasFocus() && cell == mySelectedIndex) ? UIUtil.getTreeSelectionForeground() : UIUtil.getTreeTextForeground();
+      g.setColor(fg);
       GraphicsUtil.setupAntialiasing(g);
       g.drawString(label, textX, textY);
     }
