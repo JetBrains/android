@@ -60,7 +60,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Key<String> MANIFEST_OUT_KEY = createKey(ATTR_MANIFEST_OUT, PATH, String.class);
   private static final Key<String> TEST_OUT_KEY = createKey(ATTR_TEST_OUT, PATH, String.class);
 
+  private static final Key<String> RELATIVE_PACKAGE_KEY = createKey(ATTR_RELATIVE_PACKAGE, PATH, String.class);
   private static final String RELATIVE_SRC_ROOT = "src/main/java";
+
   private FormFactorUtils.FormFactor myFormFactor;
   private File myTemplateFile;
   private Disposable myDisposable;
@@ -106,6 +108,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(MANIFEST_DIR_KEY, "src/main");
     myState.put(TEST_DIR_KEY, "src/androidTest");
     myState.put(CREATE_ACTIVITY_KEY, false);
+    myState.put(RELATIVE_PACKAGE_KEY, "");
 
     addStep(new ActivityGalleryStep(myFormFactor, myFormFactor.icon, true, KEY_SELECTED_TEMPLATE, myDisposable));
     Map<String, Object> presetsMap = ImmutableMap.of(PACKAGE_NAME_KEY.name, (Object)myState.get(PACKAGE_NAME_KEY),
