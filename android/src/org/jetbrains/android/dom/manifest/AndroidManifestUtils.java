@@ -94,7 +94,7 @@ public class AndroidManifestUtils {
     List<String> strings = new ArrayList<String>();
     if (element instanceof Manifest) {
       Collections.addAll(strings, "application", "instrumentation", "permission", "permission-group",
-                         "permission-tree", "uses-permission", "compatible-screens", "uses-sdk");
+                         "permission-tree", "uses-permission", "compatible-screens", "uses-sdk", "uses-feature");
     }
     else if (element instanceof Application) {
       Collections.addAll(strings, "activity", "activity-alias", "service", "provider", "receiver", "uses-library");
