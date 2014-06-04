@@ -72,7 +72,7 @@ public class DeviceChooser implements Disposable {
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
   private final List<DeviceChooserListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-  private final Alarm myRefreshingAlarm = new Alarm(this);
+  private final Alarm myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD);
 
   private volatile boolean myProcessSelectionFlag = true;
   private IDevice[] myOldDevices = EMPTY_DEVICE_ARRAY;
