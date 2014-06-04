@@ -104,7 +104,7 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
     myTemplateMetadata = new TemplateMetadata(document);
     new DynamicWizard(null, null, "Test Wizard") {
       @Override
-      protected void init() {
+      public void init() {
         super.init();
         addPath(new DynamicWizardPath() {
           @Override

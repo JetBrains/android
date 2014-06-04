@@ -16,6 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
@@ -75,8 +77,8 @@ public class TemplateEntry {
            Objects.equal(getTitle(), another.getTitle());
   }
 
-  public File getTemplate() {
-    return myTemplate;
+  public Template getTemplate() {
+    return Template.createFromPath(myTemplate);
   }
 
   @NotNull
