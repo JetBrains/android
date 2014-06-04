@@ -102,6 +102,15 @@ public class LaunchCompatibility {
       }
     }
 
+    // Typically, we only need to check that features required by the apk are supported by the device, which is done above
+    // In the case of watch though, we do an explicit check in the other direction: if the device is a watch, we don't want
+    // non-watch apks to be installed on it.
+    if (device.supportsFeature(IDevice.HardwareFeature.WATCH)) {
+      if (!requiredFeatures.contains(IDevice.HardwareFeature.WATCH)) {
+        return new LaunchCompatibility(ThreeState.NO, "missing uses-feature watch, non-watch apks cannot be launched on a watch");
+      }
+    }
+
     // we are done with checks for platform targets
     if (projectTarget.isPlatform()) {
       return YES;
