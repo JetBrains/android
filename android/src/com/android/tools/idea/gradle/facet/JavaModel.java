@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.facet;
 
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -24,12 +26,14 @@ import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class JavaModel {
+public class JavaModel implements Serializable {
   @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
+
   @NotNull private final List<IdeaContentRoot> myContentRoots;
   @NotNull private final List<IdeaModuleDependency> myModuleDependencies;
   @NotNull private final List<IdeaSingleEntryLibraryDependency> myLibraryDependencies;
@@ -37,7 +41,7 @@ public class JavaModel {
   @NotNull private final ExtIdeaCompilerOutput myCompilerOutput;
 
   @NotNull
-  public static JavaModel newJavaModel(@NotNull IdeaModule module, @NotNull ModuleExtendedModel model) {
+  public static JavaModel newJavaModel(@NotNull IdeaModule module, @Nullable ModuleExtendedModel model) {
     List<IdeaContentRoot> contentRoots = Lists.newArrayList();
     for (IdeaContentRoot root : getContentRoots(module, model)) {
       contentRoots.add(root);
@@ -64,12 +68,16 @@ public class JavaModel {
         }
       }
     }
-    return new JavaModel(contentRoots, moduleDependencies, libraryDependencies, unresolvedDependencyNames, model.getCompilerOutput());
+    ExtIdeaCompilerOutput compilerOutput = model != null ? model.getCompilerOutput() : null;
+    if (compilerOutput == null) {
+      compilerOutput = new IdeaCompilerOutput(contentRoots);
+    }
+    return new JavaModel(contentRoots, moduleDependencies, libraryDependencies, unresolvedDependencyNames, compilerOutput);
   }
 
   @NotNull
-  private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule module, @NotNull ModuleExtendedModel model) {
-    Collection<? extends IdeaContentRoot> contentRoots = model.getContentRoots();
+  private static Collection<? extends IdeaContentRoot> getContentRoots(@NotNull IdeaModule module, @Nullable ModuleExtendedModel model) {
+    Collection<? extends IdeaContentRoot> contentRoots = model != null ? model.getContentRoots() : module.getContentRoots();
     if (contentRoots == null) {
       contentRoots = module.getContentRoots();
     }
@@ -139,5 +147,75 @@ public class JavaModel {
   @NotNull
   public ExtIdeaCompilerOutput getCompilerOutput() {
     return myCompilerOutput;
+  }
+
+  // We hard-code the paths of the output folders in case we obtain a null ModuleExtendedModel. This is meant as a temporary
+  // workaround until this is resolved on the IDEA side.
+  // See https://code.google.com/p/android/issues/detail?id=70490
+  public static class IdeaCompilerOutput implements ExtIdeaCompilerOutput {
+    @NonNls private static final String MAIN_SOURCE_SET_NAME = "main";
+    @NonNls private static final String TEST_SOURCE_SET_NAME = "test";
+
+    private File myMainClassesDir;
+    private File myMainResourcesDir;
+    private File myTestClassesDir;
+    private File myTestResourcesDir;
+
+    public IdeaCompilerOutput(@NotNull List<IdeaContentRoot> contentRoots) {
+      File buildFolderPath = null;
+
+      for (IdeaContentRoot contentRoot : contentRoots) {
+        for (File excluded : contentRoot.getExcludeDirectories()) {
+          if (GradleUtil.BUILD_DIR_DEFAULT_NAME.equals(excluded.getName())) {
+            buildFolderPath = excluded;
+            break;
+          }
+        }
+        if (buildFolderPath != null) {
+          break;
+        }
+      }
+
+      if (buildFolderPath != null) {
+        myMainClassesDir = createClassesFolderPath(buildFolderPath, MAIN_SOURCE_SET_NAME);
+        myMainResourcesDir = createResourcesFolderPath(buildFolderPath, MAIN_SOURCE_SET_NAME);
+        myTestClassesDir = createClassesFolderPath(buildFolderPath, TEST_SOURCE_SET_NAME);
+        myTestResourcesDir = createResourcesFolderPath(buildFolderPath, TEST_SOURCE_SET_NAME);
+      }
+    }
+
+    @NotNull
+    private static File createClassesFolderPath(@NotNull File buildFolderPath, @NotNull String sourceSetName) {
+      return new File(buildFolderPath, FileUtil.join("classes", sourceSetName));
+    }
+
+    @NotNull
+    private static File createResourcesFolderPath(@NotNull File buildFolderPath, @NotNull String sourceSetName) {
+      return new File(buildFolderPath, FileUtil.join("resources", sourceSetName));
+    }
+
+    @Override
+    @Nullable
+    public File getMainClassesDir() {
+      return myMainClassesDir;
+    }
+
+    @Override
+    @Nullable
+    public File getMainResourcesDir() {
+      return myMainResourcesDir;
+    }
+
+    @Override
+    @Nullable
+    public File getTestClassesDir() {
+      return myTestClassesDir;
+    }
+
+    @Override
+    @Nullable
+    public File getTestResourcesDir() {
+      return myTestResourcesDir;
+    }
   }
 }

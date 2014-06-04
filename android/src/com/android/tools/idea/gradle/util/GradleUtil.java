@@ -84,6 +84,8 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome
  * Utilities related to Gradle.
  */
 public final class GradleUtil {
+  @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
+
   @NonNls public static final String GRADLE_MINIMUM_VERSION = SdkConstants.GRADLE_MINIMUM_VERSION;
   @NonNls public static final String GRADLE_LATEST_VERSION = SdkConstants.GRADLE_LATEST_VERSION;
 
