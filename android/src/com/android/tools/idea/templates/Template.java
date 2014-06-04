@@ -349,7 +349,6 @@ public class Template {
   }
 
   public static void convertApisToInt(@NotNull Map<String, Object> args) {
-    convertToInt(ATTR_MIN_API, args);
     convertToInt(ATTR_BUILD_API, args);
     convertToInt(ATTR_MIN_API_LEVEL, args);
     convertToInt(TemplateMetadata.ATTR_TARGET_API, args);
