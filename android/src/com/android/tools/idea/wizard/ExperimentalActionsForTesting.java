@@ -37,23 +37,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 /**
  *
  */
-public class DummyWizardForTesting extends AnAction {
-  @VisibleForTesting
-  public static void showDummyUIForTestingPurposesOnly() {
-    NewProjectWizardDynamic wizard = new NewProjectWizardDynamic(null, null);
-    wizard.init();
-    wizard.show();
-  }
-
-  public DummyWizardForTesting() {
-    super("Test New Wizard");
-  }
-
-  @Override
-  public void actionPerformed(AnActionEvent e) {
-    showDummyUIForTestingPurposesOnly();
-  }
-
+public class ExperimentalActionsForTesting {
   public static class ClearPrefsAction extends AnAction {
 
     public ClearPrefsAction() {
@@ -64,7 +48,7 @@ public class DummyWizardForTesting extends AnAction {
     public void actionPerformed(AnActionEvent e) {
       PropertiesComponent properties = PropertiesComponent.getInstance();
       properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.PHONE_AND_TABLET));
-      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.PHONE_AND_TABLET));
+      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.GLASS));
       properties.unsetValue(ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN);
     }
   }
