@@ -30,6 +30,8 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
@@ -42,6 +44,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -139,7 +142,7 @@ public class RenderService implements IImageFactory {
                                      @NotNull final RenderLogger logger,
                                      @Nullable final RenderContext renderContext) {
 
-    Project project = module.getProject();
+    final Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module);
     if (platform == null) {
       if (!AndroidMavenUtil.isMavenizedModule(module)) {
@@ -149,6 +152,11 @@ public class RenderService implements IImageFactory {
                                          logger.getLinkManager().createRunnableLink(new Runnable() {
           @Override
           public void run() {
+            ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+            if (Projects.isGradleProject(project) && service instanceof AndroidProjectSettingsService) {
+              ((AndroidProjectSettingsService)service).openSdkSettings();
+              return;
+            }
             AndroidSdkUtils.openModuleDependenciesConfigurable(module);
           }
         }));
