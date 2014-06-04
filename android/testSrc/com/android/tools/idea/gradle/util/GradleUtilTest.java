@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
+import static com.android.SdkConstants.*;
+
 /**
  * Tests for {@link GradleUtil}.
  */
@@ -53,7 +55,7 @@ public class GradleUtilTest extends TestCase {
 
   public void testGetGradleWrapperPropertiesFilePath() throws IOException {
     myTempDir = Files.createTempDir();
-    File wrapper = new File(myTempDir, "gradle-wrapper.properties");
+    File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
     FileUtilRt.createIfNotExists(wrapper);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
 
@@ -74,7 +76,7 @@ public class GradleUtilTest extends TestCase {
   public void testLeaveGradleWrapperAloneBin() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -bin.zip with a -all.zip
     myTempDir = Files.createTempDir();
-    File wrapper = new File(myTempDir, "gradle-wrapper.properties");
+    File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
     Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
                 "distributionBase=GRADLE_USER_HOME\n" +
                 "distributionPath=wrapper/dists\n" +
@@ -100,7 +102,7 @@ public class GradleUtilTest extends TestCase {
   public void testLeaveGradleWrapperAloneAll() throws IOException {
     // Ensure that if we already have the right version, we don't replace a -all.zip with a -bin.zip
     myTempDir = Files.createTempDir();
-    File wrapper = new File(myTempDir, "gradle-wrapper.properties");
+    File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
     Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
                 "distributionBase=GRADLE_USER_HOME\n" +
                 "distributionPath=wrapper/dists\n" +
@@ -126,7 +128,7 @@ public class GradleUtilTest extends TestCase {
   public void testReplaceGradleWrapper() throws IOException {
     // Test that when we replace to a new version we use -all.zip
     myTempDir = Files.createTempDir();
-    File wrapper = new File(myTempDir, "gradle-wrapper.properties");
+    File wrapper = new File(myTempDir, FN_GRADLE_WRAPPER_PROPERTIES);
     Files.write("#Wed Apr 10 15:27:10 PDT 2013\n" +
                 "distributionBase=GRADLE_USER_HOME\n" +
                 "distributionPath=wrapper/dists\n" +
@@ -154,7 +156,8 @@ public class GradleUtilTest extends TestCase {
     File wrapperPath = GradleUtil.getGradleWrapperPropertiesFilePath(myTempDir);
 
     List<String> expected = Lists.newArrayList(FileUtil.splitPath(myTempDir.getPath()));
-    expected.addAll(Lists.newArrayList("gradle", "wrapper", "gradle-wrapper.properties"));
+    expected.addAll(FileUtil.splitPath(FD_GRADLE_WRAPPER));
+    expected.add(FN_GRADLE_WRAPPER_PROPERTIES);
 
     assertEquals(expected, FileUtil.splitPath(wrapperPath.getPath()));
   }
@@ -172,6 +175,6 @@ public class GradleUtilTest extends TestCase {
   public void testGetGradleBuildFilePath() {
     myTempDir = Files.createTempDir();
     File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
-    assertEquals(new File(myTempDir, "build.gradle"), buildFilePath);
+    assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
   }
 }

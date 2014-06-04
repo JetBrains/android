@@ -484,11 +484,11 @@ public class TemplateManager {
   }
 
   public static File getWrapperLocation(@NotNull File templateRootFolder) {
-    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper"));
+    return new File(templateRootFolder, FD_GRADLE_WRAPPER);
 
   }
 
   public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
-    return new File(getWrapperLocation(templateRootFolder), "gradlew").exists();
+    return new File(getWrapperLocation(templateRootFolder), FN_GRADLE_WRAPPER_UNIX).exists();
   }
 }
