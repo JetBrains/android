@@ -227,7 +227,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
   public static void setGradleWrapperExecutable(File projectRoot) throws IOException {
     if (SystemInfo.isUnix) {
-      File gradlewFile = new File(projectRoot, GradleUtil.GRADLE_EXECUTABLE_NAME);
+      File gradlewFile = new File(projectRoot, "gradlew");
       if (!gradlewFile.isFile()) {
         LOG.error("Could not find gradle wrapper. Command line builds may not work properly.");
       }
