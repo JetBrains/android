@@ -165,7 +165,7 @@ public class TemplateGalleryStep extends TemplateWizardStep
       Template.convertApisToInt(myTemplateState.getParameters());
       setDescriptionHtml(templateListItem.myMetadata.getDescription());
       int minSdk = templateListItem.myMetadata.getMinSdk();
-      Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
+      Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API_LEVEL);
       if (minApi != null && minSdk > minApi) {
         setErrorHtml(String.format("The component %s has a minimum SDK level of %d.", templateListItem.myMetadata.getTitle(), minSdk));
         return false;
