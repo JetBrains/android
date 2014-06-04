@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.NewAndroidActivityWizard;
@@ -38,7 +37,8 @@ import java.util.Set;
  * An action to launch a wizard to create a component from a template.
  */
 public class NewAndroidComponentAction extends AnAction {
-
+  // These categories will be using a new wizard
+  private static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
   private static final Set<String> EXCLUDED = ImmutableSet.of();
 
   private final String myTemplateCategory;
@@ -49,7 +49,7 @@ public class NewAndroidComponentAction extends AnAction {
     super(templateName, "Create a new " + templateName, null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
-    if (isActivityTemplate(templateCategory)) {
+    if (isActivityTemplate()) {
       getTemplatePresentation().setIcon(AndroidIcons.Activity);
     }
     else {
@@ -63,8 +63,8 @@ public class NewAndroidComponentAction extends AnAction {
     }
   }
 
-  private static boolean isActivityTemplate(@NotNull String templateCategory) {
-    return templateCategory.equals("Activity") || templateCategory.equals("Google");
+  private boolean isActivityTemplate() {
+    return NEW_WIZARD_CATEGORIES.contains(myTemplateCategory);
   }
 
   @Override
@@ -86,7 +86,6 @@ public class NewAndroidComponentAction extends AnAction {
     }
   }
 
-
   @Override
   public void actionPerformed(AnActionEvent e) {
     final DataContext dataContext = e.getDataContext();
@@ -100,10 +99,12 @@ public class NewAndroidComponentAction extends AnAction {
 
     if (module == null) return;
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
+    if (facet == null || facet.getIdeaAndroidProject() == null) {
+      return;
+    }
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    if (isActivityTemplate(myTemplateCategory)) {
+    if (isActivityTemplate()) {
       File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
       NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
       wizard.init();

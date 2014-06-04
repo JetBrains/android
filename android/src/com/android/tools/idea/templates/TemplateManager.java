@@ -320,7 +320,7 @@ public class TemplateManager {
     }
     myTopGroup.addSeparator();
     ActionManager am = ActionManager.getInstance();
-    for (String category : getCategoryTable(true).rowKeySet()) {
+    for (final String category : getCategoryTable(true).rowKeySet()) {
       if (EXCLUDED_CATEGORIES.contains(category)) {
         continue;
       }
@@ -331,6 +331,8 @@ public class TemplateManager {
           final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
           final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
           Presentation presentation = e.getPresentation();
+          boolean isProjectReady = facet != null && facet.getIdeaAndroidProject() != null;
+          presentation.setText(category + (isProjectReady ? "" : " (Project not ready)"));
           presentation.setVisible(getChildrenCount() > 0 && facet != null && facet.isGradleProject());
         }
       };
