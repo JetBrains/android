@@ -16,9 +16,12 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -129,7 +132,8 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   public void init() {
     super.init();
     String formFactorName = myFormFactor == null ? null : myFormFactor.id;
-    TemplateListProvider templateListProvider = new TemplateListProvider(formFactorName, Template.CATEGORY_ACTIVITY);
+    TemplateListProvider templateListProvider = new TemplateListProvider(formFactorName, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES,
+                                                                         TemplateManager.EXCLUDED_TEMPLATES);
     TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
     myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));
     myState.put(KEY_TEMPLATES, list);
