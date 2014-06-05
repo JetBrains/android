@@ -23,11 +23,8 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.stats.StatsKeys;
-import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -35,7 +32,6 @@ import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompilerBundle;
@@ -66,6 +62,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.pom.Navigatable;
 import com.intellij.ui.AppIcon;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.content.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
@@ -158,43 +155,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
                                 "Gradle Invocation Finished", myErrorCount + " Errors, " + myWarningCount + " Warnings", true);
   }
 
-  private final static String[] STAT_KEYS = {
-    ":generate", StatsKeys.GRADLE_GENERATE_SRC_TIME_MS,
-    ":assemble", StatsKeys.GRADLE_ASSEMBLE_TIME_MS,
-    ":compile" , StatsKeys.GRADLE_COMPILE_TIME_MS,
-  };
-
-  private final static String[] STAT_CLEAN_KEYS = {
-    ":generate", StatsKeys.GRADLE_CLEAN_TIME_MS,
-    ":compile" , StatsKeys.GRADLE_REBUILD_TIME_MS,
-  };
-
-  // Compute a stat key name to capture build times
-  private String getStatKey() {
-    boolean isClean = false;
-    for (String taskName : myGradleTasks) {
-      if (taskName == null) {
-        continue;
-      }
-      if (GradleBuilds.CLEAN_TASK_NAME.equals(taskName)) {
-        isClean = true;
-        continue;
-      }
-      String[] keys = isClean ? STAT_CLEAN_KEYS : STAT_KEYS;
-      for (int i = 0, n = keys.length -1; i < n; i += 2) {
-        if (taskName.contains(keys[i])) {
-          return keys[i+1];
-        }
-      }
-    }
-    return StatsKeys.GRADLE_BUILD_TIME_MS;
-  }
-
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
-    String statKey = getStatKey();
-    StatsTimeCollector.start(statKey);
-
     myIndicator = indicator;
 
     ProjectManager projectManager = ProjectManager.getInstance();
@@ -225,7 +187,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
     finally {
       try {
-        StatsTimeCollector.stop(statKey);
         indicator.stop();
         projectManager.removeProjectManagerListener(project, myCloseListener);
       }
@@ -328,8 +289,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
         finally {
           String gradleOutput = output.toString();
           List<GradleMessage> buildMessages = Lists.newArrayList(showMessages(gradleOutput));
-          if (buildMessages.isEmpty() && buildError != null) {
-            showBuildException(buildError, gradleOutput, buildMessages);
+          if (myErrorCount == 0 && buildError != null) {
+            showBuildException(buildError, output.getStdErr(), buildMessages);
           }
 
           output.close();
@@ -367,19 +328,14 @@ class GradleTasksExecutor extends Task.Backgroundable {
         LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
       }
       else {
-        Application application = ApplicationManager.getApplication();
         Runnable showErrorTask = new Runnable() {
           @Override
           public void run() {
-            Messages.showErrorDialog(myProject, "Failed to complete Gradle execution.\n\nCause:\n" + e.getMessage(), GRADLE_RUNNING_MSG_TITLE);
+            String msg = "Failed to complete Gradle execution.\n\nCause:\n" + e.getMessage();
+            Messages.showErrorDialog(myProject, msg, GRADLE_RUNNING_MSG_TITLE);
           }
         };
-        if (application.isDispatchThread()) {
-          showErrorTask.run();
-        }
-        else {
-          application.invokeLater(showErrorTask);
-        }
+        AppUIUtil.invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
       }
     }
   }
@@ -397,11 +353,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
    * Something went wrong while invoking Gradle but the output parsers did not create any build messages. We show the stack trace in the
    * "Messages" view.
    */
-  private void showBuildException(@NotNull BuildException e, @NotNull String gradleOutput, @NotNull List<GradleMessage> buildMessages) {
+  private void showBuildException(@NotNull BuildException e, @NotNull String stdErr, @NotNull List<GradleMessage> buildMessages) {
     // There are no error messages to present. Show some feedback indicating that something went wrong.
-    if (!gradleOutput.isEmpty()) {
+    if (!stdErr.trim().isEmpty()) {
       // Show the contents of stderr as a compiler error.
-      GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, gradleOutput);
+      GradleMessage msg = new GradleMessage(GradleMessage.Kind.ERROR, stdErr);
       buildMessages.add(msg);
       addMessage(msg, null);
     }
