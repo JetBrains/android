@@ -128,7 +128,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         }
         return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
                                                   "By targeting API %d and later, your app will run on approximately %.2f%% of the " +
-                                                  "devices that have checked into the Play Store in recent history. " +
+                                                  "devices that are active on the Google Play Store. " +
                                                   "<span color=\"#%s\">Help me choose.</span></html>", selectedApi,
                              myChooseApiLevelDialog.getSupportedDistributionForApiLevel(selectedApi) * 100,
                              Integer.toHexString(JBColor.blue.getRGB()).substring(2)
