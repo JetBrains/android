@@ -107,7 +107,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       myUpdateQueue = null;
     } else {
       myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, null, getDisposable(), null, false);
-      getWindow().setMinimumSize(new Dimension(1000, 680));
     }
     myState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, this);
     myIcon = new TallImageComponent(null);
