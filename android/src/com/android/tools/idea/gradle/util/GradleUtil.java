@@ -209,6 +209,12 @@ public final class GradleUtil {
     return new File(rootDir, SdkConstants.FN_BUILD_GRADLE);
   }
 
+  @Nullable
+  public static VirtualFile getGradleSettingsFile(@NotNull File rootDir) {
+    File gradleSettingsFilePath = getGradleSettingsFilePath(rootDir);
+    return VfsUtil.findFileByIoFile(gradleSettingsFilePath, true);
+  }
+
   @NotNull
   public static File getGradleSettingsFilePath(@NotNull File rootDir) {
     return new File(rootDir, SdkConstants.FN_SETTINGS_GRADLE);
