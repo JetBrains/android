@@ -32,6 +32,9 @@ import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
  * Collects and redirects the output to the "Gradle Console" view.
  */
 class GradleOutputForwarder {
+  private static final int SIZE = 2048;
+
+  @NotNull private final ByteArrayOutputStream myStdErr;
   @NotNull private final ByteArrayOutputStream myOutput;
   @NotNull private final GradleConsoleView myConsoleView;
 
@@ -39,7 +42,8 @@ class GradleOutputForwarder {
 
   GradleOutputForwarder(@NotNull GradleConsoleView consoleView) {
     myConsoleView = consoleView;
-    myOutput = new ByteArrayOutputStream(4096);
+    myStdErr = new ByteArrayOutputStream(SIZE);
+    myOutput = new ByteArrayOutputStream(SIZE * 2);
   }
 
   void attachTo(@NotNull BuildLauncher launcher) {
@@ -52,6 +56,12 @@ class GradleOutputForwarder {
 
   void close() {
     Closeables.closeQuietly(myOutput);
+    Closeables.closeQuietly(myStdErr);
+  }
+
+  @NotNull
+  String getStdErr() {
+    return myStdErr.toString();
   }
 
   void write(@NotNull ConsoleViewContentType contentType, @NotNull byte[] b, int off, int len) {
@@ -75,6 +85,9 @@ class GradleOutputForwarder {
       return;
     }
     myOutput.write(b, off, len);
+    if (contentType == ERROR_OUTPUT) {
+      myStdErr.write(b, off, len);
+    }
     myConsoleView.print(text, contentType);
   }
 
