@@ -158,7 +158,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
     Projects.enforceExternalBuild(myProject);
 
-    if (reImportProject) {
+    if (reImportProject && !AndroidGradleProjectData.loadFromDisk(myProject)) {
       // Prevent IDEA from refreshing project. We want to do it ourselves.
       myProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
@@ -178,6 +178,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   @Override
   public void projectClosed() {
+    if (Projects.isGradleProject(myProject)) {
+      AndroidGradleProjectData.save(myProject);
+    }
     if (myDisposable != null) {
       Disposer.dispose(myDisposable);
     }
