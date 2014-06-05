@@ -100,6 +100,16 @@ public class GradleMessage {
   }
 
   public enum Kind {
-    ERROR, WARNING, INFO, STATISTICS, SIMPLE
+    ERROR, WARNING, INFO, STATISTICS, SIMPLE;
+
+    @Nullable
+    public static Kind findIgnoringCase(@NotNull String s) {
+      for (Kind kind : values()) {
+        if (kind.toString().equalsIgnoreCase(s)) {
+          return kind;
+        }
+      }
+      return null;
+    }
   }
 }
