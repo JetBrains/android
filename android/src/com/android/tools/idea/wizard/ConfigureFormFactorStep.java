@@ -23,6 +23,8 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
@@ -39,12 +41,12 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
@@ -64,6 +66,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   public static final Key<Integer> TARGET_API_LEVEL_KEY = createKey(ATTR_TARGET_API, WIZARD, Integer.class);
   public static final Key<Integer> BUILD_API_LEVEL_KEY = createKey(ATTR_BUILD_API, WIZARD, Integer.class);
   private static final Key<String> API_FEEDBACK_KEY = createKey("API Feedback", STEP, String.class);
+  public static final Key<Integer> NUM_ENABLED_FORM_FACTORS_KEY = createKey("NumberOfEnabledFormFactors", WIZARD, Integer.class);
 
   private JPanel myPanel;
   private JPanel myFormFactorPanel;
@@ -72,6 +75,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
+  private Map<FormFactor, JComboBox> myFormFactorApiSelectors = Maps.newEnumMap(FormFactor.class);
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs",
@@ -185,6 +189,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       myState.put(minApiKey, savedApiLevel);
       register(minApiKey, minSdkComboBox);
       myFormFactorPanel.add(minSdkComboBox, c);
+      myFormFactorApiSelectors.put(formFactor, minSdkComboBox);
       if (formFactor.equals(PHONE_AND_TABLET)) {
         c.setRow(++row);
         c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
@@ -236,6 +241,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   public void deriveValues(Set<Key> modified) {
     super.deriveValues(modified);
     // Persist the min API level choices on a per-form factor basis
+    int enabledFormFactors = 0;
     for (FormFactor formFactor : myFormFactors) {
       Key<Integer> key = getMinApiLevelKey(formFactor);
       if (modified.contains(key)) {
@@ -245,7 +251,18 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), minApi.toString());
         }
       }
+      Boolean included = myState.get(getInclusionKey(formFactor));
+      // Disable api selection for non-enabled form factors and check to see if only one is selected
+      if (included != null) {
+        if (myFormFactorApiSelectors.containsKey(formFactor)) {
+          myFormFactorApiSelectors.get(formFactor).setEnabled(included);
+        }
+        if (included) {
+          enabledFormFactors++;
+        }
+      }
     }
+    myState.put(NUM_ENABLED_FORM_FACTORS_KEY, enabledFormFactors);
   }
 
   @NotNull
