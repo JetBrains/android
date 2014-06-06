@@ -28,6 +28,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
@@ -186,6 +187,7 @@ public class Template {
 
   private TemplateMetadata myMetadata;
   private Project myProject;
+  private boolean myNeedsGradleSync;
 
   /** Creates a new {@link Template} for the given root path */
   @NotNull
@@ -223,7 +225,6 @@ public class Template {
    * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
    * @param args the key/value pairs that are fed into the input parameters for the template.
    */
-  @NotNull
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
     render(outputRootPath, moduleRootPath, args, null);
   }
@@ -236,7 +237,6 @@ public class Template {
    * @param args the key/value pairs that are fed into the input parameters for the template.
    * @param project the target project of this template.
    */
-  @NotNull
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args,
                      @Nullable Project project) {
     assert outputRootPath.isDirectory() : outputRootPath;
@@ -256,14 +256,22 @@ public class Template {
 
     // Handle dependencies
     if (paramMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
-      List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-      if (dependencyList.size() > 0) {
-        try {
-          mergeDependenciesIntoFile(freemarker, paramMap, GradleUtil.getGradleBuildFilePath(moduleRootPath));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+      Object maybeDependencyList = paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+      if (maybeDependencyList instanceof List) {
+        List<String> dependencyList = (List<String>)maybeDependencyList;
+        if (!dependencyList.isEmpty()) {
+          try {
+            mergeDependenciesIntoFile(freemarker, paramMap, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+            myNeedsGradleSync = true;
+          }
+          catch (Exception e) {
+            throw new RuntimeException(e);
+          }
         }
       }
+    }
+    if (myNeedsGradleSync && myProject != null) {
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
 
@@ -553,8 +561,10 @@ public class Template {
     String contents;
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
       contents = mergeGradleSettingsFile(sourceText, targetText);
+      myNeedsGradleSync = true;
     } else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
       contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject);
+      myNeedsGradleSync = true;
     } else if (hasExtension(to, DOT_XML)) {
       contents = mergeXml(sourceText, targetText, to, paramMap);
     } else {
@@ -743,8 +753,7 @@ public class Template {
            merger.process(currentManifest, fragment);
   }
 
-  private String mergeGradleSettingsFile(@NotNull String source,
-                                         @NotNull String dest) throws IOException, TemplateException {
+  private static String mergeGradleSettingsFile(@NotNull String source, @NotNull String dest) throws IOException, TemplateException {
     // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
     // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
     // support requires a project, which we don't necessarily have when instantiating a template.
