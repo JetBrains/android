@@ -15,23 +15,33 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.SdkState;
+import com.android.tools.idea.wizard.ConfigureAndroidProjectPath;
+import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.TemplateWizardState;
 import com.android.tools.idea.wizard.TemplateWizardStep;
 import com.android.utils.ILogger;
 import com.android.utils.IReaderLogger;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -43,12 +53,15 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
 
-public class SmwOldApiDirectInstall extends TemplateWizardStep implements Disposable {
-  private final TemplateWizardState myWizardState;
+
+public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescription {
+  private Logger LOG = Logger.getInstance(SmwOldApiDirectInstall.class);
   private JBLabel myLabelSdkPath;
   private JTextArea myTextArea1;
   private JBLabel myLabelProgress1;
@@ -56,80 +69,34 @@ public class SmwOldApiDirectInstall extends TemplateWizardStep implements Dispos
   private JBLabel myLabelProgress2;
   private JLabel myErrorLabel;
   private JPanel myContentPanel;
-  private JButton myDoSomethingButton;
+  private boolean myInstallFinished;
+  private Boolean myBackgroundSuccess = null;
 
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-
-  }
-
-  public SmwOldApiDirectInstall(@NotNull TemplateWizardState wizardState, @Nullable TemplateWizardStep.UpdateListener updateListener) {
-    super(wizardState, null /*project*/, null /*module*/, null /*sidePanelIcon*/, updateListener);
-    myWizardState = wizardState;
-    myDoSomethingButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        startSdkInstallUsingNonSwtOldApi();
-      }
-    });
+  public SmwOldApiDirectInstall(@NotNull Disposable disposable) {
+    super("Installing Requested Components", "", null, disposable);
+    setBodyComponent(myContentPanel);
   }
 
   @Override
-  public void dispose() {
+  public void onEnterStep() {
+    super.onEnterStep();
+    myTextArea1.setText("");
+    startSdkInstallUsingNonSwtOldApi();
   }
 
   @Override
-  public JComponent getComponent() {
-    return myContentPanel;
+  public boolean isStepVisible() {
+    return myState.listSize(INSTALL_REQUESTS_KEY) > 0;
   }
 
   @Override
-  public void _init() {
-    super._init();
-  }
-
-  @Override
-  public void _commit(boolean finishChosen) throws CommitStepException {
-    super._commit(finishChosen);
-  }
-
-  @NotNull
-  @Override
-  protected JLabel getDescription() {
-    // We're not using the Description field of the Template Wizard Step is useful here.
-    // Since nullable isn't supported, share it with the error label (which is
-    // fine since, again, template wizard description field isn't useful here.)
-    return myErrorLabel;
-  }
-
-  @NotNull
-  @Override
-  protected JLabel getError() {
-    return myErrorLabel;
+  public boolean validate() {
+    return myInstallFinished;
   }
 
   //-----------
 
   private void startSdkInstallUsingNonSwtOldApi() {
-
-    // TODO retrieve what to install, e.g. from the wizard state.
-    // To know what IDs to use, run ~/sdk/tools/android.bat list sdk --all --extended
-    // and look for the ids listed for each package.
-    final ArrayList<String> requestedPackages = new ArrayList<String>(Arrays.asList(
-      "android-19",   // platform
-      "sample-19",
-      "doc",
-      "build-tools-19.1.0",
-      "sysimg-19",    // obsolete ID (I have a pending CL changing sys-img management, notable this doesn't suppoort tags & vendors)
-      "addon-google_apis-google-19",
-      "addon-google_apis_x86-google-19",  // to become obsolete
-      "extra-android-m2repository",
-      "extra-android-support",            // typically not needed for studio
-      "extra-google-m2repository"
-      ));
-
-
 
     // Get the SDK instance.
     final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
@@ -157,7 +124,28 @@ public class SmwOldApiDirectInstall extends TemplateWizardStep implements Dispos
         // useless so that's another incentive to remove already installed packages
         // from the requested list.
 
+        LocalSdk localSdk = sdkData.getLocalSdk();
 
+        final ArrayList<String> requestedPackages = Lists.newArrayList();
+        List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
+        if (requestedChanges == null) {
+          // This should never occur
+          myInstallFinished = true;
+          invokeUpdate(null);
+          return;
+        }
+
+        for (Object object : requestedChanges) {
+          try {
+            IPkgDesc packageDesc = (IPkgDesc)object;
+            if (packageDesc != null) {
+              // TODO use localSdk to filter list and remove already installed items
+              requestedPackages.add(packageDesc.getInstallId());
+            }
+          } catch (ClassCastException e) {
+            LOG.error(e);
+          }
+        }
 
         InstallTask task = new InstallTask(sdkData, requestedPackages, logger);
         BackgroundableProcessIndicator indicator = new BackgroundableProcessIndicator(task);
@@ -176,6 +164,17 @@ public class SmwOldApiDirectInstall extends TemplateWizardStep implements Dispos
                        null)) {         // onError -- TODO display something?
       onSdkAvailable.run();
     }
+  }
+
+  @NotNull
+  @Override
+  public String getStepName() {
+    return "InstallingSDKComponentsStep";
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return null;
   }
 
   private class InstallTask extends Task.Backgroundable {
@@ -197,7 +196,6 @@ public class SmwOldApiDirectInstall extends TemplateWizardStep implements Dispos
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      // TODO: gray the "Next" wizard button if we want to make this page blocking.
       // This runs in a background task and isn't interrupted.
 
       // Perform the install by using the command-line interface and dumping the output into the logger.
@@ -222,7 +220,33 @@ public class SmwOldApiDirectInstall extends TemplateWizardStep implements Dispos
                     false,  // dryMode
                     null);  // acceptLicense
 
-      // TODO at the end of the task, signal the UI that the "Next" wizard button can be enabled.
+      while (myBackgroundSuccess == null) {
+        try {
+          Thread.sleep(100);
+        }
+        catch (InterruptedException e) {
+          // Pass
+        }
+      }
+      UIUtil.invokeLaterIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          myProgressBar.setValue(100);
+          myLabelProgress1.setText("");
+          if (!myBackgroundSuccess) {
+            myLabelProgress2.setText("<html>Install Failed. Please check your network connection and try again. " +
+                                     "You may continue with creating your project, but it will not compile correctly " +
+                                     "without the missing components.</html>");
+            myLabelProgress2.setForeground(JBColor.RED);
+            myProgressBar.setEnabled(false);
+          } else {
+            myLabelProgress2.setText("Done");
+            myState.remove(INSTALL_REQUESTS_KEY);
+          }
+          myInstallFinished = true;
+          invokeUpdate(null);
+        }
+      });
     }
   }
 
@@ -363,7 +387,7 @@ public class SmwOldApiDirectInstall extends TemplateWizardStep implements Dispos
         final String fAddLine = line;
 
         // This is invoked from a backgroundable task, only update text on the ui thread.
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
           @Override
           public void run() {
             if (fAddLine != null) {
@@ -372,6 +396,13 @@ public class SmwOldApiDirectInstall extends TemplateWizardStep implements Dispos
                 current = "";
               }
               myTextArea1.setText(current + fAddLine);
+              if (fAddLine.contains("Nothing was installed")) {
+                myBackgroundSuccess = false;
+              } else if (fAddLine.contains("Failed")) {
+                myBackgroundSuccess = false;
+              } else if (fAddLine.contains("Done") && !fAddLine.contains("othing")) {
+                myBackgroundSuccess = true;
+              }
             }
 
             if (fProgText1 != null) {
