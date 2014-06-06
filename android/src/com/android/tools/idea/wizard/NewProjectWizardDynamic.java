@@ -33,7 +33,6 @@ import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.security.tools.KeyStoreUtil;
 
 import java.awt.*;
 
@@ -116,6 +115,11 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     } else {
       assert ApplicationManager.getApplication().isUnitTestMode();
     }
+  }
+
+  @Override
+  protected String getWizardActionDescription() {
+    return String.format("Create %1$s", getState().get(APPLICATION_NAME_KEY));
   }
 
   @Override
