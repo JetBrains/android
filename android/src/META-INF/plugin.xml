@@ -540,7 +540,7 @@
     <editorNotificationProvider implementation="org.jetbrains.android.projectView.ResourceQualifierSwitcher"/>
     -->
 
-    <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" order="last"/>
+    <treeStructureProvider id="android" implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" order="last"/>
 
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>
     <projectStructureDetector implementation="org.jetbrains.android.newProject.AndroidProjectStructureDetector"/>
