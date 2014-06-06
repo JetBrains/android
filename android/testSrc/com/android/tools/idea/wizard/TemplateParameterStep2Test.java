@@ -127,6 +127,11 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
       }
 
       @Override
+      protected String getWizardActionDescription() {
+        return "Test Wizard Completion";
+      }
+
+      @Override
       public void performFinishingActions() {
         // Do nothing
       }
