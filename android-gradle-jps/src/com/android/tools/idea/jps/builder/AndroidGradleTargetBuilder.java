@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.jps.builder;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -304,6 +305,8 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         String arg = AndroidGradleSettings.createJvmArg(GradleBuilds.ENABLE_TRANSLATION_JVM_ARG, true);
         jvmArgs.add(arg);
       }
+
+      jvmArgs.add(AndroidGradleSettings.createJvmArg(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
 
       if (androidHome != null && !androidHome.isEmpty()) {
         String androidSdkArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
