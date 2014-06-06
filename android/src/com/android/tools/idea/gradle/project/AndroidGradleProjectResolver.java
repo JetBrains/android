@@ -23,8 +23,6 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.JavaModel;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.navigatable.SearchInBuildFilesNavigatable;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -64,8 +62,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
@@ -151,9 +147,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
       JavaModel javaModel = JavaModel.newJavaModel(gradleModule, model);
       gradleProject.setJavaModel(javaModel);
-
-      List<String> unresolved = javaModel.getUnresolvedDependencyNames();
-      populateUnresolvedDependencies(ideModule, unresolved);
     }
   }
 
@@ -209,19 +202,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
   }
 
-  private static void populateUnresolvedDependencies(@NotNull DataNode<ModuleData> ideModule, @NotNull List<String> unresolved) {
-    if (unresolved.isEmpty() || ideModule.getParent() == null) {
-      return;
-    }
-    DataNode<?> parent = ideModule.getParent();
-    Object data = parent.getData();
-    // the following is always going to be true.
-    if (data instanceof ProjectData) {
-      //noinspection unchecked
-      populateUnresolvedDependencies((DataNode<ProjectData>)parent, unresolved);
-    }
-  }
-
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
     if (!inAndroidGradleProject(gradleModule)) {
@@ -236,12 +216,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (!inAndroidGradleProject(gradleModule)) {
       // For plain Java projects (non-Gradle) we let the framework populate dependencies
       nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
-      return;
-    }
-    AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-    if (androidProject != null) {
-      Collection<String> unresolvedDependencies = androidProject.getUnresolvedDependencies();
-      populateUnresolvedDependencies(ideProject, Sets.newHashSet(unresolvedDependencies));
     }
   }
 
@@ -384,16 +358,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     });
     return sortedVariants.get(0);
-  }
-
-  private static void populateUnresolvedDependencies(@NotNull DataNode<ProjectData> projectInfo,
-                                                     @NotNull Collection<String> unresolvedDependencies) {
-    for (String dep : unresolvedDependencies) {
-      String group = dep.startsWith("com.android.support:") ? UNRESOLVED_ANDROID_DEPENDENCIES : UNRESOLVED_DEPENDENCIES;
-      String text = dep + " (double-click here to find usages.)";
-      Message msg = new Message(group, Message.Type.ERROR, new SearchInBuildFilesNavigatable(dep), text);
-      projectInfo.createChild(AndroidProjectKeys.IMPORT_EVENT_MSG, msg);
-    }
   }
 
   @Override
