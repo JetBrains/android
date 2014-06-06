@@ -368,7 +368,6 @@ public final class GradleUtil {
       if (arg != null) {
         args.add(arg);
       }
-      args.add(AndroidGradleSettings.createJvmArg(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
       return args;
     }
     return Collections.emptyList();
