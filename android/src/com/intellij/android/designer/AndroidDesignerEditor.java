@@ -44,7 +44,7 @@ public final class AndroidDesignerEditor extends DesignerEditor {
   @Override
   @Nullable
   protected Module findModule(final Project project, final VirtualFile file) {
-    Module module = super.findModule(project, file);
+    Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module == null) {
       module = ApplicationManager.getApplication().runReadAction(new Computable<Module>() {
         @Override
@@ -53,6 +53,9 @@ public final class AndroidDesignerEditor extends DesignerEditor {
           return psiFile == null ? null : ModuleUtilCore.findModuleForPsiElement(psiFile);
         }
       });
+    }
+    if (module == null) {
+      throw new IllegalArgumentException("No module for file " + file + " in project " + project);
     }
     return module;
   }
