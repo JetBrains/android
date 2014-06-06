@@ -268,6 +268,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
 
       args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, "true"));
+      args.add(KeyValue.create(AndroidProject.INVOKED_FROM_IDE_PROPERTY, "true"));
       return args;
     }
     return Collections.emptyList();
