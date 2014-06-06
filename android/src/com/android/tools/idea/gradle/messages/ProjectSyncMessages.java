@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.messages;
 
-import com.android.tools.idea.gradle.messages.navigatable.ProjectSyncErrorNavigatable;
 import com.android.tools.idea.gradle.service.notification.GradleNotificationExtension;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.intellij.openapi.components.ServiceManager;
@@ -64,9 +63,6 @@ public class ProjectSyncMessages {
 
   public void add(@NotNull final Message message, @NotNull NotificationHyperlink... hyperlinks) {
     Navigatable navigatable = message.getNavigatable();
-    if (navigatable instanceof ProjectSyncErrorNavigatable) {
-      ((ProjectSyncErrorNavigatable)navigatable).setProject(myProject);
-    }
     String title = message.getGroupName();
     String errorMsg = StringUtil.join(message.getText(), "\n");
 
