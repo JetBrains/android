@@ -32,6 +32,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
@@ -53,6 +54,8 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VAR
  * Utility methods for {@link Project}s.
  */
 public final class Projects {
+  public static final Key<Boolean> HAS_UNRESOLVED_DEPENDENCIES = Key.create("has.unresolved.dependencies");
+
   private static final Logger LOG = Logger.getInstance(Projects.class);
   private static final Module[] NO_MODULES = new Module[0];
 
@@ -67,7 +70,10 @@ public final class Projects {
            hasErrors(project);
   }
 
-  private static boolean hasErrors(@NotNull Project project) {
+  public static boolean hasErrors(@NotNull Project project) {
+    if (hasUnresolvedDependencies(project)) {
+      return true;
+    }
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
     int errorCount = messages.getErrorCount();
     if (errorCount > 0) {
@@ -76,6 +82,11 @@ public final class Projects {
     // Variant selection errors do not count as "sync failed" errors.
     int variantSelectionErrorCount = messages.getMessageCount(VARIANT_SELECTION_CONFLICTS);
     return errorCount != variantSelectionErrorCount;
+  }
+
+  private static boolean hasUnresolvedDependencies(@NotNull Project project) {
+    Boolean val = project.getUserData(HAS_UNRESOLVED_DEPENDENCIES);
+    return val != null && val.booleanValue();
   }
 
   /**
