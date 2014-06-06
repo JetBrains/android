@@ -60,6 +60,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.android.tools.idea.gradle.util.Projects.hasErrors;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
@@ -79,7 +80,7 @@ public class PostProjectSyncTasksExecutor {
   }
 
   public void onProjectSetupCompletion() {
-    if (ProjectSyncMessages.getInstance(myProject).getErrorCount() > 0) {
+    if (hasErrors(myProject)) {
       addOpenSdkManagerLink();
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
