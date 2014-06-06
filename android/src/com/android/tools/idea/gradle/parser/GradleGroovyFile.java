@@ -149,6 +149,10 @@ class GradleGroovyFile {
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
+        if (!myFile.exists()) {
+          LOG.warn("File " + myFile.getPath() + " no longer exists");
+          return;
+        }
         PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
         if (psiFile == null) {
           LOG.warn("Could not find PsiFile for " + myFile.getPath());
