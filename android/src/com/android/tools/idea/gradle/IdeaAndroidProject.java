@@ -40,6 +40,7 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private final VirtualFile myRootDir;
   @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
+  @Nullable private Boolean myOverridesManifestPackage;
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
@@ -208,5 +209,33 @@ public class IdeaAndroidProject implements Serializable {
 
   public boolean isLibrary() {
     return getDelegate().isLibrary();
+  }
+
+  /**
+   * Returns whether this project fully overrides the manifest package (with applicationId in the
+   * default config or one of the product flavors) in the current variant.
+   *
+   * @return true if the manifest package is overridden
+   */
+  public boolean overridesManifestPackage() {
+    if (myOverridesManifestPackage == null) {
+      myOverridesManifestPackage = getDelegate().getDefaultConfig().getProductFlavor().getApplicationId() != null;
+
+      Variant variant = getSelectedVariant();
+
+      List<String> flavors = variant.getProductFlavors();
+      for (String flavor : flavors) {
+        ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+        assert productFlavor != null;
+        if (productFlavor.getProductFlavor().getApplicationId() != null) {
+          myOverridesManifestPackage = true;
+          break;
+        }
+      }
+      // The build type can specify a suffix, but it will be merged with the manifest
+      // value if not specified in a flavor/default config, so only flavors count
+    }
+
+    return myOverridesManifestPackage.booleanValue();
   }
 }

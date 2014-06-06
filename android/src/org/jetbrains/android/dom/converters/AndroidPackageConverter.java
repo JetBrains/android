@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.converters;
 
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
@@ -26,6 +27,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Processor;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.AndroidApplicationPackageRenameProcessor;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +71,18 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
     @NotNull
     @Override
     protected PsiPackageReference createReference(TextRange range, int index) {
+      // If the Gradle model specifies an application id, which does not rely on
+      // the package in any way, then the package attribute in the manifest should
+      // be taken to be a normal package reference, and should participate in normal
+      // package rename refactoring
+      AndroidFacet facet = AndroidFacet.getInstance(getElement());
+      if (facet != null) {
+        IdeaAndroidProject project = facet.getIdeaAndroidProject();
+        if (project != null && project.overridesManifestPackage()) {
+          return new PsiPackageReference(this, range, index);
+        }
+      }
+
       return new MyPsiPackageReference(this, range, index);
     }
   }
