@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
@@ -58,32 +57,7 @@ public class BuildOutputParserTest extends TestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    parser = new BuildOutputParser() {
-      @NotNull
-      @Override
-      public List<GradleMessage> parseGradleOutput(@NotNull String output) {
-        List<GradleMessage> messages = super.parseGradleOutput(output);
-
-        String filtered =
-          "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0";
-        if (output.contains(filtered)) {
-          List<GradleMessage> combined = Lists.newArrayList();
-          combined.add(new GradleMessage(GradleMessage.Kind.WARNING, filtered));
-          combined.addAll(messages);
-          messages = combined;
-        }
-
-        filtered = "Parallel execution with configuration on demand is an incubating feature.";
-        if (output.contains(filtered)) {
-          List<GradleMessage> combined = Lists.newArrayList();
-          combined.add(new GradleMessage(GradleMessage.Kind.WARNING, filtered));
-          combined.addAll(messages);
-          messages = combined;
-        }
-
-        return messages;
-      }
-    };
+    parser = new BuildOutputParser();
   }
 
   @Override
@@ -362,6 +336,7 @@ public class BuildOutputParserTest extends TestCase {
       }
     }
     finally {
+      //noinspection deprecation
       Closeables.closeQuietly(out);
     }
   }
@@ -1768,6 +1743,127 @@ public class BuildOutputParserTest extends TestCase {
                  "\t" + sourceFilePath + ":-1:-1\n" +
                  "13: Info:BUILD FAILED\n" +
                  "14: Info:Total time: 5.623 secs\n",
+                 toString(parser.parseGradleOutput(output)));
+    sourceFile.delete();
+  }
+
+
+  public void testNdkWarningOutputUnix() throws Exception {
+    createTempXmlFile();
+    String output =
+      ":foolib:compileLint\n" +
+      ":foolib:copyDebugLint UP-TO-DATE\n" +
+      ":foolib:mergeDebugProguardFiles UP-TO-DATE\n" +
+      ":foolib:buildNative\n" +
+      "Unexpected close tag: MANIFEST, expecting APPLICATION\n" +
+      "jni/Android.mk:24: warning: overriding commands for target `dump'\n" +
+      "jni/Android.mk:24: warning: ignoring old commands for target `dump'\n" +
+      "jni/Android.mk:24: warning: overriding commands for target `dump'\n" +
+      "jni/Android.mk:24: warning: ignoring old commands for target `dump'\n" +
+      sourceFilePath + ":393: warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
+      sourceFilePath + ":393: warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
+      sourceFilePath + ":393: warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
+      sourceFilePath + ":393: warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
+      sourceFilePath + ":393: warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
+      sourceFilePath + ":393: warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
+      sourceFilePath + ":393: warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
+      sourceFilePath + ":393: warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
+      "jni/Android.mk:24: warning: overriding commands for target `dump'\n" +
+      "jni/Android.mk:24: warning: ignoring old commands for target `dump'\n" +
+      "[armeabi-v7a] Install        : libaacdecoder.so => libs/armeabi-v7a/libaacdecoder.so\n" +
+      "[armeabi] Install        : libaacdecoder.so => libs/armeabi/libaacdecoder.so\n" +
+      "[x86] Install        : libaacdecoder.so => libs/x86/libaacdecoder.so\n" +
+      "[mips] Install        : libaacdecoder.so => libs/mips/libaacdecoder.so\n" +
+      ":foolib:copyNativeLibs UP-TO-DATE" +
+      ":app:assembleDebug UP-TO-DATE\n" +
+      "\n" +
+      "BUILD SUCCESSFUL\n" +
+      "\n" +
+      "Total time: 11.965 secs";
+
+    assertEquals("0: Simple::foolib:compileLint\n" +
+                 "1: Simple::foolib:copyDebugLint UP-TO-DATE\n" +
+                 "2: Simple::foolib:mergeDebugProguardFiles UP-TO-DATE\n" +
+                 "3: Simple::foolib:buildNative\n" +
+                 "4: Simple:Unexpected close tag: MANIFEST, expecting APPLICATION\n" +
+                 "5: Warning:warning: overriding commands for target `dump'\n" +
+                 "\tjni/Android.mk:24:-1\n" +
+                 "6: Warning:warning: ignoring old commands for target `dump'\n" +
+                 "\tjni/Android.mk:24:-1\n" +
+                 "7: Warning:warning: overriding commands for target `dump'\n" +
+                 "\tjni/Android.mk:24:-1\n" +
+                 "8: Warning:warning: ignoring old commands for target `dump'\n" +
+                 "\tjni/Android.mk:24:-1\n" +
+                 "9: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "10: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_16.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "11: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "12: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_a_9.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "13: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "14: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_b_18.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "15: Warning:warning: overriding commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "16: Warning:warning: ignoring old commands for target `obj/local/x86/objs/blah/src/blah3_c.o'\n" +
+                 "\t" + sourceFilePath + ":393:-1\n" +
+                 "17: Warning:warning: overriding commands for target `dump'\n" +
+                 "\tjni/Android.mk:24:-1\n" +
+                 "18: Warning:warning: ignoring old commands for target `dump'\n" +
+                 "\tjni/Android.mk:24:-1\n" +
+                 "19: Simple:[armeabi-v7a] Install        : libaacdecoder.so => libs/armeabi-v7a/libaacdecoder.so\n" +
+                 "20: Simple:[armeabi] Install        : libaacdecoder.so => libs/armeabi/libaacdecoder.so\n" +
+                 "21: Simple:[x86] Install        : libaacdecoder.so => libs/x86/libaacdecoder.so\n" +
+                 "22: Simple:[mips] Install        : libaacdecoder.so => libs/mips/libaacdecoder.so\n" +
+                 "23: Simple::foolib:copyNativeLibs UP-TO-DATE:app:assembleDebug UP-TO-DATE\n" +
+                 "24: Info:BUILD SUCCESSFUL\n" +
+                 "25: Info:Total time: 11.965 secs\n",
+                 toString(parser.parseGradleOutput(output)));
+    sourceFile.delete();
+  }
+
+  public void testNdErrorOutputUnix() throws Exception {
+    createTempFile(".cpp");
+    String output =
+      ":foolib:mergeDebugProguardFiles UP-TO-DATE\n" +
+      ":foolib:buildNative\n" +
+      sourceFilePath + ": In function 'void foo_bar(STRUCT_FOO_BAR*)':\n" +
+      sourceFilePath + ":182:1: error: 'xyz' was not declared in this scope\n" +
+      sourceFilePath + ": In function 'void foo_bar(STRUCT_FOO_BAR*)':\n" +
+      sourceFilePath + ":190:1: warning: some random warning here\n" +
+      "make: *** [obj/local/armeabi-v7a/objs/foo/src/bar.o] Error 1\n" +
+      ":foolib:buildNative FAILED\n" +
+      "\n" +
+      "FAILURE: Build failed with an exception.\n" +
+      "\n" +
+      "* What went wrong:\n" +
+      "Execution failed for task ':foolib:buildNative'.\n" +
+      "> Process 'command '/Users/tnorbye/dev/android-ndk-r9d/ndk-build'' finished with non-zero exit value 2\n" +
+      "\n" +
+      "* Try:\n" +
+      "Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.\n" +
+      "\n" +
+      "BUILD FAILED\n" +
+      "\n" +
+      "Total time: 7.994 secs";
+
+    assertEquals("0: Simple::foolib:mergeDebugProguardFiles UP-TO-DATE\n" +
+                 "1: Simple::foolib:buildNative\n" +
+                 "2: Simple:" + sourceFilePath + ": In function 'void foo_bar(STRUCT_FOO_BAR*)':\n" +
+                 "3: Error:error: 'xyz' was not declared in this scope\n" +
+                 "\t" + sourceFilePath + ":182:1\n" +
+                 "4: Simple:" + sourceFilePath + ": In function 'void foo_bar(STRUCT_FOO_BAR*)':\n" +
+                 "5: Warning:warning: some random warning here\n" +
+                 "\t" + sourceFilePath + ":190:1\n" +
+                 "6: Simple:make: *** [obj/local/armeabi-v7a/objs/foo/src/bar.o] Error 1\n" +
+                 "7: Simple::foolib:buildNative FAILED\n" +
+                 "8: Error:Execution failed for task ':foolib:buildNative'.\n" +
+                 "> Process 'command '/Users/tnorbye/dev/android-ndk-r9d/ndk-build'' finished with non-zero exit value 2\n" +
+                 "9: Info:BUILD FAILED\n" +
+                 "10: Info:Total time: 7.994 secs\n",
                  toString(parser.parseGradleOutput(output)));
     sourceFile.delete();
   }

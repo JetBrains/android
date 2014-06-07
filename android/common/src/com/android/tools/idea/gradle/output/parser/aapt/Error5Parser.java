@@ -50,10 +50,15 @@ class Error5Parser extends AbstractAaptOutputParser {
         String sourcePath = m.group(1);
         String lineNumber = m.group(2);
         String msgText = m.group(3);
+        GradleMessage.Kind kind = GradleMessage.Kind.ERROR;
+        if (msgText.startsWith("warning: ")) {
+          // NDK warning also matches this regexp
+          kind = GradleMessage.Kind.WARNING;
+        }
         if (sourcePath.endsWith(SdkConstants.DOT_JAVA)) {
           return false;
         }
-        GradleMessage msg = createMessage(GradleMessage.Kind.ERROR, msgText, sourcePath, lineNumber);
+        GradleMessage msg = createMessage(kind, msgText, sourcePath, lineNumber);
         messages.add(msg);
         return true;
       }
