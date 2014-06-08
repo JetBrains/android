@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
+import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.project.PostProjectSyncTasksExecutor;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -53,6 +55,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.EXTRA_GENERATED_SOURCES;
 
 /**
  * Service that sets an Android SDK and facets to the modules of a project that has been imported from an Android-Gradle project.
@@ -111,14 +115,34 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
       public void execute() {
         LanguageLevel javaLangVersion = null;
 
+        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+        boolean hasExtraGeneratedFolders = false;
+
         Map<String, IdeaAndroidProject> androidProjectsByModuleName = indexByModuleName(toImport);
         ModuleManager moduleManager = ModuleManager.getInstance(project);
         for (Module module : moduleManager.getModules()) {
           IdeaAndroidProject androidProject = androidProjectsByModuleName.get(module.getName());
           customizeModule(module, project, androidProject);
-          if (androidProject != null && javaLangVersion == null) {
-            javaLangVersion = androidProject.getJavaLanguageLevel();
+          if (androidProject != null) {
+            if (javaLangVersion == null) {
+              javaLangVersion = androidProject.getJavaLanguageLevel();
+            }
+
+            // Warn users that there are generated source folders at the wrong location.
+            File[] sourceFolders = androidProject.getExtraGeneratedSourceFolders();
+            if (sourceFolders.length > 0) {
+              hasExtraGeneratedFolders = true;
+            }
+            for (File folder : sourceFolders) {
+              // Have to add a word before the path, otherwise IDEA won't show it.
+              String[] text = {"Folder " + folder.getPath()};
+              messages.add(new Message(EXTRA_GENERATED_SOURCES, Message.Type.WARNING, text));
+            }
           }
+        }
+
+        if (hasExtraGeneratedFolders) {
+          messages.add(new Message(EXTRA_GENERATED_SOURCES, Message.Type.INFO, "3rd-party Gradle plug-ins may be the cause"));
         }
 
         Sdk jdk = ProjectRootManager.getInstance(project).getProjectSdk();

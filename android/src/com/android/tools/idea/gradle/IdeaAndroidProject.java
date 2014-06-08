@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle;
 import com.android.builder.model.*;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -27,10 +29,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.android.builder.model.AndroidProject.FD_GENERATED;
+import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
@@ -46,13 +48,15 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
   @NotNull private Map<String, Variant> myVariantsByName = Maps.newHashMap();
 
+  @NotNull private Set<File> myExtraGeneratedSourceFolders = Sets.newHashSet();
+
   /**
    * Creates a new {@link IdeaAndroidProject}.
    *
-   * @param moduleName                the name of the IDEA module, created from {@code delegate}.
-   * @param rootDir                   the root directory of the imported Android-Gradle project.
-   * @param delegate                  imported Android-Gradle project.
-   * @param selectedVariantName       name of the selected build variant.
+   * @param moduleName          the name of the IDEA module, created from {@code delegate}.
+   * @param rootDir             the root directory of the imported Android-Gradle project.
+   * @param delegate            imported Android-Gradle project.
+   * @param selectedVariantName name of the selected build variant.
    */
   public IdeaAndroidProject(@NotNull String moduleName,
                             @NotNull File rootDir,
@@ -162,7 +166,8 @@ public class IdeaAndroidProject implements Serializable {
     String newVariantName;
     if (variantNames.contains(name)) {
       newVariantName = name;
-    } else {
+    }
+    else {
       List<String> sorted = Lists.newArrayList(variantNames);
       Collections.sort(sorted);
       // AndroidProject has always at least 2 variants (debug and release.)
@@ -212,6 +217,7 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   /**
+<<<<<<< HEAD
    * Returns whether this project fully overrides the manifest package (with applicationId in the
    * default config or one of the product flavors) in the current variant.
    *
@@ -237,5 +243,63 @@ public class IdeaAndroidProject implements Serializable {
     }
 
     return myOverridesManifestPackage.booleanValue();
+  }
+
+  /**
+   * Registers the path of a source folder that has been incorrectly generated outside of the default location (${buildDir}/generated.)
+   *
+   * @param folderPath the path of the generated source folder.
+   */
+  public void registerExtraGeneratedSourceFolder(@NotNull File folderPath) {
+    myExtraGeneratedSourceFolders.add(folderPath);
+  }
+
+  /**
+   * Indicates whether the given path should be manually excluded in the IDE, to minimize file indexing.
+   * <p>
+   * This method returns {@code false} if:
+   * <ul>
+   *   <li>the given path does not belong to a folder</li>
+   *   <li>the path belongs to the "generated sources" root folder (${buildDir}/generated)</li>
+   *   <li>the path belongs to the standard output folders (${buildDir}/intermediates and ${buildDir}/outputs)</li>
+   *   <li>or if the path belongs to a generated source folder that has been placed at the wrong location (e.g. by a 3rd-party Gradle
+   *   plug-in)</li>
+   * </ul>
+   * </p>
+   *
+   * @param path the given path
+   * @return {@code true} if the path should be manually excluded in the IDE, {@code false otherwise}.
+   */
+  public boolean shouldManuallyExclude(@NotNull File path) {
+    if (!path.isDirectory()) {
+      return false;
+    }
+    String name = path.getName();
+    if (EXCLUDED_OUTPUT_FOLDER_NAMES.contains(name)) {
+      // already excluded.
+      return false;
+    }
+    boolean hasGeneratedFolders = FD_GENERATED.equals(name) || containsExtraGeneratedSourceFolder(path);
+    return !hasGeneratedFolders;
+  }
+
+  private boolean containsExtraGeneratedSourceFolder(@NotNull File folderPath) {
+    if (!folderPath.isDirectory()) {
+      return false;
+    }
+    for (File generatedSourceFolder : myExtraGeneratedSourceFolders) {
+      if (FileUtil.isAncestor(folderPath, generatedSourceFolder, false)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @return the paths of generated sources placed at the wrong location (not in ${build}/generated.)
+   */
+  @NotNull
+  public File[] getExtraGeneratedSourceFolders() {
+    return myExtraGeneratedSourceFolders.toArray(new File[myExtraGeneratedSourceFolders.size()]);
   }
 }
