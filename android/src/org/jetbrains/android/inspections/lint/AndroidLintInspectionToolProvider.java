@@ -4,6 +4,7 @@ import com.android.SdkConstants;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -606,6 +607,47 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintGradleIdeErrorInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleIdeErrorInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.ide.error"), GradleDetector.IDE_SUPPORT);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
+      // Quickfix for replacing packageName with applicationId.
+      // This is a temporary quickfix to support older versions of the Gradle plugin: TODO REMOVE.
+      if (message.contains("packageName")) {
+        return new AndroidLintQuickFix[] { new AndroidLintQuickFix() {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            if (context instanceof AndroidQuickfixContexts.EditorContext) {
+              final Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
+              if (startElement == endElement) {
+                String text = startElement.getText();
+                if (text.equals("packageName") || text.equals("packageNameSuffix")) {
+                  int textOffset = startElement.getTextOffset();
+                  editor.getDocument().replaceString(textOffset, textOffset + startElement.getTextLength(),
+                                                     text.replace("packageName", "applicationId"));
+                }
+              }
+            }
+         }
+
+          @Override
+          public boolean isApplicable(@NotNull PsiElement startElement,
+                                      @NotNull PsiElement endElement,
+                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
+            return true;
+          }
+
+          @NotNull
+          @Override
+          public String getName() {
+            return message.replace("Deprecated: ", "");
+          }
+        }};
+      }
+      return super.getQuickFixes(message);
     }
   }
 
