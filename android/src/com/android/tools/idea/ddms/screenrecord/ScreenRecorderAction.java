@@ -20,6 +20,7 @@ import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.intellij.CommonBundle;
+import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -191,13 +193,17 @@ public class ScreenRecorderAction {
     @Override
     public void onSuccess() {
       assert myProject != null;
-      if (Messages.showOkCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open File" /* Ok text */,
-                                      CommonBundle.getOkButtonText() /* cancel text */, Messages.getInformationIcon())
-          == DialogWrapper.OK_EXIT_CODE) {
+      int exitCode = Messages.showYesNoCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open" /* Yes text */,
+              "Show in files" /* No text */, CommonBundle.getOkButtonText() /* Cancel text */, Messages.getInformationIcon());
+      if (exitCode == Messages.YES) {
         VirtualFile file = LocalFileSystem.getInstance().findFileByPath(myLocalPath);
         if (file != null) {
           NativeFileType.openAssociatedApplication(file);
         }
+      }
+      else if (exitCode == Messages.NO) {
+        File file = new File(myLocalPath);
+        ShowFilePathAction.openFile(file);
       }
     }
   }
