@@ -98,6 +98,11 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                          @NotNull ExternalSystemException error) {
     String msg = error.getMessage();
     if (msg != null && !msg.isEmpty()) {
+      if (msg.startsWith(AndroidGradleProjectResolver.UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX)) {
+        updateNotification(notification, project, msg,
+                           new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=70490", "Open bug report"));
+      }
+
       if (msg.startsWith(AndroidGradleProjectResolver.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
         NotificationHyperlink fixGradleModelHyperlink;
         if (msg.contains(AndroidGradleProjectResolver.READ_MIGRATION_GUIDE_MSG)) {
