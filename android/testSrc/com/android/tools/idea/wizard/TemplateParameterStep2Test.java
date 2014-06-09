@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import junit.framework.TestCase;
+import com.intellij.testFramework.LightIdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
-import java.util.Map;
+import static com.android.tools.idea.wizard.ParameterDefaultValueComputerTest.getParameterObject;
 
-import static com.android.tools.idea.wizard.ParameterDefaultValueComputer.newDefaultValuesMap;
-
-public final class ParameterDefaultValueComputerTest extends TestCase {
+public final class TemplateParameterStep2Test extends LightIdeaTestCase {
   private static final String METADATA_XML = "<?xml version=\"1.0\"?>\n" +
                                              "<template\n" +
                                              "    format=\"4\"\n" +
@@ -81,43 +77,23 @@ public final class ParameterDefaultValueComputerTest extends TestCase {
                                              "\n" +
                                              "</template>\n";
   private TemplateMetadata myTemplateMetadata;
+  private TemplateParameterStep2 myStep;
 
-  public static Parameter getParameterObject(@NotNull TemplateMetadata templateMetadata, @NotNull String name) {
-    for (Parameter parameter : templateMetadata.getParameters()) {
-      if (name.equals(parameter.id)) {
-        return parameter;
-      }
-    }
-    throw new IllegalArgumentException(name);
+  public void testRefreshParameterDefaults() {
+    myStep.updateStateWithDefaults(myTemplateMetadata.getParameters());
+    String parameterName = "p2";
+    ScopedStateStore.Key<?> p2Key = getKeyForParameter(parameterName);
+    assertEquals("Hello", myStep.myState.get(p2Key));
+    myStep.myState.unsafePut(p2Key, "Good-bye");
+    myStep.updateStateWithDefaults(myTemplateMetadata.getParameters());
+    assertEquals("Good-bye, World!", myStep.myState.get(getKeyForParameter("p5")));
+    myStep.myState.unsafePut(p2Key, "Good morning");
+    myStep.updateStateWithDefaults(myTemplateMetadata.getParameters());
+    assertEquals("Good morning, World!", myStep.myState.get(getKeyForParameter("p5")));
   }
 
-  public void testSimpleValuesDerival() {
-    Map<Parameter, Object> defaultValuesMap = newDefaultValuesMap(myTemplateMetadata.getParameters(),
-                                                                  ImmutableMap.<Parameter, Object>of(),
-                                                                  null);
-    assertEquals(Boolean.FALSE, defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p1")));
-    assertEquals("Hello", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p2")));
-    assertEquals("", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p3")));
-  }
-
-  public void testComputedValuesDerival() {
-    Map<Parameter, Object> defaultValuesMap = newDefaultValuesMap(myTemplateMetadata.getParameters(),
-                                                                  ImmutableMap.<Parameter, Object>of(),
-                                                                  null);
-    assertEquals("Hello, World", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p4")));
-    assertEquals("Hello, World!", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p5")));
-    assertEquals(Boolean.TRUE, defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p6")));
-  }
-
-  public void testComputedValuesDerivedFromNotNull() {
-    Map<Parameter, Object> values = Maps.newHashMap();
-    Map<Parameter, Object> defaultValuesMap = newDefaultValuesMap(myTemplateMetadata.getParameters(), values, null);
-    values.put(getParameterObject(myTemplateMetadata, "p2"), "Goodbye");
-    assertEquals("Goodbye, World", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p4")));
-    assertEquals("Goodbye, World!", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p5")));
-
-    values.put(getParameterObject(myTemplateMetadata, "p4"), "Value");
-    assertEquals("Value!", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p5")));
+  private ScopedStateStore.Key<?> getKeyForParameter(String parameterName) {
+    return myStep.getParameterKey(getParameterObject(myTemplateMetadata, parameterName));
   }
 
   @Override
@@ -126,6 +102,34 @@ public final class ParameterDefaultValueComputerTest extends TestCase {
     Document document = XmlUtils.parseDocumentSilently(METADATA_XML, false);
     assert document != null;
     myTemplateMetadata = new TemplateMetadata(document);
-  }
+    new DynamicWizard(null, null, "Test Wizard") {
+      @Override
+      protected void init() {
+        super.init();
+        addPath(new DynamicWizardPath() {
+          @Override
+          protected void init() {
+            myStep = new TemplateParameterStep2(ImmutableMap.<String, Object>of(), null, null);
+            addStep(myStep);
+          }
 
+          @NotNull
+          @Override
+          public String getPathName() {
+            return "Test Path";
+          }
+
+          @Override
+          public boolean performFinishingActions() {
+            return false;
+          }
+        });
+      }
+
+      @Override
+      public void performFinishingActions() {
+        // Do nothing
+      }
+    }.init();
+  }
 }

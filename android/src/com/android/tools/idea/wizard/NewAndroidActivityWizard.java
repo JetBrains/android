@@ -25,16 +25,13 @@ import java.awt.*;
  * Wizard for creating a new Android activity.
  */
 public final class NewAndroidActivityWizard extends DynamicWizard {
-  private final AddAndroidActivityPath myAddActivityPath;
-
   public NewAndroidActivityWizard(@NotNull Module module) {
     super(module.getProject(), module, "New Android Activity");
-    myAddActivityPath = new AddAndroidActivityPath(null, ImmutableMap.<String, Object>of(), getDisposable());
   }
 
   @Override
   protected void init() {
-    addPath(myAddActivityPath);
+    addPath(new AddAndroidActivityPath(null, ImmutableMap.<String, Object>of(), getDisposable()));
     super.init();
     getContentPanel().setPreferredSize(new Dimension(800, 640));
   }
