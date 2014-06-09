@@ -28,6 +28,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -36,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
@@ -159,6 +162,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
           ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+          setGradleWrapperExecutable(projectRoot);
         }
 
         wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
@@ -218,6 +222,18 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
       Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
       LOG.error(msg);
+    }
+  }
+
+  public static void setGradleWrapperExecutable(File projectRoot) throws IOException {
+    if (SystemInfo.isUnix) {
+      File gradlewFile = new File(projectRoot, GradleUtil.GRADLE_EXECUTABLE_NAME);
+      if (!gradlewFile.isFile()) {
+        LOG.error("Could not find gradle wrapper. Command line builds may not work properly.");
+      }
+      else {
+        FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
+      }
     }
   }
 }
