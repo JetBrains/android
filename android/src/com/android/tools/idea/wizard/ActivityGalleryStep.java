@@ -16,12 +16,12 @@
 package com.android.tools.idea.wizard;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.templates.Template;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,14 +39,16 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   @SuppressWarnings("unchecked")
   public static final Key<TemplateEntry[]> KEY_TEMPLATES =
     ScopedStateStore.createKey("template.list", ScopedStateStore.Scope.STEP, TemplateEntry[].class);
+  private final FormFactorUtils.FormFactor myFormFactor;
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
   private ASGallery<Optional<TemplateEntry>> myGallery;
 
-  public ActivityGalleryStep(Key<TemplateEntry> currentSelectionKey, boolean showSkipEntry,
-                             @NotNull Disposable disposable) {
-    super("Add an activity to Phone and Tablet", null,
-          AndroidIcons.Wizards.FormFactorPhoneTablet, disposable);
+
+  public ActivityGalleryStep(@Nullable FormFactorUtils.FormFactor formFactor, @NotNull Icon icon, boolean showSkipEntry,
+                             Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
+    super("Add an activity to " + formFactor, null, icon, disposable);
+    myFormFactor = formFactor;
     myCurrentSelectionKey = currentSelectionKey;
     myShowSkipEntry = showSkipEntry;
     setBodyComponent(createGallery());
@@ -127,7 +129,8 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   @Override
   public void init() {
     super.init();
-    TemplateListProvider templateListProvider = new TemplateListProvider();
+    String formFactorName = myFormFactor == null ? null : myFormFactor.id;
+    TemplateListProvider templateListProvider = new TemplateListProvider(formFactorName, Template.CATEGORY_ACTIVITY);
     TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
     myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));
     myState.put(KEY_TEMPLATES, list);
