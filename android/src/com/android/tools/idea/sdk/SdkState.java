@@ -27,6 +27,7 @@ import com.android.sdklib.repository.remote.RemotePkgInfo;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.utils.ILogger;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -219,14 +220,14 @@ public class SdkState {
 
         success = true;
         if (myOnSuccess != null) {
-          myOnSuccess.run();
+          ApplicationManager.getApplication().invokeLater(myOnSuccess);
         }
       }
       finally {
         myIndicator = null;
         myLastRefreshMs = System.currentTimeMillis();
         if (!success && myOnError != null) {
-          myOnError.run();
+          ApplicationManager.getApplication().invokeLater(myOnError);
         }
       }
     }
