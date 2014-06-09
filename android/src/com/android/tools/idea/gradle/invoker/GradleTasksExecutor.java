@@ -78,7 +78,6 @@ import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -320,7 +319,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
             }
           });
 
-          GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, buildMessages);
+          boolean buildSuccessful = buildError == null;
+          GradleInvocationResult result = new GradleInvocationResult(myGradleTasks, buildMessages, buildSuccessful);
           for (GradleInvoker.AfterGradleInvocationTask task : myAfterGradleInvocationTasks) {
             task.execute(result);
           }
