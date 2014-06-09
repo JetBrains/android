@@ -31,8 +31,8 @@ import java.util.List;
 public class BuildOutputParser {
   private static final PatternAwareOutputParser[] PARSERS = {
     new AndroidPluginOutputParser(), new GradleOutputParser(), new AaptOutputParser(), new XmlValidationErrorParser(),
-    new BuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser(), new DexExceptionParser(),
-    new JavacOutputParser()
+    new BuildFailureParser(), new ManifestMergeFailureParser(), new DexExceptionParser(),
+    new JavacOutputParser(), new MergingExceptionParser()
   };
 
   /**
