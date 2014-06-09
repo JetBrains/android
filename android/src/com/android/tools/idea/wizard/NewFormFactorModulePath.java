@@ -54,7 +54,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Key<String> MANIFEST_OUT_KEY = createKey(ATTR_MANIFEST_OUT, PATH, String.class);
   private static final Key<String> TEST_OUT_KEY = createKey(ATTR_TEST_OUT, PATH, String.class);
 
-  private String myFormFactor;
+  private FormFactorUtils.FormFactor myFormFactor;
   private File myTemplateFile;
   private final Key<Boolean> myIsIncludedKey;
   private final Key<String> myModuleNameKey;
@@ -68,14 +68,14 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       if (metadata == null || metadata.getFormFactor() == null) {
         continue;
       }
-      String formFactor = metadata.getFormFactor();
+      FormFactorUtils.FormFactor formFactor = FormFactorUtils.FormFactor.get(metadata.getFormFactor());
       NewFormFactorModulePath path = new NewFormFactorModulePath(formFactor, templateFile);
       toReturn.add(path);
     }
     return toReturn;
   }
 
-  public NewFormFactorModulePath(@NotNull String formFactor, @NotNull File templateFile) {
+  public NewFormFactorModulePath(@NotNull FormFactorUtils.FormFactor formFactor, @NotNull File templateFile) {
     myFormFactor = formFactor;
     myTemplateFile = templateFile;
     myIsIncludedKey = FormFactorUtils.getInclusionKey(formFactor);
