@@ -18,6 +18,7 @@ package com.android.tools.idea.ddms;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -71,5 +72,24 @@ public class DevicePropertyUtil {
     }
 
     return sb.toString();
+  }
+
+  /**
+   * Retrieves the version of Android running on the device by reading its system properties.
+   * Returns {@link com.android.sdklib.AndroidVersion#DEFAULT} if there are any issues while reading the properties.
+   */
+  @NotNull
+  public static AndroidVersion getDeviceVersion(@NotNull IDevice device) {
+    try {
+      String apiLevel = device.getPropertyCacheOrSync(IDevice.PROP_BUILD_API_LEVEL);
+      if (apiLevel == null) {
+        return AndroidVersion.DEFAULT;
+      }
+
+      return new AndroidVersion(Integer.parseInt(apiLevel), device.getPropertyCacheOrSync(IDevice.PROP_BUILD_CODENAME));
+    }
+    catch (Exception e) {
+      return AndroidVersion.DEFAULT;
+    }
   }
 }
