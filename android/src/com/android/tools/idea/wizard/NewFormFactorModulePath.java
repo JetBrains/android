@@ -46,11 +46,13 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Key<String> SRC_DIR_KEY = createKey(ATTR_SRC_DIR, PATH, String.class);
   private static final Key<String> AIDL_DIR_KEY = createKey(ATTR_AIDL_DIR, PATH, String.class);
   private static final Key<String> MANIFEST_DIR_KEY = createKey(ATTR_MANIFEST_DIR, PATH, String.class);
-  
+  private static final Key<String> TEST_DIR_KEY = createKey(ATTR_TEST_DIR, PATH, String.class);
+
   private static final Key<String> RES_OUT_KEY = createKey(ATTR_RES_OUT, PATH, String.class);
   private static final Key<String> SRC_OUT_KEY = createKey(ATTR_SRC_OUT, PATH, String.class);
   private static final Key<String> AIDL_OUT_KEY = createKey(ATTR_AIDL_OUT, PATH, String.class);
   private static final Key<String> MANIFEST_OUT_KEY = createKey(ATTR_MANIFEST_OUT, PATH, String.class);
+  private static final Key<String> TEST_OUT_KEY = createKey(ATTR_TEST_OUT, PATH, String.class);
 
   private String myFormFactor;
   private File myTemplateFile;
@@ -88,6 +90,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(RES_DIR_KEY, "src/main/res");
     myState.put(AIDL_DIR_KEY, "src/main/aidl");
     myState.put(MANIFEST_DIR_KEY, "src/main");
+    myState.put(TEST_DIR_KEY, "src/androidTest");
     myState.put(CREATE_ACTIVITY_KEY, false);
 
     // No steps to be added yet, waiting on implementation of the activity steps
@@ -110,6 +113,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     if (modified.contains(MANIFEST_DIR_KEY) || basePathModified) {
       updateOutputPath(MANIFEST_DIR_KEY, MANIFEST_OUT_KEY);
+    }
+    if (modified.contains(TEST_DIR_KEY) || basePathModified) {
+      updateOutputPath(TEST_DIR_KEY, TEST_OUT_KEY);
     }
   }
 
