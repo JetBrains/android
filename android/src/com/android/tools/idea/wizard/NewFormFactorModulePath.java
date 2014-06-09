@@ -117,11 +117,11 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(RELATIVE_PACKAGE_KEY, "");
 
-    addStep(new ActivityGalleryStep(myFormFactor, myFormFactor.icon, true, KEY_SELECTED_TEMPLATE, myDisposable));
+    addStep(new ActivityGalleryStep(myFormFactor, true, KEY_SELECTED_TEMPLATE, myDisposable));
     Map<String, Object> presetsMap = ImmutableMap.of(PACKAGE_NAME_KEY.name, (Object)myState.get(PACKAGE_NAME_KEY),
                                                      TemplateMetadata.ATTR_IS_LAUNCHER, true,
                                                      TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS, "");
-    myParameterStep = new TemplateParameterStep2(presetsMap, null, myDisposable);
+    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, null, myDisposable);
     addStep(myParameterStep);
   }
 
