@@ -17,6 +17,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -193,6 +194,10 @@ public class AndroidPlatform {
 
   public int getApiLevel() {
     return myTarget.getVersion().getApiLevel();
+  }
+
+  public AndroidVersion getApiVersion() {
+    return myTarget.getVersion();
   }
 
   /** Looks up the platform for a given module */
