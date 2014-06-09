@@ -168,6 +168,13 @@ public class CreateResourceFileDialog extends DialogWrapper {
     if (chooseFileName) {
       predefinedFileName = ResourceHelper.prependResourcePrefix(module, predefinedFileName);
     }
+
+    boolean validateImmediately = false;
+    if (predefinedFileName != null && getNameError(predefinedFileName) != null) {
+      chooseFileName = true;
+      validateImmediately = true;
+    }
+
     if (predefinedFileName != null) {
       if (!chooseFileName) {
         myFileNameField.setVisible(false);
@@ -224,6 +231,9 @@ public class CreateResourceFileDialog extends DialogWrapper {
         validateName();
       }
     });
+    if (validateImmediately) {
+      validateName();
+    }
   }
 
   private void updateOkAction() {
@@ -353,7 +363,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
   @Override
   public JComponent getPreferredFocusedComponent() {
     String name = myFileNameField.getText();
-    if (name.length() == 0 || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null))) {
+    if (name.length() == 0 || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null)) || getNameError(name) != null) {
       return myFileNameField;
     }
     else if (myResourceTypeCombo.isVisible()) {
