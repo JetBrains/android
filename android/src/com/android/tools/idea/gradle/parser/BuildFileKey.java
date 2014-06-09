@@ -70,11 +70,15 @@ public enum BuildFileKey {
 
   // defaultConfig or build flavor
   MIN_SDK_VERSION("minSdkVersion", INTEGER_OR_STRING),
+  APPLICATION_ID("applicationId", STRING),
+  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
   PACKAGE_NAME("packageName", STRING),
   PROGUARD_FILE("proguardFile", FILE_AS_STRING),
   SIGNING_CONFIG("signingConfig", REFERENCE),
   TARGET_SDK_VERSION("targetSdkVersion", INTEGER_OR_STRING),
   TEST_INSTRUMENTATION_RUNNER("testInstrumentationRunner", STRING),
+  TEST_APPLICATION_ID("testApplicationId", STRING),
+  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
   TEST_PACKAGE_NAME("testPackageName", STRING),
   VERSION_CODE("versionCode", INTEGER),
   VERSION_NAME("versionName", STRING),
@@ -85,6 +89,8 @@ public enum BuildFileKey {
   RENDERSCRIPT_DEBUG_BUILD("renderscriptDebugBuild", BOOLEAN),
   RENDERSCRIPT_OPTIM_LEVEL("renderscriptOptimLevel", INTEGER),
   RUN_PROGUARD("runProguard", BOOLEAN),
+  APPLICATION_ID_SUFFIX("applicationIdSuffix", STRING),
+  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
   PACKAGE_NAME_SUFFIX("packageNameSuffix", STRING),
   VERSION_NAME_SUFFIX("versionNameSuffix", STRING),
   ZIP_ALIGN("zipAlign", BOOLEAN),
@@ -118,12 +124,12 @@ public enum BuildFileKey {
   SIGNING_CONFIGS("android/signingConfigs", null, CLOSURE,
                   NamedObject.getFactory(ImmutableList.of(KEY_ALIAS, KEY_PASSWORD, STORE_FILE, STORE_PASSWORD))),
   FLAVORS("android/productFlavors", null, CLOSURE,
-          NamedObject.getFactory(ImmutableList.of(MIN_SDK_VERSION, PACKAGE_NAME, PROGUARD_FILE, SIGNING_CONFIG, TARGET_SDK_VERSION,
-                                                  TEST_INSTRUMENTATION_RUNNER, TEST_PACKAGE_NAME, VERSION_CODE, VERSION_NAME))),
+          NamedObject.getFactory(ImmutableList.of(MIN_SDK_VERSION, APPLICATION_ID, PROGUARD_FILE, SIGNING_CONFIG, TARGET_SDK_VERSION,
+                                                  TEST_INSTRUMENTATION_RUNNER, TEST_APPLICATION_ID, VERSION_CODE, VERSION_NAME))),
   BUILD_TYPES("android/buildTypes", null, CLOSURE,
               NamedObject.getFactory(ImmutableList
                                        .of(DEBUGGABLE, JNI_DEBUG_BUILD, SIGNING_CONFIG, RENDERSCRIPT_DEBUG_BUILD, RENDERSCRIPT_OPTIM_LEVEL,
-                                           RUN_PROGUARD, PROGUARD_FILE, PACKAGE_NAME_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
+                                           RUN_PROGUARD, PROGUARD_FILE, APPLICATION_ID_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
 
   static {
     SIGNING_CONFIG.myReferencedType = SIGNING_CONFIGS;
