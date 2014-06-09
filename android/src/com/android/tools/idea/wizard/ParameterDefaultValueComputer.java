@@ -23,6 +23,8 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -34,13 +36,17 @@ import java.util.Set;
  */
 public final class ParameterDefaultValueComputer implements Function<Parameter, Object> {
   private final Map<Parameter, Object> nonDefaultValues;
+  @Nullable private final Deduplicator myDeduplicateValueFunction;
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
   private final Map<String, Parameter> myParameterIds;
   private Map<Parameter, Object> myDefaultsMap;
   private Set<Parameter> inComputation = Sets.newHashSet();
 
-  private ParameterDefaultValueComputer(Set<Parameter> parameterSet, Map<Parameter, Object> nonCurrentValues) {
+  private ParameterDefaultValueComputer(Set<Parameter> parameterSet,
+                                        Map<Parameter, Object> nonCurrentValues,
+                                        @Nullable Deduplicator deduplicateValueFunction) {
     nonDefaultValues = nonCurrentValues;
+    myDeduplicateValueFunction = deduplicateValueFunction;
     myParameterIds = Maps.uniqueIndex(parameterSet, new Function<Parameter, String>() {
       @Override
       public String apply(Parameter input) {
@@ -60,14 +66,16 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
    * @param values map of parameters with non-default values.
    * @return dynamic map
    */
-  public static Map<Parameter, Object> newDefaultValuesMap(Iterable<Parameter> parameters, Map<Parameter, Object> values) {
+  public static Map<Parameter, Object> newDefaultValuesMap(Iterable<Parameter> parameters,
+                                                           Map<Parameter, Object> values,
+                                                           @Nullable Deduplicator deduplicateValueFunction) {
     Set<Parameter> parameterSet = FluentIterable.from(parameters).filter(new Predicate<Parameter>() {
       @Override
       public boolean apply(Parameter input) {
         return input != null && !StringUtil.isEmpty(input.name);
       }
     }).toSet();
-    ParameterDefaultValueComputer computer = new ParameterDefaultValueComputer(parameterSet, values);
+    ParameterDefaultValueComputer computer = new ParameterDefaultValueComputer(parameterSet, values, deduplicateValueFunction);
     Map<Parameter, Object> defaultsMap = Maps.asMap(parameterSet, computer);
     computer.setDefaultsMap(defaultsMap);
     return defaultsMap;
@@ -93,7 +101,10 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
       return nonDefaultValues.get(parameter);
     }
     else {
-      final String value = !StringUtil.isEmpty(parameter.suggest) ? deriveValue(parameter) : parameter.initial;
+      String value = !StringUtil.isEmpty(parameter.suggest) ? deriveValue(parameter) : parameter.initial;
+      if (myDeduplicateValueFunction != null) {
+        value = myDeduplicateValueFunction.deduplicate(parameter, value);
+      }
       return decodeInitialValue(parameter, value);
     }
   }
@@ -111,11 +122,15 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
       Function<Parameter, Object> values = Functions.forMap(myDefaultsMap);
       Function<String, Parameter> name = Functions.forMap(myParameterIds);
       Function<String, Object> nameToValue = Functions.compose(values, name);
-      return myStringEvaluator.evaluate(parameter.suggest,
-                                        Maps.asMap(myParameterIds.keySet(), nameToValue));
+      return myStringEvaluator.evaluate(parameter.suggest, Maps.asMap(myParameterIds.keySet(), nameToValue));
     }
     finally {
       inComputation.remove(parameter);
     }
+  }
+
+  public interface Deduplicator {
+    @Nullable
+    String deduplicate(@NotNull Parameter parameter, @Nullable String value);
   }
 }
