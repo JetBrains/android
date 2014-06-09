@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.aapt.AbstractAaptOutputParser;
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
@@ -57,7 +58,32 @@ public class BuildOutputParserTest extends TestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    parser = new BuildOutputParser();
+    parser = new BuildOutputParser() {
+      @NotNull
+      @Override
+      public List<GradleMessage> parseGradleOutput(@NotNull String output) {
+        List<GradleMessage> messages = super.parseGradleOutput(output);
+
+        String filtered =
+          "Relying on packaging to define the extension of the main artifact has been deprecated and is scheduled to be removed in Gradle 2.0";
+        if (output.contains(filtered)) {
+          List<GradleMessage> combined = Lists.newArrayList();
+          combined.add(new GradleMessage(GradleMessage.Kind.WARNING, filtered));
+          combined.addAll(messages);
+          messages = combined;
+        }
+
+        filtered = "Parallel execution with configuration on demand is an incubating feature.";
+        if (output.contains(filtered)) {
+          List<GradleMessage> combined = Lists.newArrayList();
+          combined.add(new GradleMessage(GradleMessage.Kind.WARNING, filtered));
+          combined.addAll(messages);
+          messages = combined;
+        }
+
+        return messages;
+      }
+    };
   }
 
   @Override
