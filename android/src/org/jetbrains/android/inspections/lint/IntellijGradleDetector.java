@@ -117,6 +117,29 @@ public class IntellijGradleDetector extends GradleDetector {
     return textRange.getStartOffset();
   }
 
+  @NonNull
+  @Override
+  protected Object getPropertyPairCookie(@NonNull Object cookie) {
+    PsiElement element = (PsiElement)cookie;
+    return element.getParent();
+  }
+
+  @NonNull
+  @Override
+  protected Object getPropertyKeyCookie(@NonNull Object cookie) {
+    PsiElement element = (PsiElement)cookie;
+    PsiElement parent = element.getParent();
+    if (parent instanceof GrApplicationStatement) {
+      GrApplicationStatement call = (GrApplicationStatement)parent;
+      return call.getInvokedExpression();
+    } else if (parent instanceof GrAssignmentExpression) {
+      GrAssignmentExpression assignment = (GrAssignmentExpression)parent;
+      return assignment.getLValue();
+    }
+
+    return super.getPropertyKeyCookie(cookie);
+  }
+
   @Override
   protected Location createLocation(@NonNull Context context, @NonNull Object cookie) {
     PsiElement element = (PsiElement)cookie;
