@@ -59,6 +59,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     File resSourceRoot = new File(moduleRoot, FileUtil.toSystemDependentName(myState.getString(ATTR_RES_DIR)));
     File packageRoot = new File(javaSourceRoot, FileUtil.toSystemDependentName("com/foo/bar"));
     File mainSourceSet = new File(moduleRoot, FileUtil.toSystemDependentName("src/main"));
+    File androidTestRoot = new File(moduleRoot, FileUtil.toSystemDependentName(myState.getString(ATTR_TEST_DIR)));
 
     assertEquals(FileUtil.toSystemIndependentName(projectRoot.getPath()), myState.getString(ATTR_PROJECT_LOCATION));
     assertEquals(FileUtil.toSystemIndependentName(projectRoot.getPath()), myState.getString(ATTR_TOP_OUT));
@@ -66,6 +67,7 @@ public class TemplateWizardStateTest extends AndroidGradleTestCase {
     assertEquals(FileUtil.toSystemIndependentName(mainSourceSet.getPath()), myState.getString(ATTR_MANIFEST_OUT));
     assertEquals(FileUtil.toSystemIndependentName(packageRoot.getPath()), myState.getString(ATTR_SRC_OUT));
     assertEquals(FileUtil.toSystemIndependentName(resSourceRoot.getPath()), myState.getString(ATTR_RES_OUT));
+    assertEquals(FileUtil.toSystemIndependentName(androidTestRoot.getPath()), myState.getString(ATTR_TEST_OUT));
     assertEquals(moduleName, myState.getString(ATTR_MODULE_NAME));
     assertEquals("com.foo.bar", myState.getString(ATTR_PACKAGE_NAME));
 
