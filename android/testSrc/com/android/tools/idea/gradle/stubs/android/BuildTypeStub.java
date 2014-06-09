@@ -66,7 +66,7 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   @Nullable
-  public String getPackageNameSuffix() {
+  public String getApplicationIdSuffix() {
     throw new UnsupportedOperationException();
   }
 

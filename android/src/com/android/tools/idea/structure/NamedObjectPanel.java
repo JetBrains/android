@@ -46,8 +46,8 @@ import java.util.Map;
 public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener {
   private static final String DEFAULT_CONFIG = "defaultConfig";
   private static final BuildFileKey[] DEFAULT_CONFIG_KEYS =
-      { BuildFileKey.PACKAGE_NAME, BuildFileKey.VERSION_CODE, BuildFileKey.VERSION_NAME, BuildFileKey.MIN_SDK_VERSION,
-        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.PACKAGE_NAME, BuildFileKey.TEST_INSTRUMENTATION_RUNNER };
+      { BuildFileKey.APPLICATION_ID, BuildFileKey.VERSION_CODE, BuildFileKey.VERSION_NAME, BuildFileKey.MIN_SDK_VERSION,
+        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.TEST_APPLICATION_ID, BuildFileKey.TEST_INSTRUMENTATION_RUNNER };
 
   private JPanel myPanel;
   private JBList myList;
@@ -117,7 +117,17 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       NamedObject obj = new NamedObject("defaultConfig");
       if (defaultConfig != null) {
         for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
-          obj.setValue(key, myGradleBuildFile.getValue(defaultConfig, key));
+          Object value = myGradleBuildFile.getValue(defaultConfig, key);
+          if (value == null) {
+            // Temporary compatibility code:
+            if (key == BuildFileKey.APPLICATION_ID) {
+              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.PACKAGE_NAME);
+            } else if (key == BuildFileKey.TEST_APPLICATION_ID) {
+              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.TEST_PACKAGE_NAME);
+            }
+          }
+
+          obj.setValue(key, value);
         }
       }
       myListModel.addElement(obj);
@@ -316,7 +326,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           obj.setValue(BuildFileKey.JNI_DEBUG_BUILD, buildType.isJniDebugBuild());
           obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebugBuild());
           obj.setValue(BuildFileKey.RENDERSCRIPT_OPTIM_LEVEL, buildType.getRenderscriptOptimLevel());
-          obj.setValue(BuildFileKey.PACKAGE_NAME_SUFFIX, buildType.getPackageNameSuffix());
+          obj.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, buildType.getApplicationIdSuffix());
           obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, buildType.getVersionNameSuffix());
           obj.setValue(BuildFileKey.RUN_PROGUARD, buildType.isRunProguard());
           obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlign());
@@ -331,7 +341,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
             break;
           }
           ProductFlavor flavor = productFlavorContainer.getProductFlavor();
-          obj.setValue(BuildFileKey.PACKAGE_NAME, flavor.getPackageName());
+          obj.setValue(BuildFileKey.APPLICATION_ID, flavor.getApplicationId());
           int versionCode = flavor.getVersionCode();
           if (versionCode >= 0) {
             obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
@@ -355,7 +365,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
             obj.setValue(BuildFileKey.MIN_SDK_VERSION, 1);
             obj.setValue(BuildFileKey.TARGET_SDK_VERSION, 1);
           }
-          obj.setValue(BuildFileKey.TEST_PACKAGE_NAME, flavor.getTestPackageName());
+          obj.setValue(BuildFileKey.TEST_APPLICATION_ID, flavor.getTestApplicationId());
           obj.setValue(BuildFileKey.TEST_INSTRUMENTATION_RUNNER, flavor.getTestInstrumentationRunner());
           results.add(obj);
         }

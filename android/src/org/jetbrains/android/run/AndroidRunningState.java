@@ -1080,7 +1080,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name
     Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-    String testPackageName = selectedVariant.getMergedFlavor().getTestPackageName();
+    String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
     return (testPackageName != null) ? testPackageName : packageName + DEFAULT_TEST_PACKAGE_SUFFIX;
   }
 
