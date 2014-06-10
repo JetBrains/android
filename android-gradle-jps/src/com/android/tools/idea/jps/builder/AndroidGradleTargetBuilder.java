@@ -306,8 +306,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         jvmArgs.add(arg);
       }
 
-      jvmArgs.add(AndroidGradleSettings.createJvmArg(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
-
       if (androidHome != null && !androidHome.isEmpty()) {
         String androidSdkArg = AndroidGradleSettings.createAndroidHomeJvmArg(androidHome);
         jvmArgs.add(androidSdkArg);
@@ -322,6 +320,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       List<String> commandLineArgs = Lists.newArrayList();
       commandLineArgs.addAll(executionSettings.getCommandLineOptions());
+      commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
 
       if (executionSettings.isParallelBuild() && !commandLineArgs.contains(PARALLEL_BUILD_OPTION)) {
         commandLineArgs.add(PARALLEL_BUILD_OPTION);

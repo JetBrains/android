@@ -36,6 +36,8 @@ public final class AndroidGradleSettings {
   private static final Logger LOG = Logger.getInstance(AndroidGradleSettings.class);
 
   @NonNls private static final String JVM_ARG_FORMAT = "-D%1$s=%2$s";
+  @NonNls private static final String PROJECT_PROPERTY_FORMAT = "-P%1$s=%2$s";
+
   @NonNls public static final String ANDROID_HOME_JVM_ARG = "android.home";
 
   private AndroidGradleSettings() {
@@ -99,5 +101,15 @@ public final class AndroidGradleSettings {
   @NotNull
   public static String createJvmArg(@NotNull String name, @NotNull String value) {
     return String.format(JVM_ARG_FORMAT, name, value);
+  }
+
+  @NotNull
+  public static String createProjectProperty(@NotNull String name, @NotNull boolean value) {
+    return createProjectProperty(name, String.valueOf(value));
+  }
+
+  @NotNull
+  public static String createProjectProperty(@NotNull String name, @NotNull String value) {
+    return String.format(PROJECT_PROPERTY_FORMAT, name, value);
   }
 }
