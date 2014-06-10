@@ -322,8 +322,12 @@ public class TemplateManager {
       File aarRoot = new File(project.getBaseDir().getPath(), FileUtil.toSystemDependentName(EXPLODED_AAR_PATH));
       if (aarRoot.isDirectory()) {
         for (File artifactPackage : listFiles(aarRoot)) {
-          for (File artifactName : listFiles(artifactPackage)) {
-            templateDirectories.addAll(getHighestVersionedTemplateRoot(artifactName));
+          if (artifactPackage.isDirectory() && !artifactPackage.isHidden()) {
+            for (File artifactName : listFiles(artifactPackage)) {
+              if (artifactName.isDirectory() && !artifactName.isHidden()) {
+                templateDirectories.addAll(getHighestVersionedTemplateRoot(artifactName));
+              }
+            }
           }
         }
       }
@@ -337,8 +341,17 @@ public class TemplateManager {
     File highestVersionDir = null;
     FullRevision highestVersionNumber = null;
     for (File versionDir : listFiles(artifactNameRoot)) {
+      if (!versionDir.isDirectory() || versionDir.isHidden()) {
+        continue;
+      }
       // Find the highest version of this AAR
-      FullRevision revision = FullRevision.parseRevision(versionDir.getName());
+      FullRevision revision;
+      try {
+        revision = FullRevision.parseRevision(versionDir.getName());
+      } catch (NumberFormatException e) {
+        // Revision was not parse-able, consider it to be the lowest version revision
+        revision = FullRevision.NOT_SPECIFIED;
+      }
       if (highestVersionNumber == null || revision.compareTo(highestVersionNumber) > 0) {
         highestVersionNumber = revision;
         highestVersionDir = versionDir;
