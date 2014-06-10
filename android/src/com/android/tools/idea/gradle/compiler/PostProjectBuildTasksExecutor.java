@@ -63,8 +63,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.android.builder.model.AndroidProject.FD_GENERATED;
-import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
@@ -262,8 +260,7 @@ public class PostProjectBuildTasksExecutor {
       }
 
       for (File outputFolderPath : outputFolderPaths) {
-        String name = outputFolderPath.getName();
-        if (FD_GENERATED.equals(name) || EXCLUDED_OUTPUT_FOLDER_NAMES.contains(name)) {
+        if (!androidProject.shouldManuallyExclude(outputFolderPath)) {
           continue;
         }
         boolean alreadyExcluded = false;
