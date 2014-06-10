@@ -87,9 +87,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
    * @param presetParameters some parameter values may be predefined outside of this step.
    *                         User will not be allowed to change their values.
    */
-  public TemplateParameterStep2(Map<String, Object> presetParameters, @Nullable VirtualFile targetDirectory,
-                                @Nullable Disposable disposable) {
-    super("Choose options for your new file", null, AndroidIcons.Wizards.FormFactorPhoneTablet, disposable);
+  public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
+                                @Nullable VirtualFile targetDirectory, @Nullable Disposable disposable) {
+    super("Choose options for your new file", null, formFactor.getIcon(), disposable);
     myPresetParameters = presetParameters;
     myTargetDirectory = targetDirectory;
     myParameterToKey = CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(new ParameterKeyFunction()));
