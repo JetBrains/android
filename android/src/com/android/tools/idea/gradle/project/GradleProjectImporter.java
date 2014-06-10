@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
@@ -529,9 +530,8 @@ public class GradleProjectImporter {
 
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
-            File compilerOutputDir = new File(newProject.getBasePath(), FileUtil.join("build", "classes"));
-            String compilerOutputDirPath = FileUtil.toSystemIndependentName(compilerOutputDir.getPath());
-            String compilerOutputDirUrl = VfsUtilCore.pathToUrl(compilerOutputDirPath);
+            File compilerOutputDir = new File(newProject.getBasePath(), FileUtil.join(GradleUtil.BUILD_DIR_DEFAULT_NAME, "classes"));
+            String compilerOutputDirUrl = FilePaths.pathToIdeaUrl(compilerOutputDir);
             CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
             assert compilerProjectExt != null;
             compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
