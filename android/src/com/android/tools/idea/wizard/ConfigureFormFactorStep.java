@@ -26,6 +26,7 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -70,9 +71,13 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private List<AndroidTargetComboBoxItem> myTargets = Lists.newArrayList();
   private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
+  private Disposable myDisposable;
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
-    super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs", null, disposable);
+    super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs",
+          null, disposable);
+    myDisposable = disposable;
+    Disposer.register(disposable, myChooseApiLevelDialog.getDisposable());
     setBodyComponent(myPanel);
   }
 
@@ -85,6 +90,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       @Override
       public void mouseClicked(MouseEvent e) {
         myChooseApiLevelDialog = new ChooseApiLevelDialog(null, myState.get(getMinApiLevelKey(PHONE_AND_TABLET)));
+        Disposer.register(myDisposable, myChooseApiLevelDialog.getDisposable());
         myChooseApiLevelDialog.show();
         if (myChooseApiLevelDialog.isOK()) {
           int minApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
@@ -159,6 +165,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       c.setFill(GridConstraints.FILL_NONE);
       c.setAnchor(GridConstraints.ANCHOR_WEST);
       JCheckBox inclusionCheckBox = new JCheckBox(formFactor.id);
+      if (row == 0) {
+        myState.put(FormFactorUtils.getInclusionKey(formFactor), true);
+      }
       myFormFactorPanel.add(inclusionCheckBox, c);
       register(FormFactorUtils.getInclusionKey(formFactor), inclusionCheckBox);
       c.setRow(++row);

@@ -35,7 +35,9 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
   public static enum FormFactor {
-    PHONE_AND_TABLET("Phone and Tablet", AndroidIcons.Wizards.FormFactorPhoneTablet);
+    PHONE_AND_TABLET("Phone and Tablet", AndroidIcons.Wizards.FormFactorPhoneTablet),
+    WEAR("Wear", AndroidIcons.Wizards.FormFactorWear),
+    GLASS("Glass", AndroidIcons.Wizards.FormFactorGlass);
     
     public final String id;
     public final Icon icon;
