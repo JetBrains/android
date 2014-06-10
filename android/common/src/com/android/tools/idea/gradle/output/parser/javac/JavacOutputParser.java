@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.output.parser.javac;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
@@ -80,6 +81,12 @@ public class JavacOutputParser implements PatternAwareOutputParser {
           if (text.startsWith(WARNING_PREFIX)) {
             text = text.substring(WARNING_PREFIX.length()).trim();
             kind = GradleMessage.Kind.WARNING;
+          }
+
+          // Only slurp up line pointer (^) information if this is really javac
+          if (!file.getPath().endsWith(SdkConstants.DOT_JAVA)) {
+            // Fall back to the MergingExceptionParser (which handles similar messages in a more general way)
+            return false;
           }
 
           List<String> messageList = Lists.newArrayList();
