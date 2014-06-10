@@ -54,6 +54,9 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     for (IdeaSingleEntryLibraryDependency dependency : javaModel.getLibraryDependencies()) {
       updateDependency(model, dependency, errorsFound);
     }
+
+    List<String> unresolvedDependencies = javaModel.getUnresolvedDependencyNames();
+    reportUnresolvedDependencies(unresolvedDependencies, model.getProject());
   }
 
   private static void updateDependency(@NotNull ModifiableRootModel model,
