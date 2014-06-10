@@ -69,6 +69,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   public NewProjectWizardDynamic(@Nullable Project project, @Nullable Module module) {
     super(project, module, "New Project");
+    setTitle("Create New Project");
   }
 
   @Override
