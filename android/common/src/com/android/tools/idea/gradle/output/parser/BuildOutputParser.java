@@ -17,10 +17,7 @@ package com.android.tools.idea.gradle.output.parser;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.parser.aapt.AaptOutputParser;
-import com.android.tools.idea.gradle.output.parser.androidPlugin.DexExceptionParser;
-import com.android.tools.idea.gradle.output.parser.androidPlugin.ManifestMergeFailureParser;
-import com.android.tools.idea.gradle.output.parser.androidPlugin.MergingExceptionParser;
-import com.android.tools.idea.gradle.output.parser.androidPlugin.XmlValidationErrorParser;
+import com.android.tools.idea.gradle.output.parser.androidPlugin.*;
 import com.android.tools.idea.gradle.output.parser.javac.JavacOutputParser;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +30,9 @@ import java.util.List;
  */
 public class BuildOutputParser {
   private static final PatternAwareOutputParser[] PARSERS = {
-    new GradleOutputParser(), new AaptOutputParser(), new XmlValidationErrorParser(), new BuildFailureParser(),
-    new MergingExceptionParser(), new ManifestMergeFailureParser(), new DexExceptionParser(), new JavacOutputParser(),
+    new AndroidPluginOutputParser(), new GradleOutputParser(), new AaptOutputParser(), new XmlValidationErrorParser(),
+    new BuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser(), new DexExceptionParser(),
+    new JavacOutputParser()
   };
 
   /**
