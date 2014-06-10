@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -274,6 +276,8 @@ class GradleTasksExecutor extends Task.Backgroundable {
               CompilerWorkspaceConfiguration.getInstance(project).PARALLEL_COMPILATION) {
             commandLineArgs.add(PARALLEL_BUILD_OPTION);
           }
+
+          commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
 
           LOG.info("Build command line options: " + commandLineArgs);
 
