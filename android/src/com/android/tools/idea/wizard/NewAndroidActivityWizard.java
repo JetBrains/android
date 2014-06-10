@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.templates.Template;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +32,7 @@ import java.io.File;
 public final class NewAndroidActivityWizard extends DynamicWizard {
   @Nullable private final VirtualFile myTargetFile;
   @Nullable private final File myTemplate;
+  private AddAndroidActivityPath myPath;
 
   public NewAndroidActivityWizard(@NotNull Module module) {
     this(module, null, null);
@@ -44,9 +46,20 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
 
   @Override
   public void init() {
-    addPath(new AddAndroidActivityPath(myTargetFile, myTemplate, ImmutableMap.<String, Object>of(), getDisposable()));
+    myPath = new AddAndroidActivityPath(myTargetFile, myTemplate, ImmutableMap.<String, Object>of(), getDisposable());
+    addPath(myPath);
     super.init();
     getContentPanel().setPreferredSize(new Dimension(800, 640));
+  }
+
+  @Override
+  protected String getWizardActionDescription() {
+    return myPath.getActionDescription();
+  }
+
+  @Override
+  protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
+    return UndoConfirmationPolicy.REQUEST_CONFIRMATION;
   }
 
   @Override
