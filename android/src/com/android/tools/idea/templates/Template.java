@@ -997,7 +997,7 @@ public class Template {
    * @return virtual file object for the given path. It can never be null.
    */
   @NotNull
-  private static VirtualFile checkedCreateDirectoryIfMissing(@NotNull File directory) throws IOException {
+  public static VirtualFile checkedCreateDirectoryIfMissing(@NotNull File directory) throws IOException {
     VirtualFile dir = VfsUtil.createDirectoryIfMissing(directory.getAbsolutePath());
     if (dir == null) {
       throw new IOException("Unable to create " + directory.getAbsolutePath());
@@ -1025,6 +1025,7 @@ public class Template {
     com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(vf);
     if (document != null) {
       document.setText(contents);
+      FileDocumentManager.getInstance().saveDocument(document);
     }
     else {
       vf.setBinaryContent(contents.getBytes(Charsets.UTF_8), -1, -1, this);

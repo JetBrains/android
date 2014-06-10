@@ -22,11 +22,13 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +47,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
  * Module creation for a given form factor
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
+  private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
   private static final Key<Boolean> IS_LIBRARY_MODULE_KEY = createKey(ATTR_IS_LIBRARY_MODULE, PATH, Boolean.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
@@ -192,7 +195,13 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     if (projectLocation != null) {
       File projectRoot = new File(projectLocation);
       File moduleRoot = new File(projectRoot, myState.get(myModuleNameKey));
-      FileUtilRt.createDirectory(moduleRoot);
+      try {
+        Template.checkedCreateDirectoryIfMissing(moduleRoot);
+      }
+      catch (IOException e) {
+        LOG.error(e);
+        return false;
+      }
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
       template.render(projectRoot, moduleRoot, templateState);
