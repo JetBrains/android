@@ -114,11 +114,14 @@ class PrimaryManifestInfo extends ManifestInfo {
 
     // From manifest theme documentation:
     // "If that attribute is also not set, the default system theme is used."
-
-    int targetSdk = myTargetSdk.getApiLevel();
+    int targetSdk;
     AndroidModuleInfo info = AndroidModuleInfo.get(myModule);
     if (info != null) {
       targetSdk = info.getTargetSdkVersion().getApiLevel();
+    } else if (myTargetSdk != null) {
+      targetSdk = myTargetSdk.getApiLevel();
+    } else {
+      targetSdk = SdkVersionInfo.HIGHEST_KNOWN_API;
     }
     int renderingTargetSdk = targetSdk;
     if (renderingTarget instanceof CompatibilityRenderTarget) {
@@ -133,8 +136,7 @@ class PrimaryManifestInfo extends ManifestInfo {
     // add that new apiLevel to this check.
     if (apiLevel >= 11 && screenSize == ScreenSize.XLARGE || apiLevel >= 14) {
       return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo"; //$NON-NLS-1$
-    }
-    else {
+    } else {
       return ANDROID_STYLE_RESOURCE_PREFIX + "Theme"; //$NON-NLS-1$
     }
   }
