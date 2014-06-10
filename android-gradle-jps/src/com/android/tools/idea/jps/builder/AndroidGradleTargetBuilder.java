@@ -320,7 +320,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
       List<String> commandLineArgs = Lists.newArrayList();
       commandLineArgs.addAll(executionSettings.getCommandLineOptions());
-      commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
+      commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
 
       if (executionSettings.isParallelBuild() && !commandLineArgs.contains(PARALLEL_BUILD_OPTION)) {
         commandLineArgs.add(PARALLEL_BUILD_OPTION);
