@@ -172,14 +172,14 @@ class PrimaryManifestInfo extends ManifestInfo {
   @Override
   public AndroidVersion getTargetSdkVersion() {
     sync();
-    return myTargetSdk;
+    return myTargetSdk != null ? myTargetSdk : getMinSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
     sync();
-    return myMinSdk;
+    return myMinSdk != null ? myMinSdk : AndroidVersion.DEFAULT;
   }
 
   @NotNull

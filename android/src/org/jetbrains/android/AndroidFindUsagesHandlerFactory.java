@@ -137,7 +137,6 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       }
     }
     e = correctResourceElement(e);
-    assert e != null;
     if (e instanceof PsiFile) {
       // resource file
       PsiField[] fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)e, true);
