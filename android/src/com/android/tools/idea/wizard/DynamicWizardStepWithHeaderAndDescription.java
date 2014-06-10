@@ -53,6 +53,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
   @NotNull private final String myTitle;
   @Nullable private final String myMessage;
+  @Nullable private final Disposable myDisposable;
   private PropertyChangeListener myFocusListener;
   private JPanel myRootPane;
   private JBLabel myTitleLabel;
@@ -75,6 +76,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
                                                    @Nullable String message,
                                                    @Nullable Icon icon,
                                                    @Nullable Disposable parentDisposable) {
+    myDisposable = parentDisposable;
     if (parentDisposable != null) {
       Disposer.register(parentDisposable, this);
     }
@@ -178,5 +180,10 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   @Override
   public final JBLabel getMessageLabel() {
     return myErrorWarningLabel;
+  }
+
+  @Nullable
+  protected Disposable getDisposable() {
+    return myDisposable;
   }
 }
