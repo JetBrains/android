@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.gradle.output.parser;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
 * Indicates that an error occurred while parsing the output of a compiler.
 */
 public class ParsingFailedException extends Exception {
   public ParsingFailedException() {
+  }
+
+  public ParsingFailedException(@NotNull Throwable cause) {
+    super(cause);
   }
 }
