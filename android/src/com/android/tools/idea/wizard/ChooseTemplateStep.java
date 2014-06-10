@@ -194,7 +194,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
       return null;
     }
     int minSdk = metadata.getMinSdk();
-    Integer minApi = (Integer)templateState.get(ATTR_MIN_API);
+    Integer minApi = (Integer)templateState.get(ATTR_MIN_API_LEVEL);
     if (minApi != null && minSdk > minApi) {
       return String.format("The component %s has a minimum SDK level of %d.", metadata.getTitle(), minSdk);
     }
