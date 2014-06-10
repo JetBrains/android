@@ -174,7 +174,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
         @Override
         public void execute(@NotNull GradleInvocationResult result) {
-          success.set(result.getErrorCount() == 0);
+          success.set(result.isBuildSuccessful());
           gradleInvoker.removeAfterGradleInvocationTask(this);
           done.up();
         }
