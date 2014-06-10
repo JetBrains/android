@@ -1,10 +1,12 @@
 package org.jetbrains.android.uipreview;
 
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.AarResourceClassRegistry;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderClassLoader;
@@ -141,7 +143,8 @@ public final class ProjectClassLoader extends RenderClassLoader {
           // to the .APK file location:
           //noinspection ConstantConditions
           if (classesFolder == null) {
-            File file = mainArtifactInfo.getOutputFile();
+            AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifactInfo);
+            File file = output.getOutputFile();
             File buildFolder = file.getParentFile().getParentFile();
             classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
           }
