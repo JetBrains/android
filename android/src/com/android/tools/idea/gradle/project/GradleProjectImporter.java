@@ -579,6 +579,9 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
+    // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
+    project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
 
@@ -643,7 +646,6 @@ public class GradleProjectImporter {
   }
 
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
-    newProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
