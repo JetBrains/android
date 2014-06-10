@@ -76,6 +76,7 @@ public class LabelWithEditLink extends JPanel {
       myCardLayout.show(myCardPanel, EDIT);
       myEditLabel.setText(DONE_TEXT);
       myEditField.setText(myContentLabel.getText());
+      myEditField.requestFocusInWindow();
     }
     myInEditMode = !myInEditMode;
   }
