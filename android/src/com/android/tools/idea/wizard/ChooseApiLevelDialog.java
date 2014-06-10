@@ -53,21 +53,6 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   private JBLabel myLearnMoreLinkLabel;
   private int mySelectedApiLevel = -1;
 
-  public static class LaunchMe extends AnAction {
-
-    public LaunchMe() {
-      super("Launch Choose API Level Dialog");
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      final DataContext dataContext = e.getDataContext();
-      Project project = CommonDataKeys.PROJECT.getData(dataContext);
-      ChooseApiLevelDialog dialog = new ChooseApiLevelDialog(project, 16);
-      dialog.show();
-    }
-  }
-
   protected ChooseApiLevelDialog(@Nullable Project project, int selectedApiLevel) {
     super(project);
     mySelectedApiLevel = selectedApiLevel;
