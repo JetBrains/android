@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
@@ -40,9 +41,8 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntArrayList;
 import icons.AndroidIcons;
+import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.BooleanCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,6 +84,7 @@ public class DeviceChooser implements Disposable {
   private final Condition<IDevice> myFilter;
   private final AndroidVersion myMinSdkVersion;
   private final IAndroidTarget myProjectTarget;
+  private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
 
   private int[] mySelectedRows;
 
@@ -96,6 +97,7 @@ public class DeviceChooser implements Disposable {
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
     myProjectTarget = projectTarget;
+    myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
 
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
@@ -145,6 +147,20 @@ public class DeviceChooser implements Disposable {
 
     // Allow sorting by columns (in lexicographic order)
     myDeviceTable.setAutoCreateRowSorter(true);
+  }
+
+  private static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(List<UsesFeature> requiredFeatures) {
+    // Currently, this method is hardcoded to only search if the list of required features includes a watch.
+    // We may not want to search the device for every possible feature, but only a small subset of important
+    // features, starting with hardware type watch..
+
+    for (UsesFeature feature : requiredFeatures) {
+      if (UsesFeature.HARDWARE_TYPE_WATCH.equals(feature.getName().getStringValue())) {
+        return EnumSet.of(IDevice.HardwareFeature.WATCH);
+      }
+    }
+
+    return EnumSet.noneOf(IDevice.HardwareFeature.class);
   }
 
   private void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
@@ -360,8 +376,7 @@ public class DeviceChooser implements Disposable {
         case DEVICE_STATE_COLUMN_INDEX:
           return getDeviceState(device);
         case COMPATIBILITY_COLUMN_INDEX:
-          return LaunchCompatibility.canRunOnDevice(myMinSdkVersion, myProjectTarget, EnumSet.noneOf(IDevice.HardwareFeature.class), device,
-                                                    null);
+          return LaunchCompatibility.canRunOnDevice(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, device, null);
       }
       return null;
     }
