@@ -72,9 +72,14 @@ public class TemplateEntry {
     if (obj == null || obj.getClass() != getClass()) {
       return false;
     }
-    TemplateEntry another = (TemplateEntry)obj;
-    return Objects.equal(myTemplate, another.getTemplate()) &&
-           Objects.equal(getTitle(), another.getTitle());
+    else if (obj == this) {
+      return true;
+    }
+    else {
+      TemplateEntry another = (TemplateEntry)obj;
+      return Objects.equal(myTemplate, another.myTemplate) &&
+             Objects.equal(getTitle(), another.getTitle());
+    }
   }
 
   public Template getTemplate() {
