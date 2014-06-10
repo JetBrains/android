@@ -17,11 +17,9 @@ package com.android.tools.idea.wizard;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -46,6 +44,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
   private ASGallery<Optional<TemplateEntry>> myGallery;
+  private boolean myShownFirstTime = true;
 
   public ActivityGalleryStep(@NotNull FormFactorUtils.FormFactor formFactor, boolean showSkipEntry,
                              Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
@@ -67,7 +66,9 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
 
   private JComponent createGallery() {
     myGallery = new ASGallery<Optional<TemplateEntry>>();
-    myGallery.setThumbnailSize(new Dimension(192, 192));
+    Dimension thumbnailSize = new Dimension(192, 192);
+    myGallery.setThumbnailSize(thumbnailSize);
+    myGallery.setMinimumSize(new Dimension(thumbnailSize.width * 2 + 1, thumbnailSize.height));
     myGallery.setLabelProvider(new Function<Optional<TemplateEntry>, String>() {
       @Override
       public String apply(Optional<TemplateEntry> template) {
@@ -96,6 +97,18 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
 
   protected String getNoTemplateEntryName() {
     return "Add No Activity";
+  }
+
+  @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+
+    // First time page is shown, controls are narrow hence gallery assumes single column mode.
+    // We need to scroll up.
+    if (myShownFirstTime) {
+      myShownFirstTime = false;
+      myGallery.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
+    }
   }
 
   @Override
@@ -131,14 +144,14 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   @Override
   public void init() {
     super.init();
-    String formFactorName = myFormFactor == null ? null : myFormFactor.id;
+    String formFactorName = myFormFactor.id;
     TemplateListProvider templateListProvider = new TemplateListProvider(formFactorName, NewAndroidComponentAction.NEW_WIZARD_CATEGORIES,
                                                                          TemplateManager.EXCLUDED_TEMPLATES);
     TemplateEntry[] list = templateListProvider.deriveValue(myState, AddAndroidActivityPath.KEY_IS_LAUNCHER, null);
     myGallery.setModel(JBList.createDefaultListModel((Object[])wrapInOptionals(list)));
     myState.put(KEY_TEMPLATES, list);
     if (list.length > 0) {
-      myState.put(myCurrentSelectionKey, myShowSkipEntry ? null : list[0]);
+      myState.put(myCurrentSelectionKey, list[0]);
     }
     register(myCurrentSelectionKey, myGallery, new ComponentBinding<TemplateEntry, ASGallery<Optional<TemplateEntry>>>() {
       @Override
