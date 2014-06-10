@@ -59,7 +59,6 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
       if (formFactor != null && !formFactor.equalsIgnoreCase(metadata.getFormFactor())) {
         continue;
       }
-
       metadataList.add(new TemplateEntry(template, metadata));
     }
     Collections.sort(metadataList, new Comparator<TemplateEntry>() {
