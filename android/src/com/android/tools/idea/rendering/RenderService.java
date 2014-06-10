@@ -195,7 +195,13 @@ public class RenderService implements IImageFactory {
       return null;
     }
 
-    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, layoutLib);
+    Device device = configuration.getDevice();
+    if (device == null) {
+      logger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
+      return null;
+    }
+
+    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, layoutLib, device);
     if (renderContext != null) {
       service.setRenderContext(renderContext);
     }
@@ -211,7 +217,8 @@ public class RenderService implements IImageFactory {
                         @NotNull PsiFile psiFile,
                         @NotNull Configuration configuration,
                         @NotNull RenderLogger logger,
-                        @NotNull LayoutLibrary layoutLib) {
+                        @NotNull LayoutLibrary layoutLib,
+                        @NotNull Device device) {
     myModule = module;
     myLogger = logger;
     myLogger.setCredential(myCredential);
@@ -220,9 +227,6 @@ public class RenderService implements IImageFactory {
     }
     myPsiFile = (XmlFile)psiFile;
     myConfiguration = configuration;
-
-    Device device = configuration.getDevice();
-    assert device != null; // Should only attempt render with configuration that has device
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
