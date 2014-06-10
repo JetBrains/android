@@ -106,6 +106,13 @@ public class ResourceValue {
       else {
         result.myResourceType = resType;
       }
+
+      // @+drawable etc is invalid syntax, but if users write it in the editor, this can cause assertions
+      // don't the line, so proactively strip it out here.
+      if (result.myResourceType.startsWith("+") && !result.myResourceType.equals("+id")) {
+        result.myResourceType = result.myResourceType.substring(1);
+      }
+
       String suffix = value.substring(pos + 1);
       colonIndex = suffix.indexOf(':');
       if (colonIndex > 0) {
