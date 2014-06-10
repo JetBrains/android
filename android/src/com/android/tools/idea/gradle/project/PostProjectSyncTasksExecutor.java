@@ -19,10 +19,11 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.messages.navigatable.OpenAndroidSdkNavigatable;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -49,7 +50,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.Navigatable;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
@@ -353,10 +353,9 @@ public class PostProjectSyncTasksExecutor {
     if (sdkErrorCount > 0) {
       // If we have errors due to platforms not being installed, we add an extra message that prompts user to open Android SDK manager and
       // install any missing platforms.
-      Navigatable quickFix = new OpenAndroidSdkNavigatable(myProject);
-      String text = "Double-click here to open Android SDK Manager and install all missing platforms.";
-      Message quickFixMsg = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, quickFix, text);
-      messages.add(quickFixMsg);
+      String text = "Open Android SDK Manager and install all missing platforms.";
+      Message hint = new Message(FAILED_TO_SET_UP_SDK, Message.Type.INFO, AbstractNavigatable.NOT_NAVIGATABLE, text);
+      messages.add(hint, new OpenAndroidSdkManagerHyperlink());
     }
   }
 
