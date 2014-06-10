@@ -20,6 +20,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -27,8 +30,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.RecentsManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -37,11 +42,11 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -60,8 +65,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Integer> KEY_BUILD_SDK = createKey(TemplateMetadata.ATTR_BUILD_API, PATH, Integer.class);
   public static final Key<String> KEY_PACKAGE_NAME = createKey(TemplateMetadata.ATTR_PACKAGE_NAME, PATH, String.class);
   public static final Key<SourceProvider> KEY_SOURCE_PROVIDER = createKey("source.provider", PATH, SourceProvider.class);
+  public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PACKAGE_NAME);
+  public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS);
   private static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
-
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
 
   @Nullable private final ActivityGalleryStep myGalleryStep;
@@ -84,7 +90,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
                                 Disposable parentDisposable) {
     myTemplate = template;
     myIsNewModule = false;
-    myTargetFolder = targetFolder;
+    myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
     FormFactorUtils.FormFactor formFactor = getFormFactor(targetFolder);
     if (template == null) {
       myGalleryStep = new ActivityGalleryStep(formFactor, false, KEY_SELECTED_TEMPLATE, parentDisposable);
@@ -233,8 +239,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     return paths;
   }
 
-  // TODO: Should the package name be r/o if the action was executed on a folder?
-
   @Nullable
   private static String getJavaPath(File ioModuleDir, @Nullable File javaDir) {
     String javaPath = null;
@@ -245,6 +249,24 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       }
     }
     return javaPath;
+  }
+
+  public static List<String> getParameterValueHistory(@NotNull Parameter parameter, Project project) {
+    List<String> entries = RecentsManager.getInstance(project).getRecentEntries(getRecentHistoryKey(parameter.id));
+    return entries == null ? ImmutableList.<String>of() : entries;
+  }
+
+  public static String getRecentHistoryKey(@Nullable String parameter) {
+    return "android.template." + parameter;
+  }
+
+  public static void saveRecentValues(@NotNull Project project, @NotNull Map<String, Object> state) {
+    for (String id : Iterables.concat(PACKAGE_NAME_PARAMETERS, CLASS_NAME_PARAMETERS)) {
+      String value = (String)state.get(id);
+      if (!StringUtil.isEmpty(value)) {
+        RecentsManager.getInstance(project).registerRecentEntry(getRecentHistoryKey(id), value);
+      }
+    }
   }
 
   @Override
@@ -321,8 +343,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     if (moduleRoot == null) {
       return false;
     }
-    template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot,
-                    getTemplateParameterMap(templateEntry.getMetadata()), project);
+    Map<String, Object> parameterMap = getTemplateParameterMap(templateEntry.getMetadata());
+    saveRecentValues(project, parameterMap);
+    template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
     // TODO Assets support
     //if (myAssetSetStep.isStepVisible()) {
     //  myAssetSetStep.createAssets(myModule);
