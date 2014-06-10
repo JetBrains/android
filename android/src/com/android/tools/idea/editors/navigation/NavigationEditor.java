@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -245,9 +246,8 @@ public class NavigationEditor implements FileEditor {
       //combos.add(new JLabel(dirName));
       {
         final String phone = "phone";
-        final String phablet = "phablet";
         final String tablet = "tablet";
-        final ComboBox deviceSelector = new ComboBox(new Object[]{phone, phablet, tablet});
+        final ComboBox deviceSelector = new ComboBox(new Object[]{phone, tablet});
         final String portrait = "portrait";
         final String landscape = "landscape";
         final ComboBox orientationSelector = new ComboBox(new Object[]{portrait, landscape});
@@ -289,7 +289,13 @@ public class NavigationEditor implements FileEditor {
     {
       ActionManager actionManager = ActionManager.getInstance();
       ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
-      panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
+      panel.add(zoomToolBar.getComponent(), BorderLayout.WEST);
+      {
+        HyperlinkLabel label = new HyperlinkLabel();
+        label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
+        label.setHyperlinkText(" ", "?", " ");
+        panel.add(label, BorderLayout.EAST);
+      }
     }
 
     return panel;

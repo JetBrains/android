@@ -23,7 +23,6 @@
   <actions>
     <group id="Android.MainToolBarActionGroup">
       <separator/>
-      <reference id="Android.ShowNavigationEditor" />
       <reference id="Android.SyncProject" />
       <reference id="Android.RunAndroidAvdManager" />
       <reference id="Android.RunAndroidSdkManager" />
