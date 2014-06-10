@@ -269,7 +269,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   }
 
   @Override
-  protected void init() {
+  public void init() {
     super.init();
     if (myCurrentPath != null) {
       myCurrentPath.onPathStarted(true);

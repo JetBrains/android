@@ -64,10 +64,11 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
 
-  private final ActivityGalleryStep myGalleryStep;
+  @Nullable private final ActivityGalleryStep myGalleryStep;
   private final TemplateParameterStep2 myParameterStep;
   private final boolean myIsNewModule;
   private VirtualFile myTargetFolder;
+  @Nullable private File myTemplate;
 
   /**
    * Creates a new instance of the wizard path.
@@ -75,10 +76,22 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public AddAndroidActivityPath(@Nullable VirtualFile targetFolder,
                                 @NotNull Map<String, Object> predefinedParameterValues,
                                 @NotNull Disposable parentDisposable) {
+    this(targetFolder, null, predefinedParameterValues, parentDisposable);
+  }
+
+  public AddAndroidActivityPath(@Nullable VirtualFile targetFolder, @Nullable File template,
+                                Map<String, Object> predefinedParameterValues,
+                                Disposable parentDisposable) {
+    myTemplate = template;
     myIsNewModule = false;
     myTargetFolder = targetFolder;
-    myGalleryStep = new ActivityGalleryStep(null, AndroidIcons.Wizards.FormFactorPhoneTablet,
-                                            false, KEY_SELECTED_TEMPLATE, parentDisposable);
+    if (template == null) {
+      myGalleryStep = new ActivityGalleryStep(null, AndroidIcons.Wizards.FormFactorPhoneTablet,
+                                              false, KEY_SELECTED_TEMPLATE, parentDisposable);
+    }
+    else {
+      myGalleryStep = null;
+    }
     myParameterStep = new TemplateParameterStep2(predefinedParameterValues, myTargetFolder, parentDisposable);
   }
 
@@ -244,7 +257,15 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     myState.put(KEY_MIN_SDK, minSdkVersion);
     myState.put(KEY_PACKAGE_NAME, getInitialPackageName(module, facet));
     myState.put(KEY_OPEN_EDITORS, true);
-    addStep(myGalleryStep);
+    if (myGalleryStep != null) {
+      addStep(myGalleryStep);
+    }
+    else {
+      assert myTemplate != null;
+      TemplateMetadata templateMetadata = TemplateManager.getInstance().getTemplate(myTemplate);
+      assert templateMetadata != null;
+      myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
+    }
     addStep(myParameterStep);
 
     // TODO Assets support
@@ -289,13 +310,13 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     Module module = getModule();
     assert templateEntry != null;
     assert project != null && module != null;
-    Template template = Template.createFromPath(templateEntry.getTemplate());
+    Template template = templateEntry.getTemplate();
     File moduleRoot = getModuleRoot(module);
     if (moduleRoot == null) {
       return false;
     }
-    template
-      .render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, getTemplateParameterMap(templateEntry.getMetadata()), project);
+    template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot,
+                    getTemplateParameterMap(templateEntry.getMetadata()), project);
     // TODO Assets support
     //if (myAssetSetStep.isStepVisible()) {
     //  myAssetSetStep.createAssets(myModule);
