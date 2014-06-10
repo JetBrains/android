@@ -111,7 +111,7 @@ public class PostProjectSyncTasksExecutor {
       myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
     }
 
-    TemplateManager.getInstance().refreshDynamicTemplateMenu();
+    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
 
   private void ensureAllModulesHaveSdk() {
