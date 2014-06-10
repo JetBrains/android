@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -225,7 +226,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     for (IAndroidTarget target : targets) {
       highestApi = Math.max(highestApi, target.getVersion().getApiLevel());
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
-      if (target.getVersion().isPreview()) {
+      if (target.getVersion().isPreview() || target.getOptionalLibraries() != null && target.getOptionalLibraries().length > 0) {
         myTargets.add(targetInfo);
       }
     }
@@ -246,10 +247,17 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       Key<Integer> key = getMinApiLevelKey(formFactor);
       if (modified.contains(key)) {
         Integer minApi = myState.get(key);
-        myState.put(getMinApiKey(formFactor), minApi);
-        if (minApi != null) {
-          PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), minApi.toString());
+        if (minApi == null) {
+          continue;
         }
+        myState.put(getMinApiKey(formFactor), minApi);
+        AndroidVersion androidVersion = getAndroidVersion(minApi);
+        if (androidVersion != null) {
+          myState.put(getBuildApiKey(formFactor), getBuildApiString(androidVersion));
+        } else {
+          myState.put(getBuildApiKey(formFactor), Integer.toString(minApi));
+        }
+        PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), minApi.toString());
       }
       Boolean included = myState.get(getInclusionKey(formFactor));
       // Disable api selection for non-enabled form factors and check to see if only one is selected
@@ -263,6 +271,16 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       }
     }
     myState.put(NUM_ENABLED_FORM_FACTORS_KEY, enabledFormFactors);
+  }
+
+  @Nullable
+  private AndroidVersion getAndroidVersion(Integer api) {
+    for (AndroidTargetComboBoxItem comboBoxItem : myTargets) {
+      if (comboBoxItem.apiLevel == api && comboBoxItem.target != null) {
+        return comboBoxItem.target.getVersion();
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -340,6 +358,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     static String getLabel(@NotNull IAndroidTarget target) {
       if (target.isPlatform()
           && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
+        if (target.getVersion().isPreview()) {
+          return "API " + Integer.toString(target.getVersion().getApiLevel()) + "+: " + target.getName();
+        }
         String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
         if (name == null) {
           return "API " + Integer.toString(target.getVersion().getApiLevel());
@@ -354,7 +375,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     @NotNull
     private static Object getId(@NotNull IAndroidTarget target) {
       if (target.getVersion().isPreview()) {
-        return target.getVersion().getCodename();
+        String codename = target.getVersion().getCodename();
+        assert codename != null; // because isPreview()
+        return codename;
       } else {
         return target.getVersion().getApiLevel();
       }
