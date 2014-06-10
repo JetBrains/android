@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
   @NotNull private final String myTextToFind;
 
-  SearchInBuildFilesHyperlink(@NotNull final String textToFind) {
+  public SearchInBuildFilesHyperlink(@NotNull final String textToFind) {
     this("searchInBuildFiles", "Search in build.gradle files", textToFind);
   }
 
