@@ -217,7 +217,6 @@ public class IdeaAndroidProject implements Serializable {
   }
 
   /**
-<<<<<<< HEAD
    * Returns whether this project fully overrides the manifest package (with applicationId in the
    * default config or one of the product flavors) in the current variant.
    *
