@@ -319,7 +319,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     if (!myVisible) {
       return true;
     }
-    Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
+    Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API_LEVEL);
     Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
 
     for (String paramName : myParamFields.keySet()) {

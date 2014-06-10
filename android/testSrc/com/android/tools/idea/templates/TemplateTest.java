@@ -648,7 +648,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     TemplateWizardState values = createActivity ? projectValues.getActivityTemplateState() : templateValues;
     assertNotNull(values);
 
-    projectValues.put(ATTR_MIN_API, minSdk);
+    projectValues.put(ATTR_MIN_API, Integer.toString(minSdk));
     projectValues.put(ATTR_MIN_API_LEVEL, minSdk);
     projectValues.put(ATTR_TARGET_API, targetSdk);
     projectValues.put(ATTR_TARGET_API_STRING, Integer.toString(targetSdk));

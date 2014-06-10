@@ -265,7 +265,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_PROJECT_LOCATION, myProjectLocation);
     register(ATTR_APP_TITLE, myAppName);
     register(ATTR_PACKAGE_NAME, myPackageName);
-    register(ATTR_MIN_API, myMinSdk);
+    register(ATTR_MIN_API_LEVEL, myMinSdk);
     register(ATTR_TARGET_API, myTargetSdk);
     register(ATTR_BUILD_API, myCompileWith);
     register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
@@ -407,9 +407,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (item != null) {
       myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
       if (item.target != null) {
-        myTemplateState.put(ATTR_MIN_API, AndroidTargetComboBoxItem.getId(item.target));
+        myTemplateState.put(ATTR_MIN_API, item.target.getVersion().getApiString());
       } else {
-        myTemplateState.put(ATTR_MIN_API, item.apiLevel);
+        myTemplateState.put(ATTR_MIN_API, Integer.toString(item.apiLevel));
       }
     }
 
@@ -507,7 +507,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
-    Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API);
+    Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API_LEVEL);
     if (minSdk == null) {
       setErrorHtml("Select a minimum SDK version");
       return false;
