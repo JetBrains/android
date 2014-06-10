@@ -313,7 +313,6 @@ public class TemplateManager {
       if (myAarCache == null) {
         try {
           myAarCache = FileUtil.createTempDirectory(project.getName(), "aar_cache");
-          LOG.warn("Creating temp directory: " + myAarCache.getPath());
         }
         catch (IOException e) {
           LOG.error(e);
