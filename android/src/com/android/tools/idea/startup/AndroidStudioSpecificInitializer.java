@@ -132,8 +132,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       registerExperimentalActions();
     }
 
-    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
-
     try {
       // Setup JDK and Android SDK if necessary
       setupSdks();

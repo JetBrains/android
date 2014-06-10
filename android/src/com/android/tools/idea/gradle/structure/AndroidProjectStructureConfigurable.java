@@ -96,6 +96,15 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     return ServiceManager.getService(project, AndroidProjectStructureConfigurable.class);
   }
 
+  public boolean showDialogAndSelectSdksPage() {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        mySidePanel.selectSdk();
+      }
+    });
+  }
+
   public boolean showDialogAndSelect(@NotNull final Module module) {
     return doShowDialog(new Runnable() {
       @Override

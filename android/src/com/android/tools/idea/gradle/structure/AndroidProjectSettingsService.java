@@ -93,6 +93,11 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
     }
   }
 
+  public void openSdkSettings() {
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+    configurable.showDialogAndSelectSdksPage();
+  }
+
   @Override
   public boolean canOpenModuleLibrarySettings() {
     if (isGradleProjectInAndroidStudio()) {
