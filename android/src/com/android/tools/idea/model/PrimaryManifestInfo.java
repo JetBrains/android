@@ -321,6 +321,9 @@ class PrimaryManifestInfo extends ManifestInfo {
 
     @Nullable
     private XmlFile parseManifest() {
+      if (myVFile == null || !myVFile.exists()) {
+        return null;
+      }
       PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(myVFile);
       return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
     }

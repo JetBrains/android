@@ -385,4 +385,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
     return templateParameters;
   }
+
+  public String getActionDescription() {
+    TemplateEntry template = myState.get(KEY_SELECTED_TEMPLATE);
+    return String.format("Add %1$s", template == null ? "Template" : template.getTitle());
+  }
 }
