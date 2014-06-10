@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
-  private static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
+  public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
   private static final Set<String> EXCLUDED = ImmutableSet.of();
 
   private final String myTemplateCategory;

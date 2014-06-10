@@ -34,8 +34,16 @@ import java.util.*;
 class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]> {
   private final TemplateEntry[] myTemplates;
 
-  public TemplateListProvider(@Nullable String formFactor, @NotNull String category) {
-    myTemplates = getTemplateList(formFactor, category, Collections.<String>emptySet());
+  public TemplateListProvider(@Nullable String formFactor, @NotNull String category, @NotNull Set<String> excluded) {
+    myTemplates = getTemplateList(formFactor, category, excluded);
+  }
+
+  public TemplateListProvider(@Nullable String formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
+    ArrayList<TemplateEntry> templates = Lists.newArrayList();
+    for (String category : categories) {
+      templates.addAll(Arrays.asList(getTemplateList(formFactor, category, excluded)));
+    }
+    myTemplates = templates.toArray(new TemplateEntry[templates.size()]);
   }
 
   /**

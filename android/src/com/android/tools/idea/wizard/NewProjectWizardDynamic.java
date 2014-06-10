@@ -112,7 +112,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
     Window window = getWindow();
     if (window != null) {
-      window.setMaximumSize(new Dimension(1000, 800));
+      window.setPreferredSize(new Dimension(1000, 800));
     } else {
       assert ApplicationManager.getApplication().isUnitTestMode();
     }
