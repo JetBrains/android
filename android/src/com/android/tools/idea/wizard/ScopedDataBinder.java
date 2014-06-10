@@ -88,6 +88,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
           internalUpdateKey(key);
         }
       }
+      deriveValues(null);
     }
     else {
       myGuardedKeys.add(changedKey);
@@ -120,6 +121,11 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
       }
     }
 
+    deriveValues(changedKey);
+    myGuardedKeys.remove(changedKey);
+  }
+
+  private <T> void deriveValues(@Nullable Key<T> changedKey) {
     // Loop over our value derivers and call them if necessary
     for (Key key : myValueDerivers.keySet()) {
       // Don't derive values that have already been updated this round
@@ -131,19 +137,18 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
         }
         Set<Key<?>> triggerKeys = deriver.getTriggerKeys();
         // Respect the deriver's filter of triggers
-        if (triggerKeys != null && !triggerKeys.contains(changedKey)) {
+        if (changedKey != null && triggerKeys != null && !triggerKeys.contains(changedKey)) {
           continue;
         }
         deriveValue(key, deriver, changedKey);
       }
     }
-    myGuardedKeys.remove(changedKey);
   }
 
   /**
    * Use the given deriver to update the value associated with the given key.
    */
-  private <T> void deriveValue(Key<T> key, ValueDeriver<T> deriver, Key<?> changedKey) {
+  private <T> void deriveValue(@NotNull Key<T> key, @NotNull ValueDeriver<T> deriver, @Nullable Key<?> changedKey) {
     T currentValue = myState.get(key);
     T newValue = deriver.deriveValue(myState, changedKey, currentValue);
     // Catch issues missed by the compiler due to erasure
@@ -282,7 +287,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
      * after every update to the state store which meets the parameters set by the other functions in this class.
      */
     @Nullable
-    public abstract T deriveValue(ScopedStateStore state, Key changedKey, @Nullable T currentValue);
+    public abstract T deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable T currentValue);
   }
 
   /**
