@@ -40,7 +40,7 @@ public class AndroidPlugin implements ApplicationComponent {
   public static void createDynamicTemplateMenu() {
     DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
     newGroup.addSeparator();
-    final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu();
+    final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
 
     if (menu != null) {
       newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
