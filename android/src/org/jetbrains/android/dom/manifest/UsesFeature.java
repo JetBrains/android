@@ -23,6 +23,5 @@ public interface UsesFeature extends ManifestElementWithName {
   String HARDWARE_TYPE_WATCH = "android.hardware.type.watch";
 
   @Attribute("name")
-  @Required
   AndroidAttributeValue<String> getName();
 }
