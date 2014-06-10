@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -116,7 +117,7 @@ public class LayoutPsiPullParser extends LayoutPullParser {
 
   /** Use one of the {@link #create} factory methods instead */
   protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger) {
-    this(file.getRootTag(), logger);
+    this(AndroidPsiUtils.getRootTagSafely(file), logger);
   }
 
   protected LayoutPsiPullParser(@Nullable final XmlTag root, @NotNull RenderLogger logger) {
