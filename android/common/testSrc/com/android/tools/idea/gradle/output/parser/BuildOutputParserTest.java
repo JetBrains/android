@@ -1789,6 +1789,22 @@ public class BuildOutputParserTest extends TestCase {
     sourceFile.delete();
   }
 
+  public void testNewManifestMergeError() throws Exception {
+    createTempFile(DOT_XML);
+    String output =
+      sourceFilePath + ":50:4 Warning:\n" +
+      "\tElement intent-filter#android.intent.action.VIEW+android.intent.category.DEFAULT at AndroidManifest.xml:50:4 duplicated with element declared at AndroidManifest.xml:45:4\n" +
+      "C:\\foo:62:4 Error:\n" +
+      "\tElement intent-filter#android.intent.action.VIEW+android.intent.category.DEFAULT at AndroidManifest.xml:62:4 duplicated with element declared at AndroidManifest.xml:50:4\n" +
+      sourceFilePath + ":0:0 Error:\n" +
+      "\tValidation failed, exiting\n";
+    assertEquals("0: Warning:Element intent-filter#android.intent.action.VIEW+android.intent.category.DEFAULT at AndroidManifest.xml:50:4 duplicated with element declared at AndroidManifest.xml:45:4\n" +
+                 "\t" + sourceFilePath + ":50:4\n" +
+                 "1: Error:Element intent-filter#android.intent.action.VIEW+android.intent.category.DEFAULT at AndroidManifest.xml:62:4 duplicated with element declared at AndroidManifest.xml:50:4\n" +
+                 "\tC:\\foo:62:4\n",
+                 toString(parser.parseGradleOutput(output)));
+  }
+
   public void testManifestMergeError() throws Exception {
     createTempFile(DOT_XML);
     String output =
