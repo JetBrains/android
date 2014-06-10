@@ -26,7 +26,6 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
@@ -72,7 +71,7 @@ public class DeviceChooser implements Disposable {
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
   private final List<DeviceChooserListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-  private final Alarm myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD);
+  private final Alarm myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.SHARED_THREAD);
 
   private volatile boolean myProcessSelectionFlag = true;
   private IDevice[] myOldDevices = EMPTY_DEVICE_ARRAY;
@@ -147,6 +146,8 @@ public class DeviceChooser implements Disposable {
 
     // Allow sorting by columns (in lexicographic order)
     myDeviceTable.setAutoCreateRowSorter(true);
+
+    myRefreshingAlarm.setActivationComponent(myPanel);
   }
 
   private static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(List<UsesFeature> requiredFeatures) {
@@ -186,13 +187,13 @@ public class DeviceChooser implements Disposable {
       return;
     }
     myRefreshingAlarm.cancelAllRequests();
-    myRefreshingAlarm.addRequest(new Runnable() {
+    myRefreshingAlarm.addComponentRequest(new Runnable() {
       @Override
       public void run() {
         updateTable();
         addUpdatingRequest();
       }
-    }, 500, ModalityState.stateForComponent(myPanel));
+    }, 500);
   }
 
   private void resetSelection(@NotNull String[] selectedSerials) {
