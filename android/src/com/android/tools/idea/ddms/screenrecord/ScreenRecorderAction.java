@@ -30,7 +30,6 @@ import com.intellij.openapi.fileTypes.NativeFileType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -190,20 +189,34 @@ public class ScreenRecorderAction {
       }
     }
 
+    // Tries to open the file at myLocalPath
+    private void openSavedFile() {
+      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(myLocalPath);
+      if (file != null) {
+        NativeFileType.openAssociatedApplication(file);
+      }
+    }
+
     @Override
     public void onSuccess() {
       assert myProject != null;
-      int exitCode = Messages.showYesNoCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open" /* Yes text */,
-              "Show in files" /* No text */, CommonBundle.getOkButtonText() /* Cancel text */, Messages.getInformationIcon());
-      if (exitCode == Messages.YES) {
-        VirtualFile file = LocalFileSystem.getInstance().findFileByPath(myLocalPath);
-        if (file != null) {
-          NativeFileType.openAssociatedApplication(file);
+
+      if (ShowFilePathAction.isSupported()) {
+        int exitCode = Messages.showYesNoCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open" /* Yes text */,
+                                                      "Show in " + ShowFilePathAction.getFileManagerName() /* No text */,
+                                                      CommonBundle.getOkButtonText() /* Cancel text */, Messages.getInformationIcon());
+
+        if (exitCode == Messages.YES) {
+          openSavedFile();
+        }
+        else if (exitCode == Messages.NO) {
+          ShowFilePathAction.openFile(new File(myLocalPath));
         }
       }
-      else if (exitCode == Messages.NO) {
-        File file = new File(myLocalPath);
-        ShowFilePathAction.openFile(file);
+      else if (Messages.showOkCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open File" /* Ok text */,
+                                           CommonBundle.getOkButtonText() /* cancel text */, Messages.getInformationIcon()) ==
+               Messages.OK) {
+        openSavedFile();
       }
     }
   }
