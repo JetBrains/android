@@ -146,7 +146,7 @@ public class ProjectValidator {
             }
           }
         }
-        myMessages.add(new Message(GROUP_NAME, convertSeverity(severity), virtualFile, line, column, message));
+        myMessages.add(new Message(myProject, GROUP_NAME, convertSeverity(severity), virtualFile, line, column, message));
       } else {
         myMessages.add(new Message(GROUP_NAME, convertSeverity(severity), message));
       }
