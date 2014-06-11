@@ -169,7 +169,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     // We need to remove the exclusion to the top-level "build" folder, which is now used by the Android Gradle plug-in 0.10.+ to store
     // common libraries.
-    for (DataNode<ContentRootData> contentRootNode : ExternalSystemApiUtil.getChildren(ideModule, ProjectKeys.CONTENT_ROOT)) {
+    Collection<DataNode<ContentRootData>> contentRootNodes = ExternalSystemApiUtil.getChildren(ideModule, ProjectKeys.CONTENT_ROOT);
+    for (DataNode<ContentRootData> contentRootNode : contentRootNodes) {
       ContentRootData contentRoot = contentRootNode.getData();
       Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getRoots(ExternalSystemSourceType.EXCLUDED);
       for (ContentRootData.SourceRoot root : excludedRoots) {
@@ -190,6 +191,26 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (buildFolderRoot != null) {
         excludedRoots.remove(buildFolderRoot);
         break;
+      }
+    }
+
+    if (buildFolderRoot == null && contentRootNodes.size() == 1) {
+      // If we got here is because the user changed the default location of the "build" folder. We try our best to guess it.
+      DataNode<ContentRootData> contentRootNode = ContainerUtil.getFirstItem(contentRootNodes);
+      if (contentRootNode != null) {
+        ContentRootData contentRoot = contentRootNode.getData();
+        Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getRoots(ExternalSystemSourceType.EXCLUDED);
+        if (excludedRoots.size() == 2) {
+          // If there are 2 excluded folders, one is .gradle and the other one is build folder.
+          List<ContentRootData.SourceRoot> roots = Lists.newArrayList(excludedRoots);
+          ContentRootData.SourceRoot sourceRoot = roots.get(0);
+          File rootPath = new File(sourceRoot.getPath());
+          buildFolderRoot = SdkConstants.DOT_GRADLE.equals(rootPath.getName()) ? roots.get(1) : sourceRoot;
+        }
+
+        if (buildFolderRoot != null) {
+          excludedRoots.remove(buildFolderRoot);
+        }
       }
     }
 
