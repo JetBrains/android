@@ -28,7 +28,6 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.idea.maven.compiler.MavenResourceCompiler;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenResource;
 import org.jetbrains.idea.maven.project.MavenProject;
@@ -38,6 +37,7 @@ import org.jetbrains.idea.maven.utils.MavenUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -87,8 +87,8 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
         VirtualFile resDir = LocalFileSystem.getInstance().findFileByPath(resource.getDirectory());
         if (resDir == null) continue;
 
-        List<Pattern> includes = MavenResourceCompiler.collectPatterns(resource.getIncludes(), "**/*");
-        List<Pattern> excludes = MavenResourceCompiler.collectPatterns(resource.getExcludes(), null);
+        List<Pattern> includes = collectPatterns(resource.getIncludes(), "**/*");
+        List<Pattern> excludes = collectPatterns(resource.getExcludes(), null);
         final String resourceTargetPath = resource.getTargetPath();
         if (resourceTargetPath != null) {
           String targetPath = FileUtil.toSystemIndependentName(resourceTargetPath);
@@ -100,6 +100,18 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
       }
     }
     return false;
+  }
+
+  private static List<Pattern> collectPatterns(@Nullable List<String> values, @Nullable String defaultValue) {
+    List<Pattern> result = new ArrayList<Pattern>();
+    if (values == null || values.isEmpty()) {
+      if (defaultValue == null) return Collections.emptyList();
+      return MavenUtil.collectPattern(defaultValue, result);
+    }
+    for (String each : values) {
+      MavenUtil.collectPattern(each, result);
+    }
+    return result;
   }
 
   static boolean processResources(Project project,

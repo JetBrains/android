@@ -45,11 +45,19 @@ public class AndroidAnimationDomTest extends AndroidDomTest {
     toTestCompletion("root.xml", "root_after.xml");
   }
 
+  public void testRootCompletion1() throws Throwable {
+    toTestCompletion("root1.xml", "root1_after.xml");
+  }
+
   public void testHighlighting() throws Throwable {
     doTestHighlighting("hl.xml");
   }
 
   public void testChildren() throws Throwable {
     toTestCompletion("tn.xml", "tn_after.xml");
+  }
+
+  public void testChildren1() throws Throwable {
+    toTestCompletion("tn1.xml", "tn1_after.xml");
   }
 }

@@ -6,10 +6,12 @@ import com.intellij.facet.pointers.FacetPointersManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ArtifactType;
-import com.intellij.packaging.elements.*;
+import com.intellij.packaging.elements.AntCopyInstructionCreator;
+import com.intellij.packaging.elements.ArtifactAntGenerationContext;
+import com.intellij.packaging.elements.PackagingElement;
+import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.elements.FacetBasedPackagingElement;
 import com.intellij.packaging.impl.elements.ModuleOutputPackagingElement;
 import com.intellij.packaging.impl.ui.DelegatedPackagingElementPresentation;
@@ -79,20 +81,6 @@ public class AndroidFinalPackageElement extends PackagingElement<AndroidFinalPac
       return Collections.singletonList(creator.createExtractedDirectoryInstruction(apkPath));
     }
     return Collections.emptyList();
-  }
-
-  @Override
-  public void computeIncrementalCompilerInstructions(@NotNull IncrementalCompilerInstructionCreator creator,
-                                                     @NotNull PackagingElementResolvingContext resolvingContext,
-                                                     @NotNull ArtifactIncrementalCompilerContext compilerContext,
-                                                     @NotNull ArtifactType artifactType) {
-    final String apkPath = getApkPath();
-    if (apkPath != null) {
-      final VirtualFile apk = JarFileSystem.getInstance().findFileByPath(apkPath);
-      if (apk != null && apk.isValid() && apk.isDirectory()) {
-        creator.addDirectoryCopyInstructions(apk);
-      }
-    }
   }
 
   @Nullable
