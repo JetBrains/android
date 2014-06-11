@@ -30,6 +30,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.ide.impl.NewProjectUtil;
+import com.intellij.openapi.application.RunResult;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -38,8 +40,6 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationCate
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -68,7 +68,6 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   public AndroidProjectDataService() {
-    //noinspection TestOnlyProblems
     this(ImmutableList.of(new AndroidSdkModuleCustomizer(), new AndroidFacetModuleCustomizer(), new ContentRootModuleCustomizer(),
                           new RunConfigModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer()));
   }
@@ -92,15 +91,13 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
    * @param synchronous indicates whether this operation is synchronous.
    */
   @Override
-  public void importData(@NotNull Collection<DataNode<IdeaAndroidProject>> toImport,
-                         @NotNull Project project,
-                         boolean synchronous) {
+  public void importData(@NotNull Collection<DataNode<IdeaAndroidProject>> toImport, @NotNull Project project, boolean synchronous) {
     if (!toImport.isEmpty()) {
       try {
-        doImport(toImport, project, synchronous);
+        doImport(toImport, project);
       }
-      catch (RuntimeException e) {
-        LOG.info(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
+      catch (Throwable e) {
+        LOG.error(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
         GradleSyncState.getInstance(project).syncFailed(e.getMessage());
         return;
       }
@@ -109,10 +106,10 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
     PostProjectSyncTasksExecutor.getInstance(project).onProjectSetupCompletion();
   }
 
-  private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project, boolean synchronous) {
-    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
+  private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project) throws Throwable {
+    RunResult result = new WriteCommandAction.Simple(project) {
       @Override
-      public void execute() {
+      protected void run() throws Throwable {
         LanguageLevel javaLangVersion = null;
 
         ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
@@ -168,7 +165,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
           }
         }
       }
-    });
+    }.execute();
+    Throwable error = result.getThrowable();
+    if (error != null) {
+      throw error;
+    }
   }
 
   @NotNull
