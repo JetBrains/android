@@ -37,7 +37,6 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.android.compiler.AndroidAptCompiler;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -215,18 +214,16 @@ public class AndroidResourceFilesListener extends BulkFileListener.Adapter imple
       final List<AndroidAutogeneratorMode> modes = new ArrayList<AndroidAutogeneratorMode>();
 
       if (Comparing.equal(manifestFile, file)) {
-        if (AndroidAptCompiler.isToCompileModule(module, facet.getConfiguration())) {
-          final Manifest manifest = facet.getManifest();
-          final String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
-          final String cachedPackage = facet.getUserData(CACHED_PACKAGE_KEY);
+        final Manifest manifest = facet.getManifest();
+        final String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
+        final String cachedPackage = facet.getUserData(CACHED_PACKAGE_KEY);
 
-          if (cachedPackage != null && !cachedPackage.equals(aPackage)) {
-            String aptGenDirPath = AndroidRootUtil.getAptGenSourceRootPath(facet);
-            AndroidCompileUtil.removeDuplicatingClasses(module, cachedPackage, AndroidUtils.R_CLASS_NAME, null, aptGenDirPath);
-          }
-          facet.putUserData(CACHED_PACKAGE_KEY, aPackage);
-          modes.add(AndroidAutogeneratorMode.AAPT);
+        if (cachedPackage != null && !cachedPackage.equals(aPackage)) {
+          String aptGenDirPath = AndroidRootUtil.getAptGenSourceRootPath(facet);
+          AndroidCompileUtil.removeDuplicatingClasses(module, cachedPackage, AndroidUtils.R_CLASS_NAME, null, aptGenDirPath);
         }
+        facet.putUserData(CACHED_PACKAGE_KEY, aPackage);
+        modes.add(AndroidAutogeneratorMode.AAPT);
         modes.add(AndroidAutogeneratorMode.BUILDCONFIG);
       }
       else if (file.getFileType() == AndroidIdlFileType.ourFileType) {

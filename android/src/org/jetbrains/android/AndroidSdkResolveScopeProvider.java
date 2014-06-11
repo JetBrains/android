@@ -11,7 +11,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.augment.AndroidInternalRClass;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -37,19 +36,6 @@ public class AndroidSdkResolveScopeProvider extends SdkResolveScopeProvider {
     private MyJdkScope(Project project, @NotNull JdkOrderEntry jdkOrderEntry) {
       super(project, jdkOrderEntry);
       mySdk = jdkOrderEntry.getJdk();
-    }
-
-    @Nullable
-    @Override
-    protected VirtualFile getFileRoot(@NotNull VirtualFile file) {
-      final VirtualFile resultFromSuper = super.getFileRoot(file);
-
-      if (resultFromSuper != null) {
-        return resultFromSuper;
-      }
-      return myIndex.isInLibrarySource(file)
-             ? myIndex.getSourceRootForFile(file)
-             : null;
     }
 
     @Override

@@ -15,13 +15,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.ReadonlyStatusHandler;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
@@ -62,7 +60,6 @@ public class AndroidAutogenerator {
     }
     switch (mode) {
       case AAPT:
-        return AndroidAptCompiler.isToCompileModule(facet.getModule(), facet.getConfiguration());
       case AIDL:
       case RENDERSCRIPT:
       case BUILDCONFIG:
@@ -487,7 +484,7 @@ public class AndroidAutogenerator {
             return null;
           }
 
-          final VirtualFile[] sourceRoots = AndroidPackagingCompiler.getSourceRootsForModuleAndDependencies(module, false);
+          final VirtualFile[] sourceRoots = getSourceRootsForModuleAndDependencies(module, false);
           final String[] sourceRootOsPaths = AndroidCompileUtil.toOsPaths(sourceRoots);
 
           final String outFileOsPath = FileUtil.toSystemDependentName(
@@ -618,7 +615,7 @@ public class AndroidAutogenerator {
         final VirtualFile vTempOutDir = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(tempOutDir);
 
         final String depFolderPath =
-          vTempOutDir != null ? AndroidRenderscriptCompiler.getDependencyFolder(context.getProject(), file, vTempOutDir) : null;
+          vTempOutDir != null ? getDependencyFolder(context.getProject(), file, vTempOutDir) : null;
 
         final Map<CompilerMessageCategory, List<String>> messages = AndroidCompileUtil.toCompilerMessageCategoryKeys(
           AndroidRenderscript
@@ -717,6 +714,61 @@ public class AndroidAutogenerator {
         }
       });
     }
+  }
+
+  private static void fillSourceRoots(@NotNull Module module,
+                                      @NotNull Set<Module> visited,
+                                      @NotNull Set<VirtualFile> result,
+                                      boolean includingTests) {
+    visited.add(module);
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    VirtualFile resDir = facet != null ? AndroidRootUtil.getResourceDir(facet) : null;
+    ModuleRootManager manager = ModuleRootManager.getInstance(module);
+    for (VirtualFile sourceRoot : manager.getSourceRoots(includingTests)) {
+      if (!Comparing.equal(resDir, sourceRoot)) {
+        result.add(sourceRoot);
+      }
+    }
+    for (OrderEntry entry : manager.getOrderEntries()) {
+      if (entry instanceof ModuleOrderEntry) {
+        ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)entry;
+        DependencyScope scope = moduleOrderEntry.getScope();
+        if (scope == DependencyScope.COMPILE) {
+          Module depModule = moduleOrderEntry.getModule();
+          if (depModule != null && !visited.contains(depModule)) {
+            fillSourceRoots(depModule, visited, result, false);
+          }
+        }
+      }
+    }
+  }
+
+  @NotNull
+  public static VirtualFile[] getSourceRootsForModuleAndDependencies(@NotNull Module module, boolean includingTests) {
+    Set<VirtualFile> result = new HashSet<VirtualFile>();
+    fillSourceRoots(module, new HashSet<Module>(), result, includingTests);
+    return VfsUtil.toVirtualFileArray(result);
+  }
+
+  @Nullable
+  static String getDependencyFolder(@NotNull final Project project,
+                                    @NotNull final VirtualFile sourceFile,
+                                    @NotNull final VirtualFile genFolder) {
+    final ProjectFileIndex index = ProjectRootManager.getInstance(project).getFileIndex();
+
+    final VirtualFile sourceRoot = index.getSourceRootForFile(sourceFile);
+    if (sourceRoot == null) {
+      return null;
+    }
+
+    final VirtualFile parent = sourceFile.getParent();
+    if (Comparing.equal(parent, sourceRoot)) {
+      return genFolder.getPath();
+    }
+
+    final String relativePath = VfsUtilCore.getRelativePath(sourceFile.getParent(), sourceRoot, '/');
+    assert relativePath != null;
+    return genFolder.getPath() + '/' + relativePath;
   }
 
   private static class AptAutogenerationItem {

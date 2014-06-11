@@ -35,7 +35,7 @@ public class AndroidBuildTargetScopeProvider extends BuildTargetScopeProvider {
         return true;
       }
     }
-    final String proguardCfgPathsStr = scope.getUserData(AndroidProguardCompiler.PROGUARD_CFG_PATHS_KEY);
+    final String proguardCfgPathsStr = scope.getUserData(AndroidCompileUtil.PROGUARD_CFG_PATHS_KEY);
     if (proguardCfgPathsStr != null && proguardCfgPathsStr.length() > 0) {
       return true;
     }
