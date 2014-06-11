@@ -29,7 +29,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
-import org.jetbrains.android.compiler.AndroidProguardCompiler;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -253,7 +252,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
           throw new CommitStepException("Cannot find file " + path);
         }
       }
-      compileScope.putUserData(AndroidProguardCompiler.PROGUARD_CFG_PATHS_KEY, proguardPathsStr);
+      compileScope.putUserData(AndroidCompileUtil.PROGUARD_CFG_PATHS_KEY, proguardPathsStr);
     }
     myWizard.setCompileScope(compileScope);
     myWizard.setApkPath(apkPath);

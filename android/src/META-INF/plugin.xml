@@ -1,4 +1,4 @@
-<idea-plugin version="2" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin version="2">
   <name>Android Support</name>
   <id>org.jetbrains.android</id>
   <description>
@@ -213,19 +213,6 @@
 
     <projectTemplatesFactory implementation="com.android.tools.idea.wizard.TemplateWizardProjectTemplateFactory"/>
     <projectTemplatesFactory implementation="org.jetbrains.android.newProject.AndroidProjectTemplatesFactory"/>
-
-    <compiler implementation="org.jetbrains.android.compiler.AndroidIncludingCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidRenderscriptCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidBuildConfigGeneratingCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidAptCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidIdlCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidLibraryPackagingCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidProguardCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidDexCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidPngFilesCachingCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidResourcesPackagingCompiler"/>
-    <compiler implementation="org.jetbrains.android.compiler.AndroidPackagingCompiler"/>
-    <compiler.makeDependencyProcessor implementation="org.jetbrains.android.compiler.AndroidDependencyProcessor"/>
 
     <completion.contributor language="XML" implementationClass="org.jetbrains.android.AndroidCompletionContributor"
                             id="compositieAttributeValues" order="first"/>
@@ -576,7 +563,7 @@
     <editorNotificationProvider implementation="org.jetbrains.android.projectView.ResourceQualifierSwitcher"/>
     -->
 
-    <treeStructureProvider implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" order="last"/>
+    <treeStructureProvider id="android" implementation="com.android.tools.idea.gradle.projectView.AndroidTreeStructureProvider" order="last"/>
     <treeStructureProvider implementation="com.android.tools.idea.navigator.packageview.AndroidPackageViewProvider" order="last"/>
 
     <spellchecker.bundledDictionaryProvider implementation="org.jetbrains.android.spellchecker.AndroidBundledDictionaryProvider"/>

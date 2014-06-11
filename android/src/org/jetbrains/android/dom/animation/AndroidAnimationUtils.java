@@ -42,7 +42,8 @@ public class AndroidAnimationUtils {
   private AndroidAnimationUtils() {
   }
 
-  private static final String[] TAG_NAMES = {"set", "alpha", "scale", "translate", "rotate", "layoutAnimation", "gridLayoutAnimation"};
+  private static final String[] TAG_NAMES = {"set", "alpha", "scale", "translate",
+    "rotate", "layoutAnimation","gridLayoutAnimation", "animation-list"};
 
   public static String getStyleableNameByTagName(@NotNull String tagName) {
     if (tagName.equals("set")) {
