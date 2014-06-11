@@ -78,6 +78,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGetInstanceInspection extends AndroidLintInspectionBase {
+    public AndroidLintGetInstanceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.get.instance"), CipherGetInstanceDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintGifUsageInspection extends AndroidLintInspectionBase {
     public AndroidLintGifUsageInspection() {
       super(AndroidBundle.message("android.lint.inspections.gif.usage"), IconDetector.GIF_USAGE);
@@ -924,6 +930,11 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintExportedContentProviderInspection extends AndroidLintInspectionBase {
     public AndroidLintExportedContentProviderInspection() {
       super(AndroidBundle.message("android.lint.inspections.exported.content.provider"), SecurityDetector.EXPORTED_PROVIDER);
+    }
+  }
+  public static class AndroidLintExportedPreferenceActivityInspection extends AndroidLintInspectionBase {
+    public AndroidLintExportedPreferenceActivityInspection() {
+      super(AndroidBundle.message("android.lint.inspections.exported.preference.activity"), PreferenceActivityDetector.ISSUE);
     }
   }
   public static class AndroidLintExportedReceiverInspection extends AndroidLintInspectionBase {
