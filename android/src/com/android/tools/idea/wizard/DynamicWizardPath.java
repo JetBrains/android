@@ -96,9 +96,6 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    */
   protected final void addStep(@NotNull DynamicWizardStep step) {
     mySteps.add(step);
-    if (mySteps.size() == 1) {
-      myCurrentStep = mySteps.get(0);
-    }
     step.attachToPath(this);
   }
 
