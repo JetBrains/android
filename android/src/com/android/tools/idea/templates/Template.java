@@ -982,7 +982,7 @@ public class Template {
     else {
       VirtualFile targetDir = dest;
       if (relativePath.indexOf(File.separatorChar) > 0) {
-        String directories = relativePath.substring(0, relativePath.lastIndexOf("/"));
+        String directories = relativePath.substring(0, relativePath.lastIndexOf(File.separatorChar));
         File newParent = new File(destinationFile, directories);
         targetDir = checkedCreateDirectoryIfMissing(newParent);
       }
