@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -25,20 +26,28 @@ import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.structure.AndroidModuleConfigurable;
 import com.android.tools.idea.structure.AndroidProjectConfigurable;
 import com.google.common.collect.Lists;
+import com.intellij.CommonBundle;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.RunResult;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.*;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.ListItemDescriptor;
 import com.intellij.openapi.util.Disposer;
@@ -51,6 +60,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.popup.list.GroupedItemsListRenderer;
 import com.intellij.util.IconUtil;
+import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.messages.MessageBusConnection;
@@ -74,6 +84,9 @@ import java.util.List;
 public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable,
                                                                                      ConfigurableHost {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
+
+  private static final Logger LOG = Logger.getInstance(AndroidProjectStructureConfigurable.class);
+
   @NotNull private final Project myProject;
   @NotNull private final Disposable myDisposable;
 
@@ -88,6 +101,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @NotNull private final DefaultSdksConfigurable mySdksConfigurable = new DefaultSdksConfigurable(this);
   @NotNull private final List<Configurable> myConfigurables = Lists.newLinkedList();
+
+  private final GradleSettingsFile mySettingsFile;
 
   private JComponent myToFocus;
 
@@ -130,6 +145,8 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     if (!project.isDefault()) {
       myConfigurables.add(new AndroidProjectConfigurable(project));
     }
+
+    mySettingsFile = GradleSettingsFile.get(project);
 
     myDisposable = new Disposable() {
       @Override
@@ -473,7 +490,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         public Icon getIconFor(Object value) {
           if (value instanceof AndroidModuleConfigurable) {
             Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
-            return GradleUtil.getModuleIcon(module);
+            return module.isDisposed() ? AllIcons.Nodes.Module : GradleUtil.getModuleIcon(module);
           }
           return null;
         }
@@ -510,6 +527,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       if (!myProject.isDefault()) {
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(createAddAction());
+        group.add(new DeleteModuleAction(this));
         JComponent toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
         add(toolbar, BorderLayout.NORTH);
       }
@@ -535,6 +553,16 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         action.registerCustomShortcutSet(new CustomShortcutSet(shortcuts), this);
       }
       return action;
+    }
+
+    private int getModuleCount() {
+      int count = 0;
+      for (Configurable configurable : myConfigurables) {
+        if (configurable instanceof AndroidModuleConfigurable) {
+          count++;
+        }
+      }
+      return count;
     }
 
     @Override
@@ -587,6 +615,102 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(project);
       propertiesComponent.setValue(ANDROID_PROJECT_STRUCTURE_LAST_SELECTED_PROPERTY, lastSelectedConfigurable);
       propertiesComponent.setValue(ANDROID_PROJECT_STRUCTURE_PROPORTION_PROPERTY, String.valueOf(proportion));
+    }
+  }
+
+  private class DeleteModuleAction extends DumbAwareAction {
+    @NotNull private final SidePanel mySidePanel;
+
+    DeleteModuleAction(@NotNull SidePanel sidePanel) {
+      super(CommonBundle.message("button.delete"), CommonBundle.message("button.delete"), PlatformIcons.DELETE_ICON);
+      mySidePanel = sidePanel;
+      registerCustomShortcutSet(CommonShortcuts.DELETE, mySidePanel.myList);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      Object selectedValue = mySidePanel.myList.getSelectedValue();
+      if (!(selectedValue instanceof AndroidModuleConfigurable)) {
+        throw new IllegalStateException("The current selection does not represent a module");
+      }
+      AndroidModuleConfigurable configurable = (AndroidModuleConfigurable)selectedValue;
+      Object editableObject = configurable.getEditableObject();
+      if (!(editableObject instanceof Module)) {
+        throw new IllegalStateException("Unable to find the module to delete");
+      }
+
+      String question;
+      if (mySidePanel.getModuleCount() == 1) {
+        question = ProjectBundle.message("module.remove.last.confirmation");
+      }
+      else {
+        question = ProjectBundle.message("module.remove.confirmation", configurable.getDisplayName());
+      }
+      if (Messages.showYesNoDialog(myProject, question, ProjectBundle.message("module.remove.confirmation.title"),
+                                   Messages.getQuestionIcon()) != Messages.YES) {
+        return;
+      }
+
+      final Module module = (Module)editableObject;
+      final String gradlePath = getGradlePath(module);
+      if (StringUtil.isEmpty(gradlePath)) {
+        String msg = String.format("The module '%1$s' does not have a Gradle path", module.getName());
+        throw new IllegalStateException(msg);
+      }
+      RunResult result = new WriteCommandAction.Simple(module.getProject()) {
+        @Override
+        protected void run() throws Throwable {
+          delete(module);
+          if (mySettingsFile != null) {
+            mySettingsFile.removeModule(gradlePath);
+          }
+        }
+      }.execute();
+      Throwable error = result.getThrowable();
+      if (error != null) {
+        String msg = String.format("Failed to remove module '%1$s'", module.getName());
+        LOG.error(msg, error);
+        return;
+      }
+
+      myConfigurables.remove(configurable);
+      mySidePanel.reset();
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+    }
+
+    @NotNull
+    private String getGradlePath(@NotNull Module module) {
+      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+      if (facet == null) {
+        String msg = String.format("The module '%1$s' is not a Gradle module", module.getName());
+        throw new IllegalStateException(msg);
+      }
+      String path = facet.getConfiguration().GRADLE_PROJECT_PATH;
+      if (StringUtil.isEmpty(path)) {
+        String msg = String.format("The module '%1$s' does not have a Gradle path", module.getName());
+        throw new IllegalStateException(msg);
+      }
+      return path;
+    }
+
+    private void delete(@NotNull Module module) {
+      if (module.isDisposed()) {
+        return;
+      }
+      ModuleManager moduleManager = ModuleManager.getInstance(module.getProject());
+      ModifiableModuleModel modifiableModel = moduleManager.getModifiableModel();
+      try {
+        modifiableModel.disposeModule(module);
+      }
+      finally {
+        modifiableModel.commit();
+      }
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      Object selectedValue = mySidePanel.myList.getSelectedValue();
+      e.getPresentation().setEnabled(selectedValue instanceof AndroidModuleConfigurable);
     }
   }
 }
