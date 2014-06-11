@@ -44,7 +44,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Function;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.compiler.AndroidAptCompiler;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
@@ -153,9 +152,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myNativeLibsFolder.getButton().addActionListener(new MyFolderFieldListener(myNativeLibsFolder,
                                                                                AndroidRootUtil.getLibsDir(facet), false, null));
 
-    myCustomAptSourceDirField.getButton().addActionListener(new MyFolderFieldListener(myCustomAptSourceDirField,
-                                                                                      AndroidAptCompiler.getCustomResourceDirForApt(facet),
-                                                                                      false, null));
+    myCustomAptSourceDirField.getButton().addActionListener(new MyFolderFieldListener(myCustomAptSourceDirField, getCustomResourceDirForApt(facet), false, null));
 
     myRunProguardCheckBox.addActionListener(new ActionListener() {
       @Override
@@ -264,6 +261,11 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     myMavenTabComponent = myTabbedPane.getComponentAt(mavenTabIndex);
 
     myProguardLogsDirectoryField.getButton().addActionListener(new MyFolderFieldListener(myProguardLogsDirectoryField, null, false, null));
+  }
+
+  @Nullable
+  public static VirtualFile getCustomResourceDirForApt(@NotNull AndroidFacet facet) {
+    return AndroidRootUtil.getFileByRelativeModulePath(facet.getModule(), facet.getProperties().CUSTOM_APK_RESOURCE_FOLDER, false);
   }
 
   private void updateLibAndAppSpecificFields() {
@@ -582,8 +584,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     String absProguardLogsPath = myProguardLogsDirectoryField.getText().trim();
     myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH =
       absProguardLogsPath.length() > 0 ? '/' + getAndCheckRelativePath(absProguardLogsPath, false) : "";
-
-    runApt = runApt && AndroidAptCompiler.isToCompileModule(myContext.getModule(), myConfiguration);
 
     if (runApt || runIdl) {
       final Module module = myContext.getModule();
