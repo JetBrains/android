@@ -279,8 +279,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    * Initial package name is either a package user selected when invoking the wizard or default package for the module.
    */
   private String getInitialPackageName(Module module, AndroidFacet facet) {
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    assert gradleProject != null;
     if (myTargetFolder != null) {
       List<SourceProvider> sourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceSet());
       File targetDirectoryFile = VfsUtilCore.virtualToIoFile(myTargetFolder);
@@ -294,6 +292,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
         }
       }
     }
+    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+    assert gradleProject != null;
     return gradleProject.computePackageName();
   }
 
