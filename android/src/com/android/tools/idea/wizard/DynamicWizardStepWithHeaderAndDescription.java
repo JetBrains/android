@@ -74,8 +74,10 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   public DynamicWizardStepWithHeaderAndDescription(@NotNull String title,
                                                    @Nullable String message,
                                                    @Nullable Icon icon,
-                                                   @NotNull Disposable parentDisposable) {
-    Disposer.register(parentDisposable, this);
+                                                   @Nullable Disposable parentDisposable) {
+    if (parentDisposable != null) {
+      Disposer.register(parentDisposable, this);
+    }
     myTitle = title;
     myMessage = message;
     myIcon.setIcon(icon);
