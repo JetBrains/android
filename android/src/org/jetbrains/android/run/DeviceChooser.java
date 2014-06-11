@@ -40,6 +40,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntArrayList;
 import icons.AndroidIcons;
+import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -156,7 +157,8 @@ public class DeviceChooser implements Disposable {
     // features, starting with hardware type watch..
 
     for (UsesFeature feature : requiredFeatures) {
-      if (UsesFeature.HARDWARE_TYPE_WATCH.equals(feature.getName().getStringValue())) {
+      AndroidAttributeValue<String> name = feature.getName();
+      if (name != null && UsesFeature.HARDWARE_TYPE_WATCH.equals(name.getStringValue())) {
         return EnumSet.of(IDevice.HardwareFeature.WATCH);
       }
     }
