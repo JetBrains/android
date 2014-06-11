@@ -378,7 +378,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     public IAndroidTarget target = null;
 
     public AndroidTargetComboBoxItem(@NotNull String label, int apiLevel) {
-      super(apiLevel, label, 1, 1);
+      super(Integer.toString(apiLevel), label, 1, 1);
       this.apiLevel = apiLevel;
     }
 
