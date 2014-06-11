@@ -107,12 +107,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @Override
   protected void init() {
     //noinspection ConstantConditions
-    if (myState.containsKey(NUM_ENABLED_FORM_FACTORS_KEY) &&
-        myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
-      myState.put(myModuleNameKey, "app");
-    } else {
-      myState.put(myModuleNameKey, FormFactorUtils.getModuleName(myFormFactor));
-    }
     myState.put(IS_LIBRARY_MODULE_KEY, false);
     myState.put(SRC_DIR_KEY, calculateSrcDir());
     myState.put(RES_DIR_KEY, "src/main/res");
@@ -133,9 +127,10 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @Override
   public void onPathStarted(boolean fromBeginning) {
     super.onPathStarted(fromBeginning);
-    Set<Key> keys = Sets.newHashSetWithExpectedSize(2);
+    Set<Key> keys = Sets.newHashSetWithExpectedSize(3);
     keys.add(SRC_DIR_KEY);
     keys.add(PROJECT_LOCATION_KEY);
+    keys.add(NUM_ENABLED_FORM_FACTORS_KEY);
     deriveValues(keys);
   }
 
@@ -152,6 +147,15 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   @Override
   public void deriveValues(Set<Key> modified) {
+    if (modified.contains(NUM_ENABLED_FORM_FACTORS_KEY)) {
+      //noinspection ConstantConditions
+      if (myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
+        myState.put(myModuleNameKey, "app");
+      }
+      else {
+        myState.put(myModuleNameKey, FormFactorUtils.getModuleName(myFormFactor));
+      }
+    }
     boolean basePathModified = modified.contains(PROJECT_LOCATION_KEY) || modified.contains(myModuleNameKey);
     if (basePathModified) {
       myState.put(MODULE_LOCATION_KEY, FileUtil.join(myState.get(PROJECT_LOCATION_KEY), myState.get(myModuleNameKey)));
