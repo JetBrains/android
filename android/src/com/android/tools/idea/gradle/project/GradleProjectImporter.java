@@ -16,9 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -656,11 +654,6 @@ public class GradleProjectImporter {
               @Override
               public void run() {
                 ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-
-                Collection<DataNode<Message>> eventMessages =
-                  ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
-                dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */);
-
                 Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
                 dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */);
               }
