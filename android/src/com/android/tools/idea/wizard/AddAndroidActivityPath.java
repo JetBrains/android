@@ -258,7 +258,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     assert facet != null;
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     assert platform != null;
-    myState.put(KEY_BUILD_SDK, platform.getTarget().getVersion().getApiLevel());
+    myState.put(KEY_BUILD_SDK, platform.getTarget().getVersion().getFeatureLevel());
 
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
@@ -366,7 +366,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     assert facet != null;
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     assert platform != null;
-    templateParameters.put(ATTR_BUILD_API, platform.getTarget().getVersion().getApiLevel());
+    templateParameters.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
     templateParameters.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
 
     // Read minSdkVersion and package from manifest and/or build.gradle files
@@ -383,7 +383,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     String minSdkName = minSdkVersion.getApiString();
 
     templateParameters.put(ATTR_MIN_API, minSdkName);
-    templateParameters.put(ATTR_MIN_API_LEVEL, minSdkVersion.getApiLevel());
+    templateParameters.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
     templateParameters.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
 
