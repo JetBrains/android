@@ -433,7 +433,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   /**
    * Utility method for setting the selected index of a combo box by value.
    */
-  private static <T> void setSelectedItem(JComboBox comboBox, @Nullable T value) {
+  public static <T> void setSelectedItem(JComboBox comboBox, @Nullable T value) {
     int index = -1;
     for (int i = 0; i < comboBox.getItemCount(); i++) {
       Object item = comboBox.getItemAt(i);

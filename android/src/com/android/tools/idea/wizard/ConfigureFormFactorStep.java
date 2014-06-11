@@ -17,7 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.sdk.SdkVersionInfo;
-import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -25,7 +25,6 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
@@ -42,8 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.*;
@@ -64,10 +62,9 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescription {
 
   public static final String MIN_SDK_STRING = "Minimum SDK";
-  public static final Key<Integer> TARGET_API_LEVEL_KEY = createKey(ATTR_TARGET_API, WIZARD, Integer.class);
-  public static final Key<Integer> BUILD_API_LEVEL_KEY = createKey(ATTR_BUILD_API, WIZARD, Integer.class);
   private static final Key<String> API_FEEDBACK_KEY = createKey("API Feedback", STEP, String.class);
   public static final Key<Integer> NUM_ENABLED_FORM_FACTORS_KEY = createKey("NumberOfEnabledFormFactors", WIZARD, Integer.class);
+
 
   private JPanel myPanel;
   private JPanel myFormFactorPanel;
@@ -77,6 +74,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
   private Map<FormFactor, JComboBox> myFormFactorApiSelectors = Maps.newEnumMap(FormFactor.class);
+  private IAndroidTarget myHighestInstalledApiTarget;
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs",
@@ -99,7 +97,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         myChooseApiLevelDialog.show();
         if (myChooseApiLevelDialog.isOK()) {
           int minApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
-          myState.put(getMinApiLevelKey(PHONE_AND_TABLET), minApiLevel);
+          setSelectedItem(myFormFactorApiSelectors.get(PHONE_AND_TABLET), Integer.toString(minApiLevel));
         }
       }
     });
@@ -121,16 +119,17 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(getMinApiLevelKey(PHONE_AND_TABLET));
+        return makeSetOf(getTargetComboBoxKey(PHONE_AND_TABLET));
       }
 
       @Nullable
       @Override
       public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-        Integer selectedApi = state.get(getMinApiLevelKey(PHONE_AND_TABLET));
-        if (selectedApi == null) {
+        AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(PHONE_AND_TABLET));
+        if (selectedItem == null) {
           return currentValue;
         }
+        Integer selectedApi = selectedItem.apiLevel;
         return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
                                                   "By targeting API %d and later, your app will run on approximately %.2f%% of the " +
                                                   "devices that are active on the Google Play Store. " +
@@ -184,11 +183,15 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       c.setFill(GridConstraints.FILL_HORIZONTAL);
       ComboBox minSdkComboBox = new ComboBox();
       populateComboBox(minSdkComboBox, metadata.getMinSdk());
-      Key<Integer> minApiKey = FormFactorUtils.getMinApiLevelKey(formFactor);
-      Integer savedApiLevel = PropertiesComponent.getInstance().getOrInitInt(
-        FormFactorUtils.getPropertiesComponentMinSdkKey(formFactor), 15);
+
+      // Check for a saved value for the min api level
+      Key<String> minApiKey = getMinApiKey(formFactor);
+      String savedApiLevel = PropertiesComponent.getInstance().getValue(FormFactorUtils.getPropertiesComponentMinSdkKey(formFactor), "15");
       myState.put(minApiKey, savedApiLevel);
-      register(minApiKey, minSdkComboBox);
+      register(getTargetComboBoxKey(formFactor), minSdkComboBox, TARGET_COMBO_BINDING);
+
+      setSelectedItem(minSdkComboBox, savedApiLevel);
+
       myFormFactorPanel.add(minSdkComboBox, c);
       myFormFactorApiSelectors.put(formFactor, minSdkComboBox);
       if (formFactor.equals(PHONE_AND_TABLET)) {
@@ -219,21 +222,42 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(knownVersions[i], i + 1);
         myTargets.add(targetInfo);
       }
-      myState.put(TARGET_API_LEVEL_KEY, SdkVersionInfo.HIGHEST_KNOWN_API);
     }
 
-    int highestApi = -1;
+    myHighestInstalledApiTarget = null;
     for (IAndroidTarget target : targets) {
-      highestApi = Math.max(highestApi, target.getVersion().getApiLevel());
+      if (myHighestInstalledApiTarget == null ||
+          target.getVersion().getApiLevel() > myHighestInstalledApiTarget.getVersion().getApiLevel()) {
+        myHighestInstalledApiTarget = target;
+      }
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
       if (target.getVersion().isPreview() || target.getOptionalLibraries() != null && target.getOptionalLibraries().length > 0) {
         myTargets.add(targetInfo);
       }
     }
-    if (highestApi >= 1) {
-      myState.put(BUILD_API_LEVEL_KEY, highestApi);
-      if (highestApi > SdkVersionInfo.HIGHEST_KNOWN_API) {
-        myState.put(TARGET_API_LEVEL_KEY, highestApi);
+  }
+
+  private void populateApiLevels(@NotNull FormFactor formFactor, int apiLevel, @Nullable IAndroidTarget apiTarget) {
+    Key<String> buildApiKey = FormFactorUtils.getBuildApiKey(formFactor);
+    Key<Integer> buildApiLevelKey = FormFactorUtils.getBuildApiLevelKey(formFactor);
+    Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(formFactor);
+    Key<String> targetApiStringKey = FormFactorUtils.getTargetApiStringKey(formFactor);
+    if (apiLevel >= 1) {
+      if (apiTarget == null) {
+        myState.put(buildApiKey, Integer.toString(apiLevel));
+      } else if (apiTarget.getOptionalLibraries() != null) {
+        myState.put(buildApiKey, AndroidTargetHash.getTargetHashString(apiTarget));
+      } else {
+        myState.put(buildApiKey, TemplateMetadata.getBuildApiString(apiTarget.getVersion()));
+      }
+      myState.put(buildApiLevelKey, apiLevel);
+      if (apiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API) {
+        myState.put(targetApiLevelKey, apiLevel);
+        if (apiTarget != null) {
+          myState.put(targetApiStringKey, apiTarget.getVersion().getApiString());
+        } else {
+          myState.put(targetApiStringKey, Integer.toString(apiLevel));
+        }
       }
     }
   }
@@ -244,20 +268,22 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     // Persist the min API level choices on a per-form factor basis
     int enabledFormFactors = 0;
     for (FormFactor formFactor : myFormFactors) {
-      Key<Integer> key = getMinApiLevelKey(formFactor);
+      Key<AndroidTargetComboBoxItem> key = getTargetComboBoxKey(formFactor);
       if (modified.contains(key)) {
-        Integer minApi = myState.get(key);
-        if (minApi == null) {
+        AndroidTargetComboBoxItem targetItem = myState.get(key);
+        if (targetItem == null) {
           continue;
         }
-        myState.put(getMinApiKey(formFactor), minApi);
-        AndroidVersion androidVersion = getAndroidVersion(minApi);
-        if (androidVersion != null) {
-          myState.put(getBuildApiKey(formFactor), getBuildApiString(androidVersion));
+        myState.put(getMinApiKey(formFactor), targetItem.id.toString());
+        myState.put(getMinApiLevelKey(formFactor), targetItem.apiLevel);
+        IAndroidTarget target = targetItem.target;
+        if (target != null && (target.getVersion().isPreview() || !target.isPlatform())) {
+          // Make sure we set target and build to the preview version as well
+          populateApiLevels(formFactor, targetItem.apiLevel, target);
         } else {
-          myState.put(getBuildApiKey(formFactor), Integer.toString(minApi));
+          populateApiLevels(formFactor, myHighestInstalledApiTarget.getVersion().getApiLevel(), myHighestInstalledApiTarget);
         }
-        PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), minApi.toString());
+        PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), targetItem.id.toString());
       }
       Boolean included = myState.get(getInclusionKey(formFactor));
       // Disable api selection for non-enabled form factors and check to see if only one is selected
@@ -271,16 +297,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       }
     }
     myState.put(NUM_ENABLED_FORM_FACTORS_KEY, enabledFormFactors);
-  }
-
-  @Nullable
-  private AndroidVersion getAndroidVersion(Integer api) {
-    for (AndroidTargetComboBoxItem comboBoxItem : myTargets) {
-      if (comboBoxItem.apiLevel == api && comboBoxItem.target != null) {
-        return comboBoxItem.target.getVersion();
-      }
-    }
-    return null;
   }
 
   @NotNull
@@ -333,6 +349,25 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
   }
 
+  private static final ComponentBinding<AndroidTargetComboBoxItem, JComboBox> TARGET_COMBO_BINDING =
+    new ComponentBinding<AndroidTargetComboBoxItem, JComboBox>() {
+    @Override
+    public void setValue(@Nullable AndroidTargetComboBoxItem newValue, @NotNull JComboBox component) {
+      component.setSelectedItem(newValue);
+    }
+
+    @Nullable
+    @Override
+    public AndroidTargetComboBoxItem getValue(@NotNull JComboBox component) {
+      return (AndroidTargetComboBoxItem)component.getItemAt(component.getSelectedIndex());
+    }
+
+    @Override
+    public void addActionListener(@NotNull ActionListener listener, @NotNull JComboBox component) {
+      component.addActionListener(listener);
+    }
+  };
+
   @Override
   public JComponent getPreferredFocusedComponent() {
     return myPanel;
@@ -373,14 +408,8 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
 
     @NotNull
-    private static Object getId(@NotNull IAndroidTarget target) {
-      if (target.getVersion().isPreview()) {
-        String codename = target.getVersion().getCodename();
-        assert codename != null; // because isPreview()
-        return codename;
-      } else {
-        return target.getVersion().getApiLevel();
-      }
+    private static String getId(@NotNull IAndroidTarget target) {
+      return target.getVersion().getApiString();
     }
 
     @Override
