@@ -16,7 +16,10 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.NewAndroidActivityWizard;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
@@ -28,6 +31,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Set;
 
 /**
@@ -45,7 +49,7 @@ public class NewAndroidComponentAction extends AnAction {
     super(templateName, "Create a new " + templateName, null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
-    if (templateCategory.equals("Activity")) {
+    if (isActivityTemplate(templateCategory)) {
       getTemplatePresentation().setIcon(AndroidIcons.Activity);
     }
     else {
@@ -57,6 +61,10 @@ public class NewAndroidComponentAction extends AnAction {
     else {
       myMinSdkVersion = 0;
     }
+  }
+
+  private static boolean isActivityTemplate(@NotNull String templateCategory) {
+    return templateCategory.equals("Activity") || templateCategory.equals("Google");
   }
 
   @Override
@@ -95,12 +103,19 @@ public class NewAndroidComponentAction extends AnAction {
     assert facet != null;
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(module, targetFile, myTemplateCategory,
-                                                                 myTemplateName, EXCLUDED);
+    if (isActivityTemplate(myTemplateCategory)) {
+      File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
+      NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
+      wizard.init();
+      wizard.show();
+    }
+    else {
+      NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(module, targetFile, myTemplateCategory, myTemplateName, EXCLUDED);
 
-    dialog.show();
-    if (dialog.isOK()) {
-      dialog.createTemplateObject();
+      dialog.show();
+      if (dialog.isOK()) {
+        dialog.createTemplateObject();
+      }
     }
 
     /*
