@@ -16,7 +16,7 @@ public class AnimationListDomFileDescription extends AndroidResourceDomFileDescr
   @NonNls static final String ANIMATION_LIST_TAG = "animation-list";
 
   public AnimationListDomFileDescription() {
-    super(AnimationList.class, ANIMATION_LIST_TAG, ResourceType.DRAWABLE.getName());
+    super(AnimationList.class, ANIMATION_LIST_TAG, ResourceType.DRAWABLE.getName(), ResourceType.ANIM.getName());
   }
 
   @Override
