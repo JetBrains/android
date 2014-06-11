@@ -103,6 +103,7 @@ public class TemplateWizardState {
     put(ATTR_RES_DIR, "src/main/res");
     put(ATTR_AIDL_DIR, "src/main/aidl");
     put(ATTR_MANIFEST_DIR, "src/main");
+    put(ATTR_TEST_DIR, "src/androidTest");
   }
 
   /**
@@ -115,6 +116,7 @@ public class TemplateWizardState {
     File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
+    File testSourceRoot = new File(moduleRoot, TemplateWizard.TEST_SOURCE_PATH);
 
     // Set Res directory if we don't have one
     if (!myParameters.containsKey(ATTR_RES_OUT) || myParameters.get(ATTR_RES_OUT) == null) {
@@ -146,6 +148,11 @@ public class TemplateWizardState {
     // Set Manifest directory if we don't have one
     if (!myParameters.containsKey(ATTR_MANIFEST_OUT) || myParameters.get(ATTR_MANIFEST_OUT) == null) {
       put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
+    }
+
+    // Set Test directory if we don't have one
+    if (!myParameters.containsKey(ATTR_TEST_OUT) || myParameters.get(ATTR_TEST_OUT) == null) {
+      put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testSourceRoot.getPath()));
     }
 
     put(ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
