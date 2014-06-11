@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.inspections.lint;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.lint.checks.GradleDetector;
@@ -30,6 +31,9 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
 
 import java.util.Map;
+
+import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
+import static com.android.SdkConstants.ATTR_TARGET_SDK_VERSION;
 
 public class IntellijGradleDetector extends GradleDetector {
   static final Implementation IMPLEMENTATION = new Implementation(
@@ -97,6 +101,23 @@ public class IntellijGradleDetector extends GradleDetector {
                       if (rValue != null) {
                         String value = rValue.getText();
                         checkDslPropertyAssignment(context, property, value, parentName, parentParentName, rValue);
+
+                        // As of 0.11 you can't use assignment for these two properties. This is handled here rather
+                        // than up in GradleDetector for a couple of reasons: The project won't compile with that
+                        // error, so gradle from the command line won't get invoked. Second, we want to do some unusual
+                        // things with the positions here (map between two nodes), and the property abstraction we
+                        // pass to GradleDetector doesn't distinguish between assignments and DSL method calls, so just
+                        // handle it here.
+                        if (property.equals(ATTR_MIN_SDK_VERSION) || property.equals(ATTR_TARGET_SDK_VERSION)) {
+                          int lValueEnd = lValue.getTextRange().getEndOffset();
+                          int rValueStart = rValue.getTextRange().getStartOffset();
+                          assert lValueEnd <= rValueStart;
+                          DefaultPosition startPosition = new DefaultPosition(-1, -1, lValueEnd);
+                          DefaultPosition endPosition = new DefaultPosition(-1, -1, rValueStart);
+                          Location location = Location.create(context.file, startPosition, endPosition);
+                          String message = String.format("Do not use assignment with the %1$s property (remove the '=')", property);
+                          context.report(GradleDetector.IDE_SUPPORT, location, message, null);
+                        }
                       }
                     }
                   }

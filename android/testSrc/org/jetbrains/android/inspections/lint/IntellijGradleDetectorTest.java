@@ -75,6 +75,11 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testMinSdkAssignment() throws Exception {
+    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
+    doTest(inspection, null);
+  }
+
   public void testPathSuppress() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
     doTest(inspection, "Suppress: Add //noinspection GradlePath");
