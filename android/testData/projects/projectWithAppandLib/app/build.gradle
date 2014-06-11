@@ -2,7 +2,7 @@ apply plugin: 'android'
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.0.1"
+    buildToolsVersion "19.1.0"
 
     defaultConfig {
         minSdkVersion 8
@@ -18,10 +18,10 @@ android {
     }
     productFlavors {
         basic {
-          packageName "com.example.projectwithappandlib.app"
+          applicationId "com.example.projectwithappandlib.app"
         }
         paid {
-            packageName "com.example.projectwithappandlib.app.paid"
+            applicationId "com.example.projectwithappandlib.app.paid"
         }
     }
 }
