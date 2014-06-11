@@ -36,6 +36,10 @@ public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleC
     }
     ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
     File mainClassesFolder = compilerOutput.getMainClassesDir();
-    setOutputPaths(module, mainClassesFolder, compilerOutput.getTestClassesDir());
+    if (mainClassesFolder != null) {
+      // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
+      // PostProjectSyncTaskExecutor.
+      setOutputPaths(module, mainClassesFolder, compilerOutput.getTestClassesDir());
+    }
   }
 }
