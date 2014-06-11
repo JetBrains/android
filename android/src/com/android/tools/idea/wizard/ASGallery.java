@@ -35,13 +35,14 @@ import javax.swing.border.Border;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.LineMetrics;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 
 /**
  * A gallery widget for displaying a collection of images.
- *
+ * <p/>
  * This widget obtains its model from {@link javax.swing.ListModel} and
  * relies on two functions to obtain image and lable for model object.
  * It does not support notions of "renderer" or "editor"
@@ -50,7 +51,7 @@ public class ASGallery<E> extends JComponent implements Scrollable {
   /**
    * Default insets around the cell contents.
    */
-  private static final Insets DEFAULT_CELL_MARGIN = new Insets(0, 0, 0, 0);
+  private static final Insets DEFAULT_CELL_MARGIN = new Insets(1, 1, 1, 1);
   /**
    * Insets around cell content (image and title).
    */
@@ -132,6 +133,7 @@ public class ASGallery<E> extends JComponent implements Scrollable {
     addFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
+        reveal();
         updateFocusRectangle();
       }
 
@@ -191,7 +193,8 @@ public class ASGallery<E> extends JComponent implements Scrollable {
       return -1;
     }
     for (int i = 0; i < model.getSize(); i++) {
-      if (Objects.equal(element, model.getElementAt(i))) {
+      Object modelElement = model.getElementAt(i);
+      if (Objects.equal(element, modelElement)) {
         return i;
       }
     }
@@ -364,7 +367,7 @@ public class ASGallery<E> extends JComponent implements Scrollable {
     }
     else {
       index = getElementIndex(getModel(), element);
-      if (index < -1) {
+      if (index < 0) {
         throw new NoSuchElementException(element.toString());
       }
     }
@@ -379,7 +382,7 @@ public class ASGallery<E> extends JComponent implements Scrollable {
     setSelectedIndex(selectedIndex, true);
   }
 
-  public void setSelectedIndex(int selectedIndex, boolean notifyListeners) {
+  private void setSelectedIndex(int selectedIndex, boolean notifyListeners) {
     assert selectedIndex < myModel.getSize() && selectedIndex >= -1;
     if (selectedIndex != mySelectedIndex) {
       mySelectedIndex = selectedIndex;
@@ -524,46 +527,72 @@ public class ASGallery<E> extends JComponent implements Scrollable {
         if (cell >= myModel.getSize()) {
           break;
         }
-        Rectangle bounds =
-          new Rectangle(column * cellWidth + borderInsets.left, row * cellBounds.height + borderInsets.top, cellWidth, cellBounds.height);
+        int cellX = column * cellWidth + borderInsets.left;
+        int cellY = row * cellBounds.height + borderInsets.top;
+        int cellHeight = cellBounds.height - 1;
+        Rectangle bounds = new Rectangle(cellX, cellY, cellWidth, cellHeight);
         paintCell(g, cell, bounds);
       }
     }
   }
 
   private void paintCell(Graphics g, int cell, Rectangle cellBounds) {
+    String label = getLabel(cell);
+    Image thumbnail = getImage(cell);
+    drawSelection(g, cell, cellBounds, !StringUtil.isEmpty(label) && thumbnail != null);
+    final int thumbnailHeight;
+    if (thumbnail != null) {
+      Dimension thumbnailSize = myThumbnailSize;
+      int imageX = cellBounds.x + (cellBounds.width - thumbnailSize.width) / 2;
+      int imageY = cellBounds.y + myCellMargin.top;
+      g.drawImage(thumbnail, imageX, imageY, thumbnailSize.width, thumbnailSize.height, null);
+      thumbnailHeight = thumbnailSize.height;
+    }
+    else {
+      thumbnailHeight = 0;
+    }
+    paintLabel(g, cell, cellBounds, label, thumbnailHeight);
+  }
+
+  private void paintLabel(Graphics g, int cell, Rectangle cellBounds, @Nullable String label, int thumbnailHeight) {
+    if (!StringUtil.isEmpty(label)) {
+      final Color fg;
+      if (hasFocus() && cell == mySelectedIndex && (getImage(cell) != null || UIUtil.isUnderDarcula())) {
+        fg = UIUtil.getTreeSelectionForeground();
+      }
+      else {
+        fg = UIUtil.getTreeForeground();
+      }
+      GraphicsUtil.setupAntialiasing(g);
+      g.setColor(fg);
+      FontMetrics fontMetrics = g.getFontMetrics();
+      LineMetrics metrics = fontMetrics.getLineMetrics(label, g);
+      int width = fontMetrics.stringWidth(label);
+
+      int textBoxTop = myCellMargin.top + thumbnailHeight;
+      int cellBottom = cellBounds.height - myCellMargin.bottom;
+
+      int textY = cellBounds.y + (cellBottom + textBoxTop + (int)(metrics.getHeight() - metrics.getDescent())) / 2 ;
+      int textX = (cellBounds.width - myCellMargin.left - myCellMargin.right - width) / 2 + cellBounds.x + myCellMargin.left;
+      g.drawString(label, textX, textY);
+    }
+  }
+
+  private void drawSelection(Graphics g, int cell, Rectangle cellBounds, boolean paintLabelBackground) {
     if (cell == mySelectedIndex) {
+      Color currentColor = g.getColor();
       Color bg = UIUtil.getTreeSelectionBackground(hasFocus());
       g.setColor(bg);
-      g.fillRect(cellBounds.x, cellBounds.y, cellBounds.width, cellBounds.height);
+      g.drawRect(cellBounds.x, cellBounds.y, cellBounds.width - 1, cellBounds.height - 1);
+      if (paintLabelBackground) {
+        int textBoxTop = myThumbnailSize.height + myCellMargin.top;
+        g.fillRect(cellBounds.x, cellBounds.y + textBoxTop, cellBounds.width - 1, cellBounds.height - textBoxTop);
+      }
       if (hasFocus()) {
         Border border = UIUtil.getTableFocusCellHighlightBorder();
         border.paintBorder(this, g, cellBounds.x, cellBounds.y, cellBounds.width, cellBounds.height);
       }
-    }
-    Image thumbnail = getImage(cell);
-    final int textY;
-    FontMetrics fontMetrics = g.getFontMetrics();
-    if (thumbnail != null) {
-      Dimension thumbnailSize = myThumbnailSize;
-
-      int imageX = cellBounds.x + (cellBounds.width - thumbnailSize.width) / 2;
-      int imageY = cellBounds.y + myCellMargin.top;
-      g.drawImage(thumbnail, imageX, imageY, thumbnailSize.width, thumbnailSize.height, null);
-      textY = cellBounds.y + (cellBounds.height + myCellMargin.top +
-                              thumbnailSize.height - myCellMargin.bottom) / 2;
-    }
-    else {
-      textY = cellBounds.y + myCellMargin.top + (cellBounds.height - myCellMargin.top - myCellMargin.bottom) / 2;
-    }
-    String label = getLabel(cell);
-    if (label != null) {
-      int width = fontMetrics.getStringBounds(label, g).getBounds().width;
-      int textX = (cellBounds.width - myCellMargin.left - myCellMargin.right - width) / 2 + cellBounds.x + myCellMargin.left;
-      Color fg = (hasFocus() && cell == mySelectedIndex) ? UIUtil.getTreeSelectionForeground() : UIUtil.getTreeTextForeground();
-      g.setColor(fg);
-      GraphicsUtil.setupAntialiasing(g);
-      g.drawString(label, textX, textY);
+      g.setColor(currentColor);
     }
   }
 
@@ -616,6 +645,13 @@ public class ASGallery<E> extends JComponent implements Scrollable {
 
   public void removeListSelectionListener(ListSelectionListener listener) {
     myListeners.remove(ListSelectionListener.class, listener);
+  }
+
+  private void reveal() {
+    int selectedIndex = getSelectedIndex();
+    if (selectedIndex > 0) {
+      scrollRectToVisible(getCellRectangle(selectedIndex));
+    }
   }
 
   /**
