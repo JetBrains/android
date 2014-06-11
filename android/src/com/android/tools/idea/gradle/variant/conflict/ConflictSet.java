@@ -68,7 +68,9 @@ public class ConflictSet {
         continue;
       }
       String gradlePath = GradleUtil.getGradlePath(module);
-      assert gradlePath != null;
+      if (gradlePath == null) {
+        continue;
+      }
 
       String selectedVariant = currentProject.getSelectedVariant().getName();
 
