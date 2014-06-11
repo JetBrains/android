@@ -217,8 +217,11 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
         LOG.error(e);
         return false;
       }
+
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+      // The parameter step holds onto its preset value for the package name, so we have to reset the value here
+      templateState.put(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
       template.render(projectRoot, moduleRoot, templateState);
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
@@ -228,6 +231,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
+      // The parameter step holds onto its preset value for the package name, so we have to reset the value here
+      templateState.put(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
       activityTemplate.render(projectRoot, moduleRoot, templateState);
       myFilesToOpen = activityTemplate.getFilesToOpen();
       return true;
