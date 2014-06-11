@@ -93,6 +93,27 @@ public class AndroidPsiUtils {
   }
 
   /**
+   * Returns the root tag for the given {@link XmlFile}, if any, acquiring the read
+   * lock to do so if necessary
+   *
+   * @param file the file to look up the root tag for
+   * @return the corresponding root tag, if any
+   */
+  @Nullable
+  public static XmlTag getRootTagSafely(@NotNull final XmlFile file) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return file.getRootTag();
+    }
+    return ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
+      @Nullable
+      @Override
+      public XmlTag compute() {
+        return file.getRootTag();
+      }
+    });
+  }
+
+  /**
    * Get the value of an attribute in the {@link com.intellij.psi.xml.XmlFile} safely (meaning it will acquire the read lock first).
    */
   @Nullable
