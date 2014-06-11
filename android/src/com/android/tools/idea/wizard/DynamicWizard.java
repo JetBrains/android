@@ -511,6 +511,18 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     return UndoConfirmationPolicy.DEFAULT;
   }
 
+  @Nullable
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    DynamicWizardStep currentStep = myCurrentPath.getCurrentStep();
+    if (currentStep != null) {
+      return currentStep.getPreferredFocusedComponent();
+    }
+    else {
+      return getNextButton();
+    }
+  }
+
   protected abstract String getWizardActionDescription();
 
   @Override
