@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.customizer;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.messages.navigatable.SearchInBuildFilesNavigatable;
+import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -195,10 +196,9 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
 
     for (String dep : unresolvedDependencies) {
       String group = dep.startsWith("com.android.support:") ? UNRESOLVED_ANDROID_DEPENDENCIES : UNRESOLVED_DEPENDENCIES;
-      String text = dep + " (double-click here to find usages.)";
-      Message msg = new Message(group, Message.Type.ERROR, new SearchInBuildFilesNavigatable(dep), text);
+      Message msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, dep);
 
-      messages.add(msg);
+      messages.add(msg, new SearchInBuildFilesHyperlink(dep));
     }
   }
 
