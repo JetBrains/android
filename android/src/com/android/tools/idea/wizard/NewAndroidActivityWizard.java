@@ -15,23 +15,36 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.tools.idea.templates.Template;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.File;
 
 /**
  * Wizard for creating a new Android activity.
  */
 public final class NewAndroidActivityWizard extends DynamicWizard {
+  @Nullable private final VirtualFile myTargetFile;
+  @Nullable private final File myTemplate;
+
   public NewAndroidActivityWizard(@NotNull Module module) {
+    this(module, null, null);
+  }
+
+  public NewAndroidActivityWizard(Module module, @Nullable VirtualFile targetFile, @Nullable File template) {
     super(module.getProject(), module, "New Android Activity");
+    myTargetFile = targetFile;
+    myTemplate = template;
   }
 
   @Override
-  protected void init() {
-    addPath(new AddAndroidActivityPath(null, ImmutableMap.<String, Object>of(), getDisposable()));
+  public void init() {
+    addPath(new AddAndroidActivityPath(myTargetFile, myTemplate, ImmutableMap.<String, Object>of(), getDisposable()));
     super.init();
     getContentPanel().setPreferredSize(new Dimension(800, 640));
   }
