@@ -592,6 +592,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGradleCompatiblePluginInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleCompatiblePluginInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.plugin.compatible"), GradleDetector.GRADLE_PLUGIN_COMPATIBILITY);
+    }
+  }
+
   public static class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleDependencyInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
