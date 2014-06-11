@@ -43,7 +43,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
-import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -501,6 +500,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   @Override
   public JComponent getPreferredFocusedComponent() {
+    for (Component component : myTemplateParameters.getComponents()) {
+      if (!(component instanceof JLabel) && component.isFocusable()) {
+        return (JComponent)component;
+      }
+    }
     return myTemplateParameters;
   }
 
