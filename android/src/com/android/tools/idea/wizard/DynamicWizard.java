@@ -276,7 +276,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       showStep(myCurrentPath.myCurrentStep);
     }
     myIsInitialized = true;
-    updateButtons(hasPrevious(), hasNext(), canFinish());
+    myCurrentPath.myCurrentStep.invokeUpdate(null);
   }
 
   @NotNull
