@@ -29,7 +29,6 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -38,6 +37,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -85,14 +85,20 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     myTemplate = template;
     myIsNewModule = false;
     myTargetFolder = targetFolder;
+    FormFactorUtils.FormFactor formFactor = getFormFactor(targetFolder);
     if (template == null) {
-      myGalleryStep = new ActivityGalleryStep(null, AndroidIcons.Wizards.FormFactorPhoneTablet,
-                                              false, KEY_SELECTED_TEMPLATE, parentDisposable);
+      myGalleryStep = new ActivityGalleryStep(formFactor, false, KEY_SELECTED_TEMPLATE, parentDisposable);
     }
     else {
       myGalleryStep = null;
     }
-    myParameterStep = new TemplateParameterStep2(predefinedParameterValues, myTargetFolder, parentDisposable);
+    myParameterStep = new TemplateParameterStep2(formFactor, predefinedParameterValues,
+                                                 myTargetFolder, parentDisposable);
+  }
+
+  private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
+    // TODO There should be some way for this wizard to figure out form factor from a target or from a template
+    return FormFactorUtils.FormFactor.PHONE_AND_TABLET;
   }
 
   /**
