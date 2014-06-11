@@ -25,14 +25,14 @@ import java.util.List;
 public class GradleInvocationResult {
   @NotNull private final List<String> myTasks;
   @NotNull private final ListMultimap<GradleMessage.Kind, GradleMessage> myCompilerMessagesByKind = ArrayListMultimap.create();
-  private final int myErrorCount;
+  private final boolean myBuildSuccessful;
 
-  GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<GradleMessage> compilerMessages) {
+  GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<GradleMessage> compilerMessages, boolean buildSuccessful) {
     myTasks = tasks;
+    myBuildSuccessful = buildSuccessful;
     for (GradleMessage msg : compilerMessages) {
       myCompilerMessagesByKind.put(msg.getKind(), msg);
     }
-    myErrorCount = myCompilerMessagesByKind.get(GradleMessage.Kind.ERROR).size();
   }
 
   @NotNull
@@ -45,7 +45,7 @@ public class GradleInvocationResult {
     return myCompilerMessagesByKind.get(kind);
   }
 
-  public int getErrorCount() {
-    return myErrorCount;
+  public boolean isBuildSuccessful() {
+    return myBuildSuccessful;
   }
 }
