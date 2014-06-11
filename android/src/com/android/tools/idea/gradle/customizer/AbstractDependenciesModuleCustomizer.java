@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -199,6 +200,10 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
       Message msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, dep);
 
       messages.add(msg, new SearchInBuildFilesHyperlink(dep));
+    }
+
+    if (!unresolvedDependencies.isEmpty()) {
+      project.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, true);
     }
   }
 

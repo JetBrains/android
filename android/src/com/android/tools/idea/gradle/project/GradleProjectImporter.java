@@ -578,7 +578,9 @@ public class GradleProjectImporter {
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
-    project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
+    project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
+
+    project.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, false);
 
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
