@@ -180,7 +180,10 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   }
 
   @Nullable
-  private static File getModuleRoot(@NotNull Module module) {
+  private static File getModuleRoot(@Nullable Module module) {
+    if (module == null) {
+      return null;
+    }
     VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
     if (roots.length > 0) {
       return VfsUtilCore.virtualToIoFile(roots[0]);
@@ -340,6 +343,16 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     parameterValueMap.putAll(getDirectories());
     for (Parameter parameter : template.getParameters()) {
       parameterValueMap.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
+    }
+    try {
+      parameterValueMap.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
+    }
+    catch (Exception e) {
+      LOG.info("Could not compute SHA1 hash of debug keystore.", e);
+    }
+    File moduleRoot = getModuleRoot(getModule());
+    if (moduleRoot != null) {
+      parameterValueMap.put(TemplateMetadata.ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
     }
     return parameterValueMap;
   }
