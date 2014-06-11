@@ -35,6 +35,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PACKAGE_NAME_KEY;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY;
+import static com.android.tools.idea.wizard.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
@@ -100,7 +101,13 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    myState.put(myModuleNameKey, FormFactorUtils.getModuleName(myFormFactor));
+    //noinspection ConstantConditions
+    if (myState.containsKey(NUM_ENABLED_FORM_FACTORS_KEY) &&
+        myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
+      myState.put(myModuleNameKey, "app");
+    } else {
+      myState.put(myModuleNameKey, FormFactorUtils.getModuleName(myFormFactor));
+    }
     myState.put(IS_LIBRARY_MODULE_KEY, false);
     myState.put(SRC_DIR_KEY, calculateSrcDir());
     myState.put(RES_DIR_KEY, "src/main/res");
