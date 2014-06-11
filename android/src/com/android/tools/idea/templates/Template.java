@@ -607,7 +607,7 @@ public class Template {
     String contents = null;
     if (ok) {
       if (modified) {
-        contents = XmlPrettyPrinter.prettyPrint(currentDocument, createXmlFormatPreferences(), formatStyle, null, targetXml.endsWith("\n"));
+        contents = XmlPrettyPrinter.prettyPrint(currentDocument, createXmlFormatPreferences(), formatStyle, "\n", targetXml.endsWith("\n"));
       }
     } else {
       // Just insert into file along with comment, using the "standard" conflict
@@ -625,7 +625,7 @@ public class Template {
    * @return
    */
   private static String wrapWithMergeConflict(String original, String added) {
-    String sep = SdkUtils.getLineSeparator();
+    String sep = "\n";
     return "<<<<<<< Original" + sep
     + original + sep
     + "=======" + sep
@@ -1024,7 +1024,7 @@ public class Template {
     }
     com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(vf);
     if (document != null) {
-      document.setText(contents);
+      document.setText(contents.replaceAll("\r\n", "\n"));
       FileDocumentManager.getInstance().saveDocument(document);
     }
     else {
