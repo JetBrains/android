@@ -36,7 +36,7 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
 
   public TemplateListProvider() {
     // Hardcoded for now, will be unhardcoded later if needed
-    myTemplates = getTemplateList(Template.CATEGORY_ACTIVITIES, Collections.<String>emptySet());
+    myTemplates = getTemplateList(Template.CATEGORY_ACTIVITIES, TemplateManager.EXCLUDED_TEMPLATES);
   }
 
   /**
