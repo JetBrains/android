@@ -75,6 +75,10 @@ public class FormFactorUtils {
     return createKey(formFactor.id + ATTR_MIN_API, WIZARD, Integer.class);
   }
 
+  public static ScopedStateStore.Key<String> getBuildApiKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_BUILD_API_STRING, WIZARD, String.class);
+  }
+
   public static ScopedStateStore.Key<Integer> getTargetApiLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_TARGET_API, WIZARD, Integer.class);
   }
