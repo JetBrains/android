@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.projectView;
 
 import com.google.common.collect.Lists;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,6 +35,11 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
   public Collection<AbstractTreeNode> modify(@NotNull AbstractTreeNode parent,
                                              @NotNull Collection<AbstractTreeNode> children,
                                              ViewSettings settings) {
+    final Project project = parent.getProject();
+
+    if (project == null || !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+      return children;
+    }
     List<AbstractTreeNode> newChildren = Lists.newArrayList();
     for (AbstractTreeNode child : children) {
       // We replace the default "directory node" with our own, to control the text displayed by the node.

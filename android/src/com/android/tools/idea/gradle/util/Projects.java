@@ -20,8 +20,6 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.intellij.compiler.CompilerWorkspaceConfiguration;
-import com.intellij.compiler.options.ExternalBuildOptionListener;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.projectView.ProjectView;
@@ -39,7 +37,6 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.util.messages.MessageBus;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -178,17 +175,6 @@ public final class Projects {
       // We only enforce JPS usage when the 'android' plug-in is not being used in Android Studio.
       if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
         AndroidGradleBuildConfiguration.getInstance(project).USE_EXPERIMENTAL_FASTER_BUILD = false;
-      }
-
-      CompilerWorkspaceConfiguration workspaceConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
-      boolean wasUsingExternalMake = workspaceConfiguration.useOutOfProcessBuild();
-      if (!wasUsingExternalMake) {
-        String format = "Enabled 'External Build' for Android project '%1$s'. Otherwise, the project will not be built with Gradle";
-        String msg = String.format(format, project.getName());
-        LOG.info(msg);
-        workspaceConfiguration.USE_OUT_OF_PROCESS_BUILD = true;
-        MessageBus messageBus = project.getMessageBus();
-        messageBus.syncPublisher(ExternalBuildOptionListener.TOPIC).externalBuildOptionChanged(true);
       }
     }
   }
