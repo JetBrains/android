@@ -73,7 +73,11 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
   @Nullable
   public <T> T get(@NotNull Key<T> key) {
     if (myScope.equals(key.scope) && myState.containsKey(key)) {
-      return key.expectedClass.cast(myState.get(key));
+      try {
+        return key.expectedClass.cast(myState.get(key));
+      } catch (ClassCastException e) {
+        return null;
+      }
     } else if (myParent != null) {
       return myParent.get(key);
     } else {
