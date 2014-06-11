@@ -203,7 +203,7 @@ public class IdeaAndroidProject implements Serializable {
    */
   @NotNull
   public String computePackageName() {
-    return getSelectedVariant().getMainArtifact().getPackageName();
+    return getSelectedVariant().getMainArtifact().getApplicationId();
   }
 
   public boolean isLibrary() {
