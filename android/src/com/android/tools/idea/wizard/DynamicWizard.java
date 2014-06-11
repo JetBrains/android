@@ -22,6 +22,7 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -488,7 +489,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
    */
   protected void doFinishAction() {
     super.doOKAction();
-    new WriteCommandAction<Void>(myProject, (PsiFile) null) {
+    new WriteCommandAction<Void>(getProject(), getWizardActionDescription(), (PsiFile[]) null) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         for (DynamicWizardPath path : myPaths) {
@@ -498,8 +499,19 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
         }
         performFinishingActions();
       }
+
+      @Override
+      protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
+        return DynamicWizard.this.getUndoConfirmationPolicy();
+      }
     }.execute();
   }
+
+  protected UndoConfirmationPolicy getUndoConfirmationPolicy() {
+    return UndoConfirmationPolicy.DEFAULT;
+  }
+
+  protected abstract String getWizardActionDescription();
 
   @Override
   protected void doHelpAction() {

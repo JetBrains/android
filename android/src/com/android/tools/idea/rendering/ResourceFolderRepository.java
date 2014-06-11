@@ -121,7 +121,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       return psiFile;
     } else {
       VirtualFile virtualFile = psiFile.getVirtualFile();
-      if (virtualFile != null) {
+      if (virtualFile != null && virtualFile.exists()) {
         Project project = myModule.getProject();
         if (!project.isDisposed()) {
           return PsiManager.getInstance(project).findFile(virtualFile);
