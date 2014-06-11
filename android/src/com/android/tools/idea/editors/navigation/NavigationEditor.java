@@ -109,27 +109,27 @@ public class NavigationEditor implements FileEditor {
       Configuration configuration = myRenderingParams.myConfiguration;
       Module module = configuration.getModule();
       myAnalyser = new Analyser(project, module);
-      myCodeGenerator = new CodeGenerator(myNavigationModel, module);
+      try {
+        myNavigationModel = read(file);
+        myCodeGenerator = new CodeGenerator(myNavigationModel, module);
+        NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel);
+        JBScrollPane scrollPane = new JBScrollPane(editor);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+        JPanel p = new JPanel(new BorderLayout());
+
+        JComponent controls = createToolbar(editor);
+        p.add(controls, BorderLayout.NORTH);
+        p.add(scrollPane);
+        myComponent = p;
+      }
+      catch (FileReadException e) {
+        setErrorState(e.getMessage());
+        if (DEBUG) {
+          e.printStackTrace();
+        }
+      }
     } else {
       setErrorState("No navigation file");
-    }
-    try {
-      myNavigationModel = read(file);
-      NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel);
-      JBScrollPane scrollPane = new JBScrollPane(editor);
-      scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-      JPanel p = new JPanel(new BorderLayout());
-
-      JComponent controls = createToolbar(editor);
-      p.add(controls, BorderLayout.NORTH);
-      p.add(scrollPane);
-      myComponent = p;
-    }
-    catch (FileReadException e) {
-      setErrorState(e.getMessage());
-      if (DEBUG) {
-        e.printStackTrace();
-      }
     }
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
