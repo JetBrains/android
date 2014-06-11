@@ -47,6 +47,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
+import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.PHONE_AND_TABLET;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
@@ -67,12 +68,11 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private JPanel myFormFactorPanel;
   private JBLabel myHelpMeChooseLabel = new JBLabel("Help Me Choose");
   private List<AndroidTargetComboBoxItem> myTargets = Lists.newArrayList();
-  private List<String> myFormFactors = Lists.newArrayList();
+  private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
-    super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs",
-          null, disposable);
+    super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs", null, disposable);
     setBodyComponent(myPanel);
   }
 
@@ -84,11 +84,11 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     myHelpMeChooseLabel.addMouseListener(new MouseInputAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, myState.get(getMinApiLevelKey(PHONE_TABLET_FORM_FACTOR_NAME)));
+        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, myState.get(getMinApiLevelKey(PHONE_AND_TABLET)));
         myChooseApiLevelDialog.show();
         if (myChooseApiLevelDialog.isOK()) {
           int minApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
-          myState.put(getMinApiLevelKey(PHONE_TABLET_FORM_FACTOR_NAME), minApiLevel);
+          myState.put(getMinApiLevelKey(PHONE_AND_TABLET), minApiLevel);
         }
       }
     });
@@ -110,13 +110,13 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(getMinApiLevelKey(PHONE_TABLET_FORM_FACTOR_NAME));
+        return makeSetOf(getMinApiLevelKey(PHONE_AND_TABLET));
       }
 
       @Nullable
       @Override
       public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-        Integer selectedApi = state.get(getMinApiLevelKey(PHONE_TABLET_FORM_FACTOR_NAME));
+        Integer selectedApi = state.get(getMinApiLevelKey(PHONE_AND_TABLET));
         if (selectedApi == null) {
           return currentValue;
         }
@@ -149,13 +149,16 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       if (metadata == null || metadata.getFormFactor() == null) {
         continue;
       }
-      String formFactor = metadata.getFormFactor();
+      FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
+      if (formFactor == null) {
+        continue;
+      }
       myFormFactors.add(formFactor);
       c.setRow(row);
       c.setColumn(0);
       c.setFill(GridConstraints.FILL_NONE);
       c.setAnchor(GridConstraints.ANCHOR_WEST);
-      JCheckBox inclusionCheckBox = new JCheckBox(formFactor);
+      JCheckBox inclusionCheckBox = new JCheckBox(formFactor.id);
       myFormFactorPanel.add(inclusionCheckBox, c);
       register(FormFactorUtils.getInclusionKey(formFactor), inclusionCheckBox);
       c.setRow(++row);
@@ -173,7 +176,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       myState.put(minApiKey, savedApiLevel);
       register(minApiKey, minSdkComboBox);
       myFormFactorPanel.add(minSdkComboBox, c);
-      if (formFactor.equals(PHONE_TABLET_FORM_FACTOR_NAME)) {
+      if (formFactor.equals(PHONE_AND_TABLET)) {
         c.setRow(++row);
         c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
         c.setFill(GridConstraints.FILL_NONE);
@@ -224,7 +227,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   public void deriveValues(Set<Key> modified) {
     super.deriveValues(modified);
     // Persist the min API level choices on a per-form factor basis
-    for (String formFactor : myFormFactors) {
+    for (FormFactor formFactor : myFormFactors) {
       Key<Integer> key = getMinApiLevelKey(formFactor);
       if (modified.contains(key)) {
         Integer minApi = myState.get(key);
