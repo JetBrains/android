@@ -487,6 +487,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
    * this method.
    */
   protected void doFinishAction() {
+    super.doOKAction();
     new WriteCommandAction<Void>(myProject, (PsiFile) null) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
@@ -498,7 +499,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
         performFinishingActions();
       }
     }.execute();
-    super.doOKAction();
   }
 
   @Override
