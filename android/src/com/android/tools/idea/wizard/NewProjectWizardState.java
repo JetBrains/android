@@ -50,6 +50,9 @@ public class NewProjectWizardState extends NewModuleWizardState {
     put(ATTR_IS_LAUNCHER, true);
     put(ATTR_PROJECT_LOCATION, getProjectFileDirectory());
     put(ATTR_APP_TITLE, APPLICATION_NAME);
+    final int DEFAULT_MIN = 9;
+    put(ATTR_MIN_API_LEVEL, DEFAULT_MIN);
+    put(ATTR_MIN_API, Integer.toString(DEFAULT_MIN));
     myProjectTemplate = Template.createFromName(CATEGORY_PROJECTS, PROJECT_TEMPLATE_NAME);
     myTemplate = Template.createFromName(CATEGORY_PROJECTS, MODULE_TEMPLATE_NAME);
     setParameterDefaults();
