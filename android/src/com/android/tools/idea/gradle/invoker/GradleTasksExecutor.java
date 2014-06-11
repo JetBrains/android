@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
+import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.invoker.messages.GradleBuildTreeViewPanel;
 import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -42,6 +45,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -72,6 +76,7 @@ import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -513,7 +518,18 @@ class GradleTasksExecutor extends Task.Backgroundable {
   }
 
   @Nullable
-  private static VirtualFile findFileFrom(@NotNull GradleMessage message) {
+  private VirtualFile findFileFrom(@NotNull GradleMessage message) {
+    if (message instanceof GradleProjectAwareMessage) {
+      String gradlePath = ((GradleProjectAwareMessage)message).getGradlePath();
+      Module module = GradleUtil.findModuleByGradlePath(getNotNullProject(), gradlePath);
+      if (module != null) {
+        AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+        // if we got here facet is not null;
+        assert facet != null;
+        IdeaGradleProject gradleProject = facet.getGradleProject();
+        return gradleProject != null ? gradleProject.getBuildFile() : null;
+      }
+    }
     String sourcePath = message.getSourcePath();
     if (StringUtil.isEmpty(sourcePath)) {
       return null;
