@@ -39,11 +39,10 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -351,6 +350,8 @@ public class Template {
           break;
         case SEPARATOR:
           break;
+        case EXTERNAL:
+          break;
       }
     }
     convertApisToInt(args);
@@ -487,10 +488,12 @@ public class Template {
               // The relative path here is within the output directory:
               File relativePath = getPath(attributes, ATTR_AT);
               if (relativePath != null && !relativePath.getPath().isEmpty()) {
-                mkdir(freemarker, paramMap, relativePath);
+                File targetFile = getTargetFile(relativePath);
+                checkedCreateDirectoryIfMissing(targetFile);
               }
             } else if (name.equals(TAG_DEPENDENCY)) {
               String url = attributes.getValue(ATTR_MAVEN);
+              //noinspection unchecked
               List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
 
               if (url != null) {
@@ -498,7 +501,7 @@ public class Template {
               }
             }
             else if (!name.equals("recipe")) {
-              System.err.println("WARNING: Unknown template directive " + name);
+              LOG.warn("WARNING: Unknown template directive " + name);
             }
           }
           catch (Exception e) {
@@ -531,7 +534,7 @@ public class Template {
       targetText = Files.toString(to, Charsets.UTF_8);
     } else if (to.getParentFile() != null) {
       //noinspection ResultOfMethodCallIgnored
-      to.getParentFile().mkdirs();
+      checkedCreateDirectoryIfMissing(to.getParentFile());
     }
 
     if (targetText == null) {
@@ -824,15 +827,6 @@ public class Template {
     }
   }
 
-  /** Creates a directory at the given path */
-  private void mkdir(
-    @NotNull final Configuration freemarker,
-    @NotNull final Map<String, Object> paramMap,
-    @NotNull File at) throws IOException, TemplateException {
-    File targetFile = getTargetFile(at);
-    VfsUtil.createDirectories(targetFile.getAbsolutePath());
-  }
-
   @NotNull
   private File getFullPath(@NotNull File fromFile) {
     if (fromFile.isAbsolute()) {
@@ -939,15 +933,77 @@ public class Template {
   }
 
   /**
-  * Copies the given source file into the given destination file (where the
-  * source is allowed to be a directory, in which case the whole directory is
-  * copied recursively)
-  */
-  private static void copy(@NotNull File src, @NotNull File dest) throws IOException {
+   * Copies the given source file into the given destination file (where the
+   * source is allowed to be a directory, in which case the whole directory is
+   * copied recursively)
+   */
+  private void copy(@NotNull File src, @NotNull File dest) throws IOException {
+    VirtualFile sourceFile = VfsUtil.findFileByIoFile(src, true);
+    assert sourceFile != null;
+    File parentPath = (src.isDirectory() ? dest : dest.getParentFile());
+    VirtualFile destFolder = checkedCreateDirectoryIfMissing(parentPath);
     if (src.isDirectory()) {
-      FileUtil.copyDirContent(src, dest);
-    } else {
-      FileUtil.copyContent(src, dest);
+      copyDirectory(sourceFile, destFolder);
+    }
+    else {
+      VfsUtilCore.copyFile(this, sourceFile, destFolder);
+    }
+  }
+
+  /**
+   * VfsUtil#copyDirectory messes up the undo stack, most likely by trying to
+   * create directory even if it already exists. This is an undo-friendly
+   * replacement.
+   */
+  private void copyDirectory(@NotNull final VirtualFile src, @NotNull final VirtualFile dest) throws IOException {
+    final File destinationFile = VfsUtilCore.virtualToIoFile(dest);
+    VfsUtilCore.visitChildrenRecursively(src, new VirtualFileVisitor() {
+      @Override
+      public boolean visitFile(@NotNull VirtualFile file) {
+        try {
+          return copyFile(file, src, destinationFile, dest);
+        }
+        catch (IOException e) {
+          throw new VisitorException(e);
+        }
+      }
+    }, IOException.class);
+  }
+
+  private boolean copyFile(VirtualFile file, VirtualFile src, File destinationFile, VirtualFile dest) throws IOException {
+    String relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar);
+    if (relativePath == null) {
+      LOG.error(file.getPath() + " is not a child of " + src, new Exception());
+      return false;
+    }
+    if (file.isDirectory()) {
+      checkedCreateDirectoryIfMissing(new File(destinationFile, relativePath));
+    }
+    else {
+      VirtualFile targetDir = dest;
+      if (relativePath.indexOf(File.separatorChar) > 0) {
+        String directories = relativePath.substring(0, relativePath.lastIndexOf("/"));
+        File newParent = new File(destinationFile, directories);
+        targetDir = checkedCreateDirectoryIfMissing(newParent);
+      }
+      VfsUtilCore.copyFile(this, file, targetDir);
+    }
+    return true;
+  }
+
+  /**
+   * Creates a directory for the given file and returns the VirtualFile object.
+   *
+   * @return virtual file object for the given path. It can never be null.
+   */
+  @NotNull
+  private static VirtualFile checkedCreateDirectoryIfMissing(@NotNull File directory) throws IOException {
+    VirtualFile dir = VfsUtil.createDirectoryIfMissing(directory.getAbsolutePath());
+    if (dir == null) {
+      throw new IOException("Unable to create " + directory.getAbsolutePath());
+    }
+    else {
+      return dir;
     }
   }
 
@@ -962,16 +1018,17 @@ public class Template {
     }
     VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(to);
     if (vf == null) {
-      try {
-        if (to.getParentFile() != null && !to.getParentFile().exists()) {
-          to.getParentFile().mkdirs();
-        }
-        vf = VfsUtil.findFileByIoFile(to.getParentFile(), true).createChildData(this, to.getName());
-      } catch (NullPointerException e) {
-        throw new IOException("Unable to create file " + to.getAbsolutePath());
-      }
+      // Creating a new file
+      VirtualFile parentDir = checkedCreateDirectoryIfMissing(to.getParentFile());
+      vf = parentDir.createChildData(this, to.getName());
     }
-    vf.setBinaryContent(contents.getBytes(Charsets.UTF_8));
+    com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(vf);
+    if (document != null) {
+      document.setText(contents);
+    }
+    else {
+      vf.setBinaryContent(contents.getBytes(Charsets.UTF_8), -1, -1, this);
+    }
   }
 
   /**

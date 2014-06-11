@@ -83,5 +83,10 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     public void performFinishingActions() {
 
     }
+
+    @Override
+    protected String getWizardActionDescription() {
+      return "Nothing is Done";
+    }
   }
 }
