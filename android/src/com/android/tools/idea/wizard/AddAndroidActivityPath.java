@@ -354,6 +354,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     assert platform != null;
     templateParameters.put(ATTR_BUILD_API, platform.getTarget().getVersion().getApiLevel());
+    templateParameters.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
 
     // Read minSdkVersion and package from manifest and/or build.gradle files
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
