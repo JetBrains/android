@@ -47,7 +47,7 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @Nullable
-  public String getPackageName() {
+  public String getApplicationId() {
     throw new UnsupportedOperationException();
   }
 
@@ -89,7 +89,7 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @Nullable
-  public String getTestPackageName() {
+  public String getTestApplicationId() {
     throw new UnsupportedOperationException();
   }
 
