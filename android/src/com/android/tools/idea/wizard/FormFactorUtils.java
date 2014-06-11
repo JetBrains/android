@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.google.common.collect.Maps;
+import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,16 +36,19 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
   public static enum FormFactor {
-    PHONE_AND_TABLET("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet),
-    WEAR("Wear", AndroidIcons.Wizards.FormFactorWear),
-    GLASS("Glass", AndroidIcons.Wizards.FormFactorGlass);
+    PHONE_AND_TABLET("Mobile", AndroidIcons.Wizards.FormFactorPhoneTabletLight,
+                     AndroidIcons.Wizards.FormFactorPhoneTabletDark),
+    WEAR("Wear", AndroidIcons.Wizards.FormFactorWearLight, AndroidIcons.Wizards.FormFactorWearDark),
+    GLASS("Glass", AndroidIcons.Wizards.FormFactorGlassLight, AndroidIcons.Wizards.FormFactorGlassDark);
 
     public final String id;
-    public final Icon icon;
+    @Nullable private final Icon myLightIcon;
+    @Nullable private final Icon myDarkIcon;
 
-    FormFactor(@NotNull String id, @Nullable Icon icon) {
+    FormFactor(@NotNull String id, @Nullable Icon lightIcon, @Nullable Icon darkIcon) {
       this.id = id;
-      this.icon = icon;
+      myLightIcon = lightIcon;
+      myDarkIcon = darkIcon;
     }
 
     @Nullable
@@ -55,6 +59,11 @@ public class FormFactorUtils {
         }
       }
       return null;
+    }
+
+    @Nullable
+    public Icon getIcon() {
+      return UIUtil.isUnderDarcula() ? myDarkIcon : myLightIcon;
     }
   }
 

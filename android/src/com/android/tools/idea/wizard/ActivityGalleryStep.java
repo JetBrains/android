@@ -47,9 +47,9 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   private final boolean myShowSkipEntry;
   private ASGallery<Optional<TemplateEntry>> myGallery;
 
-  public ActivityGalleryStep(@Nullable FormFactorUtils.FormFactor formFactor, @Nullable Icon icon, boolean showSkipEntry,
+  public ActivityGalleryStep(@NotNull FormFactorUtils.FormFactor formFactor, boolean showSkipEntry,
                              Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
-    super("Add an activity to " + formFactor.id, null, icon, disposable);
+    super("Add an activity to " + formFactor.id, null, formFactor.getIcon(), disposable);
     myFormFactor = formFactor;
     myCurrentSelectionKey = currentSelectionKey;
     myShowSkipEntry = showSkipEntry;
@@ -67,7 +67,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
 
   private JComponent createGallery() {
     myGallery = new ASGallery<Optional<TemplateEntry>>();
-    myGallery.setThumbnailSize(new Dimension(256, 256));
+    myGallery.setThumbnailSize(new Dimension(192, 192));
     myGallery.setLabelProvider(new Function<Optional<TemplateEntry>, String>() {
       @Override
       public String apply(Optional<TemplateEntry> template) {
