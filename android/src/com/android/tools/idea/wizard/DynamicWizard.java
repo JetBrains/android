@@ -237,9 +237,9 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
    */
   protected final void addPath(@NotNull DynamicWizardPath path) {
     myPaths.add(path);
-    // If this is the first path, select it
-    if (myPaths.size() == 1) {
-      myCurrentPath = myPaths.get(0);
+    // If this is the first visible path, select it
+    if (myCurrentPath == null && path.isPathVisible()) {
+      myCurrentPath = path;
     }
     // Rebuild the iterator to avoid concurrent modification exceptions
     myPathListIterator = new PathIterator(myPaths);
