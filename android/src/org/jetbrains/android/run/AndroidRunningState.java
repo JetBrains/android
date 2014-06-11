@@ -790,7 +790,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           LOG.error("Target Android platform not set for module: " + myFacet.getModule().getName());
           return false;
         } else {
-          LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getMinSdkVersion(),
+          LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
                                                                                  androidPlatform.getTarget(),
                                                                                  EnumSet.noneOf(IDevice.HardwareFeature.class),
                                                                                  device,
