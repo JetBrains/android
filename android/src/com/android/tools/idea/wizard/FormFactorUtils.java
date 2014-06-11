@@ -26,7 +26,10 @@ import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.INVALID_FILENAME_CHARS;
+import static com.android.tools.idea.wizard.ConfigureFormFactorStep.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
+import static com.android.tools.idea.wizard.ScopedStateStore.Key;
+import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
@@ -35,6 +38,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
  */
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
+
   public static enum FormFactor {
     PHONE_AND_TABLET("Mobile", AndroidIcons.Wizards.FormFactorPhoneTabletLight,
                      AndroidIcons.Wizards.FormFactorPhoneTabletDark),
@@ -67,35 +71,43 @@ public class FormFactorUtils {
     }
   }
 
-  public static ScopedStateStore.Key<Integer> getMinApiLevelKey(@NotNull FormFactor formFactor) {
+  public static Key<AndroidTargetComboBoxItem> getTargetComboBoxKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_MIN_API + "combo", STEP, AndroidTargetComboBoxItem.class);
+  }
+
+  public static Key<Integer> getMinApiLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_MIN_API_LEVEL, WIZARD, Integer.class);
   }
 
-  public static ScopedStateStore.Key<Integer> getMinApiKey(@NotNull FormFactor formFactor) {
-    return createKey(formFactor.id + ATTR_MIN_API, WIZARD, Integer.class);
+  public static Key<String> getMinApiKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_MIN_API, WIZARD, String.class);
   }
 
-  public static ScopedStateStore.Key<String> getBuildApiKey(@NotNull FormFactor formFactor) {
+  public static Key<String> getBuildApiKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_BUILD_API_STRING, WIZARD, String.class);
   }
 
-  public static ScopedStateStore.Key<Integer> getTargetApiLevelKey(@NotNull FormFactor formFactor) {
+  public static Key<Integer> getTargetApiLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_TARGET_API, WIZARD, Integer.class);
   }
 
-  public static ScopedStateStore.Key<Integer> getBuildApiLevelKey(@NotNull FormFactor formFactor) {
+  public static Key<String> getTargetApiStringKey(@NotNull FormFactor formFactor) {
+    return createKey(formFactor.id + ATTR_TARGET_API_STRING, WIZARD, String.class);
+  }
+
+  public static Key<Integer> getBuildApiLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_BUILD_API, WIZARD, Integer.class);
   }
 
-  public static ScopedStateStore.Key<String> getLanguageLevelKey(@NotNull FormFactor formFactor) {
+  public static Key<String> getLanguageLevelKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_JAVA_VERSION, WIZARD, String.class);
   }
 
-  public static ScopedStateStore.Key<Boolean> getInclusionKey(@NotNull FormFactor formFactor) {
+  public static Key<Boolean> getInclusionKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + INCLUDE_FORM_FACTOR, WIZARD, Boolean.class);
   }
 
-  public static ScopedStateStore.Key<String> getModuleNameKey(@NotNull FormFactor formFactor) {
+  public static Key<String> getModuleNameKey(@NotNull FormFactor formFactor) {
     return createKey(formFactor.id + ATTR_MODULE_NAME, WIZARD, String.class);
   }
 
@@ -112,7 +124,7 @@ public class FormFactorUtils {
   }
 
   public static String getPropertiesComponentMinSdkKey(@NotNull FormFactor formFactor) {
-    return formFactor.id + ATTR_MIN_API_LEVEL;
+    return formFactor.id + ATTR_MIN_API;
   }
 
   @NotNull
