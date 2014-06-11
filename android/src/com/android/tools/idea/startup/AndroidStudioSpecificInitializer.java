@@ -24,7 +24,7 @@ import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.wizard.ChooseApiLevelDialog;
-import com.android.tools.idea.wizard.DummyWizardForTesting;
+import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
@@ -175,13 +175,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     am.registerAction("NewFromGithubAction", action);
     ((DefaultActionGroup)am.getAction("NewGroup")).add(action);
     DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
-    action = new DummyWizardForTesting();
-    am.registerAction("TestDummyWizard", action);
-    androidToolsGroup.add(action);
-    action = new ChooseApiLevelDialog.LaunchMe();
-    am.registerAction("ChooseApiLevel", action);
-    androidToolsGroup.add(action);
-    action = new DummyWizardForTesting.ClearPrefsAction();
+    action = new ExperimentalActionsForTesting.ClearPrefsAction();
     am.registerAction("ClearPrefs", action);
     androidToolsGroup.add(action);
   }
