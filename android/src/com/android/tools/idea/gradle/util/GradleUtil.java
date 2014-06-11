@@ -23,7 +23,6 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -92,12 +91,19 @@ public final class GradleUtil {
   @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
   @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 
-  @NonNls private static final String GRADLEW_PROPERTIES_PATH = FileUtil.join("gradle", "wrapper", "gradle-wrapper.properties");
+  /** The name of the gradle wrapper executable associated with the current OS. */
+  @NonNls public static final String GRADLE_WRAPPER_EXECUTABLE_NAME =
+    SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WRAPPER_WIN : SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+
+  @NonNls private static final String GRADLE_EXECUTABLE_NAME =
+    SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WIN : SdkConstants.FN_GRADLE_UNIX;
+
+  @NonNls private static final String GRADLEW_PROPERTIES_PATH =
+    FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
-  public static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
   /**
    * Finds characters that shouldn't be used in the Gradle path.
    *
