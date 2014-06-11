@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.customizer;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.messages.navigatable.SearchInBuildFilesNavigatable;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -40,6 +41,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_RES;
 import static com.android.SdkConstants.FN_ANNOTATIONS_ZIP;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
 import static java.io.File.separatorChar;
 
 public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleCustomizer<T> {
@@ -185,6 +188,18 @@ public abstract class AbstractDependenciesModuleCustomizer<T> implements ModuleC
       url += URLUtil.JAR_SEPARATOR;
     }
     return url;
+  }
+
+  protected void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies, @NotNull Project project) {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
+
+    for (String dep : unresolvedDependencies) {
+      String group = dep.startsWith("com.android.support:") ? UNRESOLVED_ANDROID_DEPENDENCIES : UNRESOLVED_DEPENDENCIES;
+      String text = dep + " (double-click here to find usages.)";
+      Message msg = new Message(group, Message.Type.ERROR, new SearchInBuildFilesNavigatable(dep), text);
+
+      messages.add(msg);
+    }
   }
 
   private static class DependencyRemover extends RootPolicy<Object> {
