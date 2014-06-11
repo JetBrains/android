@@ -95,7 +95,7 @@ public final class GradleUtil {
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
-  private static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
+  public static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
   /**
    * Finds characters that shouldn't be used in the Gradle path.
    *
