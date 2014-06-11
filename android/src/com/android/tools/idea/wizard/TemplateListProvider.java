@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.collect.ImmutableSet;
@@ -34,15 +33,19 @@ import java.util.*;
 class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]> {
   private final TemplateEntry[] myTemplates;
 
-  public TemplateListProvider(@Nullable String formFactor, @NotNull String category, @NotNull Set<String> excluded) {
-    myTemplates = getTemplateList(formFactor, category, excluded);
-  }
-
   public TemplateListProvider(@Nullable String formFactor, @NotNull Set<String> categories, @NotNull Set<String> excluded) {
     ArrayList<TemplateEntry> templates = Lists.newArrayList();
     for (String category : categories) {
       templates.addAll(Arrays.asList(getTemplateList(formFactor, category, excluded)));
     }
+    Collections.sort(templates, new Comparator<TemplateEntry>() {
+      @Override
+      public int compare(TemplateEntry o1, TemplateEntry o2) {
+        TemplateMetadata m1 = o1.getMetadata();
+        TemplateMetadata m2 = o2.getMetadata();
+        return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());
+      }
+    });
     myTemplates = templates.toArray(new TemplateEntry[templates.size()]);
   }
 
@@ -69,14 +72,6 @@ class TemplateListProvider extends ScopedDataBinder.ValueDeriver<TemplateEntry[]
       }
       metadataList.add(new TemplateEntry(template, metadata));
     }
-    Collections.sort(metadataList, new Comparator<TemplateEntry>() {
-      @Override
-      public int compare(TemplateEntry o1, TemplateEntry o2) {
-        TemplateMetadata m1 = o1.getMetadata();
-        TemplateMetadata m2 = o2.getMetadata();
-        return StringUtil.naturalCompare(m1.getTitle(), m2.getTitle());
-      }
-    });
     return ArrayUtil.toObjectArray(metadataList, TemplateEntry.class);
   }
 
