@@ -199,7 +199,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       DataNode<ContentRootData> contentRootNode = ContainerUtil.getFirstItem(contentRootNodes);
       if (contentRootNode != null) {
         ContentRootData contentRoot = contentRootNode.getData();
-        Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getRoots(ExternalSystemSourceType.EXCLUDED);
+        Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getPaths(ExternalSystemSourceType.EXCLUDED);
         if (excludedRoots.size() == 2) {
           // If there are 2 excluded folders, one is .gradle and the other one is build folder.
           List<ContentRootData.SourceRoot> roots = Lists.newArrayList(excludedRoots);
