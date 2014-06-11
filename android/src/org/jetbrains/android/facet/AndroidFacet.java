@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -27,11 +26,13 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -56,7 +57,6 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -558,12 +558,21 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   public void launchEmulator(@Nullable final String avdName, @NotNull final String commands, @NotNull final ProcessHandler handler) {
-    AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-    if (platform != null) {
-      final String emulatorPath = platform.getSdkData().getLocation() + File.separator + AndroidCommonUtils
-        .toolPath(SdkConstants.FN_EMULATOR);
+    File sdkLocation = null;
+    if (Projects.isGradleProject(getModule().getProject()) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      sdkLocation = DefaultSdks.getDefaultAndroidHome();
+    }
+    else {
+      AndroidPlatform platform = getConfiguration().getAndroidPlatform();
+      if (platform != null) {
+        sdkLocation = platform.getSdkData().getLocation();
+      }
+    }
+
+    if (sdkLocation != null) {
+      File emulatorPath = new File(sdkLocation, AndroidCommonUtils.toolPath(SdkConstants.FN_EMULATOR));
       final GeneralCommandLine commandLine = new GeneralCommandLine();
-      commandLine.setExePath(FileUtil.toSystemDependentName(emulatorPath));
+      commandLine.setExePath(emulatorPath.getPath());
       if (avdName != null) {
         commandLine.addParameter("-avd");
         commandLine.addParameter(avdName);
