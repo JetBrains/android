@@ -55,6 +55,7 @@ public class SdkManagerWizard2 extends TemplateWizard implements TemplateParamet
     myConfirmationStep = new SmwConfirmationStep(myWizardState, this);
     myProgressStep = new SmwProgressStep(myWizardState, this);
 
+    addStep(new SmwOldApiDirectInstall(myWizardState, this)); // for "demo" purposes only
     addStep(mySelectionStep);
     addStep(myConfirmationStep);
     addStep(myProgressStep);
