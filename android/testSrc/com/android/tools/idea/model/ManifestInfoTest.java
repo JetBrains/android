@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -347,6 +348,7 @@ public class ManifestInfoTest extends AndroidTestCase {
       return null;
     }
 
+    @NonNull
     @Override
     public AndroidVersion getVersion() {
       return new AndroidVersion(mApiLevel, null);
