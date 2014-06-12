@@ -119,7 +119,8 @@ public class WrapArchiveWizardPath implements WizardPath {
   @Override
   public Collection<ChooseTemplateStep.MetadataListItem> getBuiltInTemplates() {
     ChooseTemplateStep.MetadataListItem template =
-        ImportSourceModulePath.createImportTemplateWithCustomName(NewModuleWizardState.ARCHIVE_IMPORT_NAME);
+        ImportSourceModulePath.createImportTemplateWithCustomName(NewModuleWizardState.ARCHIVE_IMPORT_NAME,
+                                                                  "Imports an existing JAR or AAR package as a new project module");
     return Collections.singleton(template);
   }
 
