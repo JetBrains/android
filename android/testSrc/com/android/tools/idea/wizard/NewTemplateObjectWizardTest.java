@@ -151,7 +151,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
 
     // Ensure other parameters have been properly set
     assertNotNull(wizard.myWizardState.get(ATTR_MIN_API));
-    assertEquals(myAppFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel(), wizard.myWizardState.getInt(ATTR_MIN_API_LEVEL));
+    assertEquals(myAppFacet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel(), wizard.myWizardState.getInt(ATTR_MIN_API_LEVEL));
     assertEquals(false, wizard.myWizardState.getBoolean(ATTR_IS_LIBRARY_MODULE));
     assertEquals("app", wizard.myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
 

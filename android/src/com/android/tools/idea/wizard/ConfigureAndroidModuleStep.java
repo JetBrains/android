@@ -147,12 +147,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
     if (highest != null) {
-      myTemplateState.put(ATTR_BUILD_API, highest.getApiLevel());
+      myTemplateState.put(ATTR_BUILD_API, highest.getFeatureLevel());
       myTemplateState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(highest));
       myTemplateState.myModified.add(ATTR_BUILD_API);
       myTemplateState.myModified.add(ATTR_BUILD_API_STRING);
-      if (highest.getApiLevel() >= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        myTemplateState.put(ATTR_TARGET_API, highest.getApiLevel());
+      if (highest.getFeatureLevel() >= SdkVersionInfo.HIGHEST_KNOWN_API) {
+        myTemplateState.put(ATTR_TARGET_API, highest.getFeatureLevel());
         myTemplateState.put(ATTR_TARGET_API_STRING, highest.getApiString());
       }
     }
@@ -239,7 +239,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
           if (platform != null) {
             AndroidVersion version = platform.getTarget().getVersion();
-            final int apiLevel = version.getApiLevel();
+            final int apiLevel = version.getFeatureLevel();
             myTemplateState.put(ATTR_TARGET_API, apiLevel);
             myTemplateState.put(ATTR_TARGET_API_STRING, version.getApiString());
             myTemplateState.put(ATTR_BUILD_API, apiLevel);
@@ -829,7 +829,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     public AndroidTargetComboBoxItem(@NotNull IAndroidTarget target) {
       super(getId(target), getLabel(target), 1, 1);
       this.target = target;
-      apiLevel = target.getVersion().getApiLevel();
+      apiLevel = target.getVersion().getFeatureLevel();
     }
 
     @NotNull
@@ -858,7 +858,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         assert codename != null; // because isPreview()
         return codename;
       } else {
-        return target.getVersion().getApiLevel();
+        return target.getVersion().getFeatureLevel();
       }
     }
 

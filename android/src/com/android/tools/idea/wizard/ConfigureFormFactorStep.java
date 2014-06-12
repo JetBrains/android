@@ -227,11 +227,11 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     myHighestInstalledApiTarget = null;
     for (IAndroidTarget target : targets) {
       if (myHighestInstalledApiTarget == null ||
-          target.getVersion().getApiLevel() > myHighestInstalledApiTarget.getVersion().getApiLevel()) {
+          target.getVersion().getFeatureLevel() > myHighestInstalledApiTarget.getVersion().getFeatureLevel()) {
         myHighestInstalledApiTarget = target;
       }
-      AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
       if (target.getVersion().isPreview() || target.getOptionalLibraries() != null && target.getOptionalLibraries().length > 0) {
+        AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
         myTargets.add(targetInfo);
       }
     }
@@ -281,7 +281,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           // Make sure we set target and build to the preview version as well
           populateApiLevels(formFactor, targetItem.apiLevel, target);
         } else {
-          populateApiLevels(formFactor, myHighestInstalledApiTarget.getVersion().getApiLevel(), myHighestInstalledApiTarget);
+          populateApiLevels(formFactor, myHighestInstalledApiTarget.getVersion().getFeatureLevel(), myHighestInstalledApiTarget);
         }
         PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), targetItem.id.toString());
       }
@@ -385,7 +385,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     public AndroidTargetComboBoxItem(@NotNull IAndroidTarget target) {
       super(getId(target), getLabel(target), 1, 1);
       this.target = target;
-      apiLevel = target.getVersion().getApiLevel();
+      apiLevel = target.getVersion().getFeatureLevel();
     }
 
     @NotNull
