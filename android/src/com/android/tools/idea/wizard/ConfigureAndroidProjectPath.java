@@ -22,6 +22,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -94,8 +97,9 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   public boolean performFinishingActions() {
     String projectLocation = myState.get(ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY);
     if (projectLocation != null) {
-      File projectRoot = new File(projectLocation);
-      if (FileUtilRt.createDirectory(projectRoot)) {
+      try {
+        VirtualFile vf = VfsUtil.createDirectories(projectLocation);
+        File projectRoot = VfsUtilCore.virtualToIoFile(vf);
         Template projectTemplate = Template.createFromName(CATEGORY_PROJECTS, NewProjectWizardState.PROJECT_TEMPLATE_NAME);
         projectTemplate.render(projectRoot, projectRoot, myState.flatten());
         try {
@@ -107,8 +111,9 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
         }
         return true;
       }
-    } else {
-      // TODO: Complain
+      catch (IOException e) {
+        // TODO: Complain
+      }
     }
     return false;
   }
