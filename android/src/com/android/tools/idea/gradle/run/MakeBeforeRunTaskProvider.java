@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -49,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
@@ -172,11 +174,34 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       final Semaphore done = new Semaphore();
       done.down();
 
+      final AtomicReference<String> errorMsgRef = new AtomicReference<String>();
+
       // If the model needs a sync, we need to sync "synchronously" before running.
       // See: https://code.google.com/p/android/issues/detail?id=70718
       GradleSyncState syncState = GradleSyncState.getInstance(myProject);
       if (syncState.isSyncNeeded() != ThreeState.NO) {
-        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, null);
+        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener() {
+          @Override
+          public void syncStarted(@NotNull Project project) {
+          }
+
+          @Override
+          public void syncEnded(@NotNull Project project) {
+          }
+
+          @Override
+          public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+            errorMsgRef.set(errorMessage);
+          }
+        });
+      }
+
+      String errorMsg = errorMsgRef.get();
+      if (errorMsg != null) {
+        // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
+        // including the path of the APK.
+        LOG.info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
+        return false;
       }
 
       final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
