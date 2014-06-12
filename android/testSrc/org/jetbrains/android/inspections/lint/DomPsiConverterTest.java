@@ -19,6 +19,7 @@ import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -78,7 +79,12 @@ public class DomPsiConverterTest extends AndroidTestCase {
       public void run() {
         try {
           assertFalse(ApplicationManager.getApplication().isReadAccessAllowed());
-          String formatted = XmlPrettyPrinter.prettyPrint(domDocument, true);
+          String formatted = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+            @Override
+            public String compute() {
+              return XmlPrettyPrinter.prettyPrint(domDocument, true);
+            }
+          });
           formattedHolder.set(formatted);
         } catch (Exception e) {
           e.printStackTrace();
