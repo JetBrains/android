@@ -1,0 +1,17 @@
+apply plugin: 'android'
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion "19.0.0"
+
+  defaultConfig {
+    minSdkVersion 7
+    targetSdkVersion 19
+    versionCode 1
+    versionName "1.0"
+  }
+
+  <warning descr="A `dependencies` block doesn't belong here.">dependencies {
+    compile 'com.foo:foo:1.0'
+  }</warning>
+}
