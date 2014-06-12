@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -105,6 +107,65 @@ public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Objec
     } else {
       throw new IllegalArgumentException("Attempted to store a value of scope " + key.scope.toString() + " in lesser scope of "
                                           + myScope.toString() + " which does not have a parent of the proper scope");
+    }
+    if (stateChanged) {
+      myRecentlyUpdated.add(key);
+      if (myListener != null) {
+        myListener.invokeUpdate(key);
+      }
+    }
+    return stateChanged;
+  }
+
+  /**
+   * Push the given value onto a list. If no list is present for the given key it will be created.
+   * @return true iff the state changed as a result of this operation.
+   */
+  public <T extends List> boolean listPush(@NotNull Key<T> key, @Nullable Object value) {
+    boolean stateChanged = false;
+    if (value != null) {
+      T list = null;
+      if (containsKey(key)) {
+        list = get(key);
+      }
+      if (list == null) {
+        list = (T)new ArrayList<Object>();
+      }
+      stateChanged = list.add(value);
+      put(key, list);
+    }
+    if (stateChanged) {
+      myRecentlyUpdated.add(key);
+      if (myListener != null) {
+        myListener.invokeUpdate(key);
+      }
+    }
+    return stateChanged;
+  }
+
+  public <T extends List> int listSize(@NotNull Key<T> key) {
+    if (containsKey(key)) {
+      List list = get(key);
+      if (list != null) {
+        return list.size();
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * Remove the given value from a list.
+   * @return true iff the state changed as a result of this operation.
+   */
+  public <T extends List, V> boolean listRemove(@NotNull Key<T> key, @Nullable V value) {
+    boolean stateChanged = false;
+    if (value != null) {
+      if (containsKey(key)) {
+        T list = get(key);
+        if (list != null) {
+          stateChanged = list.remove(value);
+        }
+      }
     }
     if (stateChanged) {
       myRecentlyUpdated.add(key);

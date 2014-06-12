@@ -62,7 +62,8 @@ public class ImportSourceModulePath implements WizardPath {
   }
 
   @NotNull
-  protected static MetadataListItem createImportTemplateWithCustomName(@NotNull final String importTemplateName) {
+  protected static MetadataListItem createImportTemplateWithCustomName(@NotNull final String importTemplateName,
+                                                                       @Nullable final String description) {
     // Now, we're going to add in two pointers to the same template
     File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
                                    FileUtil.join(Template.CATEGORY_PROJECTS, "ImportExistingProject"));
@@ -75,6 +76,12 @@ public class ImportSourceModulePath implements WizardPath {
       @Override
       public String toString() {
         return importTemplateName;
+      }
+
+      @Nullable
+      @Override
+      public String getDescription() {
+        return description == null ? super.getDescription() : description;
       }
     };
   }
@@ -113,7 +120,7 @@ public class ImportSourceModulePath implements WizardPath {
 
   @Override
   public Collection<MetadataListItem> getBuiltInTemplates() {
-    return Collections.singleton(createImportTemplateWithCustomName(NewModuleWizardState.MODULE_IMPORT_NAME));
+    return Collections.singleton(createImportTemplateWithCustomName(NewModuleWizardState.MODULE_IMPORT_NAME, null));
   }
 
   @Override
