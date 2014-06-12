@@ -173,7 +173,7 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
         } else {
           myTemplateImage.setIcon(AndroidIcons.Wizards.DefaultTemplate);
         }
-        setDescriptionHtml(templateListItem.myMetadata.getDescription());
+        setDescriptionHtml(templateListItem.getDescription());
         String apiValidationError = validateApiLevels(templateListItem.myMetadata, myTemplateState);
         if (apiValidationError != null) {
           setErrorHtml(apiValidationError);
@@ -254,6 +254,11 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
       return ComparisonChain.start()
         .compare(this.myMetadata.getTitle(), other.myMetadata.getTitle())
         .result();
+    }
+
+    @Nullable
+    public String getDescription() {
+      return myMetadata.getDescription();
     }
   }
 }
