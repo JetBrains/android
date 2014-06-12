@@ -95,6 +95,41 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, "Suppress: Add //noinspection GradlePath");
   }
 
+  public void testNoApplyPlugin() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testNoAndroidStatement() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testTopLevelDependenciesBlock() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testTopLevelRepositoriesBlock() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testBadDependenciesInBuildscriptBlock() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDependenciesInAndroidBlock() throws Exception {
+    AndroidLintGradleMisplacedStatementInspection inspection = new AndroidLintGradleMisplacedStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testRepositoriesInDependenciesBlock() throws Exception {
+    AndroidLintGradleMisplacedStatementInspection inspection = new AndroidLintGradleMisplacedStatementInspection();
+    doTest(inspection, null);
+  }
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);

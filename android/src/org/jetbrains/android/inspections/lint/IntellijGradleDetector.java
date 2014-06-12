@@ -15,21 +15,27 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.detector.api.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.*;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.ATTR_MIN_SDK_VERSION;
@@ -87,7 +93,7 @@ public class IntellijGradleDetector extends GradleDetector {
                     String property = propertyRef.getReferenceName();
                     if (property != null && isInterestingProperty(property, parentName, parentParentName)) {
                       String value = argumentList.getText();
-                      checkDslPropertyAssignment(context, property, value, parentName, parentParentName, argumentList);
+                      checkDslPropertyAssignment(context, property, value, parentName, parentParentName, argumentList, call);
                     }
                   }
                 } else if (element instanceof GrAssignmentExpression) {
@@ -100,7 +106,7 @@ public class IntellijGradleDetector extends GradleDetector {
                       GrExpression rValue = assignment.getRValue();
                       if (rValue != null) {
                         String value = rValue.getText();
-                        checkDslPropertyAssignment(context, property, value, parentName, parentParentName, rValue);
+                        checkDslPropertyAssignment(context, property, value, parentName, parentParentName, rValue, assignment);
 
                         // As of 0.11 you can't use assignment for these two properties. This is handled here rather
                         // than up in GradleDetector for a couple of reasons: The project won't compile with that
@@ -125,6 +131,50 @@ public class IntellijGradleDetector extends GradleDetector {
               }
             }
             super.visitClosure(closure);
+          }
+
+          @Override
+          public void visitCallExpression(GrCallExpression callExpression) {
+            if (callExpression instanceof GrMethodCall) {
+              GrMethodCall methodCall = (GrMethodCall) callExpression;
+              GrClosableBlock block = PsiTreeUtil.getParentOfType(methodCall, GrClosableBlock.class, true);
+              String parentName = block != null ? getClosureName(block) : null;
+              String statementName = methodCall.getInvokedExpression().getText();
+              if (isInterestingBlock(statementName, parentName)) {
+                checkBlock(context, statementName, parentName, methodCall);
+              }
+            }
+            super.visitCallExpression(callExpression);
+          }
+
+          @Override
+          public void visitApplicationStatement(GrApplicationStatement applicationStatement) {
+            GrClosableBlock block = PsiTreeUtil.getParentOfType(applicationStatement, GrClosableBlock.class, true);
+            String parentName = block != null ? getClosureName(block) : null;
+            String statementName = applicationStatement.getInvokedExpression().getText();
+            if (isInterestingStatement(statementName, parentName)) {
+              GrCommandArgumentList argumentList = applicationStatement.getArgumentList();
+              Map<String, String> namedArguments = Maps.newHashMap();
+              List<String> unnamedArguments = Lists.newArrayList();
+              for (GroovyPsiElement groovyPsiElement : argumentList.getAllArguments()) {
+                if (groovyPsiElement instanceof GrNamedArgument) {
+                  GrNamedArgument namedArgument = (GrNamedArgument)groovyPsiElement;
+                  GrExpression expression = namedArgument.getExpression();
+                  if (expression == null || !(expression instanceof GrLiteral)) {
+                    continue;
+                  }
+                  Object value = ((GrLiteral)expression).getValue();
+                  if (value == null) {
+                    continue;
+                  }
+                  namedArguments.put(namedArgument.getLabelName(), value.toString());
+                } else if (groovyPsiElement instanceof GrExpression) {
+                  unnamedArguments.add(groovyPsiElement.getText());
+                }
+              }
+              checkMethodCall(context, statementName, parentName, namedArguments, unnamedArguments, applicationStatement);
+            }
+            super.visitApplicationStatement(applicationStatement);
           }
         });
       }
