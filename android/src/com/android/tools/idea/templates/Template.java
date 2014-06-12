@@ -939,7 +939,7 @@ public class Template {
    */
   private void copy(@NotNull File src, @NotNull File dest) throws IOException {
     VirtualFile sourceFile = VfsUtil.findFileByIoFile(src, true);
-    assert sourceFile != null;
+    assert sourceFile != null : src;
     File parentPath = (src.isDirectory() ? dest : dest.getParentFile());
     VirtualFile destFolder = checkedCreateDirectoryIfMissing(parentPath);
     if (src.isDirectory()) {
