@@ -25,24 +25,38 @@ import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.intellij.ide.util.ClassFilter;
+import com.intellij.ide.util.TreeClassChooser;
+import com.intellij.ide.util.TreeClassChooserFactory;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.event.DocumentAdapter;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.JBColor;
+import com.intellij.psi.JavaCodeFragment;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiClassUtil;
+import com.intellij.ui.*;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +66,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.swing.*;
+import javax.swing.text.Document;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
@@ -92,7 +109,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     myPresetParameters = presetParameters;
     myTargetDirectory = targetDirectory;
     myParameterToKey = CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(new ParameterKeyFunction()));
-    myRootPanel.setBackground(JBColor.white);
     myRootPanel.setBorder(createBodyBorder());
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
     setBodyComponent(myRootPanel);
@@ -150,7 +166,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     gridConstraints.setRow(row);
     gridConstraints.setColumn(column);
 
-    boolean isGreedyComponent = component instanceof JTextField || component instanceof Spacer;
+    boolean isGreedyComponent = component instanceof JTextField || component instanceof Spacer ||
+                                component instanceof LabelWithEditLink || component instanceof TextAccessor ||
+                                component instanceof EditorComboBox;
 
     int columnSpan = (isLast && isGreedyComponent) ? COLUMN_COUNT - column : 1;
     gridConstraints.setColSpan(columnSpan);
@@ -182,37 +200,105 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     return parameterValues;
   }
 
-
   @Override
   public boolean isStepVisible() {
     return myState.get(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE) != null;
   }
 
   @NotNull
-  private List<JComponent> createComponents(Parameter parameter) {
+  private List<JComponent> createComponents(final Parameter parameter) {
     JLabel label = new JLabel(parameter.name + ":");
     final JComponent dataComponent;
-    switch (parameter.type) {
-      case BOOLEAN:
-        label.setText(null);
-        dataComponent = new JCheckBox(parameter.name);
-        break;
-      case ENUM:
-        dataComponent = createEnumCombo(parameter);
-        break;
-      case EXTERNAL:
-        dataComponent = createTextFieldWithBrowse(parameter);
-        break;
-      case STRING:
+    if (AddAndroidActivityPath.PACKAGE_NAME_PARAMETERS.contains(parameter.id)) {
+      Module module = getModule();
+      if (module != null) {
+        dataComponent = createPackageEntry(parameter, module);
+      }
+      else {
+        dataComponent = new LabelWithEditLink();
+      }
+    }
+    else if (AddAndroidActivityPath.CLASS_NAME_PARAMETERS.contains(parameter.id)) {
+      Module module = getModule();
+      if (module != null) {
+        dataComponent = createClassEntry(parameter, module);
+      }
+      else {
         dataComponent = new JTextField();
-        break;
-      case SEPARATOR:
-        return Collections.<JComponent>singletonList(new JSeparator(SwingConstants.HORIZONTAL));
-      default:
-        throw new IllegalStateException(parameter.type.toString());
+      }
+    }
+    else {
+      switch (parameter.type) {
+        case BOOLEAN:
+          label.setText(null);
+          dataComponent = new JCheckBox(parameter.name);
+          break;
+        case ENUM:
+          dataComponent = createEnumCombo(parameter);
+          break;
+        case EXTERNAL:
+          dataComponent = createTextFieldWithBrowse(parameter);
+          break;
+        case STRING:
+          dataComponent = new JTextField();
+          break;
+        case SEPARATOR:
+          return Collections.<JComponent>singletonList(new JSeparator(SwingConstants.HORIZONTAL));
+        default:
+          throw new IllegalStateException(parameter.type.toString());
+      }
     }
     register(parameter, dataComponent);
     return Arrays.asList(label, dataComponent);
+  }
+
+  private JComponent createClassEntry(Parameter parameter, Module module) {
+    ChooseClassAction browseAction = new ChooseClassAction(module.getProject(), parameter);
+    String historyKey = AddAndroidActivityPath.getRecentHistoryKey(parameter.id);
+    // Need to add empty entry to the history, otherwise it will select entry used last
+    RecentsManager.getInstance(module.getProject()).registerRecentEntry(historyKey, "");
+    ReferenceEditorComboWithBrowseButton control =
+        new ReferenceEditorComboWithBrowseButton(browseAction, "", module.getProject(), true,
+                                                 new OnlyShowActivities(), historyKey);
+    if (!StringUtil.isEmpty(control.getText())) {
+      control.prependItem("");
+      control.setText("");
+    }
+    addJBDocumentListener(control.getChildComponent().getDocument(), control);
+    // Discourage from growing
+    control.setPreferredSize(new Dimension(1, 1));
+    return control;
+  }
+
+  private JComponent createPackageEntry(@NotNull Parameter parameter, @NotNull Module module) {
+    Project project = module.getProject();
+    com.intellij.openapi.editor.Document doc =
+        JavaReferenceEditorUtil.createDocument("", project, false, JavaCodeFragment.VisibilityChecker.PROJECT_SCOPE_VISIBLE);
+    assert doc != null;
+    final EditorComboBox textField = new EditorComboBox(doc, project, StdFileTypes.JAVA);
+    final List<String> recentEntries = AddAndroidActivityPath.getParameterValueHistory(parameter, project);
+    if (recentEntries != null) {
+      textField.setHistory(ArrayUtil.toStringArray(recentEntries));
+    }
+    addJBDocumentListener(doc, textField);
+    textField.setPreferredSize(new Dimension(1, 1));
+    return textField;
+  }
+
+  private void addJBDocumentListener(com.intellij.openapi.editor.Document doc, final JComponent textField) {
+    DocumentAdapter listener = new DocumentAdapter() {
+      @Override
+      public void documentChanged(DocumentEvent event) {
+        saveState(textField);
+      }
+    };
+    Disposable disposable = getDisposable();
+    if (disposable != null) {
+      doc.addDocumentListener(listener, disposable);
+    }
+    else {
+      doc.addDocumentListener(listener);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -220,6 +306,22 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     Key<?> key = getParameterKey(parameter);
     if (dataComponent instanceof JCheckBox) {
       register((Key<Boolean>)key, (JCheckBox)dataComponent);
+    }
+    else if (dataComponent instanceof EditorComboBox) { // Should be above JComboBox
+      register((Key<String>)key, (EditorComboBox)dataComponent, new ComponentBinding<String, EditorComboBox>() {
+        @Override
+        public void setValue(@Nullable String newValue, @NotNull EditorComboBox component) {
+          String text = Strings.nullToEmpty(newValue);
+          component.prependItem(text);
+          component.setText(text);
+        }
+
+        @Nullable
+        @Override
+        public String getValue(@NotNull EditorComboBox component) {
+          return component.getText();
+        }
+      });
     }
     else if (dataComponent instanceof JComboBox) {
       register(key, (JComboBox)dataComponent);
@@ -229,6 +331,41 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
     else if (dataComponent instanceof TextFieldWithBrowseButton) {
       register((Key<String>)key, (TextFieldWithBrowseButton)dataComponent);
+    }
+    else if (dataComponent instanceof LabelWithEditLink) {
+      register((Key<String>)key, (LabelWithEditLink)dataComponent, new ComponentBinding<String, LabelWithEditLink>() {
+        @Override
+        public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
+          component.setText(Strings.nullToEmpty(newValue));
+        }
+
+        @Nullable
+        @Override
+        public String getValue(@NotNull LabelWithEditLink component) {
+          return component.getText();
+        }
+
+        @Nullable
+        @Override
+        public Document getDocument(@NotNull LabelWithEditLink component) {
+          //return component.getDocument();
+          return null;
+        }
+      });
+    }
+    else if (dataComponent instanceof TextAccessor) {
+      register((Key<String>)key, dataComponent, new ComponentBinding<String, JComponent>() {
+        @Override
+        public void setValue(@Nullable String newValue, @NotNull JComponent component) {
+          ((TextAccessor)component).setText(Strings.nullToEmpty(newValue));
+        }
+
+        @Nullable
+        @Override
+        public String getValue(@NotNull JComponent component) {
+          return ((TextAccessor)component).getText();
+        }
+      });
     }
     else {
       throw new IllegalArgumentException(dataComponent.getClass().getName());
@@ -527,6 +664,68 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       }
       assert input.id != null;
       return createKey(input.id, ScopedStateStore.Scope.PATH, clazz);
+    }
+  }
+
+  private static class OnlyShowActivities implements JavaCodeFragment.VisibilityChecker {
+    private static boolean isActivitySubclass(@NotNull PsiClass classDecl) {
+      for (PsiClass superClass : classDecl.getSupers()) {
+        String typename = superClass.getQualifiedName();
+        if ("android.app.Activity".equals(typename) || isActivitySubclass(superClass)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public Visibility isDeclarationVisible(PsiElement declaration, @Nullable PsiElement place) {
+      if (declaration instanceof PsiClass) {
+        PsiClass classDecl = (PsiClass)declaration;
+        if (PsiClassUtil.isRunnableClass(classDecl, true, true) && isActivitySubclass(classDecl)) {
+          return Visibility.VISIBLE;
+        }
+      }
+      return Visibility.NOT_VISIBLE;
+    }
+  }
+
+  private class ChooseClassAction implements ActionListener {
+    private final Project myProject;
+    private Parameter myParameter;
+
+    public ChooseClassAction(Project project, Parameter parameter) {
+      myProject = project;
+      myParameter = parameter;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      final OnlyShowActivities filter = new OnlyShowActivities();
+      TreeClassChooser chooser = TreeClassChooserFactory.getInstance(myProject)
+          .createWithInnerClassesScopeChooser("Select Activity",
+                                            GlobalSearchScope.projectScope(myProject),
+                                            new ClassFilter() {
+            @Override
+            public boolean isAccepted(PsiClass aClass) {
+              return filter.isDeclarationVisible(aClass, null) == JavaCodeFragment.VisibilityChecker.Visibility.VISIBLE;
+            }
+          }, null
+        );
+      //noinspection unchecked
+      Key<String> key = (Key<String>)getParameterKey(myParameter);
+      final String targetClassName = myState.get(key);
+      if (targetClassName != null) {
+        final PsiClass aClass = JavaPsiFacade.getInstance(myProject).findClass(targetClassName, GlobalSearchScope.allScope(myProject));
+        if (aClass != null) {
+          chooser.selectDirectory(aClass.getContainingFile().getContainingDirectory());
+        }
+      }
+      chooser.showDialog();
+      PsiClass aClass = chooser.getSelected();
+      if (aClass != null) {
+        myState.put(key, aClass.getQualifiedName());
+      }
     }
   }
 

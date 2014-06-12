@@ -159,6 +159,12 @@ public final class NewAndroidModulePath implements WizardPath {
       public String toString() {
         return TemplateWizardModuleBuilder.LIB_TEMPLATE_NAME;
       }
+
+      @Nullable
+      @Override
+      public String getDescription() {
+        return "Creates a new Android library module.";
+      }
     };
     return ImmutableSet.of(appListItem, libListItem);
   }
