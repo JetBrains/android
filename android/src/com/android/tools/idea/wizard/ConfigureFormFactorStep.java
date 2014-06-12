@@ -15,16 +15,22 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ComboBox;
@@ -48,6 +54,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.PHONE_AND_TABLET;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
@@ -70,11 +77,13 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private JPanel myFormFactorPanel;
   private JBLabel myHelpMeChooseLabel = new JBLabel("Help Me Choose");
   private List<AndroidTargetComboBoxItem> myTargets = Lists.newArrayList();
+  private Set<AndroidVersion> myInstalledVersions = Sets.newHashSet();
   private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
   private Map<FormFactor, JComboBox> myFormFactorApiSelectors = Maps.newEnumMap(FormFactor.class);
   private IAndroidTarget myHighestInstalledApiTarget;
+  private Map<FormFactor, IPkgDesc> myInstallRequests = Maps.newEnumMap(FormFactor.class);
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs",
@@ -233,6 +242,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       if (target.getVersion().isPreview() || target.getOptionalLibraries() != null && target.getOptionalLibraries().length > 0) {
         AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
         myTargets.add(targetInfo);
+        myInstalledVersions.add(targetInfo.target.getVersion());
       }
     }
   }
@@ -282,6 +292,17 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           populateApiLevels(formFactor, targetItem.apiLevel, target);
         } else {
           populateApiLevels(formFactor, myHighestInstalledApiTarget.getVersion().getFeatureLevel(), myHighestInstalledApiTarget);
+        }
+        // Check to see if this is installed. If not, request that we install it
+        if (myInstallRequests.containsKey(formFactor)) {
+          // First remove the last request, no need to install more than one platform
+          myState.listRemove(INSTALL_REQUESTS_KEY, myInstallRequests.get(formFactor));
+        }
+        if (target != null && !myInstalledVersions.contains(target.getVersion())) {
+          IPkgDesc platformDescription = PkgDesc.Builder.newPlatform(target.getVersion(), new MajorRevision(target.getRevision()),
+                                                                    target.getBuildToolInfo().getRevision()).create();
+          myState.listPush(INSTALL_REQUESTS_KEY, platformDescription);
+          myInstallRequests.put(formFactor, platformDescription);
         }
         PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), targetItem.id.toString());
       }

@@ -148,4 +148,18 @@ public class ScopedStateStoreTest extends TestCase {
     assertEquals(expectedMap, myStepState.flatten());
     assertEquals(new HashMap<String, Object>(), myWizardState.flatten());
   }
+
+  public void testListOperations() throws Exception {
+    myPathState = new ScopedStateStore(PATH, null, myScopedStoreListener);
+    Key<List> listKey = createKey("list", PATH, List.class);
+    assertFalse(myPathState.containsKey(listKey));
+
+    assertTrue(myPathState.listPush(listKey, "hello"));
+    assertTrue(myPathState.listPush(listKey, "world"));
+
+    assertTrue(myPathState.listRemove(listKey, "hello"));
+    assertFalse(myPathState.listRemove(listKey, "hello"));
+
+    assertEquals(Lists.newArrayList("world"), myPathState.get(listKey));
+  }
 }
