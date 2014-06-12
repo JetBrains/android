@@ -74,6 +74,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -331,7 +332,7 @@ public class GradleProjectImporter {
       @Override
       public void run() {
         try {
-          doRequestSync(project, generateSourcesOnSuccess, listener);
+          doRequestSync(project, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, listener);
         }
         catch (ConfigurationException e) {
           Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
@@ -341,13 +342,33 @@ public class GradleProjectImporter {
     AppUIUtil.invokeLaterIfProjectAlive(project, syncRequest);
   }
 
-  private void doRequestSync(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable final GradleSyncListener listener)
+  public void syncProjectSynchronously(@NotNull final Project project,
+                                       final boolean generateSourcesOnSuccess,
+                                       @Nullable final GradleSyncListener listener) {
+    Runnable syncRequest = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          doRequestSync(project, ProgressExecutionMode.MODAL_SYNC, generateSourcesOnSuccess, listener);
+        }
+        catch (ConfigurationException e) {
+          Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
+        }
+      }
+    };
+    UIUtil.invokeAndWaitIfNeeded(syncRequest);
+  }
+
+  private void doRequestSync(@NotNull final Project project,
+                             @NotNull ProgressExecutionMode progressExecutionMode,
+                             boolean generateSourcesOnSuccess,
+                             @Nullable final GradleSyncListener listener)
     throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
-      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, listener);
+      doImport(project, false /* existing project */, progressExecutionMode, generateSourcesOnSuccess, listener);
     }
     else {
       Runnable notificationTask = new Runnable() {
