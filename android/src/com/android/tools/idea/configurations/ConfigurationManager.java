@@ -187,7 +187,7 @@ public class ConfigurationManager implements Disposable {
   /** Returns the list of available devices for the current platform, if any */
   @NotNull
   public List<Device> getDevices() {
-    if (myDevices == null) {
+    if (myDevices == null || myDevices.isEmpty()) {
       List<Device> devices = null;
 
       AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);

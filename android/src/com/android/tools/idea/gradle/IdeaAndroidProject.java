@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -23,7 +25,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +44,7 @@ public class IdeaAndroidProject implements Serializable {
   @NotNull private final AndroidProject myDelegate;
   @NotNull private String mySelectedVariantName;
   @Nullable private Boolean myOverridesManifestPackage;
+  @Nullable private AndroidVersion myMinSdkVersion;
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = Maps.newHashMap();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = Maps.newHashMap();
@@ -174,6 +176,10 @@ public class IdeaAndroidProject implements Serializable {
       newVariantName = sorted.get(0);
     }
     mySelectedVariantName = newVariantName;
+
+    // force lazy recompute
+    myOverridesManifestPackage = null;
+    myMinSdkVersion = null;
   }
 
   @NotNull
@@ -193,15 +199,9 @@ public class IdeaAndroidProject implements Serializable {
 
   @Nullable
   public LanguageLevel getJavaLanguageLevel() {
-    try {
-      JavaCompileOptions compileOptions = myDelegate.getJavaCompileOptions();
-      String sourceCompatibility = compileOptions.getSourceCompatibility();
-      return LanguageLevel.parse(sourceCompatibility);
-    }
-    catch (UnsupportedMethodException e) {
-      // This happens when using an old but supported v0.5.+ plug-in. This code will be removed once the minimum supported version is 0.6.0.
-      return null;
-    }
+    JavaCompileOptions compileOptions = myDelegate.getJavaCompileOptions();
+    String sourceCompatibility = compileOptions.getSourceCompatibility();
+    return LanguageLevel.parse(sourceCompatibility);
   }
 
   /**
@@ -242,6 +242,49 @@ public class IdeaAndroidProject implements Serializable {
     }
 
     return myOverridesManifestPackage.booleanValue();
+  }
+
+  private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
+
+  /**
+   * Returns the {@code }minSdkVersion} specified by the user (in the default config or product flavors).
+   * This is normally the merged value, but for example when using preview platforms, the Gradle plugin
+   * will set minSdkVersion and targetSdkVersion to match the level of the compileSdkVersion; in this case
+   * we want tools like lint's API check to continue to look for the intended minSdkVersion specified in
+   * the build.gradle file
+   *
+   * @return the {@link AndroidVersion} to use for this Gradle project, or null if not specified
+   */
+  @Nullable
+  public AndroidVersion getConfigMinSdkVersion() {
+    if (myMinSdkVersion == null) {
+      ApiVersion minSdkVersion = getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      if (minSdkVersion != null && minSdkVersion.getCodename() != null) {
+        ApiVersion defaultConfigVersion  = getDelegate().getDefaultConfig().getProductFlavor().getMinSdkVersion();
+        if (defaultConfigVersion != null) {
+          minSdkVersion = defaultConfigVersion;
+        }
+
+        List<String> flavors = getSelectedVariant().getProductFlavors();
+        for (String flavor : flavors) {
+          ProductFlavorContainer productFlavor = findProductFlavor(flavor);
+          assert productFlavor != null;
+          ApiVersion flavorVersion = productFlavor.getProductFlavor().getMinSdkVersion();
+          if (flavorVersion != null) {
+            minSdkVersion = flavorVersion;
+            break;
+          }
+        }
+      }
+
+      if (minSdkVersion != null) {
+        myMinSdkVersion = LintUtils.convertVersion(minSdkVersion, null);
+      } else {
+        myMinSdkVersion = NOT_SPECIFIED;
+      }
+    }
+
+    return myMinSdkVersion != NOT_SPECIFIED ? myMinSdkVersion : null;
   }
 
   /**

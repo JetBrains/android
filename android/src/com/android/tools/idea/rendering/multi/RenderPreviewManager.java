@@ -907,7 +907,7 @@ public class RenderPreviewManager implements Disposable {
     if (currentTarget == null) {
       return;
     }
-    int currentApi = currentTarget.getVersion().getApiLevel();
+    int currentApi = currentTarget.getVersion().getFeatureLevel();
 
     IAndroidTarget[] targets = configuration.getConfigurationManager().getTargets();
 
@@ -933,9 +933,9 @@ public class RenderPreviewManager implements Disposable {
     if (moduleInfo == null) {
       return;
     }
-    int minSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
+    int minSdkVersion = moduleInfo.getMinSdkVersion().getFeatureLevel();
     int min = Math.max(8, minSdkVersion);
-    int max = Math.min(SdkVersionInfo.HIGHEST_KNOWN_API, highestTarget.getVersion().getApiLevel());
+    int max = Math.min(SdkVersionInfo.HIGHEST_KNOWN_API, highestTarget.getVersion().getFeatureLevel());
 
     // Froyo: Doesn't look right when rendered with a newer layoutlib: assets are all wrong.
     addIfWithinInclusive(min, max, 8, list); // Froyo
@@ -955,7 +955,7 @@ public class RenderPreviewManager implements Disposable {
       IAndroidTarget realTarget = null;
       for (int j = targets.length - 1; j >= 0; j--) {
         IAndroidTarget target = targets[j];
-        if (target.getVersion().getApiLevel() == api && ConfigurationManager.isLayoutLibTarget(target)) {
+        if (target.getVersion().getFeatureLevel() == api && ConfigurationManager.isLayoutLibTarget(target)) {
           realTarget = target;
           break;
         }
@@ -976,7 +976,11 @@ public class RenderPreviewManager implements Disposable {
 
     RenderPreview preview = RenderPreview.create(this, configuration, true);
     preview.setShowFrame(false);
-    preview.setDisplayName(SdkVersionInfo.getCodeName(currentTarget.getVersion().getApiLevel()));
+    String codeName = SdkVersionInfo.getCodeName(currentTarget.getVersion().getFeatureLevel());
+    if (codeName == null) {
+      codeName = currentTarget.getVersion().getApiString();
+    }
+    preview.setDisplayName(codeName);
     setStashedPreview(preview);
   }
 
