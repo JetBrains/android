@@ -747,18 +747,8 @@ class IntellijLintProject extends Project {
       if (mMinSdkVersion == null) {
         IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
         if (ideaAndroidProject != null) {
-          try {
-            ApiVersion minSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-            if (minSdkVersion != null) {
-              mMinSdkVersion = LintUtils.convertVersion(minSdkVersion, null);
-              return mMinSdkVersion;
-            }
-          }
-          catch (Throwable e) {
-            // TODO: REMOVE ME
-            // This method was added in the 0.11 model. We'll need to drop support
-            // for 0.10 shortly but until 0.11 is available this is a stopgap measure
-          }
+          mMinSdkVersion = ideaAndroidProject.getConfigMinSdkVersion();
+          return mMinSdkVersion;
           // Else: not specified in gradle files; fall back to manifest
         }
 
@@ -774,19 +764,11 @@ class IntellijLintProject extends Project {
       if (mTargetSdkVersion == null) {
         IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
         if (ideaAndroidProject != null) {
-          try {
-            ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-            if (targetSdkVersion != null) {
-              mTargetSdkVersion = LintUtils.convertVersion(targetSdkVersion, null);
-              return mTargetSdkVersion;
-            }
+          ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+          if (targetSdkVersion != null) {
+            mTargetSdkVersion = LintUtils.convertVersion(targetSdkVersion, null);
+            return mTargetSdkVersion;
           }
-          catch (Throwable e) {
-            // TODO: REMOVE ME
-            // This method was added in the 0.11 model. We'll need to drop support
-            // for 0.10 shortly but until 0.11 is available this is a stopgap measure
-          }
-
           // Else: not specified in gradle files; fall back to manifest
         }
 

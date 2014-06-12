@@ -275,7 +275,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         if (value instanceof ComboBoxItem) {
           ComboBoxItem selectedItem = (ComboBoxItem)value;
 
-          if (minApi != null && selectedItem.minApi > minApi.getApiLevel()) {
+          if (minApi != null && selectedItem.minApi > minApi.getFeatureLevel()) {
             setErrorHtml(String.format("The \"%s\" option for %s requires a minimum API level of %d",
                                        selectedItem.label, param.name, selectedItem.minApi));
             return false;
