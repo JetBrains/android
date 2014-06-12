@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
@@ -35,6 +37,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
 import org.gradle.tooling.model.GradleTask;
@@ -168,6 +171,13 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     try {
       final Semaphore done = new Semaphore();
       done.down();
+
+      // If the model needs a sync, we need to sync "synchronously" before running.
+      // See: https://code.google.com/p/android/issues/detail?id=70718
+      GradleSyncState syncState = GradleSyncState.getInstance(myProject);
+      if (syncState.isSyncNeeded() != ThreeState.NO) {
+        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, null);
+      }
 
       final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
 
