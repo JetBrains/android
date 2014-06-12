@@ -236,7 +236,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     // Calculate package name
     paths.put(TemplateMetadata.ATTR_PACKAGE_ROOT, packageName);
     File srcOut = new File(javaDir, packageName.replace('.', File.separatorChar));
-    paths.put(ATTR_APPLICATION_PACKAGE, packageName);
+    paths.put(ATTR_APPLICATION_PACKAGE, gradleProject.computePackageName());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getPath()));
     paths.put(ATTR_SOURCE_PROVIDER_NAME, sourceProvider.getName());
     return paths;
