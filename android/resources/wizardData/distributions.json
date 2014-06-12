@@ -3,7 +3,7 @@
   "name": "Froyo",
   "version": "2.2",
   "apiLevel": 8,
-  "distributionPercentage": 0.01,
+  "distributionPercentage": 0.008,
   "url": "https://developer.android.com/about/versions/android-2.2.html",
   "descriptionBlocks": [
                            {
@@ -25,7 +25,7 @@
   "name": "Gingerbread",
   "version": "2.3",
   "apiLevel": 10,
-  "distributionPercentage": 0.162,
+  "distributionPercentage": 0.149,
   "url": "https://developer.android.com/about/versions/android-2.3.3.html",
   "descriptionBlocks" :[
                            {
@@ -44,32 +44,10 @@
                        ]
 },
 {
-  "name": "Honeycomb",
-  "version": "3.2",
-  "apiLevel": 13,
-  "distributionPercentage": 0.001,
-  "url": "https://developer.android.com/about/versions/android-3.2.html",
-  "descriptionBlocks" : [
-                            {
-                                "title": "Screen Support",
-                                "body": "Screen support APIs for different screen sizes<br>Resource qualifiers for screens support<br>Screen compatibility mode"
-                            },
-                            {
-                                "title": "User Interface",
-                                "body": "Improved fragments"
-
-                            },
-                            {
-                                "title": "Multimedia",
-                                "body": "Media sync from SD card"
-                            }
-                        ]
-},
-{
   "name": "Ice Cream Sandwich",
   "version": "4.0",
   "apiLevel": 15,
-  "distributionPercentage": 0.134,
+  "distributionPercentage": 0.123,
   "url": "https://developer.android.com/about/versions/android-4.0.html",
   "descriptionBlocks" : [
                           {
@@ -118,7 +96,7 @@
   "name": "Jelly Bean",
   "version": "4.1",
   "apiLevel": 16,
-  "distributionPercentage": 0.335,
+  "distributionPercentage": 0.290,
   "url": "https://developer.android.com/about/versions/android-4.1.html",
   "descriptionBlocks" : [
                           {
@@ -167,7 +145,7 @@
   "name": "Jelly Bean",
   "version": "4.2",
   "apiLevel": 17,
-  "distributionPercentage": 0.188,
+  "distributionPercentage": 0.191,
   "url": "https://developer.android.com/about/versions/android-4.2.html",
   "descriptionBlocks" : [
                           {
@@ -200,7 +178,7 @@
   "name": "Jelly Bean",
   "version": "4.3",
   "apiLevel": 18,
-  "distributionPercentage": 0.085,
+  "distributionPercentage": 0.103,
   "url": "https://developer.android.com/about/versions/android-4.3.html",
   "descriptionBlocks" : [
                           {
@@ -257,7 +235,7 @@
   "name": "KitKat",
   "version": "4.4",
   "apiLevel": 19,
-  "distributionPercentage": 0.085,
+  "distributionPercentage": 0.136,
   "url": "https://developer.android.com/about/versions/android-4.4.html",
   "descriptionBlocks" : [
                             {
