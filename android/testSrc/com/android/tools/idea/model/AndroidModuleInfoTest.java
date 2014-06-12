@@ -84,7 +84,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testMerge() throws Exception {
     //noinspection ConstantConditions
     if (!CAN_SYNC_PROJECTS ) {
-      System.err.println("AndroidModuleInfoTest.testFlavors temporarily disabled");
+      System.err.println("AndroidModuleInfoTest.testMerge temporarily disabled");
       return;
     }
     loadProject("projects/moduleInfo/merge");

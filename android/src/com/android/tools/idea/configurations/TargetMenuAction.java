@@ -85,7 +85,7 @@ public class TargetMenuAction extends FlatComboAction {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel();
+        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel();
       }
     }
 
@@ -96,8 +96,8 @@ public class TargetMenuAction extends FlatComboAction {
       }
 
       AndroidVersion version = target.getVersion();
-      if (version.getApiLevel() < minSdk) {
-        break;
+      if (version.getFeatureLevel() < minSdk) {
+        continue;
       }
       if (version.getApiLevel() >= 7) {
         haveRecent = true;

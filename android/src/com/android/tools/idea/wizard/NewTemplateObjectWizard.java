@@ -157,7 +157,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assert platform != null;
     AndroidVersion version = platform.getTarget().getVersion();
-    myWizardState.put(ATTR_BUILD_API, version.getApiLevel());
+    myWizardState.put(ATTR_BUILD_API, version.getFeatureLevel());
     myWizardState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
 
     // Read minSdkVersion and package from manifest and/or build.gradle files
@@ -176,12 +176,12 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
       selectSourceProvider(sourceProvider, gradleProject);
     }
 
-    minSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
+    minSdkVersion = moduleInfo.getMinSdkVersion().getFeatureLevel();
     minSdkName = moduleInfo.getMinSdkVersion().getApiString();
 
     myWizardState.put(ATTR_MIN_API, minSdkName);
     myWizardState.put(ATTR_MIN_API_LEVEL, minSdkVersion);
-    myWizardState.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
+    myWizardState.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getFeatureLevel());
     myWizardState.put(ATTR_TARGET_API_STRING, moduleInfo.getTargetSdkVersion().getApiString());
 
     myWizardState.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());

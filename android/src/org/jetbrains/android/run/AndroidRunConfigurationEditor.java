@@ -208,7 +208,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
         return null;
       }
 
-      AndroidVersion minSdk = AndroidModuleInfo.get(facet).getMinSdkVersion();
+      AndroidVersion minSdk = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
       LaunchCompatibility compatibility = LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avd.getTarget());
       if (compatibility.isCompatible() == ThreeState.NO) {
         // todo: provide info about current module configuration
