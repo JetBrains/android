@@ -20,7 +20,6 @@ import com.android.builder.model.BuildTypeContainer;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.intellij.openapi.module.Module;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -70,19 +69,33 @@ public class AndroidModuleInfo {
     return ManifestInfo.get(myFacet.getModule(), false).getPackage();
   }
 
+  /**
+   * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
+   * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
+   * and compileSdkVersion are all coerced to the same preview platform value. This method
+   * should be used by launch code for example or packaging code.
+   */
+  @NotNull
+  public AndroidVersion getRuntimeMinSdkVersion() {
+    IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
+    if (project != null) {
+      ApiVersion minSdkVersion = project.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+      if (minSdkVersion != null) {
+        return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
+      }
+      // Else: not specified in gradle files; fall back to manifest
+    }
+
+    return ManifestInfo.get(myFacet.getModule(), false).getMinSdkVersion();
+  }
+
   @NotNull
   public AndroidVersion getMinSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      try {
-        ApiVersion minSdkVersion = project.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
-        if (minSdkVersion != null) {
-          return new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename());
-        }
-      } catch (UnsupportedMethodException e) {
-        // TODO: REMOVE ME
-        // This method was added in the 0.11 model. We'll need to drop support for 0.10 shortly
-        // but until 0.11 is available this is a stopgap measure
+      AndroidVersion minSdkVersion = project.getConfigMinSdkVersion();
+      if (minSdkVersion != null) {
+        return minSdkVersion;
       }
       // Else: not specified in gradle files; fall back to manifest
     }
@@ -94,15 +107,9 @@ public class AndroidModuleInfo {
   public AndroidVersion getTargetSdkVersion() {
     IdeaAndroidProject project = myFacet.getIdeaAndroidProject();
     if (project != null) {
-      try {
-        ApiVersion targetSdkVersion = project.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-        if (targetSdkVersion != null) {
-          return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
-        }
-      } catch (UnsupportedMethodException e) {
-        // TODO: REMOVE ME
-        // This method was added in the 0.11 model. We'll need to drop support for 0.10 shortly
-        // but until 0.11 is available this is a stopgap measure
+      ApiVersion targetSdkVersion = project.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
+      if (targetSdkVersion != null) {
+        return new AndroidVersion(targetSdkVersion.getApiLevel(), targetSdkVersion.getCodename());
       }
       // Else: not specified in gradle files; fall back to manifest
     }

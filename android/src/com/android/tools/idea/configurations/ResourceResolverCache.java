@@ -185,7 +185,7 @@ public class ResourceResolverCache {
    */
   @Nullable
   public ResourceRepository getFrameworkResources(@NotNull FolderConfiguration configuration, @NotNull IAndroidTarget target) {
-    int apiLevel = target.getVersion().getApiLevel();
+    int apiLevel = target.getVersion().getFeatureLevel();
     FrameworkResources resources = myFrameworkResources.get(apiLevel);
 
     boolean needLocales = configuration.getLanguageQualifier() != null &&
