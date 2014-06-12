@@ -493,7 +493,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private AvdInfo[] addCompatibleAvds(List<AvdInfo> to, @NotNull AvdInfo[] from) {
-    AndroidVersion minSdk = AndroidModuleInfo.get(this).getMinSdkVersion();
+    AndroidVersion minSdk = AndroidModuleInfo.get(this).getRuntimeMinSdkVersion();
     AndroidPlatform platform = getConfiguration().getAndroidPlatform();
     if (platform == null) {
       LOG.error("Android Platform not set for module: " + getModule().getName());

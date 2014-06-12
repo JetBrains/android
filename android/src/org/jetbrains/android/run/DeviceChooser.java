@@ -95,7 +95,7 @@ public class DeviceChooser implements Disposable {
                        @Nullable Condition<IDevice> filter) {
     myFacet = facet;
     myFilter = filter;
-    myMinSdkVersion = AndroidModuleInfo.get(facet).getMinSdkVersion();
+    myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
     myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
 
