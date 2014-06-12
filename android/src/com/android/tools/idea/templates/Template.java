@@ -946,7 +946,7 @@ public class Template {
       copyDirectory(sourceFile, destFolder);
     }
     else {
-      VfsUtilCore.copyFile(this, sourceFile, destFolder);
+      VfsUtilCore.copyFile(this, sourceFile, destFolder, dest.getName());
     }
   }
 
