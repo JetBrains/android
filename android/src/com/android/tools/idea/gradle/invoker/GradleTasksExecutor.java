@@ -116,7 +116,6 @@ class GradleTasksExecutor extends Task.Backgroundable {
   private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
   private static final String STOPPING_GRADLE_MSG_TITLE = "Stopping Gradle";
 
-  @NotNull private final Key<Key<?>> myContentIdKey = CONTENT_ID_KEY;
   @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
   @NotNull private final Object myMessageViewLock = new Object();
@@ -421,7 +420,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
             // Clear messages from the previous compilation
             if (myErrorTreeView == null) {
               // If message view != null, the contents has already been cleared.
-              removeAllContents(null);
+              removeUnpinnedBuildMessages(getNotNullProject(), null);
             }
           }
         }
@@ -429,14 +428,25 @@ class GradleTasksExecutor extends Task.Backgroundable {
     });
   }
 
-  private void removeAllContents(@Nullable Content toKeep) {
-    MessageView messageView = getMessageView();
+  static void clearMessageView(@NotNull final Project project) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        if (!project.isDisposed()) {
+          removeUnpinnedBuildMessages(project, null);
+        }
+      }
+    });
+  }
+
+  private static void removeUnpinnedBuildMessages(@NotNull Project project, @Nullable Content toKeep) {
+    MessageView messageView = MessageView.SERVICE.getInstance(project);
     Content[] contents = messageView.getContentManager().getContents();
     for (Content content : contents) {
       if (content.isPinned() || content == toKeep) {
         continue;
       }
-      if (content.getUserData(myContentIdKey) != null) { // the content was added by me
+      if (content.getUserData(CONTENT_ID_KEY) != null) { // the content was added by me
         messageView.getContentManager().removeContent(content, true);
       }
     }
@@ -469,7 +479,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
 
     Content content = ContentFactory.SERVICE.getInstance().createContent(component, CONTENT_NAME, true);
-    content.putUserData(myContentIdKey, myContentId);
+    content.putUserData(CONTENT_ID_KEY, myContentId);
 
     MessageView messageView = getMessageView();
     ContentManager contentManager = messageView.getContentManager();
@@ -477,7 +487,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
     myCloseListener.setContent(contentManager, content);
 
-    removeAllContents(content);
+    removeUnpinnedBuildMessages(getNotNullProject(), content);
     contentManager.setSelectedContent(content);
   }
 
@@ -600,7 +610,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
         MessageView messageView = getMessageView();
         Content[] contents = messageView.getContentManager().getContents();
         for (Content content : contents) {
-          if (content.getUserData(myContentIdKey) != null) {
+          if (content.getUserData(CONTENT_ID_KEY) != null) {
             messageView.getContentManager().setSelectedContent(content);
             return;
           }
