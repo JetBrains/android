@@ -77,7 +77,7 @@ fi
 TO=
 
 if [[ -z "$TO" ]]; then
-  XML_URL=http://dl.google.com/android/studio/patches/updates.xml
+  XML_URL=https://dl.google.com/android/studio/patches/updates.xml
   TMP_XML=$(mktemp -t tmp.XXXXXX)
   echo "Download $XML_URL..."
   curl --fail --silent --show-error --output "$TMP_XML" "$XML_URL" || exit
@@ -102,7 +102,7 @@ read -p "Press enter to start download..."
 
 OS="unix"
 if [[ -n "$IS_MAC" ]]; then OS="mac"; fi
-JAR_URL="http://dl.google.com/android/studio/patches/AI-$FROM-$TO-patch-$OS.jar"
+JAR_URL="https://dl.google.com/android/studio/patches/AI-$FROM-$TO-patch-$OS.jar"
 TMP_JAR=$(mktemp -d -t tmp.XXXXXX)/"AI-$FROM-$TO-patch-$OS.jar"
 curl --fail --show-error --output "$TMP_JAR" "$JAR_URL" || exit
 
