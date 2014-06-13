@@ -20,6 +20,7 @@ import com.android.builder.model.*;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.LintUtils;
@@ -745,14 +746,7 @@ class IntellijLintProject extends Project {
     @Override
     public AndroidVersion getMinSdkVersion() {
       if (mMinSdkVersion == null) {
-        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject != null) {
-          mMinSdkVersion = ideaAndroidProject.getConfigMinSdkVersion();
-          return mMinSdkVersion;
-          // Else: not specified in gradle files; fall back to manifest
-        }
-
-        mMinSdkVersion = super.getMinSdkVersion();
+        mMinSdkVersion = AndroidModuleInfo.get(myFacet).getMinSdkVersion();
       }
 
       return mMinSdkVersion;
@@ -762,17 +756,7 @@ class IntellijLintProject extends Project {
     @Override
     public AndroidVersion getTargetSdkVersion() {
       if (mTargetSdkVersion == null) {
-        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
-        if (ideaAndroidProject != null) {
-          ApiVersion targetSdkVersion = ideaAndroidProject.getSelectedVariant().getMergedFlavor().getTargetSdkVersion();
-          if (targetSdkVersion != null) {
-            mTargetSdkVersion = LintUtils.convertVersion(targetSdkVersion, null);
-            return mTargetSdkVersion;
-          }
-          // Else: not specified in gradle files; fall back to manifest
-        }
-
-        mTargetSdkVersion = super.getTargetSdkVersion();
+        mTargetSdkVersion = AndroidModuleInfo.get(myFacet).getTargetSdkVersion();
       }
 
       return mTargetSdkVersion;
