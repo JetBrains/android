@@ -427,6 +427,12 @@ public class LombokPsiParser extends JavaParser {
       return new ResolvedPsiClass(myField.getContainingClass());
     }
 
+    @Nullable
+    @Override
+    public Object getValue() {
+      return myField.computeConstantValue();
+    }
+
     @Override
     public int getModifiers() {
       return computeModifiers(myField);
