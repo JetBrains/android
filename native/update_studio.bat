@@ -64,7 +64,7 @@ ECHO This script will download the Studio updater from %FROM% to %TO%.
 PAUSE
 ECHO .
 
-SET JAR_URL=http://dl.google.com/android/studio/patches/AI-%FROM%-%TO%-patch-win.jar
+SET JAR_URL=https://dl.google.com/android/studio/patches/AI-%FROM%-%TO%-patch-win.jar
 SET JAR=%SHORT_TEMP%\AI-%FROM%-%TO%-patch-win.jar
 CALL :download_jar
 
@@ -95,7 +95,7 @@ ECHO .
 GOTO :EOF
 
 :compute_to
-SET XML_URL=http://dl.google.com/android/studio/patches/updates.xml
+SET XML_URL=https://dl.google.com/android/studio/patches/updates.xml
 SET XML=%SHORT_TEMP%\studio_updates.xml
 ECHO Download %XML_URL%...
 bitsadmin /transfer download_studio_updates_xml %XML_URL% %XML%
