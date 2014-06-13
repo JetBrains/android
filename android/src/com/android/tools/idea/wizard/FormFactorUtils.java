@@ -40,19 +40,22 @@ public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
 
   public static enum FormFactor {
-    PHONE_AND_TABLET("Mobile", AndroidIcons.Wizards.FormFactorPhoneTabletLight,
-                     AndroidIcons.Wizards.FormFactorPhoneTabletDark),
-    WEAR("Wear", AndroidIcons.Wizards.FormFactorWearLight, AndroidIcons.Wizards.FormFactorWearDark),
-    GLASS("Glass", AndroidIcons.Wizards.FormFactorGlassLight, AndroidIcons.Wizards.FormFactorGlassDark);
+    MOBILE("Mobile", AndroidIcons.Wizards.FormFactorPhoneTabletLight,
+                     AndroidIcons.Wizards.FormFactorPhoneTabletDark,
+                     "Phone and Tablet"),
+    WEAR("Wear", AndroidIcons.Wizards.FormFactorWearLight, AndroidIcons.Wizards.FormFactorWearDark, "Wear"),
+    GLASS("Glass", AndroidIcons.Wizards.FormFactorGlassLight, AndroidIcons.Wizards.FormFactorGlassDark, "Glass");
 
     public final String id;
     @Nullable private final Icon myLightIcon;
     @Nullable private final Icon myDarkIcon;
+    @Nullable private String displayName;
 
-    FormFactor(@NotNull String id, @Nullable Icon lightIcon, @Nullable Icon darkIcon) {
+    FormFactor(@NotNull String id, @Nullable Icon lightIcon, @Nullable Icon darkIcon, @Nullable String displayName) {
       this.id = id;
       myLightIcon = lightIcon;
       myDarkIcon = darkIcon;
+      this.displayName = displayName;
     }
 
     @Nullable
@@ -63,6 +66,11 @@ public class FormFactorUtils {
         }
       }
       return null;
+    }
+
+    @Override
+    public String toString() {
+      return displayName == null ? id : displayName;
     }
 
     @Nullable
