@@ -107,6 +107,7 @@ public class DevicePanel implements Disposable,
 
     ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
     ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
+    ClientData.setAllocationTrackingHandler(new ShowAllocationsHandler(project));
 
     initializeDeviceCombo();
     initializeClientsList();
@@ -335,6 +336,9 @@ public class DevicePanel implements Disposable,
 
     group.add(new ToggleMethodProfilingAction(myProject, myDeviceContext));
     //group.add(new MyThreadDumpAction()); // thread dump -> systrace
+
+    group.add(new ToggleAllocationTrackingAction(myDeviceContext));
+
     return group;
   }
 }
