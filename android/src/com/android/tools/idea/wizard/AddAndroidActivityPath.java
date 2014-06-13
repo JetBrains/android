@@ -104,7 +104,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
   private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
     // TODO There should be some way for this wizard to figure out form factor from a target or from a template
-    return FormFactorUtils.FormFactor.PHONE_AND_TABLET;
+    return FormFactorUtils.FormFactor.MOBILE;
   }
 
   /**
