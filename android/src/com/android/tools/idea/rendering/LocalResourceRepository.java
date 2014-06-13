@@ -300,14 +300,14 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     if (item instanceof PsiResourceItem) {
       PsiResourceItem psiItem = (PsiResourceItem)item;
       XmlTag tag = psiItem.getTag();
-      if (tag != null) {
+      if (tag != null && tag.isValid()) {
         return tag.getName();
       }
 
       final String id = item.getName();
 
       PsiFile file = psiItem.getPsiFile();
-      if (file instanceof XmlFile) {
+      if (file.isValid() && file instanceof XmlFile) {
         XmlFile xmlFile = (XmlFile)file;
         XmlTag rootTag = xmlFile.getRootTag();
         if (rootTag != null && rootTag.isValid()) {
