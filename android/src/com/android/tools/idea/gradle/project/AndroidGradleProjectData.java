@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -71,6 +72,11 @@ public class AndroidGradleProjectData implements Serializable {
    * The model version
    */
   private String myGradlePluginVersion = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+
+  /**
+   * The last time a sync was done.
+   */
+  private long myLastGradleSyncTimestamp = -1L;
 
   private AndroidGradleProjectData() {
   }
@@ -142,6 +148,8 @@ public class AndroidGradleProjectData implements Serializable {
       }
       data.myData.put(moduleData.myName, moduleData);
     }
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    data.myLastGradleSyncTimestamp = syncState.getLastGradleSyncTimestamp();
     return data;
   }
 
@@ -358,7 +366,8 @@ public class AndroidGradleProjectData implements Serializable {
    *
    * @param project the project to apply the data to.
    */
-  private void applyTo(Project project) {
+  @VisibleForTesting
+  public void applyTo(Project project) {
     final Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       ModuleData data = myData.get(module.getName());
@@ -377,6 +386,8 @@ public class AndroidGradleProjectData implements Serializable {
         gradleFacet.setGradleProject(data.myIdeaGradleProject);
       }
     }
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    syncState.setLastGradleSyncTimestamp(myLastGradleSyncTimestamp);
   }
 
   /**
