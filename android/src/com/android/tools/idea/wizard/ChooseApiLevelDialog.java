@@ -108,7 +108,7 @@ public class ChooseApiLevelDialog extends DialogWrapper implements DistributionC
   public void onDistributionSelected(DistributionChartComponent.Distribution d) {
     int halfwayIndex = d.descriptionBlocks.size() / 2;
     myDescriptionLeft.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(0, halfwayIndex + 1)));
-    myDescriptionRight.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(halfwayIndex, d.descriptionBlocks.size())));
+    myDescriptionRight.setText(getHtmlFromBlocks(d.descriptionBlocks.subList(halfwayIndex + 1, d.descriptionBlocks.size())));
     mySelectedApiLevel = d.apiLevel;
     myIntroducedLabel.setText(d.name);
     myLearnMoreLinkLabel.setText(d.url);
