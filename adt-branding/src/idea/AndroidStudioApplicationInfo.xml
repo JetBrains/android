@@ -30,8 +30,8 @@
 
   <editor background-url="/artwork/studio_logo_background.png"/>
 
-  <update-urls check="http://dl.google.com/android/studio/patches/updates.xml"
-               patches="http://dl.google.com/android/studio/patches/"/>
+  <update-urls check="https://dl.google.com/android/studio/patches/updates.xml"
+               patches="https://dl.google.com/android/studio/patches/"/>
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://tools.android.com/welcome-to-android-studio"/>
