@@ -77,6 +77,7 @@ public class NavigationEditor implements FileEditor {
   private static final NavigationModel.Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
+  @Nullable
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
   private final VirtualFile myFile;
@@ -88,6 +89,7 @@ public class NavigationEditor implements FileEditor {
   private final Listener<NavigationModel.Event> myNavigationModelListener;
   private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener;
   private VirtualFileAdapter myVirtualFileListener;
+  private final ErrorHandler myErrorHandler;
 
   public NavigationEditor(Project project, VirtualFile file) {
     // Listen for 'Save All' events
@@ -104,7 +106,8 @@ public class NavigationEditor implements FileEditor {
     };
     project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
     myFile = file;
-    myRenderingParams = NavigationView.getRenderingParams(project, file);
+    myErrorHandler = new ErrorHandler();
+    myRenderingParams = NavigationView.getRenderingParams(project, file, myErrorHandler);
     if (myRenderingParams != null) {
       Configuration configuration = myRenderingParams.myConfiguration;
       Module module = configuration.getModule();
@@ -123,13 +126,11 @@ public class NavigationEditor implements FileEditor {
         myComponent = p;
       }
       catch (FileReadException e) {
-        setErrorState(e.getMessage());
+        myErrorHandler.handleError("Invalid Navigation File", e.getMessage());
         if (DEBUG) {
           e.printStackTrace();
         }
       }
-    } else {
-      setErrorState("No navigation file");
     }
     myNavigationModelListener = new Listener<NavigationModel.Event>() {
       @Override
@@ -179,21 +180,29 @@ public class NavigationEditor implements FileEditor {
     };
   }
 
-  private void setErrorState(String errorMessage) {
-    myNavigationModel = new NavigationModel();
-    {
-      JPanel panel = new JPanel(new BorderLayout());
-      JLabel message = new JLabel("Invalid Navigation File");
-      Font font = message.getFont();
-      message.setFont(font.deriveFont(30f));
-      panel.add(message, BorderLayout.NORTH);
-      panel.add(new JLabel(errorMessage), BorderLayout.CENTER);
-      myComponent = new JBScrollPane(panel);
+  public class ErrorHandler {
+    public void handleError(String title, String errorMessage) {
+      myNavigationModel = new NavigationModel();
+      {
+        JPanel panel = new JPanel(new BorderLayout());
+        {
+          JLabel label = new JLabel(title);
+          label.setFont(label.getFont().deriveFont(30f));
+          label.setHorizontalAlignment(SwingConstants.CENTER);
+          panel.add(label, BorderLayout.NORTH);
+        }
+        {
+          JLabel label = new JLabel(errorMessage);
+          label.setFont(label.getFont().deriveFont(20f));
+          label.setHorizontalAlignment(SwingConstants.CENTER);
+          panel.add(label, BorderLayout.CENTER);
+        }
+        myComponent = new JBScrollPane(panel);
+      }
     }
   }
 
-  private ResourceFolderManager getResourceFolderManager() {
-    AndroidFacet facet = myRenderingParams.myFacet;
+  private static ResourceFolderManager getResourceFolderManager(AndroidFacet facet) {
     //if (facet.isGradleProject()) {
     // Ensure that the app resources have been initialized first, since
     // we want it to add its own variant listeners before ours (such that
@@ -265,8 +274,8 @@ public class NavigationEditor implements FileEditor {
             Object deviceQualifier = (device == tablet) ? "-sw600dp" : "";
             Object orientation = orientationSelector.getSelectedItem();
             Object orientationQualifier = (orientation == landscape) ? "-land" : "";
-            new AndroidShowNavigationEditor().showNavigationEditor(myRenderingParams.myProject,
-                                                                   "raw" + deviceQualifier + orientationQualifier, "main.nvg.xml");
+            new AndroidShowNavigationEditor()
+              .showNavigationEditor(myRenderingParams.myProject, "raw" + deviceQualifier + orientationQualifier, "main.nvg.xml");
             disabled = true;
             deviceSelector.setSelectedItem(dirName.contains("-sw600dp") ? tablet : phone);
             orientationSelector.setSelectedItem(dirName.contains("-land") ? landscape : portrait);
@@ -434,7 +443,7 @@ public class NavigationEditor implements FileEditor {
 
   private void updateNavigationModelFromProject() {
     if (DEBUG) System.out.println("NavigationEditor: updateNavigationModelFromProject...");
-    if (myRenderingParams.myProject.isDisposed()) {
+    if (myRenderingParams == null || myRenderingParams.myProject.isDisposed()) {
       return;
     }
     EventDispatcher<NavigationModel.Event> listeners = myNavigationModel.getListeners();
@@ -452,15 +461,21 @@ public class NavigationEditor implements FileEditor {
 
   @Override
   public void selectNotify() {
-    updateNavigationModelFromProject();
-    VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
-    getResourceFolderManager().addListener(myResourceFolderListener);
+    if (myRenderingParams != null) {
+      AndroidFacet facet = myRenderingParams.myFacet;
+      updateNavigationModelFromProject();
+      VirtualFileManager.getInstance().addVirtualFileListener(myVirtualFileListener);
+      getResourceFolderManager(facet).addListener(myResourceFolderListener);
+    }
   }
 
   @Override
   public void deselectNotify() {
-    VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileListener);
-    getResourceFolderManager().removeListener(myResourceFolderListener);
+    if (myRenderingParams != null) {
+      AndroidFacet facet = myRenderingParams.myFacet;
+      VirtualFileManager.getInstance().removeVirtualFileListener(myVirtualFileListener);
+      getResourceFolderManager(facet).removeListener(myResourceFolderListener);
+    }
   }
 
   @Override
