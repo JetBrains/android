@@ -109,7 +109,7 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
         addPath(new DynamicWizardPath() {
           @Override
           protected void init() {
-            myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.PHONE_AND_TABLET,
+            myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE,
                                                 ImmutableMap.<String, Object>of(), null, null);
             addStep(myStep);
           }

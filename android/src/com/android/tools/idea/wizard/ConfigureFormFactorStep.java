@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidTargetHash;
@@ -56,7 +55,7 @@ import java.util.List;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
-import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.PHONE_AND_TABLET;
+import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
@@ -86,7 +85,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private Map<FormFactor, IPkgDesc> myInstallRequests = Maps.newEnumMap(FormFactor.class);
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
-    super("Select the form factor(s) your app will run on", "Different platforms require separate SDKs",
+    super("Select the form factors your app will run on", "Different platforms require separate SDKs",
           null, disposable);
     myDisposable = disposable;
     Disposer.register(disposable, myChooseApiLevelDialog.getDisposable());
@@ -101,12 +100,12 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     myHelpMeChooseLabel.addMouseListener(new MouseInputAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
-        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, myState.get(getMinApiLevelKey(PHONE_AND_TABLET)));
+        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, myState.get(getMinApiLevelKey(MOBILE)));
         Disposer.register(myDisposable, myChooseApiLevelDialog.getDisposable());
         myChooseApiLevelDialog.show();
         if (myChooseApiLevelDialog.isOK()) {
           int minApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
-          setSelectedItem(myFormFactorApiSelectors.get(PHONE_AND_TABLET), Integer.toString(minApiLevel));
+          setSelectedItem(myFormFactorApiSelectors.get(MOBILE), Integer.toString(minApiLevel));
         }
       }
     });
@@ -128,19 +127,19 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       @Nullable
       @Override
       public Set<Key<?>> getTriggerKeys() {
-        return makeSetOf(getTargetComboBoxKey(PHONE_AND_TABLET));
+        return makeSetOf(getTargetComboBoxKey(MOBILE));
       }
 
       @Nullable
       @Override
       public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-        AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(PHONE_AND_TABLET));
+        AndroidTargetComboBoxItem selectedItem = state.get(getTargetComboBoxKey(MOBILE));
         if (selectedItem == null) {
           return currentValue;
         }
         Integer selectedApi = selectedItem.apiLevel;
         return String.format(Locale.getDefault(), "<html>Lower API levels target more devices, but have fewer features available. " +
-                                                  "By targeting API %d and later, your app will run on approximately %.2f%% of the " +
+                                                  "By targeting API %d and later, your app will run on approximately <b>%.1f%%</b> of the " +
                                                   "devices that are active on the Google Play Store. " +
                                                   "<span color=\"#%s\">Help me choose.</span></html>", selectedApi,
                              myChooseApiLevelDialog.getSupportedDistributionForApiLevel(selectedApi) * 100,
@@ -177,7 +176,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       c.setColumn(0);
       c.setFill(GridConstraints.FILL_NONE);
       c.setAnchor(GridConstraints.ANCHOR_WEST);
-      JCheckBox inclusionCheckBox = new JCheckBox(formFactor.id);
+      JCheckBox inclusionCheckBox = new JCheckBox(formFactor.toString());
       if (row == 0) {
         myState.put(FormFactorUtils.getInclusionKey(formFactor), true);
       }
@@ -203,7 +202,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
       myFormFactorPanel.add(minSdkComboBox, c);
       myFormFactorApiSelectors.put(formFactor, minSdkComboBox);
-      if (formFactor.equals(PHONE_AND_TABLET)) {
+      if (formFactor.equals(MOBILE)) {
         c.setRow(++row);
         c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
         c.setFill(GridConstraints.FILL_NONE);
@@ -236,7 +235,8 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     myHighestInstalledApiTarget = null;
     for (IAndroidTarget target : targets) {
       if (myHighestInstalledApiTarget == null ||
-          target.getVersion().getFeatureLevel() > myHighestInstalledApiTarget.getVersion().getFeatureLevel()) {
+          target.getVersion().getFeatureLevel() > myHighestInstalledApiTarget.getVersion().getFeatureLevel() &&
+          !target.getVersion().isPreview()) {
         myHighestInstalledApiTarget = target;
       }
       if (target.getVersion().isPreview() || target.getOptionalLibraries() != null && target.getOptionalLibraries().length > 0) {

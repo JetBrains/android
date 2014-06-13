@@ -43,7 +43,7 @@
                 </constraints>
                 <properties>
                   <foreground color="-12566464"/>
-                  <text value="&lt;html&gt;The minimum SDK version determines the lowest level of Android that your app will run on.&#10;&lt;br&gt;&lt;br&gt;&#10;You typically want to target as many users as possible, so you would ideally want to support everyone -- with a minimum SDK version of 1. However, that has some disadvantages, such as lack of features, and very few people use devices that old anymore.&#10;&lt;br&gt;&lt;br&gt;&#10;Your choice of minimum SDK level should be a tradeoff between the distribution of users you wish to target and the features that your application will need.&#10;&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Click on an API level to see the supported distribution percentage and more information on the functionality introduced at that API level.&lt;/b&gt;&#10;&lt;/html&gt;"/>
+                  <text value="&lt;html&gt;The minimum SDK version determines the lowest level of Android that your app will run on.&#10;&lt;br&gt;&lt;br&gt;&#10;You typically want to target as many users as possible, so you would ideally want to support everyone -- with a minimum SDK version of 1. However, that has some disadvantages, such as lack of features, and very few people use devices that old anymore.&#10;&lt;br&gt;&lt;br&gt;&#10;Your choice of minimum SDK level should be a tradeoff between the distribution of users you wish to target and the features that your application will need.&#10;&lt;br&gt;&lt;br&gt;&#10;&lt;b&gt;Click on an API level for more information.&lt;/b&gt;&#10;&lt;/html&gt;"/>
                   <verticalAlignment value="1"/>
                   <verticalTextPosition value="1"/>
                 </properties>

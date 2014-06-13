@@ -15,24 +15,9 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 
 /**
  *
@@ -47,7 +32,7 @@ public class ExperimentalActionsForTesting {
     @Override
     public void actionPerformed(AnActionEvent e) {
       PropertiesComponent properties = PropertiesComponent.getInstance();
-      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.PHONE_AND_TABLET));
+      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.MOBILE));
       properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.GLASS));
       properties.unsetValue(ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN);
     }
