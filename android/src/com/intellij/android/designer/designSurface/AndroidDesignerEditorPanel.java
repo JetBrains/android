@@ -1052,6 +1052,9 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
       double imageHeight = bounds.getHeight();
       if (imageHeight > 0) {
         zoom = Math.min(myMaxWidth / imageWidth, myMaxHeight / imageHeight);
+        if (myZoomMode == ZoomType.FIT_INTO && zoom > 1) {
+          zoom = 1;
+        }
       }
     }
 
@@ -1388,7 +1391,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
 
   @Override
   public void updateLayout() {
-    zoom(ZoomType.FIT);
+    zoom(ZoomType.FIT_INTO);
     Component component = getComponent();
     if (component instanceof JComponent) {
       JComponent jc = (JComponent)component;
@@ -1396,10 +1399,14 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     } else {
       component.validate();
     }
+    layoutParent();
+    component.repaint();
+  }
+
+  protected void layoutParent() {
     if (myRootView != null) {
       ((JComponent)myRootView.getParent()).revalidate();
     }
-    component.repaint();
   }
 
   private boolean myShowDeviceFrames = true;
@@ -1470,6 +1477,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     myMaxWidth = width;
     myMaxHeight = height;
     myUseLargeShadows = width <= 0;
+    layoutParent();
   }
 
   @Override

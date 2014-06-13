@@ -181,7 +181,6 @@ public class RenderPreview implements Disposable {
     //noinspection AssertWithSideEffects
     assert myConfiguration.getDevice() != null;
     assert myConfiguration.getDeviceState() != null;
-    assert myConfiguration.getLocale() != null;
     assert myConfiguration.getTarget() != null;
     assert myConfiguration.getTheme() != null;
     assert myConfiguration.getFullConfig().getScreenSizeQualifier() != null : myConfiguration;
@@ -198,7 +197,7 @@ public class RenderPreview implements Disposable {
     computeFullSize();
 
     if (myFullHeight > 0) {
-      double scale = getScale(myFullWidth, myFullHeight);
+      double scale = Math.min(1, getScale(myFullWidth, myFullHeight));
       myLayoutWidth = (int)(myFullWidth * scale);
       myLayoutHeight = (int)(myFullHeight * scale);
     } else {
@@ -637,7 +636,7 @@ public class RenderPreview implements Disposable {
       boolean showEffects = settings.isShowEffects();
       State deviceState = myConfiguration.getDeviceState();
       if (device != null && deviceState != null) {
-        double scale = getLayoutWidth() / (double)image.getWidth();
+        double scale = Math.min(1, getLayoutWidth() / (double)image.getWidth());
         ScreenOrientation orientation = deviceState.getOrientation();
         double frameScale = framePainter.getFrameMaxOverhead(device, orientation);
         scale /= frameScale;
@@ -648,12 +647,12 @@ public class RenderPreview implements Disposable {
         myThumbnailHasFrame = true;
       } else {
         // TODO: Do drop shadow painting if frame fails?
-        double scale = getLayoutWidth() / (double)image.getWidth();
+        double scale = Math.min(1, getLayoutWidth() / (double)image.getWidth());
         image = ImageUtils.scale(image, scale, scale, 0, 0);
       }
     } else {
       boolean drawShadows = !myRenderContext.hasAlphaChannel();
-      double scale = getLayoutWidth() / (double)image.getWidth();
+      double scale = Math.min(1, getLayoutWidth() / (double)image.getWidth());
       shadowSize = drawShadows ? SMALL_SHADOW_SIZE : 0;
       if (scale < 1.0) {
         image = ImageUtils.scale(image, scale, scale, shadowSize, shadowSize);
@@ -908,6 +907,7 @@ public class RenderPreview implements Disposable {
     int height = getHeight();
     BufferedImage thumbnail = getThumbnail();
     if (thumbnail != null && myError == null) {
+      //noinspection ConstantConditions
       UIUtil.drawImage(gc, thumbnail, x, y, null);
 
       if (myActive) {
@@ -924,6 +924,7 @@ public class RenderPreview implements Disposable {
           h = myViewBounds.height;
         }
 
+        //noinspection UseJBColor
         gc.setColor(new Color(181, 213, 255));
         gc.drawRect(x1 - 1, y1 - 1, w + 1, h + 1);
         gc.drawRect(x1 - 2, y1 - 2, w + 3, h + 3);
@@ -935,6 +936,7 @@ public class RenderPreview implements Disposable {
         UIUtil.drawImage(gc, thumbnail, x, y, null);
       }
       else {
+        //noinspection UseJBColor
         gc.setColor(Color.DARK_GRAY);
         gc.drawRect(x, y, width, height);
       }
@@ -946,6 +948,7 @@ public class RenderPreview implements Disposable {
       icon.paintIcon(component, gc, x + (width - icon.getIconWidth()) / 2, y + (height - icon.getIconHeight()) / 2);
       Composite prevComposite = gc.getComposite();
       gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
+      //noinspection UseJBColor
       gc.setColor(Color.WHITE);
       gc.fillRect(x, y, width, height);
       gc.setComposite(prevComposite);
@@ -958,6 +961,7 @@ public class RenderPreview implements Disposable {
       int charWidth = fontMetrics.charWidth('x');
       int charsPerLine = (width - 10) / charWidth;
       msg = SdkUtils.wrap(msg, charsPerLine, null);
+      //noinspection UseJBColor
       gc.setColor(Color.BLACK);
       gc.setFont(UIUtil.getToolTipFont());
       UIUtil.applyRenderingHints(gc);
@@ -976,6 +980,7 @@ public class RenderPreview implements Disposable {
       gc.setClip(prevClip);
     }
     else {
+      //noinspection UseJBColor
       gc.setColor(Color.DARK_GRAY);
       gc.drawRect(x, y, width, height);
       Icon icon = AndroidIcons.RefreshPreview;
@@ -990,6 +995,7 @@ public class RenderPreview implements Disposable {
 
       Composite prevComposite = gc.getComposite();
       gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
+      //noinspection UseJBColor
       gc.setColor(Color.WHITE);
       gc.fillRect(left, y, x + width - left, HEADER_HEIGHT);
 
@@ -1069,6 +1075,7 @@ public class RenderPreview implements Disposable {
     if (displayName != null && displayName.length() > 0) {
       // Deliberately using Color.WHITE rather than JBColor.WHITE here: the background in the preview render
       // is always gray and does not vary by theme
+      //noinspection UseJBColor
       gc.setColor(Color.WHITE);
       Rectangle2D extent = fontMetrics.getStringBounds(displayName, gc);
       int labelLeft = Math.max(x, x + (myLayoutWidth - (int)extent.getWidth()) / 2);
@@ -1098,7 +1105,6 @@ public class RenderPreview implements Disposable {
     if (showFile && (myAlternateInput != null || myIncludedWithin != null)) {
       // Draw file flag, and parent folder name
       VirtualFile file = myAlternateInput != null ? myAlternateInput : myIncludedWithin.getFromFile();
-      assert file != null;
       String fileName = file.getParent().getName() + File.separator + file.getName();
       Rectangle2D extent = fontMetrics.getStringBounds(fileName, gc);
       Icon icon = AllIcons.FileTypes.Xml;
@@ -1110,6 +1116,7 @@ public class RenderPreview implements Disposable {
 
       // Deliberately using Color.DARK_GRAY rather than JBColor.GRAY here: the background in the preview render
       // is always gray and does not vary by theme
+      //noinspection UseJBColor
       gc.setColor(Color.DARK_GRAY);
       labelLeft += iconWidth + 1;
       labelTop -= ((int)extent.getHeight() - iconHeight) / 2;
@@ -1263,7 +1270,7 @@ public class RenderPreview implements Disposable {
     if (width == 0 || height == 0) {
       computeInitialSize();
     } else {
-      double scale = Math.min(width / (double) myFullWidth, (height - RenderPreviewManager.TITLE_HEIGHT) / (double)myFullHeight);
+      double scale = Math.min(1, Math.min(width / (double)myFullWidth, (height - RenderPreviewManager.TITLE_HEIGHT) / (double)myFullHeight));
       myLayoutWidth = (int)(myFullWidth * scale);
       myLayoutHeight = (int)(myFullHeight * scale);
     }
