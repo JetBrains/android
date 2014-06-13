@@ -130,7 +130,7 @@ public class NavigationView extends JComponent {
 
   /* In projects with one module with an AndroidFacet, return that AndroidFacet. */
   @Nullable
-  private static AndroidFacet getAndroidFacet(@NotNull Project project) {
+  private static AndroidFacet getAndroidFacet(@NotNull Project project, @NotNull NavigationEditor.ErrorHandler handler) {
     AndroidFacet result = null;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -141,7 +141,7 @@ public class NavigationView extends JComponent {
         result = facet;
       }
       else {
-        LOG.error("Navigation Editor does not yet support multiple module projects");
+        handler.handleError("", "Sorry, Navigation Editor does not yet support multiple module projects. ");
         return null;
       }
     }
@@ -149,8 +149,10 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static RenderingParameters getRenderingParams(@NotNull Project project, @NotNull VirtualFile file) {
-    AndroidFacet facet = getAndroidFacet(project);
+  public static RenderingParameters getRenderingParams(@NotNull Project project,
+                                                       @NotNull VirtualFile file,
+                                                       @NotNull NavigationEditor.ErrorHandler handler) {
+    AndroidFacet facet = getAndroidFacet(project, handler);
     if (facet == null) {
       return null;
     }
