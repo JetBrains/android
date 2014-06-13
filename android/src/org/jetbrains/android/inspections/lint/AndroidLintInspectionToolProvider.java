@@ -675,6 +675,19 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGradleImproperProjectLevelStatementInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleImproperProjectLevelStatementInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.improper.project.level.statement"),
+            GradleDetector.IMPROPER_PROJECT_LEVEL_STATEMENT);
+    }
+  }
+
+  public static class AndroidLintGradleMisplacedStatementInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleMisplacedStatementInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.misplaced.statement"), GradleDetector.MISPLACED_STATEMENT);
+    }
+  }
+
   public static class AndroidLintGrantAllUrisInspection extends AndroidLintInspectionBase {
     public AndroidLintGrantAllUrisInspection() {
       super(AndroidBundle.message("android.lint.inspections.grant.all.uris"), SecurityDetector.OPEN_PROVIDER);
