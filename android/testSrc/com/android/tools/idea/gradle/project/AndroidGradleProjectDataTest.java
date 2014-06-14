@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -120,6 +121,9 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     loadProject("projects/projectWithAppandLib");
 
     Project project = myAndroidFacet.getModule().getProject();
+    GradleSyncState syncState = GradleSyncState.getInstance(project);
+    long previousSyncTime = syncState.getLastGradleSyncTimestamp();
+
     AndroidGradleProjectData data = AndroidGradleProjectData.createFrom(project);
 
     Map<String, byte[]> checksums = data.getFileChecksums();
@@ -133,13 +137,19 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ObjectOutputStream oos = new ObjectOutputStream(outputStream);
-    oos.writeObject(moduleData.myAndroidProject);
+    oos.writeObject(data);
     oos.close();
 
     ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
     ObjectInputStream ois = new ObjectInputStream(inputStream);
-    ois.readObject();
+    AndroidGradleProjectData newData = (AndroidGradleProjectData)ois.readObject();
     ois.close();
+
+    // Clear the sync state to make sure we set it correctly.
+    syncState.setLastGradleSyncTimestamp(-1L);
+    newData.applyTo(project);
+
+    assertEquals(previousSyncTime, syncState.getLastGradleSyncTimestamp());
   }
 
   interface MyInterface {
