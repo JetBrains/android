@@ -110,7 +110,7 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
           @Override
           protected void init() {
             myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE,
-                                                ImmutableMap.<String, Object>of(), null, null);
+                                                ImmutableMap.<String, Object>of(), null, null, AddAndroidActivityPath.KEY_PACKAGE_NAME);
             addStep(myStep);
           }
 

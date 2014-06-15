@@ -119,7 +119,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     myState.put(APPLICATION_NAME_KEY, "My Application");
     String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
     if (savedCompanyDomain == null) {
-      savedCompanyDomain = System.getProperty("user.name");
+      savedCompanyDomain = nameToPackage(System.getProperty("user.name"));
     }
     if (savedCompanyDomain == null) {
       savedCompanyDomain = EXAMPLE_DOMAIN;
@@ -279,18 +279,18 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     }
   }
 
+  private static String nameToPackage(String name) {
+    name = name.replace('-', '_');
+    name = name.replaceAll("[^a-zA-Z0-9_]", "");
+    name = name.toLowerCase();
+    return name;
+  }
+
   private static final ValueDeriver<String> myPackageNameDeriver = new ValueDeriver<String>() {
     @Nullable
     @Override
     public Set<Key<?>> getTriggerKeys() {
       return makeSetOf(APPLICATION_NAME_KEY, COMPANY_DOMAIN_KEY);
-    }
-
-    String nameToPackage(String name) {
-      name = name.replace('-', '_');
-      name = name.replaceAll("[^a-zA-Z0-9_]", "");
-      name = name.toLowerCase();
-      return name;
     }
 
     @Nullable
