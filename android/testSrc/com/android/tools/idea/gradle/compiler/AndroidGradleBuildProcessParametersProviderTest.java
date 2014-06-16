@@ -62,7 +62,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
 
     GradleExecutionSettings settings = createMock(GradleExecutionSettings.class);
 
-    expect(settings.getRemoteProcessIdleTtlInMs()).andReturn(55L);
     expect(settings.getGradleHome()).andReturn("~/gradle-1.6");
     expect(settings.isVerboseProcessing()).andReturn(true);
     expect(settings.getServiceDirectory()).andReturn("~./gradle");
@@ -77,7 +76,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
 
     String projectDirPath = FileUtil.toSystemDependentName(myProject.getBasePath());
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.project.path=" + projectDirPath));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.max.idle.time=55"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.home.path=~" + File.separatorChar + "gradle-1.6"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.use.verbose.logging=true"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.service.dir.path=~." + File.separatorChar + "gradle"));
