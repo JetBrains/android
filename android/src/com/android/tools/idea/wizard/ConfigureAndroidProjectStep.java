@@ -30,12 +30,14 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.ui.JBColor;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.Document;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -78,7 +80,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   private LabelWithEditLink myPackageName;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
-    super("Add information to your new project", null, null, disposable);
+    super("Configure your new project", null, null, disposable);
     setBodyComponent(myPanel);
   }
 
@@ -335,4 +337,16 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       return projectDir.getPath();
     }
   };
+
+  @Nullable
+  @Override
+  protected JComponent getHeader() {
+    return ConfigureAndroidProjectPath.buildConfigurationHeader();
+  }
+
+  @Override
+  @Nullable
+  protected JBColor getTitleTextColor() {
+    return ConfigureAndroidProjectPath.ANDROID_NPW_TITLE_COLOR;
+  }
 }
