@@ -80,7 +80,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     myWithExplicitResourceType = withExplicitResourceType;
   }
 
-  public void setAdditionalConverter(ResolvingConverter<String> additionalConverter, boolean soft) {
+  public void setAdditionalConverter(@Nullable ResolvingConverter<String> additionalConverter, boolean soft) {
     myAdditionalConverter = additionalConverter;
     myAdditionalConverterSoft = soft;
   }
