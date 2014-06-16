@@ -120,7 +120,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     Map<String, Object> presetsMap = ImmutableMap.of(PACKAGE_NAME_KEY.name, (Object)myState.get(PACKAGE_NAME_KEY),
                                                      TemplateMetadata.ATTR_IS_LAUNCHER, true,
                                                      TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS, "");
-    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, null, myDisposable);
+    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, null, myDisposable, PACKAGE_NAME_KEY);
     addStep(myParameterStep);
   }
 
@@ -132,6 +132,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     keys.add(PROJECT_LOCATION_KEY);
     keys.add(NUM_ENABLED_FORM_FACTORS_KEY);
     deriveValues(keys);
+
+    // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
+    myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
   }
 
   @NotNull
@@ -220,8 +223,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      // The parameter step holds onto its preset value for the package name, so we have to reset the value here
-      templateState.put(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
       template.render(projectRoot, moduleRoot, templateState);
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
@@ -231,8 +232,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
-      // The parameter step holds onto its preset value for the package name, so we have to reset the value here
-      templateState.put(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
       activityTemplate.render(projectRoot, moduleRoot, templateState);
       myFilesToOpen = activityTemplate.getFilesToOpen();
       return true;
