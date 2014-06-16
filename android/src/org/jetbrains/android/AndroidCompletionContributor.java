@@ -107,7 +107,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       return false;
     }
     else if (AndroidDrawableDomUtil.isDrawableResourceFile(xmlFile)) {
-      addAll(AndroidDrawableDomUtil.getPossibleRoots(), resultSet);
+      addAll(AndroidDrawableDomUtil.getPossibleRoots(facet), resultSet);
       return false;
     }
     else if (TransitionDomFileDescription.isTransitionFile(xmlFile)) {
