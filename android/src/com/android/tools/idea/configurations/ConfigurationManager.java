@@ -281,11 +281,11 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
-   * Returns the preferred theme, or null
+   * Returns the preferred theme
    */
   @NotNull
   public String computePreferredTheme(@NotNull Configuration configuration) {
-    ManifestInfo manifest = ManifestInfo.get(myModule);
+    ManifestInfo manifest = ManifestInfo.get(myModule, false);
 
     // TODO: If we are rendering a layout in included context, pick the theme
     // from the outer layout instead
