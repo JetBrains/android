@@ -63,6 +63,8 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       return new JPanel();
     }
 
+    final NamedObjectPanel.PanelGroup panelGroup = new NamedObjectPanel.PanelGroup();
+
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -78,7 +80,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         myEditors.add(new GenericEditor<NamedObjectPanel>("Signing", new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config");
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config", panelGroup);
             panel.init();
             return panel;
           }
@@ -86,7 +88,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         myEditors.add(new GenericEditor<NamedObjectPanel>("Flavors", new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor");
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor", panelGroup);
             panel.init();
             return panel;
           }
@@ -94,7 +96,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         myEditors.add(new GenericEditor<NamedObjectPanel>("Build Types", new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType");
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType", panelGroup);
             panel.init();
             return panel;
           }
