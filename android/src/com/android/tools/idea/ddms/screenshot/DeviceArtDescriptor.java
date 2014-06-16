@@ -227,6 +227,11 @@ public class DeviceArtDescriptor {
     return getArtDescriptor(orientation).getReflectionFile();
   }
 
+  @Nullable
+  public File getMask(@NotNull ScreenOrientation orientation) {
+    return getArtDescriptor(orientation).getMaskFile();
+  }
+
   public double getAspectRatio(ScreenOrientation orientation) {
     return getArtDescriptor(orientation).getAspectRatio();
   }
@@ -253,6 +258,7 @@ public class DeviceArtDescriptor {
     private final String myShadowName;
     private final String myBackgroundName;
     private final String myReflectionName;
+    private final String myMaskName;
     private final Dimension myScreenSize;
     private final Point myScreenPos;
     private final Dimension myFrameSize;
@@ -277,6 +283,7 @@ public class DeviceArtDescriptor {
       myBackgroundName = getFileName(element, "back");
       myShadowName = getFileName(element, "shadow");
       myReflectionName = getFileName(element, "lights");
+      myMaskName = getFileName(element, "mask");
     }
 
     @Nullable
@@ -377,6 +384,11 @@ public class DeviceArtDescriptor {
     @Nullable
     public File getReflectionFile() {
       return myReflectionName != null ? new File(myDevice.getBaseFolder(), myReflectionName) : null;
+    }
+
+    @Nullable
+    public File getMaskFile() {
+      return myMaskName != null ? new File(myDevice.getBaseFolder(), myMaskName) : null;
     }
 
     public double getAspectRatio() {
