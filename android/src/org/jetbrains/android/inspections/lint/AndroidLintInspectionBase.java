@@ -70,6 +70,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
   }
 
   @NotNull
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    return getQuickFixes(message);
+  }
+
+  @NotNull
   public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
     return AndroidLintQuickFix.EMPTY_ARRAY;
   }
@@ -86,7 +91,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
 
   @NotNull
   private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    final AndroidLintQuickFix[] fixes = getQuickFixes(message);
+    final AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message);
     final LocalQuickFix[] result = new LocalQuickFix[fixes.length];
 
     for (int i = 0; i < fixes.length; i++) {
