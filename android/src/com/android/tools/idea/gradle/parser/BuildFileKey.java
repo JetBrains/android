@@ -132,7 +132,8 @@ public enum BuildFileKey {
                                            RUN_PROGUARD, PROGUARD_FILE, APPLICATION_ID_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
 
   static {
-    SIGNING_CONFIG.myReferencedType = SIGNING_CONFIGS;
+    SIGNING_CONFIG.myContainerType = SIGNING_CONFIGS;
+    SIGNING_CONFIGS.myItemType = SIGNING_CONFIG;
     SIGNING_CONFIGS.myShouldInsertAtBeginning = true;
   }
 
@@ -140,7 +141,8 @@ public enum BuildFileKey {
   private final BuildFileKeyType myType;
   private final ValueFactory myValueFactory;
   private final String myDisplayName;
-  private BuildFileKey myReferencedType;
+  private BuildFileKey myContainerType;
+  private BuildFileKey myItemType;
   private boolean myShouldInsertAtBeginning;
 
   BuildFileKey(@NotNull String path, @NotNull BuildFileKeyType type) {
@@ -221,11 +223,21 @@ public enum BuildFileKey {
 
   /**
    * For keys whose values are Groovy expressions that reference another object in the same build file, this returns the type of the
-   * referenced object. For example, the {@link SIGNING_CONFIGS} key returns a reference to the child {@link SIGNING_CONFIG} key.
+   * referenced object. For example, the {@link SIGNING_CONFIG} key returns a reference to the container {@link SIGNING_CONFIGS} key.
    */
   @Nullable
-  public BuildFileKey getReferencedType() {
-    return myReferencedType;
+  public BuildFileKey getContainerType() {
+    return myContainerType;
+  }
+
+  /**
+   * For keys whose values are containers of named objects that can be referred to elsewhere in the build file via
+   * {@link com.android.tools.idea.gradle.parser.BuildFileKeyType#REFERENCE} links, this returns the key for those named object items.
+   * For example, the {@link SIGNING_CONFIGS} key returns a reference to the item type {@link SIGNING_CONFIG} key.
+   */
+  @Nullable
+  public BuildFileKey getItemType() {
+    return myItemType;
   }
 
   /**
