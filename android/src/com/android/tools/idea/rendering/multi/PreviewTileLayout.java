@@ -137,7 +137,7 @@ public class PreviewTileLayout {
       }
       layoutRow(availableHeight, rows, columns, tileWidth, tileHeight, grid[row], y, left, row, rowHeight);
 
-      if (row == rows -1) {
+      if (row == rows - 1) {
         // Look at the last row; we might be able to grow the last element
         int last = columns - 1;
         for (; last >= 0; last--) {
@@ -158,6 +158,26 @@ public class PreviewTileLayout {
           if (preview.getLayoutWidth() != layoutWidth || preview.getLayoutHeight() != layoutHeight) {
             preview.setPosition(x + HORIZONTAL_GAP / 2, y);
           }
+        }
+      }
+    }
+
+    if (rows == 1) {
+      // Center in row
+      int row = 0;
+      for (int column = 0; column < columns; column++) {
+        RenderPreview preview = grid[row][column];
+        if (preview != null) {
+          preview.setPosition(preview.getX(), (availableHeight - preview.getLayoutHeight()) / 2);
+        }
+      }
+    } else if (columns == 1) {
+      // Center in column
+      int column = 0;
+      for (int row = 0; row < rows; row++) {
+        RenderPreview preview = grid[row][column];
+        if (preview != null) {
+          preview.setPosition((availableWidth - preview.getLayoutWidth()) / 2, preview.getY());
         }
       }
     }
