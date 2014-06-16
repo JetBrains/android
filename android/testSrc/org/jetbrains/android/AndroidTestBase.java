@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -25,19 +26,26 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.util.Segment;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
-public class AndroidTestBase extends UsefulTestCase {
+public abstract class AndroidTestBase extends UsefulTestCase {
   /** Environment variable or system property containing the full path to an SDK install */
   public static final String SDK_PATH_PROPERTY = "ADT_TEST_SDK_PATH";
 
@@ -211,5 +219,92 @@ public class AndroidTestBase extends UsefulTestCase {
       fail("Could not find data associated with the SDK: " + androidSdk.getName());
     }
     return null;
+  }
+
+  /** Returns a description of the given elements, suitable as unit test golden file output */
+  public static String describeElements(@Nullable PsiElement[] elements) {
+    if (elements == null) {
+      return "Empty";
+    }
+    StringBuilder sb = new StringBuilder();
+    for (PsiElement target : elements) {
+      appendElementDescription(sb, target);
+    }
+    return sb.toString();
+  }
+
+  /** Appends a description of the given element, suitable as unit test golden file output */
+  public static void appendElementDescription(@NotNull StringBuilder sb, @NotNull PsiElement element) {
+    if (element instanceof LazyValueResourceElementWrapper) {
+      LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
+      XmlAttributeValue value = wrapper.computeElement();
+      if (value != null) {
+        element = value;
+      }
+    }
+    PsiFile file = element.getContainingFile();
+    int offset = element.getTextOffset();
+    TextRange segment = element.getTextRange();
+    appendSourceDescription(sb, file, offset, segment);
+  }
+
+  /** Appends a description of the given elements, suitable as unit test golden file output */
+  public static void appendSourceDescription(@NotNull StringBuilder sb, @Nullable PsiFile file, int offset, @Nullable Segment segment) {
+    if (file != null && segment != null) {
+      if (ResourceHelper.getFolderType(file) != null) {
+        assertNotNull(file.getParent());
+        sb.append(file.getParent().getName());
+        sb.append("/");
+      }
+      sb.append(file.getName());
+      sb.append(':');
+      String text = file.getText();
+      int lineNumber = 1;
+      for (int i = 0; i < offset; i++) {
+        if (text.charAt(i) == '\n') {
+          lineNumber++;
+        }
+      }
+      sb.append(lineNumber);
+      sb.append(":");
+      sb.append('\n');
+      int startOffset = segment.getStartOffset();
+      int endOffset = segment.getEndOffset();
+      assertTrue(offset == -1 || offset >= startOffset);
+      assertTrue(offset == -1 || offset <= endOffset);
+
+      int lineStart = startOffset;
+      while (lineStart > 0 && text.charAt(lineStart - 1) != '\n') {
+        lineStart--;
+      }
+
+      // Skip over leading whitespace
+      while (lineStart < startOffset && Character.isWhitespace(text.charAt(lineStart))) {
+        lineStart++;
+      }
+
+      int lineEnd = startOffset;
+      while (lineEnd < text.length() && text.charAt(lineEnd) != '\n') {
+        lineEnd++;
+      }
+      String indent = "  ";
+      sb.append(indent);
+      sb.append(text.substring(lineStart, lineEnd));
+      sb.append('\n');
+      sb.append(indent);
+      for (int i = lineStart; i < lineEnd; i++) {
+        if (i == offset) {
+          sb.append('|');
+        } else if (i >= startOffset && i <= endOffset) {
+          sb.append('~');
+        } else {
+          sb.append(' ');
+        }
+      }
+    } else {
+      sb.append(offset);
+      sb.append(":?");
+    }
+    sb.append('\n');
   }
 }

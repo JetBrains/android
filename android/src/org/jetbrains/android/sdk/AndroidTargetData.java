@@ -22,6 +22,7 @@ import com.android.ide.common.resources.FrameworkResources;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -142,6 +143,15 @@ public class AndroidTargetData {
   @Nullable
   public synchronized LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException, IOException {
     if (myLayoutLibrary == null) {
+      if (myTarget instanceof CompatibilityRenderTarget) {
+        IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
+        AndroidTargetData targetData = mySdkData.getTargetData(target);
+        if (targetData != this) {
+          myLayoutLibrary = targetData.getLayoutLibrary(project);
+          return myLayoutLibrary;
+        }
+      }
+
       final AttributeDefinitionsImpl attrDefs = getAttrDefsImpl(project);
       if (attrDefs == null) {
         return null;
@@ -198,6 +208,10 @@ public class AndroidTargetData {
     }
 
     return myFrameworkResources;
+  }
+
+  public synchronized void resetFrameworkResources() {
+    myFrameworkResources = null;
   }
 
   @Nullable

@@ -19,6 +19,8 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 
 import java.util.Collection;
 
+import static com.android.tools.idea.wizard.ChooseTemplateStep.MetadataListItem;
+
 /**
  * New module wizard supports several "paths". This is an interface for delegates that manage each path.
  */
@@ -42,4 +44,19 @@ public interface WizardPath {
    * Tells if the wizard page should be shown.
    */
   boolean isStepVisible(ModuleWizardStep step);
+
+  /**
+   * "Internal" templates this path uses that user shouldn't see.
+   */
+  Collection<String> getExcludedTemplates();
+
+  /**
+   * @return built-in templates, the ones that are not loaded by TemplateManager
+   */
+  Collection<MetadataListItem> getBuiltInTemplates();
+
+  /**
+   * @return <code>true</code> if this path also works in a new project wizard.
+   */
+  boolean supportsGlobalWizard();
 }

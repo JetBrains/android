@@ -19,6 +19,7 @@ package org.jetbrains.android.actions;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -164,6 +165,16 @@ public class CreateResourceFileDialog extends DialogWrapper {
       myResourceTypeCombo.setSelectedName(selectedTemplate);
     }
 
+    if (chooseFileName) {
+      predefinedFileName = ResourceHelper.prependResourcePrefix(module, predefinedFileName);
+    }
+
+    boolean validateImmediately = false;
+    if (predefinedFileName != null && getNameError(predefinedFileName) != null) {
+      chooseFileName = true;
+      validateImmediately = true;
+    }
+
     if (predefinedFileName != null) {
       if (!chooseFileName) {
         myFileNameField.setVisible(false);
@@ -220,6 +231,9 @@ public class CreateResourceFileDialog extends DialogWrapper {
         validateName();
       }
     });
+    if (validateImmediately) {
+      validateName();
+    }
   }
 
   private void updateOkAction() {
@@ -348,7 +362,8 @@ public class CreateResourceFileDialog extends DialogWrapper {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    if (myFileNameField.getText().length() == 0) {
+    String name = myFileNameField.getText();
+    if (name.length() == 0 || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null)) || getNameError(name) != null) {
       return myFileNameField;
     }
     else if (myResourceTypeCombo.isVisible()) {

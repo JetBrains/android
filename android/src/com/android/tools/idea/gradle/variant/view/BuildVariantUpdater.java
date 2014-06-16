@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomi
 import com.android.tools.idea.gradle.customizer.android.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.gradle.variant.ConflictResolution;
+import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +41,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
 /**
  * Updates the contents/settings of a module when a build variant changes.
@@ -67,7 +69,8 @@ class BuildVariantUpdater {
       public void execute() {
         Module updatedModule = doUpdate(project, moduleName, buildVariantName, facets);
         if (updatedModule != null) {
-          ConflictResolution.updateConflicts(project);
+          ConflictSet conflicts = findConflicts(project);
+          conflicts.showSelectionConflicts();
         }
 
         if (!facets.isEmpty()) {

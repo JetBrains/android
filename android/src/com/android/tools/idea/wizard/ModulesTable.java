@@ -37,7 +37,6 @@ import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.text.Collator;
 import java.util.*;
 import java.util.List;
@@ -152,7 +151,7 @@ public final class ModulesTable extends JBTable {
         StringBuilder builder = new StringBuilder(basePath.length());
         String prefix = Strings.commonPrefix(path, basePath);
         if (!prefix.endsWith("/")) {
-          prefix = prefix.substring(0, prefix.indexOf("/"));
+          prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
         }
         if (!path.startsWith(basePath)) {
           Iterable<String> segments = Splitter.on("/").split(basePath.substring(prefix.length()));
@@ -255,30 +254,12 @@ public final class ModulesTable extends JBTable {
     }
   }
 
-  private boolean projectHasSubprojectWithPath(ModuleToImport module) {
-    if (myProject == null) {
-      return false;
-    }
-    else {
-      String name = module.name;
-      if (GradleUtil.findModuleByGradlePath(myProject, name) != null) {
-        return true;
-      }
-      File targetPath = GradleUtil.getDefaultSubprojectLocation(myProject.getBaseDir(), name);
-      if (targetPath.exists()) {
-        String[] children = targetPath.list();
-        return (children == null || children.length > 0);
-      }
-      return false;
-    }
-  }
-
   private ModuleValidationState validateModule(ModuleToImport module) {
     VirtualFile location = module.location;
     if (location == null) {
       return ModuleValidationState.NOT_FOUND;
     }
-    if (projectHasSubprojectWithPath(module)) {
+    if (GradleUtil.hasModule(myProject, module.name, true)) {
       return ModuleValidationState.ALREADY_EXISTS;
     }
     if (Objects.equal(location, myCurrentPath)) {

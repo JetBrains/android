@@ -17,6 +17,7 @@
 package com.android.tools.idea;
 
 import com.android.resources.ResourceType;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -24,6 +25,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,6 +90,55 @@ public class AndroidPsiUtils {
         return psiFile == null ? null : ModuleUtilCore.findModuleForPsiElement(psiFile);
       }
     });
+  }
+
+  /**
+   * Returns the root tag for the given {@link XmlFile}, if any, acquiring the read
+   * lock to do so if necessary
+   *
+   * @param file the file to look up the root tag for
+   * @return the corresponding root tag, if any
+   */
+  @Nullable
+  public static XmlTag getRootTagSafely(@NotNull final XmlFile file) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return file.getRootTag();
+    }
+    return ApplicationManager.getApplication().runReadAction(new Computable<XmlTag>() {
+      @Nullable
+      @Override
+      public XmlTag compute() {
+        return file.getRootTag();
+      }
+    });
+  }
+
+  /**
+   * Get the value of an attribute in the {@link com.intellij.psi.xml.XmlFile} safely (meaning it will acquire the read lock first).
+   */
+  @Nullable
+  public static String getRootTagAttributeSafely(@NotNull final XmlFile file,
+                                                 @NotNull final String attribute,
+                                                 @Nullable final String namespace) {
+    Application application = ApplicationManager.getApplication();
+    if (!application.isReadAccessAllowed()) {
+      return application.runReadAction(new Computable<String>() {
+        @Nullable
+        @Override
+        public String compute() {
+          return getRootTagAttributeSafely(file, attribute, namespace);
+        }
+      });
+    } else {
+      XmlTag tag = file.getRootTag();
+      if (tag != null) {
+        XmlAttribute attr = namespace != null ? tag.getAttribute(attribute, namespace) : tag.getAttribute(attribute);
+        if (attr != null) {
+          return attr.getValue();
+        }
+      }
+      return null;
+    }
   }
 
   /** Type of resource reference: R.type.name or android.R.type.name or neither */

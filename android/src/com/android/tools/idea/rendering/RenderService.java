@@ -24,14 +24,18 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceFolderType;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +45,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -86,9 +91,9 @@ public class RenderService implements IImageFactory {
   @NotNull
   private final LayoutlibCallback myLayoutlibCallback;
 
-  private final int myMinSdkVersion;
+  private final AndroidVersion myMinSdkVersion;
 
-  private final int myTargetSdkVersion;
+  private final AndroidVersion myTargetSdkVersion;
 
   @NotNull
   private final LayoutLibrary myLayoutLib;
@@ -138,7 +143,7 @@ public class RenderService implements IImageFactory {
                                      @NotNull final RenderLogger logger,
                                      @Nullable final RenderContext renderContext) {
 
-    Project project = module.getProject();
+    final Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module);
     if (platform == null) {
       if (!AndroidMavenUtil.isMavenizedModule(module)) {
@@ -148,6 +153,11 @@ public class RenderService implements IImageFactory {
                                          logger.getLinkManager().createRunnableLink(new Runnable() {
           @Override
           public void run() {
+            ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+            if (Projects.isGradleProject(project) && service instanceof AndroidProjectSettingsService) {
+              ((AndroidProjectSettingsService)service).openSdkSettings();
+              return;
+            }
             AndroidSdkUtils.openModuleDependenciesConfigurable(module);
           }
         }));
@@ -186,7 +196,13 @@ public class RenderService implements IImageFactory {
       return null;
     }
 
-    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, layoutLib);
+    Device device = configuration.getDevice();
+    if (device == null) {
+      logger.addMessage(RenderProblem.createPlain(ERROR, "No device selected"));
+      return null;
+    }
+
+    RenderService service = new RenderService(facet, module, psiFile, configuration, logger, layoutLib, device);
     if (renderContext != null) {
       service.setRenderContext(renderContext);
     }
@@ -202,7 +218,8 @@ public class RenderService implements IImageFactory {
                         @NotNull PsiFile psiFile,
                         @NotNull Configuration configuration,
                         @NotNull RenderLogger logger,
-                        @NotNull LayoutLibrary layoutLib) {
+                        @NotNull LayoutLibrary layoutLib,
+                        @NotNull Device device) {
     myModule = module;
     myLogger = logger;
     myLogger.setCredential(myCredential);
@@ -211,9 +228,6 @@ public class RenderService implements IImageFactory {
     }
     myPsiFile = (XmlFile)psiFile;
     myConfiguration = configuration;
-
-    Device device = configuration.getDevice();
-    assert device != null; // Should only attempt render with configuration that has device
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
     myHardwareConfigHelper.setOrientation(configuration.getFullConfig().getScreenOrientationQualifier().getValue());
@@ -472,10 +486,13 @@ public class RenderService implements IImageFactory {
     }
 
 
+    IAndroidTarget target = myConfiguration.getTarget();
+    int simulatedPlatform = target instanceof CompatibilityRenderTarget ? target.getVersion().getApiLevel() : 0;
+
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
       new SessionParams(modelParser, myRenderingMode, myModule /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
-                        myMinSdkVersion, myTargetSdkVersion, myLogger);
+                        myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -500,6 +517,8 @@ public class RenderService implements IImageFactory {
         // ignore.
       }
     }
+
+    // Don't show navigation buttons on older platforms
     if (!myShowDecorations) {
       params.setForceNoDecor();
     }
@@ -723,8 +742,8 @@ public class RenderService implements IImageFactory {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback, myMinSdkVersion,
-                         myTargetSdkVersion, myLogger);
+      new DrawableParams(drawableResourceValue, myModule, hardwareConfig, getResourceResolver(), myLayoutlibCallback,
+                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger);
     params.setForceNoDecor();
     Result result = myLayoutLib.renderDrawable(params);
     if (result != null && result.isSuccess()) {
@@ -963,8 +982,8 @@ public class RenderService implements IImageFactory {
       hardwareConfig,
       resolver,
       myLayoutlibCallback,
-      myMinSdkVersion,
-      myTargetSdkVersion,
+      myMinSdkVersion.getApiLevel(),
+      myTargetSdkVersion.getApiLevel(),
       myLogger);
     params.setLayoutOnly();
     params.setForceNoDecor();

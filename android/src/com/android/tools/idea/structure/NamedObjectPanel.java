@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,207 +15,365 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.builder.model.*;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBoxTableRenderer;
-import com.intellij.ui.*;
-import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.CellEditorComponentWithBrowseButton;
-import com.intellij.util.ui.LocalPathCellEditor;
+import com.intellij.ui.AnActionButton;
+import com.intellij.ui.AnActionButtonRunnable;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.components.JBList;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import javax.swing.*;
-import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.io.File;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
-/**
- * A Project Structure Android-Gradle module editor panel that handles editing of a group of generic {@linkplain NamedObject} instances
- * in a build.gradle file.
- */
-public class NamedObjectPanel extends BuildFilePanel {
-  protected final BuildFileKey myRoot;
-  protected final List<BuildFileKey> myProperties;
-  private final JBTable myTable;
-  @Nullable private final NamedObjectTableModel myModel;
-  private AnActionButton myRemoveButton;
+public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener {
+  private static final String DEFAULT_CONFIG = "defaultConfig";
+  private static final BuildFileKey[] DEFAULT_CONFIG_KEYS =
+      { BuildFileKey.APPLICATION_ID, BuildFileKey.VERSION_CODE, BuildFileKey.VERSION_NAME, BuildFileKey.MIN_SDK_VERSION,
+        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.TEST_APPLICATION_ID, BuildFileKey.TEST_INSTRUMENTATION_RUNNER };
+
+  private JPanel myPanel;
+  private JBList myList;
+  private JTextField myObjectName;
+  private JSplitPane mySplitPane;
+  private JPanel myRightPane;
+  private KeyValuePane myDetailsPane;
+  private final BuildFileKey myBuildFileKey;
   private final String myNewItemName;
+  private final DefaultListModel myListModel;
+  private NamedObject myCurrentObject;
+  private Collection<NamedObject> myModelOnlyObjects = Lists.newArrayList();
+  private Map<String, Map<BuildFileKey, Object>> myModelObjects = Maps.newHashMap();
 
-  /**
-   * A Boolean-like enum that also permits a "not present" state.
-   */
-  public enum ThreeStateBoolean {
-    EMPTY("-", null),
-    TRUE("true", Boolean.TRUE),
-    FALSE("false", Boolean.FALSE);
-
-    private final String myName;
-    private final Boolean myValue;
-
-    ThreeStateBoolean(String name, Boolean value) {
-      myName = name;
-      myValue = value;
-    }
-
-    @Override
-    public String toString() {
-      return myName;
-    }
-
-    @Nullable
-    public Boolean getValue() {
-      return myValue;
-    }
-
-    @NotNull
-    public static ThreeStateBoolean forValue(@Nullable Boolean b) {
-      if (b == null) {
-        return EMPTY;
-      } else if (b) {
-        return TRUE;
-      } else {
-        return FALSE;
-      }
-    }
-  }
-
-  public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey root, String newItemName) {
+  public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey buildFileKey,
+                          @NotNull String newItemName) {
     super(project, moduleName);
+    myBuildFileKey = buildFileKey;
     myNewItemName = newItemName;
-    NamedObject.Factory objectFactory = (NamedObject.Factory)root.getValueFactory();
-    if (objectFactory == null) {
-      throw new IllegalArgumentException("Can't instantiate a NamedObjectPanel for BuildFileKey " + root.toString());
-    }
-    myRoot = root;
-    myProperties = objectFactory.getProperties();
-    myModel = myGradleBuildFile != null ? new NamedObjectTableModel(myGradleBuildFile, root, myProperties) : null;
-    myTable = new JBTable(myGradleBuildFile != null ? myModel : new DefaultTableModel());
-    myTable.setShowGrid(false);
-    myTable.setDragEnabled(false);
-    myTable.setIntercellSpacing(new Dimension(0, 0));
-    myTable.setCellSelectionEnabled(false);
-    LocalPathCellEditor editor = new FileCellEditor();
-    myTable.setDefaultEditor(File.class, editor);
+    myListModel = new DefaultListModel();
+    myObjectName.getDocument().addDocumentListener(this);
 
-    JComboBox booleanEditor = new JComboBox(new EnumComboBoxModel<ThreeStateBoolean>(ThreeStateBoolean.class));
-    myTable.setDefaultEditor(ThreeStateBoolean.class, new DefaultCellEditor(booleanEditor));
-    myTable.setDefaultRenderer(ThreeStateBoolean.class, new ComboBoxTableRenderer<ThreeStateBoolean>(ThreeStateBoolean.values()));
-  }
-
-  private void updateButtons() {
-    if (myRemoveButton != null) {
-      myRemoveButton.setEnabled(myTable.getSelectedRows().length > 0);
-    }
-  }
-
-  private void removeSelectedItems(@NotNull final List removedRows) {
-    if (myModel == null) {
-      return;
-    }
-    if (removedRows.isEmpty()) {
-      return;
-    }
-    final int[] selectedRows = myTable.getSelectedRows();
-    myModel.fireTableDataChanged();
-    TableUtil.selectRows(myTable, selectedRows);
-  }
-
-  @Override
-  protected void addItems(@NotNull JPanel parent) {
-    myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+    myList = new JBList();
+    myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myList.addListSelectionListener(this);
+    myList.setModel(myListModel);
+    myList.setCellRenderer(new DefaultListCellRenderer() {
       @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          return;
-        }
-        updateButtons();
+      public Component getListCellRendererComponent(JList jList, Object o, int i, boolean b, boolean b2) {
+        return super.getListCellRendererComponent(jList, ((NamedObject)o).getName(), i, b, b2);
       }
     });
-
-    final ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myTable);
+    ToolbarDecorator decorator = ToolbarDecorator.createDecorator(myList);
     decorator.setAddAction(new AnActionButtonRunnable() {
       @Override
       public void run(AnActionButton button) {
-        if (myModel == null) {
-          return;
-        }
-        myModel.addRow();
-        myTable.clearSelection();
-        int row = myTable.getRowCount() - 1;
-        myTable.setRowSelectionInterval(row, row);
-        myModel.setValueAt(getUniqueObjectName(), row, 0);
-        myTable.editCellAt(row, 0);
+        addObject();
       }
     });
     decorator.setRemoveAction(new AnActionButtonRunnable() {
       @Override
-      public void run(AnActionButton button) {
-        removeSelectedItems(TableUtil.removeSelectedItems(myTable));
+      public void run(AnActionButton anActionButton) {
+        removeObject();
       }
     });
+    decorator.disableUpDownActions();
+    mySplitPane.setLeftComponent(decorator.createPanel());
+    mySplitPane.setDividerLocation(200);
+    myRightPane.setBorder(IdeBorderFactory.createBorder());
+  }
 
-    final JPanel panel = decorator.createPanel();
-    myRemoveButton = ToolbarDecorator.findRemoveButton(panel);
-    add(panel, BorderLayout.CENTER);
+  @Override
+  public void init() {
+    super.init();
+    if (myGradleBuildFile == null) {
+      return;
+    }
+    List<NamedObject> namedObjects = (List<NamedObject>)myGradleBuildFile.getValue(myBuildFileKey);
+    if (namedObjects != null) {
+      for (NamedObject object : namedObjects) {
+        myListModel.addElement(object);
+      }
+    }
+    // If this is a flavor panel, add a synthetic flavor entry for defaultConfig.
+    if (myBuildFileKey == BuildFileKey.FLAVORS) {
+      GrStatementOwner defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+      NamedObject obj = new NamedObject("defaultConfig");
+      if (defaultConfig != null) {
+        for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
+          Object value = myGradleBuildFile.getValue(defaultConfig, key);
+          if (value == null) {
+            // Temporary compatibility code:
+            if (key == BuildFileKey.APPLICATION_ID) {
+              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.PACKAGE_NAME);
+            } else if (key == BuildFileKey.TEST_APPLICATION_ID) {
+              value = myGradleBuildFile.getValue(defaultConfig, BuildFileKey.TEST_PACKAGE_NAME);
+            }
+          }
 
-    if (myTable.getRowCount() > 0) {
-      myTable.getSelectionModel().setSelectionInterval(0, 0);
+          obj.setValue(key, value);
+        }
+      }
+      myListModel.addElement(obj);
     }
 
-    DefaultActionGroup actionGroup = new DefaultActionGroup();
-    actionGroup.add(myRemoveButton);
-    PopupHandler.installPopupHandler(myTable, actionGroup, ActionPlaces.UNKNOWN, ActionManager.getInstance());
+    NamedObject.Factory objectFactory = (NamedObject.Factory)myBuildFileKey.getValueFactory();
+    if (objectFactory == null) {
+      throw new IllegalArgumentException("Can't instantiate a NamedObjectPanel for BuildFileKey " + myBuildFileKey.toString());
+    }
+    Collection<BuildFileKey> properties = objectFactory.getProperties();
+
+    // Query the model for its view of the world, and merge it with the build file-based view.
+    for (NamedObject obj : getObjectsFromModel(properties)) {
+      boolean found = false;
+      for (int i = 0; i < myListModel.size(); i++) {
+        if (((NamedObject)myListModel.get(i)).getName().equals(obj.getName())) {
+          found = true;
+        }
+      }
+      if (!found) {
+        NamedObject namedObject = new NamedObject(obj.getName());
+        myListModel.addElement(namedObject);
+
+        // Keep track of objects that are only in the model and not in the build file. We want to avoid creating them in the build file
+        // unless some value in them is changed to non-default.
+        myModelOnlyObjects.add(namedObject);
+      }
+      myModelObjects.put(obj.getName(), obj.getValues());
+    }
+    myList.updateUI();
+
+    myDetailsPane.init(myGradleBuildFile, properties);
+    if (myListModel.size() > 0) {
+      myList.setSelectedIndex(0);
+    }
+    updateUiFromCurrentObject();
   }
 
   @Override
   public void apply() {
-    if (myModel != null) {
-      myModel.apply();
+    if (!myModified ||  myGradleBuildFile == null) {
+      return;
     }
+    List<NamedObject> objects = Lists.newArrayList();
+    for (int i = 0; i < myListModel.size(); i++) {
+      NamedObject obj = (NamedObject)myListModel.get(i);
+      // Save the defaultConfig separately and don't write it out as a regular flavor.
+      if (myBuildFileKey == BuildFileKey.FLAVORS && obj.getName().equals(DEFAULT_CONFIG)) {
+        GrStatementOwner defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+        if (defaultConfig == null) {
+          myGradleBuildFile.setValue(BuildFileKey.DEFAULT_CONFIG, "{}");
+          defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
+        }
+        assert defaultConfig != null;
+        for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
+          Object value = obj.getValue(key);
+          if (value != null) {
+            myGradleBuildFile.setValue(defaultConfig, key, value);
+          } else {
+            myGradleBuildFile.removeValue(defaultConfig, key);
+          }
+        }
+      } else if (myModelOnlyObjects.contains(obj) && isObjectEmpty(obj)) {
+        // If this object wasn't in the build file to begin with and doesn't have non-default values, don't write it out.
+        continue;
+      } else {
+        objects.add(obj);
+      }
+    }
+    myGradleBuildFile.setValue(myBuildFileKey, objects);
+
+    myModified = false;
+    myDetailsPane.clearModified();
+  }
+
+  private static boolean isObjectEmpty(NamedObject obj) {
+    for (Object o : obj.getValues().values()) {
+      if (o != null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private void addObject() {
+    int num = 1;
+    String name = myNewItemName;
+    while (getNamedItem(name) != null) {
+      name = myNewItemName + num++;
+    }
+    myListModel.addElement(new NamedObject(name));
+    myList.setSelectedIndex(myListModel.size() - 1);
+    myList.updateUI();
+    myModified = true;
+  }
+
+  private void removeObject() {
+    int selectedIndex = myList.getSelectedIndex();
+    if (selectedIndex < 0) {
+      return;
+    }
+    myListModel.remove(selectedIndex);
+    myList.setSelectedIndex(Math.max(0, Math.min(selectedIndex, myListModel.size() - 1)));
+    myList.updateUI();
+    myModified = true;
+  }
+
+  @Nullable
+  private NamedObject getNamedItem(@NotNull String name) {
+    for (int i = 0; i < myListModel.size(); i++) {
+      NamedObject object = (NamedObject)myListModel.get(i);
+      if (object.getName().equals(name)) {
+        return object;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void insertUpdate(@NotNull DocumentEvent documentEvent) {
+    updateCurrentObjectFromUi();
+  }
+
+  @Override
+  public void removeUpdate(@NotNull DocumentEvent documentEvent) {
+    updateCurrentObjectFromUi();
+  }
+
+  @Override
+  public void changedUpdate(@NotNull DocumentEvent documentEvent) {
+    updateCurrentObjectFromUi();
+  }
+
+  @Override
+  protected void addItems(@NotNull JPanel parent) {
+    add(myPanel, BorderLayout.CENTER);
   }
 
   @Override
   public boolean isModified() {
-    return myModel != null && myModel.isModified();
+    return myModified || myDetailsPane.isModified();
   }
 
-  @NotNull
-  protected String getUniqueObjectName() {
-    int num = 1;
-    String name;
-    do {
-      name = myNewItemName + num++;
-    } while (myModel != null && myModel.hasObjectNamed(name));
-    return name;
+  @Override
+  public void valueChanged(@NotNull ListSelectionEvent listSelectionEvent) {
+    updateUiFromCurrentObject();
   }
 
-  private class FileCellEditor extends LocalPathCellEditor {
-    public FileCellEditor() {
-      super("", myProject);
+  private void updateCurrentObjectFromUi() {
+    String newName = myObjectName.getText();
+    if (newName != null && !myCurrentObject.getName().equals(newName)) {
+      myCurrentObject.setName(newName);
+      myList.updateUI();
+      myModified = true;
     }
+  }
 
-    @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-      Component component = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-      ((CellEditorComponentWithBrowseButton<?>)component).getChildComponent().setBorder(new LineBorder(Color.black));
-      return component;
-    }
+  private void updateUiFromCurrentObject() {
+    int selectedIndex = myList.getSelectedIndex();
+    NamedObject currentObject = selectedIndex >= 0 ? (NamedObject)myListModel.get(selectedIndex) : null;
+    myCurrentObject = currentObject;
+    myObjectName.setText(currentObject != null ? currentObject.getName() : "");
+    myObjectName.setEnabled(currentObject != null);
+    myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
+    myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
+    myDetailsPane.updateUiFromCurrentObject();
+  }
 
-    @Override
-    public FileChooserDescriptor getFileChooserDescriptor() {
-      FileChooserDescriptor d = new FileChooserDescriptor(true, false, false, true, false, false);
-      d.setShowFileSystemRoots(true);
-      return d;
+  private void createUIComponents() {
+    myDetailsPane = new KeyValuePane(myProject);
+  }
+
+  private Collection<NamedObject> getObjectsFromModel(Collection<BuildFileKey> properties) {
+     Collection<NamedObject> results = Lists.newArrayList();
+    if (myModule == null) {
+      return results;
     }
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      return results;
+    }
+    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
+    if (gradleProject == null) {
+      return results;
+    }
+    switch(myBuildFileKey) {
+      case BUILD_TYPES:
+        for (String name : gradleProject.getBuildTypeNames()) {
+          BuildTypeContainer buildTypeContainer = gradleProject.findBuildType(name);
+          NamedObject obj = new NamedObject(name);
+          if (buildTypeContainer == null) {
+            break;
+          }
+          BuildType buildType = buildTypeContainer.getBuildType();
+          obj.setValue(BuildFileKey.DEBUGGABLE, buildType.isDebuggable());
+          obj.setValue(BuildFileKey.JNI_DEBUG_BUILD, buildType.isJniDebugBuild());
+          obj.setValue(BuildFileKey.RENDERSCRIPT_DEBUG_BUILD, buildType.isRenderscriptDebugBuild());
+          obj.setValue(BuildFileKey.RENDERSCRIPT_OPTIM_LEVEL, buildType.getRenderscriptOptimLevel());
+          obj.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, buildType.getApplicationIdSuffix());
+          obj.setValue(BuildFileKey.VERSION_NAME_SUFFIX, buildType.getVersionNameSuffix());
+          obj.setValue(BuildFileKey.RUN_PROGUARD, buildType.isRunProguard());
+          obj.setValue(BuildFileKey.ZIP_ALIGN, buildType.isZipAlign());
+          results.add(obj);
+        }
+        break;
+      case FLAVORS:
+        for (String name : gradleProject.getProductFlavorNames()) {
+          ProductFlavorContainer productFlavorContainer = gradleProject.findProductFlavor(name);
+          NamedObject obj = new NamedObject(name);
+          if (productFlavorContainer == null) {
+            break;
+          }
+          ProductFlavor flavor = productFlavorContainer.getProductFlavor();
+          obj.setValue(BuildFileKey.APPLICATION_ID, flavor.getApplicationId());
+          int versionCode = flavor.getVersionCode();
+          if (versionCode >= 0) {
+            obj.setValue(BuildFileKey.VERSION_CODE, versionCode);
+          }
+          obj.setValue(BuildFileKey.VERSION_NAME, flavor.getVersionName());
+          try {
+            ApiVersion minSdkVersion = flavor.getMinSdkVersion();
+            if (minSdkVersion != null) {
+              obj.setValue(BuildFileKey.MIN_SDK_VERSION,
+                           minSdkVersion.getCodename() != null ? minSdkVersion.getCodename() : minSdkVersion.getApiLevel());
+            }
+            ApiVersion targetSdkVersion = flavor.getTargetSdkVersion();
+            if (targetSdkVersion != null) {
+              obj.setValue(BuildFileKey.TARGET_SDK_VERSION,
+                           targetSdkVersion.getCodename() != null ? targetSdkVersion.getCodename() : targetSdkVersion.getApiLevel());
+            }
+          } catch (UnsupportedMethodException e) {
+            // TODO: REMOVE ME
+            // This method was added in the 0.11 model. We'll need to drop support for 0.10 shortly
+            // but until 0.11 is available this is a stopgap measure
+            obj.setValue(BuildFileKey.MIN_SDK_VERSION, 1);
+            obj.setValue(BuildFileKey.TARGET_SDK_VERSION, 1);
+          }
+          obj.setValue(BuildFileKey.TEST_APPLICATION_ID, flavor.getTestApplicationId());
+          obj.setValue(BuildFileKey.TEST_INSTRUMENTATION_RUNNER, flavor.getTestInstrumentationRunner());
+          results.add(obj);
+        }
+        results.add(new NamedObject(DEFAULT_CONFIG));
+        break;
+      default:
+        break;
+    }
+    return results;
   }
 }

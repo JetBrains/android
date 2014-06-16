@@ -32,42 +32,34 @@ import java.io.IOException;
 
 public class AndroidShowNavigationEditor extends AnAction {
   public AndroidShowNavigationEditor() {
-    super("Show Navigation Editor", null, AndroidIcons.Display);
+    super("Navigation Editor", null, AndroidIcons.NavigationEditor);
   }
 
-  @Nullable
-  private static VirtualFile getNavigationDirectory(@Nullable Project project) {
-    if (project == null) {
-      return null;
+  private static VirtualFile mkDirs(VirtualFile dir, String path) throws IOException {
+    for(String dirName : path.split("/")) {
+      VirtualFile existingDir = dir.findFileByRelativePath(dirName);
+      dir = (existingDir != null) ? existingDir : dir.createChildDirectory(null, dirName);
     }
-    VirtualFile baseDir = project.getBaseDir();
-    if (baseDir == null) { // this happens when we have the 'default' project, we can't launch nav editor here
-      return null;
-    }
-    VirtualFile navDir = baseDir.findFileByRelativePath(".navigation");
-    if (navDir == null) { // todo remove hard coding of flavor path
-      navDir = baseDir.findFileByRelativePath("app/src/main/.navigation");
-    }
-    return navDir;
+    return dir;
   }
 
   public void showNavigationEditor(@Nullable Project project, final String dir, final String file) {
     if (project == null) {
       return;
     }
-    final VirtualFile navDir = getNavigationDirectory(project);
-    if (navDir == null) {
+    final VirtualFile baseDir = project.getBaseDir();
+    if (baseDir == null) { // this happens when we have the 'default' project, we can't launch nav editor here
       return;
     }
-    VirtualFile navFile = navDir.findFileByRelativePath(dir + "/" + file);
+    final String relativePathOfNavDir = ".navigation" + "/" + dir;
+    VirtualFile navFile = baseDir.findFileByRelativePath(relativePathOfNavDir + "/" + file);
     if (navFile == null) {
       navFile = ApplicationManager.getApplication().runWriteAction(new Computable<VirtualFile>() {
         @Override
         public VirtualFile compute() {
           try {
-            VirtualFile virtualDir =
-              navDir.createChildDirectory(null, dir); // todo what, if anything, should be used in place of null here?
-            return virtualDir.createChildData(null, file);
+            VirtualFile dir = mkDirs(baseDir, relativePathOfNavDir);
+            return dir.createChildData(null, file);
           }
           catch (IOException e) {
             assert false;
@@ -91,8 +83,6 @@ public class AndroidShowNavigationEditor extends AnAction {
 
   @Override
   public void update(AnActionEvent e) {
-    // Only show navigation editor if the project contains a directory called ".navigation"
-    //e.getPresentation().setEnabled(true);
-    e.getPresentation().setVisible(getNavigationDirectory(e.getProject()) != null);
+    e.getPresentation().setEnabled(true);
   }
 }

@@ -17,17 +17,16 @@ package com.android.tools.idea.model;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.ActivityAlias;
+import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.dom.manifest.Application;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -277,37 +276,26 @@ public abstract class ManifestInfo {
   public abstract boolean isRtlSupported();
 
   /**
+   * Returns the value for the debuggable flag set in the manifest. Returns null if not set.
+   */
+  @Nullable
+  public abstract Boolean getApplicationDebuggable();
+
+  /**
    * Returns the target SDK version
    *
    * @return the target SDK version
    */
-  public abstract int getTargetSdkVersion();
+  @NotNull
+  public abstract AndroidVersion getTargetSdkVersion();
 
   /**
    * Returns the minimum SDK version
    *
    * @return the minimum SDK version
    */
-  public abstract int getMinSdkVersion();
-
-  /**
-   * Returns the minimum SDK version name (which may not be a numeric string, e.g.
-   * it could be a codename). It will never be null or empty; if no min sdk version
-   * was specified in the manifest, the return value will be "1". Use
-   * {@link #getMinSdkCodeName()} instead if you want to look up whether there is a code name.
-   *
-   * @return the minimum SDK version
-   */
   @NotNull
-  public abstract String getMinSdkName();
-
-  /**
-   * Returns the code name used for the minimum SDK version, if any.
-   *
-   * @return the minSdkVersion codename or null
-   */
-  @Nullable
-  public abstract String getMinSdkCodeName();
+  public abstract AndroidVersion getMinSdkVersion();
 
   /** @return the list activities defined in the manifest. */
   @NotNull
@@ -346,6 +334,22 @@ public abstract class ManifestInfo {
 
 
         return activityAliases;
+      }
+    });
+  }
+
+  @NotNull
+  public List<UsesFeature> getRequiredFeatures() {
+    return ApplicationManager.getApplication().runReadAction(new Computable<List<UsesFeature>>() {
+      @Override
+      public List<UsesFeature> compute() {
+        List<UsesFeature> usesFeatures = Lists.newArrayList();
+
+        for (Manifest m : getManifests()) {
+          usesFeatures.addAll(m.getUsesFeatures());
+        }
+
+        return usesFeatures;
       }
     });
   }

@@ -171,6 +171,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
     boolean haveMultipleLocales = configurationManager.getLocales().size() > 1;
     addLocalePreviewAction(myRenderContext, group, haveMultipleLocales);
     addRtlPreviewAction(myRenderContext, group);
+    addApiLevelPreviewAction(myRenderContext, group);
 
     // TODO: Support included layouts
     boolean DISABLE_RENDER_INCLUDED = true;
@@ -203,7 +204,12 @@ public class ConfigurationMenuAction extends FlatComboAction {
 
   static void addRtlPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
     boolean enabled = hasCapability(context, Capability.RTL);
-    group.add(new PreviewAction(context, "Preview Right-to-Left Layout", ACTION_RTL_MODE, RenderPreviewMode.RTL, enabled));
+    group.add(new PreviewAction(context, "Preview Right-to-Left Layout", ACTION_PREVIEW_MODE, RenderPreviewMode.RTL, enabled));
+  }
+
+  static void addApiLevelPreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group) {
+    boolean enabled = hasCapability(context, Capability.SIMULATE_PLATFORM);
+    group.add(new PreviewAction(context, "Preview Android Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.API_LEVELS, enabled));
   }
 
   private static boolean hasCapability(RenderContext context, Capability capability) {
@@ -232,7 +238,6 @@ public class ConfigurationMenuAction extends FlatComboAction {
   private static final int ACTION_ADD = 1;
   private static final int ACTION_DELETE_ALL = 2;
   private static final int ACTION_PREVIEW_MODE = 3;
-  private static final int ACTION_RTL_MODE = 4;
 
   private static class PreviewAction extends AnAction {
     private final int myAction;
@@ -268,11 +273,6 @@ public class ConfigurationMenuAction extends FlatComboAction {
           break;
         }
         case ACTION_PREVIEW_MODE: {
-          assert myMode != null;
-          previewManager.selectMode(myMode);
-          break;
-        }
-        case ACTION_RTL_MODE: {
           assert myMode != null;
           previewManager.selectMode(myMode);
           break;

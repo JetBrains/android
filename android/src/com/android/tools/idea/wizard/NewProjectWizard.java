@@ -19,10 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
-import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.templates.*;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
@@ -31,6 +28,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -39,9 +38,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
+import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
+import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DEBUG_KEYSTORE_SHA1;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 
@@ -62,7 +65,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
 
   @VisibleForTesting AssetSetStep myAssetSetStep;
 
-  @VisibleForTesting ChooseTemplateStep myChooseActivityStep;
+  @VisibleForTesting TemplateGalleryStep myChooseActivityStep;
 
   @VisibleForTesting TemplateParameterStep myActivityParameterStep;
 
@@ -108,7 +111,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myAssetGenerator = new AssetStudioAssetGenerator(myWizardState);
     myAssetSetStep.finalizeAssetType(AssetStudioAssetGenerator.AssetType.LAUNCHER);
     myChooseActivityStep =
-      new ChooseTemplateStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null, NewProjectSidePanel, this, null);
+      new TemplateGalleryStep(myWizardState.getActivityTemplateState(), CATEGORY_ACTIVITIES, myProject, null, NewProjectSidePanel, this, null);
     myActivityParameterStep = new TemplateParameterStep(myWizardState.getActivityTemplateState(), myProject, null, NewProjectSidePanel, this);
 
     mySteps.add(myConfigureAndroidModuleStep);
@@ -159,11 +162,13 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
           ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
+          setGradleWrapperExecutable(projectRoot);
         }
 
         wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
         if (wizardState.getBoolean(NewModuleWizardState.ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
+          activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
           template.render(moduleRoot, moduleRoot, activityTemplateState.myParameters);
@@ -217,6 +222,18 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
       Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
       LOG.error(msg);
+    }
+  }
+
+  public static void setGradleWrapperExecutable(File projectRoot) throws IOException {
+    if (SystemInfo.isUnix) {
+      File gradlewFile = new File(projectRoot, "gradlew");
+      if (!gradlewFile.isFile()) {
+        LOG.error("Could not find gradle wrapper. Command line builds may not work properly.");
+      }
+      else {
+        FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
+      }
     }
   }
 }

@@ -19,7 +19,9 @@ package org.jetbrains.android.util;
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
@@ -28,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
@@ -54,6 +57,7 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -62,18 +66,24 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.resources.ResourceType.ATTR;
+import static com.android.resources.ResourceType.STYLEABLE;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidResourceUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidResourceUtil");
 
-  public static final String NEW_ID_PREFIX = "@+id/";
-
   public static final Set<ResourceType> VALUE_RESOURCE_TYPES = EnumSet.of(ResourceType.DRAWABLE, ResourceType.COLOR, ResourceType.DIMEN,
                                                                           ResourceType.STRING, ResourceType.STYLE, ResourceType.ARRAY,
                                                                           ResourceType.PLURALS, ResourceType.ID, ResourceType.BOOL,
-                                                                          ResourceType.INTEGER, ResourceType.FRACTION);
+                                                                          ResourceType.INTEGER, ResourceType.FRACTION,
+                                                                          // For aliases only
+                                                                          ResourceType.LAYOUT);
 
   public static final Set<ResourceType> ALL_VALUE_RESOURCE_TYPES = EnumSet.noneOf(ResourceType.class);
 
@@ -86,6 +96,28 @@ public class AndroidResourceUtil {
   static final String LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH";
   static final String LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT";
 
+  /**
+   * Comparator which orders {@link com.intellij.psi.PsiElement} items into a priority order most suitable for presentation
+   * to the user; for example, it prefers base resource folders such as {@code values/} over resource
+   * folders such as {@code values-en-rUS}
+   */
+  public static final Comparator<PsiElement> RESOURCE_ELEMENT_COMPARATOR = new Comparator<PsiElement>() {
+    @Override
+    public int compare(PsiElement e1, PsiElement e2) {
+      if (e1 instanceof LazyValueResourceElementWrapper && e2 instanceof LazyValueResourceElementWrapper) {
+        return ((LazyValueResourceElementWrapper)e1).compareTo((LazyValueResourceElementWrapper)e2);
+      }
+
+      PsiFile file1 = e1.getContainingFile();
+      PsiFile file2 = e2.getContainingFile();
+      int delta = compareResourceFiles(file1, file2);
+      if (delta != 0) {
+        return delta;
+      }
+      return e1.getTextOffset() - e2.getTextOffset();
+    }
+  };
+
   private AndroidResourceUtil() {
   }
 
@@ -96,12 +128,12 @@ public class AndroidResourceUtil {
 
   static {
     REFERRABLE_RESOURCE_TYPES.addAll(Arrays.asList(ResourceType.values()));
-    REFERRABLE_RESOURCE_TYPES.remove(ResourceType.ATTR);
-    REFERRABLE_RESOURCE_TYPES.remove(ResourceType.STYLEABLE);
+    REFERRABLE_RESOURCE_TYPES.remove(ATTR);
+    REFERRABLE_RESOURCE_TYPES.remove(STYLEABLE);
 
     ALL_VALUE_RESOURCE_TYPES.addAll(VALUE_RESOURCE_TYPES);
-    ALL_VALUE_RESOURCE_TYPES.add(ResourceType.ATTR);
-    ALL_VALUE_RESOURCE_TYPES.add(ResourceType.STYLEABLE);
+    ALL_VALUE_RESOURCE_TYPES.add(ATTR);
+    ALL_VALUE_RESOURCE_TYPES.add(STYLEABLE);
   }
 
   @NotNull
@@ -128,6 +160,42 @@ public class AndroidResourceUtil {
 
           if (field != null) {
             result.add(field);
+          }
+        }
+      }
+    }
+    return result.toArray(new PsiField[result.size()]);
+  }
+
+  /**
+   * Like {@link #findResourceFields(org.jetbrains.android.facet.AndroidFacet, String, String, boolean)} but
+   * can match than more than a single field name
+   */
+  @NotNull
+  public static PsiField[] findResourceFields(@NotNull AndroidFacet facet,
+                                              @NotNull String resClassName,
+                                              @NotNull Collection<String> resourceNames,
+                                              boolean onlyInOwnPackages) {
+    final List<PsiJavaFile> rClassFiles = findRJavaFiles(facet, onlyInOwnPackages);
+    final List<PsiField> result = new ArrayList<PsiField>();
+
+    for (PsiJavaFile rClassFile : rClassFiles) {
+      if (rClassFile == null) {
+        continue;
+      }
+      final PsiClass rClass = findClass(rClassFile.getClasses(), AndroidUtils.R_CLASS_NAME);
+
+      if (rClass != null) {
+        final PsiClass resourceTypeClass = findClass(rClass.getInnerClasses(), resClassName);
+
+        if (resourceTypeClass != null) {
+          for (String resourceName : resourceNames) {
+            String fieldName = getRJavaFieldName(resourceName);
+            final PsiField field = resourceTypeClass.findFieldByName(fieldName, false);
+
+            if (field != null) {
+              result.add(field);
+            }
           }
         }
       }
@@ -249,25 +317,68 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    String fileResType = facet.getLocalResourceManager().getFileResourceType(tag.getContainingFile());
-    final String resourceType = "values".equals(fileResType)
+    ResourceFolderType fileResType = ResourceHelper.getFolderType(tag.getContainingFile());
+    final String resourceType = fileResType == ResourceFolderType.VALUES
                                 ? getResourceTypeByValueResourceTag(tag)
                                 : null;
     if (resourceType == null) {
       return PsiField.EMPTY_ARRAY;
     }
 
-    final String name = tag.getAttributeValue("name");
+    String name = tag.getAttributeValue(ATTR_NAME);
     if (name == null) {
       return PsiField.EMPTY_ARRAY;
     }
+
     return findResourceFields(facet, resourceType, name, onlyInOwnPackages);
   }
 
   @NotNull
+  public static PsiField[] findStyleableAttributeFields(XmlTag tag, boolean onlyInOwnPackages) {
+    String tagName = tag.getName();
+    if (TAG_DECLARE_STYLEABLE.equals(tagName)) {
+      String styleableName = tag.getAttributeValue(ATTR_NAME);
+      if (styleableName == null) {
+        return PsiField.EMPTY_ARRAY;
+      }
+      AndroidFacet facet = AndroidFacet.getInstance(tag);
+      if (facet == null) {
+        return PsiField.EMPTY_ARRAY;
+      }
+      Set<String> names = Sets.newHashSet();
+      for (XmlTag attr : tag.getSubTags()) {
+        if (TAG_ATTR.equals(attr.getName())) {
+          String attrName = attr.getAttributeValue(ATTR_NAME);
+          if (attrName != null) {
+            names.add(styleableName + '_' + attrName);
+          }
+        }
+      }
+      if (!names.isEmpty()) {
+        return findResourceFields(facet, STYLEABLE.getName(), names, onlyInOwnPackages);
+      }
+    } else if (TAG_ATTR.equals(tagName)) {
+      XmlTag parentTag = tag.getParentTag();
+      if (parentTag != null && TAG_DECLARE_STYLEABLE.equals(parentTag.getName())) {
+        String styleName = parentTag.getAttributeValue(ATTR_NAME);
+        String attributeName = tag.getAttributeValue(ATTR_NAME);
+        AndroidFacet facet = AndroidFacet.getInstance(tag);
+        if (facet != null && styleName != null && attributeName != null) {
+          return findResourceFields(facet, STYLEABLE.getName(), styleName + '_' + attributeName, onlyInOwnPackages);
+        }
+      }
+    }
+
+    return PsiField.EMPTY_ARRAY;
+  }
+
+  @NotNull
   public static String getRJavaFieldName(@NotNull String resourceName) {
+    if (resourceName.indexOf('.') == -1) {
+      return resourceName;
+    }
     final String[] identifiers = resourceName.split("\\.");
-    final StringBuilder result = new StringBuilder();
+    final StringBuilder result = new StringBuilder(resourceName.length());
 
     for (int i = 0, n = identifiers.length; i < n; i++) {
       result.append(identifiers[i]);
@@ -279,6 +390,7 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isCorrectAndroidResourceName(@NotNull String resourceName) {
+    // TODO: No, we need to check per resource folder type here. There is a validator for this!
     if (resourceName.length() == 0) {
       return false;
     }
@@ -358,11 +470,11 @@ public class AndroidResourceUtil {
   }
 
   public static boolean isIdDeclaration(@Nullable String attrValue) {
-    return attrValue != null && attrValue.startsWith(NEW_ID_PREFIX);
+    return attrValue != null && attrValue.startsWith(SdkConstants.NEW_ID_PREFIX);
   }
 
   public static boolean isIdReference(@Nullable String attrValue) {
-    return attrValue != null && attrValue.startsWith("@id/");
+    return attrValue != null && attrValue.startsWith(SdkConstants.ID_PREFIX);
   }
 
   public static boolean isIdDeclaration(@NotNull XmlAttributeValue value) {
@@ -463,10 +575,18 @@ public class AndroidResourceUtil {
       return "strings.xml";
     }
     if (VALUE_RESOURCE_TYPES.contains(type)) {
+
+      if (type == ResourceType.LAYOUT
+          // Lots of unit tests assume drawable aliases are written in "drawables.xml" but going
+          // forward lets combine both layouts and drawables in refs.xml as is done in the templates:
+          || type == ResourceType.DRAWABLE && !ApplicationManager.getApplication().isUnitTestMode()) {
+        return "refs.xml";
+      }
+
       return type.getName() + "s.xml";
     }
-    if (ResourceType.ATTR == type ||
-        ResourceType.STYLEABLE == type) {
+    if (ATTR == type ||
+        STYLEABLE == type) {
       return "attrs.xml";
     }
     return null;
@@ -671,13 +791,10 @@ public class AndroidResourceUtil {
       @Override
       public boolean process(ResourceElement element) {
         if (value.length() > 0) {
-          final String s = resourceType == ResourceType.STRING
-                           ? normalizeXmlResourceValue(value)
-                           : value;
+          final String s = resourceType == ResourceType.STRING ? normalizeXmlResourceValue(value) : value;
           element.setStringValue(s);
         }
-        else if (resourceType == ResourceType.STYLEABLE ||
-                 resourceType == ResourceType.STYLE) {
+        else if (resourceType == STYLEABLE || resourceType == ResourceType.STYLE) {
           element.setStringValue("value");
           element.getXmlTag().getValue().setText("");
         }
@@ -838,6 +955,76 @@ public class AndroidResourceUtil {
       return null;
     }
     return new MyReferredResourceFieldInfo(resClassName, resFieldName, false, fromManifest);
+  }
+
+  /**
+   * Utility method suitable for Comparator implementations which order resource files,
+   * which will sort files by base folder followed by alphabetical configurations. Prioritizes
+   * XML files higher than non-XML files.
+   */
+  public static int compareResourceFiles(@Nullable VirtualFile file1, @Nullable VirtualFile file2) {
+    if (file1 != null && file2 != null && file1 != file2) {
+      boolean xml1 = file1.getFileType() == StdFileTypes.XML;
+      boolean xml2 = file2.getFileType() == StdFileTypes.XML;
+      if (xml1 != xml2) {
+        return xml1 ? -1 : 1;
+      }
+      VirtualFile parent1 = file1.getParent();
+      VirtualFile parent2 = file2.getParent();
+      if (parent1 != null && parent2 != null && parent1 != parent2) {
+        boolean qualifier1 = parent1.getName().indexOf('-') != -1;
+        boolean qualifier2 = parent2.getName().indexOf('-') != -1;
+        if (qualifier1 != qualifier2) {
+          return qualifier1 ? 1 : -1;
+        }
+      }
+
+      return file1.getPath().compareTo(file2.getPath());
+    } else if (file1 != null) {
+      return -1;
+    } else if (file2 != null) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  /**
+   * Utility method suitable for Comparator implementations which order resource files,
+   * which will sort files by base folder followed by alphabetical configurations. Prioritizes
+   * XML files higher than non-XML files.
+   */
+  public static int compareResourceFiles(@Nullable PsiFile file1, @Nullable PsiFile file2) {
+    if (file1 != null && file2 != null && file1 != file2) {
+      boolean xml1 = file1.getFileType() == StdFileTypes.XML;
+      boolean xml2 = file2.getFileType() == StdFileTypes.XML;
+      if (xml1 != xml2) {
+        return xml1 ? -1 : 1;
+      }
+      PsiDirectory parent1 = file1.getParent();
+      PsiDirectory parent2 = file2.getParent();
+      if (parent1 != null && parent2 != null && parent1 != parent2) {
+        boolean qualifier1 = parent1.getName().indexOf('-') != -1;
+        boolean qualifier2 = parent2.getName().indexOf('-') != -1;
+
+        // TODO: Sort in FolderConfiguration order!
+
+        if (qualifier1 != qualifier2) {
+          return qualifier1 ? 1 : -1;
+        }
+      }
+
+      int delta = file1.getName().compareTo(file2.getName());
+      if (delta != 0) {
+        return delta;
+      }
+    } else if (file1 != null) {
+      return -1;
+    } else if (file2 != null) {
+      return 1;
+    }
+
+    return 0;
   }
 
   public static class MyReferredResourceFieldInfo {

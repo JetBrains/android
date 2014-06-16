@@ -18,10 +18,7 @@ package com.android.tools.idea.model;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
-import com.intellij.psi.PsiClass;
-import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.dom.manifest.Manifest;
 
 import java.util.List;
 import java.util.Set;
@@ -35,8 +32,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/manifestOnly");
     assertNotNull(myAndroidFacet);
-    assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(18, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(18, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     //noinspection SpellCheckingInspection
     assertEquals("com.example.unittest", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
@@ -49,8 +46,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/gradleOnly");
     assertNotNull(myAndroidFacet);
-    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
@@ -62,8 +59,8 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     }
     loadProject("projects/moduleInfo/both");
     assertNotNull(myAndroidFacet);
-    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
@@ -79,15 +76,15 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
     assertNotNull(gradleProject);
     assertEquals("freeDebug", gradleProject.getSelectedVariant().getName());
 
-    assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion());
+    assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
+    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("com.example.free.debug", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
   public void testMerge() throws Exception {
     //noinspection ConstantConditions
     if (!CAN_SYNC_PROJECTS ) {
-      System.err.println("AndroidModuleInfoTest.testFlavors temporarily disabled");
+      System.err.println("AndroidModuleInfoTest.testMerge temporarily disabled");
       return;
     }
     loadProject("projects/moduleInfo/merge");

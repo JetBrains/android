@@ -16,13 +16,14 @@
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
+import com.android.tools.idea.gradle.output.parser.ParserUtil;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,12 +37,12 @@ import java.util.regex.Pattern;
  *
  * The second line with the pathname may not appear (which means we can't tell the user what file the error occurred in. Bummer.)
  */
-public class XmlValidationErrorParser implements CompilerOutputParser {
+public class XmlValidationErrorParser implements PatternAwareOutputParser {
   private static final Pattern FATAL_ERROR = Pattern.compile("\\[Fatal Error\\] :(\\d+):(\\d+): (.+)");
   private static final Pattern FILE_REFERENCE = Pattern.compile("Failed to parse (.+)");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     Matcher m1 = FATAL_ERROR.matcher(line);
     if (!m1.matches()) {
@@ -53,7 +54,7 @@ public class XmlValidationErrorParser implements CompilerOutputParser {
         if (new File(sourcePath).exists()) {
           String message = line;
           // Eat the entire stacktrace
-          String exceptionMessage = AndroidPluginOutputParser.digestStackTrace(reader);
+          String exceptionMessage = ParserUtil.digestStackTrace(reader);
           if (exceptionMessage != null) {
             message = exceptionMessage + ": " + message;
           }

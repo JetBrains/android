@@ -18,21 +18,27 @@ package com.android.tools.idea.gradle.util;
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
@@ -42,12 +48,15 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.net.HttpConfigurable;
+import icons.AndroidIcons;
 import org.gradle.StartParameter;
 import org.gradle.wrapper.PathAssembler;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,12 +66,16 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 
@@ -70,20 +83,59 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome
  * Utilities related to Gradle.
  */
 public final class GradleUtil {
+  @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
+
   @NonNls public static final String GRADLE_MINIMUM_VERSION = SdkConstants.GRADLE_MINIMUM_VERSION;
   @NonNls public static final String GRADLE_LATEST_VERSION = SdkConstants.GRADLE_LATEST_VERSION;
 
   @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
   @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 
-  @NonNls private static final String GRADLEW_PROPERTIES_PATH = FileUtil.join("gradle", "wrapper", "gradle-wrapper.properties");
+  /** The name of the gradle wrapper executable associated with the current OS. */
+  @NonNls public static final String GRADLE_WRAPPER_EXECUTABLE_NAME =
+    SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WRAPPER_WIN : SdkConstants.FN_GRADLE_WRAPPER_UNIX;
+
+  @NonNls private static final String GRADLE_EXECUTABLE_NAME =
+    SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WIN : SdkConstants.FN_GRADLE_UNIX;
+
+  @NonNls private static final String GRADLEW_PROPERTIES_PATH =
+    FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
-  private static final String GRADLE_EXECUTABLE_NAME = SystemInfo.isWindows ? "gradle.bat" : "gradle";
+  /**
+   * Finds characters that shouldn't be used in the Gradle path.
+   *
+   * I was unable to find any specification for Gradle paths. In my
+   * experiments, Gradle only failed with slashes. This list may grow if
+   * we find any other unsupported characters.
+   */
+  public static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
+  public static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
+  }
+
+  @NotNull
+  public static Icon getModuleIcon(@NotNull Module module) {
+    AndroidProject androidProject = getAndroidProject(module);
+    if (androidProject != null) {
+      return androidProject.isLibrary() ? AndroidIcons.LibraryModule : AndroidIcons.AppModule;
+    }
+    return Projects.isGradleProject(module.getProject()) ? AllIcons.Nodes.PpJdk : AllIcons.Nodes.Module;
+  }
+
+  @Nullable
+  public static AndroidProject getAndroidProject(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null) {
+      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+      if (androidProject != null) {
+        return androidProject.getDelegate();
+      }
+    }
+    return null;
   }
 
   /**
@@ -192,8 +244,27 @@ public final class GradleUtil {
       return true;
     }
     finally {
-      Closeables.closeQuietly(out);
+      try {
+        Closeables.close(out, true);
+      }
+      catch (IOException unexpected) {
+        LOG.info(unexpected);
+      }
     }
+  }
+
+  @Nullable
+  public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
+    Properties properties = loadGradleWrapperProperties(propertiesFile);
+    String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
+    if (url == null) {
+      return null;
+    }
+    Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
+    if (m.matches()) {
+      return m.group(1);
+    }
+    return null;
   }
 
   @NotNull
@@ -207,7 +278,12 @@ public final class GradleUtil {
       return properties;
     }
     finally {
-      Closeables.closeQuietly(fileInputStream);
+      try {
+        Closeables.close(fileInputStream, true);
+      }
+      catch (IOException unexpected) {
+        LOG.info(unexpected);
+      }
     }
   }
 
@@ -226,7 +302,20 @@ public final class GradleUtil {
       LOG.info(msg);
       return null;
     }
-    return ExternalSystemApiUtil.getExecutionSettings(project, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+    try {
+      GradleExecutionSettings settings =
+        ExternalSystemApiUtil.getExecutionSettings(project, projectSettings.getExternalProjectPath(), SYSTEM_ID);
+      if (settings != null) {
+        // By setting the Gradle daemon timeout to -1, we don't allow IDEA to set it to 1 minute. Gradle daemons need to be reused as
+        // much as possible. The default timeout is 3 hours.
+        settings.setRemoteProcessIdleTtlInMs(GRADLE_DAEMON_TIMEOUT_MS);
+      }
+      return settings;
+    }
+    catch (IllegalArgumentException e) {
+      LOG.info("Failed to obtain Gradle execution settings", e);
+      return null;
+    }
   }
 
   @Nullable
@@ -296,13 +385,7 @@ public final class GradleUtil {
   public static void stopAllGradleDaemons(boolean interactive) throws IOException {
     File gradleHome = findAnyGradleHome(interactive);
     if (gradleHome == null) {
-      if (ProjectManager.getInstance().getOpenProjects().length == 0) {
-        // if there are no open projects, then it is expected that we won't find gradleHome
-        LOG.warn("Unable to find GRADLE_HOME, it is possible that the Gradle daemon might still be running.");
-        return;
-      } else {
-        throw new FileNotFoundException("Unable to find path to Gradle home directory");
-      }
+      throw new FileNotFoundException("Unable to find path to Gradle home directory");
     }
     File gradleExecutable = new File(gradleHome, "bin" + File.separatorChar + GRADLE_EXECUTABLE_NAME);
     if (!gradleExecutable.isFile()) {
@@ -423,5 +506,83 @@ public final class GradleUtil {
     assert gradlePath.length() > 0;
     String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
     return new File(VfsUtilCore.virtualToIoFile(project), relativePath);
+  }
+
+  /**
+   * Prefixes string with colon if there isn't one already there.
+   */
+  @Nullable
+  @Contract ("null -> null;!null -> !null")
+  public static String makeAbsolute(String string) {
+    if (string == null) {
+      return null;
+    }
+    else if (string.trim().length() == 0) {
+      return ":";
+    }
+    else if (!string.startsWith(":")) {
+      return ":" + string.trim();
+    }
+    else {
+      return string.trim();
+    }
+  }
+
+  /**
+   * Tests if the Gradle path is valid and return index of the offending
+   * character or -1 if none.
+   * <p/>
+
+   */
+  public static int isValidGradlePath(@NotNull String gradlePath) {
+    return ILLEGAL_GRADLE_PATH_CHARS_MATCHER.indexIn(gradlePath);
+  }
+
+  /**
+   * Checks if the project already has a module with given Gradle path.
+   */
+  public static boolean hasModule(@Nullable Project project,
+                                  @NotNull String gradlePath,
+                                  boolean checkProjectFolder) {
+    if (project == null) {
+      return false;
+    }
+    for (Module module : ModuleManager.getInstance(project).getModules()) {
+      if (gradlePath.equals(getGradlePath(module))) {
+        return true;
+      }
+    }
+    if (checkProjectFolder) {
+      File location = getDefaultSubprojectLocation(project.getBaseDir(), gradlePath);
+      if (location.isFile()) {
+        return true;
+      }
+      else if (location.isDirectory()) {
+        File[] children = location.listFiles();
+        return children == null || children.length > 0;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      return false;
+    }
+  }
+
+  public static void cleanUpPreferences(@NotNull ExtensionPoint<ConfigurableEP<Configurable>> preferences,
+                                        @NotNull List<String> bundlesToRemove) {
+    List<ConfigurableEP<Configurable>> nonStudioExtensions = Lists.newArrayList();
+
+    ConfigurableEP<Configurable>[] extensions = preferences.getExtensions();
+    for (ConfigurableEP<Configurable> extension : extensions) {
+      if (bundlesToRemove.contains(extension.instanceClass)) {
+        nonStudioExtensions.add(extension);
+      }
+    }
+
+    for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
+      preferences.unregisterExtension(toRemove);
+    }
   }
 }

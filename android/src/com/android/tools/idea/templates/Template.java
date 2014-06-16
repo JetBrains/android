@@ -28,6 +28,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.utils.SdkUtils;
 import com.android.utils.StdLogger;
@@ -36,12 +37,12 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.*;
 import com.intellij.util.SystemProperties;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -157,8 +158,10 @@ public class Template {
   public static final String VALUE_MERGE_STRATEGY_REPLACE = "replace";
   public static final String VALUE_MERGE_STRATEGY_PRESERVE = "preserve";
   public static final String CATEGORY_ACTIVITIES = "activities";
+  public static final String CATEGORY_ACTIVITY = "Activity";
   public static final String CATEGORY_PROJECTS = "gradle-projects";
   public static final String CATEGORY_OTHER = "other";
+  public static final String CATEGORY_APPLICATION = "Application";
 
   public static final String BLOCK_DEPENDENCIES = "dependencies";
 
@@ -183,6 +186,7 @@ public class Template {
 
   private TemplateMetadata myMetadata;
   private Project myProject;
+  private boolean myNeedsGradleSync;
 
   /** Creates a new {@link Template} for the given root path */
   @NotNull
@@ -220,7 +224,6 @@ public class Template {
    * @param moduleRootPath the filesystem directory that represents the root of the IDE project module for the template being expanded.
    * @param args the key/value pairs that are fed into the input parameters for the template.
    */
-  @NotNull
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args) {
     render(outputRootPath, moduleRootPath, args, null);
   }
@@ -233,7 +236,6 @@ public class Template {
    * @param args the key/value pairs that are fed into the input parameters for the template.
    * @param project the target project of this template.
    */
-  @NotNull
   public void render(@NotNull File outputRootPath, @NotNull File moduleRootPath, @NotNull Map<String, Object> args,
                      @Nullable Project project) {
     assert outputRootPath.isDirectory() : outputRootPath;
@@ -253,14 +255,22 @@ public class Template {
 
     // Handle dependencies
     if (paramMap.containsKey(TemplateMetadata.ATTR_DEPENDENCIES_LIST)) {
-      List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
-      if (dependencyList.size() > 0) {
-        try {
-          mergeDependenciesIntoFile(freemarker, paramMap, GradleUtil.getGradleBuildFilePath(moduleRootPath));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+      Object maybeDependencyList = paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
+      if (maybeDependencyList instanceof List) {
+        List<String> dependencyList = (List<String>)maybeDependencyList;
+        if (!dependencyList.isEmpty()) {
+          try {
+            mergeDependenciesIntoFile(freemarker, paramMap, GradleUtil.getGradleBuildFilePath(moduleRootPath));
+            myNeedsGradleSync = true;
+          }
+          catch (Exception e) {
+            throw new RuntimeException(e);
+          }
         }
       }
+    }
+    if (myNeedsGradleSync && myProject != null) {
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
 
@@ -305,7 +315,7 @@ public class Template {
     paramMap.put(TemplateMetadata.ATTR_DEPENDENCIES_LIST, new LinkedList<String>());
 
     // Root folder of the templates
-    if (getTemplateRootFolder() != null) {
+    if (ApplicationManager.getApplication() != null && getTemplateRootFolder() != null) {
       paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
     }
 
@@ -340,13 +350,14 @@ public class Template {
           break;
         case SEPARATOR:
           break;
+        case EXTERNAL:
+          break;
       }
     }
     convertApisToInt(args);
   }
 
   public static void convertApisToInt(@NotNull Map<String, Object> args) {
-    convertToInt(ATTR_MIN_API, args);
     convertToInt(ATTR_BUILD_API, args);
     convertToInt(ATTR_MIN_API_LEVEL, args);
     convertToInt(TemplateMetadata.ATTR_TARGET_API, args);
@@ -381,11 +392,8 @@ public class Template {
         xml = processFreemarkerTemplate(freemarker, paramMap, file.getName());
       }
 
-      // Handle UTF-8 since processed file may contain file paths
-      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
-      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
-      InputSource inputSource = new InputSource(reader);
-      inputSource.setEncoding(Charsets.UTF_8.toString());
+      xml = XmlUtils.stripBom(xml);
+      InputSource inputSource = new InputSource(new StringReader(xml));
       SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
@@ -419,7 +427,7 @@ public class Template {
               executeRecipeFile(freemarker, recipeFile, paramMap);
             }
           } else if (!name.equals("template") && !name.equals("category") && !name.equals("option") && !name.equals(TAG_THUMBS) &&
-                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY)) {
+                     !name.equals(TAG_THUMB) && !name.equals(TAG_ICONS) && !name.equals(TAG_DEPENDENCY) && !name.equals(TAG_FORMFACTOR)) {
             LOG.error("WARNING: Unknown template directive " + name);
           }
         }
@@ -438,12 +446,8 @@ public class Template {
       myLoader.setTemplateFile(getTemplateFile(file));
       String xml = processFreemarkerTemplate(freemarker, paramMap, file.getName());
 
-      // Parse and execute the resulting instruction list. We handle UTF-8 since the processed file contains paths which may
-      // have UTF-8 characters.
-      ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
-      Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
-      InputSource inputSource = new InputSource(reader);
-      inputSource.setEncoding(Charsets.UTF_8.toString());
+      xml = XmlUtils.stripBom(xml);
+      InputSource inputSource = new InputSource(new StringReader(xml));
       SAXParserFactory.newInstance().newSAXParser().parse(inputSource, new DefaultHandler() {
         @Override
         public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
@@ -484,10 +488,12 @@ public class Template {
               // The relative path here is within the output directory:
               File relativePath = getPath(attributes, ATTR_AT);
               if (relativePath != null && !relativePath.getPath().isEmpty()) {
-                mkdir(freemarker, paramMap, relativePath);
+                File targetFile = getTargetFile(relativePath);
+                checkedCreateDirectoryIfMissing(targetFile);
               }
             } else if (name.equals(TAG_DEPENDENCY)) {
               String url = attributes.getValue(ATTR_MAVEN);
+              //noinspection unchecked
               List<String> dependencyList = (List<String>)paramMap.get(TemplateMetadata.ATTR_DEPENDENCIES_LIST);
 
               if (url != null) {
@@ -495,7 +501,7 @@ public class Template {
               }
             }
             else if (!name.equals("recipe")) {
-              System.err.println("WARNING: Unknown template directive " + name);
+              LOG.warn("WARNING: Unknown template directive " + name);
             }
           }
           catch (Exception e) {
@@ -528,7 +534,7 @@ public class Template {
       targetText = Files.toString(to, Charsets.UTF_8);
     } else if (to.getParentFile() != null) {
       //noinspection ResultOfMethodCallIgnored
-      to.getParentFile().mkdirs();
+      checkedCreateDirectoryIfMissing(to.getParentFile());
     }
 
     if (targetText == null) {
@@ -558,8 +564,10 @@ public class Template {
     String contents;
     if (to.getName().equals(GRADLE_PROJECT_SETTINGS_FILE)) {
       contents = mergeGradleSettingsFile(sourceText, targetText);
+      myNeedsGradleSync = true;
     } else if (to.getName().equals(SdkConstants.FN_BUILD_GRADLE)) {
       contents = GradleFileMerger.mergeGradleFiles(sourceText, targetText, myProject);
+      myNeedsGradleSync = true;
     } else if (hasExtension(to, DOT_XML)) {
       contents = mergeXml(sourceText, targetText, to, paramMap);
     } else {
@@ -599,7 +607,7 @@ public class Template {
     String contents = null;
     if (ok) {
       if (modified) {
-        contents = XmlPrettyPrinter.prettyPrint(currentDocument, createXmlFormatPreferences(), formatStyle, null, targetXml.endsWith("\n"));
+        contents = XmlPrettyPrinter.prettyPrint(currentDocument, createXmlFormatPreferences(), formatStyle, "\n", targetXml.endsWith("\n"));
       }
     } else {
       // Just insert into file along with comment, using the "standard" conflict
@@ -617,7 +625,7 @@ public class Template {
    * @return
    */
   private static String wrapWithMergeConflict(String original, String added) {
-    String sep = SdkUtils.getLineSeparator();
+    String sep = "\n";
     return "<<<<<<< Original" + sep
     + original + sep
     + "=======" + sep
@@ -748,8 +756,7 @@ public class Template {
            merger.process(currentManifest, fragment);
   }
 
-  private String mergeGradleSettingsFile(@NotNull String source,
-                                         @NotNull String dest) throws IOException, TemplateException {
+  private static String mergeGradleSettingsFile(@NotNull String source, @NotNull String dest) throws IOException, TemplateException {
     // TODO: Right now this is implemented as a dumb text merge. It would be much better to read it into PSI using IJ's Groovy support.
     // If Gradle build files get first-class PSI support in the future, we will pick that up cheaply. At the moment, Our Gradle-Groovy
     // support requires a project, which we don't necessarily have when instantiating a template.
@@ -818,15 +825,6 @@ public class Template {
       VfsUtil.createDirectories(targetFile.getParentFile().getAbsolutePath());
       writeFile(contents, targetFile);
     }
-  }
-
-  /** Creates a directory at the given path */
-  private void mkdir(
-    @NotNull final Configuration freemarker,
-    @NotNull final Map<String, Object> paramMap,
-    @NotNull File at) throws IOException, TemplateException {
-    File targetFile = getTargetFile(at);
-    VfsUtil.createDirectories(targetFile.getAbsolutePath());
   }
 
   @NotNull
@@ -935,15 +933,77 @@ public class Template {
   }
 
   /**
-  * Copies the given source file into the given destination file (where the
-  * source is allowed to be a directory, in which case the whole directory is
-  * copied recursively)
-  */
-  private static void copy(@NotNull File src, @NotNull File dest) throws IOException {
+   * Copies the given source file into the given destination file (where the
+   * source is allowed to be a directory, in which case the whole directory is
+   * copied recursively)
+   */
+  private void copy(@NotNull File src, @NotNull File dest) throws IOException {
+    VirtualFile sourceFile = VfsUtil.findFileByIoFile(src, true);
+    assert sourceFile != null : src;
+    File parentPath = (src.isDirectory() ? dest : dest.getParentFile());
+    VirtualFile destFolder = checkedCreateDirectoryIfMissing(parentPath);
     if (src.isDirectory()) {
-      FileUtil.copyDirContent(src, dest);
-    } else {
-      FileUtil.copyContent(src, dest);
+      copyDirectory(sourceFile, destFolder);
+    }
+    else {
+      VfsUtilCore.copyFile(this, sourceFile, destFolder, dest.getName());
+    }
+  }
+
+  /**
+   * VfsUtil#copyDirectory messes up the undo stack, most likely by trying to
+   * create directory even if it already exists. This is an undo-friendly
+   * replacement.
+   */
+  private void copyDirectory(@NotNull final VirtualFile src, @NotNull final VirtualFile dest) throws IOException {
+    final File destinationFile = VfsUtilCore.virtualToIoFile(dest);
+    VfsUtilCore.visitChildrenRecursively(src, new VirtualFileVisitor() {
+      @Override
+      public boolean visitFile(@NotNull VirtualFile file) {
+        try {
+          return copyFile(file, src, destinationFile, dest);
+        }
+        catch (IOException e) {
+          throw new VisitorException(e);
+        }
+      }
+    }, IOException.class);
+  }
+
+  private boolean copyFile(VirtualFile file, VirtualFile src, File destinationFile, VirtualFile dest) throws IOException {
+    String relativePath = VfsUtilCore.getRelativePath(file, src, File.separatorChar);
+    if (relativePath == null) {
+      LOG.error(file.getPath() + " is not a child of " + src, new Exception());
+      return false;
+    }
+    if (file.isDirectory()) {
+      checkedCreateDirectoryIfMissing(new File(destinationFile, relativePath));
+    }
+    else {
+      VirtualFile targetDir = dest;
+      if (relativePath.indexOf(File.separatorChar) > 0) {
+        String directories = relativePath.substring(0, relativePath.lastIndexOf(File.separatorChar));
+        File newParent = new File(destinationFile, directories);
+        targetDir = checkedCreateDirectoryIfMissing(newParent);
+      }
+      VfsUtilCore.copyFile(this, file, targetDir);
+    }
+    return true;
+  }
+
+  /**
+   * Creates a directory for the given file and returns the VirtualFile object.
+   *
+   * @return virtual file object for the given path. It can never be null.
+   */
+  @NotNull
+  public static VirtualFile checkedCreateDirectoryIfMissing(@NotNull File directory) throws IOException {
+    VirtualFile dir = VfsUtil.createDirectoryIfMissing(directory.getAbsolutePath());
+    if (dir == null) {
+      throw new IOException("Unable to create " + directory.getAbsolutePath());
+    }
+    else {
+      return dir;
     }
   }
 
@@ -958,16 +1018,18 @@ public class Template {
     }
     VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(to);
     if (vf == null) {
-      try {
-        if (to.getParentFile() != null && !to.getParentFile().exists()) {
-          to.getParentFile().mkdirs();
-        }
-        vf = VfsUtil.findFileByIoFile(to.getParentFile(), true).createChildData(this, to.getName());
-      } catch (NullPointerException e) {
-        throw new IOException("Unable to create file " + to.getAbsolutePath());
-      }
+      // Creating a new file
+      VirtualFile parentDir = checkedCreateDirectoryIfMissing(to.getParentFile());
+      vf = parentDir.createChildData(this, to.getName());
     }
-    vf.setBinaryContent(contents.getBytes(Charsets.UTF_8));
+    com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(vf);
+    if (document != null) {
+      document.setText(contents.replaceAll("\r\n", "\n"));
+      FileDocumentManager.getInstance().saveDocument(document);
+    }
+    else {
+      vf.setBinaryContent(contents.getBytes(Charsets.UTF_8), -1, -1, this);
+    }
   }
 
   /**

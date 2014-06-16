@@ -29,17 +29,17 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiLiteral;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCall;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrCallExpression;
@@ -139,12 +139,13 @@ public class GradleFileMerger {
 
   private static void mergeDependencies(@NotNull PsiElement fromRoot, @NotNull PsiElement toRoot, @NotNull Project project) {
     Multimap<String, GradleCoordinate> dependencies = LinkedListMultimap.create();
+    List<String> unparseableDependencies = new ArrayList<String>();
 
     // Load existing dependencies into the map for the existing build.gradle
-    pullDependenciesIntoMap(toRoot, dependencies);
+    pullDependenciesIntoMap(toRoot, dependencies, null);
 
     // Load dependencies into the map for the new build.gradle
-    pullDependenciesIntoMap(fromRoot, dependencies);
+    pullDependenciesIntoMap(fromRoot, dependencies, unparseableDependencies);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
@@ -154,7 +155,7 @@ public class GradleFileMerger {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
 
       // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
-      // have that repositiory available.
+      // have that repository available.
       if (RepositoryUrlManager.supports(highest.getArtifactId())) {
         GradleCoordinate available = GradleCoordinate.parseCoordinateString(
           urlManager.getLibraryCoordinate(highest.getArtifactId()));
@@ -164,10 +165,13 @@ public class GradleFileMerger {
           PsiElement comment = factory.createGroovyFile(RepositoryUrlManager.getHelpComment(highest), false, null);
           toRoot.addBefore(comment, toRoot.getLastChild());
         }
-
-        PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, highest.toString()));
-        toRoot.addBefore(dependencyElement, toRoot.getLastChild());
       }
+      PsiElement dependencyElement = factory.createStatementFromText(String.format(COMPILE_FORMAT, highest.toString()));
+      toRoot.addBefore(dependencyElement, toRoot.getLastChild());
+    }
+    for (String unparseableDependency : unparseableDependencies) {
+      PsiElement dependencyElement = factory.createStatementFromText(unparseableDependency);
+      toRoot.addBefore(dependencyElement, toRoot.getLastChild());
     }
   }
 
@@ -176,24 +180,35 @@ public class GradleFileMerger {
    * adds the new coordinate to the map and removes the corresponding PsiElement from the tree.
    * @return true if new items were added to the map
    */
-  private static boolean pullDependenciesIntoMap(@NotNull PsiElement root, Multimap<String, GradleCoordinate> map) {
+  private static boolean pullDependenciesIntoMap(@NotNull PsiElement root, Multimap<String, GradleCoordinate> map,
+                                                 @Nullable List<String> unparseableDependencies) {
     boolean wasMapUpdated = false;
     for (PsiElement existingElem : root.getChildren()) {
       if (existingElem instanceof GrCall) {
         PsiElement reference = existingElem.getFirstChild();
         if (reference instanceof GrReferenceExpression && reference.getText().equalsIgnoreCase(COMPILE)) {
-          PsiElement arguments = existingElem.getLastChild();
-          if (arguments.getChildren().length == 1 && arguments.getFirstChild() instanceof PsiLiteral) {
-            String coordinateText = arguments.getFirstChild().getText();
-            if (StringUtil.isQuotedString(coordinateText)) {
-              coordinateText = StringUtil.stripQuotesAroundValue(coordinateText);
+          boolean parsed = false;
+          GrArgumentList arguments = ((GrCall)existingElem).getArgumentList();
+          if (arguments != null) {
+            GrExpression[] expressionArguments = arguments.getExpressionArguments();
+            if (expressionArguments.length == 1 && expressionArguments[0] instanceof GrLiteral) {
+              Object value = ((GrLiteral)expressionArguments[0]).getValue();
+              if (value instanceof String) {
+                String coordinateText = (String)value;
+                GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
+                if (coordinate != null) {
+                  parsed = true;
+                  if (!map.get(coordinate.getId()).contains(coordinate)) {
+                    map.put(coordinate.getId(), coordinate);
+                    existingElem.delete();
+                    wasMapUpdated = true;
+                  }
+                }
+              }
             }
-            GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateText);
-            if (coordinate != null && !map.get(coordinate.getId()).contains(coordinate)) {
-              map.put(coordinate.getId(), coordinate);
-              existingElem.delete();
-              wasMapUpdated = true;
-            }
+          }
+          if (!parsed && unparseableDependencies != null) {
+            unparseableDependencies.add(existingElem.getText());
           }
         }
       }

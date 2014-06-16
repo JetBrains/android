@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.SdkConstants;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -33,6 +36,7 @@ import com.android.tools.lint.detector.api.Severity;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -43,7 +47,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.PlatformTestCase;
@@ -65,10 +68,12 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_API_STRING;
 
 /** Base class for unit tests that operate on Gradle projects */
 public abstract class AndroidGradleTestCase extends AndroidTestBase {
@@ -205,6 +210,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     // We need the wrapper for import to succeed
     createGradleWrapper(projectRoot);
 
+    // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+    updateGradleVersions(projectRoot);
+
     if (buildProject) {
       try {
         assertBuildsCleanly(project, true);
@@ -227,6 +235,51 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
+  private static void updateGradleVersions(@NotNull File file) throws IOException {
+    if (file.isDirectory()) {
+      File[] files = file.listFiles();
+      if (files != null) {
+        for (File child : files) {
+          updateGradleVersions(child);
+        }
+      }
+    } else if (file.getPath().endsWith(DOT_GRADLE) && file.isFile()) {
+      String contents = Files.toString(file, Charsets.UTF_8);
+
+      boolean changed = false;
+      Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
+      Matcher matcher = pattern.matcher(contents);
+      if (matcher.find()) {
+        contents = contents.substring(0, matcher.start(1)) + SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION +
+                   contents.substring(matcher.end(1));
+        changed = true;
+      }
+
+      pattern = Pattern.compile("buildToolsVersion ['\"](.+)['\"]");
+      matcher = pattern.matcher(contents);
+      if (matcher.find()) {
+        contents = contents.substring(0, matcher.start(1)) + GradleImport.CURRENT_BUILD_TOOLS_VERSION +
+                   contents.substring(matcher.end(1));
+        changed = true;
+      }
+
+      String repository = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
+      if (repository != null) {
+        pattern = Pattern.compile("mavenCentral\\(\\)");
+        matcher = pattern.matcher(contents);
+        if (matcher.find()) {
+          contents = contents.substring(0, matcher.start()) + "maven { url '" + repository + "' };" +
+                     contents.substring(matcher.start()); // note: start; not end; we're prepending, not replacing!
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        Files.write(contents, file, Charsets.UTF_8);
+      }
+    }
+  }
+
   public void createProject(String activityName, boolean syncModel) throws Exception {
     final NewProjectWizardState projectWizardState = new NewProjectWizardState();
 
@@ -242,19 +295,19 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     createGradleWrapper(baseDir);
 
     assertFilesExist(baseDir,
-                     "gradlew",
-                     "gradlew.bat",
-                     "gradle",
-                     "gradle/wrapper",
-                     "gradle/wrapper/gradle-wrapper.jar",
-                     "gradle/wrapper/gradle-wrapper.properties");
+                     FN_GRADLE_WRAPPER_UNIX,
+                     FN_GRADLE_WRAPPER_WIN,
+                     FD_GRADLE,
+                     FD_GRADLE_WRAPPER,
+                     FileUtil.join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_JAR),
+                     FileUtil.join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES));
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
-    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), NewProjectWizard.GRADLE_WRAPPER_PATH);
+    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
     if (!gradleWrapperSrc.exists()) {
       for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-        gradleWrapperSrc = new File(root, NewProjectWizard.GRADLE_WRAPPER_PATH);
+        gradleWrapperSrc = new File(root, FD_GRADLE_WRAPPER);
         if (gradleWrapperSrc.exists()) {
           break;
         } else {
@@ -309,7 +362,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     final BuildToolInfo buildTool = sdkData.getLatestBuildTool();
     projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     IAndroidTarget[] targets = sdkData.getTargets();
-    projectWizardState.put(ATTR_BUILD_API, targets[targets.length - 1].getVersion().getApiLevel());
+    AndroidVersion version = targets[targets.length - 1].getVersion();
+    projectWizardState.put(ATTR_BUILD_API, version.getApiLevel());
+    projectWizardState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
   }
 
   public void createProject(final NewProjectWizardState projectWizardState, boolean syncModel) throws Exception {
@@ -341,7 +396,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   public void assertBuildsCleanly(Project project, boolean allowWarnings) throws Exception {
     File base = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-    File gradlew = new File(base, "gradlew" + (SystemInfo.isWindows ? ".bat" : ""));
+    File gradlew = new File(base, GradleUtil.GRADLE_WRAPPER_EXECUTABLE_NAME);
     assertTrue(gradlew.exists());
     File pwd = base.getAbsoluteFile();
     // TODO: Add in --no-daemon, anything to suppress total time?

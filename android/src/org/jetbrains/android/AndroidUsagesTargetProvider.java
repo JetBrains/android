@@ -15,6 +15,8 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.SdkConstants.TAG_RESOURCES;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -61,12 +63,18 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
       return null;
     }
 
-    final String name = tag.getAttributeValue("name");
-    if (name == null || name.length() == 0) {
+    XmlTag current = tag.getParentTag();
+    if (current == null) {
       return null;
     }
-
-    final XmlTag parentTag = tag.getParentTag();
-    return parentTag != null && parentTag.getParentTag() == null ? tag : null;
+    // Handle nested elements, e.g. <attr> in <declare-styleable> and <item> in <style>
+    while (true) {
+      XmlTag parentTag = current.getParentTag();
+      if (parentTag == null) {
+        return TAG_RESOURCES.equals(current.getName()) ? tag : null;
+      } else {
+        current = parentTag;
+      }
+    }
   }
 }

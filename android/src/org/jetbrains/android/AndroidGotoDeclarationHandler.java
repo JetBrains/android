@@ -19,10 +19,7 @@ import com.android.resources.ResourceType;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
-import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlElement;
 import org.jetbrains.android.dom.AndroidAttributeValue;
@@ -39,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -109,9 +107,19 @@ public class AndroidGotoDeclarationHandler implements GotoDeclarationHandler {
           for (DeclareStyleable styleable : lrm.findStyleables(fieldName)) {
             resourceList.add(styleable.getName().getXmlAttributeValue());
           }
+
+          for (Attr styleable : lrm.findStyleableAttributesByFieldName(fieldName)) {
+            resourceList.add(styleable.getName().getXmlAttributeValue());
+          }
         }
       }
     }
+
+    if (resourceList.size() > 1) {
+      // Sort to ensure the output is stable, and to prefer the base folders
+      Collections.sort(resourceList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    }
+
     return resourceList.toArray(new PsiElement[resourceList.size()]);
   }
 

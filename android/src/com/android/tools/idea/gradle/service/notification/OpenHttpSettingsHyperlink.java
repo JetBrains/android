@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 class OpenHttpSettingsHyperlink extends NotificationHyperlink {
   OpenHttpSettingsHyperlink() {
-    super("openHttpSettings", "HTTP proxy settings");
+    super("openHttpSettings", "Open HTTP proxy settings");
   }
 
   @Override

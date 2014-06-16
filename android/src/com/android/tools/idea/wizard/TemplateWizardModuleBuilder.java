@@ -15,23 +15,21 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ArrayUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.List;
-import java.util.Set;
+import java.text.Collator;
+import java.util.*;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 
@@ -44,11 +42,8 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   protected static final String APP_TEMPLATE_NAME = "Android Application";
   protected static final String LIB_TEMPLATE_NAME = "Android Library";
 
-  protected static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of(MODULE_NAME, PROJECT_NAME);
-
-  @Nullable private final TemplateMetadata myMetadata;
+  @Nullable private final String myBuilderId;
   private NewAndroidModulePath myNewAndroidModulePath;
-  private TemplateParameterStep myTemplateParameterStep;
 
   public TemplateWizardModuleBuilder(@Nullable File templateLocation,
                                      @Nullable TemplateMetadata metadata,
@@ -58,23 +53,26 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
                                      @NotNull Disposable disposable,
                                      boolean inGlobalWizard) {
     super(templateLocation, project, null, sidePanelIcon, steps, disposable, inGlobalWizard);
-    myWizardState.myIsModuleImport = false;
-    myMetadata = metadata;
+    myBuilderId = metadata == null ? null : metadata.getTitle();
+    if (!inGlobalWizard) {
+      mySteps.add(0, buildChooseModuleStep(project));
+    }
   }
 
   @Override
-  protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
-    WizardPath[] paths = super.setupWizardPaths(project, sidePanelIcon, disposable);
+  protected Iterable<WizardPath> setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
+    List<WizardPath> paths = Lists.newArrayList(super.setupWizardPaths(project, sidePanelIcon, disposable));
     myNewAndroidModulePath = new NewAndroidModulePath(myWizardState, this, project, sidePanelIcon, disposable);
-    myTemplateParameterStep = new TemplateParameterStep(myWizardState, project, null, sidePanelIcon, this);
-    mySteps.add(new ChooseAndroidAndJavaSdkStep());
-    mySteps.add(myTemplateParameterStep);
-
-    if (!myInGlobalWizard) {
-      mySteps.add(0, buildChooseModuleStep(project));
+    paths.add(myNewAndroidModulePath);
+    for (NewModuleWizardPathFactory factory : Extensions.getExtensions(NewModuleWizardPathFactory.EP_NAME)) {
+      paths.addAll(factory.createWizardPaths(myWizardState, this, project, sidePanelIcon, disposable));
     }
-    addSteps(myNewAndroidModulePath);
-    return ArrayUtil.append(paths, myNewAndroidModulePath);
+    return paths;
+  }
+
+  @Override
+  protected WizardPath getDefaultPath() {
+    return myNewAndroidModulePath;
   }
 
   @Override
@@ -86,57 +84,44 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
   @Nullable
   @Override
   public String getBuilderId() {
-    assert myMetadata != null;
-    return myMetadata.getTitle();
-  }
-
-  @Override
-  public boolean updateWizardSteps() {
-    if (super.updateWizardSteps()) {
-      myTemplateParameterStep.setVisible(!myWizardState.myIsAndroidModule);
-      return true;
-    }
-    else {
-      return false;
-    }
+    return myBuilderId;
   }
 
   /**
    * Create a template chooser step populated with the correct templates for the new modules.
    */
-  @VisibleForTesting
-  protected ChooseTemplateStep buildChooseModuleStep(@Nullable Project project) {
+  private ChooseTemplateStep buildChooseModuleStep(@Nullable Project project) {
     // We're going to build up our own list of templates here
     // This is a little hacky, we should clean this up later.
     ChooseTemplateStep chooseModuleStep =
       new ChooseTemplateStep(myWizardState, null, project, null, AndroidIcons.Wizards.NewModuleSidePanel,
                              this, this);
 
+    Set<String> excludedTemplates = Sets.newHashSet();
+    Set<ChooseTemplateStep.MetadataListItem> builtinTemplateList =
+      new TreeSet<ChooseTemplateStep.MetadataListItem>(new Comparator<ChooseTemplateStep.MetadataListItem>() {
+        @Override
+        public int compare(ChooseTemplateStep.MetadataListItem o1, ChooseTemplateStep.MetadataListItem o2) {
+          return Collator.getInstance().compare(o1.toString(), o2.toString());
+        }
+      });
+    for (WizardPath path : myPaths) {
+      excludedTemplates.addAll(path.getExcludedTemplates());
+
+      Collection<ChooseTemplateStep.MetadataListItem> templates = path.getBuiltInTemplates();
+      builtinTemplateList.addAll(templates);
+      for (ChooseTemplateStep.MetadataListItem template : templates) {
+        myWizardState.associateTemplateWithPath(template.toString(), path);
+      }
+    }
     // Get the list of templates to offer, but exclude the NewModule and NewProject template
     List<ChooseTemplateStep.MetadataListItem> templateList =
-      ChooseTemplateStep.getTemplateList(myWizardState, CATEGORY_PROJECTS, EXCLUDED_TEMPLATES);
+      ChooseTemplateStep.getTemplateList(myWizardState, CATEGORY_PROJECTS, excludedTemplates);
 
-    // Now, we're going to add in two pointers to the same template
-    File moduleTemplate = new File(TemplateManager.getTemplateRootFolder(),
-                                   FileUtil.join(CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME));
-    TemplateManager manager = TemplateManager.getInstance();
-    TemplateMetadata metadata = manager.getTemplate(moduleTemplate);
-
-    ChooseTemplateStep.MetadataListItem appListItem = new ChooseTemplateStep.MetadataListItem(moduleTemplate, metadata) {
-      @Override
-      public String toString() {
-        return APP_TEMPLATE_NAME;
-      }
-    };
-    ChooseTemplateStep.MetadataListItem libListItem = new ChooseTemplateStep.MetadataListItem(moduleTemplate, metadata) {
-      @Override
-      public String toString() {
-        return LIB_TEMPLATE_NAME;
-      }
-    };
-    templateList.add(0, libListItem);
-    templateList.add(0, appListItem);
-    chooseModuleStep.setListData(templateList);
+    List<ChooseTemplateStep.MetadataListItem> list = Lists.newArrayListWithExpectedSize(builtinTemplateList.size() + templateList.size());
+    list.addAll(builtinTemplateList);
+    list.addAll(templateList);
+    chooseModuleStep.setListData(list);
     return chooseModuleStep;
   }
 }

@@ -39,6 +39,11 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testIncompatiblePlugin() throws Exception {
+    AndroidLintGradleCompatiblePluginInspection inspection = new AndroidLintGradleCompatiblePluginInspection();
+    doTest(inspection, null);
+  }
+
   public void testPaths() throws Exception {
     if (SystemInfo.isWindows) {
       // This test doesn't work on Windows; the data file supplies what looks like an absolute elsewhere,
@@ -65,8 +70,18 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
-  public void testPackageSuffix() throws Exception {
+  public void testIdSuffix() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
+    doTest(inspection, null);
+  }
+
+  public void testPackage() throws Exception {
+    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
+    doTest(inspection, null);
+  }
+
+  public void testMinSdkAssignment() throws Exception {
+    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
@@ -78,6 +93,41 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
   public void testPathSuppressJoin() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
     doTest(inspection, "Suppress: Add //noinspection GradlePath");
+  }
+
+  public void testNoApplyPlugin() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testNoAndroidStatement() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testTopLevelDependenciesBlock() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testTopLevelRepositoriesBlock() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testBadDependenciesInBuildscriptBlock() throws Exception {
+    AndroidLintGradleImproperProjectLevelStatementInspection inspection = new AndroidLintGradleImproperProjectLevelStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDependenciesInAndroidBlock() throws Exception {
+    AndroidLintGradleMisplacedStatementInspection inspection = new AndroidLintGradleMisplacedStatementInspection();
+    doTest(inspection, null);
+  }
+
+  public void testRepositoriesInDependenciesBlock() throws Exception {
+    AndroidLintGradleMisplacedStatementInspection inspection = new AndroidLintGradleMisplacedStatementInspection();
+    doTest(inspection, null);
   }
 
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {

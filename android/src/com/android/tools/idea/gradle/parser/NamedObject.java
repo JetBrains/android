@@ -79,7 +79,11 @@ public class NamedObject {
   }
 
   public void setValue(@NotNull BuildFileKey property, @Nullable Object value) {
-    myValues.put(property, value);
+    if (value == null) {
+      myValues.remove(property);
+    } else {
+      myValues.put(property, value);
+    }
   }
 
   public static ValueFactory getFactory(@NotNull List<BuildFileKey> properties) {

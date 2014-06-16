@@ -19,10 +19,14 @@ import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.wizard.ChooseApiLevelDialog;
+import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.AppLifecycleListener;
@@ -33,6 +37,12 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurableEP;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -59,16 +69,33 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 import java.util.Properties;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidStudioSpecificInitializer implements Runnable {
   private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
 
+  private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList(
+    "org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable", "org.intellij.plugins.xpathView.XPathConfigurable",
+    "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl"
+  );
+
+  /**
+   * We set the timeout for Gradle daemons to -1, this way IDEA will not set it to 1 minute and it will use the default instead (3 hours.)
+   * We need to keep Gradle daemons around as much as possible because creating new daemons is resource-consuming and slows down the IDE.
+   */
+  public static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
+
+  static {
+    System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
+  }
+
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
   @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
+  @NonNls private static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -82,6 +109,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
+    cleanUpIdePreferences();
+
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
       replaceIdeaNewProjectActions();
     }
@@ -98,7 +127,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       hideIdeaNewFilePopupActions();
     }
 
-    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
+    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
+      registerExperimentalActions();
+    }
 
     try {
       // Setup JDK and Android SDK if necessary
@@ -123,6 +154,30 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
 
     checkAndSetAndroidSdkSources();
+  }
+
+
+  private static void cleanUpIdePreferences() {
+    try {
+      ExtensionPoint<ConfigurableEP<Configurable>> ideConfigurable =
+        Extensions.getRootArea().getExtensionPoint(Configurable.APPLICATION_CONFIGURABLE);
+
+      GradleUtil.cleanUpPreferences(ideConfigurable, IDE_SETTINGS_TO_REMOVE);
+    }
+    catch (Throwable e) {
+      LOG.info("Failed to clean up IDE preferences", e);
+    }
+  }
+
+  private static void registerExperimentalActions() {
+    ActionManager am = ActionManager.getInstance();
+    AnAction action = new NewFromGithubAction();
+    am.registerAction("NewFromGithubAction", action);
+    ((DefaultActionGroup)am.getAction("NewGroup")).add(action);
+    DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
+    action = new ExperimentalActionsForTesting.ClearPrefsAction();
+    am.registerAction("ClearPrefs", action);
+    androidToolsGroup.add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
@@ -287,13 +342,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.info("Unable to find Studio home directory");
     }
     else {
-      LOG.info(String.format("Found Studio home directory at: '1$%s'", studioHome));
+      LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
         String absolutePath = dir.getAbsolutePath();
-        LOG.info(String.format("Looking for Android SDK at '1$%s'", absolutePath));
+        LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
         if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
-          LOG.info(String.format("Found Android SDK at '1$%s'", absolutePath));
+          LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
           return new File(absolutePath);
         }
       }
@@ -382,7 +437,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       @Override
       public void appClosing() {
         try {
-          GradleUtil.stopAllGradleDaemons(false);
+          for (Project p : ProjectManager.getInstance().getOpenProjects()) {
+            if (Projects.isBuildWithGradle(p)) {
+              GradleUtil.stopAllGradleDaemons(false);
+              return;
+            }
+          }
         }
         catch (IOException e) {
           LOG.error("Failed to stop Gradle daemons", e);

@@ -9,6 +9,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.rendering.LocalResourceRepository;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.intellij.analysis.AnalysisScope;
@@ -36,14 +37,18 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.HashMap;
-import org.gradle.tooling.model.UnsupportedMethodException;
+import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -97,11 +102,9 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     myModuleMap = moduleMap;
   }
 
-  private static boolean ourTryLintOptions = true;
-
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project) {
-    if (ourTryLintOptions && project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
+    if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
       AndroidProject model = project.getGradleProjectModel();
       if (model != null) {
         try {
@@ -112,9 +115,6 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
               @NonNull
               @Override
               public Severity getSeverity(@NonNull Issue issue) {
-                if (!getIssues().contains(issue)) {
-                  return Severity.IGNORE;
-                }
                 Integer severity = overrides.get(issue.getId());
                 if (severity != null) {
                   switch (severity.intValue()) {
@@ -132,18 +132,16 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                   }
                 }
 
-                return Severity.IGNORE;
+                // This is a LIST lookup. I should make this faster!
+                if (!getIssues().contains(issue)) {
+                  return Severity.IGNORE;
+                }
+
+                return super.getSeverity(issue);
               }
             };
           }
-        } catch (UnsupportedMethodException e) {
-          // This happens if we're talking to an older model than 0.8 (should not happen). Ignore; fall through to
-          // normal handling.
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourTryLintOptions = false;
         } catch (Exception e) {
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourTryLintOptions = false;
           LOG.error(e);
         }
       }
@@ -282,17 +280,19 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     for (Module m : ModuleManager.getInstance(myProject).getModules()) {
       Sdk moduleSdk = ModuleRootManager.getInstance(m).getSdk();
       if (moduleSdk != null) {
-        String path = moduleSdk.getHomePath();
-        if (path != null) {
-          File home = new File(path);
-          if (home.exists()) {
-            return home;
+        if (moduleSdk.getSdkType() instanceof AndroidSdkType) {
+          String path = moduleSdk.getHomePath();
+          if (path != null) {
+            File home = new File(path);
+            if (home.exists()) {
+              return home;
+            }
           }
         }
       }
     }
 
-    return null;
+    return DefaultSdks.getDefaultAndroidHome();
   }
 
   @Nullable
@@ -643,6 +643,12 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     }
 
     return null;
+  }
+
+  @Nullable
+  @Override
+  public URLConnection openConnection(@NonNull URL url) throws IOException {
+    return HttpConfigurable.getInstance().openConnection(url.toExternalForm());
   }
 
   @NonNull

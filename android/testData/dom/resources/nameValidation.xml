@@ -1,9 +1,11 @@
 <resources>
-  <string name="<error>1a</error>">a</string>
+  <string name="<error descr="The resource name must begin with a character">1a</error>">a</string>
   <string name="a1">a</string>
-  <item name="<error>**</error>">a</item>
-  <integer name="<error>a b</error>">1</integer>
+  <item name="<error descr="The resource name must begin with a character">**</error>">a</item>
+  <integer name="<error descr="' ' is not a valid resource name character">a b</error>">1</integer>
   <integer name="a_b">1</integer>
   <string name="a-b">1</string>
   <string name="a.b">1</string>
+  <string name="<error descr="assert is not a valid name (reserved Java keyword)">assert</error>">a</string>
+  <string name="<error descr="new is not a valid name (reserved Java keyword)">new</error>">a</string>
 </resources>

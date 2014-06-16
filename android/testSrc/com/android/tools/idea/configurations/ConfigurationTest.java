@@ -261,6 +261,6 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(configuration);
     IAndroidTarget target = configuration.getTarget();
     assertNotNull(target);
-    assertTrue(target.getVersion().getApiLevel() >= 11);
+    assertTrue(target.getVersion().getFeatureLevel() >= 11);
   }
 }

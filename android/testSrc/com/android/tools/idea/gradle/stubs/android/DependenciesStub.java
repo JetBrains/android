@@ -18,15 +18,17 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Dependencies;
+import com.android.builder.model.JavaLibrary;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public class DependenciesStub implements Dependencies {
   @NotNull private final List<AndroidLibrary> myLibraries = Lists.newArrayList();
-  @NotNull private final List<File> myJars = Lists.newArrayList();
+  @NotNull private final List<JavaLibrary> myJavaLibraries = Lists.newArrayList();
   @NotNull private final List<String> myProjects = Lists.newArrayList();
 
   public void addLibrary(@NotNull AndroidLibraryStub library) {
@@ -39,14 +41,14 @@ public class DependenciesStub implements Dependencies {
     return myLibraries;
   }
 
-  public void addJar(@NotNull File jar) {
-    myJars.add(jar);
-  }
-
   @Override
   @NotNull
-  public List<File> getJars() {
-    return myJars;
+  public Collection<JavaLibrary> getJavaLibraries() {
+    return myJavaLibraries;
+  }
+
+  public void addJar(@NotNull File jar) {
+    myJavaLibraries.add(new JavaLibrayStub(jar));
   }
 
   public void addProject(@NotNull String project) {

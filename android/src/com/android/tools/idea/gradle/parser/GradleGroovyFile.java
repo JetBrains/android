@@ -36,6 +36,7 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -127,7 +128,14 @@ class GradleGroovyFile {
     }
     String name = parts[parts.length - 1];
     String text = name + " " + key.getType().convertValueToExpression(value);
-    parent.addStatementBefore(factory.createStatementFromText(text), null);
+    GrStatement statementBefore = null;
+    if (key.shouldInsertAtBeginning()) {
+      GrStatement[] parentStatements = parent.getStatements();
+      if (parentStatements.length > 0) {
+        statementBefore = parentStatements[0];
+      }
+    }
+    parent.addStatementBefore(factory.createStatementFromText(text), statementBefore);
     if (reformatClosure) {
       reformatClosure(parent);
     }
@@ -141,6 +149,10 @@ class GradleGroovyFile {
     StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
+        if (!myFile.exists()) {
+          LOG.warn("File " + myFile.getPath() + " no longer exists");
+          return;
+        }
         PsiFile psiFile = PsiManager.getInstance(myProject).findFile(myFile);
         if (psiFile == null) {
           LOG.warn("Could not find PsiFile for " + myFile.getPath());

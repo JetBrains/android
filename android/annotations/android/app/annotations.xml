@@ -12,7 +12,7 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.ActionBar void setCustomView(int) 0">
-    <annotation name="android.support.annotation.DrawableRes" />
+    <annotation name="android.support.annotation.LayoutRes" />
   </item>
   <item name="android.app.ActionBar void setDisplayOptions(int) 0">
     <annotation name="android.support.annotation.IntDef">

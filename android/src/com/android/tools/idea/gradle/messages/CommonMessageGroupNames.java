@@ -25,7 +25,7 @@ public final class CommonMessageGroupNames {
   public static final String UNRESOLVED_ANDROID_DEPENDENCIES = "Unresolved Android dependencies";
   public static final String UNRESOLVED_DEPENDENCIES = "Unresolved dependencies";
   public static final String VARIANT_SELECTION_CONFLICTS = "Variant selection conflicts";
-  public static final String PROJECT_STRUCTURE_CONFLICTS = "Project structure conflicts";
+  public static final String EXTRA_GENERATED_SOURCES = "Source folders generated at incorrect location";
 
   private CommonMessageGroupNames() {
   }

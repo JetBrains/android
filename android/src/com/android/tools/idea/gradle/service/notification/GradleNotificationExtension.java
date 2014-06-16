@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -41,6 +42,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +69,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
+  private static final Pattern UNKNOWN_HOST_PATTERN = Pattern.compile("Unknown host '(.*)'(.*)");
 
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
@@ -95,8 +98,21 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                          @NotNull ExternalSystemException error) {
     String msg = error.getMessage();
     if (msg != null && !msg.isEmpty()) {
+      if (msg.startsWith(AndroidGradleProjectResolver.UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX)) {
+        updateNotification(notification, project, msg,
+                           new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=70490", "Open bug report"));
+      }
+
       if (msg.startsWith(AndroidGradleProjectResolver.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
-        updateNotification(notification, project, msg, new FixGradleModelVersionHyperlink());
+        NotificationHyperlink fixGradleModelHyperlink;
+        if (msg.contains(AndroidGradleProjectResolver.READ_MIGRATION_GUIDE_MSG)) {
+          fixGradleModelHyperlink = new FixGradleModelVersionHyperlink();
+        }
+        else {
+          fixGradleModelHyperlink = new FixGradleModelVersionHyperlink("Fix plug-in version and re-import project", false);
+        }
+
+        updateNotification(notification, project, msg, fixGradleModelHyperlink);
         return;
       }
 
@@ -184,8 +200,21 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
       String firstLine = lines.get(0);
 
-      if (firstLine.startsWith("Unknown host '")) {
+      Matcher matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
+
+      if (matcher.matches()) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+
+        HttpConfigurable httpSettings = HttpConfigurable.getInstance();
+        String host = matcher.group(1);
+        // We offer to disable or edit proxy settings if
+        // 1. proxy settings are "on"
+        // 2. the proxy host in stored in settings is the same as the one from the error message
+        if (httpSettings.USE_HTTP_PROXY && Objects.equal(host, httpSettings.PROXY_HOST)) {
+          hyperlinks.add(new DisableIdeProxySettingsHyperlink());
+          hyperlinks.add(new OpenHttpSettingsHyperlink());
+        }
+
         NotificationHyperlink enableOfflineMode = ToggleOfflineModeHyperlink.enableOfflineMode(project);
         if (enableOfflineMode != null) {
           hyperlinks.add(enableOfflineMode);
@@ -216,7 +245,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         return;
       }
 
-      Matcher matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
+      matcher = MISSING_MATCHING_DEPENDENCY_PATTERN.matcher(firstLine);
       if (matcher.matches()) {
         String dependency = matcher.group(1);
         createMissingDependencyNotification(notification, project, firstLine, dependency);

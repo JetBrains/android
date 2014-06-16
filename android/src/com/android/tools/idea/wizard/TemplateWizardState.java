@@ -18,10 +18,11 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,6 +103,7 @@ public class TemplateWizardState {
     put(ATTR_RES_DIR, "src/main/res");
     put(ATTR_AIDL_DIR, "src/main/aidl");
     put(ATTR_MANIFEST_DIR, "src/main");
+    put(ATTR_TEST_DIR, "src/androidTest");
   }
 
   /**
@@ -114,6 +116,7 @@ public class TemplateWizardState {
     File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
     File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
+    File testSourceRoot = new File(moduleRoot, TemplateWizard.TEST_SOURCE_PATH);
 
     // Set Res directory if we don't have one
     if (!myParameters.containsKey(ATTR_RES_OUT) || myParameters.get(ATTR_RES_OUT) == null) {
@@ -147,12 +150,48 @@ public class TemplateWizardState {
       put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(mainFlavorSourceRoot.getPath()));
     }
 
+    // Set Test directory if we don't have one
+    if (!myParameters.containsKey(ATTR_TEST_OUT) || myParameters.get(ATTR_TEST_OUT) == null) {
+      put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testSourceRoot.getPath()));
+    }
+
     put(ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
     put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getPath()));
 
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
     if (mavenUrl != null) {
       put(ATTR_MAVEN_URL, mavenUrl);
+    }
+
+    if (!myParameters.containsKey(ATTR_RELATIVE_PACKAGE)) {
+      String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
+      if (pkg != null){
+        myParameters.put(ATTR_PACKAGE_ROOT, pkg);
+      }
+    }
+
+    populateRelativePackage(null);
+  }
+
+  public void populateRelativePackage(@Nullable Module module) {
+    // If the module's application package is "foo.bar", and we're creating an activity
+    // in the "foo.bar.baz.bay" package, the package prefix should be ".baz.bay". That lets
+    // templates (for example) specify activity names in the manifest relative to the application
+    // package node.
+    String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
+    if (pkg != null) {
+      if (module != null) {
+        String applicationId = ManifestInfo.get(module, false).getPackage();
+        if (applicationId != null) {
+          if (pkg.startsWith(applicationId) && pkg.length() > applicationId.length() &&
+              pkg.charAt(applicationId.length()) == '.') {
+            pkg = pkg.substring(applicationId.length());
+          }
+        }
+      } else {
+        pkg = "";
+      }
+      put(ATTR_RELATIVE_PACKAGE, pkg);
     }
   }
 

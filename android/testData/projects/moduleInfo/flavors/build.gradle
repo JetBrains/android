@@ -3,7 +3,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:0.9.+'
+    classpath 'com.android.tools.build:gradle:0.11.+'
   }
 }
 apply plugin: 'android'
@@ -14,30 +14,30 @@ repositories {
 
 android {
   compileSdkVersion 18
-  buildToolsVersion "19.0.0"
+  buildToolsVersion "19.1.0"
 
   defaultConfig {
     minSdkVersion 9
     targetSdkVersion 17
-    packageName "from.gradle"
+    applicationId "from.gradle"
   }
 
   buildTypes {
     debug {
-      packageNameSuffix ".debug"
+      applicationIdSuffix ".debug"
       buildConfigField "boolean", "DEBUG2", "false"
     }
   }
 
   productFlavors {
     pro {
-      packageName "com.example.pro"
+      applicationId "com.example.pro"
       versionCode 20
       flavorGroup "version"
     }
 
     free {
-      packageName "com.example.free"
+      applicationId "com.example.free"
       minSdkVersion 14
       flavorGroup "version"
     }

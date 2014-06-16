@@ -1,0 +1,9 @@
+apply plugin: 'android'
+
+android {
+    buildTypes {
+        debug {
+            applicationIdSuffix <warning>"debug"</warning>
+        }
+    }
+}

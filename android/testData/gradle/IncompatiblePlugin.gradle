@@ -1,0 +1,14 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath <error>'com.android.tools.build:gradle:0.1.0'</error>
+  }
+}
+
+allprojects {
+  repositories {
+    mavenCentral()
+  }
+}

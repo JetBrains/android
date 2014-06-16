@@ -47,7 +47,9 @@ public class HoverOverlay extends Overlay {
     }
 
     RenderedViewHierarchy viewHierarchy = myContainer.getViewHierarchy();
-    assert viewHierarchy != null;
+    if (viewHierarchy == null) {
+      return;
+    }
     boolean hoverIsSelected = myHoveredView.tag != null && myContainer.isSelected(myHoveredView.tag);
     DrawingStyle style = hoverIsSelected ? DrawingStyle.HOVER_SELECTION : DrawingStyle.HOVER;
     Rectangle r = myContainer.fromModel(component, myHoveredView.getBounds());

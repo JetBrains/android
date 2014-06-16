@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.diagnostic.Logger;
 
 import com.android.annotations.VisibleForTesting;
@@ -42,13 +45,16 @@ public class TemplateMetadata {
   public static final String ATTR_CREATE_ICONS = "createIcons";
   public static final String ATTR_COPY_ICONS = "copyIcons";
   public static final String ATTR_TARGET_API = "targetApi";
+  public static final String ATTR_TARGET_API_STRING = "targetApiString";
   public static final String ATTR_MIN_API = "minApi";
   public static final String ATTR_MIN_BUILD_API = "minBuildApi";
   public static final String ATTR_BUILD_API = "buildApi";
+  public static final String ATTR_BUILD_API_STRING = "buildApiString";
   public static final String ATTR_REVISION = "revision";
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
   public static final String ATTR_PACKAGE_ROOT = "packageRoot";
+  public static final String ATTR_RELATIVE_PACKAGE = "relativePackage";
   public static final String ATTR_APP_TITLE = "appTitle";
   public static final String ATTR_BASE_THEME = "baseTheme";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
@@ -58,10 +64,12 @@ public class TemplateMetadata {
   public static final String ATTR_SRC_OUT = "srcOut";
   public static final String ATTR_RES_OUT = "resOut";
   public static final String ATTR_MANIFEST_OUT = "manifestOut";
+  public static final String ATTR_TEST_OUT = "testOut";
   public static final String ATTR_MAVEN_URL = "mavenUrl";
   public static final String ATTR_SRC_DIR = "srcDir";
   public static final String ATTR_RES_DIR = "resDir";
   public static final String ATTR_MANIFEST_DIR = "manifestDir";
+  public static final String ATTR_TEST_DIR = "testDir";
   public static final String ATTR_AIDL_DIR = "aidlDir";
   public static final String ATTR_AIDL_OUT = "aidlOut";
   public static final String ATTR_DEBUG_KEYSTORE_SHA1 = "debugKeystoreSha1";
@@ -82,13 +90,14 @@ public class TemplateMetadata {
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
   public static final String TAG_CATEGORY = "category";
-
+  public static final String TAG_FORMFACTOR = "formfactor";
 
   private final Document myDocument;
   private final Map<String, Parameter> myParameterMap;
 
   private final AssetStudioAssetGenerator.AssetType myIconType;
   private final String myIconName;
+  private String myFormFactor = null;
   private String myCategory = null;
 
   @VisibleForTesting
@@ -127,6 +136,14 @@ public class TemplateMetadata {
         myCategory = element.getAttribute(Template.ATTR_VALUE);
       }
     }
+
+    NodeList formFactors = myDocument.getElementsByTagName(TAG_FORMFACTOR);
+    if (formFactors.getLength() > 0) {
+      Element element = (Element) formFactors.item(0);
+      if (element.hasAttribute(Template.ATTR_VALUE)) {
+        myFormFactor = element.getAttribute(Template.ATTR_VALUE);
+      }
+    }
   }
 
   @Nullable
@@ -154,6 +171,11 @@ public class TemplateMetadata {
   @Nullable
   public String getCategory() {
     return myCategory;
+  }
+
+  @Nullable
+  public String getFormFactor() {
+    return myFormFactor;
   }
 
   @Nullable
@@ -281,5 +303,17 @@ public class TemplateMetadata {
     } catch (RuntimeException e) {
       return defaultValue;
     }
+  }
+
+  /**
+   * Computes a suitable build api string, e.g. for API level 18 the build
+   * API string is "18".
+   */
+  @NotNull
+  public static String getBuildApiString(@NotNull AndroidVersion version) {
+    if (version.isPreview()) {
+      return AndroidTargetHash.getPlatformHashString(version);
+    }
+    return version.getApiString();
   }
 }

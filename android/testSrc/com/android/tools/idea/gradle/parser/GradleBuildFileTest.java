@@ -55,7 +55,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
   public void testNestedValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
     GrStatementOwner closure = file.getClosure("android/defaultConfig");
-    assertEquals(1, file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
+    assertEquals("1", file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
   }
 
   public void testSetTopLevelValue() throws Exception {
@@ -163,15 +163,17 @@ public class GradleBuildFileTest extends IdeaTestCase {
 
   public void testSetIntegerValue() throws Exception {
     final GradleBuildFile file = getTestFile(getSimpleTestFile());
+    final GrStatementOwner closure = file.getClosure("android/defaultConfig");
+    assertNotNull(closure);
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-        file.setValue(BuildFileKey.COMPILE_SDK_VERSION, 99);
+        file.setValue(closure, BuildFileKey.VERSION_CODE, 99);
       }
     });
-    String expected = getSimpleTestFile().replaceAll("compileSdkVersion 17", "compileSdkVersion 99");
+    String expected = getSimpleTestFile().replaceAll("versionCode 1337", "versionCode 99");
     assertContents(file, expected);
-    assertEquals(99, file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
+    assertEquals(99, file.getValue(closure, BuildFileKey.VERSION_CODE));
   }
 
   public void testSetBooleanValue() throws Exception {
@@ -228,7 +230,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     final List<NamedObject> flavors = (List<NamedObject>)value;
     assertEquals(2, flavors.size());
     NamedObject flavor3 = new NamedObject("flavor3");
-    flavor3.setValue(BuildFileKey.PACKAGE_NAME, "flavor3.packagename");
+    flavor3.setValue(BuildFileKey.APPLICATION_ID, "flavor3.packagename");
     flavors.add(flavor3);
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
@@ -245,7 +247,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     int position = expected.indexOf("}\n", expected.indexOf("flavor2 {\n")) + 2;
     expected.insert(position,
         "        flavor3 {\n" +
-        "            packageName 'flavor3.packagename'\n" +
+        "            applicationId 'flavor3.packagename'\n" +
         "        }\n"
                                );
     assertContents(file, expected.toString());
@@ -276,6 +278,35 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertContents(file,
                    contents.replaceAll("release", "release1a")
                            .replaceAll("debuggable false\n", "debuggable false\n            zipAlign true\n"));
+  }
+
+  public void testRemovePropertyFromNamedValue() throws Exception {
+    String contents =
+      "android {\n" +
+      "    buildTypes {\n" +
+      "        release {\n" +
+      "            debuggable false\n" +
+      "            zipAlign true\n" +
+      "        }\n" +
+      "    }\n" +
+      "}";
+    final GradleBuildFile file = getTestFile(contents);
+    Object value = file.getValue(BuildFileKey.BUILD_TYPES);
+    assert value != null;
+    assert value instanceof List;
+    final List<NamedObject> buildTypes = (List<NamedObject>)value;
+    assertEquals(1, buildTypes.size());
+    NamedObject buildType = buildTypes.get(0);
+    assertEquals("release", buildType.getName());
+    buildType.setValue(BuildFileKey.DEBUGGABLE, null);
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
+      }
+    });
+    assertContents(file,
+                   contents.replaceAll(" *debuggable false\n", ""));
   }
 
   public void testCreateStringValue() throws Exception {
@@ -320,7 +351,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-        file.setValue(BuildFileKey.INCREMENTAL, true);
+        file.setValue(BuildFileKey.INCREMENTAL_DEX, true);
       }
     });
     StringBuilder expected = new StringBuilder(getSimpleTestFile());
@@ -330,7 +361,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
                     "        incremental true\n" +
                     "    }\n");
     assertContents(file, expected.toString());
-    assertEquals(true, file.getValue(BuildFileKey.INCREMENTAL));
+    assertEquals(true, file.getValue(BuildFileKey.INCREMENTAL_DEX));
   }
 
   public void testCreateFileValue() throws Exception {
@@ -451,7 +482,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    compileSdkVersion 17\n" +
       "}\n"
     );
-    assertEquals(17, file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
+    assertEquals("17", file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
     assertEquals("17.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
 
@@ -886,6 +917,193 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals(expected, file.getPlugins());
   }
 
+  public void testAddsSigningConfigsAtBeginning() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    compileSdkVersion 17\n" +
+      "}\n"
+    );
+    final NamedObject config = new NamedObject("config" );
+    config.setValue(BuildFileKey.KEY_ALIAS, "alias" );
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.SIGNING_CONFIGS, ImmutableList.of(config));
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        config {\n" +
+      "            keyAlias 'alias'\n" +
+      "        }\n" +
+      "    }\n" +
+      "    compileSdkVersion 17\n" +
+      "}\n";
+
+    assertContents(file, expected);
+  }
+
+  public void testAddsSigningConfigsToEmptyBlock() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "}\n"
+    );
+    final NamedObject config = new NamedObject("config");
+    config.setValue(BuildFileKey.KEY_ALIAS, "alias");
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.SIGNING_CONFIGS, ImmutableList.of(config));
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        config {\n" +
+      "            keyAlias 'alias'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n";
+
+    assertContents(file, expected);
+  }
+
+  public void testSetIntegerOrStringAsInteger() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "    }\n" +
+      "}\n"
+    );
+    final GrStatementOwner closure = file.getClosure("android/defaultConfig");
+    assertNotNull(closure);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(closure, BuildFileKey.TARGET_SDK_VERSION, 5);
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "        targetSdkVersion 5\n" +
+      "    }\n" +
+      "}\n";
+
+    assertContents(file, expected);
+  }
+
+
+  public void testSetIntegerOrStringAsIntegerValuedString() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "    }\n" +
+      "}\n"
+    );
+    final GrStatementOwner closure = file.getClosure("android/defaultConfig");
+    assertNotNull(closure);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(closure, BuildFileKey.TARGET_SDK_VERSION, "5");
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "        targetSdkVersion 5\n" +
+      "    }\n" +
+      "}\n";
+
+    assertContents(file, expected);
+  }
+
+  public void testSetIntegerOrStringAsString() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "    }\n" +
+      "}\n"
+    );
+    final GrStatementOwner closure = file.getClosure("android/defaultConfig");
+    assertNotNull(closure);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(closure, BuildFileKey.TARGET_SDK_VERSION, "foo");
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "        targetSdkVersion 'foo'\n" +
+      "    }\n" +
+      "}\n";
+
+    assertContents(file, expected);
+  }
+
+
+  public void testSetIntegerOrStringAsStringWithLeadingDigit() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "    }\n" +
+      "}\n"
+    );
+    final GrStatementOwner closure = file.getClosure("android/defaultConfig");
+    assertNotNull(closure);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(closure, BuildFileKey.TARGET_SDK_VERSION, "123foo");
+      }
+    });
+
+    String expected =
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "        targetSdkVersion '123foo'\n" +
+      "    }\n" +
+      "}\n";
+
+    assertContents(file, expected);
+    }
+
+  public void testGetIntegerOrStringAsString() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "        targetSdkVersion 'foo'\n" +
+      "    }\n" +
+      "}\n"
+    );
+    GrStatementOwner closure = file.getClosure("android/defaultConfig");
+    assertNotNull(closure);
+    assertEquals("foo", file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
+  }
+
+
+  public void testGetIntegerOrStringAsInteger() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    defaultConfig {\n" +
+      "        targetSdkVersion 5\n" +
+      "    }\n" +
+      "}\n"
+    );
+    GrStatementOwner closure = file.getClosure("android/defaultConfig");
+    assertNotNull(closure);
+    assertEquals("5", file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +
@@ -914,6 +1132,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       "    defaultConfig {\n" +
       "        minSdkVersion someCrazyMethodCall()\n" +
       "        targetSdkVersion 1\n" +
+      "        versionCode 1337\n" +
       "    }\n" +
       "    buildTypes {\n" +
       "        debug {\n" +

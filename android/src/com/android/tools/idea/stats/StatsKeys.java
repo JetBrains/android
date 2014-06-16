@@ -22,59 +22,21 @@ public class StatsKeys {
 
   /**
    * Indicates a project has been opened.
-   * Used in AndroidGradleProjectComponent.projectOpened().
    * Type: string "gradle" or "not-gradle".
    */
   public static final String PROJECT_OPENED = "project-opened";
 
-  /**
-   * Measures Gradle sync time.
-   * Starts in GradleProjectImporter.doImport().
-   * Stops in PostProjectSyncTaskExecutor.onProjectSetupCompletion().
-   * Type: time interval, in milliseconds.
-   */
-  public static final String GRADLE_SYNC_TIME = "sync-time";
+  public static final String GRADLE_SYNC_PROJECT_TIME_MS = "sync-time";
 
-  /**
-   * Measures Gradle generate time.
-   * Used in GradleTasksExecutor.run().
-   * Type: time interval, in milliseconds.
-   */
-  public static final String GRADLE_GENERATE_TIME = "generate-time";
+  public static final String GRADLE_GENERATE_SRC_TIME_MS = "generate-time";
 
-  /**
-   * Measures Gradle assemble time.
-   * Used in GradleTasksExecutor.run().
-   * Type: time interval, in milliseconds.
-   */
-  public static final String GRADLE_ASSEMBLE_TIME = "assemble-time";
+  public static final String GRADLE_ASSEMBLE_TIME_MS = "assemble-time";
 
-  /**
-   * Measures Gradle compile time.
-   * Used in GradleTasksExecutor.run().
-   * Type: time interval, in milliseconds.
-   */
-  public static final String GRADLE_COMPILE_TIME = "compile-time";
+  public static final String GRADLE_COMPILE_TIME_MS = "compile-time";
 
-  /**
-   * Measures Gradle rebuild time (clean + compile).
-   * Used in GradleTasksExecutor.run().
-   * Type: time interval, in milliseconds.
-   */
-  public static final String GRADLE_REBUILD_TIME = "rebuild-time";
+  public static final String GRADLE_REBUILD_TIME_MS = "rebuild-time";
 
-  /**
-   * Measures Gradle clean time (clean + generate).
-   * Used in GradleTasksExecutor.run().
-   * Type: time interval, in milliseconds.
-   */
-  public static final String GRADLE_CLEAN_TIME = "clean-time";
+  public static final String GRADLE_CLEAN_TIME_MS = "clean-time";
 
-  /**
-   * Measures Gradle generic build time (when we failed to find a more specific key.)
-   * Used in GradleTasksExecutor.run().
-   * Type: time interval, in milliseconds.
-   */
-  public static final String GRADLE_BUILD_TIME = "build-time";
-
+  public static final String GRADLE_BUILD_TIME_MS = "build-time";
 }
