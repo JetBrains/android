@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
@@ -186,6 +187,11 @@ public class GradleInvoker {
         executor.queue();
       }
     });
+  }
+
+  public void clearConsoleAndBuildMessages() {
+    GradleConsoleView.getInstance(myProject).clear();
+    GradleTasksExecutor.clearMessageView(myProject);
   }
 
   @VisibleForTesting
