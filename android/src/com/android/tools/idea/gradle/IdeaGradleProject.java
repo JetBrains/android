@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.facet.JavaModel;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -38,9 +37,8 @@ public class IdeaGradleProject implements Serializable {
   @NotNull private final String myModuleName;
   @NotNull private final List<String> myTaskNames;
   @NotNull private final String myGradlePath;
-  @Nullable private final File myBuildFile;
 
-  private JavaModel myJavaModel;
+  @Nullable private final File myBuildFile;
 
   /**
    * Creates a new {@link IdeaGradleProject}.
@@ -49,7 +47,9 @@ public class IdeaGradleProject implements Serializable {
    * @param gradleProject the Gradle project.
    * @param buildFile     the build.gradle file.
    */
-  public static IdeaGradleProject newIdeaGradleProject(@NotNull String moduleName, @NotNull GradleProject gradleProject, @Nullable File buildFile) {
+  public static IdeaGradleProject newIdeaGradleProject(@NotNull String moduleName,
+                                                       @NotNull GradleProject gradleProject,
+                                                       @Nullable File buildFile) {
     List<String> taskNames = Lists.newArrayList();
     DomainObjectSet<? extends GradleTask> tasks = gradleProject.getTasks();
     if (!tasks.isEmpty()) {
@@ -64,7 +64,10 @@ public class IdeaGradleProject implements Serializable {
     return new IdeaGradleProject(moduleName, taskNames, gradleProject.getPath(), buildFile);
   }
 
-  public IdeaGradleProject(@NotNull String moduleName, @NotNull List<String> taskNames, @NotNull String gradlePath, @Nullable File buildFile) {
+  public IdeaGradleProject(@NotNull String moduleName,
+                           @NotNull List<String> taskNames,
+                           @NotNull String gradlePath,
+                           @Nullable File buildFile) {
     myModuleName = moduleName;
     myTaskNames = taskNames;
     myGradlePath = gradlePath;
@@ -97,14 +100,5 @@ public class IdeaGradleProject implements Serializable {
   @Nullable
   public VirtualFile getBuildFile() {
     return myBuildFile != null ? VfsUtil.findFileByIoFile(myBuildFile, true) : null;
-  }
-
-  @Nullable
-  public JavaModel getJavaModel() {
-    return myJavaModel;
-  }
-
-  public void setJavaModel(@NotNull JavaModel javaModel) {
-    myJavaModel = javaModel;
   }
 }
