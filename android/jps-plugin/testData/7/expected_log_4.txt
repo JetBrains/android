@@ -1,5 +1,5 @@
 ______ENTRY_0:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --non-constant-id
@@ -30,7 +30,7 @@ $PROJECT_DIR$/root/lib/external_jar.jar
 --exclude
 
 ______ENTRY_2:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --auto-add-overlay
