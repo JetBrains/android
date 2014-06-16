@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -60,9 +61,11 @@ import static com.android.ide.common.resources.ResourceResolver.THEME_NAME_DOT;
  */
 public class ThemeSelectionPanel implements TreeSelectionListener, ListSelectionListener, Disposable {
   private static final String DEVICE_LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault.Light";
-  private static final String HOLO_LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo.Light";
   private static final String DEVICE_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.DeviceDefault";
+  private static final String HOLO_LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo.Light";
   private static final String HOLO_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo";
+  private static final String MATERIAL_LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light";
+  private static final String MATERIAL_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material";
   private static final String LIGHT_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Light";
   private static final String ANDROID_THEME = ANDROID_STYLE_RESOURCE_PREFIX + "Theme";
   private static final String ANDROID_THEME_PREFIX = ANDROID_STYLE_RESOURCE_PREFIX + "Theme.";
@@ -158,6 +161,12 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     else if (currentTheme.startsWith(HOLO_PREFIX)) {
       selectCategory(ThemeCategory.HOLO, true);
     }
+    if (currentTheme.startsWith(MATERIAL_LIGHT_PREFIX)) {
+      selectCategory(ThemeCategory.MATERIAL_LIGHT, true);
+    }
+    else if (currentTheme.startsWith(MATERIAL_PREFIX)) {
+      selectCategory(ThemeCategory.MATERIAL, true);
+    }
     else if (currentTheme.startsWith(DEVICE_PREFIX)) {
       selectCategory(ThemeCategory.DEVICE, true);
     }
@@ -226,6 +235,20 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
           }
         }
         break;
+      case MATERIAL:
+        for (String theme : getFrameworkThemes()) {
+          if (theme.startsWith(MATERIAL_PREFIX) && !theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
+            themes.add(theme);
+          }
+        }
+        break;
+      case MATERIAL_LIGHT:
+        for (String theme : getFrameworkThemes()) {
+          if (theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
+            themes.add(theme);
+          }
+        }
+        break;
       case PROJECT:
         for (String theme : getProjectThemes()) {
           themes.add(theme);
@@ -247,7 +270,8 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         break;
       case LIGHT:
         for (String theme : getFrameworkThemes()) {
-          if (theme.startsWith(HOLO_LIGHT_PREFIX) || theme.startsWith(LIGHT_PREFIX) || theme.startsWith(DEVICE_LIGHT_PREFIX)) {
+          if (theme.startsWith(HOLO_LIGHT_PREFIX) || theme.startsWith(LIGHT_PREFIX) || theme.startsWith(DEVICE_LIGHT_PREFIX)
+              || theme.startsWith(MATERIAL_LIGHT_PREFIX)) {
             themes.add(theme);
           }
         }
@@ -449,11 +473,18 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         topLevel.add(ThemeCategory.PROJECT);
       }
 
-      // TODO: Only offer Holo if build target >= 11?
+      AndroidModuleInfo info = AndroidModuleInfo.get(myConfiguration.getConfigurationManager().getModule());
+      if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
+        topLevel.add(ThemeCategory.MATERIAL);
+        topLevel.add(ThemeCategory.MATERIAL_LIGHT);
+      }
+
       topLevel.add(ThemeCategory.HOLO);
       topLevel.add(ThemeCategory.HOLO_LIGHT);
-      topLevel.add(ThemeCategory.CLASSIC);
-      topLevel.add(ThemeCategory.CLASSIC_LIGHT);
+      if (info == null || info.getMinSdkVersion().getFeatureLevel() <= 14) {
+        topLevel.add(ThemeCategory.CLASSIC);
+        topLevel.add(ThemeCategory.CLASSIC_LIGHT);
+      }
       topLevel.add(ThemeCategory.DEVICE);
       topLevel.add(ThemeCategory.DIALOGS);
       topLevel.add(ThemeCategory.LIGHT);
@@ -564,8 +595,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     RECENT("Recent"),
     MANIFEST("Manifest Themes"),
     PROJECT("Project Themes"),
-    HOLO("Holo"),
+    MATERIAL_LIGHT("Material Light"),
+    MATERIAL("Material Dark"),
     HOLO_LIGHT("Holo Light"),
+    HOLO("Holo Dark"),
     CLASSIC("Classic"),
     CLASSIC_LIGHT("Classic Light"),
     DEVICE("Device Default"),
