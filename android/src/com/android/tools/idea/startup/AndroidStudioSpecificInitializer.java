@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
@@ -188,6 +189,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
     action = new ExperimentalActionsForTesting.ClearPrefsAction();
     am.registerAction("ClearPrefs", action);
+    androidToolsGroup.add(action);
+
+    action = new SdkQuickfixWizard.LaunchMe();
+    am.registerAction("ShowQuickfix", action);
     androidToolsGroup.add(action);
   }
 
