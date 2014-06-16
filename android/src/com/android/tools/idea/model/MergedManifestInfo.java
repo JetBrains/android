@@ -18,6 +18,7 @@ package com.android.tools.idea.model;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -102,7 +103,7 @@ public class MergedManifestInfo extends ManifestInfo {
 
   @NotNull
   @Override
-  public String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize) {
+  public String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize, @Nullable Device device) {
     throw new UnsupportedOperationException(MERGING_UNSUPPORTED);
   }
 
