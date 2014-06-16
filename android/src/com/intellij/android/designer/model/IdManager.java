@@ -15,12 +15,15 @@
  */
 package com.intellij.android.designer.model;
 
+import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.designer.model.RadComponent;
 import com.intellij.designer.model.RadComponentVisitor;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -49,7 +52,7 @@ public class IdManager {
   }
 
   @Nullable
-  private static String parseIdValue(@Nullable String idValue) {
+  public static String getIdName(@Nullable String idValue) {
     if (idValue != null) {
       if (idValue.startsWith(NEW_ID_PREFIX)) {
         return idValue.substring(NEW_ID_PREFIX.length());
@@ -63,14 +66,14 @@ public class IdManager {
   }
 
   public void addComponent(RadViewComponent component) {
-    String idValue = parseIdValue(component.getId());
+    String idValue = getIdName(component.getId());
     if (idValue != null) {
       myIdList.add(idValue);
     }
   }
 
   public void removeComponent(RadViewComponent component, boolean withChildren) {
-    String idValue = parseIdValue(component.getId());
+    String idValue = getIdName(component.getId());
     if (idValue != null) {
       myIdList.remove(idValue); // Uh oh. What if it appears more than once? This would incorrectly assume it's no longer there! Needs to be a list or have a count!
     }
@@ -88,14 +91,21 @@ public class IdManager {
 
   public String createId(RadViewComponent component) {
     String idValue = StringUtil.decapitalize(component.getMetaModel().getTag());
+
+    XmlTag tag = component.getTag();
+    Module module = AndroidPsiUtils.getModuleSafely(tag);
+    if (module != null) {
+      idValue = ResourceHelper.prependResourcePrefix(module, idValue);
+    }
+
     String nextIdValue = idValue;
     int index = 0;
 
     // Ensure that we don't create something like "switch" as an id, which won't compile when used
     // in the R class
-    Project project = component.getTag().getProject();
     NamesValidator validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE);
 
+    Project project = tag.getProject();
     while (myIdList.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
       ++index;
       if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
@@ -107,7 +117,7 @@ public class IdManager {
 
     myIdList.add(nextIdValue);
     String newId = NEW_ID_PREFIX + idValue + (index == 0 ? "" : Integer.toString(index));
-    component.getTag().setAttribute(ATTR_ID, ANDROID_URI, newId);
+    tag.setAttribute(ATTR_ID, ANDROID_URI, newId);
     return newId;
   }
 
@@ -144,7 +154,7 @@ public class IdManager {
           @Override
           public void endVisit(RadComponent component) {
             RadViewComponent viewComponent = (RadViewComponent)component;
-            String idValue = parseIdValue(viewComponent.getId());
+            String idValue = getIdName(viewComponent.getId());
             if (component == container) {
               createId(viewComponent);
             }

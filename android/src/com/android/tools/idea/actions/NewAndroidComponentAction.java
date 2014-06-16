@@ -16,7 +16,9 @@
 package com.android.tools.idea.actions;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.wizard.NewAndroidActivityWizard;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
@@ -28,13 +30,15 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Set;
 
 /**
  * An action to launch a wizard to create a component from a template.
  */
 public class NewAndroidComponentAction extends AnAction {
-
+  // These categories will be using a new wizard
+  public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
   private static final Set<String> EXCLUDED = ImmutableSet.of();
 
   private final String myTemplateCategory;
@@ -45,7 +49,7 @@ public class NewAndroidComponentAction extends AnAction {
     super(templateName, "Create a new " + templateName, null);
     myTemplateCategory = templateCategory;
     myTemplateName = templateName;
-    if (templateCategory.equals("Activity")) {
+    if (isActivityTemplate()) {
       getTemplatePresentation().setIcon(AndroidIcons.Activity);
     }
     else {
@@ -59,6 +63,10 @@ public class NewAndroidComponentAction extends AnAction {
     }
   }
 
+  private boolean isActivityTemplate() {
+    return NEW_WIZARD_CATEGORIES.contains(myTemplateCategory);
+  }
+
   @Override
   public void update(AnActionEvent e) {
     final DataContext dataContext = e.getDataContext();
@@ -70,14 +78,13 @@ public class NewAndroidComponentAction extends AnAction {
     if (moduleInfo == null) {
       return;
     }
-    int moduleMinSdkVersion = moduleInfo.getMinSdkVersion();
+    int moduleMinSdkVersion = moduleInfo.getMinSdkVersion().getApiLevel();
     if (myMinSdkVersion > moduleMinSdkVersion) {
       Presentation presentation = getTemplatePresentation();
       presentation.setText(myTemplateName + " (Requires minSdk >= " + myMinSdkVersion + ")");
       presentation.setEnabled(false);
     }
   }
-
 
   @Override
   public void actionPerformed(AnActionEvent e) {
@@ -92,16 +99,24 @@ public class NewAndroidComponentAction extends AnAction {
 
     if (module == null) return;
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    assert facet != null;
+    if (facet == null || facet.getIdeaAndroidProject() == null) {
+      return;
+    }
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    NewTemplateObjectWizard dialog =
-      new NewTemplateObjectWizard(CommonDataKeys.PROJECT.getData(dataContext), LangDataKeys.MODULE.getData(dataContext), targetFile,
-                                  myTemplateCategory, myTemplateName, EXCLUDED);
+    if (isActivityTemplate()) {
+      File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
+      NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
+      wizard.init();
+      wizard.show();
+    }
+    else {
+      NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(module, targetFile, myTemplateCategory, myTemplateName, EXCLUDED);
 
-    dialog.show();
-    if (dialog.isOK()) {
-      dialog.createTemplateObject();
+      dialog.show();
+      if (dialog.isOK()) {
+        dialog.createTemplateObject();
+      }
     }
 
     /*

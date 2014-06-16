@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,64 +16,37 @@
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
+import com.android.tools.idea.gradle.output.GradleProjectAwareMessage;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
+import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 
-/**
- * Parses output from the Android Gradle plugin.
- */
-public class AndroidPluginOutputParser implements CompilerOutputParser {
-  private static final CompilerOutputParser[] PARSERS =
-    {new XmlValidationErrorParser(), new GradleBuildFailureParser(), new MergingExceptionParser(), new ManifestMergeFailureParser(), new DexExceptionParser()};
+public class AndroidPluginOutputParser implements PatternAwareOutputParser {
+  private static final int SEGMENT_COUNT = 3;
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages) {
-    for (CompilerOutputParser parser : PARSERS) {
-      try {
-        if (parser.parse(line, reader, messages)) {
-          return true;
-        }
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
+    throws ParsingFailedException {
+    // pattern is type|path|message
+    String[] segments = line.split("\\|", SEGMENT_COUNT);
+    if (segments.length == SEGMENT_COUNT) {
+      GradleMessage.Kind kind = GradleMessage.Kind.findIgnoringCase(segments[0]);
+      if (kind == null) {
+        kind = GradleMessage.Kind.ERROR;
       }
-      catch (ParsingFailedException e) {
-        // If there's an exception, it means a parser didn't like the input, so just ignore and let other parsers have a crack at it.
+      String path = segments[1];
+      if (StringUtil.isEmpty(path)) {
+        return false;
       }
+      String msg = StringUtil.notNullize(segments[2]);
+      messages.add(new GradleProjectAwareMessage(kind, msg.trim(), path.trim()));
+
+      return true;
     }
     return false;
-  }
-
-  @Nullable
-  public static String digestStackTrace(OutputLineReader reader) {
-    String message = null;
-    String next = reader.peek(0);
-    if (next == null) {
-      return null;
-    }
-    int index = next.indexOf(':');
-    if (index == -1) {
-      return null;
-    }
-
-    String exceptionName = next.substring(0, index);
-    if (exceptionName.endsWith("Exception") || exceptionName.endsWith("Error")) {
-      message = next.substring(index + 1).trim();
-      reader.readLine();
-
-      // Digest stack frames below it
-      while (true) {
-        String peek = reader.peek(0);
-        if (peek != null && peek.startsWith("\tat")) {
-          reader.readLine();
-        } else {
-          break;
-        }
-      }
-    }
-
-    return message;
   }
 }

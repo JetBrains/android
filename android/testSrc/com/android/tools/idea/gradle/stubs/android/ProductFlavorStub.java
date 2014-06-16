@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.builder.model.ApiVersion;
 import com.android.builder.model.ClassField;
 import com.android.builder.model.NdkConfig;
 import com.android.builder.model.ProductFlavor;
@@ -46,7 +47,7 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @Nullable
-  public String getPackageName() {
+  public String getApplicationId() {
     throw new UnsupportedOperationException();
   }
 
@@ -62,12 +63,12 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
-  public int getMinSdkVersion() {
+  public ApiVersion getMinSdkVersion() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public int getTargetSdkVersion() {
+  public ApiVersion getTargetSdkVersion() {
     throw new UnsupportedOperationException();
   }
 
@@ -88,7 +89,7 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @Nullable
-  public String getTestPackageName() {
+  public String getTestApplicationId() {
     throw new UnsupportedOperationException();
   }
 

@@ -21,6 +21,9 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Functions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -61,12 +64,12 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
 
   @Nullable private Project myProject;
-  @NotNull private final WizardPath[] paths;
+  @NotNull protected final Iterable<WizardPath> myPaths;
 
   protected final NewModuleWizardState myWizardState;
   @VisibleForTesting
   protected boolean myInitializationComplete = false;
-  protected final boolean myInGlobalWizard;
+  private ImportSourceModulePath myImportSourcesPath;
 
   public ImportWizardModuleBuilder(@Nullable File templateFile,
                                    @Nullable Project project,
@@ -78,7 +81,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     myProject = project;
     myImportSource = importSource;
     mySteps = steps;
-    myInGlobalWizard = inGlobalWizard;
 
     if (project == null) {
       myWizardState = new NewProjectWizardState() {
@@ -98,7 +100,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
         }
       };
     }
-    myWizardState.myIsModuleImport = true;
     myWizardState.put(ATTR_IS_LAUNCHER, project == null);
     myWizardState.updateParameters();
 
@@ -113,8 +114,24 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     }
 
     Template.convertApisToInt(myWizardState.getParameters());
-    paths = setupWizardPaths(project, sidePanelIcon, disposable);
+    Iterable<WizardPath> paths = setupWizardPaths(project, sidePanelIcon, disposable);
+    if (inGlobalWizard) {
+      myPaths = Iterables.filter(paths, new Predicate<WizardPath>() {
+        @Override
+        public boolean apply(WizardPath input) {
+          return input.supportsGlobalWizard();
+        }
+      });
+    }
+    else {
+      myPaths = paths;
+    }
 
+    for (WizardPath path : myPaths) {
+      addSteps(path);
+    }
+
+    myWizardState.setDefaultWizardPath(getDefaultPath());
     if (project != null) {
       myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
     }
@@ -125,15 +142,13 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     myInitializationComplete = true;
   }
 
-  protected WizardPath[] setupWizardPaths(Project project, Icon sidePanelIcon, Disposable disposable) {
-    if (myInGlobalWizard) {
-      return new WizardPath[0];
-    }
-    ImportSourceModulePath importSourcesPath =
-      new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), disposable, this);
+  protected WizardPath getDefaultPath() {
+    return myImportSourcesPath;
+  }
 
-    addSteps(importSourcesPath);
-    return new WizardPath[]{importSourcesPath};
+  protected Iterable<WizardPath> setupWizardPaths(@Nullable Project project, @Nullable Icon sidePanelIcon, Disposable disposable) {
+    myImportSourcesPath = new ImportSourceModulePath(myImportSource, myWizardState, new WizardContext(project), sidePanelIcon, this);
+    return ImmutableList.<WizardPath>of(myImportSourcesPath);
   }
 
   protected void addSteps(WizardPath path) {
@@ -144,16 +159,16 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   public boolean isStepVisible(ModuleWizardStep step) {
     WizardPath path = myStepsToPath.get(step);
-    return path == null ? step.isStepVisible() : path.isStepVisible(step);
+    return path == null
+           ? step.isStepVisible()
+           : path == myWizardState.getActiveWizardPath() && path.isStepVisible(step);
   }
 
   public boolean updateWizardSteps() {
     if (!myInitializationComplete) {
       return false;
     }
-    for (WizardPath path : paths) {
-      path.update();
-    }
+    myWizardState.getActiveWizardPath().update();
     return true;
   }
 
@@ -257,9 +272,8 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
    * @param performGradleSync if set to true, a sync will be triggered after the template has been created.
    */
   public void createModule(boolean performGradleSync) {
-    for (WizardPath path : paths) {
-      path.createModule();
-    }
+    WizardPath path = myWizardState.getActiveWizardPath();
+    path.createModule();
     if (performGradleSync && myProject != null) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
@@ -267,9 +281,9 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
   @Override
   public boolean isSuitableSdkType(SdkTypeId sdkType) {
-    return myWizardState.myIsAndroidModule
-           ? AndroidSdkType.getInstance().equals(sdkType)
-           : sdkType instanceof JavaSdkType;
+    boolean isJavaTemplate = myWizardState.isOnDefaultWizardPath() &&
+                             NewModuleWizardState.isAndroidTemplate(myWizardState.getTemplateMetadata());
+    return isJavaTemplate ? sdkType instanceof JavaSdkType : AndroidSdkType.getInstance().equals(sdkType);
   }
 
   @Override

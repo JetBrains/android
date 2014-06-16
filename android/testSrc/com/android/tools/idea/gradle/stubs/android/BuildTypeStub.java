@@ -45,6 +45,11 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
+  public boolean isTestCoverageEnabled() {
+    return false;
+  }
+
+  @Override
   public boolean isJniDebugBuild() {
     throw new UnsupportedOperationException();
   }
@@ -61,7 +66,7 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   @Nullable
-  public String getPackageNameSuffix() {
+  public String getApplicationIdSuffix() {
     throw new UnsupportedOperationException();
   }
 
@@ -84,6 +89,11 @@ public class BuildTypeStub implements BuildType {
   @Override
   @Nullable
   public NdkConfig getNdkConfig() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isEmbedMicroApp() {
     throw new UnsupportedOperationException();
   }
 

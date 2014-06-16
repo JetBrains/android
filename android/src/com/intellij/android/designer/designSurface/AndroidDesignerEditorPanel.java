@@ -111,7 +111,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   private static final Integer LAYER_ERRORS = LAYER_INPLACE_EDITING + 150; // Must be an Integer, not an int; see JLayeredPane.addImpl
   private static final Integer LAYER_PREVIEW = LAYER_INPLACE_EDITING + 170; // Must be an Integer, not an int; see JLayeredPane.addImpl
 
-  private final TreeComponentDecorator myTreeDecorator = new AndroidTreeDecorator();
+  private final TreeComponentDecorator myTreeDecorator;
   private final XmlFile myXmlFile;
   private final ExternalPSIChangeListener myPsiChangeListener;
   private final Alarm mySessionAlarm = new Alarm();
@@ -146,6 +146,7 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
                                     @NotNull Module module,
                                     @NotNull VirtualFile file) {
     super(editor, project, module, file);
+    myTreeDecorator = new AndroidTreeDecorator(project);
 
     showProgress("Loading configuration...");
 

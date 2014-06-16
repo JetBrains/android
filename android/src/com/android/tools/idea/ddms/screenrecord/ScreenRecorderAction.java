@@ -20,6 +20,7 @@ import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.intellij.CommonBundle;
+import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
@@ -29,8 +30,8 @@ import com.intellij.openapi.fileTypes.NativeFileType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,6 +40,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -104,6 +106,7 @@ public class ScreenRecorderAction {
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
+      int elapsedTime = 0; // elapsed time in seconds
       indicator.setIndeterminate(true);
       while (true) {
         try {
@@ -111,9 +114,15 @@ public class ScreenRecorderAction {
             break;
           }
 
+          // update elapsed time in seconds
+          elapsedTime++;
+          indicator.setText(String.format("Recording...%1$d %2$s elapsed", elapsedTime, StringUtil.pluralize("second", elapsedTime)));
+
           if (indicator.isCanceled()) {
             // explicitly cancel the running task
             myReceiver.cancel();
+
+            indicator.setText("Stopping...");
 
             // Wait for an additional second to make sure that the command
             // completed and screen recorder finishes writing the output
@@ -180,16 +189,34 @@ public class ScreenRecorderAction {
       }
     }
 
+    // Tries to open the file at myLocalPath
+    private void openSavedFile() {
+      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(myLocalPath);
+      if (file != null) {
+        NativeFileType.openAssociatedApplication(file);
+      }
+    }
+
     @Override
     public void onSuccess() {
       assert myProject != null;
-      if (Messages.showOkCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open File" /* Ok text */,
-                                      CommonBundle.getOkButtonText() /* cancel text */, Messages.getInformationIcon())
-          == DialogWrapper.OK_EXIT_CODE) {
-        VirtualFile file = LocalFileSystem.getInstance().findFileByPath(myLocalPath);
-        if (file != null) {
-          NativeFileType.openAssociatedApplication(file);
+
+      if (ShowFilePathAction.isSupported()) {
+        int exitCode = Messages.showYesNoCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open" /* Yes text */,
+                                                      "Show in " + ShowFilePathAction.getFileManagerName() /* No text */,
+                                                      CommonBundle.getOkButtonText() /* Cancel text */, Messages.getInformationIcon());
+
+        if (exitCode == Messages.YES) {
+          openSavedFile();
         }
+        else if (exitCode == Messages.NO) {
+          ShowFilePathAction.openFile(new File(myLocalPath));
+        }
+      }
+      else if (Messages.showOkCancelDialog(myProject, "Video Recording saved as " + myLocalPath, TITLE, "Open File" /* Ok text */,
+                                           CommonBundle.getOkButtonText() /* cancel text */, Messages.getInformationIcon()) ==
+               Messages.OK) {
+        openSavedFile();
       }
     }
   }

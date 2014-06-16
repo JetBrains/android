@@ -16,6 +16,7 @@
 
 package org.jetbrains.android.dom.wrappers;
 
+import com.android.SdkConstants;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.navigation.PsiElementNavigationItem;
@@ -392,7 +393,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
   @Override
   public String getName() {
     String value = myWrappee.getValue();
-    if (value.startsWith(AndroidResourceUtil.NEW_ID_PREFIX)) {
+    if (value.startsWith(SdkConstants.NEW_ID_PREFIX)) {
       return AndroidResourceUtil.getResourceNameByReferenceText(value);
     }
     return ((NavigationItem)myWrappee).getName();

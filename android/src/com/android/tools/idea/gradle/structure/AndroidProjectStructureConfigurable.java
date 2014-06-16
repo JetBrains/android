@@ -18,26 +18,36 @@ package com.android.tools.idea.gradle.structure;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.structure.AndroidModuleConfigurable;
-import com.google.common.collect.Maps;
+import com.android.tools.idea.structure.AndroidProjectConfigurable;
+import com.google.common.collect.Lists;
+import com.intellij.CommonBundle;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.RunResult;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.*;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
-import com.intellij.openapi.roots.ui.configuration.ModulesAlphaComparator;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.ui.popup.ListItemDescriptor;
 import com.intellij.openapi.util.Disposer;
@@ -50,6 +60,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.ui.popup.list.GroupedItemsListRenderer;
 import com.intellij.util.IconUtil;
+import com.intellij.util.PlatformIcons;
 import com.intellij.util.ThreeState;
 import com.intellij.util.io.storage.HeavyProcessLatch;
 import com.intellij.util.messages.MessageBusConnection;
@@ -64,8 +75,8 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Contents of the "Project Structure" dialog, for Gradle-based Android projects, in Android Studio.
@@ -73,6 +84,9 @@ import java.util.Map;
 public class AndroidProjectStructureConfigurable extends BaseConfigurable implements GradleSyncListener, SearchableConfigurable,
                                                                                      ConfigurableHost {
   public static final DataKey<AndroidProjectStructureConfigurable> KEY = DataKey.create("AndroidProjectStructureConfiguration");
+
+  private static final Logger LOG = Logger.getInstance(AndroidProjectStructureConfigurable.class);
+
   @NotNull private final Project myProject;
   @NotNull private final Disposable myDisposable;
 
@@ -86,13 +100,24 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @NotNull private final UiState myUiState;
 
   @NotNull private final DefaultSdksConfigurable mySdksConfigurable = new DefaultSdksConfigurable(this);
-  @NotNull private final Map<String, AndroidModuleConfigurable> myModuleConfigurablesByName = Maps.newHashMap();
+  @NotNull private final List<Configurable> myConfigurables = Lists.newLinkedList();
+
+  private final GradleSettingsFile mySettingsFile;
 
   private JComponent myToFocus;
 
   @NotNull
   public static AndroidProjectStructureConfigurable getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, AndroidProjectStructureConfigurable.class);
+  }
+
+  public boolean showDialogAndSelectSdksPage() {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        mySidePanel.selectSdk();
+      }
+    });
   }
 
   public boolean showDialogAndSelect(@NotNull final Module module) {
@@ -115,6 +140,13 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   public AndroidProjectStructureConfigurable(@NotNull Project project) {
     myProject = project;
     myUiState = new UiState(project);
+
+    myConfigurables.add(mySdksConfigurable);
+    if (!project.isDefault()) {
+      myConfigurables.add(new AndroidProjectConfigurable(project));
+    }
+
+    mySettingsFile = GradleSettingsFile.get(project);
 
     myDisposable = new Disposable() {
       @Override
@@ -177,10 +209,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
   @Override
   public boolean isModified() {
-    if (mySdksConfigurable.isModified()) {
-      return true;
-    }
-    for (AndroidModuleConfigurable configurable : myModuleConfigurablesByName.values()) {
+    for (Configurable configurable : myConfigurables) {
       if (configurable.isModified()) {
         return true;
       }
@@ -195,8 +224,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       return;
     }
 
-    apply(mySdksConfigurable);
-    for (AndroidModuleConfigurable configurable : myModuleConfigurablesByName.values()) {
+    for (Configurable configurable: myConfigurables) {
       apply(configurable);
     }
 
@@ -218,9 +246,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     HeavyProcessLatch.INSTANCE.processStarted();
 
     try {
-      mySdksConfigurable.reset();
+      for (Configurable configurable: myConfigurables) {
+        configurable.reset();
+      }
 
-      myModuleConfigurablesByName.clear();
       if (myUiInitialized) {
         validateState();
 
@@ -228,16 +257,16 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
 
         // Populate the "Modules" section.
         ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-        mySidePanel.removeModules();
+        removeModules();
 
         Module[] modules = moduleManager.getModules();
-        Arrays.sort(modules, ModulesAlphaComparator.INSTANCE);
+        Arrays.sort(modules, ModuleTypeComparator.INSTANCE);
 
         for (Module module : modules) {
-          if (addModule(module)) {
-            AndroidModuleConfigurable c = getConfigurableFor(module);
-            assert c != null;
-            if (myUiState.lastSelectedConfigurable != null && myUiState.lastSelectedConfigurable.equals(c.getDisplayName())) {
+          AndroidModuleConfigurable configurable = addModule(module);
+          if (configurable != null) {
+            myConfigurables.add(configurable);
+            if (configurable.getDisplayName().equals(myUiState.lastSelectedConfigurable)) {
               toSelect = module;
             }
           }
@@ -247,10 +276,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           mySplitter.setProportion(myUiState.proportion);
         }
 
+        mySidePanel.reset();
         if (toSelect != null) {
           mySidePanel.select(toSelect);
-        }
-        else {
+        } else {
           mySidePanel.selectSdk();
         }
       }
@@ -260,16 +289,23 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     }
   }
 
-  private boolean addModule(@NotNull Module module) {
-    String gradlePath = getGradlePath(module);
-    if (StringUtil.isNotEmpty(gradlePath)) {
-      AndroidModuleConfigurable c = new AndroidModuleConfigurable(myProject, gradlePath);
-      c.reset();
-      myModuleConfigurablesByName.put(module.getName(), c);
-      mySidePanel.add(module);
-      return true;
+  private void removeModules() {
+    for (Iterator<Configurable> it = myConfigurables.iterator(); it.hasNext(); ) {
+      if (it.next() instanceof AndroidModuleConfigurable) {
+        it.remove();
+      }
     }
-    return false;
+  }
+
+  @Nullable
+  private AndroidModuleConfigurable addModule(@NotNull Module module) {
+    String gradlePath = getGradlePath(module);
+    AndroidModuleConfigurable configurable = null;
+    if (StringUtil.isNotEmpty(gradlePath)) {
+      configurable = new AndroidModuleConfigurable(myProject, module, gradlePath);
+      configurable.reset();
+    }
+    return configurable;
   }
 
   private void validateState() {
@@ -279,7 +315,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       Runnable navigationTask = new Runnable() {
         @Override
         public void run() {
-          selectSdkHomeConfigurable(false);
+          selectConfigurable(mySdksConfigurable, false);
         }
       };
       for (ProjectConfigurationError error : errors) {
@@ -293,22 +329,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   private static String getGradlePath(@NotNull Module module) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
     return gradleFacet != null ? gradleFacet.getConfiguration().GRADLE_PROJECT_PATH : null;
-  }
-
-  private void selectSdkHomeConfigurable(boolean requestFocus) {
-    selectConfigurable(mySdksConfigurable, requestFocus);
-  }
-
-  private void selectModuleConfigurable(@NotNull Module module) {
-    AndroidModuleConfigurable configurable = getConfigurableFor(module);
-    if (configurable != null) {
-      selectConfigurable(configurable, true);
-    }
-  }
-
-  @Nullable
-  private AndroidModuleConfigurable getConfigurableFor(@NotNull Module module) {
-    return myModuleConfigurablesByName.get(module.getName());
   }
 
   private void selectConfigurable(@NotNull Configurable configurable, boolean requestFocus) {
@@ -344,8 +364,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     myUiState.storeValues(myProject);
     myUiState.proportion = mySplitter.getProportion();
 
-    mySdksConfigurable.disposeUIResources();
-    for (AndroidModuleConfigurable configurable : myModuleConfigurablesByName.values()) {
+    for (Configurable configurable : myConfigurables) {
       configurable.disposeUIResources();
     }
 
@@ -437,25 +456,21 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   private class SidePanel extends JPanel {
-    private static final int SDKS_ELEMENT_INDEX = 0;
-    private static final int FIRST_MODULE_ELEMENT_INDEX = 1;
-
     @NotNull private final JBList myList;
     @NotNull private final DefaultListModel myListModel;
+    private int myFirstModuleIndex;
 
     SidePanel() {
       super(new BorderLayout());
       myListModel = new DefaultListModel();
-      myListModel.addElement("SDK Location");
-
+      myFirstModuleIndex = 0;
       myList = new JBList(myListModel);
-
       ListItemDescriptor descriptor = new ListItemDescriptor() {
         @Override
         @Nullable
         public String getTextFor(Object value) {
-          if (value instanceof Module) {
-            return ((Module)value).getName();
+          if (value instanceof Configurable) {
+            return ((Configurable)value).getDisplayName();
           }
           return value != null ? value.toString() : "";
         }
@@ -463,8 +478,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         @Override
         @Nullable
         public String getTooltipFor(Object value) {
-          if (value instanceof Module) {
-            return new File(((Module)value).getModuleFilePath()).getAbsolutePath();
+          if (value instanceof AndroidModuleConfigurable) {
+            Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
+            return new File(module.getModuleFilePath()).getAbsolutePath();
           }
           return null;
         }
@@ -472,15 +488,16 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
         @Override
         @Nullable
         public Icon getIconFor(Object value) {
-          if (value instanceof Module) {
-            return AllIcons.Actions.Module;
+          if (value instanceof AndroidModuleConfigurable) {
+            Module module = (Module) ((AndroidModuleConfigurable)value).getEditableObject();
+            return module.isDisposed() ? AllIcons.Nodes.Module : GradleUtil.getModuleIcon(module);
           }
           return null;
         }
 
         @Override
         public boolean hasSeparatorAboveOf(Object value) {
-          return myListModel.indexOf(value) == FIRST_MODULE_ELEMENT_INDEX;
+          return myListModel.indexOf(value) == myFirstModuleIndex;
         }
 
         @Override
@@ -498,14 +515,9 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
           if (e.getValueIsAdjusting()) {
             return;
           }
-          if (myList.getSelectedIndex() == SDKS_ELEMENT_INDEX) {
-            selectSdkHomeConfigurable(true);
-          }
-          else {
-            Object selection = myList.getSelectedValue();
-            if (selection instanceof Module) {
-              selectModuleConfigurable((Module)selection);
-            }
+          Object selection = myList.getSelectedValue();
+          if (selection instanceof Configurable) {
+            selectConfigurable((Configurable)selection, true);
           }
         }
       });
@@ -515,8 +527,20 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       if (!myProject.isDefault()) {
         DefaultActionGroup group = new DefaultActionGroup();
         group.add(createAddAction());
+        group.add(new DeleteModuleAction(this));
         JComponent toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true).getComponent();
         add(toolbar, BorderLayout.NORTH);
+      }
+    }
+
+    private void reset() {
+      myListModel.clear();
+      myFirstModuleIndex = 0;
+      for (Configurable configurable : myConfigurables) {
+        myListModel.addElement(configurable);
+        if (!(configurable instanceof AndroidModuleConfigurable)) {
+          myFirstModuleIndex = myListModel.size();
+        }
       }
     }
 
@@ -531,29 +555,35 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       return action;
     }
 
+    private int getModuleCount() {
+      int count = 0;
+      for (Configurable configurable : myConfigurables) {
+        if (configurable instanceof AndroidModuleConfigurable) {
+          count++;
+        }
+      }
+      return count;
+    }
+
     @Override
     public Dimension getMinimumSize() {
       Dimension original = super.getMinimumSize();
       return new Dimension(Math.max(original.width, 100), original.height);
     }
 
-    void removeModules() {
-      int size = myListModel.getSize();
-      if (size > 1) {
-        myListModel.removeRange(FIRST_MODULE_ELEMENT_INDEX, size - 1);
+    void select(@NotNull Module module) {
+      for (int i = 0; i < myListModel.size(); i++) {
+        Object object = myListModel.elementAt(i);
+        if (object instanceof AndroidModuleConfigurable &&
+            ((AndroidModuleConfigurable)object).getEditableObject() == module) {
+            myList.setSelectedValue(object, true);
+            return;
+        }
       }
     }
 
-    void add(@NotNull Module module) {
-      myListModel.addElement(module);
-    }
-
-    void select(@NotNull Module module) {
-      myList.setSelectedValue(module, true);
-    }
-
     void selectSdk() {
-      myList.setSelectedIndex(SDKS_ELEMENT_INDEX);
+      myList.setSelectedValue(mySdksConfigurable, true);
     }
   }
 
@@ -585,6 +615,102 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(project);
       propertiesComponent.setValue(ANDROID_PROJECT_STRUCTURE_LAST_SELECTED_PROPERTY, lastSelectedConfigurable);
       propertiesComponent.setValue(ANDROID_PROJECT_STRUCTURE_PROPORTION_PROPERTY, String.valueOf(proportion));
+    }
+  }
+
+  private class DeleteModuleAction extends DumbAwareAction {
+    @NotNull private final SidePanel mySidePanel;
+
+    DeleteModuleAction(@NotNull SidePanel sidePanel) {
+      super(CommonBundle.message("button.delete"), CommonBundle.message("button.delete"), PlatformIcons.DELETE_ICON);
+      mySidePanel = sidePanel;
+      registerCustomShortcutSet(CommonShortcuts.DELETE, mySidePanel.myList);
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      Object selectedValue = mySidePanel.myList.getSelectedValue();
+      if (!(selectedValue instanceof AndroidModuleConfigurable)) {
+        throw new IllegalStateException("The current selection does not represent a module");
+      }
+      AndroidModuleConfigurable configurable = (AndroidModuleConfigurable)selectedValue;
+      Object editableObject = configurable.getEditableObject();
+      if (!(editableObject instanceof Module)) {
+        throw new IllegalStateException("Unable to find the module to delete");
+      }
+
+      String question;
+      if (mySidePanel.getModuleCount() == 1) {
+        question = ProjectBundle.message("module.remove.last.confirmation");
+      }
+      else {
+        question = ProjectBundle.message("module.remove.confirmation", configurable.getDisplayName());
+      }
+      if (Messages.showYesNoDialog(myProject, question, ProjectBundle.message("module.remove.confirmation.title"),
+                                   Messages.getQuestionIcon()) != Messages.YES) {
+        return;
+      }
+
+      final Module module = (Module)editableObject;
+      final String gradlePath = getGradlePath(module);
+      if (StringUtil.isEmpty(gradlePath)) {
+        String msg = String.format("The module '%1$s' does not have a Gradle path", module.getName());
+        throw new IllegalStateException(msg);
+      }
+      RunResult result = new WriteCommandAction.Simple(module.getProject()) {
+        @Override
+        protected void run() throws Throwable {
+          delete(module);
+          if (mySettingsFile != null) {
+            mySettingsFile.removeModule(gradlePath);
+          }
+        }
+      }.execute();
+      Throwable error = result.getThrowable();
+      if (error != null) {
+        String msg = String.format("Failed to remove module '%1$s'", module.getName());
+        LOG.error(msg, error);
+        return;
+      }
+
+      myConfigurables.remove(configurable);
+      mySidePanel.reset();
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+    }
+
+    @NotNull
+    private String getGradlePath(@NotNull Module module) {
+      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+      if (facet == null) {
+        String msg = String.format("The module '%1$s' is not a Gradle module", module.getName());
+        throw new IllegalStateException(msg);
+      }
+      String path = facet.getConfiguration().GRADLE_PROJECT_PATH;
+      if (StringUtil.isEmpty(path)) {
+        String msg = String.format("The module '%1$s' does not have a Gradle path", module.getName());
+        throw new IllegalStateException(msg);
+      }
+      return path;
+    }
+
+    private void delete(@NotNull Module module) {
+      if (module.isDisposed()) {
+        return;
+      }
+      ModuleManager moduleManager = ModuleManager.getInstance(module.getProject());
+      ModifiableModuleModel modifiableModel = moduleManager.getModifiableModel();
+      try {
+        modifiableModel.disposeModule(module);
+      }
+      finally {
+        modifiableModel.commit();
+      }
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      Object selectedValue = mySidePanel.myList.getSelectedValue();
+      e.getPresentation().setEnabled(selectedValue instanceof AndroidModuleConfigurable);
     }
   }
 }

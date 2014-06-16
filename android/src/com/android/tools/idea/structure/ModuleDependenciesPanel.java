@@ -84,19 +84,16 @@ public class ModuleDependenciesPanel extends EditorPanel {
     myModel = new ModuleDependenciesTableModel();
     myGradleSettingsFile = GradleSettingsFile.get(myProject);
 
-    GradleBuildFile buildFile = null;
-    if (myGradleSettingsFile != null) {
-      buildFile = myGradleSettingsFile.getModuleBuildFile(myModulePath);
-      if (buildFile != null) {
-        List<BuildFileStatement> dependencies = buildFile.getDependencies();
-        for (BuildFileStatement dependency : dependencies) {
-          myModel.addItem(new ModuleDependenciesTableItem(dependency));
-        }
-      } else {
-        LOG.warn("Unable to find Gradle build file for module " + myModulePath);
+    Module module = GradleUtil.findModuleByGradlePath(myProject, modulePath);
+    myGradleBuildFile = module != null ? GradleBuildFile.get(module) : null;
+    if (myGradleBuildFile != null) {
+      List<BuildFileStatement> dependencies = myGradleBuildFile.getDependencies();
+      for (BuildFileStatement dependency : dependencies) {
+        myModel.addItem(new ModuleDependenciesTableItem(dependency));
       }
+    } else {
+      LOG.warn("Unable to find Gradle build file for module " + myModulePath);
     }
-    myGradleBuildFile = buildFile;
     myModel.resetModified();
 
     myEntryTable = new JBTable(myModel);
@@ -109,6 +106,9 @@ public class ModuleDependenciesPanel extends EditorPanel {
 
     myEntryTable.setDefaultRenderer(ModuleDependenciesTableItem.class, new TableItemRenderer());
 
+    if (myGradleBuildFile == null) {
+      return;
+    }
     final boolean isAndroid = myGradleBuildFile.hasAndroidPlugin();
     List<Dependency.Scope> scopes = Lists.newArrayList(
       Sets.filter(EnumSet.allOf(Dependency.Scope.class), new Predicate<Dependency.Scope>() {

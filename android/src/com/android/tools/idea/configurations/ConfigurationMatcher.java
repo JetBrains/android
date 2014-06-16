@@ -247,7 +247,7 @@ public class ConfigurationMatcher {
       Device device = myConfiguration.getDevice();
       IAndroidTarget target = myConfiguration.getTarget();
       if (device != null && target != null) {
-        VersionQualifier versionQualifier = new VersionQualifier(target.getVersion().getApiLevel());
+        VersionQualifier versionQualifier = new VersionQualifier(target.getVersion().getFeatureLevel());
         mainloop:
         for (State state : device.getAllStates()) {
           testConfig.set(Configuration.getFolderConfig(module, state, myConfiguration.getLocale(), target));
@@ -435,7 +435,7 @@ public class ConfigurationMatcher {
   private void addRenderTargetToBundles(List<ConfigBundle> configBundles) {
     IAndroidTarget target = myManager.getTarget();
     if (target != null) {
-      int apiLevel = target.getVersion().getApiLevel();
+      int apiLevel = target.getVersion().getFeatureLevel();
       for (ConfigBundle bundle : configBundles) {
         bundle.config.setVersionQualifier(new VersionQualifier(apiLevel));
       }
@@ -522,7 +522,7 @@ public class ConfigurationMatcher {
     Comparator<ConfigMatch> comparator = null;
     IAndroidTarget projectTarget = myManager.getProjectTarget();
     if (projectTarget != null) {
-      int apiLevel = projectTarget.getVersion().getApiLevel();
+      int apiLevel = projectTarget.getVersion().getFeatureLevel();
       if (apiLevel >= 11 && apiLevel < 14) {
         // TODO: Maybe check the compatible-screen tag in the manifest to figure out
         // what kind of device should be used for display.

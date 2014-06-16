@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/gen" isTestSource="false" generated="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -36,7 +37,7 @@
     <orderEntry type="module" module-name="spellchecker" />
     <orderEntry type="module" module-name="draw9patch" />
     <orderEntry type="module" module-name="manifest-merger" />
-    <orderEntry type="library" name="freemarker-2.3.19" level="project" />
+    <orderEntry type="library" name="freemarker-2.3.20" level="project" />
     <orderEntry type="module" module-name="images" />
     <orderEntry type="module" module-name="assetstudio" />
     <orderEntry type="module" module-name="platform-api" />

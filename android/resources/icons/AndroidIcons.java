@@ -22,6 +22,7 @@ public class AndroidIcons {
   public static final Icon AvdManager = load("/icons/avd_manager.png"); // 16x16
   public static final Icon SdkManager = load("/icons/sdk_manager.png"); // 16x16
   public static final Icon SdkManagerLarge = load("/icons/sdk_manager_large.png"); // 32x32
+  public static final Icon NavigationEditor = load("/icons/navigation_editor.png"); // 16x16
 
   public static final Icon ZoomActual = load("/icons/zoomActual.png"); // 16x16
   public static final Icon ZoomFit = load("/icons/zoomFit.png"); // 16x16
@@ -55,6 +56,11 @@ public class AndroidIcons {
 
   public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
   public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
+
+  public static final Icon Variant = load("/icons/variant.png");
+
+  public static final Icon AppModule = load("/icons/appModule.png");
+  public static final Icon LibraryModule = load("/icons/libraryModule.png");
 
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
@@ -104,6 +110,13 @@ public class AndroidIcons {
     public static final Icon NewProjectSidePanel = load("/icons/wizards/newProject.png"); // 143x627
     public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
     public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
+    public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
+    public static final Icon FormFactorPhoneTabletLight = load("/icons/wizards/phone_tablet_light.png"); // 64x64
+    public static final Icon FormFactorPhoneTabletDark = load("/icons/wizards/phone_tablet_dark.png"); // 64x64
+    public static final Icon FormFactorWearLight = load("/icons/wizards/wear-light.png"); // 64x64
+    public static final Icon FormFactorWearDark = load("/icons/wizards/wear-dark.png"); // 64x64
+    public static final Icon FormFactorGlassLight = load("/icons/wizards/glass-light.png"); // 64x64
+    public static final Icon FormFactorGlassDark = load("/icons/wizards/glass-dark.png"); // 64x64
   }
 
   public static class Views {

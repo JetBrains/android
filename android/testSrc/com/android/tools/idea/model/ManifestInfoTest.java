@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
@@ -24,6 +25,7 @@ import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.ResourceHelper;
 
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -186,12 +188,13 @@ public class ManifestInfoTest extends AndroidTestCase {
 
     // No sharing between tests:
     myModule.putUserData(ManifestInfo.MANIFEST_FINDER, null);
-    ManifestInfo info = ManifestInfo.get(myModule);
+    ManifestInfo info = ManifestInfo.get(myModule, false);
 
     info.clear();
     return info;
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   public void testGetMinSdkVersionName() throws Exception {
     ManifestInfo info;
 
@@ -199,28 +202,29 @@ public class ManifestInfoTest extends AndroidTestCase {
                            "    package='com.android.unittest'>\n" +
                            "    <uses-sdk android:minSdkVersion='3' android:targetSdkVersion='4'/>\n" +
                            "</manifest>\n");
-    assertEquals(3, info.getMinSdkVersion());
-    assertEquals("3", info.getMinSdkName());
-    assertEquals(4, info.getTargetSdkVersion());
-    assertNull(info.getMinSdkCodeName());
+    assertEquals(3, info.getMinSdkVersion().getApiLevel());
+    assertEquals("3", info.getMinSdkVersion().getApiString());
+    assertEquals(4, info.getTargetSdkVersion().getApiLevel());
+    assertNull(info.getMinSdkVersion().getCodename());
 
     info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                            "    package='com.android.unittest'>\n" +
                            "    <uses-sdk android:targetSdkVersion='4'/>\n" +
                            "</manifest>\n");
-    assertEquals("1", info.getMinSdkName());
-    assertEquals(1, info.getMinSdkVersion());
-    assertEquals(4, info.getTargetSdkVersion());
-    assertNull(info.getMinSdkCodeName());
+    assertEquals("1", info.getMinSdkVersion().getApiString());
+    assertEquals(1, info.getMinSdkVersion().getApiLevel());
+    assertEquals(4, info.getTargetSdkVersion().getApiLevel());
+    assertNull(info.getMinSdkVersion().getCodename());
 
     info = getManifestInfo("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                            "    package='com.android.unittest'>\n" +
                            "    <uses-sdk android:minSdkVersion='JellyBean' />\n" +
                            "</manifest>\n");
-    assertEquals("JellyBean", info.getMinSdkName());
-    assertEquals("JellyBean", info.getMinSdkCodeName());
+    assertEquals("JellyBean", info.getMinSdkVersion().getApiString());
+    assertEquals("JellyBean", info.getMinSdkVersion().getCodename());
   }
 
+  @SuppressWarnings("ConstantConditions")
   private static class TestAndroidTarget implements IAndroidTarget {
     private final int mApiLevel;
 
@@ -254,7 +258,7 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public ISystemImage getSystemImage(IdDisplay tag, String abiType) {
+    public ISystemImage getSystemImage(@NotNull IdDisplay tag, @NotNull String abiType) {
       return null;
     }
 
@@ -328,6 +332,7 @@ public class ManifestInfoTest extends AndroidTestCase {
       return 0;
     }
 
+    @NotNull
     @Override
     public File[] getSkins() {
       return null;
@@ -343,6 +348,7 @@ public class ManifestInfoTest extends AndroidTestCase {
       return null;
     }
 
+    @NonNull
     @Override
     public AndroidVersion getVersion() {
       return new AndroidVersion(mApiLevel, null);
@@ -364,7 +370,7 @@ public class ManifestInfoTest extends AndroidTestCase {
     }
 
     @Override
-    public int compareTo(IAndroidTarget o) {
+    public int compareTo(@NotNull IAndroidTarget o) {
       return 0;
     }
 
@@ -378,6 +384,7 @@ public class ManifestInfoTest extends AndroidTestCase {
       return null;
     }
 
+    @NotNull
     @Override
     public List<String> getBootClasspath() {
       return new ArrayList<String>();

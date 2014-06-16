@@ -16,66 +16,69 @@
 package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
 
 public class SingleObjectPanel extends BuildFilePanel {
   protected final GrClosableBlock myRoot;
+  protected final Map<BuildFileKey, Object> myValues = Maps.newHashMap();
   protected final List<BuildFileKey> myProperties;
-  private final JBTable myTable;
-  @Nullable private final SingleObjectTableModel myModel;
+  protected final KeyValuePane myDetailPane;
 
   public SingleObjectPanel(@NotNull Project project, @NotNull String moduleName, @Nullable GrClosableBlock root,
                            @NotNull List<BuildFileKey> properties) {
     super(project, moduleName);
     myRoot = root;
     myProperties = properties;
-
-    myModel = myGradleBuildFile != null ? new SingleObjectTableModel(myGradleBuildFile, myRoot, myProperties) : null;
-
-    // We have to provide our own cell editors because JTable by default only allows one data type per column; we vary our
-    // data type by row.
-    myTable = new JBTable(myGradleBuildFile != null ? myModel : new DefaultTableModel()) {
-      @Override
-      public TableCellEditor getCellEditor(int row, int col) {
-        TableCellEditor editor = myModel != null ? myModel.getCellEditor(row, col) : null;
-        return editor != null ? editor : super.getCellEditor(row, col);
+    myDetailPane = new KeyValuePane(project);
+    if (myGradleBuildFile != null) {
+      for (BuildFileKey key : properties) {
+        Object value = myGradleBuildFile.getValue(myRoot, key);
+        if (value != null) {
+          myValues.put(key, value);
+        }
       }
-    };
-    myTable.setShowColumns(false);
-    myTable.setShowGrid(false);
-    myTable.setDragEnabled(false);
-    myTable.setIntercellSpacing(new Dimension(0, 0));
-    myTable.setCellSelectionEnabled(false);
+    }
   }
 
   @Override
   protected void addItems(@NotNull JPanel parent) {
-    add(myTable, BorderLayout.CENTER);
-
-    if (myTable.getRowCount() > 0) {
-      myTable.getSelectionModel().setSelectionInterval(0, 0);
+    if (myGradleBuildFile == null) {
+      return;
     }
+    myDetailPane.init(myGradleBuildFile, myProperties);
+    myDetailPane.setCurrentBuildFileObject(myValues);
+    myDetailPane.updateUiFromCurrentObject();
+    myDetailPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    add(myDetailPane, BorderLayout.NORTH);
   }
 
   @Override
   public void apply() {
-    if (myModel != null) {
-      myModel.apply();
+    if (myGradleBuildFile == null) {
+      return;
     }
+    for (BuildFileKey key : myProperties) {
+      Object value = myValues.get(key);
+      if (value != null) {
+        myGradleBuildFile.setValue(myRoot, key, value);
+      } else {
+        myGradleBuildFile.removeValue(myRoot, key);
+      }
+    }
+    myDetailPane.clearModified();
   }
 
   @Override
   public boolean isModified() {
-    return myModel != null && myModel.isModified();
+    return myDetailPane.isModified();
   }
 }

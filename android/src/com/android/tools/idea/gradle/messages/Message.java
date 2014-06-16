@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.ui.MessageCategory;
@@ -34,8 +36,14 @@ public class Message {
     this(groupName, type, AbstractNavigatable.NOT_NAVIGATABLE, text);
   }
 
-  public Message(@NotNull String groupName, @NotNull Type type, @NotNull VirtualFile file, int line, int column, @NotNull String... text) {
-    this(groupName, type, AbstractNavigatable.NOT_NAVIGATABLE, file, line, column, text);
+  public Message(@NotNull Project project,
+                 @NotNull String groupName,
+                 @NotNull Type type,
+                 @NotNull VirtualFile file,
+                 int line,
+                 int column,
+                 @NotNull String... text) {
+    this(groupName, type, new OpenFileDescriptor(project, file, line, column), file, line, column, text);
   }
 
   public Message(@NotNull String groupName, @NotNull Type type, @NotNull Navigatable navigatable, @NotNull String... text) {

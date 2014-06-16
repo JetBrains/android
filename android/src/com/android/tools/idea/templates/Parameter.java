@@ -573,4 +573,9 @@ public class Parameter {
       return JavaPsiFacade.getInstance(project).findPackage(packageName) != null;
     }
   }
+
+  @Override
+  public String toString() {
+    return "(parameter id: " + id + ")";
+  }
 }

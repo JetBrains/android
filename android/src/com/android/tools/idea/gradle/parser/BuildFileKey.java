@@ -61,6 +61,7 @@ public enum BuildFileKey {
       PLUGIN_CLASSPATH.setValue(arg, SdkConstants.GRADLE_PLUGIN_NAME + value);
     }
   },
+  ALLPROJECTS_LIBRARY_REPOSITORY("allprojects/repositories", "Default Library Repository", CLOSURE, Repository.getFactory()),
 
   LIBRARY_REPOSITORY("repositories", "Library Repository", CLOSURE, Repository.getFactory()),
 
@@ -68,12 +69,16 @@ public enum BuildFileKey {
   DEPENDENCIES("dependencies", null, CLOSURE, Dependency.getFactory()),
 
   // defaultConfig or build flavor
-  MIN_SDK_VERSION("minSdkVersion", INTEGER),
+  MIN_SDK_VERSION("minSdkVersion", INTEGER_OR_STRING),
+  APPLICATION_ID("applicationId", STRING),
+  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
   PACKAGE_NAME("packageName", STRING),
   PROGUARD_FILE("proguardFile", FILE_AS_STRING),
   SIGNING_CONFIG("signingConfig", REFERENCE),
-  TARGET_SDK_VERSION("targetSdkVersion", INTEGER),
+  TARGET_SDK_VERSION("targetSdkVersion", INTEGER_OR_STRING),
   TEST_INSTRUMENTATION_RUNNER("testInstrumentationRunner", STRING),
+  TEST_APPLICATION_ID("testApplicationId", STRING),
+  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
   TEST_PACKAGE_NAME("testPackageName", STRING),
   VERSION_CODE("versionCode", INTEGER),
   VERSION_NAME("versionName", STRING),
@@ -81,9 +86,11 @@ public enum BuildFileKey {
   // Build type
   DEBUGGABLE("debuggable", BOOLEAN),
   JNI_DEBUG_BUILD("jniDebugBuild", BOOLEAN),
-  RENDERSCRIPT_DEBUG_BUILD("renderscriptDebugBuild", STRING),
-  RENDERSCRIPT_OPTIM_LEVEL("renderscriptOptimLevel", STRING),
+  RENDERSCRIPT_DEBUG_BUILD("renderscriptDebugBuild", BOOLEAN),
+  RENDERSCRIPT_OPTIM_LEVEL("renderscriptOptimLevel", INTEGER),
   RUN_PROGUARD("runProguard", BOOLEAN),
+  APPLICATION_ID_SUFFIX("applicationIdSuffix", STRING),
+  @Deprecated // Deprecated in 0.11, to be removed by 1.0. Here for migration purposes.
   PACKAGE_NAME_SUFFIX("packageNameSuffix", STRING),
   VERSION_NAME_SUFFIX("versionNameSuffix", STRING),
   ZIP_ALIGN("zipAlign", BOOLEAN),
@@ -95,13 +102,20 @@ public enum BuildFileKey {
   STORE_PASSWORD("storePassword", STRING),
 
   // Android block
+  DEFAULT_CONFIG("android/defaultConfig", CLOSURE),
   BUILD_TOOLS_VERSION("android/buildToolsVersion", STRING),
-  COMPILE_SDK_VERSION("android/compileSdkVersion", INTEGER),
+  COMPILE_SDK_VERSION("android/compileSdkVersion", INTEGER_OR_STRING),
   IGNORE_ASSETS_PATTERN("android/aaptOptions/ignoreAssetsPattern", STRING),
-  INCREMENTAL("android/dexOptions/incremental", BOOLEAN),
+  INCREMENTAL_DEX("android/dexOptions/incremental", "Incremental Dex", BOOLEAN, null),
   NO_COMPRESS("android/aaptOptions/noCompress", STRING), // TODO: Implement properly. This is not a simple literal.
-  SOURCE_COMPATIBILITY("android/compileOptions/sourceCompatibility", STRING),  // TODO: This is an assignment, not a method call.
-  TARGET_COMPATIBILITY("android/compileOptions/targetCompatibility", STRING),  // TODO: This is an assignment, not a method call.
+  SOURCE_COMPATIBILITY("android/compileOptions/sourceCompatibility", REFERENCE),
+  TARGET_COMPATIBILITY("android/compileOptions/targetCompatibility", REFERENCE),
+
+  // Non-Gradle build file keys
+
+  // These keys set values in places other than Gradle build files (e.g. the Gradle wrapper properties, which is a Java properties file)
+  // They are included here so that other code can reuse the infrastructure built up around BuildFileKeys.
+  GRADLE_WRAPPER_VERSION("", "Gradle version", STRING, NonGroovyValueFactory.getFactory()),
 
   // These complex types are named entities that within them have key/value pairs where the keys are BuildFileKey instances themselves.
   // We can use a generic container class to deal with them.
@@ -110,17 +124,24 @@ public enum BuildFileKey {
   SIGNING_CONFIGS("android/signingConfigs", null, CLOSURE,
                   NamedObject.getFactory(ImmutableList.of(KEY_ALIAS, KEY_PASSWORD, STORE_FILE, STORE_PASSWORD))),
   FLAVORS("android/productFlavors", null, CLOSURE,
-          NamedObject.getFactory(ImmutableList.of(MIN_SDK_VERSION, PACKAGE_NAME, PROGUARD_FILE, SIGNING_CONFIG, TARGET_SDK_VERSION,
-                                                  TEST_INSTRUMENTATION_RUNNER, TEST_PACKAGE_NAME, VERSION_CODE, VERSION_NAME))),
+          NamedObject.getFactory(ImmutableList.of(MIN_SDK_VERSION, APPLICATION_ID, PROGUARD_FILE, SIGNING_CONFIG, TARGET_SDK_VERSION,
+                                                  TEST_INSTRUMENTATION_RUNNER, TEST_APPLICATION_ID, VERSION_CODE, VERSION_NAME))),
   BUILD_TYPES("android/buildTypes", null, CLOSURE,
               NamedObject.getFactory(ImmutableList
                                        .of(DEBUGGABLE, JNI_DEBUG_BUILD, SIGNING_CONFIG, RENDERSCRIPT_DEBUG_BUILD, RENDERSCRIPT_OPTIM_LEVEL,
-                                           RUN_PROGUARD, PROGUARD_FILE, PACKAGE_NAME_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
+                                           RUN_PROGUARD, PROGUARD_FILE, APPLICATION_ID_SUFFIX, VERSION_NAME_SUFFIX, ZIP_ALIGN)));
+
+  static {
+    SIGNING_CONFIG.myReferencedType = SIGNING_CONFIGS;
+    SIGNING_CONFIGS.myShouldInsertAtBeginning = true;
+  }
 
   private final String myPath;
   private final BuildFileKeyType myType;
   private final ValueFactory myValueFactory;
   private final String myDisplayName;
+  private BuildFileKey myReferencedType;
+  private boolean myShouldInsertAtBeginning;
 
   BuildFileKey(@NotNull String path, @NotNull BuildFileKeyType type) {
     this(path, null, type, null);
@@ -196,6 +217,25 @@ public enum BuildFileKey {
   @NotNull
   public String getPath() {
     return myPath;
+  }
+
+  /**
+   * For keys whose values are Groovy expressions that reference another object in the same build file, this returns the type of the
+   * referenced object. For example, the {@link SIGNING_CONFIGS} key returns a reference to the child {@link SIGNING_CONFIG} key.
+   */
+  @Nullable
+  public BuildFileKey getReferencedType() {
+    return myReferencedType;
+  }
+
+  /**
+   * True if this block should be inserted at the beginning of its parent's closure instead of at the end. For types that can be referenced
+   * from other keys, such as {@link SIGNING_CONFIGS}, the objects must appear in the file before references to them. Groovy executes the
+   * block sequentially at build file evaluation time, and any references must resolve to objects it's already seen.
+   * @return
+   */
+  public boolean shouldInsertAtBeginning() {
+    return myShouldInsertAtBeginning;
   }
 
   @Nullable

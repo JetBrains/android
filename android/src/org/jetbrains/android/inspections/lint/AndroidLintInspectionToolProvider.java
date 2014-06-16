@@ -4,12 +4,16 @@ import com.android.SdkConstants;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
+import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
 
 /**
  * @author Eugene.Kudelevsky
@@ -71,6 +75,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintIconMixedNinePatchInspection extends AndroidLintInspectionBase {
     public AndroidLintIconMixedNinePatchInspection() {
       super(AndroidBundle.message("android.lint.inspections.icon.mixed.nine.patch"), IconDetector.ICON_MIX_9PNG);
+    }
+  }
+
+  public static class AndroidLintGetInstanceInspection extends AndroidLintInspectionBase {
+    public AndroidLintGetInstanceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.get.instance"), CipherGetInstanceDetector.ISSUE);
     }
   }
 
@@ -143,6 +153,18 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintAlwaysShowActionInspection extends AndroidLintInspectionBase {
     public AndroidLintAlwaysShowActionInspection() {
       super(AndroidBundle.message("android.lint.inspections.always.show.action"), AlwaysShowActionDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintAppCompatMethodInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppCompatMethodInspection() {
+      super(AndroidBundle.message("android.lint.inspections.app.compat.method"), AppCompatCallDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintAppCompatResourceInspection extends AndroidLintInspectionBase {
+    public AndroidLintAppCompatResourceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.app.compat.resource"), AppCompatResourceDetector.ISSUE);
     }
   }
 
@@ -260,6 +282,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintParcelCreatorInspection extends AndroidLintInspectionBase {
+    public AndroidLintParcelCreatorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.parcel.creator"), ParcelDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintPrivateResourceInspection extends AndroidLintInspectionBase {
     public AndroidLintPrivateResourceInspection() {
       super(AndroidBundle.message("android.lint.inspections.private.resource"), PrivateResourceDetector.ISSUE);
@@ -293,6 +321,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintSuspiciousImportInspection extends AndroidLintInspectionBase {
     public AndroidLintSuspiciousImportInspection() {
       super(AndroidBundle.message("android.lint.inspections.suspicious.import"), WrongImportDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintAccidentalOctalInspection extends AndroidLintInspectionBase {
+    public AndroidLintAccidentalOctalInspection() {
+      super(AndroidBundle.message("android.lint.inspections.accidental.octal"), GradleDetector.ACCIDENTAL_OCTAL);
     }
   }
 
@@ -435,6 +469,18 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintValidFragmentInspection extends AndroidLintInspectionBase {
+    public AndroidLintValidFragmentInspection() {
+      super(AndroidBundle.message("android.lint.inspections.valid.fragment"), ISSUE);
+    }
+  }
+
+  public static class AndroidLintViewConstructorInspection extends AndroidLintInspectionBase {
+    public AndroidLintViewConstructorInspection() {
+      super(AndroidBundle.message("android.lint.inspections.view.constructor"), ViewConstructorDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintViewHolderInspection extends AndroidLintInspectionBase {
     public AndroidLintViewHolderInspection() {
       super(AndroidBundle.message("android.lint.inspections.view.holder"), ViewHolderDetector.ISSUE);
@@ -456,6 +502,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintNestedScrollingInspection extends AndroidLintInspectionBase {
     public AndroidLintNestedScrollingInspection() {
       super(AndroidBundle.message("android.lint.inspections.nested.scrolling"), NestedScrollingWidgetDetector.ISSUE);
+    }
+  }
+
+  public static class AndroidLintNewerVersionAvailableInspection extends AndroidLintInspectionBase {
+    public AndroidLintNewerVersionAvailableInspection() {
+      super(AndroidBundle.message("android.lint.inspections.newer.version.available"), GradleDetector.REMOTE_VERSION);
     }
   }
 
@@ -540,6 +592,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGradleCompatiblePluginInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleCompatiblePluginInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.plugin.compatible"), GradleDetector.GRADLE_PLUGIN_COMPATIBILITY);
+    }
+  }
+
   public static class AndroidLintGradleDependencyInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleDependencyInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.dependency"), GradleDetector.DEPENDENCY);
@@ -562,6 +620,47 @@ public class AndroidLintInspectionToolProvider {
     public AndroidLintGradleIdeErrorInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.ide.error"), GradleDetector.IDE_SUPPORT);
     }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
+      // Quickfix for replacing packageName with applicationId.
+      // This is a temporary quickfix to support older versions of the Gradle plugin: TODO REMOVE.
+      if (message.contains("packageName")) {
+        return new AndroidLintQuickFix[] { new AndroidLintQuickFix() {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            if (context instanceof AndroidQuickfixContexts.EditorContext) {
+              final Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
+              if (startElement == endElement) {
+                String text = startElement.getText();
+                if (text.equals("packageName") || text.equals("packageNameSuffix")) {
+                  int textOffset = startElement.getTextOffset();
+                  editor.getDocument().replaceString(textOffset, textOffset + startElement.getTextLength(),
+                                                     text.replace("packageName", "applicationId"));
+                }
+              }
+            }
+         }
+
+          @Override
+          public boolean isApplicable(@NotNull PsiElement startElement,
+                                      @NotNull PsiElement endElement,
+                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
+            return true;
+          }
+
+          @NotNull
+          @Override
+          public String getName() {
+            return message.replace("Deprecated: ", "");
+          }
+        }};
+      }
+      return super.getQuickFixes(message);
+    }
   }
 
   public static class AndroidLintGradleOverridesInspection extends AndroidLintInspectionBase {
@@ -573,6 +672,19 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintGradlePathInspection extends AndroidLintInspectionBase {
     public AndroidLintGradlePathInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.path"), GradleDetector.PATH);
+    }
+  }
+
+  public static class AndroidLintGradleImproperProjectLevelStatementInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleImproperProjectLevelStatementInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.improper.project.level.statement"),
+            GradleDetector.IMPROPER_PROJECT_LEVEL_STATEMENT);
+    }
+  }
+
+  public static class AndroidLintGradleMisplacedStatementInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleMisplacedStatementInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.misplaced.statement"), GradleDetector.MISPLACED_STATEMENT);
     }
   }
 
@@ -754,6 +866,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.resource.cycle"), ResourceCycleDetector.CYCLE);
     }
   }
+  public static class AndroidLintResourceNameInspection extends AndroidLintInspectionBase {
+    public AndroidLintResourceNameInspection() {
+      super(AndroidBundle.message("android.lint.inspections.resource.name"), ResourcePrefixDetector.ISSUE);
+    }
+  }
   public static class AndroidLintRtlCompatInspection extends AndroidLintInspectionBase {
     public AndroidLintRtlCompatInspection() {
       super(AndroidBundle.message("android.lint.inspections.rtl.compat"), RtlDetector.COMPAT);
@@ -782,6 +899,11 @@ public class AndroidLintInspectionToolProvider {
 
   // I think DefaultLocale is already handled by a regular IDEA code check.
 
+  public static class AndroidLintAddJavascriptInterfaceInspection extends AndroidLintInspectionBase {
+    public AndroidLintAddJavascriptInterfaceInspection() {
+      super(AndroidBundle.message("android.lint.inspections.add.javascript.interface"), AddJavascriptInterfaceDetector.ISSUE);
+    }
+  }
   public static class AndroidLintAllowBackupInspection extends AndroidLintInspectionBase {
     public AndroidLintAllowBackupInspection() {
       super(AndroidBundle.message("android.lint.inspections.allow.backup"), ManifestDetector.ALLOW_BACKUP);
@@ -829,6 +951,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.exported.content.provider"), SecurityDetector.EXPORTED_PROVIDER);
     }
   }
+  public static class AndroidLintExportedPreferenceActivityInspection extends AndroidLintInspectionBase {
+    public AndroidLintExportedPreferenceActivityInspection() {
+      super(AndroidBundle.message("android.lint.inspections.exported.preference.activity"), PreferenceActivityDetector.ISSUE);
+    }
+  }
   public static class AndroidLintExportedReceiverInspection extends AndroidLintInspectionBase {
     public AndroidLintExportedReceiverInspection() {
       super(AndroidBundle.message("android.lint.inspections.exported.receiver"), SecurityDetector.EXPORTED_RECEIVER);
@@ -857,6 +984,12 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintIllegalResourceRefInspection extends AndroidLintInspectionBase {
     public AndroidLintIllegalResourceRefInspection() {
       super(AndroidBundle.message("android.lint.inspections.illegal.resource.ref"), ManifestDetector.ILLEGAL_REFERENCE);
+    }
+  }
+
+  public static class AndroidLintImpliedQuantityInspection extends AndroidLintInspectionBase {
+    public AndroidLintImpliedQuantityInspection() {
+      super(AndroidBundle.message("android.lint.inspections.implied.quantity"), IMPLIED_QUANTITY);
     }
   }
 
@@ -889,6 +1022,11 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintLabelForInspection extends AndroidLintInspectionBase {
     public AndroidLintLabelForInspection() {
       super(AndroidBundle.message("android.lint.inspections.label.for"), LabelForDetector.ISSUE);
+    }
+  }
+  public static class AndroidLintLocaleFolderInspection extends AndroidLintInspectionBase {
+    public AndroidLintLocaleFolderInspection() {
+      super(AndroidBundle.message("android.lint.inspections.locale.folder"), com.android.tools.lint.checks.LocaleFolderDetector.ISSUE);
     }
   }
   public static class AndroidLintLocalSuppressInspection extends AndroidLintInspectionBase {
@@ -988,6 +1126,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.show.toast"), ToastDetector.ISSUE);
     }
   }
+  public static class AndroidLintSignatureOrSystemPermissionsInspection extends AndroidLintInspectionBase {
+    public AndroidLintSignatureOrSystemPermissionsInspection() {
+      super(AndroidBundle.message("android.lint.inspections.signature.or.system.permissions"), SignatureOrSystemDetector.ISSUE);
+    }
+  }
   public static class AndroidLintSmallSpInspection extends AndroidLintInspectionBase {
     public AndroidLintSmallSpInspection() {
       super(AndroidBundle.message("android.lint.inspections.small.sp"), PxUsageDetector.SMALL_SP_ISSUE);
@@ -1027,6 +1170,11 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintWorldReadableFilesInspection extends AndroidLintInspectionBase {
     public AndroidLintWorldReadableFilesInspection() {
       super(AndroidBundle.message("android.lint.inspections.world.readable.files"), SecurityDetector.WORLD_READABLE);
+    }
+  }
+  public static class AndroidLintWrongCallInspection extends AndroidLintInspectionBase {
+    public AndroidLintWrongCallInspection() {
+      super(AndroidBundle.message("android.lint.inspections.wrong.call"), WrongCallDetector.ISSUE);
     }
   }
   public static class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {

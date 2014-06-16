@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.service.notification.CustomNotificationList
 import com.android.tools.idea.gradle.service.notification.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
@@ -76,6 +77,7 @@ import com.intellij.packaging.artifacts.ArtifactManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
+import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -91,6 +93,7 @@ import org.jetbrains.android.logcat.AndroidLogcatUtil;
 import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
@@ -242,7 +245,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       }
 
       if (myTargetDevices.length == 0) {
-        final ExtendedDeviceChooserDialog chooser = new ExtendedDeviceChooserDialog(myFacet, mySupportMultipleDevices,
+        AndroidPlatform platform = myFacet.getConfiguration().getAndroidPlatform();
+        if (platform == null) {
+          LOG.error("Android platform not set for module: " + myFacet.getModule().getName());
+          return null;
+        }
+
+        final ExtendedDeviceChooserDialog chooser = new ExtendedDeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices,
                                                                                     true, myConfiguration.USE_LAST_SELECTED_DEVICE);
         chooser.show();
         if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
@@ -692,7 +701,12 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     final Project project = myFacet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? fromString(value) : null;
-    DeviceChooserDialog chooser = new DeviceChooserDialog(myFacet, mySupportMultipleDevices, selectedSerials, filter);
+    AndroidPlatform platform = myFacet.getConfiguration().getAndroidPlatform();
+    if (platform == null) {
+      LOG.error("Android platform not set for module: " + myFacet.getModule().getName());
+      return DeviceChooser.EMPTY_DEVICE_ARRAY;
+    }
+    DeviceChooserDialog chooser = new DeviceChooserDialog(myFacet, platform.getTarget(), mySupportMultipleDevices, selectedSerials, filter);
     chooser.show();
     IDevice[] devices = chooser.getSelectedDevices();
     if (chooser.getExitCode() != DialogWrapper.OK_EXIT_CODE || devices.length == 0) {
@@ -770,7 +784,19 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         if (myAvdName != null) {
           return myAvdName.equals(avdName);
         }
-        return myFacet.isCompatibleDevice(device);
+
+        AndroidPlatform androidPlatform = myFacet.getConfiguration().getAndroidPlatform();
+        if (androidPlatform == null) {
+          LOG.error("Target Android platform not set for module: " + myFacet.getModule().getName());
+          return false;
+        } else {
+          LaunchCompatibility compatibility = LaunchCompatibility.canRunOnDevice(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),
+                                                                                 androidPlatform.getTarget(),
+                                                                                 EnumSet.noneOf(IDevice.HardwareFeature.class),
+                                                                                 device,
+                                                                                 null);
+          return compatibility.isCompatible() != ThreeState.NO;
+        }
       }
     }
     else if (myTargetChooser instanceof UsbDeviceTargetChooser) {
@@ -832,9 +858,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private boolean prepareAndStartApp(IDevice device) {
     if (myDebugMode && myNonDebuggableOnDevice && !device.isEmulator()) {
-      message("Cannot debug the application " + myPackageName + " on device '" + device.getName() + "',\n" +
-              "because 'debuggable' attribute is set to 'false' in AndroidManifest.xml.\nYou may remove the attribute " +
-              "and the IDE will automatically assign it during debug and release builds.", STDERR);
+      message(AndroidBundle.message("android.cannot.debug.noDebugPermissions", myPackageName, device.getName()), STDERR);
+      fireExecutionFailed();
       return false;
     }
     if (!doPrepareAndStart(device)) {
@@ -1081,7 +1106,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name
     Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-    String testPackageName = selectedVariant.getMergedFlavor().getTestPackageName();
+    String testPackageName = selectedVariant.getMergedFlavor().getTestApplicationId();
     return (testPackageName != null) ? testPackageName : packageName + DEFAULT_TEST_PACKAGE_SUFFIX;
   }
 
@@ -1303,7 +1328,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                                                  AndroidBundle.message("deployment.failed.uninstall.prompt.text", reason),
                                                  AndroidBundle.message("deployment.failed.title"),
                                                  Messages.getQuestionIcon());
-        uninstall.set(result == 0);
+        uninstall.set(result == Messages.OK);
       }
     }, ModalityState.defaultModalityState());
 

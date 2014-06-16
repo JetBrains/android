@@ -1,9 +1,0 @@
-apply plugin: 'android'
-
-android {
-    buildTypes {
-        debug {
-            packageNameSuffix <warning>"debug"</warning>
-        }
-    }
-}

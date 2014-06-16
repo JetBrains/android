@@ -27,7 +27,6 @@ public final class BuildProcessJvmArgs {
 
   @NonNls private static final String JVM_ARG_PREFIX = "com.android.studio.gradle.";
 
-  @NonNls public static final String GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS = JVM_ARG_PREFIX + "daemon.max.idle.time";
   @NonNls public static final String GRADLE_DAEMON_JVM_OPTION_PREFIX = JVM_ARG_PREFIX +  "daemon.jvm.option.";
   @NonNls public static final String GRADLE_DAEMON_JVM_OPTION_COUNT = GRADLE_DAEMON_JVM_OPTION_PREFIX + "count";
   @NonNls public static final String GRADLE_DAEMON_COMMAND_LINE_OPTION_PREFIX = JVM_ARG_PREFIX + "daemon.command.line.option.";

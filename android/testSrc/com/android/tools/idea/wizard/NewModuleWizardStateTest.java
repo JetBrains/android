@@ -57,9 +57,9 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
 
     assertContainsElements(myState.myActivityTemplateState.myHidden,
                            ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API,
-                           ATTR_MIN_API_LEVEL, ATTR_TARGET_API, ATTR_BUILD_API,
+                           ATTR_MIN_API_LEVEL, ATTR_TARGET_API, ATTR_BUILD_API, ATTR_BUILD_API_STRING,
                            ATTR_COPY_ICONS, ATTR_IS_LAUNCHER, ATTR_PARENT_ACTIVITY_CLASS,
-                           ATTR_ACTIVITY_TITLE);
+                           ATTR_ACTIVITY_TITLE, ATTR_TARGET_API_STRING);
   }
 
   public void testSetTemplateLocation() throws Exception {
@@ -84,12 +84,10 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     // Check that the android state is set correctly
     myState.setTemplateLocation(androidTemplateFile);
     assertEquals(myState.getTemplate().getRootPath(), androidTemplateFile);
-    assertTrue(myState.myIsAndroidModule);
 
     // Check that the android state is unset correctly
     myState.setTemplateLocation(javaTemplateFile);
     assertEquals(myState.getTemplate().getRootPath(), javaTemplateFile);
-    assertFalse(myState.myIsAndroidModule);
   }
 
   public void testUpdateDependencies() throws Exception {
@@ -154,7 +152,8 @@ public class NewModuleWizardStateTest extends AndroidGradleTestCase {
     assertSameForKeys(myState.myParameters, myState.myActivityTemplateState.myParameters,
                       ATTR_PACKAGE_NAME, ATTR_APP_TITLE, ATTR_MIN_API, ATTR_MIN_API_LEVEL,
                       ATTR_TARGET_API, ATTR_BUILD_API, ATTR_COPY_ICONS, ATTR_IS_NEW_PROJECT, ATTR_IS_LAUNCHER, ATTR_CREATE_ACTIVITY,
-                      ATTR_CREATE_ICONS, ATTR_IS_GRADLE, ATTR_TOP_OUT, ATTR_PROJECT_OUT, ATTR_SRC_OUT, ATTR_RES_OUT, ATTR_MANIFEST_OUT);
+                      ATTR_CREATE_ICONS, ATTR_IS_GRADLE, ATTR_TOP_OUT, ATTR_PROJECT_OUT, ATTR_SRC_OUT, ATTR_RES_OUT, ATTR_MANIFEST_OUT,
+                      ATTR_TARGET_API_STRING, ATTR_BUILD_API_STRING);
 
     assertEquals(!createIcons, myState.getBoolean(ATTR_COPY_ICONS));
   }

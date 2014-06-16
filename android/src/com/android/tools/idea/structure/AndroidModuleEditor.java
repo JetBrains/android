@@ -28,6 +28,7 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.TabbedPaneWrapper;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +43,9 @@ import java.util.concurrent.Callable;
 public class AndroidModuleEditor implements Place.Navigator, Disposable {
   public static final ImmutableList<BuildFileKey> BUILDFILE_GENERIC_PROPERTIES =
     ImmutableList.of(BuildFileKey.PLUGIN_VERSION, BuildFileKey.COMPILE_SDK_VERSION, BuildFileKey.BUILD_TOOLS_VERSION,
-                     BuildFileKey.PLUGIN_REPOSITORY, BuildFileKey.LIBRARY_REPOSITORY);
+                     BuildFileKey.PLUGIN_REPOSITORY, BuildFileKey.LIBRARY_REPOSITORY, BuildFileKey.IGNORE_ASSETS_PATTERN,
+                     BuildFileKey.INCREMENTAL_DEX, BuildFileKey.SOURCE_COMPATIBILITY,
+                     BuildFileKey.TARGET_COMPATIBILITY);
   private final Project myProject;
   private final String myName;
   private final List<ModuleConfigurationEditor> myEditors = new ArrayList<ModuleConfigurationEditor>();
@@ -62,38 +65,41 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
-      myEditors.add(new GenericEditor<SingleObjectPanel>("Properties", new Callable<SingleObjectPanel>() {
-        @Override
-        public SingleObjectPanel call() {
-          SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILDFILE_GENERIC_PROPERTIES);
-          panel.init();
-          return panel;
-        }
-      }));
-      myEditors.add(new GenericEditor<NamedObjectPanel>("Signing", new Callable<NamedObjectPanel>() {
-        @Override
-        public NamedObjectPanel call() {
-          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config");
-          panel.init();
-          return panel;
-        }
-      }));
-      myEditors.add(new GenericEditor<NamedObjectPanel>("Flavors", new Callable<NamedObjectPanel>() {
-        @Override
-        public NamedObjectPanel call() {
-          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor");
-          panel.init();
-          return panel;
-        }
-      }));
-      myEditors.add(new GenericEditor<NamedObjectPanel>("Build Types", new Callable<NamedObjectPanel>() {
-        @Override
-        public NamedObjectPanel call() {
-          NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType");
-          panel.init();
-          return panel;
-        }
-      }));
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.isGradleProject()) {
+        myEditors.add(new GenericEditor<SingleObjectPanel>("Properties", new Callable<SingleObjectPanel>() {
+          @Override
+          public SingleObjectPanel call() {
+            SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILDFILE_GENERIC_PROPERTIES);
+            panel.init();
+            return panel;
+          }
+        }));
+        myEditors.add(new GenericEditor<NamedObjectPanel>("Signing", new Callable<NamedObjectPanel>() {
+          @Override
+          public NamedObjectPanel call() {
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config");
+            panel.init();
+            return panel;
+          }
+        }));
+        myEditors.add(new GenericEditor<NamedObjectPanel>("Flavors", new Callable<NamedObjectPanel>() {
+          @Override
+          public NamedObjectPanel call() {
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor");
+            panel.init();
+            return panel;
+          }
+        }));
+        myEditors.add(new GenericEditor<NamedObjectPanel>("Build Types", new Callable<NamedObjectPanel>() {
+          @Override
+          public NamedObjectPanel call() {
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType");
+            panel.init();
+            return panel;
+          }
+        }));
+      }
       myEditors.add(new GenericEditor<ModuleDependenciesPanel>(ProjectBundle.message("modules.classpath.title"),
                                                                new Callable<ModuleDependenciesPanel>() {
         @Override
@@ -101,21 +107,15 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
           return new ModuleDependenciesPanel(myProject, myName);
         }
       }));
-      if (myEditors.size() == 1) {
-        ModuleConfigurationEditor editor = myEditors.get(0);
-        myGenericSettingsPanel = editor.createComponent();
-        editor.reset();
-      } else {
-        TabbedPaneWrapper tabbedPane = new TabbedPaneWrapper(this);
-        for (ModuleConfigurationEditor editor : myEditors) {
-          JComponent component = editor.createComponent();
-          if (component != null) {
-            tabbedPane.addTab(editor.getDisplayName(), component);
-            editor.reset();
-          }
+      TabbedPaneWrapper tabbedPane = new TabbedPaneWrapper(this);
+      for (ModuleConfigurationEditor editor : myEditors) {
+        JComponent component = editor.createComponent();
+        if (component != null) {
+          tabbedPane.addTab(editor.getDisplayName(), component);
+          editor.reset();
         }
-        myGenericSettingsPanel = tabbedPane.getComponent();
       }
+      myGenericSettingsPanel = tabbedPane.getComponent();
     }
     return myGenericSettingsPanel;
   }

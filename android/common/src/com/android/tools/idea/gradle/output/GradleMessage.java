@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.output;
 
+import com.google.common.base.Objects;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +66,29 @@ public class GradleMessage {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    GradleMessage that = (GradleMessage)o;
+
+    return myColumn == that.myColumn &&
+           myLineNumber == that.myLineNumber &&
+           myKind == that.myKind &&
+           Objects.equal(mySourcePath, that.mySourcePath) &&
+           Objects.equal(myText, that.myText);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(myColumn, myLineNumber, myKind, mySourcePath, myText);
+  }
+
+  @Override
   public String toString() {
     return getClass().getSimpleName() + "[" +
            "kind=" + myKind +
@@ -76,6 +100,16 @@ public class GradleMessage {
   }
 
   public enum Kind {
-    ERROR, WARNING, INFO, STATISTICS
+    ERROR, WARNING, INFO, STATISTICS, SIMPLE;
+
+    @Nullable
+    public static Kind findIgnoringCase(@NotNull String s) {
+      for (Kind kind : values()) {
+        if (kind.toString().equalsIgnoreCase(s)) {
+          return kind;
+        }
+      }
+      return null;
+    }
   }
 }

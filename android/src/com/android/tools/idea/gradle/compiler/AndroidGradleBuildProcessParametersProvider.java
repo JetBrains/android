@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.compiler;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -27,8 +26,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
 import com.intellij.execution.configurations.CommandLineTokenizer;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
@@ -100,7 +97,7 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
   @Override
   @NotNull
   public List<String> getVMArguments() {
-    if (!isBuildByGradle(myProject)) {
+    if (!Projects.isBuildWithGradle(myProject)) {
       return Collections.emptyList();
     }
     List<String> jvmArgs = Lists.newArrayList();
@@ -117,16 +114,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     addHttpProxySettings(jvmArgs);
     return jvmArgs;
-  }
-
-  private static boolean isBuildByGradle(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      if (AndroidGradleFacet.getInstance(module) != null) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @VisibleForTesting
@@ -152,9 +139,6 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
   @VisibleForTesting
   void populateJvmArgs(@NotNull GradleExecutionSettings executionSettings, @NotNull List<String> jvmArgs) {
-    long daemonMaxIdleTimeInMs = executionSettings.getRemoteProcessIdleTtlInMs();
-    jvmArgs.add(createJvmArg(GRADLE_DAEMON_MAX_IDLE_TIME_IN_MS, String.valueOf(daemonMaxIdleTimeInMs)));
-
     String gradleHome = executionSettings.getGradleHome();
     if (gradleHome != null && !gradleHome.isEmpty()) {
       gradleHome = FileUtil.toSystemDependentName(gradleHome);

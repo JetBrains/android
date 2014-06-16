@@ -540,7 +540,7 @@ public class Configuration implements Disposable {
       // (for example, the render target is at API 11, and layout is in a -v14 folder) then pick
       // a target which matches.
       VersionQualifier version = myEditedConfig.getVersionQualifier();
-      if (target != null && version != null && version.getVersion() > target.getVersion().getApiLevel()) {
+      if (target != null && version != null && version.getVersion() > target.getVersion().getFeatureLevel()) {
         return myManager.getTarget(version.getVersion());
       }
 
@@ -920,7 +920,7 @@ public class Configuration implements Disposable {
     // replace the API level by the selection of the combo
     IAndroidTarget target = getTarget();
     if (target != null) {
-      int apiLevel = target.getVersion().getApiLevel();
+      int apiLevel = target.getVersion().getFeatureLevel();
       myFullConfig.setVersionQualifier(new VersionQualifier(apiLevel));
     }
 
@@ -1151,7 +1151,7 @@ public class Configuration implements Disposable {
   public ResourceRepository getFrameworkResources() {
     IAndroidTarget target = getTarget();
     if (target != null) {
-      return myManager.getResolverCache().getFrameworkResources(target);
+      return myManager.getResolverCache().getFrameworkResources(getFullConfig(), target);
     }
 
     return null;

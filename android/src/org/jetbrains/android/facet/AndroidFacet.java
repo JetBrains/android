@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -28,9 +27,13 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.ILogger;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
@@ -56,7 +59,6 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
@@ -74,6 +76,7 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Processor;
+import com.intellij.util.ThreeState;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.ConvertContext;
@@ -454,6 +457,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return null;
   }
 
+  @NotNull
   public AvdInfo[] getAllAvds() {
     AvdManager manager = getAvdManagerSilently();
     if (manager != null) {
@@ -468,7 +472,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     try {
       MessageBuildingSdkLog log = new MessageBuildingSdkLog();
       manager.reloadAvds(log);
-      if (log.getErrorMessage().length() > 0) {
+      if (!log.getErrorMessage().isEmpty()) {
         Messages
           .showErrorDialog(getModule().getProject(), AndroidBundle.message("cant.load.avds.error.prefix") + ' ' + log.getErrorMessage(),
                            CommonBundle.getErrorTitle());
@@ -481,12 +485,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return false;
   }
 
-  public AvdInfo[] getAllCompatibleAvds() {
-    List<AvdInfo> result = new ArrayList<AvdInfo>();
-    addCompatibleAvds(result, getAllAvds());
-    return result.toArray(new AvdInfo[result.size()]);
-  }
-
   public AvdInfo[] getValidCompatibleAvds() {
     AvdManager manager = getAvdManagerSilently();
     List<AvdInfo> result = new ArrayList<AvdInfo>();
@@ -497,84 +495,20 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   private AvdInfo[] addCompatibleAvds(List<AvdInfo> to, @NotNull AvdInfo[] from) {
+    AndroidVersion minSdk = AndroidModuleInfo.get(this).getRuntimeMinSdkVersion();
+    AndroidPlatform platform = getConfiguration().getAndroidPlatform();
+    if (platform == null) {
+      LOG.error("Android Platform not set for module: " + getModule().getName());
+      return new AvdInfo[0];
+    }
+
     for (AvdInfo avd : from) {
-      if (isCompatibleAvd(avd)) {
+      IAndroidTarget avdTarget = avd.getTarget();
+      if (avdTarget == null || LaunchCompatibility.canRunOnAvd(minSdk, platform.getTarget(), avdTarget).isCompatible() != ThreeState.NO) {
         to.add(avd);
       }
     }
     return to.toArray(new AvdInfo[to.size()]);
-  }
-
-  @Nullable
-  private static AndroidVersion getDeviceVersion(IDevice device) {
-    try {
-      Map<String, String> props = device.getProperties();
-      String apiLevel = props.get(IDevice.PROP_BUILD_API_LEVEL);
-      if (apiLevel == null) {
-        return null;
-      }
-
-      return new AndroidVersion(Integer.parseInt(apiLevel), props.get((IDevice.PROP_BUILD_CODENAME)));
-    }
-    catch (NumberFormatException e) {
-      return null;
-    }
-  }
-
-  @Nullable
-  public Boolean isCompatibleDevice(@NotNull IDevice device) {
-    String avd = device.getAvdName();
-    IAndroidTarget target = getConfiguration().getAndroidTarget();
-    if (target == null) return false;
-    if (avd != null) {
-      AvdManager avdManager = getAvdManagerSilently();
-      if (avdManager == null) return true;
-      AvdInfo info = avdManager.getAvd(avd, true);
-      return isCompatibleBaseTarget(info != null ? info.getTarget() : null);
-    }
-    if (target.isPlatform()) {
-      AndroidVersion deviceVersion = getDeviceVersion(device);
-      if (deviceVersion != null) {
-        return canRunOnDevice(target, deviceVersion);
-      }
-    }
-    return null;
-  }
-
-  // if baseTarget is null, then function return if application can be deployed on any target
-
-  public boolean isCompatibleBaseTarget(@Nullable IAndroidTarget baseTarget) {
-    IAndroidTarget target = getConfiguration().getAndroidTarget();
-    if (target == null) return false;
-    AndroidVersion baseTargetVersion = baseTarget != null ? baseTarget.getVersion() : null;
-    if (!canRunOnDevice(target, baseTargetVersion)) return false;
-    if (!target.isPlatform()) {
-      if (baseTarget == null) return false;
-      // then it is add-on
-      if (!Comparing.equal(target.getVendor(), baseTarget.getVendor()) || !Comparing.equal(target.getName(), baseTarget.getName())) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private boolean canRunOnDevice(@NotNull IAndroidTarget projectTarget, @Nullable AndroidVersion deviceVersion) {
-    int minSdkVersion = AndroidModuleInfo.get(this).getMinSdkVersion();
-    int baseApiLevel = deviceVersion != null ? deviceVersion.getApiLevel() : 1;
-    AndroidVersion targetVersion = projectTarget.getVersion();
-    if (minSdkVersion < 0) minSdkVersion = targetVersion.getApiLevel();
-    if (minSdkVersion > baseApiLevel) return false;
-    String codeName = targetVersion.getCodename();
-    String baseCodeName = deviceVersion != null ? deviceVersion.getCodename() : null;
-    if (codeName != null && !codeName.equals(baseCodeName)) {
-      return false;
-    }
-    return true;
-  }
-
-  public boolean isCompatibleAvd(@NotNull AvdInfo avd) {
-    IAndroidTarget target = getConfiguration().getAndroidTarget();
-    return target != null && avd.getTarget() != null && isCompatibleBaseTarget(avd.getTarget());
   }
 
   @Nullable
@@ -626,19 +560,28 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   public void launchEmulator(@Nullable final String avdName, @NotNull final String commands, @NotNull final ProcessHandler handler) {
-    AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-    if (platform != null) {
-      final String emulatorPath = platform.getSdkData().getLocation() + File.separator + AndroidCommonUtils
-        .toolPath(SdkConstants.FN_EMULATOR);
+    File sdkLocation = null;
+    if (Projects.isGradleProject(getModule().getProject()) && AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      sdkLocation = DefaultSdks.getDefaultAndroidHome();
+    }
+    else {
+      AndroidPlatform platform = getConfiguration().getAndroidPlatform();
+      if (platform != null) {
+        sdkLocation = platform.getSdkData().getLocation();
+      }
+    }
+
+    if (sdkLocation != null) {
+      File emulatorPath = new File(sdkLocation, AndroidCommonUtils.toolPath(SdkConstants.FN_EMULATOR));
       final GeneralCommandLine commandLine = new GeneralCommandLine();
-      commandLine.setExePath(FileUtil.toSystemDependentName(emulatorPath));
+      commandLine.setExePath(emulatorPath.getPath());
       if (avdName != null) {
         commandLine.addParameter("-avd");
         commandLine.addParameter(avdName);
       }
       String[] params = ParametersList.parse(commands);
       for (String s : params) {
-        if (s.length() > 0) {
+        if (!s.isEmpty()) {
           commandLine.addParameter(s);
         }
       }
@@ -671,7 +614,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     ourDynamicTemplateMenuCreated = true;
     DefaultActionGroup newGroup = (DefaultActionGroup)ActionManager.getInstance().getAction("NewGroup");
     newGroup.addSeparator();
-    final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu();
+    final ActionGroup menu = TemplateManager.getInstance().getTemplateCreationMenu(null);
 
     if (menu != null) {
       newGroup.add(menu, new Constraints(Anchor.AFTER, "NewFromTemplate"));
@@ -1113,6 +1056,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myModuleResources = null;
     myProjectResources = null;
     myAppResources = null;
+    myConfigurationManager.getResolverCache().reset();
     ResourceFolderRegistry.reset();
     FileResourceRepository.reset();
   }
@@ -1236,16 +1180,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     @Override
     public Set<File> getAidlDirectories() {
       final VirtualFile dir = AndroidRootUtil.getAidlGenDir(AndroidFacet.this);
-      assert dir != null;
-      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull
     @Override
     public Set<File> getRenderscriptDirectories() {
       final VirtualFile dir = AndroidRootUtil.getRenderscriptGenDir(AndroidFacet.this);
-      assert dir != null;
-      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull
@@ -1259,19 +1201,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     public Set<File> getResDirectories() {
       String resRelPath = getProperties().RES_FOLDER_RELATIVE_PATH;
       final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(getModule(), resRelPath, true);
-      if (dir != null) {
-        return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
-      } else {
-        return Collections.emptySet();
-      }
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull
     @Override
     public Set<File> getAssetsDirectories() {
       final VirtualFile dir = AndroidRootUtil.getAssetsDir(AndroidFacet.this);
-      assert dir != null;
-      return Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
+      return dir == null ? Collections.<File>emptySet() : Collections.singleton(VfsUtilCore.virtualToIoFile(dir));
     }
 
     @NonNull

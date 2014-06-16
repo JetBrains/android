@@ -17,6 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.resources.ResourceFolderType;
+import com.google.common.collect.ObjectArrays;
 import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesHandlerFactory;
 import com.intellij.psi.PsiElement;
@@ -36,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.SdkConstants.ATTR_NAME;
 
 /**
  * Created by IntelliJ IDEA.
@@ -109,7 +112,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     return element;
   }
 
-  private static XmlAttributeValue wrapIfNeccessary(XmlAttributeValue value) {
+  private static XmlAttributeValue wrapIfNecessary(XmlAttributeValue value) {
     if (value instanceof ResourceElementWrapper) {
       return value;
     }
@@ -129,12 +132,11 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       XmlAttributeValue value = (XmlAttributeValue)e;
       PsiField[] fields = AndroidResourceUtil.findIdFields(value);
       if (fields.length > 0) {
-        e = wrapIfNeccessary(value);
+        e = wrapIfNecessary(value);
         return new MyFindUsagesHandler(e, fields);
       }
     }
     e = correctResourceElement(e);
-    assert e != null;
     if (e instanceof PsiFile) {
       // resource file
       PsiField[] fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)e, true);
@@ -150,7 +152,12 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       if (fields.length == 0) {
         return null;
       }
-      final XmlAttribute nameAttr = tag.getAttribute("name");
+
+      PsiField[] styleableFields = AndroidResourceUtil.findStyleableAttributeFields(tag, true);
+      if (styleableFields.length > 0) {
+        fields = ObjectArrays.concat(fields, styleableFields, PsiField.class);
+      }
+      final XmlAttribute nameAttr = tag.getAttribute(ATTR_NAME);
       final XmlAttributeValue nameValue = nameAttr != null ? nameAttr.getValueElement() : null;
       assert nameValue != null;
       return new MyFindUsagesHandler(nameValue, fields);

@@ -22,10 +22,12 @@ import org.jetbrains.android.dom.wrappers.ResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -102,7 +104,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       // Temporary workaround: AAR libraries may not have been picked up properly.
       // Use app resources to find these missing references, if applicable.
       LocalResourceRepository resources = AppResourceRepository.getAppResources(myFacet.getModule(), true);
-      ResourceType resourceType = ResourceType.getEnum(myResourceValue.getResourceType());
+      ResourceType resourceType = myResourceValue.getType();
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
         assert resources != null;
         List<ResourceItem> items = resources.getResourceItem(resourceType, myResourceValue.getResourceName());
@@ -117,14 +119,19 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
       }
     }
 
+    if (elements.size() > 1) {
+      Collections.sort(elements, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    }
+
     for (PsiElement target : elements) {
       result.add(new PsiElementResolveResult(target));
     }
+
     return result.toArray(new ResolveResult[result.size()]);
   }
 
   private void collectTargets(AndroidFacet facet, ResourceValue resValue, List<PsiElement> elements, boolean attrReference) {
-    String resType = resValue.getResourceType();
+    ResourceType resType = resValue.getType();
     if (resType == null) {
       return;
     }
@@ -132,7 +139,7 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     if (manager != null) {
       String resName = resValue.getResourceName();
       if (resName != null) {
-        manager.collectLazyResourceElements(resType, resName, attrReference, myElement, elements);
+        manager.collectLazyResourceElements(resType.getName(), resName, attrReference, myElement, elements);
       }
     }
   }

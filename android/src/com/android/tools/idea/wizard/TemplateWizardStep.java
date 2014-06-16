@@ -94,7 +94,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   };
 
   public TemplateWizardStep(@NotNull TemplateWizardState state, @Nullable Project project, @Nullable Module module,
-                            @Nullable Icon sidePanelIcon, UpdateListener updateListener) {
+                            @Nullable Icon sidePanelIcon, @Nullable UpdateListener updateListener) {
     myTemplateState = state;
     myProject = project;
     myModule = module;
@@ -108,7 +108,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     update();
   }
 
-  /** Override this to return a {@link JTextArea} that holds the description of the UI element that has focus. */
+  /** Override this to return a {@link JLabel} that holds the description of the UI element that has focus. */
   @NotNull protected abstract JLabel getDescription();
 
   /** Wraps the given string in &lt;html&gt; and &lt;/html&gt; tags and sets it into the description label. */
@@ -127,11 +127,11 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
   }
 
-  /** Override this to return a {@link JTextArea} that displays a validation error message. */
+  /** Override this to return a {@link JLabel} that displays a validation error message. */
   @NotNull protected abstract JLabel getError();
 
   /** Wraps the given string in &lt;html&gt; and &lt;/html&gt; tags and sets it into the error label. */
-  protected void setErrorHtml(@Nullable String s) {
+  public void setErrorHtml(@Nullable String s) {
     if (s == null) {
       s = "";
     }
@@ -319,7 +319,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     if (!myVisible) {
       return true;
     }
-    Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API);
+    Integer minApi = (Integer)myTemplateState.get(ATTR_MIN_API_LEVEL);
     Integer buildApi = (Integer)myTemplateState.get(ATTR_BUILD_API);
 
     for (String paramName : myParamFields.keySet()) {
@@ -360,8 +360,6 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
   }
 
   public void refreshUiFromParameters() {
-    myTemplateState.myModified.clear();
-
     if (myTemplateState.myTemplate == null) {
       return;
     }
@@ -521,7 +519,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
    * and UI updates.
    */
   protected void register(@NotNull String paramName, @NotNull JComboBox comboBox) {
-    myParamFields.put(paramName, (JComponent)comboBox);
+    myParamFields.put(paramName, comboBox);
     Object value = myTemplateState.get(paramName);
     if (value != null) {
       for (int i = 0; i < comboBox.getItemCount(); i++) {
@@ -550,7 +548,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     } else {
       myTemplateState.put(paramName, "");
     }
-    myParamFields.put(paramName, (JComponent)textField);
+    myParamFields.put(paramName, textField);
     textField.addFocusListener(this);
     textField.getDocument().addDocumentListener(this);
   }

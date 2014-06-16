@@ -16,16 +16,14 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
-import com.android.tools.idea.gradle.project.ImportSourceKind;
+import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
-import com.android.tools.idea.gradle.project.ProjectImportUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -80,13 +78,15 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private PathValidationResult myPageValidationResult;
   private boolean myValidating = false;
   private PageStatus myStatus;
+  private Icon mySidePanelIcon;
 
   public ImportSourceLocationStep(@NotNull WizardContext context,
                                   @Nullable VirtualFile importSource,
                                   @NotNull NewModuleWizardState state,
-                                  @NotNull Disposable disposable,
+                                  @Nullable Icon sidePanelIcon,
                                   @Nullable TemplateWizardStep.UpdateListener listener) {
     myContext = context;
+    mySidePanelIcon = sidePanelIcon;
     myUpdateListener = listener == null ? new TemplateWizardStep.UpdateListener() {
       @Override
       public void update() {
@@ -105,7 +105,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     };
     myModulesList.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, modulesListener);
 
-    validator = new AsyncValidator<PathValidationResult>(disposable) {
+    validator = new AsyncValidator<PathValidationResult>(ApplicationManager.getApplication()) {
       @Override
       protected void showValidationResult(PathValidationResult result) {
         applyBackgroundOperationResult(result);
@@ -130,6 +130,18 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     });
   }
 
+  private static String multiLineJLabelText(String... messages) {
+    StringBuilder builder = new StringBuilder("<html><body><p>");
+    Joiner.on("<br>").appendTo(builder, messages);
+    builder.append("</p></body></html>");
+    return builder.toString();
+  }
+
+  @Override
+  public Icon getIcon() {
+    return mySidePanelIcon;
+  }
+
   private void setupSourceLocationControls(@Nullable VirtualFile importSource) {
     if (importSource == null) {
       FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor();
@@ -149,13 +161,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       mySourceLocation.setText(importSource.getPath());
     }
     applyBackgroundOperationResult(checkPath(mySourceLocation.getText()));
-  }
-
-  private static String multiLineJLabelText(String... messages) {
-    StringBuilder builder = new StringBuilder("<html><body><p>");
-    Joiner.on("<br>").appendTo(builder, messages);
-    builder.append("</p></body></html>");
-    return builder.toString();
   }
 
   private void updateStatusDisplay(@NotNull PageStatus status, @Nullable Object details) {
@@ -179,8 +184,8 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     Iterable<ModuleToImport> modules = null;
     try {
       if (result.myStatus == PageStatus.OK) {
-        assert result.myVfile != null && myContext.getProject() != null;
-        modules = ProjectImportUtil.findModules(result.myVfile, myContext.getProject());
+        assert result.myVfile != null && myContext.getProject() != null && result.myImporter != null;
+        modules = result.myImporter.findModules(result.myVfile);
         Set<String> missingSourceModuleNames = new TreeSet<String>();
         for (ModuleToImport module : modules) {
           if (module.location == null || !module.location.exists()) {
@@ -189,11 +194,8 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
         }
         if (!missingSourceModuleNames.isEmpty()) {
           result = new PathValidationResult(PageStatus.MISSING_SUBPROJECTS,
-                                            result.myVfile, result.myImportKind, missingSourceModuleNames);
+                                            result.myVfile, result.myImporter, missingSourceModuleNames);
         }
-        AdtImportBuilder builder = (AdtImportBuilder)myContext.getProjectBuilder();
-        assert builder != null;
-        builder.setSelectedProject(new File(mySourceLocation.getText()));
       }
     }
     catch (IOException e) {
@@ -202,7 +204,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     }
     myValidating = false;
     refreshModulesList(result.myVfile, modules);
-    myState.setImportKind(result.myImportKind);
+    ModuleImporter.setImporter(myContext, result.myImporter);
     updateStepStatus(result);
   }
 
@@ -266,8 +268,8 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     else if (isProjectOrModule(vfile)) {
       return PageStatus.IS_PROJECT_OR_MODULE.result();
     }
-    ImportSourceKind kind = ProjectImportUtil.getImportLocationKind(vfile);
-    if (kind != ImportSourceKind.ADT && kind != ImportSourceKind.GRADLE) {
+    ModuleImporter kind = ModuleImporter.importerForLocation(myContext, vfile);
+    if (!kind.isValid()) {
       return PageStatus.NOT_ADT_OR_GRADLE.result();
     }
     return new PathValidationResult(PageStatus.OK, vfile, kind, null);
@@ -293,11 +295,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   @Override
   public JComponent getComponent() {
     return myPanel;
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return myState.myIsModuleImport;
   }
 
   @Override
@@ -360,16 +357,16 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   static final class PathValidationResult {
     @NotNull public final PageStatus myStatus;
     @Nullable public final VirtualFile myVfile;
-    @Nullable public final ImportSourceKind myImportKind;
+    @Nullable public final ModuleImporter myImporter;
     @Nullable public final Object myDetails;
 
     private PathValidationResult(@NotNull PageStatus status,
                                  @Nullable VirtualFile vfile,
-                                 @Nullable ImportSourceKind importKind,
+                                 @Nullable ModuleImporter importer,
                                  @Nullable Object details) {
       myStatus = status;
       myVfile = vfile;
-      myImportKind = importKind;
+      myImporter = importer;
       myDetails = details;
     }
   }

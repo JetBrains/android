@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <component>
-  <version codename="Preview" major="0" minor="5.8" eap="true"/>
+  <version codename="Preview" major="0" minor="6.1" eap="true"/>
   <company name="Google Inc." url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.760"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="138.538"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="ffaa16" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
@@ -30,8 +30,8 @@
 
   <editor background-url="/artwork/studio_logo_background.png"/>
 
-  <update-urls check="http://dl.google.com/android/studio/patches/updates.xml"
-               patches="http://dl.google.com/android/studio/patches/"/>
+  <update-urls check="https://dl.google.com/android/studio/patches/updates.xml"
+               patches="https://dl.google.com/android/studio/patches/"/>
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://tools.android.com/welcome-to-android-studio"/>

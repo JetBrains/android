@@ -47,6 +47,47 @@ public enum BuildFileKeyType {
     }
   },
   INTEGER(Integer.class, "0"),
+
+  /**
+   * INTEGER_OR_STRING is for properties that have overloaded Groovy setters that can take either type. This is used by
+   * {@link com.android.tools.idea.gradle.parser.BuildFileKey#COMPILE_SDK_VERSION} et al, where you can specify an integer API level
+   * or a string platform codename. If you retrieve properties with this type, you will always get a {@link String} value regardless
+   * of the type used to represent it in the build file; when you set the property, it will examine the value and use either Groovy
+   * integers or strings as appropriate to represent the value.
+   */
+  INTEGER_OR_STRING(String.class, "0") {
+    @Override
+    public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
+      String valueString = value.toString();
+      GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(arg.getProject());
+      if (isInteger(valueString)) {
+        arg.replace(factory.createExpressionFromText(valueString));
+      } else {
+        arg.replace(factory.createLiteralFromValue(value));
+      }
+    }
+
+    @Override
+    @NotNull
+    public String convertValueToExpression(@NotNull Object value) {
+      String valueString = value.toString();
+      if (isInteger(valueString)) {
+        return valueString;
+      } else {
+        return "'" + escapeLiteralString(value.toString()) + "'";
+      }
+    }
+
+    @Override
+    @Nullable
+    public Object getValue(@NotNull GroovyPsiElement arg) {
+      if (!(arg instanceof GrLiteral)) {
+        return UNRECOGNIZED_VALUE;
+      }
+      Object value = ((GrLiteral) arg).getValue();
+      return value != null ? value.toString() : null;
+    }
+  },
   BOOLEAN(Boolean.class, "false"),
   CLOSURE(List.class, "{}") {
     @Override
@@ -112,7 +153,7 @@ public enum BuildFileKeyType {
       return "'" + escapeLiteralString(value.toString()) + "'";
     }
   },
-  REFERENCE(String.class, "reference") { // TODO: for reference types, encode the BuildFileKey of the target being referred to.
+  REFERENCE(String.class, "reference") {
     @Nullable
     @Override
     public Object getValue(@NotNull GroovyPsiElement arg) {
@@ -148,6 +189,15 @@ public enum BuildFileKeyType {
 
   public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
     arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createExpressionFromText(value.toString()));
+  }
+
+  private static boolean isInteger(@NotNull String s) {
+    try {
+      Integer.parseInt(s);
+      return true;
+    } catch (NumberFormatException e) {
+      return false;
+    }
   }
 
   private static class Constants {

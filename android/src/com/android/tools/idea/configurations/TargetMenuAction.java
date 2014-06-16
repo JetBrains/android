@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -84,7 +85,7 @@ public class TargetMenuAction extends FlatComboAction {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion();
+        minSdk = facet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel();
       }
     }
 
@@ -95,8 +96,8 @@ public class TargetMenuAction extends FlatComboAction {
       }
 
       AndroidVersion version = target.getVersion();
-      if (version.getApiLevel() < minSdk) {
-        break;
+      if (version.getFeatureLevel() < minSdk) {
+        continue;
       }
       if (version.getApiLevel() >= 7) {
         haveRecent = true;
@@ -110,6 +111,14 @@ public class TargetMenuAction extends FlatComboAction {
       String title = getRenderingTargetLabel(target, false);
       boolean select = current == target;
       group.add(new SetTargetAction(myRenderContext, title, target, select));
+    }
+
+    group.addSeparator();
+    RenderPreviewMode currentMode = RenderPreviewMode.getCurrent();
+    if (currentMode != RenderPreviewMode.API_LEVELS) {
+      ConfigurationMenuAction.addApiLevelPreviewAction(myRenderContext, group);
+    } else {
+      ConfigurationMenuAction.addRemovePreviewsAction(myRenderContext, group);
     }
 
     return group;
@@ -132,6 +141,18 @@ public class TargetMenuAction extends FlatComboAction {
 
     if (brief) {
       if (target.isPlatform()) {
+        String codename = version.getCodename();
+        if (codename != null && !codename.isEmpty()) {
+          // The target menu brief label is deliberately short; typically it's just a 2 digit
+          // API number. If this is a preview platform we should display the codename, but only
+          // if it's a really short codename; if not, just display the first letter (since Android
+          // platforms are typically identified by a letter anyway).
+          if (codename.length() <= 3) {
+            return codename;
+          } else {
+            return Character.toString(codename.charAt(0));
+          }
+        }
         return Integer.toString(version.getApiLevel());
       }
       else {

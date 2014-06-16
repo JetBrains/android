@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
@@ -107,6 +108,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private JLabel myAppNameLabel;
   boolean myInitializedPackageNameText = false;
   private boolean myInitialized = false;
+  private boolean myInitializing = false;
   private String myPackagePrefix = SAMPLE_PACKAGE_PREFIX;
   @Nullable private WizardContext myWizardContext;
 
@@ -127,12 +129,16 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         myTargetSdk.addItem(targetInfo);
       }
       myTemplateState.put(ATTR_TARGET_API, SdkVersionInfo.HIGHEST_KNOWN_API);
+      myTemplateState.put(ATTR_TARGET_API_STRING, Integer.toString(SdkVersionInfo.HIGHEST_KNOWN_API));
       myTemplateState.myModified.add(ATTR_TARGET_API);
+      myTemplateState.myModified.add(ATTR_TARGET_API_STRING);
     }
 
-    int highestApi = -1;
+    AndroidVersion highest = null;
     for (IAndroidTarget target : targets) {
-      highestApi = Math.max(highestApi, target.getVersion().getApiLevel());
+      if (highest == null || target.getVersion().getApiLevel() >= highest.getApiLevel()) {
+        highest = target.getVersion();
+      }
       AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
       myCompileWith.addItem(targetInfo);
       if (target.getVersion().isPreview()) {
@@ -140,11 +146,14 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
         myTargetSdk.addItem(targetInfo);
       }
     }
-    if (highestApi >= 1) {
-      myTemplateState.put(ATTR_BUILD_API, highestApi);
+    if (highest != null) {
+      myTemplateState.put(ATTR_BUILD_API, highest.getFeatureLevel());
+      myTemplateState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(highest));
       myTemplateState.myModified.add(ATTR_BUILD_API);
-      if (highestApi > SdkVersionInfo.HIGHEST_KNOWN_API) {
-        myTemplateState.put(ATTR_TARGET_API, highestApi);
+      myTemplateState.myModified.add(ATTR_BUILD_API_STRING);
+      if (highest.getFeatureLevel() >= SdkVersionInfo.HIGHEST_KNOWN_API) {
+        myTemplateState.put(ATTR_TARGET_API, highest.getFeatureLevel());
+        myTemplateState.put(ATTR_TARGET_API_STRING, highest.getApiString());
       }
     }
 
@@ -229,13 +238,13 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
           final AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
 
           if (platform != null) {
-            final int apiLevel = platform.getTarget().getVersion().getApiLevel();
-
-            if (apiLevel != 0) {
-              myTemplateState.put(ATTR_TARGET_API, apiLevel);
-              myTemplateState.put(ATTR_BUILD_API, apiLevel);
-              myCompileWith.setEnabled(false);
-            }
+            AndroidVersion version = platform.getTarget().getVersion();
+            final int apiLevel = version.getFeatureLevel();
+            myTemplateState.put(ATTR_TARGET_API, apiLevel);
+            myTemplateState.put(ATTR_TARGET_API_STRING, version.getApiString());
+            myTemplateState.put(ATTR_BUILD_API, apiLevel);
+            myTemplateState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(version));
+            myCompileWith.setEnabled(false);
           }
         }
       }
@@ -256,7 +265,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     register(ATTR_PROJECT_LOCATION, myProjectLocation);
     register(ATTR_APP_TITLE, myAppName);
     register(ATTR_PACKAGE_NAME, myPackageName);
-    register(ATTR_MIN_API, myMinSdk);
+    register(ATTR_MIN_API_LEVEL, myMinSdk);
     register(ATTR_TARGET_API, myTargetSdk);
     register(ATTR_BUILD_API, myCompileWith);
     register(ATTR_CREATE_ACTIVITY, myCreateActivityCheckBox);
@@ -290,9 +299,10 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   public void updateStep() {
-    if (!myInitialized && AndroidSdkUtils.isAndroidSdkAvailable()) {
-      myInitialized = true;
+    if (!myInitializing && AndroidSdkUtils.isAndroidSdkAvailable()) {
+      myInitializing = true;
       initialize();
+      myInitialized = true;
     }
 
     myCreateCustomLauncherIconCheckBox.setVisible(!myTemplateState.myHidden.contains(ATTR_CREATE_ICONS));
@@ -319,7 +329,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     List<IAndroidTarget> list = new ArrayList<IAndroidTarget>();
 
     for (IAndroidTarget target : targets) {
-      if (target.isPlatform() == false &&
+      if (!target.isPlatform() &&
           (target.getOptionalLibraries() == null ||
            target.getOptionalLibraries().length == 0)) {
         continue;
@@ -387,15 +397,29 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   public void updateParams() {
+    if (!myInitialized) {
+      return;
+    }
+
     super.updateParams();
 
     AndroidTargetComboBoxItem item = (AndroidTargetComboBoxItem)myMinSdk.getSelectedItem();
     if (item != null) {
       myTemplateState.put(ATTR_MIN_API_LEVEL, item.apiLevel);
       if (item.target != null) {
-        myTemplateState.put(ATTR_MIN_API, AndroidTargetComboBoxItem.getId(item.target));
+        myTemplateState.put(ATTR_MIN_API, item.target.getVersion().getApiString());
       } else {
-        myTemplateState.put(ATTR_MIN_API, item.apiLevel);
+        myTemplateState.put(ATTR_MIN_API, Integer.toString(item.apiLevel));
+      }
+    }
+
+    item = (AndroidTargetComboBoxItem)myTargetSdk.getSelectedItem();
+    if (item != null) {
+      myTemplateState.put(ATTR_TARGET_API, item.apiLevel);
+      if (item.target != null) {
+        myTemplateState.put(ATTR_TARGET_API_STRING, item.target.getVersion().getApiString());
+      } else {
+        myTemplateState.put(ATTR_TARGET_API_STRING, Integer.toString(item.apiLevel));
       }
     }
 
@@ -483,7 +507,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       return false;
     }
 
-    Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API);
+    Integer minSdk = (Integer)myTemplateState.get(ATTR_MIN_API_LEVEL);
     if (minSdk == null) {
       setErrorHtml("Select a minimum SDK version");
       return false;
@@ -805,7 +829,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     public AndroidTargetComboBoxItem(@NotNull IAndroidTarget target) {
       super(getId(target), getLabel(target), 1, 1);
       this.target = target;
-      apiLevel = target.getVersion().getApiLevel();
+      apiLevel = target.getVersion().getFeatureLevel();
     }
 
     @NotNull
@@ -813,6 +837,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     static String getLabel(@NotNull IAndroidTarget target) {
       if (target.isPlatform()
           && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
+        if (target.getVersion().isPreview()) {
+          return "API " + Integer.toString(target.getVersion().getApiLevel()) + "+: " + target.getName();
+        }
         String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
         if (name == null) {
           return "API " + Integer.toString(target.getVersion().getApiLevel());
@@ -827,9 +854,11 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     @NotNull
     private static Object getId(@NotNull IAndroidTarget target) {
       if (target.getVersion().isPreview()) {
-        return target.getVersion().getCodename();
+        String codename = target.getVersion().getCodename();
+        assert codename != null; // because isPreview()
+        return codename;
       } else {
-        return target.getVersion().getApiLevel();
+        return target.getVersion().getFeatureLevel();
       }
     }
 

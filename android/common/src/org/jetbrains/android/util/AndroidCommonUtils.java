@@ -87,7 +87,7 @@ public class AndroidCommonUtils {
   @NonNls public static final String SYSTEM_PROGUARD_CFG_FILE_NAME = "proguard-android.txt";
   @NonNls private static final String PROGUARD_HOME_ENV_VARIABLE = "PROGUARD_HOME";
   public static final ResourceType[] ID_PROVIDING_RESOURCE_TYPES = new ResourceType[] {
-    ResourceType.LAYOUT, ResourceType.MENU, ResourceType.DRAWABLE, ResourceType.XML
+    ResourceType.LAYOUT, ResourceType.MENU, ResourceType.DRAWABLE, ResourceType.XML, ResourceType.TRANSITION
   };
 
   @NonNls public static final String INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME = "includeAssetsFromLibraries";

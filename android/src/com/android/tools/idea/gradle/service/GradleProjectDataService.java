@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.service;
 
 import com.android.tools.idea.gradle.AndroidProjectKeys;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.java.CompilerOutputModuleCustomizer;
@@ -28,11 +29,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.application.RunResult;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataService;
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -46,6 +48,8 @@ import java.util.Map;
  * Service that stores the "Gradle project paths" of an imported Android-Gradle project.
  */
 public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
+  private static final Logger LOG = Logger.getInstance(GradleProjectDataService.class);
+
   private final List<ModuleCustomizer<JavaModel>> myCustomizers =
     ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
@@ -56,32 +60,43 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
   }
 
   @Override
-  public void importData(@NotNull final Collection<DataNode<IdeaGradleProject>> toImport,
-                         @NotNull final Project project,
-                         boolean synchronous) {
-    if (toImport.isEmpty()) {
-      return;
+  public void importData(@NotNull Collection<DataNode<IdeaGradleProject>> toImport, @NotNull Project project, boolean synchronous) {
+    if (!toImport.isEmpty()) {
+      try {
+        doImport(toImport, project);
+      } catch (Throwable e) {
+        LOG.error(String.format("Failed to set up modules in project '%1$s'", project.getName()), e);
+        GradleSyncState.getInstance(project).syncFailed(e.getMessage());
+      }
     }
+  }
 
-    ExternalSystemApiUtil.executeProjectChangeAction(synchronous, new DisposeAwareProjectChange(project) {
+  private void doImport(final Collection<DataNode<IdeaGradleProject>> toImport, final Project project) throws Throwable {
+    RunResult result = new WriteCommandAction.Simple(project) {
       @Override
-      public void execute() {
-        ModuleManager moduleManager = ModuleManager.getInstance(project);
-        Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
-        for (Module module : moduleManager.getModules()) {
-          IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
-          if (gradleProject == null) {
-            // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
-            // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
-            // to delete the orphan module when Studio prompts to do so.
-            Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
-          }
-          else {
-            customizeModule(module, gradleProject);
+      protected void run() throws Throwable {
+        if (!project.isDisposed()) {
+          ModuleManager moduleManager = ModuleManager.getInstance(project);
+          Map<String, IdeaGradleProject> gradleProjectsByName = indexByModuleName(toImport);
+          for (Module module : moduleManager.getModules()) {
+            IdeaGradleProject gradleProject = gradleProjectsByName.get(module.getName());
+            if (gradleProject == null) {
+              // This happens when there is an orphan IDEA module that does not map to a Gradle project. One way for this to happen is when
+              // opening a project created in another machine, and Gradle import assigns a different name to a module. Then, user decides not
+              // to delete the orphan module when Studio prompts to do so.
+              Facets.removeAllFacetsOfType(module, AndroidGradleFacet.TYPE_ID);
+            }
+            else {
+              customizeModule(module, gradleProject);
+            }
           }
         }
       }
-    });
+    }.execute();
+    Throwable error = result.getThrowable();
+    if (error != null) {
+      throw error;
+    }
   }
 
   @NotNull

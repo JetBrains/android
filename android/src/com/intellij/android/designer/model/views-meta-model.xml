@@ -68,7 +68,7 @@
   <meta class="android.view.View">
     <properties
         important="id background"
-        expert="tag scrollX scrollY fitsSystemWindows scrollbars scrollbarStyle isScrollContainer fadeScrollbars scrollbarFadeDuration scrollbarDefaultDelayBeforeFade scrollbarSize scrollbarThumbHorizontal scrollbarThumbVertical scrollbarTrackHorizontal scrollbarTrackVertical scrollbarAlwaysDrawHorizontalTrack scrollbarAlwaysDrawVerticalTrack fadingEdge requiresFadingEdge fadingEdgeLength nextFocusLeft nextFocusRight nextFocusUp nextFocusDown nextFocusForward saveEnabled filterTouchesWhenObscured drawingCacheQuality keepScreenOn duplicateParentState soundEffectsEnabled hapticFeedbackEnabled contentDescription overScrollMode translationX translationY transformPivotX transformPivotY rotation rotationX rotationY scaleX scaleY verticalScrollbarPosition layerType layoutDirection textDirection"
+        expert="tag scrollX scrollY fitsSystemWindows scrollbars scrollbarStyle isScrollContainer fadeScrollbars scrollbarFadeDuration scrollbarDefaultDelayBeforeFade scrollbarSize scrollbarThumbHorizontal scrollbarThumbVertical scrollbarTrackHorizontal scrollbarTrackVertical scrollbarAlwaysDrawHorizontalTrack scrollbarAlwaysDrawVerticalTrack fadingEdge requiresFadingEdge fadingEdgeLength nextFocusLeft nextFocusRight nextFocusUp nextFocusDown nextFocusForward saveEnabled filterTouchesWhenObscured drawingCacheQuality keepScreenOn duplicateParentState soundEffectsEnabled hapticFeedbackEnabled overScrollMode translationX translationY transformPivotX transformPivotY rotation rotationX rotationY scaleX scaleY verticalScrollbarPosition layerType layoutDirection textDirection"
         />
   </meta>
 
@@ -121,7 +121,7 @@
 
     <properties
         inplace="text"
-        important="onClick"
+        important="onClick text"
         expert="editable password autoLink linksClickable numeric digits phoneNumber inputMethod autoText inputType textIsSelectable"
         />
 

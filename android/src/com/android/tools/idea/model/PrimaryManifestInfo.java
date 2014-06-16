@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.SdkConstants;
+import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.ScreenSize;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.google.common.base.Charsets;
-import com.intellij.ide.highlighter.XmlFileType;
+import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -37,7 +35,6 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -55,13 +52,13 @@ class PrimaryManifestInfo extends ManifestInfo {
   private Map<String, ActivityAttributes> myActivityAttributesMap;
   private ManifestFile myManifestFile;
   private long myLastChecked;
-  private String myMinSdkName;
-  private int myMinSdk;
-  private int myTargetSdk;
+  private AndroidVersion myMinSdk;
+  private AndroidVersion myTargetSdk;
   private String myApplicationIcon;
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
   private Manifest myManifest;
+  private Boolean myApplicationDebuggable;
 
   PrimaryManifestInfo(Module module) {
     myModule = module;
@@ -117,19 +114,29 @@ class PrimaryManifestInfo extends ManifestInfo {
 
     // From manifest theme documentation:
     // "If that attribute is also not set, the default system theme is used."
-
-    int renderingTargetSdk = myTargetSdk;
-    if (renderingTarget != null) {
+    int targetSdk;
+    AndroidModuleInfo info = AndroidModuleInfo.get(myModule);
+    if (info != null) {
+      targetSdk = info.getTargetSdkVersion().getApiLevel();
+    } else if (myTargetSdk != null) {
+      targetSdk = myTargetSdk.getApiLevel();
+    } else {
+      targetSdk = SdkVersionInfo.HIGHEST_KNOWN_API;
+    }
+    int renderingTargetSdk = targetSdk;
+    if (renderingTarget instanceof CompatibilityRenderTarget) {
+      renderingTargetSdk = renderingTarget.getVersion().getApiLevel();
+      //targetSdk = SdkVersionInfo.HIGHEST_KNOWN_API
+    } else if (renderingTarget != null) {
       renderingTargetSdk = renderingTarget.getVersion().getApiLevel();
     }
 
-    int apiLevel = Math.min(myTargetSdk, renderingTargetSdk);
+    int apiLevel = Math.min(targetSdk, renderingTargetSdk);
     // For now this theme works only on XLARGE screens. When it works for all sizes,
     // add that new apiLevel to this check.
     if (apiLevel >= 11 && screenSize == ScreenSize.XLARGE || apiLevel >= 14) {
       return ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Holo"; //$NON-NLS-1$
-    }
-    else {
+    } else {
       return ANDROID_STYLE_RESOURCE_PREFIX + "Theme"; //$NON-NLS-1$
     }
   }
@@ -154,38 +161,25 @@ class PrimaryManifestInfo extends ManifestInfo {
     return myApplicationSupportsRtl;
   }
 
-  @Override
-  public int getTargetSdkVersion() {
-    sync();
-    return myTargetSdk;
-  }
-
-  @Override
-  public int getMinSdkVersion() {
-    sync();
-    return myMinSdk;
-  }
-
-  @Override
-  @NotNull
-  public String getMinSdkName() {
-    sync();
-    if (myMinSdkName == null || myMinSdkName.isEmpty()) {
-      myMinSdkName = "1"; //$NON-NLS-1$
-    }
-
-    return myMinSdkName;
-  }
-
-  @Override
   @Nullable
-  public String getMinSdkCodeName() {
-    String minSdkName = getMinSdkName();
-    if (!Character.isDigit(minSdkName.charAt(0))) {
-      return minSdkName;
-    }
+  @Override
+  public Boolean getApplicationDebuggable() {
+    sync();
+    return myApplicationDebuggable;
+  }
 
-    return null;
+  @NotNull
+  @Override
+  public AndroidVersion getTargetSdkVersion() {
+    sync();
+    return myTargetSdk != null ? myTargetSdk : getMinSdkVersion();
+  }
+
+  @NotNull
+  @Override
+  public AndroidVersion getMinSdkVersion() {
+    sync();
+    return myMinSdk != null ? myMinSdk : AndroidVersion.DEFAULT;
   }
 
   @NotNull
@@ -233,9 +227,8 @@ class PrimaryManifestInfo extends ManifestInfo {
 
     myActivityAttributesMap = new HashMap<String, ActivityAttributes>();
     myManifestTheme = null;
-    myTargetSdk = 1; // Default when not specified
-    myMinSdk = 1; // Default when not specified
-    myMinSdkName = "1"; // Default when not specified
+    myTargetSdk = AndroidVersion.DEFAULT;
+    myMinSdk = AndroidVersion.DEFAULT;
     myPackage = ""; //$NON-NLS-1$
     myApplicationIcon = null;
     myApplicationLabel = null;
@@ -263,6 +256,9 @@ class PrimaryManifestInfo extends ManifestInfo {
         myManifestTheme = application.getAttributeValue(ATTRIBUTE_THEME, ANDROID_URI);
         myApplicationSupportsRtl = VALUE_TRUE.equals(application.getAttributeValue(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI));
 
+        String debuggable = application.getAttributeValue(ATTRIBUTE_DEBUGGABLE, ANDROID_URI);
+        myApplicationDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
+
         XmlTag[] activities = application.findSubTags(NODE_ACTIVITY);
         for (XmlTag activity : activities) {
           ActivityAttributes attributes = new ActivityAttributes(activity, myPackage);
@@ -274,7 +270,7 @@ class PrimaryManifestInfo extends ManifestInfo {
       XmlTag[] usesSdks = root.findSubTags(NODE_USES_SDK);
       if (usesSdks.length > 0) {
         XmlTag usesSdk = usesSdks[0];
-        myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, 1);
+        myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, AndroidVersion.DEFAULT);
         myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
       }
 
@@ -285,32 +281,15 @@ class PrimaryManifestInfo extends ManifestInfo {
     }
   }
 
-  private int getApiVersion(XmlTag usesSdk, String attribute, int defaultApiLevel) {
+  private static AndroidVersion getApiVersion(XmlTag usesSdk, String attribute, AndroidVersion defaultApiLevel) {
     String valueString = usesSdk.getAttributeValue(attribute, ANDROID_URI);
-    if (attribute.equals(ATTRIBUTE_MIN_SDK_VERSION)) {
-      myMinSdkName = valueString;
-    }
-
     if (valueString != null) {
-      int apiLevel = -1;
-      try {
-        apiLevel = Integer.valueOf(valueString);
+      // TODO: Pass in platforms if we have them
+      AndroidVersion version = SdkVersionInfo.getVersion(valueString, null);
+      if (version != null) {
+        return version;
       }
-      catch (NumberFormatException e) {
-        // Handle codename
-        AndroidFacet facet = AndroidFacet.getInstance(myModule);
-        if (facet != null) {
-          IAndroidTarget target = facet.getTargetFromHashString("android-" + valueString);
-          if (target != null) {
-            // codename future API level is current api + 1
-            apiLevel = target.getVersion().getApiLevel() + 1;
-          }
-        }
-      }
-
-      return apiLevel;
     }
-
     return defaultApiLevel;
   }
 
@@ -344,6 +323,9 @@ class PrimaryManifestInfo extends ManifestInfo {
 
     @Nullable
     private XmlFile parseManifest() {
+      if (myVFile == null || !myVFile.exists()) {
+        return null;
+      }
       PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(myVFile);
       return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
     }

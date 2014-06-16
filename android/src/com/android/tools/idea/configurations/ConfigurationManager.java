@@ -35,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.SoftValueHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -186,7 +187,7 @@ public class ConfigurationManager implements Disposable {
   /** Returns the list of available devices for the current platform, if any */
   @NotNull
   public List<Device> getDevices() {
-    if (myDevices == null) {
+    if (myDevices == null || myDevices.isEmpty()) {
       List<Device> devices = null;
 
       AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
@@ -295,7 +296,8 @@ public class ConfigurationManager implements Disposable {
       if (activity.startsWith(".")) {
         AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myModule);
         if (moduleInfo != null) {
-          activityFqcn = moduleInfo.getPackage() + activity;
+          String pkg = StringUtil.notNullize(ManifestInfo.get(myModule, false).getPackage());
+          activityFqcn = pkg + activity;
         }
       }
 

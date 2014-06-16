@@ -16,19 +16,18 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
-import com.android.tools.idea.stats.StatsKeys;
-import com.android.tools.idea.stats.StatsTimeCollector;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.*;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Throwables;
 import com.google.common.collect.*;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -67,6 +66,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -74,6 +74,7 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,9 +88,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.google.common.base.Predicates.in;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.base.Predicates.notNull;
+import static com.google.common.base.Predicates.*;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
@@ -182,11 +181,13 @@ public class GradleProjectImporter {
    * @param project  project to import the modules to
    * @param listener optional object that gets notified of operation success or failure
    */
-  public void importModules(final Map<String, VirtualFile> modules, final Project project, @Nullable final GradleSyncListener listener)
+  public void importModules(@NotNull final Map<String, VirtualFile> modules,
+                            @Nullable final Project project,
+                            @Nullable final GradleSyncListener listener)
     throws IOException, ConfigurationException {
     String error = validateProjectsForImport(modules);
     if (error != null) {
-      if (listener != null) {
+      if (listener != null && project != null) {
         listener.syncFailed(project, error);
         return;
       }
@@ -195,6 +196,7 @@ public class GradleProjectImporter {
       }
     }
 
+    assert project != null;
     Throwable throwable = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -247,7 +249,9 @@ public class GradleProjectImporter {
   /**
    * Copy modules and adds it to settings.gradle
    */
-  private void copyAndRegisterModule(Map<String, VirtualFile> modules, Project project, @Nullable GradleSyncListener listener)
+  private void copyAndRegisterModule(@NotNull Map<String, VirtualFile> modules,
+                                     @NotNull Project project,
+                                     @Nullable GradleSyncListener listener)
     throws IOException, ConfigurationException {
     VirtualFile projectRoot = project.getBaseDir();
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
@@ -328,7 +332,7 @@ public class GradleProjectImporter {
       @Override
       public void run() {
         try {
-          doRequestSync(project, generateSourcesOnSuccess, listener);
+          doRequestSync(project, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, listener);
         }
         catch (ConfigurationException e) {
           Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
@@ -338,13 +342,33 @@ public class GradleProjectImporter {
     AppUIUtil.invokeLaterIfProjectAlive(project, syncRequest);
   }
 
-  private void doRequestSync(@NotNull final Project project, boolean generateSourcesOnSuccess, @Nullable GradleSyncListener listener)
+  public void syncProjectSynchronously(@NotNull final Project project,
+                                       final boolean generateSourcesOnSuccess,
+                                       @Nullable final GradleSyncListener listener) {
+    Runnable syncRequest = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          doRequestSync(project, ProgressExecutionMode.MODAL_SYNC, generateSourcesOnSuccess, listener);
+        }
+        catch (ConfigurationException e) {
+          Messages.showErrorDialog(project, e.getMessage(), e.getTitle());
+        }
+      }
+    };
+    UIUtil.invokeAndWaitIfNeeded(syncRequest);
+  }
+
+  private void doRequestSync(@NotNull final Project project,
+                             @NotNull ProgressExecutionMode progressExecutionMode,
+                             boolean generateSourcesOnSuccess,
+                             @Nullable final GradleSyncListener listener)
     throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
-      doImport(project, false /* existing project */, ProgressExecutionMode.IN_BACKGROUND_ASYNC, generateSourcesOnSuccess, listener);
+      doImport(project, false /* existing project */, progressExecutionMode, generateSourcesOnSuccess, listener);
     }
     else {
       Runnable notificationTask = new Runnable() {
@@ -355,6 +379,10 @@ public class GradleProjectImporter {
 
           NotificationListener notificationListener = new CustomNotificationListener(project, new OpenMigrationToGradleUrlHyperlink());
           notification.showBalloon("Project Sync", msg, NotificationType.ERROR, notificationListener);
+
+          if (listener != null) {
+            listener.syncFailed(project, msg);
+          }
         }
       };
       Application application = ApplicationManager.getApplication();
@@ -438,7 +466,7 @@ public class GradleProjectImporter {
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
-    final Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
+    Project newProject = project == null ? createProject(projectName, projectRootDir.getPath()) : project;
     setUpProject(newProject, initialLanguageLevel);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -458,6 +486,7 @@ public class GradleProjectImporter {
       }
     }
 
+    assert newProject != null;
     doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, listener);
   }
 
@@ -522,9 +551,8 @@ public class GradleProjectImporter {
 
             // In practice, it really does not matter where the compiler output folder is. Gradle handles that. This is done just to please
             // IDEA.
-            File compilerOutputDir = new File(newProject.getBasePath(), FileUtil.join("build", "classes"));
-            String compilerOutputDirPath = FileUtil.toSystemIndependentName(compilerOutputDir.getPath());
-            String compilerOutputDirUrl = VfsUtilCore.pathToUrl(compilerOutputDirPath);
+            File compilerOutputDir = new File(newProject.getBasePath(), FileUtil.join(GradleUtil.BUILD_DIR_DEFAULT_NAME, "classes"));
+            String compilerOutputDirUrl = FilePaths.pathToIdeaUrl(compilerOutputDir);
             CompilerProjectExtension compilerProjectExt = CompilerProjectExtension.getInstance(newProject);
             assert compilerProjectExt != null;
             compilerProjectExt.setCompilerOutputUrl(compilerOutputDirUrl);
@@ -548,20 +576,20 @@ public class GradleProjectImporter {
 
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setExternalProjectPath(FileUtil.toCanonicalPath(project.getBasePath()));
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+
     DistributionType distributionType = settings.getDistributionType();
+
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile == null) {
-      if (!DistributionType.LOCAL.equals(distributionType)) {
+      if (DistributionType.LOCAL != distributionType) {
         settings.setDistributionType(DistributionType.LOCAL);
       }
-      if (Strings.isNullOrEmpty(settings.getGradleHome())) {
+      if (StringUtil.isEmpty(settings.getGradleHome())) {
         settings.setGradleHome(getLastUsedGradleHome());
       }
     }
-    else {
-      if (!DistributionType.DEFAULT_WRAPPED.equals(distributionType)) {
-        settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
-      }
+    else if (distributionType == null) {
+      settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
     }
   }
 
@@ -570,6 +598,11 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
+    // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
+    project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
+
+    project.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, false);
+
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
 
@@ -578,8 +611,6 @@ public class GradleProjectImporter {
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
     GradleSyncState.getInstance(project).syncStarted(!newProject);
-
-    StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_TIME);
 
     myDelegate.importProject(project, new ExternalProjectRefreshCallback() {
       @Override
@@ -636,7 +667,6 @@ public class GradleProjectImporter {
   }
 
   private static void populateProject(@NotNull final Project newProject, @NotNull final DataNode<ProjectData> projectInfo) {
-    newProject.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, Boolean.TRUE);
     StartupManager.getInstance(newProject).runWhenProjectIsInitialized(new Runnable() {
       @Override
       public void run() {
@@ -647,11 +677,6 @@ public class GradleProjectImporter {
               @Override
               public void run() {
                 ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
-
-                Collection<DataNode<Message>> eventMessages =
-                  ExternalSystemApiUtil.findAll(projectInfo, AndroidProjectKeys.IMPORT_EVENT_MSG);
-                dataManager.importData(AndroidProjectKeys.IMPORT_EVENT_MSG, eventMessages, newProject, true /* synchronous */);
-
                 Collection<DataNode<ModuleData>> modules = ExternalSystemApiUtil.findAll(projectInfo, ProjectKeys.MODULE);
                 dataManager.importData(ProjectKeys.MODULE, modules, newProject, true /* synchronous */);
               }

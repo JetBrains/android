@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.output.parser.androidPlugin;
 
 import com.android.tools.idea.gradle.output.GradleMessage;
-import com.android.tools.idea.gradle.output.parser.CompilerOutputParser;
+import com.android.tools.idea.gradle.output.parser.PatternAwareOutputParser;
 import com.android.tools.idea.gradle.output.parser.OutputLineReader;
+import com.android.tools.idea.gradle.output.parser.ParserUtil;
 import com.android.tools.idea.gradle.output.parser.ParsingFailedException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,18 +34,18 @@ import java.util.regex.Pattern;
  * [Stack trace]
  * </pre>
  */
-public class DexExceptionParser implements CompilerOutputParser {
+public class DexExceptionParser implements PatternAwareOutputParser {
   private static final Pattern ERROR = Pattern.compile("UNEXPECTED TOP-LEVEL EXCEPTION:");
   private static final Pattern ALREADY_ADDED_EXCEPTION = Pattern.compile("already added: L(.+);");
 
   @Override
-  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull Collection<GradleMessage> messages)
+  public boolean parse(@NotNull String line, @NotNull OutputLineReader reader, @NotNull List<GradleMessage> messages)
     throws ParsingFailedException {
     Matcher m1 = ERROR.matcher(line);
     if (!m1.matches()) {
       return false;
     }
-    String stackTrace = AndroidPluginOutputParser.digestStackTrace(reader);
+    String stackTrace = ParserUtil.digestStackTrace(reader);
     if (stackTrace == null) {
       return false;
     }

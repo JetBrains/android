@@ -20,12 +20,21 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.project.ProjectValidator;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
+import com.android.tools.idea.stats.StatsKeys;
+import com.android.tools.idea.stats.StatsTimeCollector;
+import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -39,9 +48,17 @@ import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
+
+  private static final List<String> PROJECT_PREFERENCES_TO_REMOVE = Lists.newArrayList(
+    "org.intellij.lang.xpath.xslt.associations.impl.FileAssociationsConfigurable", "com.intellij.uiDesigner.GuiDesignerConfigurable",
+    "org.jetbrains.plugins.groovy.gant.GantConfigurable", "org.jetbrains.plugins.groovy.compiler.GroovyCompilerConfigurable",
+    "org.jetbrains.android.compiler.AndroidDexCompilerSettingsConfigurable", "org.jetbrains.idea.maven.utils.MavenSettings",
+    "com.intellij.compiler.options.CompilerConfigurable"
+  );
 
   public static final Topic<GradleSyncListener> GRADLE_SYNC_TOPIC =
     new Topic<GradleSyncListener>("Project sync with Gradle", GradleSyncListener.class);
@@ -64,6 +81,7 @@ public class GradleSyncState {
   }
 
   public void syncStarted(boolean notifyUser) {
+    StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     mySyncInProgress = true;
     if (notifyUser) {
       notifyUser();
@@ -88,6 +106,11 @@ public class GradleSyncState {
   }
 
   public void syncEnded() {
+    // Temporary: Clear resourcePrefix flag in case it was set to false when working with
+    // an older model. TODO: Remove this when we no longer support models older than 0.10.
+    //noinspection AssignmentToStaticFieldFromInstanceMethod
+    LintUtils.sTryPrefixLookup = true;
+
     syncFinished();
     syncPublisher(new Runnable() {
       @Override
@@ -101,7 +124,9 @@ public class GradleSyncState {
   private void syncFinished() {
     mySyncInProgress = false;
     myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
+    StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     notifyUser();
+    cleanUpProjectPreferences();
   }
 
   private void syncPublisher(@NotNull final Runnable publishingTask) {
@@ -191,4 +216,21 @@ public class GradleSyncState {
     }
     return false;
   }
+
+  private void cleanUpProjectPreferences() {
+    if (!AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      return;
+    }
+    try {
+      ExtensionPoint<ConfigurableEP<Configurable>>
+        projectConfigurable = Extensions.getArea(myProject).getExtensionPoint(Configurable.PROJECT_CONFIGURABLE);
+
+      GradleUtil.cleanUpPreferences(projectConfigurable, PROJECT_PREFERENCES_TO_REMOVE);
+    }
+    catch (Throwable e) {
+      String msg = String.format("Failed to clean up preferences for project '%1$s'", myProject.getName());
+      LOG.info(msg, e);
+    }
+  }
+
 }

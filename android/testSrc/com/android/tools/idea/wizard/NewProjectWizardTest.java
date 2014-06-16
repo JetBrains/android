@@ -64,16 +64,20 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     assertTrue(myWizardState.hasAttr(ATTR_GRADLE_PLUGIN_VERSION));
 
     assertTrue(myWizardState.hasAttr(ATTR_MIN_API));
-    assertTrue(myWizardState.get(ATTR_MIN_API) instanceof Integer);
+    assertTrue(myWizardState.get(ATTR_MIN_API) instanceof String);
 
     assertTrue(myWizardState.hasAttr(ATTR_BUILD_API));
     assertTrue(myWizardState.get(ATTR_BUILD_API) instanceof Integer);
+    assertTrue(myWizardState.hasAttr(ATTR_BUILD_API_STRING));
+    assertTrue(myWizardState.get(ATTR_BUILD_API_STRING) instanceof String);
 
     assertTrue(myWizardState.hasAttr(ATTR_MIN_API_LEVEL));
     assertTrue(myWizardState.get(ATTR_MIN_API_LEVEL) instanceof Integer);
 
     assertTrue(myWizardState.hasAttr(ATTR_TARGET_API));
     assertTrue(myWizardState.get(ATTR_TARGET_API) instanceof Integer);
+    assertTrue(myWizardState.hasAttr(ATTR_TARGET_API_STRING));
+    assertTrue(myWizardState.get(ATTR_TARGET_API_STRING) instanceof String);
 
     assertEquals(4, myWizard.getStepCount());
     assertNotNull(myWizard.myAssetSetStep);
@@ -142,7 +146,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     assertFilesExist(moduleBase,
                      ".gitignore",
                      "build.gradle",
-                     "proguard-rules.txt",
+                     "proguard-rules.pro",
                      "src/main/res/values/strings.xml",
                      "src/main/AndroidManifest.xml");
 

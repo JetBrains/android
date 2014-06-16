@@ -18,10 +18,14 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
@@ -31,12 +35,14 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntArrayList;
 import icons.AndroidIcons;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.BooleanCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +72,7 @@ public class DeviceChooser implements Disposable {
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
   private final List<DeviceChooserListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-  private final Alarm myRefreshingAlarm = new Alarm(this);
+  private final Alarm myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.SHARED_THREAD);
 
   private volatile boolean myProcessSelectionFlag = true;
   private IDevice[] myOldDevices = EMPTY_DEVICE_ARRAY;
@@ -76,16 +82,23 @@ public class DeviceChooser implements Disposable {
 
   private final AndroidFacet myFacet;
   private final Condition<IDevice> myFilter;
+  private final AndroidVersion myMinSdkVersion;
+  private final IAndroidTarget myProjectTarget;
+  private final EnumSet<IDevice.HardwareFeature> myRequiredHardwareFeatures;
 
   private int[] mySelectedRows;
 
   public DeviceChooser(boolean multipleSelection,
                        @NotNull final Action okAction,
                        @NotNull AndroidFacet facet,
+                       @NotNull IAndroidTarget projectTarget,
                        @Nullable Condition<IDevice> filter) {
     myFacet = facet;
     myFilter = filter;
-    
+    myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
+    myProjectTarget = projectTarget;
+    myRequiredHardwareFeatures = getRequiredHardwareFeatures(ManifestInfo.get(facet.getModule(), true).getRequiredFeatures());
+
     myDeviceTable = new JBTable();
     myPanel = ScrollPaneFactory.createScrollPane(myDeviceTable);
     myPanel.setPreferredSize(new Dimension(450, 220));
@@ -113,7 +126,7 @@ public class DeviceChooser implements Disposable {
       }
     }.installOn(myDeviceTable);
 
-    myDeviceTable.setDefaultRenderer(Boolean.class, new BooleanCellRenderer());
+    myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
     myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceNameRenderer());
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
@@ -134,6 +147,23 @@ public class DeviceChooser implements Disposable {
 
     // Allow sorting by columns (in lexicographic order)
     myDeviceTable.setAutoCreateRowSorter(true);
+
+    myRefreshingAlarm.setActivationComponent(myPanel);
+  }
+
+  private static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(List<UsesFeature> requiredFeatures) {
+    // Currently, this method is hardcoded to only search if the list of required features includes a watch.
+    // We may not want to search the device for every possible feature, but only a small subset of important
+    // features, starting with hardware type watch..
+
+    for (UsesFeature feature : requiredFeatures) {
+      AndroidAttributeValue<String> name = feature.getName();
+      if (name != null && UsesFeature.HARDWARE_TYPE_WATCH.equals(name.getStringValue())) {
+        return EnumSet.of(IDevice.HardwareFeature.WATCH);
+      }
+    }
+
+    return EnumSet.noneOf(IDevice.HardwareFeature.class);
   }
 
   private void setColumnWidth(JBTable deviceTable, int columnIndex, String sampleText) {
@@ -159,13 +189,13 @@ public class DeviceChooser implements Disposable {
       return;
     }
     myRefreshingAlarm.cancelAllRequests();
-    myRefreshingAlarm.addRequest(new Runnable() {
+    myRefreshingAlarm.addComponentRequest(new Runnable() {
       @Override
       public void run() {
         updateTable();
         addUpdatingRequest();
       }
-    }, 500, ModalityState.stateForComponent(myPanel));
+    }, 500);
   }
 
   private void resetSelection(@NotNull String[] selectedSerials) {
@@ -349,7 +379,7 @@ public class DeviceChooser implements Disposable {
         case DEVICE_STATE_COLUMN_INDEX:
           return getDeviceState(device);
         case COMPATIBILITY_COLUMN_INDEX:
-          return myFacet.isCompatibleDevice(device);
+          return LaunchCompatibility.canRunOnDevice(myMinSdkVersion, myProjectTarget, myRequiredHardwareFeatures, device, null);
       }
       return null;
     }
@@ -357,7 +387,7 @@ public class DeviceChooser implements Disposable {
     @Override
     public Class<?> getColumnClass(int columnIndex) {
       if (columnIndex == COMPATIBILITY_COLUMN_INDEX) {
-        return Boolean.class;
+        return LaunchCompatibility.class;
       } else if (columnIndex == DEVICE_NAME_COLUMN_INDEX) {
         return IDevice.class;
       } else {
@@ -383,6 +413,32 @@ public class DeviceChooser implements Disposable {
       List<Pair<String, SimpleTextAttributes>> l = DevicePanel.renderDeviceName(device);
       for (Pair<String, SimpleTextAttributes> component : l) {
         append(component.getFirst(), component.getSecond());
+      }
+    }
+  }
+
+  private static class LaunchCompatibilityRenderer extends ColoredTableCellRenderer {
+    @Override
+    protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
+      if (!(value instanceof LaunchCompatibility)) {
+        return;
+      }
+
+      LaunchCompatibility compatibility = (LaunchCompatibility)value;
+      ThreeState compatible = compatibility.isCompatible();
+      if (compatible == ThreeState.YES) {
+        append("Yes");
+      } else {
+        if (compatible == ThreeState.NO) {
+          append("No", SimpleTextAttributes.ERROR_ATTRIBUTES);
+        } else {
+          append("Maybe");
+        }
+        String reason = compatibility.getReason();
+        if (reason != null) {
+          append(", ");
+          append(reason);
+        }
       }
     }
   }

@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Table;
-import com.google.common.collect.TreeBasedTable;
+import com.google.common.collect.*;
 import com.google.common.io.Files;
 import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.ide.IdeView;
@@ -29,10 +27,12 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.platform.templates.github.ZipUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -48,6 +48,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.templates.Template.TEMPLATE_XML_NAME;
+import static com.android.tools.idea.templates.TemplateUtils.listFiles;
 
 /**
  * Handles locating templates and providing template metadata
@@ -61,12 +62,14 @@ public class TemplateManager {
    */
   private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
   private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates"};
+  private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
   private static final String ACTION_ID_PREFIX = "template.create.";
   private static final boolean USE_SDK_TEMPLATES = false;
   private static final Set<String> EXCLUDED_CATEGORIES = ImmutableSet.of("Application", "Applications");
-  private static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of("Empty Activity");
+  public static final Set<String> EXCLUDED_TEMPLATES = ImmutableSet.of("Empty Activity");
+  private static final String TEMPLATE_ZIP_NAME = "templates.zip";
 
   /**
    * Cache for {@link #getTemplate(File)}
@@ -75,6 +78,11 @@ public class TemplateManager {
 
   /** Table mapping (Category, Template Name) -> Template File */
   private Table<String, String, File> myCategoryTable;
+
+  /**
+   * Cache location for templates pulled from exploded-aars
+   */
+  private File myAarCache;
 
   private static TemplateManager ourInstance = new TemplateManager();
   private DefaultActionGroup myTopGroup;
@@ -155,11 +163,11 @@ public class TemplateManager {
       // Look in SDK/extras/*
       File extras = new File(location, FD_EXTRAS);
       if (extras.isDirectory()) {
-        for (File vendor : TemplateUtils.listFiles(extras)) {
+        for (File vendor : listFiles(extras)) {
           if (!vendor.isDirectory()) {
             continue;
           }
-          for (File pkg : TemplateUtils.listFiles(vendor)) {
+          for (File pkg : listFiles(vendor)) {
             if (pkg.isDirectory()) {
               File folder = new File(pkg, FD_TEMPLATES);
               if (folder.isDirectory()) {
@@ -179,7 +187,7 @@ public class TemplateManager {
       // Look in SDK/add-ons
       File addOns = new File(location, FD_ADDONS);
       if (addOns.isDirectory()) {
-        for (File addOn : TemplateUtils.listFiles(addOns)) {
+        for (File addOn : listFiles(addOns)) {
           if (!addOn.isDirectory()) {
             continue;
           }
@@ -244,7 +252,7 @@ public class TemplateManager {
 
     // Add in templates from extras/ as well.
     for (File extra : getExtraTemplateRootFolders()) {
-      for (File file : TemplateUtils.listFiles(new File(extra, folder))) {
+      for (File file : listFiles(new File(extra, folder))) {
         if (file.isDirectory() && (new File(file, TEMPLATE_XML_NAME)).exists()) {
           File replaces = templateNames.get(file.getName());
           if (replaces != null) {
@@ -279,13 +287,117 @@ public class TemplateManager {
     return templates;
   }
 
+  @NotNull
+  public static List<File> getTemplatesFromDirectory(@NotNull File externalDirectory, boolean recursive) {
+    List<File> templates = Lists.newArrayList();
+    if (new File(externalDirectory, TEMPLATE_XML_NAME).exists()) {
+      templates.add(externalDirectory);
+    }
+    if (recursive) {
+      File[] files = externalDirectory.listFiles();
+      if (files != null) {
+        for (File file : files) {
+          if (file.isDirectory()) {
+            templates.addAll(getTemplatesFromDirectory(file, true));
+          }
+        }
+      }
+    }
+    return templates;
+  }
+
+  @NotNull
+  public List<File> getTemplateDirectoriesFromAars(@Nullable Project project) {
+    List<File> templateDirectories = Lists.newArrayList();
+    if (project != null && project.getBaseDir() != null) {
+      if (myAarCache == null) {
+        try {
+          myAarCache = FileUtil.createTempDirectory(project.getName(), "aar_cache");
+        }
+        catch (IOException e) {
+          LOG.error(e);
+          return templateDirectories;
+        }
+      }
+      File aarRoot = new File(project.getBaseDir().getPath(), FileUtil.toSystemDependentName(EXPLODED_AAR_PATH));
+      if (aarRoot.isDirectory()) {
+        for (File artifactPackage : listFiles(aarRoot)) {
+          if (artifactPackage.isDirectory() && !artifactPackage.isHidden()) {
+            for (File artifactName : listFiles(artifactPackage)) {
+              if (artifactName.isDirectory() && !artifactName.isHidden()) {
+                templateDirectories.addAll(getHighestVersionedTemplateRoot(artifactName));
+              }
+            }
+          }
+        }
+      }
+    }
+    return templateDirectories;
+  }
+
+  @NotNull
+  private List<File> getHighestVersionedTemplateRoot(@NotNull File artifactNameRoot) {
+    List<File> templateDirectories = Lists.newArrayList();
+    File highestVersionDir = null;
+    FullRevision highestVersionNumber = null;
+    for (File versionDir : listFiles(artifactNameRoot)) {
+      if (!versionDir.isDirectory() || versionDir.isHidden()) {
+        continue;
+      }
+      // Find the highest version of this AAR
+      FullRevision revision;
+      try {
+        revision = FullRevision.parseRevision(versionDir.getName());
+      } catch (NumberFormatException e) {
+        // Revision was not parse-able, consider it to be the lowest version revision
+        revision = FullRevision.NOT_SPECIFIED;
+      }
+      if (highestVersionNumber == null || revision.compareTo(highestVersionNumber) > 0) {
+        highestVersionNumber = revision;
+        highestVersionDir = versionDir;
+      }
+    }
+    if (highestVersionDir != null) {
+      String name = artifactNameRoot.getName() + "-" + highestVersionNumber.toString();
+      File inflated = new File(myAarCache, name);
+      if (!inflated.isDirectory()) {
+        // Only unzip once
+        File zipFile = new File(highestVersionDir, TEMPLATE_ZIP_NAME);
+        if (zipFile.isFile()) {
+          try {
+            ZipUtil.unzip(null, inflated, zipFile, null, null, true);
+          }
+          catch (IOException e) {
+            LOG.error(e);
+          }
+        }
+      }
+      if (inflated.isDirectory()) {
+        templateDirectories.add(inflated);
+      }
+    }
+    return templateDirectories;
+  }
+
+  /**
+   * @return a list of template files that declare the given category.
+   */
+  @NotNull
+  public List<File> getTemplatesInCategory(@NotNull String category) {
+    if (getCategoryTable().containsRow(category)) {
+      return Lists.newArrayList(getCategoryTable().row(category).values());
+    } else {
+      return Lists.newArrayList();
+    }
+  }
+
   @Nullable
-  public ActionGroup getTemplateCreationMenu() {
-    refreshDynamicTemplateMenu();
+  public ActionGroup getTemplateCreationMenu(@Nullable Project project) {
+    refreshDynamicTemplateMenu(project);
     return myTopGroup;
   }
 
-  public void refreshDynamicTemplateMenu() {
+  public void refreshDynamicTemplateMenu(@Nullable Project project) {
     if (myTopGroup == null) {
       myTopGroup = new DefaultActionGroup("AndroidTemplateGroup", false);
     } else {
@@ -293,7 +405,7 @@ public class TemplateManager {
     }
     myTopGroup.addSeparator();
     ActionManager am = ActionManager.getInstance();
-    for (String category : getCategoryTable(true).rowKeySet()) {
+    for (final String category : getCategoryTable(true, project).rowKeySet()) {
       if (EXCLUDED_CATEGORIES.contains(category)) {
         continue;
       }
@@ -305,6 +417,8 @@ public class TemplateManager {
           final Module module = LangDataKeys.MODULE.getData(e.getDataContext());
           final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
           Presentation presentation = e.getPresentation();
+          boolean isProjectReady = facet != null && facet.getIdeaAndroidProject() != null;
+          presentation.setText(category + (isProjectReady ? "" : " (Project not ready)"));
           presentation.setVisible(getChildrenCount() > 0 && view != null && facet != null && facet.isGradleProject());
         }
       };
@@ -329,20 +443,32 @@ public class TemplateManager {
     }
   }
 
-  private Table<String, String, File> getCategoryTable(boolean forceReload) {
+  private Table<String, String, File> getCategoryTable() {
+    return getCategoryTable(false, null);
+  }
+
+  private Table<String, String, File> getCategoryTable(boolean forceReload, @Nullable Project project) {
     if (myCategoryTable== null || forceReload) {
       if (myTemplateMap != null) {
         myTemplateMap.clear();
       }
       myCategoryTable = TreeBasedTable.create();
-      for (File categoryDirectory : TemplateUtils.listFiles(getTemplateRootFolder())) {
-        for (File newTemplate : TemplateUtils.listFiles(categoryDirectory)) {
+      for (File categoryDirectory : listFiles(getTemplateRootFolder())) {
+        for (File newTemplate : listFiles(categoryDirectory)) {
           addTemplateToTable(newTemplate);
         }
       }
 
       for (File rootDirectory : getExtraTemplateRootFolders()) {
-        for (File newTemplate : TemplateUtils.listFiles(rootDirectory)) {
+        for (File categoryDirectory : listFiles(rootDirectory)) {
+          for (File newTemplate : listFiles(categoryDirectory)) {
+            addTemplateToTable(newTemplate);
+          }
+        }
+      }
+
+      for (File aarDirectory : getTemplateDirectoriesFromAars(project)) {
+        for (File newTemplate : listFiles(aarDirectory)) {
           addTemplateToTable(newTemplate);
         }
       }
@@ -395,7 +521,7 @@ public class TemplateManager {
 
   @Nullable
   public File getTemplateFile(@Nullable String category, @Nullable String templateName) {
-    return getCategoryTable(false).get(category, templateName);
+    return getCategoryTable().get(category, templateName);
   }
 
   @Nullable
@@ -454,11 +580,11 @@ public class TemplateManager {
   }
 
   public static File getWrapperLocation(@NotNull File templateRootFolder) {
-    return new File(templateRootFolder, FileUtil.join("gradle", "wrapper"));
+    return new File(templateRootFolder, FD_GRADLE_WRAPPER);
 
   }
 
   public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
-    return new File(getWrapperLocation(templateRootFolder), "gradlew").exists();
+    return new File(getWrapperLocation(templateRootFolder), FN_GRADLE_WRAPPER_UNIX).exists();
   }
 }

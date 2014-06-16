@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.ide.common.signing.KeystoreHelper;
+import com.android.ide.common.signing.KeytoolException;
 import com.android.prefs.AndroidLocation;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
+import com.android.utils.ILogger;
+import com.android.utils.StdLogger;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -57,13 +62,27 @@ public class KeystoreUtils {
     if (state != null && !Strings.isNullOrEmpty(state.CUSTOM_DEBUG_KEYSTORE_PATH)) {
       return new File(state.CUSTOM_DEBUG_KEYSTORE_PATH);
     }
+    return getOrCreateDefaultDebugKeystore();
+  }
 
+
+  public static File getOrCreateDefaultDebugKeystore() throws Exception {
     try {
-      String folder = AndroidLocation.getFolder();
-      return new File(folder, "debug.keystore");
+      File debugLocation = new File(KeystoreHelper.defaultDebugKeystoreLocation());
+      if (!debugLocation.exists()) {
+        ILogger logger = new StdLogger(StdLogger.Level.ERROR);
+        // Default values taken from http://developer.android.com/tools/publishing/app-signing.html
+        // Keystore name: "debug.keystore"
+        // Keystore password: "android"
+        // Keystore alias: "androiddebugkey"
+        // Key password: "android"
+        KeystoreHelper.createDebugStore(null, debugLocation, "android", "android", "AndroidDebugKey",logger);
+      }
+      assert debugLocation.exists();
+      return debugLocation;
     }
     catch (AndroidLocation.AndroidLocationException e) {
-      throw new Exception(String.format("Failed to get debug keystore path for module '%1$s'", facet.getModule().getName()), e);
+      throw new Exception("Failed to get debug keystore path", e);
     }
   }
 

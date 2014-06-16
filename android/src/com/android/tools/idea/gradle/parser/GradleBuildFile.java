@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
@@ -45,6 +51,12 @@ public class GradleBuildFile extends GradleGroovyFile {
    * is to replace an unparseable value with a new, parseable one.
    */
   public static final Object UNRECOGNIZED_VALUE = "Unrecognized value";
+
+  @Nullable
+  public static GradleBuildFile get(@NotNull Module module) {
+    VirtualFile file = GradleUtil.getGradleBuildFile(module);
+    return file != null ? new GradleBuildFile(file, module.getProject()) : null;
+  }
 
   public GradleBuildFile(@NotNull VirtualFile buildFile, @NotNull Project project) {
     super(buildFile, project);

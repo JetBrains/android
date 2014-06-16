@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
@@ -40,21 +41,27 @@ import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
@@ -133,7 +140,7 @@ public class PostProjectBuildTasksExecutor {
 
   public void onBuildCompletion(@NotNull GradleInvocationResult result) {
     Iterator<String> errors = Iterators.emptyIterator();
-    Collection<GradleMessage> errorMessages = result.getCompilerMessages(GradleMessage.Kind.ERROR);
+    List<GradleMessage> errorMessages = result.getCompilerMessages(GradleMessage.Kind.ERROR);
     if (!errorMessages.isEmpty()) {
       errors = new GradleMessageIterator(errorMessages);
     }
@@ -144,6 +151,18 @@ public class PostProjectBuildTasksExecutor {
   @VisibleForTesting
   void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
     if (Projects.isGradleProject(myProject)) {
+      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+        @Override
+        public void run() {
+          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            @Override
+            public void run() {
+              excludeOutputFolders();
+            }
+          });
+        }
+      });
+
       if (Projects.isOfflineBuildModeEnabled(myProject)) {
         while (errorMessages.hasNext()) {
           String error = errorMessages.next();
@@ -186,6 +205,91 @@ public class PostProjectBuildTasksExecutor {
         GradleProjectImporter.getInstance().requestProjectSync(myProject, false /* do not generate sources */, null);
       }
     }
+  }
+
+  /**
+   * Even though {@link com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer} already excluded the folders
+   * "$buildDir/intermediates" and "$buildDir/outputs" we go through the children of "$buildDir" and exclude any non-generated folders
+   * that may have been created by other plug-ins. We need to be aggressive when excluding folder to prevent over-indexing files, which
+   * will degrade the IDE's performance.
+   */
+  private void excludeOutputFolders() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    if (myProject.isDisposed()) {
+      return;
+    }
+
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null && facet.isGradleProject()) {
+        excludeOutputFolders(facet);
+      }
+    }
+  }
+
+  private static void excludeOutputFolders(@NotNull AndroidFacet facet) {
+    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+    if (androidProject == null) {
+      return;
+    }
+    File buildFolderPath = androidProject.getDelegate().getBuildFolder();
+    if (!buildFolderPath.isDirectory()) {
+      return;
+    }
+
+    Module module = facet.getModule();
+    if (module.getProject().isDisposed()) {
+      return;
+    }
+
+    ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
+    ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+
+    try {
+      ContentEntry[] contentEntries = rootModel.getContentEntries();
+      ContentEntry parent = findParentContentEntry(buildFolderPath, contentEntries);
+      if (parent == null) {
+        rootModel.dispose();
+        return;
+      }
+
+      File[] outputFolderPaths = FileUtil.notNullize(buildFolderPath.listFiles());
+      if (outputFolderPaths.length == 0) {
+        rootModel.dispose();
+        return;
+      }
+
+      for (File outputFolderPath : outputFolderPaths) {
+        if (!androidProject.shouldManuallyExclude(outputFolderPath)) {
+          continue;
+        }
+        boolean alreadyExcluded = false;
+        for (VirtualFile excluded : parent.getExcludeFolderFiles()) {
+          if (FileUtil.filesEqual(outputFolderPath, VfsUtilCore.virtualToIoFile(excluded))) {
+            alreadyExcluded = true;
+            break;
+          }
+        }
+        if (!alreadyExcluded) {
+          parent.addExcludeFolder(FilePaths.pathToIdeaUrl(outputFolderPath));
+        }
+      }
+    }
+    finally {
+      if (!rootModel.isDisposed()) {
+        rootModel.commit();
+      }
+    }
+  }
+
+  @Nullable
+  private static ContentEntry findParentContentEntry(@NotNull File path, @NotNull ContentEntry[] contentEntries) {
+    for (ContentEntry contentEntry : contentEntries) {
+      if (FilePaths.isPathInContentEntry(path, contentEntry)) {
+        return contentEntry;
+      }
+    }
+    return null;
   }
 
   private static boolean unresolvedDependenciesFound(@NotNull String errorMessage) {

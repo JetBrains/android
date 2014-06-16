@@ -35,11 +35,11 @@ import java.io.File;
  */
 public class TemplateWizard extends AbstractWizard<ModuleWizardStep> {
   public static final String MAIN_FLAVOR_SOURCE_PATH = "src" + File.separator + "main";
+  public static final String TEST_SOURCE_PATH = "src" + File.separator + "androidTest";
   public static final String JAVA_SOURCE_PATH = "java";
   public static final String RESOURCE_SOURCE_PATH = "res";
   public static final String AIDL_SOURCE_PATH = "aidl";
-  public static final String GRADLE_WRAPPER_PATH = "gradle" + File.separator + "wrapper";
-  protected static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
+  public static final String MAVEN_URL_PROPERTY = "android.mavenRepoUrl";
 
   protected Project myProject;
 
