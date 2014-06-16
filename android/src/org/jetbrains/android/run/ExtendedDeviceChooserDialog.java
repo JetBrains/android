@@ -124,8 +124,8 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
     init();
 
     myDeviceChooser.init(selectedSerials);
-    myLaunchEmulatorRadioButton.setSelected(myDeviceChooser.getDeviceTable().getRowCount() == 0);
-    myChooserRunningDeviceRadioButton.setSelected(myDeviceChooser.getDeviceTable().getRowCount() > 0);
+    myLaunchEmulatorRadioButton.setSelected(!myDeviceChooser.hasDevices());
+    myChooserRunningDeviceRadioButton.setSelected(myDeviceChooser.hasDevices());
 
     myAvdCombo.startUpdatingAvds(ModalityState.stateForComponent(myPanel));
     final String savedAvd = properties.getValue(SELECTED_AVD_PROPERTY);
@@ -171,7 +171,7 @@ public class ExtendedDeviceChooserDialog extends DialogWrapper {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myDeviceChooser.getDeviceTable();
+    return myDeviceChooser.getPreferredFocusComponent();
   }
 
   @Override
