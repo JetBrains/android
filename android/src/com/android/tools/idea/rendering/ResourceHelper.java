@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -228,6 +229,42 @@ public class ResourceHelper {
       VirtualFile parent = file.getParent();
       if (parent != null) {
         return ResourceFolderType.getFolderType(parent.getName());
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static FolderConfiguration getFolderConfiguration(@Nullable final PsiFile file) {
+    if (file != null) {
+      if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+        return ApplicationManager.getApplication().runReadAction(new Computable<FolderConfiguration>() {
+          @Nullable
+          @Override
+          public FolderConfiguration compute() {
+            return getFolderConfiguration(file);
+          }
+        });
+      }
+      if (!file.isValid()) {
+        return getFolderConfiguration(file.getVirtualFile());
+      }
+      PsiDirectory parent = file.getParent();
+      if (parent != null) {
+        return FolderConfiguration.getConfigForFolder(parent.getName());
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static FolderConfiguration getFolderConfiguration(@Nullable VirtualFile file) {
+    if (file != null) {
+      VirtualFile parent = file.getParent();
+      if (parent != null) {
+        return FolderConfiguration.getConfigForFolder(parent.getName());
       }
     }
 

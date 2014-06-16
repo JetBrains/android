@@ -22,6 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
@@ -65,6 +66,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.TAG_ATTR;
@@ -417,6 +419,16 @@ public class AndroidResourceUtil {
       final String resourceName = tag.getAttributeValue("name");
       return resourceName != null ? resClassName : null;
     }
+    return null;
+  }
+
+  @Nullable
+  public static ResourceType getResourceForResourceTag(@NotNull XmlTag tag) {
+    String typeName = getResourceTypeByValueResourceTag(tag);
+    if (typeName != null) {
+      return ResourceType.getEnum(typeName);
+    }
+
     return null;
   }
 
@@ -787,6 +799,18 @@ public class AndroidResourceUtil {
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull final String value) {
+    return createValueResource(module, resourceName, resourceType, fileName, dirNames, value, false);
+  }
+
+  public static boolean createValueResource(@NotNull Module module,
+                                            @NotNull String resourceName,
+                                            @NotNull final ResourceType resourceType,
+                                            @NotNull String fileName,
+                                            @NotNull List<String> dirNames,
+                                            @NotNull final String value,
+                                            boolean showFirst) {
+    final AtomicBoolean show = new AtomicBoolean(showFirst);
+
     return createValueResource(module, resourceName, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
       @Override
       public boolean process(ResourceElement element) {
@@ -797,6 +821,14 @@ public class AndroidResourceUtil {
         else if (resourceType == STYLEABLE || resourceType == ResourceType.STYLE) {
           element.setStringValue("value");
           element.getXmlTag().getValue().setText("");
+        }
+
+        if (show.get()) {
+          show.set(false); // Only show the first element
+          XmlTag tag = element.getXmlTag();
+          if (tag != null) {
+            NavigationUtil.openFileWithPsiElement(tag, true, true);
+          }
         }
         return true;
       }
