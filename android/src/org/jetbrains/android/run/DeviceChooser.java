@@ -26,6 +26,8 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
@@ -56,6 +58,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
@@ -68,14 +71,25 @@ public class DeviceChooser implements Disposable {
   private static final int SERIAL_COLUMN_INDEX = 1;
   private static final int DEVICE_STATE_COLUMN_INDEX = 2;
   private static final int COMPATIBILITY_COLUMN_INDEX = 3;
+  private static final int REFRESH_INTERVAL_MS = 500;
 
   public static final IDevice[] EMPTY_DEVICE_ARRAY = new IDevice[0];
 
   private final List<DeviceChooserListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
-  private final Alarm myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.SHARED_THREAD);
+  private final Alarm myRefreshingAlarm;
+  private final AndroidDebugBridge myBridge;
 
   private volatile boolean myProcessSelectionFlag = true;
-  private IDevice[] myOldDevices = EMPTY_DEVICE_ARRAY;
+
+  /** The current list of devices that is displayed in the table. */
+  private IDevice[] myDisplayedDevices = EMPTY_DEVICE_ARRAY;
+
+  /**
+   * The current list of devices obtained from the debug bridge. This is updated in a background thread.
+   * If it is different than {@link #myDisplayedDevices}, then a {@link #refreshTable} invocation in the EDT thread
+   * will update the displayed list to match the detected list.
+   */
+  private AtomicReference<IDevice[]> myDetectedDevicesRef = new AtomicReference<IDevice[]>(EMPTY_DEVICE_ARRAY);
 
   private JComponent myPanel;
   private JBTable myDeviceTable;
@@ -148,7 +162,8 @@ public class DeviceChooser implements Disposable {
     // Allow sorting by columns (in lexicographic order)
     myDeviceTable.setAutoCreateRowSorter(true);
 
-    myRefreshingAlarm.setActivationComponent(myPanel);
+    myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
+    myBridge = myFacet.getDebugBridge();
   }
 
   private static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(List<UsesFeature> requiredFeatures) {
@@ -184,18 +199,20 @@ public class DeviceChooser implements Disposable {
     addUpdatingRequest();
   }
 
+  private final Runnable myUpdateRequest = new Runnable() {
+    @Override
+    public void run() {
+      updateTable();
+      addUpdatingRequest();
+    }
+  };
+
   private void addUpdatingRequest() {
     if (myRefreshingAlarm.isDisposed()) {
       return;
     }
     myRefreshingAlarm.cancelAllRequests();
-    myRefreshingAlarm.addComponentRequest(new Runnable() {
-      @Override
-      public void run() {
-        updateTable();
-        addUpdatingRequest();
-      }
-    }, 500);
+    myRefreshingAlarm.addRequest(myUpdateRequest, REFRESH_INTERVAL_MS);
   }
 
   private void resetSelection(@NotNull String[] selectedSerials) {
@@ -219,8 +236,7 @@ public class DeviceChooser implements Disposable {
   }
 
   void updateTable() {
-    final AndroidDebugBridge bridge = myFacet.getDebugBridge();
-    IDevice[] devices = bridge != null ? getFilteredDevices(bridge) : EMPTY_DEVICE_ARRAY;
+    IDevice[] devices = myBridge != null ? getFilteredDevices(myBridge) : EMPTY_DEVICE_ARRAY;
     if (devices.length > 1) {
       // sort by API level
       Arrays.sort(devices, new Comparator<IDevice>() {
@@ -241,32 +257,49 @@ public class DeviceChooser implements Disposable {
         }
       });
     }
-    if (!Arrays.equals(myOldDevices, devices)) {
-      myOldDevices = devices;
-      final IDevice[] selectedDevices = getSelectedDevices();
-      final TIntArrayList selectedRows = new TIntArrayList();
-      for (int i = 0; i < devices.length; i++) {
-        if (ArrayUtil.indexOf(selectedDevices, devices[i]) >= 0) {
-          selectedRows.add(i);
-        }
-      }
 
-      myProcessSelectionFlag = false;
-      myDeviceTable.setModel(new MyDeviceTableModel(devices));
-      if (selectedRows.size() == 0 && devices.length > 0) {
-        myDeviceTable.getSelectionModel().setSelectionInterval(0, 0);
-      }
-      for (int selectedRow : selectedRows.toNativeArray()) {
-        if (selectedRow < devices.length) {
-          myDeviceTable.getSelectionModel().addSelectionInterval(selectedRow, selectedRow);
+    if (!Arrays.equals(myDisplayedDevices, devices)) {
+      myDetectedDevicesRef.set(devices);
+      ApplicationManager.getApplication().invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          refreshTable();
         }
-      }
-      fireSelectedDevicesChanged();
-      myProcessSelectionFlag = true;
+      }, ModalityState.stateForComponent(myDeviceTable));
     }
   }
 
-  public JTable getDeviceTable() {
+  private void refreshTable() {
+    IDevice[] devices = myDetectedDevicesRef.get();
+    myDisplayedDevices = devices;
+
+    final IDevice[] selectedDevices = getSelectedDevices();
+    final TIntArrayList selectedRows = new TIntArrayList();
+    for (int i = 0; i < devices.length; i++) {
+      if (ArrayUtil.indexOf(selectedDevices, devices[i]) >= 0) {
+        selectedRows.add(i);
+      }
+    }
+
+    myProcessSelectionFlag = false;
+    myDeviceTable.setModel(new MyDeviceTableModel(devices));
+    if (selectedRows.size() == 0 && devices.length > 0) {
+      myDeviceTable.getSelectionModel().setSelectionInterval(0, 0);
+    }
+    for (int selectedRow : selectedRows.toNativeArray()) {
+      if (selectedRow < devices.length) {
+        myDeviceTable.getSelectionModel().addSelectionInterval(selectedRow, selectedRow);
+      }
+    }
+    fireSelectedDevicesChanged();
+    myProcessSelectionFlag = true;
+  }
+
+  public boolean hasDevices() {
+    return myDetectedDevicesRef.get().length > 0;
+  }
+
+  public JComponent getPreferredFocusComponent() {
     return myDeviceTable;
   }
 
