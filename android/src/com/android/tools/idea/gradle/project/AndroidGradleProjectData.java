@@ -182,7 +182,7 @@ public class AndroidGradleProjectData implements Serializable {
     return false;
   }
 
-  static private boolean doLoadFromDisk(Project project) throws IOException, ClassNotFoundException {
+  static private boolean doLoadFromDisk(@NotNull Project project) throws IOException, ClassNotFoundException {
     FileInputStream fin = null;
     try {
       File rootDirPath = new File(FileUtil.toSystemDependentName(project.getBasePath()));
@@ -196,6 +196,7 @@ public class AndroidGradleProjectData implements Serializable {
         AndroidGradleProjectData data = (AndroidGradleProjectData)ois.readObject();
         if (data.validate(rootDirPath)) {
           data.applyTo(project);
+          PostProjectSetupTasksExecutor.getInstance(project).onProjectRestoreFromDisk();
           return true;
         }
       }
