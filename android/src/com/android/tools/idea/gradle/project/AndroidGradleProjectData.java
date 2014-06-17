@@ -21,7 +21,9 @@ import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableSet;
@@ -134,21 +136,24 @@ public class AndroidGradleProjectData implements Serializable {
         IdeaGradleProject ideaGradleProject = gradleFacet.getGradleProject();
         if (ideaGradleProject != null) {
           data.addFileDependency(rootDirPath, ideaGradleProject.getBuildFile());
-          moduleData.myIdeaGradleProject =
-            new IdeaGradleProject(ideaGradleProject.getModuleName(), ideaGradleProject.getTaskNames(), ideaGradleProject.getGradlePath(),
-                                  ideaGradleProject.getIoBuildFile());
+          moduleData.myIdeaGradleProject = ideaGradleProject;
         }
         else {
           LOG.warn("Trying to create project data from a not initialized project. Abort.");
           return null;
         }
       }
-      else {
-        // We assume this is the application module.
-        // TODO: Once the application module has a model this needs to be updated.
+
+      JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+      if (javaFacet != null) {
+        moduleData.myJavaModel = javaFacet.getJavaModel();
+      }
+
+      if (Projects.isGradleProjectModule(module)) {
         data.addFileDependency(rootDirPath, GradleUtil.getGradleBuildFile(module));
         data.addFileDependency(rootDirPath, GradleUtil.getGradleSettingsFile(rootDirPath));
       }
+
       data.myData.put(moduleData.myName, moduleData);
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);
@@ -394,6 +399,11 @@ public class AndroidGradleProjectData implements Serializable {
       if (gradleFacet != null) {
         gradleFacet.setGradleProject(data.myIdeaGradleProject);
       }
+
+      JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+      if (javaFacet != null && data.myJavaModel != null) {
+        javaFacet.setJavaModel(data.myJavaModel);
+      }
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     syncState.setLastGradleSyncTimestamp(myLastGradleSyncTimestamp);
@@ -444,6 +454,7 @@ public class AndroidGradleProjectData implements Serializable {
     public IdeaGradleProject myIdeaGradleProject;
     public AndroidProject myAndroidProject;
     public String mySelectedVariant;
+    public JavaModel myJavaModel;
   }
 
   static class WrapperInvocationHandler implements InvocationHandler, Serializable {
