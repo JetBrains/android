@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.FilePaths;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
@@ -56,8 +56,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
                                      @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull IdeaJavaProject javaProject,
                                      @NotNull List<RootSourceFolder> orphans) {
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
-    boolean isTopLevelJavaModule = facet == null;
+    boolean isTopLevelJavaModule = Projects.isGradleProjectModule(module);
 
     File buildFolderPath = javaProject.getBuildFolderPath();
     boolean buildFolderUnexcluded = buildFolderPath == null;
