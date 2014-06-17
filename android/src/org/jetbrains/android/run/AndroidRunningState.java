@@ -18,6 +18,7 @@ package org.jetbrains.android.run;
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
 import com.android.prefs.AndroidLocation;
@@ -901,7 +902,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
           if (!ideaAndroidProject.getDelegate().isLibrary()) {
-            File apk = selectedVariant.getMainArtifact().getOutputFile();
+            AndroidArtifactOutput output = GradleUtil.getOutput(selectedVariant.getMainArtifact());
+            File apk = output.getOutputFile();
             if (!uploadAndInstallApk(device, myPackageName, apk.getAbsolutePath())) {
               return false;
             }
@@ -911,7 +913,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           if (getConfiguration() instanceof AndroidTestRunConfiguration) {
             AndroidArtifact testArtifactInfo = ideaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
             if (testArtifactInfo != null) {
-              File testApk = testArtifactInfo.getOutputFile();
+              AndroidArtifactOutput output = GradleUtil.getOutput(testArtifactInfo);
+              File testApk = output.getOutputFile();
               if (!uploadAndInstallApk(device, myTestPackageName, testApk.getAbsolutePath())) {
                 return false;
               }
