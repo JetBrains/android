@@ -53,7 +53,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
   public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  public static final Key<List> INSTALL_REQUESTS_KEY = createKey("packagesToInstall", PATH, List.class);
+  public static final Key<List> INSTALL_REQUESTS_KEY = createKey("packagesToInstall", WIZARD, List.class);
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidProjectPath.class);
 
   @NotNull
