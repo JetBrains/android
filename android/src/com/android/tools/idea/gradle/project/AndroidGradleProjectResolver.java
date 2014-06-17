@@ -288,9 +288,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
           }
         }
       }
-
-      // We keep sending this as JVM arg, until we release a new version of the Android Gradle plug-in.
-      args.add(KeyValue.create(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, "true"));
       return args;
     }
     return Collections.emptyList();
@@ -300,8 +297,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public List<String> getExtraCommandLineArgs() {
     List<String> args = Lists.newArrayList();
-    args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.BUILD_MODEL_ONLY_SYSTEM_PROPERTY, true));
-    args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
+    args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_BUILD_MODEL_ONLY, true));
+    args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
     return args;
   }
 

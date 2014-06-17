@@ -125,6 +125,12 @@ public class ProductFlavorStub implements ProductFlavor {
 
   @Override
   @NotNull
+  public Map<String, String> getManifestPlaceholders() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
     throw new UnsupportedOperationException();
   }
