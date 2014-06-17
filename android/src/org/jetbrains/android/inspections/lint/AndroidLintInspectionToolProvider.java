@@ -1147,6 +1147,11 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.stop.ship"), CommentDetector.STOP_SHIP);
     }
   }
+  public static class AndroidLintStringShouldBeIntInspection extends AndroidLintInspectionBase {
+    public AndroidLintStringShouldBeIntInspection() {
+      super(AndroidBundle.message("android.lint.inspections.string.should.be.int"), GradleDetector.STRING_INTEGER);
+    }
+  }
   public static class AndroidLintSuspicious0dpInspection extends AndroidLintInspectionBase {
     public AndroidLintSuspicious0dpInspection() {
       super(AndroidBundle.message("android.lint.inspections.suspicious0dp"), InefficientWeightDetector.WRONG_0DP);
