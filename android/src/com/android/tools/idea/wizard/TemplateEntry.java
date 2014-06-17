@@ -118,4 +118,8 @@ public class TemplateEntry {
   public Collection<Parameter> getParameters() {
     return getMetadata().getParameters();
   }
+
+  public File getTemplateDir() {
+    return myTemplate;
+  }
 }
