@@ -170,6 +170,15 @@ public class ResourceResolverCache {
       String themeName = ResourceHelper.styleToTheme(themeStyle);
       resolver = ResourceResolver.create(configuredAppRes, frameworkResources, themeName, isProjectTheme);
 
+      if (target instanceof CompatibilityRenderTarget) {
+        int apiLevel = target.getVersion().getFeatureLevel();
+        if (apiLevel >= 14) {
+          resolver.setDeviceDefaults("Theme.Holo.Light", "Theme.Holo");
+        } else {
+          resolver.setDeviceDefaults("Theme.Light", "Theme");
+        }
+      }
+
       myResolverMap.put(resolverKey, resolver);
       myCachedGeneration = resources.getModificationCount();
     }
