@@ -611,8 +611,7 @@ public class AndroidLintInspectionToolProvider {
 
     @NotNull
     @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement,
-                                               @NotNull final String message) {
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
       // Quickfix for replacing the old plugin id with the new one
       final String from;
       final String to;
@@ -656,7 +655,7 @@ public class AndroidLintInspectionToolProvider {
           }
         }};
       }
-      return super.getQuickFixes(startElement, endElement, message);
+      return super.getQuickFixes(message);
     }
   }
 
