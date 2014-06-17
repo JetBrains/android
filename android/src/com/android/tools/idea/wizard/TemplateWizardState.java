@@ -131,6 +131,7 @@ public class TemplateWizardState implements Function<String, Object> {
       put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlRoot.getPath()));
     }
 
+    String javaPackageDir = getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar);
     // Set Src directory if we don't have one
     if (!myParameters.containsKey(ATTR_SRC_OUT)  || myParameters.get(ATTR_SRC_OUT) == null) {
       File javaSourceRoot = new File(mainFlavorSourceRoot, TemplateWizard.JAVA_SOURCE_PATH);
@@ -141,7 +142,7 @@ public class TemplateWizardState implements Function<String, Object> {
         String javaPackage = relativePath != null ? FileUtil.toSystemIndependentName(relativePath).replace('/', '.') : null;
         put(ATTR_PACKAGE_NAME, javaPackage);
       } else {
-        javaSourcePackageRoot = new File(javaSourceRoot, getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar));
+        javaSourcePackageRoot = new File(javaSourceRoot, javaPackageDir);
       }
       put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(javaSourcePackageRoot.getPath()));
     }
@@ -153,7 +154,9 @@ public class TemplateWizardState implements Function<String, Object> {
 
     // Set Test directory if we don't have one
     if (!myParameters.containsKey(ATTR_TEST_OUT) || myParameters.get(ATTR_TEST_OUT) == null) {
-      put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testSourceRoot.getPath()));
+      String relativeTestOut = FileUtil.join(TemplateWizard.JAVA_SOURCE_PATH, javaPackageDir);
+      File testOut = new File(testSourceRoot, relativeTestOut);
+      put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getPath()));
     }
 
     put(ATTR_TOP_OUT, FileUtil.toSystemIndependentName(projectRoot.getPath()));
