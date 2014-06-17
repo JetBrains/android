@@ -127,7 +127,9 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     }
 
     AndroidFacet facet = AndroidFacet.getInstance(e);
-    assert facet != null;
+    if (facet == null) {
+      return null;
+    }
     if (e instanceof XmlAttributeValue) {
       XmlAttributeValue value = (XmlAttributeValue)e;
       PsiField[] fields = AndroidResourceUtil.findIdFields(value);
