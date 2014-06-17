@@ -1,0 +1,111 @@
+/*
+ * Copyright (C) 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.facet;
+
+import com.android.tools.idea.gradle.JavaModel;
+import com.intellij.ProjectTopics;
+import com.intellij.facet.*;
+import com.intellij.facet.impl.FacetUtil;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootAdapter;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * Java-Gradle facet.
+ * <p>
+ * This facet is applied to these type of modules in Gradle-based Android projects:
+ * <ul>
+ * <li>Java library modules</li>
+ * <li>non-Android, top-level modules that represent an IDEA project (if applicable)</li>
+ * </ul>
+ * </p>
+ */
+public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
+  private static final Logger LOG = Logger.getInstance(JavaGradleFacet.class);
+
+  @NotNull public static FacetTypeId<JavaGradleFacet> TYPE_ID = new FacetTypeId<JavaGradleFacet>("java-gradle");
+
+  @NonNls public static final String ID = "java-gradle";
+  @NonNls public static final String NAME = "Java-Gradle";
+
+  private JavaModel myJavaModel;
+
+  @Nullable
+  public static JavaGradleFacet getInstance(@NotNull Module module) {
+    return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
+  }
+
+  public JavaGradleFacet(@NotNull Module module,
+                         @NotNull String name,
+                         @NotNull JavaGradleFacetConfiguration configuration) {
+    //noinspection ConstantConditions
+    super(getFacetType(), module, name, configuration, null);
+  }
+
+  @NotNull
+  public static JavaGradleFacetType getFacetType() {
+    FacetType facetType = FacetTypeRegistry.getInstance().findFacetType(ID);
+    assert facetType instanceof JavaGradleFacetType;
+    return (JavaGradleFacetType)facetType;
+  }
+
+  @Override
+  public void initFacet() {
+    MessageBusConnection connection = getModule().getMessageBus().connect(this);
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+      @Override
+      public void rootsChanged(ModuleRootEvent event) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            if (!isDisposed()) {
+              PsiDocumentManager.getInstance(getModule().getProject()).commitAllDocuments();
+              updateConfiguration();
+            }
+          }
+        });
+      }
+    });
+    updateConfiguration();
+  }
+
+  private void updateConfiguration() {
+    JavaGradleFacetConfiguration config = getConfiguration();
+    try {
+      FacetUtil.saveFacetConfiguration(config);
+    }
+    catch (WriteExternalException e) {
+      LOG.error("Unable to save contents of 'Java-Gradle' facet", e);
+    }
+  }
+
+  @Nullable
+  public JavaModel getJavaModel() {
+    return myJavaModel;
+  }
+
+  public void setJavaModel(@NotNull JavaModel javaModel) {
+    myJavaModel = javaModel;
+  }
+}
