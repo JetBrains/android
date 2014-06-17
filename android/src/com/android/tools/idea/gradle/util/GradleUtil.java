@@ -16,10 +16,7 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.Variant;
+import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
@@ -47,6 +44,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
 import org.gradle.StartParameter;
@@ -68,10 +66,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,6 +110,16 @@ public final class GradleUtil {
   public static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN = Pattern.compile(".*-([^-]+)-([^.]+).zip");
 
   private GradleUtil() {
+  }
+
+  // This is temporary, until the model returns more outputs per artifact.
+  @NotNull
+  public static AndroidArtifactOutput getOutput(@NotNull AndroidArtifact artifact) {
+    Collection<AndroidArtifactOutput> outputs = artifact.getOutputs();
+    assert !outputs.isEmpty();
+    AndroidArtifactOutput output = ContainerUtil.getFirstItem(outputs);
+    assert output != null;
+    return output;
   }
 
   @NotNull
