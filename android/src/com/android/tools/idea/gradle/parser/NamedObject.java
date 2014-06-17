@@ -59,6 +59,11 @@ public class NamedObject {
     myName = name;
   }
 
+  public NamedObject(@NotNull NamedObject obj) {
+    myName = obj.myName;
+    myValues.putAll(obj.myValues);
+  }
+
   @NotNull
   public String getName() {
     return myName;
@@ -158,7 +163,7 @@ public class NamedObject {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (!(o instanceof NamedObject)) return false;
 
     NamedObject that = (NamedObject)o;
 
