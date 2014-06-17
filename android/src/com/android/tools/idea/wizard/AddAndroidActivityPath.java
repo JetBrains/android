@@ -99,7 +99,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       myGalleryStep = null;
     }
     myParameterStep = new TemplateParameterStep2(formFactor, predefinedParameterValues,
-                                                 myTargetFolder, parentDisposable);
+                                                 myTargetFolder, parentDisposable, KEY_PACKAGE_NAME);
   }
 
   private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {

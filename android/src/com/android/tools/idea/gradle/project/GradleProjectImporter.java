@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.FilePaths;
@@ -598,6 +599,12 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isDirectGradleInvocationEnabled(project)) {
+      // We cannot do the same when using JPS. We don't have access to the contents of the Message view used by JPS.
+      // For now, we can only improve the user experience in Android Studio.
+      GradleInvoker.getInstance(project).clearConsoleAndBuildMessages();
+    }
+
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
