@@ -17,9 +17,12 @@
 package org.jetbrains.android.facet;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,16 +61,6 @@ public class AndroidRootUtil {
   @NonNls public static final String DEFAULT_PROPERTIES_FILE_NAME = "default.properties";
 
   private AndroidRootUtil() {
-  }
-
-  @Nullable
-  public static VirtualFile getMergedManifestFile(@NotNull AndroidFacet facet) {
-    IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
-    if (androidProject != null) {
-      File mergedManifest = androidProject.getSelectedVariant().getMainArtifact().getGeneratedManifest();
-      return VfsUtil.findFileByIoFile(mergedManifest, true);
-    }
-    return null;
   }
 
   /**
@@ -541,7 +534,9 @@ public class AndroidRootUtil {
     if (ideaAndroidProject != null) {
       // For Android-Gradle projects, IdeaAndroidProject is not null.
       Variant selectedVariant = ideaAndroidProject.getSelectedVariant();
-      File outputFile = selectedVariant.getMainArtifact().getOutputFile();
+      AndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
+      AndroidArtifactOutput output = GradleUtil.getOutput(mainArtifact);
+      File outputFile = output.getOutputFile();
       return outputFile.getAbsolutePath();
     }
     String path = facet.getProperties().APK_PATH;

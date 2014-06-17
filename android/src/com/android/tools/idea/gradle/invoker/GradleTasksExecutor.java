@@ -275,7 +275,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
             commandLineArgs.add(PARALLEL_BUILD_OPTION);
           }
 
-          commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.INVOKED_FROM_IDE_PROPERTY, true));
+          commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
 
           LOG.info("Build command line options: " + commandLineArgs);
 
