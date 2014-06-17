@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
@@ -34,6 +36,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -254,6 +257,24 @@ public final class Projects {
   }
 
   /**
+   * @see #isGradleProjectModule(com.intellij.openapi.module.Module)
+   */
+  @Nullable
+  public static Module findGradleProjectModule(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    Module[] modules = moduleManager.getModules();
+    if (modules.length == 1) {
+      return modules[0];
+    }
+    for (Module module : modules) {
+      if (isGradleProjectModule(module)) {
+        return module;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Indicates whether the given module is the one that represents the project.
    * <p>
    * For example, in this project:
@@ -280,5 +301,28 @@ public final class Projects {
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
     return AndroidGradleFacet.getInstance(module) == null;
+  }
+
+  @Nullable
+  public static File getBuildFolderPath(@NotNull Module module) {
+    if (module.isDisposed() || !isGradleProject(module.getProject())) {
+      return null;
+    }
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
+      return androidFacet.getIdeaAndroidProject().getDelegate().getBuildFolder();
+    }
+    JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+    if (javaFacet != null) {
+      JavaModel javaModel = javaFacet.getJavaModel();
+      if (javaModel != null) {
+        return javaFacet.getJavaModel().getBuildFolderPath();
+      }
+      String path = javaFacet.getConfiguration().BUILD_FOLDER_PATH;
+      if (StringUtil.isNotEmpty(path)) {
+        return new File(FileUtil.toSystemDependentName(path));
+      }
+    }
+    return null;
   }
 }
