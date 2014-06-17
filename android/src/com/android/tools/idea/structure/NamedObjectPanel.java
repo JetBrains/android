@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
@@ -40,14 +42,33 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
 public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener {
+  /**
+   * The PanelGroup class allows UI panels to talk to each other so that a pane that maintains a list of
+   * {@link NamedObject} instances can talk to another pane that maintains a
+   * {@link com.android.tools.idea.gradle.parser.BuildFileKeyType#REFERENCE} to one of those instances. For example, panels that have a
+   * {@link com.android.tools.idea.gradle.parser.BuildFileKey#SIGNING_CONFIG} can pick up changes from the panel responsible for wrangling
+   * the {@link com.android.tools.idea.gradle.parser.BuildFileKey#SIGNING_CONFIGS}.
+   */
+  public static class PanelGroup {
+    private Collection<KeyValuePane> myPanes = Lists.newArrayList();
+
+    public void valuesUpdated(BuildFileKey key, Iterable<String> values) {
+      for (KeyValuePane pane : myPanes) {
+        pane.updateReferenceValues(key, values);
+      }
+    }
+  }
+
   private static final String DEFAULT_CONFIG = "defaultConfig";
   private static final BuildFileKey[] DEFAULT_CONFIG_KEYS =
       { BuildFileKey.APPLICATION_ID, BuildFileKey.VERSION_CODE, BuildFileKey.VERSION_NAME, BuildFileKey.MIN_SDK_VERSION,
-        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.TEST_APPLICATION_ID, BuildFileKey.TEST_INSTRUMENTATION_RUNNER };
+        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.TEST_APPLICATION_ID, BuildFileKey.TEST_INSTRUMENTATION_RUNNER,
+        BuildFileKey.SIGNING_CONFIG};
 
   private JPanel myPanel;
   private JBList myList;
@@ -61,12 +82,14 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private NamedObject myCurrentObject;
   private Collection<NamedObject> myModelOnlyObjects = Lists.newArrayList();
   private Map<String, Map<BuildFileKey, Object>> myModelObjects = Maps.newHashMap();
+  private final PanelGroup myPanelGroup;
 
   public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey buildFileKey,
-                          @NotNull String newItemName) {
+                          @NotNull String newItemName, @NotNull PanelGroup panelGroup) {
     super(project, moduleName);
     myBuildFileKey = buildFileKey;
     myNewItemName = newItemName;
+    myPanelGroup = panelGroup;
     myListModel = new DefaultListModel();
     myObjectName.getDocument().addDocumentListener(this);
 
@@ -102,6 +125,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   @Override
   public void init() {
     super.init();
+    myPanelGroup.myPanes.add(myDetailsPane);
     if (myGradleBuildFile == null) {
       return;
     }
@@ -164,6 +188,12 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       myList.setSelectedIndex(0);
     }
     updateUiFromCurrentObject();
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        updatePanelGroup();
+      }
+    });
   }
 
   @Override
@@ -222,6 +252,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     myList.setSelectedIndex(myListModel.size() - 1);
     myList.updateUI();
     myModified = true;
+    updatePanelGroup();
   }
 
   private void removeObject() {
@@ -233,6 +264,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     myList.setSelectedIndex(Math.max(0, Math.min(selectedIndex, myListModel.size() - 1)));
     myList.updateUI();
     myModified = true;
+    updatePanelGroup();
   }
 
   @Nullable
@@ -282,6 +314,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       myCurrentObject.setName(newName);
       myList.updateUI();
       myModified = true;
+      updatePanelGroup();
     }
   }
 
@@ -375,5 +408,14 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
         break;
     }
     return results;
+  }
+
+  private void updatePanelGroup() {
+    List<String> values = Lists.newArrayList();
+    Enumeration elements = myListModel.elements();
+    while (elements.hasMoreElements()) {
+      values.add(((NamedObject)elements.nextElement()).getName());
+    }
+    myPanelGroup.valuesUpdated(myBuildFileKey, values);
   }
 }
