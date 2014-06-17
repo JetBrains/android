@@ -44,7 +44,7 @@ import static com.android.tools.lint.detector.api.Issue.OutputFormat;
 /**
  * @author Eugene.Kudelevsky
  */
-public abstract class AndroidLintInspectionBase extends GlobalInspectionTool implements BatchSuppressableTool {
+public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AndroidLintInspectionBase");
 
   private static final Object ISSUE_MAP_LOCK = new Object();
