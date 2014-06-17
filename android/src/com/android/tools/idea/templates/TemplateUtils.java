@@ -221,7 +221,7 @@ public class TemplateUtils {
   public static String[] getKnownVersions() {
     final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     assert sdkData != null;
-    int max = SdkVersionInfo.HIGHEST_KNOWN_API;
+    int max = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
     IAndroidTarget[] targets = sdkData.getTargets();
     SparseArray<IAndroidTarget> apiTargets = null;
     for (IAndroidTarget target : targets) {
