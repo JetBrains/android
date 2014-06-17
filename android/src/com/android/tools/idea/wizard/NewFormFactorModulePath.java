@@ -67,7 +67,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Key<String> TEST_OUT_KEY = createKey(ATTR_TEST_OUT, PATH, String.class);
 
   private static final Key<String> RELATIVE_PACKAGE_KEY = createKey(ATTR_RELATIVE_PACKAGE, PATH, String.class);
-  private static final String RELATIVE_SRC_ROOT = "src/main/java";
+  private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
+  private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
   private FormFactorUtils.FormFactor myFormFactor;
   private File myTemplateFile;
@@ -148,6 +149,17 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     return FileUtil.join(RELATIVE_SRC_ROOT, packageSegment);
   }
 
+  @NotNull
+  private String calculateTestDir() {
+    String packageSegment = myState.get(PACKAGE_NAME_KEY);
+    if (packageSegment == null) {
+      packageSegment = "";
+    } else {
+      packageSegment = packageSegment.replace('.', File.separatorChar);
+    }
+    return FileUtil.join(RELATIVE_TEST_ROOT, packageSegment);
+  }
+
   @Override
   public void deriveValues(Set<Key> modified) {
     if (modified.contains(NUM_ENABLED_FORM_FACTORS_KEY)) {
@@ -165,6 +177,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     if (modified.contains(SRC_DIR_KEY) || modified.contains(PACKAGE_NAME_KEY)) {
       myState.put(SRC_DIR_KEY, calculateSrcDir());
+    }
+    if (modified.contains(TEST_DIR_KEY) || modified.contains(PACKAGE_NAME_KEY)) {
+      myState.put(TEST_DIR_KEY, calculateTestDir());
     }
     if (modified.contains(SRC_DIR_KEY) || basePathModified) {
       updateOutputPath(SRC_DIR_KEY, SRC_OUT_KEY);
