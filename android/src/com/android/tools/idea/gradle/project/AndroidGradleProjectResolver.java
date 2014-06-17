@@ -139,7 +139,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     File buildFilePath = buildScript.getSourceFile();
-    IdeaGradleProject gradleProject = new IdeaGradleProject(gradleModule.getName(), gradleModule.getGradleProject(), buildFilePath);
+    IdeaGradleProject gradleProject = IdeaGradleProject.newIdeaGradleProject(gradleModule.getName(),
+                                                                             gradleModule.getGradleProject(), buildFilePath);
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
     if (androidProject == null) {
