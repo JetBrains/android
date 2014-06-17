@@ -1,4 +1,4 @@
-<warning descr="An `android` block should only appear in build files that correspond to a module and have an `apply plugin: 'android'` or `apply plugin: 'android-library'` statement.">android {
+<warning descr="An `android` block should only appear in build files that correspond to a module and have an `apply plugin: 'com.android.application'` or `apply plugin: 'com.android.library'` statement.">android {
   compileSdkVersion 19
   buildToolsVersion "19.0.0"
 }</warning>
