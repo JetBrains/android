@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public class AndroidArtifactStub implements AndroidArtifact {
@@ -42,9 +45,9 @@ public class AndroidArtifactStub implements AndroidArtifact {
     myFileStructure = fileStructure;
   }
 
+  @NonNull
   @Override
-  @NotNull
-  public File getOutputFile() {
+  public Collection<AndroidArtifactOutput> getOutputs() {
     throw new UnsupportedOperationException();
   }
 
@@ -87,12 +90,6 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull
   public String getAssembleTaskName() {
     return "assemble" + StringUtil.capitalize(myBuildType);
-  }
-
-  @Override
-  @NotNull
-  public File getGeneratedManifest() {
-    throw new UnsupportedOperationException();
   }
 
   @Override
