@@ -16,12 +16,14 @@
 
 package org.jetbrains.android.run;
 
+import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.CommonBundle;
@@ -201,7 +203,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (ideaAndroidProject != null) {
       Variant variant = ideaAndroidProject.getSelectedVariant();
       if (!variant.getMainArtifact().isSigned()) {
-        String message = AndroidBundle.message("run.error.apk.not.signed", variant.getMainArtifact().getOutputFile().getName());
+        AndroidArtifactOutput output = GradleUtil.getOutput(variant.getMainArtifact());
+        String message = AndroidBundle.message("run.error.apk.not.signed", output.getOutputFile().getName());
         Messages.showErrorDialog(project, message, CommonBundle.getErrorTitle());
         return null;
       }
