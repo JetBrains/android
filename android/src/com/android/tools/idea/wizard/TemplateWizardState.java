@@ -22,6 +22,7 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.base.Function;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * Value object which holds the current state of the wizard pages for
  * {@link NewTemplateObjectWizard}-derived wizards.
  */
-public class TemplateWizardState {
+public class TemplateWizardState implements Function<String, Object> {
   /*
    * TODO: The parameter handling code needs to be completely rewritten. It's extremely fragile now. When it's rewritten, it needs to take
    * the following into account:
@@ -291,5 +292,10 @@ public class TemplateWizardState {
         }
       }
     }
+  }
+
+  @Override
+  public Object apply(String input) {
+    return get(input);
   }
 }
