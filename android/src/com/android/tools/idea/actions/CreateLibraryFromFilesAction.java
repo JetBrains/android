@@ -38,7 +38,7 @@ import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.roots.libraries.ui.impl.RootDetectionUtil;
-import com.intellij.openapi.roots.ui.configuration.ModulesCombobox;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.DefaultLibraryRootsComponentDescriptor;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryNameAndLevelPanel;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -129,7 +129,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
   private static class CreateGradleLibraryFromFilesDialog extends DialogWrapper {
     public static final String COMMAND_TITLE = "Create Library";
-    private final ModulesCombobox myModulesCombobox;
+    private final ModulesComboBox myModulesComboBox;
     private final Project myProject;
     private final JPanel myPanel;
     private final List<OrderRoot> myRoots;
@@ -143,17 +143,17 @@ public class CreateLibraryFromFilesAction extends AnAction {
       mySettingsFile = GradleSettingsFile.get(myProject);
 
       final FormBuilder builder = LibraryNameAndLevelPanel.createFormBuilder();
-      myModulesCombobox = new ModulesCombobox();
-      myModulesCombobox.fillModules(myProject);
-      myModulesCombobox.setSelectedModule(findModule(roots));
-      for (Iterator iter = ((SortedListModel)myModulesCombobox.getModel()).iterator(); iter.hasNext(); ) {
+      myModulesComboBox = new ModulesComboBox();
+      myModulesComboBox.fillModules(myProject);
+      myModulesComboBox.setSelectedModule(findModule(roots));
+      for (Iterator iter = ((SortedListModel)myModulesComboBox.getModel()).iterator(); iter.hasNext(); ) {
         Module module = (Module)iter.next();
         String path = GradleSettingsFile.getModuleGradlePath(module);
         if (path == null || !mySettingsFile.hasBuildFile(path)) {
           iter.remove();
         }
       }
-      builder.addLabeledComponent("&Add to module:", myModulesCombobox);
+      builder.addLabeledComponent("&Add to module:", myModulesComboBox);
       myPanel = builder.getPanel();
       init();
     }
@@ -180,7 +180,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     protected void doOKAction() {
       AccessToken token = WriteAction.start();
       try {
-        final Module module = myModulesCombobox.getSelectedModule();
+        final Module module = myModulesComboBox.getSelectedModule();
         if (module == null) { return; }
         String moduleGradlePath = GradleSettingsFile.getModuleGradlePath(module);
         if (moduleGradlePath == null) { return; }
