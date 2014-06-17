@@ -123,7 +123,7 @@ public class GradleSyncState {
 
   private void syncFinished() {
     mySyncInProgress = false;
-    myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, System.currentTimeMillis());
+    setLastGradleSyncTimestamp(System.currentTimeMillis());
     StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     notifyUser();
     cleanUpProjectPreferences();
@@ -163,6 +163,10 @@ public class GradleSyncState {
 
   public boolean isSyncInProgress() {
     return mySyncInProgress;
+  }
+
+  public void setLastGradleSyncTimestamp(long timestamp) {
+    myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, timestamp);
   }
 
   public long getLastGradleSyncTimestamp() {
