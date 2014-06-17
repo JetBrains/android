@@ -134,8 +134,9 @@ public class AndroidGradleProjectData implements Serializable {
         IdeaGradleProject ideaGradleProject = gradleFacet.getGradleProject();
         if (ideaGradleProject != null) {
           data.addFileDependency(rootDirPath, ideaGradleProject.getBuildFile());
-          moduleData.myIdeaGradleProject = new IdeaGradleProject(ideaGradleProject.getModuleName(), ideaGradleProject.getTaskNames(),
-                                                                 ideaGradleProject.getGradlePath(), ideaGradleProject.getIoBuildFile());
+          moduleData.myIdeaGradleProject =
+            new IdeaGradleProject(ideaGradleProject.getModuleName(), ideaGradleProject.getTaskNames(), ideaGradleProject.getGradlePath(),
+                                  ideaGradleProject.getIoBuildFile());
         }
         else {
           LOG.warn("Trying to create project data from a not initialized project. Abort.");
@@ -446,15 +447,47 @@ public class AndroidGradleProjectData implements Serializable {
   }
 
   static class WrapperInvocationHandler implements InvocationHandler, Serializable {
+    private static final Method TO_STRING = getObjectMethod("toString");
+    private static final Method HASHCODE = getObjectMethod("hashCode");
+    private static final Method EQUALS = getObjectMethod("equals", Object.class);
     private final Map<String, Object> values;
 
     WrapperInvocationHandler(Map<String, Object> values) {
       this.values = values;
     }
 
+    @NotNull
+    private static Method getObjectMethod(String name, Class<?>... types) {
+      try {
+        return Object.class.getMethod(name, types);
+      }
+      catch (NoSuchMethodException e) {
+        throw new IllegalStateException("Method should exist in Object", e);
+      }
+    }
+
     @Override
     public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-      return values.get(method.toGenericString());
+      if (method.equals(TO_STRING)) {
+        return method.invoke(this, objects);
+      }
+      else if (method.equals(HASHCODE)) {
+        return method.invoke(this, objects);
+      }
+      else if (method.equals(EQUALS)) {
+        return proxyEquals(objects[0]);
+      }
+      else {
+        String key = method.toGenericString();
+        if (!values.containsKey(key)) {
+          LOG.warn("Invoking a non-existent reproxy method: " + key);
+        }
+        return values.get(key);
+      }
+    }
+
+    private boolean proxyEquals(Object other) {
+      return other != null && Proxy.isProxyClass(other.getClass()) && Proxy.getInvocationHandler(other).equals(this);
     }
   }
 }
