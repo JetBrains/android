@@ -120,7 +120,7 @@ class PrimaryManifestInfo extends ManifestInfo {
         return "@android:style/Theme.DeviceDefault.Light";
       } else if (HardwareConfigHelper.isTv(device)) {
         //noinspection SpellCheckingInspection
-        return "@android:style/Theme.Leanback";
+        return "@style/Theme.Leanback";
       }
     }
 

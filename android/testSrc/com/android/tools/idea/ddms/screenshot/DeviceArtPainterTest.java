@@ -20,10 +20,14 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.google.common.io.Files;
+import com.intellij.openapi.util.SystemInfo;
 import junit.framework.TestCase;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.InputStream;
 
 import static com.android.tools.idea.ddms.screenshot.DeviceArtPainter.DeviceData;
@@ -33,6 +37,31 @@ public class DeviceArtPainterTest extends TestCase {
   public void testGenerateCropData() throws Exception {
     // TODO: Assert that the crop data is right
     generateCropData();
+  }
+
+
+  public void testRendering() throws Exception {
+    // This test is disabled but code is preserved here; this is handy for quickly checking rendering results
+    // when tweaking the code to assemble composite images. (Make sure you also turn off the thumbnail cache first!
+    //noinspection ConstantConditions
+    if (false) {
+      DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
+      for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
+        if ("wear_round".equals(spec.getId())) {
+          FrameData frameData = new DeviceData(null, spec).getFrameData(ScreenOrientation.LANDSCAPE, 320);
+          BufferedImage image = frameData.getImage(true);
+          File file = File.createTempFile("test-rendering", "png");
+          if (file.exists()) {
+            boolean deleted = file.delete();
+            assertTrue(deleted);
+          }
+          ImageIO.write(image, "PNG", file);
+          if (file.exists() && SystemInfo.isMac) {
+            Runtime.getRuntime().exec("/usr/bin/open " + file.getPath());
+          }
+        }
+      }
+    }
   }
 
   public void generateCropData() throws Exception {
@@ -49,7 +78,7 @@ public class DeviceArtPainterTest extends TestCase {
         // Already have crop data for this spec; skipping
         continue;
       }
-      if (spec.getName().startsWith("Android Wear ") || spec.getName().startsWith("Android TV")) {
+      if (spec.getName().startsWith("Android TV")) {
         // These images are already cropped
         continue;
       }
