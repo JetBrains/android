@@ -96,6 +96,30 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     assertProxyEquals(myProxy, reproxy);
   }
 
+  public void testEquality() throws Exception {
+    MyInterface reproxy = AndroidGradleProjectData.reproxy(MyInterface.class, myProxy);
+    MyInterface reproxy2 = AndroidGradleProjectData.reproxy(MyInterface.class, myProxy);
+    assertNotNull(reproxy);
+    assertNotNull(reproxy2);
+    assertNotSame(reproxy, myProxy);
+    assertFalse(myProxy.equals(reproxy));
+    assertFalse(myProxy.hashCode() == reproxy.hashCode());
+    assertFalse(reproxy.equals(myProxy));
+    assertFalse(reproxy.hashCode() == myProxy.hashCode());
+    assertTrue(reproxy.equals(reproxy));
+    assertTrue(reproxy.hashCode() == reproxy.hashCode());
+    assertFalse(reproxy.equals(reproxy2));
+    assertFalse(reproxy.hashCode() == reproxy2.hashCode());
+    assertFalse(reproxy2.equals(reproxy));
+    assertFalse(reproxy2.hashCode() == reproxy.hashCode());
+  }
+
+  public void testToString() throws Exception {
+    MyInterface reproxy = AndroidGradleProjectData.reproxy(MyInterface.class, myProxy);
+    assertNotNull(myProxy.toString());
+    assertNotNull(reproxy.toString());
+  }
+
   public void testSupportedTypes() throws Exception {
     assertTypeIsSupported(AndroidProject.class.getPackage(), AndroidProject.class);
   }
