@@ -22,7 +22,7 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.facet.JavaModel;
+import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -31,12 +31,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.externalSystem.model.ProjectKeys;
-import com.intellij.openapi.externalSystem.model.project.ContentRootData;
-import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -63,7 +59,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
-import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 /**
@@ -71,8 +66,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSI
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
-
   /**
    * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
    * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
@@ -82,7 +75,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     "The project is using an unsupported version of the Android Gradle plug-in";
   @NotNull public static final String UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX = "Unable to find 'build folder for project";
   @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
-
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
@@ -134,7 +126,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     if (gradleSettingsFile.isFile() && androidProject == null) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      populateContentRootsForProjectModule(gradleModule, ideModule);
+      createJavaProject(gradleModule, ideModule);
       return;
     }
 
@@ -145,84 +137,24 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     if (androidProject == null) {
       // This is a Java lib module.
-      ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-      JavaModel javaModel = JavaModel.newJavaModel(gradleModule, model);
-      gradleProject.setJavaModel(javaModel);
+      createJavaProject(gradleModule, ideModule);
     }
+  }
+
+  private void createJavaProject(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
+    ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
+    IdeaJavaProject javaProject = new IdeaJavaProject(gradleModule, model);
+    ideModule.createChild(AndroidProjectKeys.IDE_JAVA_PROJECT, javaProject);
   }
 
   private void populateContentRootsForProjectModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-
-    ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-
-    ContentRootData.SourceRoot buildFolderRoot = null;
-
-    // We were expecting the instanceof ModuleExtendedModel to be not null, but we got this
-    // https://code.google.com/p/android/issues/detail?id=70490 . Until we find out what is the reason for the model to be null, we need to
-    // work around this issue.
-    if (model == null) {
-      String msg = String.format("Unable to obtain an instance of %1$s for project '%2$s'", ModuleExtendedModel.class.getCanonicalName(),
-                                 gradleModule.getProject().getName());
-      LOG.info(msg);
-    }
-    String buildFolderPath = model != null ? model.getBuildDir().getPath() : null;
-
-    // We need to remove the exclusion to the top-level "build" folder, which is now used by the Android Gradle plug-in 0.10.+ to store
-    // common libraries.
-    Collection<DataNode<ContentRootData>> contentRootNodes = ExternalSystemApiUtil.getChildren(ideModule, ProjectKeys.CONTENT_ROOT);
-    for (DataNode<ContentRootData> contentRootNode : contentRootNodes) {
-      ContentRootData contentRoot = contentRootNode.getData();
-      Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getRoots(ExternalSystemSourceType.EXCLUDED);
-      for (ContentRootData.SourceRoot root : excludedRoots) {
-        if (buildFolderPath != null) {
-          if (FileUtil.pathsEqual(buildFolderPath, root.getPath())) {
-            buildFolderRoot = root;
-            break;
-          }
-        }
-        else {
-          File folderPath = new File(FileUtil.toSystemDependentName(root.getPath()));
-          if (BUILD_DIR_DEFAULT_NAME.equals(folderPath.getName())) {
-            buildFolderRoot = root;
-            break;
-          }
-        }
-      }
-      if (buildFolderRoot != null) {
-        excludedRoots.remove(buildFolderRoot);
-        break;
-      }
-    }
-
-    if (buildFolderRoot == null && contentRootNodes.size() == 1) {
-      // If we got here is because the user changed the default location of the "build" folder. We try our best to guess it.
-      DataNode<ContentRootData> contentRootNode = ContainerUtil.getFirstItem(contentRootNodes);
-      if (contentRootNode != null) {
-        ContentRootData contentRoot = contentRootNode.getData();
-        Collection<ContentRootData.SourceRoot> excludedRoots = contentRoot.getRoots(ExternalSystemSourceType.EXCLUDED);
-        if (excludedRoots.size() == 2) {
-          // If there are 2 excluded folders, one is .gradle and the other one is build folder.
-          List<ContentRootData.SourceRoot> roots = Lists.newArrayList(excludedRoots);
-          ContentRootData.SourceRoot sourceRoot = roots.get(0);
-          File rootPath = new File(sourceRoot.getPath());
-          buildFolderRoot = SdkConstants.DOT_GRADLE.equals(rootPath.getName()) ? roots.get(1) : sourceRoot;
-        }
-
-        if (buildFolderRoot != null) {
-          excludedRoots.remove(buildFolderRoot);
-        }
-      }
-    }
-
-    if (buildFolderRoot == null) {
-      // We need to warn users that we were not able to undo the exclusion of the top-level build folder. The IDE will not work properly.
-      String msg = UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX + String.format(" '%1$s'.\n", gradleModule.getProject().getName());
-      msg +=
-        "The IDE will not find references to the project's dependencies, and, as a result, basic functionality will not work properly.";
-      throw new IllegalArgumentException(msg);
-    }
+    // We need to warn users that we were not able to undo the exclusion of the top-level build folder. The IDE will not work properly.
+    String msg = UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX + String.format(" '%1$s'.\n", gradleModule.getProject().getName());
+    msg +=
+      "The IDE will not find references to the project's dependencies, and, as a result, basic functionality will not work properly.";
+    throw new IllegalArgumentException(msg);
   }
+
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {

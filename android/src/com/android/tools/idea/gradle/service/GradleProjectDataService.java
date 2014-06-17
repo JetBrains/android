@@ -18,14 +18,8 @@ package com.android.tools.idea.gradle.service;
 import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.CompilerOutputModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.ContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.customizer.java.DependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.facet.JavaModel;
 import com.android.tools.idea.gradle.util.Facets;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -41,7 +35,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,9 +42,6 @@ import java.util.Map;
  */
 public class GradleProjectDataService implements ProjectDataService<IdeaGradleProject, Void> {
   private static final Logger LOG = Logger.getInstance(GradleProjectDataService.class);
-
-  private final List<ModuleCustomizer<JavaModel>> myCustomizers =
-    ImmutableList.of(new ContentRootModuleCustomizer(), new DependenciesModuleCustomizer(), new CompilerOutputModuleCustomizer());
 
   @NotNull
   @Override
@@ -71,7 +61,7 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     }
   }
 
-  private void doImport(final Collection<DataNode<IdeaGradleProject>> toImport, final Project project) throws Throwable {
+  private static void doImport(final Collection<DataNode<IdeaGradleProject>> toImport, final Project project) throws Throwable {
     RunResult result = new WriteCommandAction.Simple(project) {
       @Override
       protected void run() throws Throwable {
@@ -109,13 +99,9 @@ public class GradleProjectDataService implements ProjectDataService<IdeaGradlePr
     return gradleProjectsByModuleName;
   }
 
-  private void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
+  private static void customizeModule(@NotNull Module module, @NotNull IdeaGradleProject gradleProject) {
     AndroidGradleFacet androidGradleFacet = setAndGetAndroidGradleFacet(module);
     androidGradleFacet.setGradleProject(gradleProject);
-
-    for (ModuleCustomizer<JavaModel> customizer : myCustomizers) {
-      customizer.customizeModule(module, module.getProject(), gradleProject.getJavaModel());
-    }
   }
 
   /**
