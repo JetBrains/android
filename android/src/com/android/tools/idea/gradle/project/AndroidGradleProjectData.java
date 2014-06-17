@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -38,6 +39,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +52,7 @@ import java.util.*;
  * regenerate this objects.
  */
 public class AndroidGradleProjectData implements Serializable {
-
+  @NotNull @NonNls private static final String STATE_FILE_NAME = "model_data.bin";
   private static final boolean ENABLED = !Boolean.getBoolean("studio.disable.synccache");
 
   private static final Set<Class<?>> SUPPORTED_TYPES =
@@ -208,9 +210,16 @@ public class AndroidGradleProjectData implements Serializable {
 
   @NotNull
   private static File getProjectStateFile(@NotNull Project project) throws IOException {
-    // TODO: Once there is a project level model, we can get the build directory from there. For now assume "build".
+    Module projectModule = Projects.findGradleProjectModule(project);
+    if (projectModule != null) {
+      File buildFolderPath = Projects.getBuildFolderPath(projectModule);
+      if (buildFolderPath != null) {
+        return new File(buildFolderPath, FileUtil.join(AndroidProject.FD_INTERMEDIATES, STATE_FILE_NAME));
+      }
+    }
+    // TODO: Once we upgrade to Gradle 2.0, we can get the build directory from there. For now assume "build".
     return new File(VfsUtilCore.virtualToIoFile(project.getBaseDir()),
-                    FileUtil.join(GradleUtil.BUILD_DIR_DEFAULT_NAME, AndroidProject.FD_INTERMEDIATES, "model_data.bin"));
+                    FileUtil.join(GradleUtil.BUILD_DIR_DEFAULT_NAME, AndroidProject.FD_INTERMEDIATES, STATE_FILE_NAME));
   }
 
   /**
@@ -237,7 +246,7 @@ public class AndroidGradleProjectData implements Serializable {
         Class<?> genericClass = (Class<?>)genericType.getRawType();
         if (Collection.class.isAssignableFrom(genericClass)) {
           Collection<Object> collection = (Collection<Object>)object;
-          Collection<Object> newCollection = null;
+          Collection<Object> newCollection;
           if (genericClass.isAssignableFrom(ArrayList.class)) {
             newCollection = Lists.newArrayListWithCapacity(collection.size());
           }
@@ -347,7 +356,6 @@ public class AndroidGradleProjectData implements Serializable {
    * @throws IOException if there is a problem accessing these files.
    */
   private boolean validate(@NotNull File rootDir) throws IOException {
-
     if (!myGradlePluginVersion.equals(SdkConstants.GRADLE_PLUGIN_LATEST_VERSION)) {
       return false;
     }
