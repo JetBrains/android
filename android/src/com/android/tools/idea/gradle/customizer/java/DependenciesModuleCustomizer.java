@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle.customizer.java;
 
 import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -71,6 +75,10 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
       }
     }
     reportUnresolvedDependencies(unresolved, model.getProject());
+
+    JavaGradleFacet facet = setAndGetJavaGradleFacet(model.getModule());
+    JavaModel javaModel = new JavaModel(unresolved, javaProject.getBuildFolderPath());
+    facet.setJavaModel(javaModel);
   }
 
   private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
@@ -162,4 +170,25 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
     return DEFAULT_DEPENDENCY_SCOPE;
   }
+
+  @NotNull
+  private static JavaGradleFacet setAndGetJavaGradleFacet(Module module) {
+    JavaGradleFacet facet = JavaGradleFacet.getInstance(module);
+    if (facet != null) {
+      return facet;
+    }
+
+    // Module does not have Android-Gradle facet. Create one and add it.
+    FacetManager facetManager = FacetManager.getInstance(module);
+    ModifiableFacetModel model = facetManager.createModifiableModel();
+    try {
+      facet = facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null);
+      model.addFacet(facet);
+    }
+    finally {
+      model.commit();
+    }
+    return facet;
+  }
+
 }
