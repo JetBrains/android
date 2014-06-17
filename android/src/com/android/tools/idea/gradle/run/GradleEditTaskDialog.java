@@ -76,10 +76,7 @@ public class GradleEditTaskDialog extends DialogWrapper {
     myTaskField.setText(goal);
   }
 
-  public void setAvailableGoals(List<GradleTask> availableTasks) {
-    myAvailableTasks.clear();
-    for (GradleTask task : availableTasks) {
-      myAvailableTasks.add(task.getProject().getPath() + SdkConstants.GRADLE_PATH_SEPARATOR + task.getName());
-    }
+  public void setAvailableGoals(List<String> availableTasks) {
+    myAvailableTasks = availableTasks;
   }
 }

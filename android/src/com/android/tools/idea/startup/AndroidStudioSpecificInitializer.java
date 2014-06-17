@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.ChooseApiLevelDialog;
 import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
@@ -37,6 +36,11 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.HighlighterColors;
+import com.intellij.openapi.editor.XmlHighlighterColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
@@ -149,6 +153,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         AndroidCodeStyleSettingsModifier.modify(settings);
       }
     }
+
+    // Modify built-in "Default" color scheme to remove background from XML tags.
+    // "Darcula" and user schemes will not be touched.
+    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
+    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
+    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
 
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
