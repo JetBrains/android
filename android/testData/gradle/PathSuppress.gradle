@@ -1,4 +1,4 @@
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 dependencies {
     compile files('my/libs/http1.jar')
