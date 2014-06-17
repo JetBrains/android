@@ -123,6 +123,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
   @NotNull private final List<String> myGradleTasks;
+  @NotNull private final List<String> myCommandLineArguments;
   @NotNull private final GradleInvoker.AfterGradleInvocationTask[] myAfterGradleInvocationTasks;
 
   private volatile int myErrorCount;
@@ -137,9 +138,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
 
   GradleTasksExecutor(@NotNull Project project,
                       @NotNull List<String> gradleTasks,
+                      @NotNull List<String> commandLineArguments,
                       @NotNull GradleInvoker.AfterGradleInvocationTask[] afterGradleInvocationTasks) {
     super(project, String.format("Gradle: Executing Tasks %1$s", gradleTasks.toString()), false /* Gradle does not support cancellation of task execution */);
     myGradleTasks = gradleTasks;
+    myCommandLineArguments = commandLineArguments;
     myAfterGradleInvocationTasks = afterGradleInvocationTasks;
   }
 
@@ -276,6 +279,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
           }
 
           commandLineArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+          commandLineArgs.addAll(myCommandLineArguments);
 
           LOG.info("Build command line options: " + commandLineArgs);
 
