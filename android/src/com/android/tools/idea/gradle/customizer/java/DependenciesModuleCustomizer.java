@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.facet.FacetManager;
@@ -30,6 +31,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
+import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.idea.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -76,9 +78,19 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
     reportUnresolvedDependencies(unresolved, model.getProject());
 
-    JavaGradleFacet facet = setAndGetJavaGradleFacet(model.getModule());
-    JavaModel javaModel = new JavaModel(unresolved, javaProject.getBuildFolderPath());
-    facet.setJavaModel(javaModel);
+    Module module = model.getModule();
+    JavaGradleFacet facet = setAndGetJavaGradleFacet(module);
+    File buildFolderPath = javaProject.getBuildFolderPath();
+    if (Projects.isGradleProjectModule(module)) {
+      // For project module we store the path of "build" folder in the facet itself, so the caching mechanism can obtain the path when
+      // the project is opened. This module does not need a JavaModel.
+      facet.getConfiguration().BUILD_FOLDER_PATH =
+        buildFolderPath != null ? FileUtil.toSystemIndependentName(buildFolderPath.getPath()) : "";
+    }
+    else {
+      JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
+      facet.setJavaModel(javaModel);
+    }
   }
 
   private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
