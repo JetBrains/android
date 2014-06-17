@@ -83,8 +83,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   public static final Logger LOG = Logger.getInstance(TemplateParameterStep2.class);
   public static final int COLUMN_COUNT = 3;
   private final Function<Parameter, Key<?>> myParameterToKey;
-  private final Map<String, Object> myPresetParameters;
+  private final Map<String, Object> myPresetParameters = Maps.newHashMap();
   @Nullable private final VirtualFile myTargetDirectory;
+  @NotNull private final Key<String> myPackageNameKey;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
   private JLabel myTemplateDescription;
@@ -104,10 +105,12 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
    *                         User will not be allowed to change their values.
    */
   public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
-                                @Nullable VirtualFile targetDirectory, @Nullable Disposable disposable) {
+                                @Nullable VirtualFile targetDirectory, @Nullable Disposable disposable,
+                                @NotNull Key<String> packageNameKey) {
     super("Choose options for your new file", null, formFactor.getIcon(), disposable);
-    myPresetParameters = presetParameters;
+    myPresetParameters.putAll(presetParameters);
     myTargetDirectory = targetDirectory;
+    myPackageNameKey = packageNameKey;
     myParameterToKey = CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(new ParameterKeyFunction()));
     myRootPanel.setBorder(createBodyBorder());
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
@@ -121,6 +124,10 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       sourceUrl = "";
     }
     return new TextFieldWithLaunchBrowserButton(sourceUrl);
+  }
+
+  public void setPresetValue(@NotNull String key, @Nullable Object value) {
+    myPresetParameters.put(key, value);
   }
 
   private static JComponent createEnumCombo(Parameter parameter) {
@@ -400,7 +407,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       if (param != null) {
         Object value = getStateParameterValue(param);
         String error = param.validate(getProject(), getModule(), getSourceProvider(),
-                                      myState.get(AddAndroidActivityPath.KEY_PACKAGE_NAME),
+                                      myState.get(myPackageNameKey),
                                       value != null ? value : "");
         if (error != null) {
           // Highlight?
@@ -739,7 +746,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       project = getProject();
       module = getModule();
       provider = myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER);
-      packageName = myState.get(AddAndroidActivityPath.KEY_PACKAGE_NAME);
+      packageName = myState.get(myPackageNameKey);
     }
 
     @Override
