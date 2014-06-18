@@ -57,7 +57,7 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
 
     Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
-    messages.reportUnresolvedDependencies(unresolvedDependencies);
+    messages.reportUnresolvedDependencies(unresolvedDependencies, model.getModule());
   }
 
   private void updateDependency(@NotNull ModifiableRootModel model, @NotNull LibraryDependency dependency) {
