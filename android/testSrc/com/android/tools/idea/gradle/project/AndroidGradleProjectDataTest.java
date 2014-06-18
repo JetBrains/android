@@ -149,10 +149,17 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     long previousSyncTime = syncState.getLastGradleSyncTimestamp();
 
     AndroidGradleProjectData data = AndroidGradleProjectData.createFrom(project);
+    assertNotNull(data);
 
     Map<String, byte[]> checksums = data.getFileChecksums();
-    assertEquals(4, checksums.size());
-    assertContainsElements(checksums.keySet(), "build.gradle", "settings.gradle", "app/build.gradle", "lib/build.gradle");
+    assertEquals(7, checksums.size());
+    assertContainsElements(checksums.keySet(), "gradle.properties", "local.properties", "build.gradle", "settings.gradle",
+                           "app/build.gradle", "lib/build.gradle");
+    String home = System.getProperty("user.home");
+    if (home != null) {
+      File userProperties = new File(new File(home), ".gradle/gradle.properties");
+      assertContainsElements(checksums.keySet(), userProperties.getPath());
+    }
 
     Map<String, AndroidGradleProjectData.ModuleData> modules = data.getModuleData();
     assertEquals(3, modules.size());
