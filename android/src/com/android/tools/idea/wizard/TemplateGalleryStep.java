@@ -263,4 +263,6 @@ public class TemplateGalleryStep extends TemplateWizardStep
       return input.myMetadata.getTitle();
     }
   }
+
+
 }
