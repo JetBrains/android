@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -61,6 +62,9 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   private JBLabel myIcon;
   private JLabel myDescriptionText;
   private JBLabel myErrorWarningLabel;
+  private JPanel myNorthPanel;
+  private JPanel myCustomHeaderPanel;
+  private JPanel myTitlePanel;
   private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
 
   /**
@@ -86,6 +90,30 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     int fontHeight = myMessageLabel.getFont().getSize();
     myTitleLabel.setBorder(BorderFactory.createEmptyBorder(fontHeight, 0, fontHeight, 0));
     myMessageLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, fontHeight, 0));
+    if (getTitleBackgroundColor() != null) {
+      myTitlePanel.setBackground(getTitleBackgroundColor());
+      myNorthPanel.setBackground(getTitleBackgroundColor());
+    }
+    if (getTitleTextColor() != null) {
+      myTitleLabel.setForeground(getTitleTextColor());
+      myMessageLabel.setForeground(getTitleTextColor());
+    }
+
+    JComponent header = getHeader();
+    if (header != null) {
+      myCustomHeaderPanel.add(header, BorderLayout.CENTER);
+      header.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
+      myCustomHeaderPanel.setVisible(true);
+      myCustomHeaderPanel.repaint();
+      myTitlePanel.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
+    } else {
+      Insets topSegmentInsets = new Insets(DynamicWizard.STUDIO_WIZARD_TOP_INSET,
+                                           DynamicWizard.STUDIO_WIZARD_INSETS.left,
+                                           DynamicWizard.STUDIO_WIZARD_INSETS.bottom,
+                                           DynamicWizard.STUDIO_WIZARD_INSETS.right);
+      myNorthPanel.setBorder(new EmptyBorder(topSegmentInsets));
+    }
+
     Font font = myTitleLabel.getFont();
     if (font == null) {
       font = UIUtil.getLabelFont();
@@ -131,6 +159,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   }
 
   protected final void setBodyComponent(JComponent component) {
+    component.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
     myRootPane.add(component, BorderLayout.CENTER);
   }
 
@@ -168,6 +197,21 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
 
   protected final void setDescriptionText(@Nullable String templateDescription) {
     getDescriptionText().setText(ImportUIUtil.makeHtmlString(templateDescription));
+  }
+
+  @Nullable
+  protected JBColor getTitleBackgroundColor() {
+    return null;
+  }
+
+  @Nullable
+  protected JBColor getTitleTextColor() {
+    return null;
+  }
+
+  @Nullable
+  protected JComponent getHeader() {
+    return null;
   }
 
   @NotNull

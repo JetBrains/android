@@ -117,6 +117,8 @@ public class AndroidIcons {
     public static final Icon FormFactorWearDark = load("/icons/wizards/wear-dark.png"); // 64x64
     public static final Icon FormFactorGlassLight = load("/icons/wizards/glass-light.png"); // 64x64
     public static final Icon FormFactorGlassDark = load("/icons/wizards/glass-dark.png"); // 64x64
+    public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
+    public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
   }
 
   public static class Views {
