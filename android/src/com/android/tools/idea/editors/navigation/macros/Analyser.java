@@ -43,7 +43,7 @@ import static com.android.tools.idea.editors.navigation.Utilities.getPsiClass;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Analyser {
   private static final Logger LOG = Logger.getInstance("#" + Analyser.class.getName());
-  private static final String ID_PREFIX = "@+id/";
+  private static final String[] ID_PREFIXES = {"@+id/", "@android:id/"};
   private static final boolean DEBUG = false;
 
   private final Project myProject;
@@ -62,11 +62,7 @@ public class Analyser {
       return null;
     }
     else {
-      if (className.startsWith(".")) { // in Android Manifest files a leading "." represents the default package
-        className = className.substring(1);
-      }
-      // what is the rule for AndroidManifest.xml when there is no "." preceding an unqualified class name?
-      return !className.contains(".") ? (packageName + "." + className) : className;
+      return className.startsWith(".") ? packageName + className : className;
     }
   }
 
@@ -519,6 +515,18 @@ public class Analyser {
     return result;
   }
 
+  private static String getPrefix(String idName) {
+    for(String prefix : ID_PREFIXES) {
+      if (idName.startsWith(prefix)) {
+          return prefix;
+      }
+    }
+    int firstSlash = idName.indexOf('/');
+    String prefix = idName.substring(0, firstSlash + 1); // prefix is "" when '/' is absent
+    LOG.warn("Unrecognized prefix: " + prefix + " in " + idName);
+    return prefix;
+  }
+
   private static Set<String> getIds(@Nullable XmlFile psiFile) {
     final Set<String> result = new HashSet<String>();
     if (psiFile == null) {
@@ -530,8 +538,7 @@ public class Analyser {
         super.visitXmlTag(tag);
         String id = tag.getAttributeValue("android:id");
         if (id != null) {
-          assert id.startsWith(ID_PREFIX);
-          result.add(id.substring(ID_PREFIX.length()));
+          result.add(id.substring(getPrefix(id).length()));
         }
       }
     });
