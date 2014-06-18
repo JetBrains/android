@@ -64,24 +64,37 @@ import static com.android.tools.idea.gradle.util.Projects.hasErrors;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
-public class PostProjectSyncTasksExecutor {
+public class PostProjectSetupTasksExecutor {
   @NotNull private final Project myProject;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
   private volatile boolean myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
 
   @NotNull
-  public static PostProjectSyncTasksExecutor getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, PostProjectSyncTasksExecutor.class);
+  public static PostProjectSetupTasksExecutor getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, PostProjectSetupTasksExecutor.class);
   }
 
-  public PostProjectSyncTasksExecutor(@NotNull Project project) {
+  public PostProjectSetupTasksExecutor(@NotNull Project project) {
     myProject = project;
   }
 
-  public void onProjectSetupCompletion() {
+
+  public void onProjectRestoreFromDisk() {
     if (hasErrors(myProject)) {
-      addOpenSdkManagerLink();
+      addSdkLinkIfNecessary();
+      return;
+    }
+
+    findAndShowVariantConflicts();
+    addSdkLinkIfNecessary();
+
+    TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
+  }
+
+  public void onProjectSyncCompletion() {
+    if (hasErrors(myProject)) {
+      addSdkLinkIfNecessary();
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
     }
@@ -99,7 +112,7 @@ public class PostProjectSyncTasksExecutor {
     }
 
     findAndShowVariantConflicts();
-    addOpenSdkManagerLink();
+    addSdkLinkIfNecessary();
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
 
@@ -347,7 +360,7 @@ public class PostProjectSyncTasksExecutor {
     conflicts.showSelectionConflicts();
   }
 
-  private void addOpenSdkManagerLink() {
+  private void addSdkLinkIfNecessary() {
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
     int sdkErrorCount = messages.getMessageCount(FAILED_TO_SET_UP_SDK);
