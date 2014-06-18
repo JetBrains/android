@@ -1,4 +1,4 @@
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 dependencies {
     compile <warning descr="Do not use Windows file separators in .gradle files; use / instead">files('my\\libs\\http.jar')</warning>
