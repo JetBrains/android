@@ -18,7 +18,7 @@
   <company name="Google Inc." url="http://developer.android.com"/>
   <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.909"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
-  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="ffaa16" progressY="238" progressTailIcon="/community_progress_tail.png"/>
+  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="8bc34a" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
   <icon size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png"/>
   <package code="__PACKAGE_CODE__"/>
