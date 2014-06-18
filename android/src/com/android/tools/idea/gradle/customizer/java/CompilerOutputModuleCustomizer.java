@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
+import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractCompileOutputModuleCustomizer;
-import com.android.tools.idea.gradle.facet.JavaModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
@@ -28,18 +30,33 @@ import java.io.File;
 /**
  * Sets the compiler output folder to a module imported from an {@link com.android.builder.model.AndroidProject}.
  */
-public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<JavaModel> {
+public class CompilerOutputModuleCustomizer extends AbstractCompileOutputModuleCustomizer<IdeaJavaProject> {
+  @NonNls private static final String CLASSES_FOLDER_NAME = "classes";
+
   @Override
-  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable JavaModel javaModel) {
-    if (javaModel == null) {
+  public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable IdeaJavaProject javaProject) {
+    if (javaProject == null) {
       return;
     }
-    ExtIdeaCompilerOutput compilerOutput = javaModel.getCompilerOutput();
-    File mainClassesFolder = compilerOutput.getMainClassesDir();
+    File mainClassesFolder = null;
+    File testClassesFolder = null;
+    ExtIdeaCompilerOutput compilerOutput = javaProject.getCompilerOutput();
+    if (compilerOutput == null) {
+      File buildFolderPath = javaProject.getBuildFolderPath();
+      if (buildFolderPath != null) {
+        mainClassesFolder = new File(buildFolderPath, FileUtil.join(CLASSES_FOLDER_NAME, "main"));
+        testClassesFolder = new File(buildFolderPath, FileUtil.join(CLASSES_FOLDER_NAME, "test"));
+      }
+    }
+    else {
+      mainClassesFolder = compilerOutput.getMainClassesDir();
+      testClassesFolder = compilerOutput.getTestClassesDir();
+    }
+
     if (mainClassesFolder != null) {
       // This folder is null for modules that are just folders containing other modules. This type of modules are later on removed by
       // PostProjectSyncTaskExecutor.
-      setOutputPaths(module, mainClassesFolder, compilerOutput.getTestClassesDir());
+      setOutputPaths(module, mainClassesFolder, testClassesFolder);
     }
   }
 }
