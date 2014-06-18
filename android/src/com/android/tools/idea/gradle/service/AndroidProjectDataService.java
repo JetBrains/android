@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
 import com.android.tools.idea.gradle.customizer.android.*;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.project.PostProjectSyncTasksExecutor;
+import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -103,7 +103,7 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
       }
     }
 
-    PostProjectSyncTasksExecutor.getInstance(project).onProjectSetupCompletion();
+    PostProjectSetupTasksExecutor.getInstance(project).onProjectSyncCompletion();
   }
 
   private void doImport(final Collection<DataNode<IdeaAndroidProject>> toImport, final Project project) throws Throwable {
