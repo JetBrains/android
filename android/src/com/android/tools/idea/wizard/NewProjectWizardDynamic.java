@@ -109,13 +109,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       state.put(MAVEN_URL_KEY, mavenUrl);
     }
     super.init();
-
-    Window window = getWindow();
-    if (window != null) {
-      window.setPreferredSize(new Dimension(800, 640));
-    } else {
-      assert ApplicationManager.getApplication().isUnitTestMode();
-    }
   }
 
   @Override
