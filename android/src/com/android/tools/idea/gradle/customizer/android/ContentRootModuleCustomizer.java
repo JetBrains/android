@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.util.io.FileUtil;
@@ -61,7 +62,8 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries,
+  protected void setUpContentEntries(@NotNull Module module,
+                                     @NotNull Collection<ContentEntry> contentEntries,
                                      @NotNull IdeaAndroidProject androidProject,
                                      @NotNull List<RootSourceFolder> orphans) {
     Variant selectedVariant = androidProject.getSelectedVariant();
