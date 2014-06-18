@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.service.resolve;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.lint.checks.GradleDetector;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -63,9 +63,6 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   @NonNls private static final String DSL_ANDROID = "android";
   @NonNls private static final String ANDROID_FQCN = "com.android.build.gradle.AppExtension";
   @NonNls private static final String ANDROID_LIB_FQCN = "com.android.build.gradle.LibraryExtension";
-
-  private static final Set<String> ANDROID_PLUGIN_IDS = Sets.newHashSet("android", "com.android.application");
-  private static final Set<String> ANDROID_LIBRARY_PLUGIN_IDS = Sets.newHashSet("android-library", "com.android.library");
 
   private static final Key<PsiElement> CONTRIBUTOR_KEY = Key.create("AndroidDslContributor.key");
 
@@ -413,14 +410,15 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   private static String resolveAndroidExtension(PsiFile file) {
     assert file instanceof GroovyFile;
     List<String> plugins = GradleBuildFile.getPlugins((GroovyFile)file);
-    for (String plugin : plugins) {
-      if (ANDROID_PLUGIN_IDS.contains(plugin)) {
-        return ANDROID_FQCN;
-      } else if (ANDROID_LIBRARY_PLUGIN_IDS.contains(plugin)) {
-        return ANDROID_LIB_FQCN;
-      }
+    if (plugins.contains(GradleDetector.APP_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_APP_PLUGIN_ID)) {
+      return ANDROID_FQCN;
     }
-    return null;
+    else if (plugins.contains(GradleDetector.LIB_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_LIB_PLUGIN_ID)) {
+      return ANDROID_LIB_FQCN;
+    }
+    else {
+      return null;
+    }
   }
 
   /**
