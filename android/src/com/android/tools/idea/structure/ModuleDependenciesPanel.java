@@ -461,6 +461,13 @@ public class ModuleDependenciesPanel extends EditorPanel {
     return myModel.isModified();
   }
 
+  public void select(@NotNull String dependency) {
+    int row = myModel.getRow(dependency);
+    if (row >= 0) {
+      myEntryTable.getSelectionModel().setSelectionInterval(row, row);
+    }
+  }
+
   private static class TableItemRenderer extends ColoredTableCellRenderer {
     private final Border NO_FOCUS_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 

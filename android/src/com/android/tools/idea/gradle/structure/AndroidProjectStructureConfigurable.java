@@ -129,6 +129,18 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     });
   }
 
+  public boolean showDialogAndSelectDependency(@NotNull final Module module, @NotNull final String dependency) {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        AndroidModuleConfigurable configurable = mySidePanel.select(module);
+        if (configurable != null) {
+          configurable.selectDependency(dependency);
+        }
+      }
+    });
+  }
+
   public boolean showDialog() {
     return doShowDialog(null);
   }
@@ -571,15 +583,17 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       return new Dimension(Math.max(original.width, 100), original.height);
     }
 
-    void select(@NotNull Module module) {
+    @Nullable
+    AndroidModuleConfigurable select(@NotNull Module module) {
       for (int i = 0; i < myListModel.size(); i++) {
         Object object = myListModel.elementAt(i);
         if (object instanceof AndroidModuleConfigurable &&
             ((AndroidModuleConfigurable)object).getEditableObject() == module) {
             myList.setSelectedValue(object, true);
-            return;
+            return (AndroidModuleConfigurable)object;
         }
       }
+      return null;
     }
 
     void selectSdk() {
