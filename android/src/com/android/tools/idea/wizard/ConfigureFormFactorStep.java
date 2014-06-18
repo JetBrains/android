@@ -438,4 +438,16 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       return label;
     }
   }
+
+  @Nullable
+  @Override
+  protected JComponent getHeader() {
+    return ConfigureAndroidProjectPath.buildConfigurationHeader();
+  }
+
+  @Override
+  @Nullable
+  protected JBColor getTitleTextColor() {
+    return ConfigureAndroidProjectPath.ANDROID_NPW_TITLE_COLOR;
+  }
 }

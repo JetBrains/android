@@ -23,18 +23,22 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.JBColor;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -54,6 +58,8 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
   public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
   public static final Key<List> INSTALL_REQUESTS_KEY = createKey("packagesToInstall", WIZARD, List.class);
+  public static final JBColor ANDROID_NPW_TITLE_COLOR = new JBColor(0x689F38, 0xFFFFFF);
+  public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x689F38, 0x356822);
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidProjectPath.class);
 
   @NotNull
@@ -66,6 +72,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   @Override
   protected void init() {
     putSdkDependentParams();
+
     addStep(new ConfigureAndroidProjectStep(myParentDisposable));
     addStep(new ConfigureFormFactorStep(myParentDisposable));
     addStep(new LicenseAgreementStep(myParentDisposable));
@@ -131,5 +138,30 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
       }
     }
     return false;
+  }
+
+  protected static JPanel buildConfigurationHeader() {
+    JPanel panel = new JPanel();
+    panel.setBackground(ANDROID_NPW_HEADER_COLOR);
+    panel.setBorder(BorderFactory.createLineBorder(Color.RED));
+    panel.setLayout(new GridLayoutManager(2, 2, new Insets(18, 0, 12, 0), 2, 2));
+    GridConstraints c = new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_NORTHWEST,
+                                            GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                            GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(60, 60), null);
+    ImageComponent image = new ImageComponent(AndroidIcons.Wizards.NewProjectMascotGreen);
+    panel.add(image, c);
+    c = new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_SOUTHWEST, GridConstraints.FILL_HORIZONTAL,
+                            GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+                            GridConstraints.SIZEPOLICY_FIXED, null, null, null);
+    JLabel projectLabel = new JLabel("New Project");
+    projectLabel.setForeground(Color.WHITE);
+    projectLabel.setFont(projectLabel.getFont().deriveFont(24f));
+    panel.add(projectLabel, c);
+    c.setRow(1);
+    c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
+    JLabel productLabel = new JLabel("Android Studio");
+    productLabel.setForeground(Color.WHITE);
+    panel.add(productLabel, c);
+    return panel;
   }
 }
