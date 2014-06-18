@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.tools.lint.detector.api.ClassContext;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.lang.UrlClassLoader;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 
 import static com.android.SdkConstants.DOT_CLASS;
@@ -74,6 +76,34 @@ public abstract class RenderClassLoader extends ClassLoader {
     try {
       myInsideJarClassLoader = true;
       return myJarClassLoader.loadClass(name);
+    }
+    catch (UnsupportedClassVersionError e) {
+      try {
+        String relative = ClassContext.getInternalName(name) + DOT_CLASS;
+        InputStream is = myJarClassLoader.getResourceAsStream(relative);
+        if (is != null) {
+          byte[] data = ByteStreams.toByteArray(is);
+          is.close();
+          if (!isValidClassFile(data)) {
+            throw e;
+          }
+
+          byte[] rewritten = ClassConverter.rewriteClass(data);
+          try {
+            return defineClass(null, rewritten, 0, rewritten.length);
+          }
+          catch (UnsupportedClassVersionError inner) {
+            // Wrap the UnsupportedClassVersionError as a InconvertibleClassError
+            // such that clients can look up the actual bytecode version required.
+            // Note that we wrap the original error, not the one from the attempted
+            // class rewrite.
+            throw InconvertibleClassError.wrap(e, name, data);
+          }
+        }
+        throw e;
+      } catch (Exception ex) {
+        throw e;
+      }
     }
     catch (ClassNotFoundException e) {
       LOG.debug(e);
