@@ -74,6 +74,9 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
   private static final String TOP_LEVEL_BUILD_GRADLE = "buildscript {\n" +
                                                        "    repositories {\n" +
                                                        "        mavenCentral()\n" +
+                                                       "        if (System.getenv(\"MAVEN_URL\") != null) {\n" +
+                                                       "          maven {url System.getenv(\"MAVEN_URL\")}\n" +
+                                                       "        }" +
                                                        "    }\n" +
                                                        "    dependencies {\n" +
                                                        "        classpath 'com.android.tools.build:gradle:" +
