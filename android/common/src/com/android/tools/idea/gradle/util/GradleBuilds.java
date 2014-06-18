@@ -105,7 +105,7 @@ public final class GradleBuilds {
   }
 
   @NotNull
-  private static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
+  public static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
     if (gradleProjectPath.equals(SdkConstants.GRADLE_PATH_SEPARATOR)) {
       // Prevent double colon when dealing with root module (e.g. "::assemble");
       return gradleProjectPath + taskName;
