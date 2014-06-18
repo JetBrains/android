@@ -77,10 +77,12 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
         }
       }
     }
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
-    messages.reportUnresolvedDependencies(unresolved);
 
     Module module = model.getModule();
+
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
+    messages.reportUnresolvedDependencies(unresolved, module);
+
     JavaGradleFacet facet = setAndGetJavaGradleFacet(module);
     File buildFolderPath = javaProject.getBuildFolderPath();
     if (Projects.isGradleProjectModule(module)) {
