@@ -108,6 +108,7 @@ public class NavigationView extends JComponent {
   // Configuration
 
   private boolean showRollover = false;
+  private boolean mDrawGrid = false;
 
   /*
   void foo(String layoutFileBaseName) {
@@ -457,7 +458,14 @@ public class NavigationView extends JComponent {
     super.paintComponent(g);
 
     // draw background
-    g.drawImage(getBackGroundImage(), 0, 0, null);
+    if (mDrawGrid) {
+      g.drawImage(getBackGroundImage(), 0, 0, null);
+    } else {
+      Color tmp = getBackground();
+      g.setColor(BACKGROUND_COLOR);
+      g.fillRect(0, 0, getWidth(), getHeight());
+      g.setColor(tmp);
+    }
 
     // draw component shadows
     for (Component c : getStateComponentAssociation().keyToValue.values()) {
