@@ -91,13 +91,13 @@ public class PostProjectSetupTasksExecutor {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
         Collection<String> unresolved = androidFacet.getIdeaAndroidProject().getDelegate().getUnresolvedDependencies();
-        messages.reportUnresolvedDependencies(unresolved);
+        messages.reportUnresolvedDependencies(unresolved, module);
         continue;
       }
       JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
       if (javaFacet != null && javaFacet.getJavaModel() != null) {
         List<String> unresolved = javaFacet.getJavaModel().getUnresolvedDependencyNames();
-        messages.reportUnresolvedDependencies(unresolved);
+        messages.reportUnresolvedDependencies(unresolved, module);
       }
     }
 

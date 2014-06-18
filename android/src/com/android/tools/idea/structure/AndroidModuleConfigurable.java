@@ -23,6 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -95,5 +96,9 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
   @Override
   public Icon getIcon(boolean expanded) {
     return AllIcons.Nodes.Module;
+  }
+
+  public void selectDependency(@NotNull String dependency) {
+    myModuleEditor.selectDependency(dependency);
   }
 }
