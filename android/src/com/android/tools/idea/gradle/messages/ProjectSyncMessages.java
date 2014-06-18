@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.messages;
 
 import com.android.tools.idea.gradle.service.notification.GradleNotificationExtension;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.SearchInBuildFilesHyperlink;
+import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
@@ -30,11 +32,15 @@ import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.util.Collection;
+
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
+import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
+
 /**
  * Service that collects and displays, in the "Messages" tool window, post-sync project setup messages (errors, warnings, etc.)
  */
 public class ProjectSyncMessages {
-
   @NotNull private final Project myProject;
   @NotNull private final ExternalSystemNotificationManager myNotificationManager;
 
@@ -81,11 +87,20 @@ public class ProjectSyncMessages {
     myNotificationManager.showNotification(GradleConstants.SYSTEM_ID, notification);
   }
 
-  public void activateView() {
-    myNotificationManager.openMessageView(GradleConstants.SYSTEM_ID, NotificationSource.PROJECT_SYNC);
-  }
-
   public boolean isEmpty() {
     return myNotificationManager.getMessageCount(NotificationSource.PROJECT_SYNC, null, GradleConstants.SYSTEM_ID) == 0;
+  }
+
+  public void reportUnresolvedDependencies(@NotNull Collection<String> unresolvedDependencies) {
+    for (String dep : unresolvedDependencies) {
+      String group = dep.startsWith("com.android.support:") ? UNRESOLVED_ANDROID_DEPENDENCIES : UNRESOLVED_DEPENDENCIES;
+      Message msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, dep);
+
+      add(msg, new SearchInBuildFilesHyperlink(dep));
+    }
+
+    if (!unresolvedDependencies.isEmpty()) {
+      myProject.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, true);
+    }
   }
 }
