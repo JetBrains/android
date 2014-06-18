@@ -302,7 +302,7 @@ public class NavigationEditor implements FileEditor {
       {
         HyperlinkLabel label = new HyperlinkLabel();
         label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
-        label.setHyperlinkText(" ", "?", " ");
+        label.setHyperlinkText(" ", "What's this?", " ");
         panel.add(label, BorderLayout.EAST);
       }
     }
