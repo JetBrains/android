@@ -16,8 +16,13 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
+import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -41,9 +46,11 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +77,9 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
   private static final Pattern UNKNOWN_HOST_PATTERN = Pattern.compile("Unknown host '(.*)'(.*)");
+
+  private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
+    Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
 
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
@@ -200,8 +210,49 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
       String firstLine = lines.get(0);
 
-      Matcher matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
+      Matcher matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        boolean buildToolInstalled = false;
 
+        String minimumVersion = matcher.group(3);
+
+        LocalSdk localAndroidSdk = null;
+        String gradlePath = matcher.group(2);
+        Module module = GradleUtil.findModuleByGradlePath(project, gradlePath);
+        if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+          localAndroidSdk = DefaultSdks.getLocalAndroidSdk();
+        }
+        else if (module != null) {
+          AndroidFacet facet = AndroidFacet.getInstance(module);
+          if (facet != null) {
+            AndroidSdkData sdkData = facet.getSdkData();
+            localAndroidSdk = sdkData != null ? sdkData.getLocalSdk() : null;
+          }
+        }
+        if (localAndroidSdk != null) {
+          BuildToolInfo buildTool = localAndroidSdk.getBuildTool(FullRevision.parseRevision(minimumVersion));
+          buildToolInstalled = buildTool != null;
+        }
+
+        if (module != null) {
+          VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+          List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+          if (!buildToolInstalled) {
+            hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
+          }
+          else if (buildFile != null) {
+            hyperlinks.add(new FixBuildToolsVersionHyperlink(buildFile, minimumVersion));
+          }
+          if (buildFile != null) {
+            hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
+          }
+          if (!hyperlinks.isEmpty()) {
+            updateNotification(notification, project, msg, hyperlinks);
+          }
+        }
+      }
+
+      matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
       if (matcher.matches()) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
 
