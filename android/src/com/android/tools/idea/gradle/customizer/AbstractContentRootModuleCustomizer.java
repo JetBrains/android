@@ -53,7 +53,7 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
 
       Collection<ContentEntry> contentEntries = findOrCreateContentEntries(rootModel, model);
       List<RootSourceFolder> orphans = Lists.newArrayList();
-      setUpContentEntries(contentEntries, model, orphans);
+      setUpContentEntries(module, contentEntries, model, orphans);
 
       for (RootSourceFolder orphan : orphans) {
         File path = orphan.getPath();
@@ -69,7 +69,8 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
   @NotNull
   protected abstract Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull T model);
 
-  protected abstract void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries,
+  protected abstract void setUpContentEntries(@NotNull Module module,
+                                              @NotNull Collection<ContentEntry> contentEntries,
                                               @NotNull T model,
                                               @NotNull List<RootSourceFolder> orphans);
 

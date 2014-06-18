@@ -238,4 +238,33 @@ public final class Projects {
     }
     return false;
   }
+
+  /**
+   * Indicates whether the given module is the one that represents the project.
+   * <p>
+   * For example, in this project:
+   * <pre>
+   * project1
+   * - module1
+   *   - module1.iml
+   * - module2
+   *   - module2.iml
+   * -project1.iml
+   * </pre>
+   * "project1" is the module that represents the project.
+   * </p>
+   *
+   * @param module the given module.
+   * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
+   */
+  public static boolean isGradleProjectModule(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null && androidFacet.isGradleProject()) {
+      // If the module is an Android project, check that the module's path is the same as the project's.
+      File moduleRootDirPath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath())).getParentFile();
+      return FileUtil.pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
+    }
+    // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
+    return AndroidGradleFacet.getInstance(module) == null;
+  }
 }
