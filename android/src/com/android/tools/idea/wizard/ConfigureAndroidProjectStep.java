@@ -59,7 +59,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
 
 
-  private static final String EXAMPLE_DOMAIN = "yourname.com";
+  private static final String EXAMPLE_DOMAIN = "example.com";
   public static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
   public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(INVALID_FILENAME_CHARS);
@@ -120,6 +120,9 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
     if (savedCompanyDomain == null) {
       savedCompanyDomain = nameToPackage(System.getProperty("user.name"));
+      if (savedCompanyDomain != null) {
+        savedCompanyDomain = savedCompanyDomain + '.' + EXAMPLE_DOMAIN;
+      }
     }
     if (savedCompanyDomain == null) {
       savedCompanyDomain = EXAMPLE_DOMAIN;
