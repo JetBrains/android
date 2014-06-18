@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
+import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.customizer.AbstractContentRootModuleCustomizer;
-import com.android.tools.idea.gradle.facet.JavaModel;
 import com.android.tools.idea.gradle.util.FilePaths;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.util.io.FileUtil;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.jetbrains.annotations.NotNull;
@@ -35,25 +38,33 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<JavaModel> {
+public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaJavaProject> {
   @Override
   @NotNull
-  protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel rootModel, @NotNull JavaModel model) {
+  protected Collection<ContentEntry> findOrCreateContentEntries(@NotNull ModifiableRootModel model, @NotNull IdeaJavaProject javaProject) {
     List<ContentEntry> allEntries = Lists.newArrayList();
-    for (IdeaContentRoot contentRoot : model.getContentRoots()) {
+    for (IdeaContentRoot contentRoot : javaProject.getContentRoots()) {
       File rootDirPath = contentRoot.getRootDirectory();
-      ContentEntry contentEntry = rootModel.addContentEntry(FilePaths.pathToIdeaUrl(rootDirPath));
+      ContentEntry contentEntry = model.addContentEntry(FilePaths.pathToIdeaUrl(rootDirPath));
       allEntries.add(contentEntry);
     }
     return allEntries;
   }
 
   @Override
-  protected void setUpContentEntries(@NotNull Collection<ContentEntry> contentEntries,
-                                     @NotNull JavaModel model,
+  protected void setUpContentEntries(@NotNull Module module,
+                                     @NotNull Collection<ContentEntry> contentEntries,
+                                     @NotNull IdeaJavaProject javaProject,
                                      @NotNull List<RootSourceFolder> orphans) {
-    List<IdeaContentRoot> contentRoots = model.getContentRoots();
-    for (IdeaContentRoot contentRoot : contentRoots) {
+    boolean isTopLevelJavaModule = Projects.isGradleProjectModule(module);
+
+    File buildFolderPath = javaProject.getBuildFolderPath();
+    boolean buildFolderUnexcluded = buildFolderPath == null;
+
+    for (IdeaContentRoot contentRoot : javaProject.getContentRoots()) {
+      if (contentRoot == null) {
+        continue;
+      }
       addSourceFolders(contentEntries, contentRoot.getSourceDirectories(), JavaSourceRootType.SOURCE, orphans);
       addSourceFolders(contentEntries, contentRoot.getTestDirectories(), JavaSourceRootType.TEST_SOURCE, orphans);
 
@@ -67,6 +78,13 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
         if (excluded != null) {
           ContentEntry contentEntry = findParentContentEntry(contentEntries, excluded);
           if (contentEntry != null) {
+            if (isTopLevelJavaModule && !buildFolderUnexcluded) {
+              // We need to "undo" the implicit exclusion of "build" folder for top-level module.
+              if (FileUtil.filesEqual(excluded, buildFolderPath)) {
+                buildFolderUnexcluded = true;
+                continue;
+              }
+            }
             addExcludedFolder(contentEntry, excluded);
           }
         }
