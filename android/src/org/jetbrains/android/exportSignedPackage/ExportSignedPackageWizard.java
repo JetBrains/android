@@ -17,18 +17,34 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.GradleBuilds;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -38,6 +54,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.siyeh.ig.psiutils.IteratorUtils;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -52,12 +69,20 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Eugene.Kudelevsky
  */
 public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackageWizardStep> {
+  private static final Logger LOG = Logger.getInstance(ExportSignedPackageWizard.class);
+
+  private static final String NOTIFICATION_TITLE = "Generate signed APK";
+  private static final String NOTIFICATION_GROUPID = "Android";
+
   private final Project myProject;
 
   private AndroidFacet myFacet;
@@ -67,6 +92,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private boolean mySigned;
   private CompileScope myCompileScope;
   private String myApkPath;
+
+  // build type, list of flavors and gradle signing info are valid only for Gradle projects
+  private String myBuildType;
+  private List<String> myFlavors;
+  private GradleSigningInfo myGradleSigningInfo;
 
   public ExportSignedPackageWizard(Project project, List<AndroidFacet> facets, boolean signed) {
     super(AndroidBundle.message("android.export.package.wizard.title"), project);
@@ -80,10 +110,17 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     else {
       myFacet = facets.get(0);
     }
+    boolean useGradleToSign = facets.get(0).isGradleProject();
+
     if (signed) {
-      addStep(new KeystoreStep(this));
+      addStep(new KeystoreStep(this, useGradleToSign));
     }
-    addStep(new ApkStep(this));
+
+    if (useGradleToSign) {
+      addStep(new GradleSignStep(this));
+    } else {
+      addStep(new ApkStep(this));
+    }
     init();
   }
 
@@ -96,6 +133,15 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     if (!commitCurrentStep()) return;
     super.doOKAction();
 
+    assert myFacet != null;
+    if (myFacet.isGradleProject()) {
+      buildAndSignGradleProject();
+    } else {
+      buildAndSignIntellijProject();
+    }
+  }
+
+  private void buildAndSignIntellijProject() {
     CompilerManager.getInstance(myProject).make(myCompileScope, new CompileStatusNotification() {
       @Override
       public void finished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
@@ -112,6 +158,103 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         });
       }
     });
+  }
+
+  private void buildAndSignGradleProject() {
+    ProgressManager.getInstance().run(new Task.Backgroundable(myProject, "Generating signed APKs", false, null) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(myFacet.getModule());
+        if (gradleFacet == null) {
+          LOG.error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
+          return;
+        }
+        String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+
+        IdeaAndroidProject ideaAndroidProject = myFacet.getIdeaAndroidProject();
+        if (ideaAndroidProject == null) {
+          LOG.error("Unable to obtain gradle project model. Did the last Gradle sync complete successfully?");
+          return;
+        }
+
+        List<String> assembleTasks = getAssembleTasks(gradleProjectPath, ideaAndroidProject.getDelegate(), myBuildType, myFlavors);
+
+        List<String> projectProperties = Lists.newArrayList();
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_FILE, myGradleSigningInfo.keyStoreFilePath));
+        projectProperties
+          .add(createProperty(AndroidProject.PROPERTY_SIGNING_STORE_PASSWORD, new String(myGradleSigningInfo.keyStorePassword)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_ALIAS, myGradleSigningInfo.keyAlias));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_SIGNING_KEY_PASSWORD, new String(myGradleSigningInfo.keyPassword)));
+        projectProperties.add(createProperty(AndroidProject.PROPERTY_APK_LOCATION, myApkPath));
+
+        final GradleInvoker gradleInvoker = GradleInvoker.getInstance(myProject);
+
+        final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
+          @Override
+          public void execute(@NotNull GradleInvocationResult result) {
+            if (result.isBuildSuccessful()) {
+              Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APK's are in: " + myApkPath,
+                                                        NotificationType.INFORMATION));
+            }
+            else {
+              Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE,
+                                                        "Errors while building apk, see messages tool window for list of errors.",
+                                                        NotificationType.ERROR));
+            }
+            gradleInvoker.removeAfterGradleInvocationTask(this);
+          }
+        };
+
+        gradleInvoker.addAfterGradleInvocationTask(afterTask);
+        gradleInvoker.executeTasks(assembleTasks, projectProperties);
+      }
+
+      private String createProperty(@NotNull String name, @NotNull String value) {
+        return AndroidGradleSettings.createProjectProperty(name, value);
+      }
+    });
+  }
+
+  @VisibleForTesting
+  public static List<String> getAssembleTasks(String gradleProjectPath,
+                                               AndroidProject androidProject,
+                                               String buildType,
+                                               List<String> flavors) {
+    Map<String,Variant> variantsByFlavor = Maps.newHashMapWithExpectedSize(flavors.size());
+    for (Variant v : androidProject.getVariants()) {
+      if (!v.getBuildType().equals(buildType)) {
+        continue;
+      }
+
+      variantsByFlavor.put(getMergedFlavorName(v), v);
+    }
+
+    if (flavors.isEmpty()) {
+      // if there are no flavors defined, then the default merged flavor name is empty..
+      Variant v = variantsByFlavor.get("");
+      if (v != null) {
+        String taskName = v.getMainArtifact().getAssembleTaskName();
+        return Collections.singletonList(GradleBuilds.createBuildTask(gradleProjectPath, taskName));
+      } else {
+        LOG.error("Unable to find default variant");
+        return Collections.emptyList();
+      }
+    }
+
+    List<String> assembleTasks = Lists.newArrayListWithExpectedSize(flavors.size());
+    for (String flavor : flavors) {
+      Variant v = variantsByFlavor.get(flavor);
+      if (v != null) {
+        String taskName = v.getMainArtifact().getAssembleTaskName();
+        assembleTasks.add(GradleBuilds.createBuildTask(gradleProjectPath, taskName));
+      }
+    }
+
+    return assembleTasks;
+  }
+
+  public static String getMergedFlavorName(Variant variant) {
+    return Joiner.on('-').join(variant.getProductFlavors());
   }
 
   @Override
@@ -156,7 +299,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
     super.updateStep();
 
-    SwingUtilities.invokeLater(new Runnable() {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
         getRootPane().setDefaultButton(getNextButton());
@@ -217,6 +360,11 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setApkPath(@NotNull String apkPath) {
     myApkPath = apkPath;
+  }
+
+  public void setGradleOptions(String buildType, List<String> flavors) {
+    myBuildType = buildType;
+    myFlavors = flavors;
   }
 
   private void createAndAlignApk(final String apkPath) {
@@ -295,5 +443,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         Messages.showErrorDialog(getProject(), "Error: " + message, CommonBundle.getErrorTitle());
       }
     }, ModalityState.NON_MODAL);
+  }
+
+  public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {
+    myGradleSigningInfo = gradleSigningInfo;
   }
 }
