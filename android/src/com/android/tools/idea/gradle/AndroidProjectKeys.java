@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * <ol>
  * <li>{@link com.android.tools.idea.gradle.service.GradleProjectDataService}</li>
  * <li>{@link com.android.tools.idea.gradle.service.AndroidProjectDataService}</li>
+ * <li>{@link com.android.tools.idea.gradle.service.JavaProjectDataService}</li>
  * </ol>
  * <br/>
  * The reason for following this order is that we need to add the {@code AndroidGradleFacet} to each of the modules. This facet contains the
@@ -35,6 +36,9 @@ public class AndroidProjectKeys {
 
   @NotNull public static final Key<IdeaAndroidProject> IDE_ANDROID_PROJECT =
     Key.create(IdeaAndroidProject.class, IDE_GRADLE_PROJECT.getProcessingWeight() + 10);
+
+  @NotNull public static final Key<IdeaJavaProject> IDE_JAVA_PROJECT =
+    Key.create(IdeaJavaProject.class, IDE_ANDROID_PROJECT.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }
