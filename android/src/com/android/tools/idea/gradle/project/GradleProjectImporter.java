@@ -613,7 +613,7 @@ public class GradleProjectImporter {
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
 
-    PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
+    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
