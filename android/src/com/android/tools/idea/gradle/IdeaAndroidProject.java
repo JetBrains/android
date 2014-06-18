@@ -103,6 +103,16 @@ public class IdeaAndroidProject implements Serializable {
     return myBuildTypesByName.get(name);
   }
 
+  @NotNull
+  public Set<String> getBuildTypes() {
+    return myBuildTypesByName.keySet();
+  }
+
+  @NotNull
+  public Set<String> getProductFlavors() {
+    return myProductFlavorsByName.keySet();
+  }
+
   @Nullable
   public ProductFlavorContainer findProductFlavor(@NotNull String name) {
     return myProductFlavorsByName.get(name);
