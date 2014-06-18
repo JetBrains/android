@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
@@ -52,11 +53,13 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
@@ -81,6 +84,23 @@ public class PostProjectSetupTasksExecutor {
 
 
   public void onProjectRestoreFromDisk() {
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
+        Collection<String> unresolved = androidFacet.getIdeaAndroidProject().getDelegate().getUnresolvedDependencies();
+        messages.reportUnresolvedDependencies(unresolved);
+        continue;
+      }
+      JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+      if (javaFacet != null && javaFacet.getJavaModel() != null) {
+        List<String> unresolved = javaFacet.getJavaModel().getUnresolvedDependencyNames();
+        messages.reportUnresolvedDependencies(unresolved);
+      }
+    }
+
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
       return;
