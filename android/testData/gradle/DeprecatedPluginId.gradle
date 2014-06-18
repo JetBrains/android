@@ -1,0 +1,8 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+apply plugin: 'java'
+<warning descr="'android' is deprecated; use 'com.android.application' instead">apply plugin: 'android'</warning>
+<warning descr="'android-library' is deprecated; use 'com.android.library' instead">apply plugin: 'android-library'</warning>
+
+android {
+}
