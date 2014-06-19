@@ -17,6 +17,8 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.*;
 import com.intellij.android.designer.AndroidDesignerEditorProvider;
@@ -102,19 +104,44 @@ public class AndroidRootComponent extends JComponent {
   private Transform createTransform(float scale) {
     if (myIsMenu) {
       return new Transform(scale) {
+        private boolean myCachedRenderedViewValid = false;
+        private RenderedView myCachedRenderedView;
+
+        private RenderedView getRenderedView() {
+          if (!myCachedRenderedViewValid) {
+            myCachedRenderedView = getMenu(myRenderResult);
+            myCachedRenderedViewValid = true;
+          }
+          return myCachedRenderedView;
+        }
         private int getDx() {
-          RenderedView menu = getMenu(myRenderResult);
+          RenderedView menu = getRenderedView();
           return (menu == null) ? 0 : menu.x;
         }
 
+        private int getDy() {
+          RenderedView menu = getRenderedView();
+          return (menu == null) ? 0 : menu.y;
+        }
+
         @Override
-        public int modelToViewX(int d) {
-          return super.modelToViewX(d - getDx());
+        public int modelToViewX(int x) {
+          return super.modelToViewX(x - getDx());
+        }
+
+        @Override
+        public int modelToViewY(int y) {
+          return super.modelToViewY(y - getDy());
         }
 
         @Override
         public int viewToModelX(int x) {
           return super.viewToModelX(x) + getDx();
+        }
+
+        @Override
+        public int viewToModelY(int y) {
+          return super.viewToModelY(y) + getDy();
         }
       };
     }
@@ -122,12 +149,30 @@ public class AndroidRootComponent extends JComponent {
   }
 
   @Nullable
+  private static RenderedView findMenu(List<RenderedView> children) {
+    for (RenderedView child : children) {
+      ViewInfo view = child.view;
+      if (view != null && view.getViewType() == ViewType.ACTION_BAR_OVERFLOW_MENU) {
+        return child.getParent();
+      }
+      RenderedView menu = findMenu(child.getChildren());
+      if (menu != null) {
+        return menu;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   private static RenderedView getMenu(RenderResult renderResult) {
-    RenderedView root = getRoot(renderResult);
-    if (root == null) {
+    if (renderResult == null) {
       return null;
     }
-    return root.getChildren().get(0);
+    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+    if (hierarchy == null) {
+      return null;
+    }
+    return findMenu(hierarchy.getRoots());
   }
 
   private static com.android.navigation.Dimension size(@Nullable RenderedView view) {
