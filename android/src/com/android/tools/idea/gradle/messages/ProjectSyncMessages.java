@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+import com.android.sdklib.repository.NoPreviewRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.IdDisplay;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.GradleNotificationExtension;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenFileHyperlink;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
@@ -31,17 +38,23 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.SdkConstants.FD_M2_REPOSITORY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
 
@@ -58,8 +71,8 @@ public class ProjectSyncMessages {
   }
 
   public int getErrorCount() {
-    return myNotificationManager.getMessageCount(
-      null, NotificationSource.PROJECT_SYNC, NotificationCategory.ERROR, GradleConstants.SYSTEM_ID);
+    return myNotificationManager
+      .getMessageCount(null, NotificationSource.PROJECT_SYNC, NotificationCategory.ERROR, GradleConstants.SYSTEM_ID);
   }
 
   public ProjectSyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
@@ -107,11 +120,29 @@ public class ProjectSyncMessages {
       buildFile = gradleProject.getBuildFile();
     }
 
+    List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+
     for (String dep : unresolvedDependencies) {
-      String group = dep.startsWith("com.android.support:") ? UNRESOLVED_ANDROID_DEPENDENCIES : UNRESOLVED_DEPENDENCIES;
+      String group;
+      if (dep.startsWith("com.android.support")) {
+        group = UNRESOLVED_ANDROID_DEPENDENCIES;
+        File repository = getRepositoryLocation(module, "android");
+        if (repository != null && !repository.isDirectory()) {
+          hyperlinks.add(InstallRepositoryHyperlink.installAndroidRepository());
+        }
+      }
+      else if (dep.startsWith("com.google.android.gms")) {
+        group = UNRESOLVED_ANDROID_DEPENDENCIES;
+        File repository = getRepositoryLocation(module, "google");
+        if (repository != null && !repository.isDirectory()) {
+          hyperlinks.add(InstallRepositoryHyperlink.installGoogleRepository());
+        }
+      }
+      else {
+        group = UNRESOLVED_DEPENDENCIES;
+      }
 
       String text = "Failed to find: " + dep;
-      List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
       if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
         hyperlinks.add(new OpenDependencyInProjectStructureHyperlink(module, dep));
       }
@@ -131,6 +162,25 @@ public class ProjectSyncMessages {
     }
   }
 
+  @Nullable
+  private static File getRepositoryLocation(@NotNull Module module, @NotNull String extrasName) {
+    File androidHome = null;
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      androidHome = DefaultSdks.getDefaultAndroidHome();
+    }
+    else {
+      // TODO test this in IntelliJ
+      Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
+      if (sdk != null && sdk.getHomePath() != null) {
+        androidHome = new File(FileUtil.toSystemDependentName(sdk.getHomePath()));
+      }
+    }
+    if (androidHome != null) {
+      return new File(androidHome, FileUtil.join(FD_EXTRAS, extrasName, FD_M2_REPOSITORY));
+    }
+    return null;
+  }
+
   private static class OpenDependencyInProjectStructureHyperlink extends NotificationHyperlink {
     @NotNull private final Module myModule;
     @NotNull private final String myDependency;
@@ -147,6 +197,39 @@ public class ProjectSyncMessages {
       if (service instanceof AndroidProjectSettingsService) {
         ((AndroidProjectSettingsService)service).openAndSelectDependency(myModule, myDependency);
       }
+    }
+  }
+
+  private static class InstallRepositoryHyperlink extends NotificationHyperlink {
+    @NotNull private final IdDisplay myIdDisplay;
+    @NotNull private final String myPath;
+    @NotNull private final String myDisplayName;
+
+    @NotNull
+    static InstallRepositoryHyperlink installAndroidRepository() {
+      return new InstallRepositoryHyperlink(new IdDisplay("android", "Android"), "m2repository", "Android Support Repository");
+
+    }
+    @NotNull
+    static InstallRepositoryHyperlink installGoogleRepository() {
+      return new InstallRepositoryHyperlink(new IdDisplay("google", "Google"), "m2repository", "Google Support Repository");
+    }
+
+    InstallRepositoryHyperlink(@NotNull IdDisplay idDisplay, @NotNull String path, @NotNull String displayName) {
+      super("install.m2.repo", "Install Repository and sync project");
+      myIdDisplay = idDisplay;
+      myPath = path;
+      myDisplayName = displayName;
+    }
+
+    @Override
+    protected void execute(@NotNull Project project) {
+      List<IPkgDesc> requested = Lists.newArrayList();
+      requested.add(PkgDesc.Builder.newExtra(myIdDisplay, myPath, myDisplayName, null, new NoPreviewRevision(1)).create());
+      SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
+      wizard.init();
+      wizard.show();
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
     }
   }
 }
