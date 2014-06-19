@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
+import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
@@ -52,6 +55,7 @@ import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -81,7 +85,10 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
     Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
 
+  private static final Pattern MISSING_PLATFORM_PATTERN = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
+
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
+  @NonNls private static final String ANDROID_PLATFORM_HASH_PREVIX = "android-";
 
   @NotNull
   @Override
@@ -183,7 +190,6 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       }
 
       if (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) ||
-          lastLine.contains(INSTALL_MISSING_PLATFORM) ||
           lastLine.contains(INSTALL_MISSING_BUILD_TOOLS)) {
         List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
         if (!facets.isEmpty()) {
@@ -248,8 +254,40 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
           }
           if (!hyperlinks.isEmpty()) {
             updateNotification(notification, project, msg, hyperlinks);
+            return;
           }
         }
+      }
+
+      matcher = MISSING_PLATFORM_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        String platform = matcher.group(2);
+        if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+          LocalSdk localAndroidSdk = DefaultSdks.getLocalAndroidSdk();
+          if (localAndroidSdk != null) {
+            IAndroidTarget target = localAndroidSdk.getTargetFromHashString(platform);
+            if (target == null) {
+              if (platform.startsWith(ANDROID_PLATFORM_HASH_PREVIX)) {
+                platform = platform.substring(ANDROID_PLATFORM_HASH_PREVIX.length());
+              }
+              AndroidVersion version = SdkVersionInfo.getVersion(platform, localAndroidSdk.getTargets());
+              if (version != null) {
+                hyperlinks.add(new InstallPlatformHyperlink(version));
+              }
+            }
+          }
+        }
+        if (hyperlinks.isEmpty()) {
+          // We are unable to install platform automatically.
+          List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+          if (!facets.isEmpty()) {
+            // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
+            hyperlinks.add(new OpenAndroidSdkManagerHyperlink());
+          }
+        }
+        updateNotification(notification, project, msg, hyperlinks);
+        return;
       }
 
       matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
