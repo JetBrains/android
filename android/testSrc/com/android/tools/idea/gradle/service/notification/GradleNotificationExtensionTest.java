@@ -59,7 +59,7 @@ public class GradleNotificationExtensionTest extends TestCase {
     assertNotNull(title);
     assertTrue(title.contains("'" + projectName + "'"));
 
-    assertEquals(errorMsg + "\n<a href=\"1\">Hyperlink 1</a> <a href=\"2\">Hyperlink 2</a>", notification.getMessage());
+    assertEquals(errorMsg + "\n<a href=\"1\">Hyperlink 1</a><br><a href=\"2\">Hyperlink 2</a>", notification.getMessage());
 
     NotificationListener notificationListener = notification.getListener();
     assertNotNull(notificationListener);
