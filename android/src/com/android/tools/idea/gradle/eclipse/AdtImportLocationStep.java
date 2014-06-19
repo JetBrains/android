@@ -61,25 +61,18 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
     mySourceProject = new File(FileUtil.toSystemDependentName(prev));
 
     String name = new File(prev).getName();
-    try {
-      //noinspection ConstantConditions
-      context.setProjectFileDirectory(null);
-      String defaultDir = context.getProjectFileDirectory();
-      if (new File(defaultDir).exists()) {
-        int index = 0;
-        while (true) {
-          String suffix = index == 0 ? "" : Integer.toString(index);
-          File file = new File(defaultDir, name + suffix);
-          if (!file.exists()) {
-            myDestDirText.setText(file.getPath());
-            break;
-          }
-          index++;
-        }
-      }
-    } finally {
-      context.setProjectFileDirectory(prev);
-    }
+    //noinspection ConstantConditions
+    context.setProjectFileDirectory(null);
+    String defaultDir = context.getProjectFileDirectory();
+    int index = 0;
+    File file;
+    do {
+      String suffix = index == 0 ? "" : Integer.toString(index);
+      index++;
+      file = new File(defaultDir, name + suffix);
+    } while (file.exists());
+    myDestDirText.setText(file.getPath());
+    context.setProjectFileDirectory(prev);
 
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     descriptor.setTitle("Choose Destination Directory");
