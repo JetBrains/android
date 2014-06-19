@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
@@ -24,7 +26,11 @@ import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.service.notification.OpenFileHyperlink;
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -32,6 +38,7 @@ import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDialog;
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Iterables;
@@ -47,10 +54,12 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -86,12 +95,19 @@ public class PostProjectSetupTasksExecutor {
   public void onProjectRestoreFromDisk() {
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
 
+    boolean checkJdkVersion = true;
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
-        Collection<String> unresolved = androidFacet.getIdeaAndroidProject().getDelegate().getUnresolvedDependencies();
+        IdeaAndroidProject androidProject = androidFacet.getIdeaAndroidProject();
+        Collection<String> unresolved = androidProject.getDelegate().getUnresolvedDependencies();
         messages.reportUnresolvedDependencies(unresolved, module);
+        if (checkJdkVersion && !hasCorrectJdkVersion(module, androidProject)) {
+          // we already displayed the error, no need to check each module.
+          checkJdkVersion = false;
+        }
         continue;
       }
       JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
@@ -113,6 +129,14 @@ public class PostProjectSetupTasksExecutor {
   }
 
   public void onProjectSyncCompletion() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      if (!hasCorrectJdkVersion(module)) {
+        // we already displayed the error, no need to check each module.
+        break;
+      }
+    }
+
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
       GradleSyncState.getInstance(myProject).syncEnded();
@@ -393,7 +417,62 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
+  private boolean hasCorrectJdkVersion(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && facet.getIdeaAndroidProject() != null) {
+      return hasCorrectJdkVersion(module, facet.getIdeaAndroidProject());
+    }
+    return true;
+  }
+
+  private boolean hasCorrectJdkVersion(@NotNull Module module, @NotNull IdeaAndroidProject model) {
+    AndroidProject androidProject = model.getDelegate();
+    String compileTarget = androidProject.getCompileTarget();
+    // TODO this is good for now, adjust this in the future to deal with 22, 23, etc.
+    if ("android-21".equals(compileTarget)) {
+      Sdk jdk = DefaultSdks.getDefaultJdk();
+      if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
+        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        ProjectSettingsService service = ProjectSettingsService.getInstance(myProject);
+        if (service instanceof AndroidProjectSettingsService) {
+          hyperlinks.add(new OpenSdkSettingsHyperlink((AndroidProjectSettingsService)service));
+        }
+        Message msg;
+        String text = "compileSdkVersion 21 requires compiling with JDK 7";
+        VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+        if (buildFile != null) {
+          hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
+          msg = new Message(myProject, "Project Configuration", Message.Type.ERROR, buildFile, -1, -1, text);
+        }
+        else {
+          msg = new Message("Project Configuration", Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+        }
+
+        ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+        messages.add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
+
+        myProject.putUserData(Projects.HAS_WRONG_JDK, true);
+        return false;
+      }
+    }
+    return true;
+  }
+
   public void setGenerateSourcesAfterSync(boolean generateSourcesAfterSync) {
     myGenerateSourcesAfterSync = generateSourcesAfterSync;
+  }
+
+  private static class OpenSdkSettingsHyperlink extends NotificationHyperlink {
+    @NotNull private final AndroidProjectSettingsService mySettingsService;
+
+    OpenSdkSettingsHyperlink(@NotNull AndroidProjectSettingsService settingsService) {
+      super("open.sdk.settings", "Open SDK Settings");
+      mySettingsService = settingsService;
+    }
+
+    @Override
+    protected void execute(@NotNull Project project) {
+      mySettingsService.openSdkSettings();
+    }
   }
 }

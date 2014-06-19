@@ -236,19 +236,19 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       return;
     }
 
+    boolean sdkChanged = false;
     for (Configurable configurable: myConfigurables) {
-      apply(configurable);
+      if (configurable.isModified()) {
+        if (configurable instanceof DefaultSdksConfigurable) {
+          sdkChanged = true;
+        }
+        configurable.apply();
+      }
     }
 
     ThreeState syncNeeded = GradleSyncState.getInstance(myProject).isSyncNeeded();
-    if (syncNeeded == ThreeState.YES) {
+    if (syncNeeded == ThreeState.YES || sdkChanged) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-    }
-  }
-
-  private static void apply(@NotNull Configurable c) throws ConfigurationException {
-    if (c.isModified()) {
-      c.apply();
     }
   }
 
