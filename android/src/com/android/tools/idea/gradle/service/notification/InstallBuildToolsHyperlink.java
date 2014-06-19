@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.service.notification;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
@@ -43,6 +44,9 @@ class InstallBuildToolsHyperlink extends NotificationHyperlink {
     if (buildFile != null) {
       msg += ", update version in build file and sync project";
     }
+    else {
+      msg += " and sync project";
+    }
     return msg;
   }
 
@@ -56,6 +60,9 @@ class InstallBuildToolsHyperlink extends NotificationHyperlink {
     wizard.show();
     if (myBuildFile != null) {
       FixBuildToolsVersionHyperlink.fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
+    }
+    else {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
     }
   }
 }
