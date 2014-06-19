@@ -32,6 +32,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Closeables;
+import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -152,6 +153,9 @@ public class AndroidGradleProjectData implements Serializable {
       if (Projects.isGradleProjectModule(module)) {
         data.addFileDependency(rootDirPath, GradleUtil.getGradleBuildFile(module));
         data.addFileDependency(rootDirPath, GradleUtil.getGradleSettingsFile(rootDirPath));
+        data.addFileDependency(rootDirPath, new File(rootDirPath, SdkConstants.FN_GRADLE_PROPERTIES));
+        data.addFileDependency(rootDirPath, new File(rootDirPath, SdkConstants.FN_LOCAL_PROPERTIES));
+        data.addFileDependency(rootDirPath, getGradleUserSettingsFile());
       }
 
       data.myData.put(moduleData.myName, moduleData);
@@ -161,8 +165,28 @@ public class AndroidGradleProjectData implements Serializable {
     return data;
   }
 
-  private static byte[] createChecksum(@NotNull VirtualFile file) throws IOException {
-    return Hashing.md5().hashBytes(file.contentsToByteArray()).asBytes();
+  @Nullable
+  private static File getGradleUserSettingsFile() {
+    String homePath = System.getProperty("user.home");
+    if (homePath == null) {
+      return null;
+    }
+    return new File(homePath, FileUtil.join(SdkConstants.DOT_GRADLE, SdkConstants.FN_GRADLE_PROPERTIES));
+  }
+
+  private static byte[] createChecksum(@NotNull File file) throws IOException {
+    // For files tracked by the IDE we get the content from the virtual files, otherwise we revert to io.
+    VirtualFile vf = VfsUtil.findFileByIoFile(file, true);
+    byte[] data = new byte[] {};
+    if (vf != null) {
+      vf.refresh(false, false);
+      if (vf.exists()) {
+        data = vf.contentsToByteArray();
+      }
+    } else if (file.exists()) {
+      data = Files.toByteArray(file);
+    }
+    return Hashing.md5().hashBytes(data).asBytes();
   }
 
   /**
@@ -327,21 +351,26 @@ public class AndroidGradleProjectData implements Serializable {
   }
 
   /**
+   * Adds a dependency to the content of the given virtual file. @see addFileDependency(File, File)
+   */
+  private void addFileDependency(File rootDirPath, @Nullable VirtualFile vf) throws IOException {
+    addFileDependency(rootDirPath, vf != null ? VfsUtilCore.virtualToIoFile(vf) : null);
+  }
+
+  /**
    * Adds a dependency to the content of the given file.
    * <p/>
    * This method saves a checksum of the content of the given file along with its location. If this file's content is later found
    * to have changed, the persisted data will be considered invalid.
    *
    * @param rootDirPath the root directory.
-   * @param vf          the file to add the dependency for.
+   * @param file        the file to add the dependency for.
    * @throws IOException if there is a problem accessing the given file.
    */
-  private void addFileDependency(File rootDirPath, @Nullable VirtualFile vf) throws IOException {
-    if (vf == null) {
+  private void addFileDependency(File rootDirPath, @Nullable File file) throws IOException {
+    if (file == null) {
       return;
     }
-
-    File file = VfsUtilCore.virtualToIoFile(vf);
     String key;
     if (FileUtil.isAncestor(rootDirPath, file, true)) {
       key = FileUtil.getRelativePath(rootDirPath, file);
@@ -349,7 +378,7 @@ public class AndroidGradleProjectData implements Serializable {
     else {
       key = file.getAbsolutePath();
     }
-    myFileChecksums.put(key, createChecksum(vf));
+    myFileChecksums.put(key, createChecksum(file));
   }
 
   /**
@@ -368,8 +397,11 @@ public class AndroidGradleProjectData implements Serializable {
     }
 
     for (Map.Entry<String, byte[]> entry : myFileChecksums.entrySet()) {
-      VirtualFile file = VfsUtil.findFileByIoFile(new File(rootDir, entry.getKey()), false);
-      if (file == null || !Arrays.equals(entry.getValue(), createChecksum(file))) {
+      File file = new File(entry.getKey());
+      if (!file.isAbsolute()) {
+        file = new File(rootDir, file.getPath());
+      }
+      if (!Arrays.equals(entry.getValue(), createChecksum(file))) {
         return false;
       }
     }
