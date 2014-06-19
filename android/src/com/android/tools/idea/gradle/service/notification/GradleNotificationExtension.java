@@ -88,7 +88,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static final Pattern MISSING_PLATFORM_PATTERN = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
 
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
-  @NonNls private static final String ANDROID_PLATFORM_HASH_PREVIX = "android-";
+  @NonNls private static final String ANDROID_PLATFORM_HASH_PREFIX = "android-";
 
   @NotNull
   @Override
@@ -268,8 +268,8 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
           if (localAndroidSdk != null) {
             IAndroidTarget target = localAndroidSdk.getTargetFromHashString(platform);
             if (target == null) {
-              if (platform.startsWith(ANDROID_PLATFORM_HASH_PREVIX)) {
-                platform = platform.substring(ANDROID_PLATFORM_HASH_PREVIX.length());
+              if (platform.startsWith(ANDROID_PLATFORM_HASH_PREFIX)) {
+                platform = platform.substring(ANDROID_PLATFORM_HASH_PREFIX.length());
               }
               AndroidVersion version = SdkVersionInfo.getVersion(platform, localAndroidSdk.getTargets());
               if (version != null) {
@@ -479,7 +479,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       for (int i = 0; i < hyperlinkCount; i++) {
         b.append(hyperlinks[i].toString());
         if (i < hyperlinkCount - 1) {
-          b.append(" ");
+          b.append("<br>");
         }
       }
       text += ('\n' + b.toString());
