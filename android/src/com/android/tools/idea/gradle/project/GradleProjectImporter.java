@@ -609,6 +609,7 @@ public class GradleProjectImporter {
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
     project.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, false);
+    project.putUserData(Projects.HAS_WRONG_JDK, false);
 
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
