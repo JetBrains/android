@@ -58,6 +58,7 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VAR
  */
 public final class Projects {
   public static final Key<Boolean> HAS_UNRESOLVED_DEPENDENCIES = Key.create("has.unresolved.dependencies");
+  public static final Key<Boolean> HAS_WRONG_JDK = Key.create("has.wrong.jdk");
 
   private static final Logger LOG = Logger.getInstance(Projects.class);
   private static final Module[] NO_MODULES = new Module[0];
@@ -74,7 +75,7 @@ public final class Projects {
   }
 
   public static boolean hasErrors(@NotNull Project project) {
-    if (hasUnresolvedDependencies(project)) {
+    if (hasUnresolvedDependencies(project) || hasWrongJdk(project)) {
       return true;
     }
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
@@ -88,7 +89,15 @@ public final class Projects {
   }
 
   private static boolean hasUnresolvedDependencies(@NotNull Project project) {
-    Boolean val = project.getUserData(HAS_UNRESOLVED_DEPENDENCIES);
+    return getBoolean(project, HAS_UNRESOLVED_DEPENDENCIES);
+  }
+
+  private static boolean hasWrongJdk(@NotNull Project project) {
+    return getBoolean(project, HAS_WRONG_JDK);
+  }
+
+  private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {
+    Boolean val = project.getUserData(key);
     return val != null && val.booleanValue();
   }
 
