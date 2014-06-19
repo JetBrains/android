@@ -120,9 +120,9 @@ public class ProjectSyncMessages {
       buildFile = gradleProject.getBuildFile();
     }
 
-    List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
 
     for (String dep : unresolvedDependencies) {
+      List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
       String group;
       if (dep.startsWith("com.android.support")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
