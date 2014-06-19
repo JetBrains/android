@@ -429,7 +429,7 @@ public class PostProjectSetupTasksExecutor {
     AndroidProject androidProject = model.getDelegate();
     String compileTarget = androidProject.getCompileTarget();
     // TODO this is good for now, adjust this in the future to deal with 22, 23, etc.
-    if ("android-21".equals(compileTarget)) {
+    if ("android-L".equals(compileTarget) || "android-21".equals(compileTarget)) {
       Sdk jdk = DefaultSdks.getDefaultJdk();
       if (jdk != null && !Jdks.isApplicableJdk(jdk, LanguageLevel.JDK_1_7)) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
@@ -438,7 +438,7 @@ public class PostProjectSetupTasksExecutor {
           hyperlinks.add(new OpenSdkSettingsHyperlink((AndroidProjectSettingsService)service));
         }
         Message msg;
-        String text = "compileSdkVersion 21 requires compiling with JDK 7";
+        String text = "compileSdkVersion " + compileTarget + " requires compiling with JDK 7";
         VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
         if (buildFile != null) {
           hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
