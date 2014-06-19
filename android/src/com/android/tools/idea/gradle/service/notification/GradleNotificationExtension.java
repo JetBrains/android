@@ -86,6 +86,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
 
   private static final Pattern MISSING_PLATFORM_PATTERN = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
+  private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?failed to find Build Tools revision (.*)");
 
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
   @NonNls private static final String ANDROID_PLATFORM_HASH_PREFIX = "android-";
@@ -189,8 +190,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         }
       }
 
-      if (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) ||
-          lastLine.contains(INSTALL_MISSING_BUILD_TOOLS)) {
+      if (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO)) {
         List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
         if (!facets.isEmpty()) {
           // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
@@ -288,6 +288,13 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         }
         updateNotification(notification, project, msg, hyperlinks);
         return;
+      }
+
+      matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        String version = matcher.group(2);
+        InstallBuildToolsHyperlink hyperlink = new InstallBuildToolsHyperlink(version, null);
+        updateNotification(notification, project, msg, hyperlink);
       }
 
       matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
