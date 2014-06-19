@@ -16,13 +16,17 @@
 package com.android.tools.idea.wizard;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.util.ui.UIUtil;
+import com.google.common.base.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -41,10 +45,14 @@ public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
 
   public static class FormFactor {
-    public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet");
-    public static final FormFactor WEAR = new FormFactor("Wear", AndroidIcons.Wizards.FormFactorWear, "Wear");
-    public static final FormFactor GLASS = new FormFactor("Glass", AndroidIcons.Wizards.FormFactorGlass, "Glass");
-    public static final FormFactor TV = new FormFactor("TV", AndroidIcons.Wizards.FormFactorTV, "TV");
+    public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet", 15,
+                                                           Lists.newArrayList("20", "Glass"), null);
+    public static final FormFactor WEAR = new FormFactor("Wear", AndroidIcons.Wizards.FormFactorWear, "Wear", 20,
+                                                         null, Lists.newArrayList("20"));
+    public static final FormFactor GLASS = new FormFactor("Glass", AndroidIcons.Wizards.FormFactorGlass, "Glass", 19,
+                                                          null, Lists.newArrayList("Glass"));
+    public static final FormFactor TV = new FormFactor("TV", AndroidIcons.Wizards.FormFactorTV, "TV", 21,
+                                                       Lists.newArrayList("20"), null);
 
     private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
         .put(MOBILE.id, MOBILE)
@@ -55,11 +63,18 @@ public class FormFactorUtils {
     public final String id;
     @Nullable private final Icon myIcon;
     @Nullable private String displayName;
+    public final int defaultApi;
+    @NotNull private final List<String> myApiBlacklist;
+    @NotNull private final List<String> myApiWhitelist;
 
-    FormFactor(@NotNull String id, @Nullable Icon icon, @Nullable String displayName) {
+    FormFactor(@NotNull String id, @Nullable Icon icon, @Nullable String displayName, @NotNull int defaultApi,
+               @Nullable List<String> apiBlacklist, @Nullable List<String> apiWhitelist) {
       this.id = id;
       myIcon = icon;
       this.displayName = displayName;
+      this.defaultApi = defaultApi;
+      myApiBlacklist = apiBlacklist != null ? apiBlacklist : Collections.<String>emptyList();
+      myApiWhitelist = apiWhitelist != null ? apiWhitelist : Collections.<String>emptyList();
     }
 
     @Nullable
@@ -67,7 +82,7 @@ public class FormFactorUtils {
       if (myFormFactors.containsKey(id)) {
         return myFormFactors.get(id);
       }
-      return new FormFactor(id, null, id);
+      return new FormFactor(id, null, id, 1, null, null);
     }
 
     @Override
@@ -142,5 +157,49 @@ public class FormFactorUtils {
     String name = formFactor.id.replaceAll(INVALID_FILENAME_CHARS, "");
     name = name.replaceAll("\\s", "_");
     return name.toLowerCase();
+  }
+
+  public static Predicate<AndroidTargetComboBoxItem> getMinSdkComboBoxFilter(@NotNull final FormFactor formFactor, final int minSdkLevel) {
+    return new Predicate<AndroidTargetComboBoxItem>() {
+      @Override
+      public boolean apply(@Nullable AndroidTargetComboBoxItem input) {
+        if (input == null) {
+          return false;
+        }
+        if (!formFactor.myApiWhitelist.isEmpty()) {
+          // If a whitelist is present, only allow things on the whitelist
+          for (String filterItem : formFactor.myApiWhitelist) {
+            if (matches(filterItem, input)) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        // If we don't have a whitelist, let's check the blacklist
+        for (String filterItem : formFactor.myApiBlacklist) {
+          if (matches(filterItem, input)) {
+            return false;
+          }
+        }
+
+        // Finally, we'll check that the minSDK is honored
+        return input.apiLevel >= minSdkLevel || (input.target != null && input.target.getVersion().isPreview());
+      }
+    };
+  }
+
+  /**
+   * @return true iff the filterItem is a string which matches the string representation of the box item apiLevel,
+   * or the target name contains the filterItem.
+   */
+  private static boolean matches(@NotNull String filterItem, @NotNull AndroidTargetComboBoxItem input) {
+    if (Integer.toString(input.apiLevel).equals(filterItem)) {
+      return true;
+    }
+    if (input.target != null && input.target.getName().contains(filterItem)) {
+      return true;
+    }
+    return false;
   }
 }
