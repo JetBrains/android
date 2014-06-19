@@ -40,7 +40,7 @@ class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   private final boolean myOpenMigrationGuide;
 
   FixGradleModelVersionHyperlink() {
-    this("Open migration guide, fix plug-in version and re-import project", true);
+    this("Open migration guide, fix plug-in version and sync project", true);
   }
 
   FixGradleModelVersionHyperlink(@NotNull String text, boolean openMigrationGuide) {
