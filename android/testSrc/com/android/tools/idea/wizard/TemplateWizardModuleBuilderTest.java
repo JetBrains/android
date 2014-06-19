@@ -104,7 +104,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
         String contents = TemplateUtils.readTextFile(buildGradleFile);
         assertNotNull(contents);
         assertFalse(contents.contains("android-library"));
-        assertTrue(contents.contains("apply plugin: 'android'"));
+        assertTrue(contents.contains("apply plugin: 'com.android.application'"));
 
         File settingsGradleFile = new File(myProjectRoot, "settings.gradle");
         contents = TemplateUtils.readTextFile(settingsGradleFile);
@@ -137,7 +137,7 @@ public class TemplateWizardModuleBuilderTest extends AndroidGradleTestCase {
         File buildGradleFile = new File(myProjectRoot, FileUtil.join("lib", "build.gradle"));
         String contents = TemplateUtils.readTextFile(buildGradleFile);
         assertNotNull(contents);
-        assertTrue(contents.contains("apply plugin: 'android-library'"));
+        assertTrue(contents.contains("apply plugin: 'com.android.library'"));
 
         File settingsGradleFile = new File(myProjectRoot, "settings.gradle");
         contents = TemplateUtils.readTextFile(settingsGradleFile);
