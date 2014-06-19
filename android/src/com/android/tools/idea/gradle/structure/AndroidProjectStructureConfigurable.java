@@ -236,18 +236,15 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       return;
     }
 
-    boolean sdkChanged = false;
+    boolean dataChanged = false;
     for (Configurable configurable: myConfigurables) {
       if (configurable.isModified()) {
-        if (configurable instanceof DefaultSdksConfigurable) {
-          sdkChanged = true;
-        }
+        dataChanged = true;
         configurable.apply();
       }
     }
 
-    ThreeState syncNeeded = GradleSyncState.getInstance(myProject).isSyncNeeded();
-    if (syncNeeded == ThreeState.YES || sdkChanged) {
+    if (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
