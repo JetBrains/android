@@ -27,6 +27,7 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -155,7 +156,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     TemplateManager manager = TemplateManager.getInstance();
     List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
     GridLayoutManager gridLayoutManager = new GridLayoutManager(applicationTemplates.size() * 2 + 1, 2);
-    gridLayoutManager.setVGap(10);
+    gridLayoutManager.setVGap(5);
     gridLayoutManager.setHGap(10);
     myFormFactorPanel.setLayout(gridLayoutManager);
 
@@ -190,15 +191,35 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       c.setColumn(1);
       c.setFill(GridConstraints.FILL_HORIZONTAL);
       ComboBox minSdkComboBox = new ComboBox();
-      populateComboBox(minSdkComboBox, metadata.getMinSdk());
+
+      // Here we add all the targets that are appropriate to this form factor and this template.
+      // All targets with API level < minSdk are filtered out, as well as any templates that are
+      // marked as invalid by the formFactor's white/black lists. {@see FormFactorUtils.FormFactor}
+      populateComboBox(minSdkComboBox, formFactor, metadata.getMinSdk());
 
       // Check for a saved value for the min api level
       Key<String> minApiKey = getMinApiKey(formFactor);
-      String savedApiLevel = PropertiesComponent.getInstance().getValue(FormFactorUtils.getPropertiesComponentMinSdkKey(formFactor), "15");
+      String savedApiLevel = PropertiesComponent.getInstance().getValue(FormFactorUtils.getPropertiesComponentMinSdkKey(formFactor),
+                                                                        Integer.toString(formFactor.defaultApi));
+      if (savedApiLevel == null) {
+        savedApiLevel = Integer.toString(metadata.getMinSdk());
+      }
       myState.put(minApiKey, savedApiLevel);
       register(getTargetComboBoxKey(formFactor), minSdkComboBox, TARGET_COMBO_BINDING);
 
       setSelectedItem(minSdkComboBox, savedApiLevel);
+      // If the savedApiLevel is not available, just pick the first target in the list
+      // which is guaranteed to be a valid target because of the filtering done by populateComboBox()
+      if (minSdkComboBox.getSelectedIndex() < 0 && minSdkComboBox.getItemCount() > 0) {
+        minSdkComboBox.setSelectedIndex(0);
+      }
+
+      // If we don't have any valid targets for the given form factor, disable that form factor
+      if (minSdkComboBox.getItemCount() == 0) {
+        inclusionCheckBox.setSelected(false);
+        inclusionCheckBox.setEnabled(false);
+        inclusionCheckBox.setText(inclusionCheckBox.getText() + " (Not Installed)");
+      }
 
       myFormFactorPanel.add(minSdkComboBox, c);
       myFormFactorApiSelectors.put(formFactor, minSdkComboBox);
@@ -212,8 +233,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     }
   }
 
-  private void populateComboBox(@NotNull JComboBox comboBox, int minSdk) {
-    for (AndroidTargetComboBoxItem target : myTargets) {
+  private void populateComboBox(@NotNull JComboBox comboBox, @NotNull FormFactor formFactor, int minSdk) {
+    for (AndroidTargetComboBoxItem target :
+         Iterables.filter(myTargets, FormFactorUtils.getMinSdkComboBoxFilter(formFactor, minSdk))) {
       if (target.apiLevel >= minSdk || (target.target != null && target.target.getVersion().isPreview())) {
         comboBox.addItem(target);
       }
@@ -321,6 +343,29 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       }
     }
     myState.put(NUM_ENABLED_FORM_FACTORS_KEY, enabledFormFactors);
+  }
+
+  @Override
+  public boolean validate() {
+    setErrorHtml("");
+    Integer enabledFormFactors = myState.get(NUM_ENABLED_FORM_FACTORS_KEY);
+    if (enabledFormFactors == null || enabledFormFactors < 1) {
+      // Don't allow an empty project
+      setErrorHtml("At least one form factor must be selected.");
+      return false;
+    }
+    for (FormFactor formFactor : myFormFactors) {
+      Boolean included = myState.get(getInclusionKey(formFactor));
+      // Disable api selection for non-enabled form factors and check to see if only one is selected
+      if (included != null && included) {
+        if (myState.get(getMinApiKey(formFactor)) == null) {
+          // Don't allow the user to continue unless all minAPIs are chosen
+          setErrorHtml("Each form factor must have a Minimum SDK level selected.");
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   @NotNull
