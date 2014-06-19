@@ -20,11 +20,9 @@ import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.ide.highlighter.ProjectFileType;
 import com.intellij.ide.util.projectWizard.ProjectWizardUtil;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -39,10 +37,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
-
-import static com.intellij.openapi.components.StorageScheme.DIRECTORY_BASED;
 
 class AdtImportLocationStep extends ProjectImportWizardStep {
   private JPanel myPanel;
@@ -149,20 +144,23 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
 
     boolean shouldContinue = true;
 
-    String path = context.isCreatingNewProject() && context.getProjectStorageFormat() == DIRECTORY_BASED
-                        ? getProjectFileDirectory() + "/" + Project.DIRECTORY_STORE_FOLDER : getProjectFilePath();
-    File projectFile = new File(path);
-    if (projectFile.exists()) {
-      String title = "New Project";
-      String message = context.isCreatingNewProject() && context.getProjectStorageFormat() == DIRECTORY_BASED
-                             ? String.format("%1$s folder already exists in %2$s.\nIts content may be overwritten.\nContinue?",
-                                             Project.DIRECTORY_STORE_FOLDER, projectFile.getParentFile().getAbsolutePath())
-                             : String.format("The %2$s file \n''%1$s''\nalready exists.\nWould you like to overwrite it?",
-                                             projectFile.getAbsolutePath(), context.getPresentationName());
-      int answer = Messages.showYesNoDialog(message, title, Messages.getQuestionIcon());
-      shouldContinue = answer == 0;
+    File projectFile = new File(getProjectFileDirectory());
+    String title = "New Project";
+    if (projectFile.isFile()) {
+      shouldContinue = false;
+      String message = String.format("%s exists and is a file.\nPlease specify a different project location",
+                                     projectFile.getAbsolutePath());
+      Messages.showErrorDialog(message, title);
     }
-
+    else if (projectFile.isDirectory()) {
+      File[] files = projectFile.listFiles();
+      if (files != null && files.length > 0) {
+        String message = String.format("%1$s folder already exists and is not empty.\nIts content may be overwritten.\nContinue?",
+                                       projectFile.getAbsolutePath());
+        int answer = Messages.showYesNoDialog(message, title, Messages.getQuestionIcon());
+        shouldContinue = answer == 0;
+      }
+    }
     return shouldContinue;
   }
 
