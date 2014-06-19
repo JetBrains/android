@@ -37,7 +37,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   public static final String FAILED_TO_PARSE_SDK_ERROR = "failed to parse SDK";
 
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-  public static final String INSTALL_MISSING_BUILD_TOOLS = "Please install the missing Build Tools from the Android SDK Manager.";
   public static final String FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file.";
 
   private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
@@ -81,9 +80,8 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
           return createUserFriendlyError(msg, null);
         }
         if (msg.startsWith("failed to find Build Tools")) {
-          String newMsg = msg + EMPTY_LINE + INSTALL_MISSING_BUILD_TOOLS;
           // Location of build.gradle is useless for this error. Omitting it.
-          return createUserFriendlyError(newMsg, null);
+          return createUserFriendlyError(msg, null);
         }
       }
     }
