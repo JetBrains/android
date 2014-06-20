@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
@@ -27,7 +30,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.*;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -35,8 +37,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +59,8 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
   private boolean myModified;
   private final Project myProject;
 
-  private final Set<String> myInstalledApis = new LinkedHashSet<String>();
+  private final Set<String> myInstalledApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
+  private final Set<String> myInstalledCompileApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
   private final Set<String> myInstalledBuildTools = new LinkedHashSet<String>();
   private final List<String> myJavaCompatibility = ImmutableList.of("JavaVersion.VERSION_1_6", "JavaVersion.VERSION_1_7");
 
@@ -67,7 +68,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     ImmutableMap.<BuildFileKey, Iterable<String>>builder()
       .put(BuildFileKey.MIN_SDK_VERSION, myInstalledApis)
       .put(BuildFileKey.TARGET_SDK_VERSION, myInstalledApis)
-      .put(BuildFileKey.COMPILE_SDK_VERSION, myInstalledApis)
+      .put(BuildFileKey.COMPILE_SDK_VERSION, myInstalledCompileApis)
       .put(BuildFileKey.BUILD_TOOLS_VERSION, myInstalledBuildTools)
       .put(BuildFileKey.SOURCE_COMPATIBILITY, myJavaCompatibility)
       .put(BuildFileKey.TARGET_COMPATIBILITY, myJavaCompatibility)
@@ -75,20 +76,24 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
 
   public KeyValuePane(Project project) {
     myProject = project;
-    for (Sdk sdk : DefaultSdks.getEligibleAndroidSdks()) {
-      AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      if (sdkAdditionalData == null) {
-        continue;
+    LocalSdk sdk = DefaultSdks.getLocalAndroidSdk();
+    if (sdk != null) {
+      for (IAndroidTarget target : sdk.getTargets()) {
+        if (target.isPlatform()) {
+          AndroidVersion version = target.getVersion();
+          String codename = version.getCodename();
+          if (codename != null) {
+            myInstalledApis.add(codename);
+            myInstalledCompileApis.add(AndroidTargetHash.getPlatformHashString(version));
+          }
+          else {
+            String apiString = Integer.toString(version.getApiLevel());
+            myInstalledApis.add(apiString);
+            myInstalledCompileApis.add(apiString);
+          }
+        }
+        myInstalledBuildTools.add(target.getBuildToolInfo().getRevision().toString());
       }
-      AndroidPlatform androidPlatform = sdkAdditionalData.getAndroidPlatform();
-      if (androidPlatform == null) {
-        continue;
-      }
-      IAndroidTarget target = androidPlatform.getTarget();
-      AndroidVersion version = target.getVersion();
-      String codename = version.getCodename();
-      myInstalledApis.add(codename != null ? codename : Integer.toString(version.getApiLevel()));
-      myInstalledBuildTools.add(target.getBuildToolInfo().getRevision().toString());
     }
   }
 
