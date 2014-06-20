@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.BuildFileStatement;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.UnparseableStatement;
@@ -145,19 +146,24 @@ public class ModuleDependenciesTableModel extends AbstractTableModel implements 
       @Override
       public boolean include(Entry<? extends ModuleDependenciesTableModel, ? extends Integer> entry) {
         ModuleDependenciesTableItem item = myItems.get(entry.getIdentifier());
-        return item.getEntry() instanceof Dependency || !((UnparseableStatement)item.getEntry()).isComment();
+        BuildFileStatement e = item.getEntry();
+        return e instanceof Dependency || (e instanceof UnparseableStatement && !((UnparseableStatement)e).isComment());
       }
     };
   }
 
-  public int getRow(@NotNull String dependency) {
+  public int getRow(@NotNull GradleCoordinate dependency) {
     int rowCount = getRowCount();
     for (int i = 0; i < rowCount; i++) {
       Object value = getValueAt(i, ITEM_COLUMN);
       if (value instanceof ModuleDependenciesTableItem) {
         BuildFileStatement entry = ((ModuleDependenciesTableItem)value).getEntry();
-        if (entry instanceof Dependency && dependency.equals(((Dependency)entry).getValueAsString())) {
-          return i;
+        if (entry instanceof Dependency) {
+          String current = ((Dependency)entry).getValueAsString();
+          GradleCoordinate currentCoordinate = GradleCoordinate.parseCoordinateString(current);
+          if (currentCoordinate != null && dependency.equals(currentCoordinate)) {
+            return i;
+          }
         }
       }
     }
