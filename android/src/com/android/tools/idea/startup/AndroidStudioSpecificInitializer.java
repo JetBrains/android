@@ -461,7 +461,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
           }
         }
         catch (IOException e) {
-          LOG.error("Failed to stop Gradle daemons", e);
+          LOG.info("Failed to stop Gradle daemons", e);
         }
       }
     });
