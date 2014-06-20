@@ -244,7 +244,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       }
     }
 
-    if (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES) {
+    if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
     }
   }
