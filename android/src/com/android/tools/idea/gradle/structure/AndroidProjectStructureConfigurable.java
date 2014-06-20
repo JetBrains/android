@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -129,7 +130,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     });
   }
 
-  public boolean showDialogAndSelectDependency(@NotNull final Module module, @NotNull final String dependency) {
+  public boolean showDialogAndSelectDependency(@NotNull final Module module, @NotNull final GradleCoordinate dependency) {
     return doShowDialog(new Runnable() {
       @Override
       public void run() {
