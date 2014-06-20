@@ -149,6 +149,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     return "GradleTaskInvocation";
   }
 
+  @NotNull
   @Override
   public DumbModeAction getDumbModeAction() {
     return DumbModeAction.WAIT;
