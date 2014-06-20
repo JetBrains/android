@@ -66,7 +66,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "18.0.0");
       }
     });
-    String expected = getSimpleTestFile().replaceAll("17.0.0", "18.0.0");
+    String expected = getSimpleTestFile().replaceAll("17\\.0\\.0", "18.0.0");
     assertContents(file, expected);
   }
 
@@ -91,7 +91,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
         file.setValue(BuildFileKey.BUILD_TOOLS_VERSION, "99.0.0");
       }
     });
-    String expected = getSimpleTestFile().replaceAll("buildToolsVersion '17.0.0'", "buildToolsVersion '99.0.0'");
+    String expected = getSimpleTestFile().replaceAll("buildToolsVersion '17\\.0\\.0'", "buildToolsVersion '99.0.0'");
     assertContents(file, expected);
     assertEquals("99.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
   }
@@ -217,7 +217,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
       }
     });
     // We always expect system independent paths in build.gradle files.
-    String expected = getSimpleTestFile().replaceAll("proguard-flavor1.txt", "abc/def/foo.txt");
+    String expected = getSimpleTestFile().replaceAll("proguard-flavor1\\.txt", "abc/def/foo.txt");
     assertContents(file, expected);
     assertEquals(replacementFile, file.getValue(closure, BuildFileKey.PROGUARD_FILE));
   }
@@ -399,7 +399,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     expected.insert(position, "            proguardFile 'foo.txt'\n");
     assertContents(file, expected.toString());
     Object value = file.getValue(BuildFileKey.FLAVORS);
-    final List<NamedObject> configs = (List<NamedObject>)value;
+    List<NamedObject> configs = (List<NamedObject>)value;
     assertEquals(2, configs.size());
     assertEquals(newFile, configs.get(1).getValue(BuildFileKey.PROGUARD_FILE));
   }
@@ -414,7 +414,7 @@ public class GradleBuildFileTest extends IdeaTestCase {
     });
 
     String expected = getSimpleTestFile().replace("    compileSdkVersion 17\n", "");
-    assertContents(file, expected.toString());
+    assertContents(file, expected);
     assertNull(file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
   }
 
@@ -484,6 +484,32 @@ public class GradleBuildFileTest extends IdeaTestCase {
     );
     assertEquals("17", file.getValue(BuildFileKey.COMPILE_SDK_VERSION));
     assertEquals("17.0.0", file.getValue(BuildFileKey.BUILD_TOOLS_VERSION));
+  }
+
+  public void testGetDependencyInAlternativeFormat() throws IOException {
+    GradleBuildFile file = getTestFile(
+      "    dependencies {\n" +
+      "        compile group: 'com.google.guava', name: 'guava', version: '12.0'\n" +
+      "    }\n"
+    );
+    List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency dependency = (Dependency)dependencies.get(0);
+    assertNotNull(dependency);
+    assertEquals("com.google.guava:guava:12.0", dependency.getValueAsString());
+  }
+
+  public void testGetDependencyInAlternativeFormatWithArtifactType() throws IOException {
+    GradleBuildFile file = getTestFile(
+      "    dependencies {\n" +
+      "        compile group: 'com.google.guava', name: 'guava', version: '12.0', ext: 'jar'\n" +
+      "    }\n"
+    );
+    List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency dependency = (Dependency)dependencies.get(0);
+    assertNotNull(dependency);
+    assertEquals("com.google.guava:guava:12.0@jar", dependency.getValueAsString());
   }
 
   public void testGetsMavenRepositories() throws Exception {

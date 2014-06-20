@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
@@ -152,7 +153,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
     return myName;
   }
 
-  public void selectDependency(@NotNull String dependency) {
+  public void selectDependency(@NotNull GradleCoordinate dependency) {
     myTabbedPane.setSelectedTitle(ProjectBundle.message("modules.classpath.title"));
     JComponent selected = myTabbedPane.getSelectedComponent();
     if (selected instanceof ModuleDependenciesPanel) {
