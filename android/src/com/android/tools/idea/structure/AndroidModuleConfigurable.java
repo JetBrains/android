@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
@@ -98,7 +99,7 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
     return AllIcons.Nodes.Module;
   }
 
-  public void selectDependency(@NotNull String dependency) {
+  public void selectDependency(@NotNull GradleCoordinate dependency) {
     myModuleEditor.selectDependency(dependency);
   }
 }
