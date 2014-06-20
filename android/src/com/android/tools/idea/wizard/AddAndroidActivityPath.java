@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.*;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -251,7 +252,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     File testOut = new File(testDir, relativePackageDir);
     paths.put(ATTR_TEST_DIR, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
     paths.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getAbsolutePath()));
-    paths.put(ATTR_APPLICATION_PACKAGE, gradleProject.computePackageName());
+    paths.put(ATTR_APPLICATION_PACKAGE, ManifestInfo.get(module, false).getPackage());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
     paths.put(ATTR_SOURCE_PROVIDER_NAME, sourceProvider.getName());
     return paths;
