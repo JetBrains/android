@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.messages;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -143,9 +144,6 @@ public class ProjectSyncMessages {
       }
 
       String text = "Failed to find: " + dep;
-      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-        hyperlinks.add(new OpenDependencyInProjectStructureHyperlink(module, dep));
-      }
       Message msg;
       if (buildFile != null) {
         msg = new Message(module.getProject(), group, Message.Type.ERROR, buildFile, -1, -1, text);
@@ -153,6 +151,12 @@ public class ProjectSyncMessages {
       }
       else {
         msg = new Message(group, Message.Type.ERROR, AbstractNavigatable.NOT_NAVIGATABLE, text);
+      }
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dep);
+        if (coordinate != null) {
+          hyperlinks.add(new OpenDependencyInProjectStructureHyperlink(module, coordinate));
+        }
       }
       add(msg, hyperlinks.toArray(new NotificationHyperlink[hyperlinks.size()]));
     }
@@ -183,9 +187,9 @@ public class ProjectSyncMessages {
 
   private static class OpenDependencyInProjectStructureHyperlink extends NotificationHyperlink {
     @NotNull private final Module myModule;
-    @NotNull private final String myDependency;
+    @NotNull private final GradleCoordinate myDependency;
 
-    OpenDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull String dependency) {
+    OpenDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull GradleCoordinate dependency) {
       super("open.dependency.in.project.structure", "Open in Project Structure dialog");
       myModule = module;
       myDependency = dependency;
