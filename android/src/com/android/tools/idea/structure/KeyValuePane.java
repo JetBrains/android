@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -263,15 +264,18 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       BuildFileKeyType type = key.getType();
       switch(type) {
         case BOOLEAN:
-          try {
-            String s = ((ComboBox)component).getSelectedItem().toString();
-            if (!s.isEmpty()) {
-              newValue = Boolean.parseBoolean(s);
-            } else {
-              newValue = null;
-            }
-          } catch (Exception e) {
+          ComboBox comboBox = (ComboBox)component;
+          JBTextField editorComponent = (JBTextField)comboBox.getEditor().getEditorComponent();
+          int index = comboBox.getSelectedIndex();
+          if (index == 2) {
+            newValue = Boolean.FALSE;
+            editorComponent.setForeground(JBColor.BLACK);
+          } else if (index == 1) {
+            newValue = Boolean.TRUE;
+            editorComponent.setForeground(JBColor.BLACK);
+          } else {
             newValue = null;
+            editorComponent.setForeground(JBColor.GRAY);
           }
           break;
         case FILE:
@@ -356,15 +360,20 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       switch(key.getType()) {
         case BOOLEAN: {
           ComboBox comboBox = (ComboBox)component;
+          String text = formatDefaultValue(modelValue);
+          comboBox.removeItemAt(0);
+          comboBox.insertItemAt(text, 0);
+          JBTextField editorComponent = (JBTextField)comboBox.getEditor().getEditorComponent();
           if (Boolean.FALSE.equals(value)) {
             comboBox.setSelectedIndex(2);
+            editorComponent.setForeground(JBColor.BLACK);
           } else if (Boolean.TRUE.equals(value)) {
             comboBox.setSelectedIndex(1);
+            editorComponent.setForeground(JBColor.BLACK);
           } else {
             comboBox.setSelectedIndex(0);
+            editorComponent.setForeground(JBColor.GRAY);
           }
-          JBTextField editorComponent = (JBTextField)comboBox.getEditor().getEditorComponent();
-          editorComponent.getEmptyText().setText(formatDefaultValue(modelValue));
           break;
         }
         case FILE:
