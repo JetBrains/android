@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.SdkConstants;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -43,8 +45,9 @@ import static com.android.tools.idea.gradle.parser.BuildFileKey.escapeLiteralStr
  */
 public class Dependency extends BuildFileStatement {
   private static final Logger LOG = Logger.getInstance(Dependency.class);
-  public static final String FILETREE_BASE_DIR_PROPERTY = "dir";
-  public static final String FILETREE_INCLUDE_PATTERN_PROPERTY = "include";
+
+  @NonNls private static final String FILE_TREE_BASE_DIR_PROPERTY = "dir";
+  @NonNls private static final String FILE_TREE_INCLUDE_PATTERN_PROPERTY = "include";
 
   public enum Scope {
     COMPILE("Compile", "compile", true, true),
@@ -213,8 +216,8 @@ public class Dependency extends BuildFileStatement {
           return false;
         }
         Map<String, Object> values = (Map<String, Object>)data;
-        String dir = (String)values.get(FILETREE_BASE_DIR_PROPERTY);
-        Object value = values.get(FILETREE_INCLUDE_PATTERN_PROPERTY);
+        String dir = (String)values.get(FILE_TREE_BASE_DIR_PROPERTY);
+        Object value = values.get(FILE_TREE_INCLUDE_PATTERN_PROPERTY);
 
         if (value == null) {
           return false;
@@ -282,19 +285,21 @@ public class Dependency extends BuildFileStatement {
     @Override
     public List<BuildFileStatement> getValues(@NotNull PsiElement statement) {
       if (!(statement instanceof GrMethodCall)) {
-          return getUnparseableStatements(statement);
+        return getUnparseableStatements(statement);
       }
+
       GrMethodCall call = (GrMethodCall)statement;
-        Dependency.Scope scope = Dependency.Scope.fromMethodCall(GradleGroovyFile.getMethodCallName(call));
+      Dependency.Scope scope = Dependency.Scope.fromMethodCall(GradleGroovyFile.getMethodCallName(call));
       if (scope == null) {
         return getUnparseableStatements(statement);
       }
+
       GrArgumentList argumentList = call.getArgumentList();
-      if (argumentList == null) {
-        return getUnparseableStatements(statement);
-      }
       List<BuildFileStatement> dependencies = Lists.newArrayList();
-      for (GroovyPsiElement element : argumentList.getAllArguments()) {
+
+      GroovyPsiElement[] allArguments = argumentList.getAllArguments();
+      if (allArguments.length == 1) {
+        GroovyPsiElement element = allArguments[0];
         if (element instanceof GrMethodCall) {
           GrMethodCall method = (GrMethodCall)element;
           String methodName = GradleGroovyFile.getMethodCallName(method);
@@ -322,6 +327,24 @@ public class Dependency extends BuildFileStatement {
         } else {
           return getUnparseableStatements(statement);
         }
+      }
+      else if (allArguments.length > 1) {
+        Map<String, Object> attributes = GradleGroovyFile.getNamedArgumentValues(call);
+        if (attributes.isEmpty()) {
+          return getUnparseableStatements(statement);
+        }
+        Object groupId = attributes.get("group");
+        Object artifactId = attributes.get("name");
+        Object version = attributes.get("version");
+        Object ext = attributes.get("ext");
+        if (groupId == null || artifactId == null || version == null) {
+          return getUnparseableStatements(statement);
+        }
+        String coordinate = Joiner.on(":").join(groupId, artifactId, version);
+        if (ext != null) {
+          coordinate = coordinate + "@" + ext;
+        }
+        dependencies.add(new Dependency(scope, Dependency.Type.EXTERNAL, coordinate));
       }
       return dependencies;
     }
