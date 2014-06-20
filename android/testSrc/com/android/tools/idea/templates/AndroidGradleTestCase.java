@@ -463,7 +463,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
   public static void importProject(Project project, String projectName, File projectRoot) throws IOException, ConfigurationException {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-    projectImporter.importProject(projectName, projectRoot, new GradleSyncListener() {
+    // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously. This
+    // causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
+    boolean generateSources = false;
+    projectImporter.importProject(projectName, projectRoot, generateSources, new GradleSyncListener() {
       @Override
       public void syncStarted(@NotNull Project project) {
       }
@@ -476,6 +479,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
         fail(errorMessage);
       }
-    }, project);
+    }, project, null);
   }
 }
