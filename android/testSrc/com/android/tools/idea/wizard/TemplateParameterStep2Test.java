@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.LightIdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -102,15 +103,15 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
     Document document = XmlUtils.parseDocumentSilently(METADATA_XML, false);
     assert document != null;
     myTemplateMetadata = new TemplateMetadata(document);
-    new DynamicWizard(null, null, "Test Wizard") {
+    DynamicWizard dynamicWizard = new DynamicWizard(null, null, "Test Wizard") {
       @Override
       public void init() {
         super.init();
         addPath(new DynamicWizardPath() {
           @Override
           protected void init() {
-            myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE,
-                                                ImmutableMap.<String, Object>of(), null, null, AddAndroidActivityPath.KEY_PACKAGE_NAME);
+            myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE, ImmutableMap.<String, Object>of(), null, null,
+                                                AddAndroidActivityPath.KEY_PACKAGE_NAME);
             addStep(myStep);
           }
 
@@ -136,6 +137,8 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
       public void performFinishingActions() {
         // Do nothing
       }
-    }.init();
+    };
+    Disposer.register(getTestRootDisposable(), dynamicWizard.getDisposable());
+    dynamicWizard.init();
   }
 }
