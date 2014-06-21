@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -373,6 +374,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     String sdkPath = platform.getSdkData().getPath();
     String zipAlignPath = sdkPath + File.separatorChar + AndroidCommonUtils.toolPath(SdkConstants.FN_ZIPALIGN);
     File zipalign = new File(zipAlignPath);
+    if (!zipalign.isFile()) {
+      BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
+      if (buildTool != null) {
+        zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
+        zipalign = new File(zipAlignPath);
+      }
+    }
     final boolean runZipAlign = zipalign.isFile();
     File destFile = null;
     try {
