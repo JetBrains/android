@@ -208,6 +208,27 @@ public class RenderLogger extends LayoutLog {
           builder.add(")");
           addMessage(problem);
           return;
+        } else if (stackTrace.length >= 2 &&
+                   stackTrace[0].getClassName().equals("android.support.v7.widget.RecyclerView") &&
+                   stackTrace[0].getMethodName().equals("onMeasure") &&
+                   stackTrace[1].getClassName().equals("android.view.View") &&
+                   throwable.toString().equals("java.lang.NullPointerException")) {
+          RenderProblem.Html problem = RenderProblem.create(WARNING);
+          String issue = "72117";
+          problem.tag(issue);
+          problem.throwable(throwable);
+          HtmlBuilder builder = problem.getHtmlBuilder();
+          builder.add("The new RecyclerView does not yet work in Studio. We are working on a fix. ");
+          // TODO: Add more specific error message here when we know where we are fixing it, e.g. either
+          // to update their layoutlib (if we work around it there), or a new version of the recyclerview AAR.
+          builder.add(" (");
+          builder.addLink("Open Issue " + issue, "http://b.android.com/" + issue);
+          builder.add(", ");
+          ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
+          builder.addLink("Show Exception", getLinkManager().createRunnableLink(detailsFix));
+          builder.add(")");
+          addMessage(problem);
+          return;
         }
       } else if (message.startsWith("Failed to configure parser for ") && message.endsWith(DOT_PNG)) {
         // See if it looks like a mismatched bitmap/color; if so, make a more intuitive error message
