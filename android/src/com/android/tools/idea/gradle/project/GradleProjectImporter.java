@@ -444,24 +444,24 @@ public class GradleProjectImporter {
                             @NotNull File projectRootDir,
                             @Nullable GradleSyncListener listener,
                             @Nullable Project project) throws IOException, ConfigurationException {
-    importProject(projectName, projectRootDir, listener, project, null);
+    importProject(projectName, projectRootDir, true, listener, project, null);
   }
 
   /**
    * Imports and opens the newly created Android project.
    *
-   * @param projectName          name of the project.
-   * @param projectRootDir       root directory of the project.
-   * @param listener             called after the project has been imported.
-   * @param initialLanguageLevel when creating a new project, sets the language level to the given version early on (this is because you
-   *                             cannot set a language level later on in the process without telling the user that the language level has
-   *                             changed and to re-open the project)
+   * @param projectName              name of the project.
+   * @param projectRootDir           root directory of the project.
+   * @param generateSourcesOnSuccess whether to generate sources after sync.
+   * @param listener                 called after the project has been imported.
+   * @param initialLanguageLevel     when creating a new project, sets the language level to the given version early on (this is because you
+   *                                 cannot set a language level later on in the process without telling the user that the language level
+   *                                 has changed and to re-open the project)
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void importProject(@NotNull String projectName,
-                            @NotNull File projectRootDir,
-                            @Nullable GradleSyncListener listener,
+                            @NotNull File projectRootDir, boolean generateSourcesOnSuccess, @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
     createTopLevelBuildFileIfNotExisting(projectRootDir);
@@ -488,7 +488,7 @@ public class GradleProjectImporter {
     }
 
     assert newProject != null;
-    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, listener);
+    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, generateSourcesOnSuccess, listener);
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable GradleSyncListener listener)
