@@ -36,7 +36,7 @@ public final class VersionCheck {
   /**
    * The minimum version of the SDK Tools that this version of Android Studio requires.
    */
-  public static final FullRevision MIN_TOOLS_REV = new FullRevision(23, 0, 0, 0);
+  public static final FullRevision MIN_TOOLS_REV = new FullRevision(22, 6, 2, 0);
 
   private static final Pattern mySourcePropPattern = Pattern.compile("^" + PkgProps.PKG_REVISION + "=(.*)$");
 
