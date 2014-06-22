@@ -49,15 +49,6 @@ public class LibraryDependency extends Dependency {
   }
 
   /**
-   * Creates a new {@link LibraryDependency}. This constructor sets the scope to {@link DependencyScope#COMPILE}.
-   *
-   * @param name the name of the library to depend on.
-   */
-  LibraryDependency(@NotNull String name) {
-    setName(name);
-  }
-
-  /**
    * Creates a new {@link LibraryDependency}.
    *
    * @param name  the name of the library to depend on.
