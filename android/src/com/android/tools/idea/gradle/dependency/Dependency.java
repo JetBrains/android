@@ -24,12 +24,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.tools.idea.gradle.dependency.LibraryDependency.PathType.BINARY;
 
 /**
  * An IDEA module's dependency on an artifact (e.g. a jar file or another IDEA module.)
@@ -103,8 +106,7 @@ public abstract class Dependency {
     for (AndroidLibrary lib : androidArtifact.getDependencies().getLibraries()) {
       ModuleDependency mainDependency = null;
       String gradleProjectPath = lib.getProject();
-      if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
-        //noinspection TestOnlyProblems
+      if (StringUtil.isNotEmpty(gradleProjectPath)) {
         mainDependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(mainDependency);
       }
@@ -114,18 +116,13 @@ public abstract class Dependency {
       else {
         // add the aar as dependency in case there is a module dependency that cannot be satisfied (e.g. the module is outside of the
         // project.) If we cannot set the module dependency, we set a library dependency instead.
-        LibraryDependency backupDependency = new LibraryDependency(getLibraryName(lib));
-        backupDependency.addPath(LibraryDependency.PathType.BINARY, lib.getJarFile());
-        //noinspection TestOnlyProblems
-        mainDependency.setBackupDependency(backupDependency);
+        LibraryDependency backup = createLibraryDependency(lib, scope);
+        mainDependency.setBackupDependency(backup);
       }
-
-      addJars(dependencies, lib.getLocalJars(), scope);
     }
 
     for (String gradleProjectPath : androidArtifact.getDependencies().getProjects()) {
       if (gradleProjectPath != null && !gradleProjectPath.isEmpty()) {
-        //noinspection TestOnlyProblems
         ModuleDependency dependency = new ModuleDependency(gradleProjectPath, scope);
         dependencies.add(dependency);
       }
@@ -153,13 +150,7 @@ public abstract class Dependency {
     }
     unique.add(folder);
 
-    LibraryDependency dependency = new LibraryDependency(getLibraryName(library), scope);
-    File jar = library.getJarFile();
-    dependency.addPath(LibraryDependency.PathType.BINARY, jar);
-
-    File resFolder = library.getResFolder();
-    dependency.addPath(LibraryDependency.PathType.BINARY, resFolder);
-
+    LibraryDependency dependency = createLibraryDependency(library, scope);
     dependencies.add(dependency);
 
     for (AndroidLibrary dependentLibrary : library.getLibraryDependencies()) {
@@ -167,17 +158,23 @@ public abstract class Dependency {
     }
   }
 
+  @NotNull
+  private static LibraryDependency createLibraryDependency(@NotNull AndroidLibrary library, @NotNull DependencyScope scope) {
+    LibraryDependency dependency = new LibraryDependency(getLibraryName(library), scope);
+    dependency.addPath(BINARY, library.getJarFile());
+    dependency.addPath(BINARY, library.getResFolder());
+
+    for (File localJar : library.getLocalJars()) {
+      dependency.addPath(BINARY, localJar);
+    }
+    return dependency;
+  }
+
   private static void addJavaLibraries(@NotNull DependencySet dependencies,
                                        @NotNull Collection<JavaLibrary> libraries,
                                        @NotNull DependencyScope scope) {
     for (JavaLibrary library : libraries) {
       File jar = library.getJarFile();
-      dependencies.add(new LibraryDependency(jar, scope));
-    }
-  }
-
-  private static void addJars(@NotNull DependencySet dependencies, @NotNull Collection<File> jars, @NotNull DependencyScope scope) {
-    for (File jar : jars) {
       dependencies.add(new LibraryDependency(jar, scope));
     }
   }
