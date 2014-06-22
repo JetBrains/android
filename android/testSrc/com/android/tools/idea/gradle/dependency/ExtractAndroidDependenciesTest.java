@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.roots.DependencyScope;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.util.containers.ContainerUtil;
 
@@ -79,7 +80,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
   public void testExtractFromWithLibraryProject() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
     File bundle = new File(rootDirPath, "bundle.aar");
-    File libJar = new File(rootDirPath, "bundle_aar" + File.separatorChar + "library.jar");
+    File libJar = new File(rootDirPath, FileUtil.join("bundle_aar", "library.jar"));
+    File resFolder = new File(rootDirPath, FileUtil.join("bundle_aar", "res"));
     String gradlePath = "abc:xyz:library";
     AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar, gradlePath);
 
@@ -100,15 +102,16 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     assertEquals("bundle", backup.getName());
     assertEquals(DependencyScope.COMPILE, backup.getScope());
 
-    Collection<String> binaryPaths = backup.getPaths(LibraryDependency.PathType.BINARY);
-    assertEquals(1, binaryPaths.size());
-    assertEquals(libJar.getPath(), ContainerUtil.getFirstItem(binaryPaths));
+    Collection<String> backupBinaryPaths = backup.getPaths(LibraryDependency.PathType.BINARY);
+    assertEquals(2, backupBinaryPaths.size());
+    assertTrue(backupBinaryPaths.contains(libJar.getPath()));
+    assertTrue(backupBinaryPaths.contains(resFolder.getPath()));
   }
 
   public void testExtractFromWithLibraryAar() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
     File bundle = new File(rootDirPath, "bundle.aar");
-    File libJar = new File(rootDirPath, "bundle_aar" + File.separatorChar + "library.jar");
+    File libJar = new File(rootDirPath, FileUtil.join("bundle_aar", "library.jar"));
     AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
 
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
@@ -131,7 +134,8 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
   public void testExtractFromWithLibraryLocalJar() {
     String rootDirPath = myAndroidProject.getRootDir().getPath();
     File bundle = new File(rootDirPath, "bundle.aar");
-    File libJar = new File(rootDirPath, "bundle_aar" + File.separatorChar + "library.jar");
+    File libJar = new File(rootDirPath, FileUtil.join("bundle_aar", "library.jar"));
+    File resFolder = new File(rootDirPath, FileUtil.join("bundle_aar", "res"));
     AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
 
     File localJar = new File(rootDirPath, "local.jar");
@@ -141,17 +145,17 @@ public class ExtractAndroidDependenciesTest extends IdeaTestCase {
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
     List<LibraryDependency> dependencies = Lists.newArrayList(Dependency.extractFrom(myIdeaAndroidProject).onLibraries());
-    assertEquals(2, dependencies.size());
+    assertEquals(1, dependencies.size());
 
-    LibraryDependency dependency = dependencies.get(1);
+    LibraryDependency dependency = dependencies.get(0);
     assertNotNull(dependency);
-    assertEquals("local", dependency.getName());
-    // Make sure that is a "compile" dependency, even if specified as "test".
-    assertEquals(DependencyScope.COMPILE, dependency.getScope());
+    assertEquals("bundle", dependency.getName());
 
     Collection<String> binaryPaths = dependency.getPaths(LibraryDependency.PathType.BINARY);
-    assertEquals(1, binaryPaths.size());
-    assertEquals(localJar.getPath(), ContainerUtil.getFirstItem(binaryPaths));
+    assertEquals(3, binaryPaths.size());
+    assertTrue(binaryPaths.contains(localJar.getPath()));
+    assertTrue(binaryPaths.contains(libJar.getPath()));
+    assertTrue(binaryPaths.contains(resFolder.getPath()));
   }
 
   public void testExtractFromWithProject() {
