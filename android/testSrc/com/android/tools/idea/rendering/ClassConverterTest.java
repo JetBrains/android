@@ -116,8 +116,8 @@ public class ClassConverterTest extends TestCase {
     result = clz.getMethod("test").invoke(null);
     assertEquals(Integer.valueOf(42), result);
 
-    data = ClassConverter.rewriteClass(data, Integer.MAX_VALUE, 60); // future
-    assertEquals(60, ClassConverter.getMajorVersion(data));
+    data = ClassConverter.rewriteClass(data, Integer.MAX_VALUE, 52); // latest known
+    assertEquals(52, ClassConverter.getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
     assertNotNull(clz);
