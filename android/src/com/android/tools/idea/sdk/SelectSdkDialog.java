@@ -27,15 +27,11 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.io.File;
 
 public class SelectSdkDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -51,8 +47,6 @@ public class SelectSdkDialog extends DialogWrapper {
 
   private String myJdkHome = "";
   private String mySdkHome = "";
-
-  private OpenSdkManagerAction myOpenSdkManagerAction;
 
   /**
    * Displays SDK selection dialog.
@@ -128,19 +122,6 @@ public class SelectSdkDialog extends DialogWrapper {
     mySdkTextFieldWithButton.addBrowseFolderListener(null, listener);
   }
 
-  @Override
-  protected void createDefaultActions() {
-    super.createDefaultActions();
-    myOpenSdkManagerAction = new OpenSdkManagerAction();
-    myOpenSdkManagerAction.setEnabled(false);
-  }
-
-  @NotNull
-  @Override
-  protected Action[] createLeftSideActions() {
-    return new Action[] {myOpenSdkManagerAction};
-  }
-
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
@@ -155,8 +136,6 @@ public class SelectSdkDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    myOpenSdkManagerAction.setEnabled(false);
-
     String jdkHome = myJdkTextFieldWithButton.getText().trim();
     String jdkError = validateJdk(jdkHome);
     if (jdkError != null) {
@@ -167,14 +146,6 @@ public class SelectSdkDialog extends DialogWrapper {
     String sdkError = validateAndroidSdk(androidHome);
     if (sdkError != null) {
       return new ValidationInfo(sdkError, mySdkTextFieldWithButton.getTextField());
-    }
-    VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(androidHome);
-    if (!result.isCompatibleVersion()) {
-      myOpenSdkManagerAction.setEnabled(true);
-      myOpenSdkManagerAction.androidHome = androidHome;
-
-      String msg = AndroidBundle.message("android.version.check.too.old", VersionCheck.MIN_TOOLS_REV, result.getRevision());
-      return new ValidationInfo(msg, mySdkTextFieldWithButton.getTextField());
     }
     return null;
   }
@@ -242,20 +213,6 @@ public class SelectSdkDialog extends DialogWrapper {
       return myDefaultPath == null
              ? LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(PathManager.getHomePath()))
              : LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(myDefaultPath));
-    }
-  }
-
-  private static class OpenSdkManagerAction extends AbstractAction {
-    String androidHome;
-
-    OpenSdkManagerAction() {
-      super("Open Android SDK Manager");
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      assert androidHome != null;
-      RunAndroidSdkManagerAction.runSpecificSdkManager(null, new File(androidHome));
     }
   }
 }

@@ -19,7 +19,11 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.templates.*;
+import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
@@ -41,10 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
-import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_DEBUG_KEYSTORE_SHA1;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
 
@@ -92,7 +93,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       String title = "SDK problem";
       String msg =
-        "<html>Your Android SDK is missing, out of date, or is missing templates. Please ensure you are using SDK version 22 or later.<br>" +
+        "<html>Your Android SDK is missing, out of date, or is missing templates. Please ensure you are using SDK version " +
+        VersionCheck.MIN_TOOLS_REV + " or later.<br>" +
         "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       super.init();
       Messages.showErrorDialog(msg, title);
