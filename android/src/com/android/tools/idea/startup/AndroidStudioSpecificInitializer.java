@@ -292,6 +292,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
+    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    if (androidHome != null) {
+      // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
+      return;
+    }
+
     final Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -304,6 +310,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       });
       return;
     }
+
     // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -312,6 +319,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         if (androidSdkPath == null) {
           return;
         }
+
         Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), true);
         if (sdk != null) {
           // Rename the SDK to fit our default naming convention.
@@ -361,7 +369,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
-        String absolutePath = dir.getAbsolutePath();
+        String absolutePath = FileUtil.toCanonicalPath(dir.getAbsolutePath());
         LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
         if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
           LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
