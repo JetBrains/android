@@ -34,11 +34,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_GRADLE;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_NEW_PROJECT;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SDK_DIR;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
