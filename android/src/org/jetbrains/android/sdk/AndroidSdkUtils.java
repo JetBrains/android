@@ -262,6 +262,9 @@ public final class AndroidSdkUtils {
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     if (sdkData != null) {
       IAndroidTarget[] targets = sdkData.getTargets();
+      if (targets.length == 1) {
+        return targets[0];
+      }
       return findBestTarget(targets);
     }
     return null;
