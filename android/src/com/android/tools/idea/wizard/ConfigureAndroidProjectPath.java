@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.sdk.wizard.SmwOldApiDirectInstall;
 import com.android.tools.idea.templates.Template;
@@ -47,7 +48,6 @@ import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SDK_DIR;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
@@ -83,7 +83,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
   public boolean validate() {
     if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
       setErrorHtml("<html>Your Android SDK is missing, out of date, or is missing templates. " +
-                   "Please ensure you are using SDK version 22 or later.<br>" +
+                   "Please ensure you are using SDK version " + VersionCheck.MIN_TOOLS_REV  + " or later.<br>" +
                    "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>");
       return false;
     } else {
