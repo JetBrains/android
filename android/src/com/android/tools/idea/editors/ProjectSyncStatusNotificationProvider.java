@@ -48,6 +48,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     myProject = project;
   }
 
+  @NotNull
   @Override
   public Key<EditorNotificationPanel> getKey() {
     return KEY;
@@ -55,7 +56,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (!Projects.isGradleProject(myProject)) {
       return null;
     }
