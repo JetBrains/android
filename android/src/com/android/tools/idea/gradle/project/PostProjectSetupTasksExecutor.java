@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
@@ -26,6 +29,7 @@ import com.android.tools.idea.gradle.messages.AbstractNavigatable;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.gradle.service.notification.OpenFileHyperlink;
@@ -39,6 +43,8 @@ import com.android.tools.idea.gradle.variant.profiles.ProjectProfileSelectionDia
 import com.android.tools.idea.rendering.ProjectResourceRepository;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Iterables;
@@ -75,8 +81,11 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAI
 import static com.android.tools.idea.gradle.util.Projects.hasErrors;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
+import static com.intellij.notification.NotificationType.INFORMATION;
 
 public class PostProjectSetupTasksExecutor {
+  private static boolean ourSdkVersionWarningShown;
+
   @NotNull private final Project myProject;
 
   private static final boolean DEFAULT_GENERATE_SOURCES_AFTER_SYNC = true;
@@ -119,11 +128,13 @@ public class PostProjectSetupTasksExecutor {
 
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
+      checkSdkVersion(myProject);
       return;
     }
 
     findAndShowVariantConflicts();
     addSdkLinkIfNecessary();
+    checkSdkVersion(myProject);
 
     TemplateManager.getInstance().refreshDynamicTemplateMenu(myProject);
   }
@@ -139,6 +150,7 @@ public class PostProjectSetupTasksExecutor {
 
     if (hasErrors(myProject)) {
       addSdkLinkIfNecessary();
+      checkSdkVersion(myProject);
       GradleSyncState.getInstance(myProject).syncEnded();
       return;
     }
@@ -156,6 +168,7 @@ public class PostProjectSetupTasksExecutor {
     }
 
     findAndShowVariantConflicts();
+    checkSdkVersion(myProject);
     addSdkLinkIfNecessary();
 
     ProjectResourceRepository.moduleRootsChanged(myProject);
@@ -164,7 +177,8 @@ public class PostProjectSetupTasksExecutor {
 
     if (myGenerateSourcesAfterSync) {
       ProjectBuilder.getInstance(myProject).generateSourcesOnly();
-    } else {
+    }
+    else {
       // set default value back.
       myGenerateSourcesAfterSync = DEFAULT_GENERATE_SOURCES_AFTER_SYNC;
     }
@@ -417,6 +431,23 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
+  private static void checkSdkVersion(@NotNull Project project) {
+    if (project.isDisposed() || ourSdkVersionWarningShown) {
+      return;
+    }
+    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
+      InstallBuildToolsHyperlink hyperlink = new InstallBuildToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
+      CustomNotificationListener listener = new CustomNotificationListener(project, hyperlink);
+
+      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
+
+      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available." + "<br>\n" + hyperlink.toString();
+      notification.showBalloon("Android SDK Tools", message, INFORMATION, listener);
+      ourSdkVersionWarningShown = true;
+    }
+  }
+
   private boolean hasCorrectJdkVersion(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null && facet.getIdeaAndroidProject() != null) {
@@ -473,6 +504,26 @@ public class PostProjectSetupTasksExecutor {
     @Override
     protected void execute(@NotNull Project project) {
       mySettingsService.openSdkSettings();
+    }
+  }
+
+  private static class InstallBuildToolsHyperlink extends NotificationHyperlink {
+    @NotNull private final FullRevision myVersion;
+
+    InstallBuildToolsHyperlink(@NotNull FullRevision version) {
+      super("install.build.tools", "Install Tools " + version);
+      myVersion = version;
+    }
+
+    @Override
+    protected void execute(@NotNull Project project) {
+      List<IPkgDesc> requested = Lists.newArrayList();
+      requested.add(PkgDesc.Builder.newTool(myVersion, myVersion).create());
+      SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
+      wizard.init();
+      if (wizard.showAndGet()) {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
     }
   }
 }
