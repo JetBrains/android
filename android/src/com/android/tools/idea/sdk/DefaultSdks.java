@@ -40,6 +40,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -269,7 +270,9 @@ public final class DefaultSdks {
 
   @NotNull
   public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome) {
-    return createAndroidSdksForAllTargets(androidHome, null);
+    List<Sdk> sdks = createAndroidSdksForAllTargets(androidHome, null);
+    RunAndroidSdkManagerAction.updateInWelcomePage(null);
+    return sdks;
   }
 
   /**
