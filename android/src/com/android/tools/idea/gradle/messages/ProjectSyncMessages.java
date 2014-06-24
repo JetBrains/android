@@ -46,6 +46,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -54,8 +55,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.SdkConstants.FD_EXTRAS;
-import static com.android.SdkConstants.FD_M2_REPOSITORY;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_ANDROID_DEPENDENCIES;
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.UNRESOLVED_DEPENDENCIES;
 
@@ -124,19 +123,24 @@ public class ProjectSyncMessages {
 
     for (String dep : unresolvedDependencies) {
       List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+      File androidHome = getAndroidHome(module);
       String group;
       if (dep.startsWith("com.android.support")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        File repository = getRepositoryLocation(module, "android");
-        if (repository != null && !repository.isDirectory()) {
-          hyperlinks.add(InstallRepositoryHyperlink.installAndroidRepository());
+        if (androidHome != null) {
+          File repository = AndroidSdkUtils.getAndroidSupportRepositoryLocation(androidHome);
+          if (!repository.isDirectory()) {
+            hyperlinks.add(InstallRepositoryHyperlink.installAndroidRepository());
+          }
         }
       }
       else if (dep.startsWith("com.google.android.gms")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        File repository = getRepositoryLocation(module, "google");
-        if (repository != null && !repository.isDirectory()) {
-          hyperlinks.add(InstallRepositoryHyperlink.installGoogleRepository());
+        if (androidHome != null) {
+          File repository = AndroidSdkUtils.getGoogleRepositoryLocation(androidHome);
+          if (!repository.isDirectory()) {
+            hyperlinks.add(InstallRepositoryHyperlink.installGoogleRepository());
+          }
         }
       }
       else {
@@ -167,20 +171,16 @@ public class ProjectSyncMessages {
   }
 
   @Nullable
-  private static File getRepositoryLocation(@NotNull Module module, @NotNull String extrasName) {
-    File androidHome = null;
+  private static File getAndroidHome(@NotNull Module module) {
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      androidHome = DefaultSdks.getDefaultAndroidHome();
+      return DefaultSdks.getDefaultAndroidHome();
     }
     else {
       // TODO test this in IntelliJ
       Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
       if (sdk != null && sdk.getHomePath() != null) {
-        androidHome = new File(FileUtil.toSystemDependentName(sdk.getHomePath()));
+        return new File(FileUtil.toSystemDependentName(sdk.getHomePath()));
       }
-    }
-    if (androidHome != null) {
-      return new File(androidHome, FileUtil.join(FD_EXTRAS, extrasName, FD_M2_REPOSITORY));
     }
     return null;
   }
