@@ -122,7 +122,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
   }
 
   @Override
-  public void fillCompletionVariants(CompletionParameters parameters, CompletionResultSet resultSet) {
+  public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet resultSet) {
     PsiElement position = parameters.getPosition();
     PsiElement originalPosition = parameters.getOriginalPosition();
     AndroidFacet facet = AndroidFacet.getInstance(position);
