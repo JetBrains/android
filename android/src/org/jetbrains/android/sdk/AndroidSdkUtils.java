@@ -81,6 +81,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.SdkConstants.FD_M2_REPOSITORY;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -843,4 +846,20 @@ public final class AndroidSdkUtils {
 
     return null;
   }
+
+  @NotNull
+  public static File getAndroidSupportRepositoryLocation(@NotNull File androidHome) {
+    return getRepositoryLocation(androidHome, "android");
+  }
+
+  @NotNull
+  public static File getGoogleRepositoryLocation(@NotNull File androidHome) {
+    return getRepositoryLocation(androidHome, "google");
+  }
+
+  @NotNull
+  private static File getRepositoryLocation(@NotNull File androidHome, @NotNull String extrasName) {
+    return new File(androidHome, FileUtil.join(FD_EXTRAS, extrasName, FD_M2_REPOSITORY));
+  }
+
 }
