@@ -57,12 +57,13 @@ class InstallBuildToolsHyperlink extends NotificationHyperlink {
     requested.add(PkgDesc.Builder.newBuildTool(minBuildToolsRev).create());
     SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
     wizard.init();
-    wizard.show();
-    if (myBuildFile != null) {
-      FixBuildToolsVersionHyperlink.fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
-    }
-    else {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    if (wizard.showAndGet()) {
+      if (myBuildFile != null) {
+        FixBuildToolsVersionHyperlink.fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
+      }
+      else {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
     }
   }
 }
