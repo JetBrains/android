@@ -23,6 +23,7 @@ import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 
 /**
  * Displays the "Project Structure" dialog.
@@ -35,7 +36,10 @@ public class AndroidShowStructureSettingsAction extends AndroidActionRemover {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-    if (AndroidStudioSpecificInitializer.isAndroidStudio() && project != null && Projects.isGradleProject(project)) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() && (project == null || Projects.isGradleProject(project))) {
+      if (project == null) {
+        project = ProjectManager.getInstance().getDefaultProject();
+      }
       AndroidProjectStructureConfigurable.getInstance(project).showDialog();
     }
     else {
