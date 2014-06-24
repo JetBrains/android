@@ -16,7 +16,6 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
-import com.android.annotations.Nullable;
 import com.android.tools.idea.sdk.wizard.SdkManagerWizard2;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -28,10 +27,12 @@ import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
@@ -42,7 +43,7 @@ import java.io.File;
 public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidSdkManagerAction");
 
-  public static void updateInWelcomePage(@NotNull Component component) {
+  public static void updateInWelcomePage(@Nullable Component component) {
     if (!ApplicationManager.getApplication().isUnitTestMode() && ProjectManager.getInstance().getOpenProjects().length == 0) {
       // If there are no open projects, the "SDK Manager" configurable was invoked from the "Welcome Page". We need to update the
       // "SDK Manager" action to enable it.
@@ -50,7 +51,10 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
       AnAction sdkManagerAction = actionManager.getAction("WelcomeScreen.RunAndroidSdkManager");
       if (sdkManagerAction instanceof RunAndroidSdkManagerAction) {
         Presentation presentation = sdkManagerAction.getTemplatePresentation();
-        DataContext dataContext = DataManager.getInstance().getDataContext(component);
+
+        Component c = component != null ? component : WelcomeFrame.getInstance().getComponent();
+        DataContext dataContext = DataManager.getInstance().getDataContext(c);
+
         //noinspection ConstantConditions
         AnActionEvent event = new AnActionEvent(null, dataContext, ActionPlaces.WELCOME_SCREEN, presentation, actionManager, 0);
         sdkManagerAction.update(event);
