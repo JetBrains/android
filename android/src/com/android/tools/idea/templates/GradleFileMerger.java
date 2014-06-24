@@ -188,8 +188,10 @@ public class GradleFileMerger {
         PsiElement reference = existingElem.getFirstChild();
         if (reference instanceof GrReferenceExpression && reference.getText().equalsIgnoreCase(COMPILE)) {
           boolean parsed = false;
-          GrArgumentList arguments = ((GrCall)existingElem).getArgumentList();
-          if (arguments != null) {
+          GrCall call = (GrCall)existingElem;
+          GrArgumentList arguments = call.getArgumentList();
+          // Don't try merging dependencies if one of them has a closure block attached.
+          if (arguments != null && call.getClosureArguments().length == 0) {
             GrExpression[] expressionArguments = arguments.getExpressionArguments();
             if (expressionArguments.length == 1 && expressionArguments[0] instanceof GrLiteral) {
               Object value = ((GrLiteral)expressionArguments[0]).getValue();
