@@ -24,9 +24,11 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -804,6 +806,16 @@ public final class AndroidSdkUtils {
   @Nullable
   public static AndroidSdkData tryToChooseAndroidSdk() {
     if (ourSdkData == null) {
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        File path = DefaultSdks.getDefaultAndroidHome();
+        if (path != null) {
+          ourSdkData = AndroidSdkData.getSdkData(path.getPath());
+          if (ourSdkData != null) {
+            return ourSdkData;
+          }
+        }
+      }
+
       for (String s : getAndroidSdkPathsFromExistingPlatforms()) {
         ourSdkData = AndroidSdkData.getSdkData(s);
         if (ourSdkData != null) {
