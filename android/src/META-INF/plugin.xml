@@ -206,6 +206,7 @@
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.vmtrace.VmTraceEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.navigation.NavigationEditorProvider" />
+    <fileEditorProvider implementation="com.android.tools.idea.editors.allocations.AllocationsEditorProvider" />
 
     <runConfigurationProducer implementation="org.jetbrains.android.run.AndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="org.jetbrains.android.run.testing.AndroidTestConfigurationProducer" order="first"/>
