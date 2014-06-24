@@ -116,6 +116,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     decorator.setAddAction(new AnActionButtonRunnable() {
       @Override
       public void run(AnActionButton button) {
+        updateCurrentObjectFromUi();
         addObject();
       }
     });
@@ -276,7 +277,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     }
     int index = addElement(new NamedObject(name));
     // Select newly added element.
-    myList.setSelectedIndex(index);
+    myList.getSelectionModel().setSelectionInterval(index, index);
+    updateUiFromCurrentObject();
     // Make sure we scroll to selected element
     myList.ensureIndexIsVisible(index);
     myList.updateUI();
