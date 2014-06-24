@@ -309,9 +309,6 @@ public final class AndroidSdkUtils {
                                              @NotNull String sdkName,
                                              @Nullable Sdk jdk,
                                              boolean addRoots) {
-    if (!VersionCheck.isCompatibleVersion(sdkPath)) {
-      return null;
-    }
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = SdkConfigurationUtil.createUniqueSdkName(AndroidSdkType.SDK_NAME, Arrays.asList(table.getAllJdks()));
 
@@ -464,6 +461,8 @@ public final class AndroidSdkUtils {
 
   @Nullable
   public static Sdk findSuitableAndroidSdk(@NotNull String targetHashString) {
+    List<Pair<Boolean, Sdk>> matchingSdks = Lists.newArrayList();
+
     for (Sdk sdk : getAllAndroidSdks()) {
       SdkAdditionalData originalData = sdk.getSdkAdditionalData();
       if (!(originalData instanceof AndroidSdkAdditionalData)) {
@@ -475,13 +474,24 @@ public final class AndroidSdkUtils {
         continue;
       }
       String baseDir = androidPlatform.getSdkData().getLocation().getPath();
-      if (VersionCheck.isCompatibleVersion(baseDir)) {
-        String platformHashString = androidPlatform.getTarget().hashString();
-        if (targetHashString.equals(platformHashString)) {
-          return sdk;
-        }
+      String platformHashString = androidPlatform.getTarget().hashString();
+      if (targetHashString.equals(platformHashString)) {
+        boolean compatible = VersionCheck.isCompatibleVersion(baseDir);
+        matchingSdks.add(Pair.create(compatible, sdk));
       }
     }
+
+    for (Pair<Boolean, Sdk> sdk : matchingSdks) {
+      // We try to find an SDK that matches the given platform string and has a compatible Tools version.
+      if (sdk.getFirst()) {
+        return sdk.getSecond();
+      }
+    }
+    if (!matchingSdks.isEmpty()) {
+      // We got here because we have SDKs but none of them have a compatible Tools version. Pick the first one.
+      return matchingSdks.get(0).getSecond();
+    }
+
     return null;
   }
 
