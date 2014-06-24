@@ -81,6 +81,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private Collection<NamedObject> myModelOnlyObjects = Lists.newArrayList();
   private Map<String, Map<BuildFileKey, Object>> myModelObjects = Maps.newHashMap();
   private final PanelGroup myPanelGroup;
+  private volatile boolean myUpdating;
 
   /** An object that can't be deleted because it's supplied by default by the model */
   private static class UndeletableNamedObject extends NamedObject {
@@ -339,7 +340,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   }
 
   private void updateCurrentObjectFromUi() {
-    if (myCurrentObject == null) {
+    if (myCurrentObject == null || myUpdating) {
       return;
     }
     String newName = myObjectName.getText();
@@ -352,13 +353,19 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   }
 
   private void updateUiFromCurrentObject() {
-    NamedObject currentObject = getSelectedObject();
-    myCurrentObject = currentObject;
-    myObjectName.setText(currentObject != null ? currentObject.getName() : "");
-    myObjectName.setEnabled(currentObject != null);
-    myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
-    myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
-    myDetailsPane.updateUiFromCurrentObject();
+    try {
+      myUpdating = true;
+      NamedObject currentObject = getSelectedObject();
+      myCurrentObject = currentObject;
+      myObjectName.setText(currentObject != null ? currentObject.getName() : "");
+      myObjectName.setEnabled(currentObject != null);
+      myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
+      myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
+      myDetailsPane.updateUiFromCurrentObject();
+    }
+    finally {
+      myUpdating = false;
+    }
   }
 
   @Nullable
