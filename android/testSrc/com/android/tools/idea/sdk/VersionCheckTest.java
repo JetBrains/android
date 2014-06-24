@@ -34,7 +34,7 @@ public class VersionCheckTest extends TestCase {
     super.setUp();
     mySdkPath = getSystemPropertyOrEnvironmentVariable(AndroidTestCase.SDK_PATH_PROPERTY);
     if (Strings.isNullOrEmpty(mySdkPath)) {
-      String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
+      String format = "Please specify the path of an Android SDK (v23.0.0) in the system property or environment variable '%1$s'";
       fail(String.format(format, AndroidTestCase.SDK_PATH_PROPERTY));
     }
   }
@@ -48,7 +48,8 @@ public class VersionCheckTest extends TestCase {
     return s;
   }
 
-  public void testCheckVersion() {
+  // Disabled until Tools 23 is available.
+  public void DISABLEDtestCheckVersion() {
     VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(mySdkPath);
     assertTrue(result.isCompatibleVersion());
   }
