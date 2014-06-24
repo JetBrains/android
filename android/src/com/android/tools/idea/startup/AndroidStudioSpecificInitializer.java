@@ -350,11 +350,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Nullable
   private static Sdk findFirstCompatibleAndroidSdk() {
-    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+    List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
+    for (Sdk sdk : sdks) {
       String sdkPath = sdk.getHomePath();
       if (VersionCheck.isCompatibleVersion(sdkPath)) {
         return sdk;
       }
+    }
+    if (!sdks.isEmpty()) {
+      return sdks.get(0);
     }
     return null;
   }
@@ -371,7 +375,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         File dir = new File(studioHome, path);
         String absolutePath = FileUtil.toCanonicalPath(dir.getAbsolutePath());
         LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
-        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
+        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath)) {
           LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
           return new File(absolutePath);
         }
@@ -383,17 +387,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
     LOG.info(msg);
 
-    if (!StringUtil.isEmpty(androidHomeValue) &&
-        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
-        VersionCheck.isCompatibleVersion(androidHomeValue)) {
+    if (!StringUtil.isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       LOG.info("Using Android SDK specified by the environment variable.");
       return new File(FileUtil.toSystemDependentName(androidHomeValue));
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (!StringUtil.isEmpty(sdkPath) &&
-        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
-        VersionCheck.isCompatibleVersion(sdkPath)) {
+    if (!StringUtil.isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
       msg = "Unable to locate last SDK used by Android tools";
