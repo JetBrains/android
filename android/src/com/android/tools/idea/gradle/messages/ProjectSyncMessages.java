@@ -232,8 +232,9 @@ public class ProjectSyncMessages {
       requested.add(PkgDesc.Builder.newExtra(myIdDisplay, myPath, myDisplayName, null, new NoPreviewRevision(1)).create());
       SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
       wizard.init();
-      wizard.show();
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      if (wizard.showAndGet()) {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
     }
   }
 }
