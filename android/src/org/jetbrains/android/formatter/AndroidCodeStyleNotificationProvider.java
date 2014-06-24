@@ -19,6 +19,7 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -37,6 +38,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     myNotifications = notifications;
   }
 
+  @NotNull
   @Override
   public Key<MyPanel> getKey() {
     return KEY;
@@ -44,7 +46,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
 
   @Nullable
   @Override
-  public MyPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+  public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (file.getFileType() != XmlFileType.INSTANCE ||
         !(fileEditor instanceof TextEditor)) {
       return null;

@@ -8,6 +8,7 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
@@ -39,6 +40,7 @@ public class ResourceQualifierSwitcher extends EditorNotifications.Provider<Reso
     myProject = project;
   }
 
+  @NotNull
   @Override
   public Key<ResourceQualifierSwitcherPanel> getKey() {
     return KEY;
@@ -46,7 +48,7 @@ public class ResourceQualifierSwitcher extends EditorNotifications.Provider<Reso
 
   @Nullable
   @Override
-  public ResourceQualifierSwitcherPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+  public ResourceQualifierSwitcherPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (!ApplicationManager.getApplication().isInternal()) {
       return null;
     }
@@ -61,7 +63,7 @@ public class ResourceQualifierSwitcher extends EditorNotifications.Provider<Reso
     if (parent == null || !parent.getName().equals("res")) {
       return null;
     }
-    Module module = ModuleUtil.findModuleForFile(file, myProject);
+    Module module = ModuleUtilCore.findModuleForFile(file, myProject);
     AndroidFacet facet = module == null ? null : AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
