@@ -15,24 +15,16 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.sdk.SdkState;
-import com.android.tools.idea.wizard.ConfigureAndroidProjectPath;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.android.tools.idea.wizard.TemplateWizardState;
-import com.android.tools.idea.wizard.TemplateWizardStep;
 import com.android.utils.ILogger;
 import com.android.utils.IReaderLogger;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -48,11 +40,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,7 +86,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
   //-----------
 
   private void startSdkInstallUsingNonSwtOldApi() {
-
     // Get the SDK instance.
     final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     SdkState sdkState = sdkData == null ? null : SdkState.getInstance(sdkData);
@@ -123,8 +111,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
         // install all the requested packages, even if already installed, which is
         // useless so that's another incentive to remove already installed packages
         // from the requested list.
-
-        LocalSdk localSdk = sdkData.getLocalSdk();
 
         final ArrayList<String> requestedPackages = Lists.newArrayList();
         List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
@@ -172,6 +158,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
     return "InstallingSDKComponentsStep";
   }
 
+  @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
     return null;
@@ -277,7 +264,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
      * {@inheritDoc}
      */
     @Override
-    public int readLine(byte[] inputBuffer) throws IOException {
+    public int readLine(@NotNull byte[] inputBuffer) throws IOException {
       if (myLastLine != null && myLastLine.contains("Do you accept the license")) {
         // Let's take a simple shortcut and simply reply 'y' for yes.
         inputBuffer[0] = 'y';
@@ -290,8 +277,8 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
     }
 
     @Override
-    public void error(@com.android.annotations.Nullable Throwable t,
-                      @com.android.annotations.Nullable String msgFormat,
+    public void error(@Nullable Throwable t,
+                      @Nullable String msgFormat,
                       Object... args) {
       if (msgFormat == null && t != null) {
         if (myIndicator != null) myIndicator.setText2(t.toString());
@@ -326,7 +313,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
      * It also detects progress-bar like text and updates the dialog's progress
      * bar accordingly.
      */
-    private void outputLine(@NonNull String line) {
+    private void outputLine(String line) {
       myLastLine = line;
       try {
         // skip some of the verbose output such as license text & refreshing http sources
@@ -396,9 +383,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
                 current = "";
               }
               myTextArea1.setText(current + fAddLine);
-              if (fAddLine.contains("Nothing was installed")) {
-                myBackgroundSuccess = false;
-              } else if (fAddLine.contains("Failed")) {
+              if (fAddLine.contains("Nothing was installed") || fAddLine.contains("Failed")) {
                 myBackgroundSuccess = false;
               } else if (fAddLine.contains("Done") && !fAddLine.contains("othing")) {
                 myBackgroundSuccess = true;
