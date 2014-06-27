@@ -23,7 +23,6 @@ import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -37,6 +36,8 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +77,11 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
 
   public KeyValuePane(Project project) {
     myProject = project;
-    LocalSdk sdk = DefaultSdks.getLocalAndroidSdk();
+    LocalSdk sdk = null;
+    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (androidSdkData != null) {
+      sdk = androidSdkData.getLocalSdk();
+    }
     if (sdk != null) {
       for (IAndroidTarget target : sdk.getTargets()) {
         if (target.isPlatform()) {
