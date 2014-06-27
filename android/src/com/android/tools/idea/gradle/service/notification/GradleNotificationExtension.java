@@ -24,8 +24,6 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.sdk.DefaultSdks;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
@@ -55,6 +53,7 @@ import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -223,24 +222,18 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         String minimumVersion = matcher.group(3);
 
         LocalSdk localAndroidSdk = null;
-        String gradlePath = matcher.group(2);
-        Module module = GradleUtil.findModuleByGradlePath(project, gradlePath);
-        if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-          localAndroidSdk = DefaultSdks.getLocalAndroidSdk();
-        }
-        else if (module != null) {
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet != null) {
-            AndroidSdkData sdkData = facet.getSdkData();
-            localAndroidSdk = sdkData != null ? sdkData.getLocalSdk() : null;
-          }
+        AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (androidSdkData != null) {
+          localAndroidSdk = androidSdkData.getLocalSdk();
         }
         if (localAndroidSdk != null) {
           BuildToolInfo buildTool = localAndroidSdk.getBuildTool(FullRevision.parseRevision(minimumVersion));
           buildToolInstalled = buildTool != null;
         }
 
-        if (module != null) {
+        String gradlePath = matcher.group(2);
+        Module module = GradleUtil.findModuleByGradlePath(project, gradlePath);
+         if (module != null) {
           VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
           List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
           if (!buildToolInstalled) {
@@ -263,18 +256,21 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       if (matcher.matches()) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
         String platform = matcher.group(2);
-        if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-          LocalSdk localAndroidSdk = DefaultSdks.getLocalAndroidSdk();
-          if (localAndroidSdk != null) {
-            IAndroidTarget target = localAndroidSdk.getTargetFromHashString(platform);
-            if (target == null) {
-              if (platform.startsWith(ANDROID_PLATFORM_HASH_PREFIX)) {
-                platform = platform.substring(ANDROID_PLATFORM_HASH_PREFIX.length());
-              }
-              AndroidVersion version = SdkVersionInfo.getVersion(platform, localAndroidSdk.getTargets());
-              if (version != null) {
-                hyperlinks.add(new InstallPlatformHyperlink(version));
-              }
+
+        LocalSdk localAndroidSdk = null;
+        AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (androidSdkData != null) {
+          localAndroidSdk = androidSdkData.getLocalSdk();
+        }
+        if (localAndroidSdk != null) {
+          IAndroidTarget target = localAndroidSdk.getTargetFromHashString(platform);
+          if (target == null) {
+            if (platform.startsWith(ANDROID_PLATFORM_HASH_PREFIX)) {
+              platform = platform.substring(ANDROID_PLATFORM_HASH_PREFIX.length());
+            }
+            AndroidVersion version = SdkVersionInfo.getVersion(platform, localAndroidSdk.getTargets());
+            if (version != null) {
+              hyperlinks.add(new InstallPlatformHyperlink(version));
             }
           }
         }
