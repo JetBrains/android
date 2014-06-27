@@ -437,7 +437,7 @@ public class PostProjectSetupTasksExecutor {
     }
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
-      InstallBuildToolsHyperlink hyperlink = new InstallBuildToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
+      InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
       CustomNotificationListener listener = new CustomNotificationListener(project, hyperlink);
 
       AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
@@ -507,10 +507,10 @@ public class PostProjectSetupTasksExecutor {
     }
   }
 
-  private static class InstallBuildToolsHyperlink extends NotificationHyperlink {
+  private static class InstallSdkToolsHyperlink extends NotificationHyperlink {
     @NotNull private final FullRevision myVersion;
 
-    InstallBuildToolsHyperlink(@NotNull FullRevision version) {
+    InstallSdkToolsHyperlink(@NotNull FullRevision version) {
       super("install.build.tools", "Install Tools " + version);
       myVersion = version;
     }
@@ -518,6 +518,10 @@ public class PostProjectSetupTasksExecutor {
     @Override
     protected void execute(@NotNull Project project) {
       List<IPkgDesc> requested = Lists.newArrayList();
+      if (myVersion.getMajor() == 23) {
+        FullRevision minBuildToolsRev = new FullRevision(20, 0, 0);
+        requested.add(PkgDesc.Builder.newPlatformTool(minBuildToolsRev).create());
+      }
       requested.add(PkgDesc.Builder.newTool(myVersion, myVersion).create());
       SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
       wizard.init();
