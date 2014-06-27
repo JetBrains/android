@@ -17,7 +17,6 @@ package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
@@ -59,20 +58,6 @@ public final class DefaultSdks {
   private static final String ERROR_DIALOG_TITLE = "Project SDK Update";
 
   private DefaultSdks() {
-  }
-
-  @Nullable
-  public static LocalSdk getLocalAndroidSdk() {
-    Sdk sdk = getFirstAndroidSdk();
-    if (sdk != null && sdk.getSdkType().equals(AndroidSdkType.getInstance())) {
-      AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      AndroidPlatform platform = data != null ? data.getAndroidPlatform() : null;
-      if (platform != null) {
-        AndroidSdkData sdkData = platform.getSdkData();
-        return sdkData.getLocalSdk();
-      }
-    }
-    return null;
   }
 
   /**
