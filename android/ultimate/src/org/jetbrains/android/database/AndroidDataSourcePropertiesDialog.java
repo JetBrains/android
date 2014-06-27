@@ -18,7 +18,7 @@ import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.containers.HashMap;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
@@ -57,7 +57,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private JBRadioButton myInternalStorageRadioButton;
 
   private IDevice mySelectedDevice = null;
-  private Map<String, List<String>> myDatabaseMap;
+  private final Map<String, List<String>> myDatabaseMap = ContainerUtil.newLinkedHashMap();
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceListener;
 
   private final AndroidDataSource myTempDataSource;
@@ -219,12 +219,12 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     IDevice selectedDevice = selectedItem instanceof IDevice ? (IDevice)selectedItem : null;
 
     if (selectedDevice == null) {
-      myDatabaseMap = Collections.emptyMap();
+      myDatabaseMap.clear();
       myPackageNameComboBox.setModel(new DefaultComboBoxModel());
       myDataBaseComboBox.setModel(new DefaultComboBoxModel());
     }
     else if (!selectedDevice.equals(mySelectedDevice)) {
-      myDatabaseMap = loadDatabases(selectedDevice);
+      loadDatabases(selectedDevice);
       myPackageNameComboBox.setModel(new DefaultComboBoxModel(ArrayUtil.toStringArray(myDatabaseMap.keySet())));
       updateDbCombo();
     }
@@ -254,13 +254,12 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     return (String)myDataBaseComboBox.getEditor().getItem();
   }
 
-  @NotNull
-  private Map<String, List<String>> loadDatabases(@NotNull IDevice device) {
-    final FileListingService service = device.getFileListingService();
+  private void loadDatabases(@NotNull IDevice device) {
+    myDatabaseMap.clear();
 
-    if (service == null) {
-      return Collections.emptyMap();
-    }
+    final FileListingService service = device.getFileListingService();
+    if (service == null) return;
+
     final Set<String> packages = new HashSet<String>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
@@ -274,21 +273,18 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         }
       }
     }
-    if (packages.isEmpty()) {
-      return Collections.emptyMap();
-    }
-    final Map<String, List<String>> result = new HashMap<String, List<String>>();
+    if (packages.isEmpty()) return;
+
     final long startTime = System.currentTimeMillis();
     boolean tooLong = false;
 
     for (String aPackage : packages) {
-      result.put(aPackage, tooLong ? Collections.<String>emptyList(): loadDatabases(device, aPackage));
+      myDatabaseMap.put(aPackage, tooLong ? Collections.<String>emptyList(): loadDatabases(device, aPackage));
 
       if (System.currentTimeMillis() - startTime > 4000) {
         tooLong = true;
       }
     }
-    return result;
   }
 
   @NotNull
