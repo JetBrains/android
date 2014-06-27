@@ -425,12 +425,19 @@ public class AndroidGradleProjectData implements Serializable {
       }
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null && module.getModuleFile() != null) {
-        File moduleFilePath = new File(FileUtil.toSystemDependentName(module.getModuleFile().getPath()));
-        File moduleRootDirPath = moduleFilePath.getParentFile();
-        IdeaAndroidProject ideaAndroidProject =
-          new IdeaAndroidProject(module.getName(), moduleRootDirPath, data.myAndroidProject, data.mySelectedVariant);
-        androidFacet.setIdeaAndroidProject(ideaAndroidProject);
+      String moduleFilePath = module.getModuleFilePath(); // System dependent absolute path.
+      if (androidFacet != null) {
+        if (data.myAndroidProject != null) {
+          File moduleFile = new File(moduleFilePath);
+          assert moduleFile.getParent() != null : moduleFile.getPath();
+          File moduleRootDirPath = moduleFile.getParentFile();
+          IdeaAndroidProject ideaAndroidProject =
+            new IdeaAndroidProject(module.getName(), moduleRootDirPath, data.myAndroidProject, data.mySelectedVariant);
+          androidFacet.setIdeaAndroidProject(ideaAndroidProject);
+        }
+        else {
+          return false;
+        }
       }
 
       AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
