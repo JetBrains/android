@@ -140,8 +140,12 @@ class Match {
     switch (type) {
       case ALIGN_LEFT:
         return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_START);
+      case LAYOUT_LEFT_OF:
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_TO_START_OF);
       case ALIGN_RIGHT:
         return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_END);
+      case LAYOUT_RIGHT_OF:
+        return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_END_OF);
       case ALIGN_PARENT_LEFT:
         return replaceAttribute(getConstraint(generateId), ATTR_LAYOUT_ALIGN_PARENT_LEFT, ATTR_LAYOUT_ALIGN_PARENT_START);
       case ALIGN_PARENT_RIGHT:
