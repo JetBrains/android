@@ -164,7 +164,6 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     Map<String, AndroidGradleProjectData.ModuleData> modules = data.getModuleData();
     assertEquals(3, modules.size());
 
-    AndroidGradleProjectData.ModuleData moduleData = modules.get(myAndroidFacet.getModule().getName());
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     ObjectOutputStream oos = new ObjectOutputStream(outputStream);
@@ -178,9 +177,15 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     // Clear the sync state to make sure we set it correctly.
     syncState.setLastGradleSyncTimestamp(-1L);
-    newData.applyTo(project);
+    assertTrue(newData.applyTo(project));
 
     assertEquals(previousSyncTime, syncState.getLastGradleSyncTimestamp());
+
+    // Test applying without a module.
+    String moduleName = myAndroidFacet.getModule().getName();
+    Map<String, AndroidGradleProjectData.ModuleData> newModules = newData.getModuleData();
+    newModules.remove(moduleName);
+    assertFalse(newData.applyTo(project));
   }
 
   interface MyInterface {
