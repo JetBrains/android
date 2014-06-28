@@ -432,12 +432,14 @@ public class RenderPreview implements Disposable {
     if (editedFile != null) {
       if (!myConfiguration.isBestMatchFor(editedFile, config)) {
         LocalResourceRepository resources = AppResourceRepository.getAppResources(myConfiguration.getModule(), true);
-        VirtualFile best = resources.getMatchingFile(editedFile, ResourceType.LAYOUT, config);
-        if (best != null) {
-          myAlternateInput = best;
-        }
-        if (myAlternateInput != null) {
-          myAlternateConfiguration = Configuration.create(myConfiguration, myAlternateInput);
+        if (resources != null) {
+          VirtualFile best = resources.getMatchingFile(editedFile, ResourceType.LAYOUT, config);
+          if (best != null) {
+            myAlternateInput = best;
+          }
+          if (myAlternateInput != null) {
+            myAlternateConfiguration = Configuration.create(myConfiguration, myAlternateInput);
+          }
         }
       }
     }
