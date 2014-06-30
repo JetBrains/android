@@ -32,7 +32,7 @@ public class GradleProjectStub implements GradleProject {
   @NotNull private final GradleScriptStub myScript;
   @NotNull private final List<GradleTaskStub> myTasks;
 
-  public GradleProjectStub(@NotNull String name, @NotNull String path, @Nullable File projectFile, @NotNull String...tasks) {
+  public GradleProjectStub(@NotNull String name, @NotNull String path, @Nullable File projectFile, @NotNull String... tasks) {
     myName = name;
     myPath = path;
     myScript = new GradleScriptStub(projectFile);
@@ -86,9 +86,8 @@ public class GradleProjectStub implements GradleProject {
     return myScript;
   }
 
-  // TODO
   @Override
   public File getBuildDirectory() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 }
