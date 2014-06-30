@@ -36,6 +36,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -72,7 +73,6 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
     super.init();
     myChangeTree.setModel(myTreeModel);
     myChangeTree.setShowsRootHandles(false);
-    setChanges(createChangesList());
     myLicenseTextField.setEditable(false);
 
     // Initialize radio buttons
@@ -111,7 +111,6 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
         else if (selected != null && !selected.isRoot()) {
           Change change = (Change)selected.getUserObject();
           myLicenseTextField.setText(change.license.getLicense());
-          myLicenseTextField.setCaretPosition(0);
           myCurrentLicense = change.license.getLicenseRef();
         }
         if (myAcceptances.get(myCurrentLicense)) {
@@ -119,6 +118,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
         } else {
           myDeclineRadioButton.setSelected(true);
         }
+        myLicenseTextField.setCaretPosition(0);
       }
     });
 
@@ -150,6 +150,8 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
         }
       }
     });
+
+    setChanges(createChangesList());
   }
 
   @Override
@@ -184,7 +186,12 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
     List requestedPackageNames = myState.get(INSTALL_REQUESTS_KEY);
     if (requestedPackageNames != null) {
       for (Object o : requestedPackageNames) {
-        toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_SDK_LICENSE));
+        IPkgDesc desc = (IPkgDesc)o;
+        if (desc.getAndroidVersion() != null && desc.getAndroidVersion().isPreview()) {
+          toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_PREVIEW_SDK_LICENSE));
+        } else {
+          toReturn.add(new Change(ChangeType.INSTALL, (IPkgDesc)o, AndroidSdkLicenseTemporaryData.HARDCODED_ANDROID_SDK_LICENSE));
+        }
       }
     }
     return toReturn;
@@ -194,9 +201,13 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
     Map<String, DefaultMutableTreeNode> licenseNodeMap = Maps.newHashMap();
 
     DefaultMutableTreeNode root = new DefaultMutableTreeNode();
+    DefaultMutableTreeNode firstChild = null;
     for (Change change : changes) {
       if (!licenseNodeMap.containsKey(change.license.getLicenseRef())) {
         DefaultMutableTreeNode n = new DefaultMutableTreeNode(change.license);
+        if (firstChild == null) {
+          firstChild = n;
+        }
         String licenceRef = change.license.getLicenseRef();
         licenseNodeMap.put(licenceRef, n);
         myAcceptances.put(licenceRef, Boolean.FALSE);
@@ -207,6 +218,9 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
     myTreeModel = new DefaultTreeModel(root);
     myChangeTree.setModel(myTreeModel);
     expandTree();
+    if (firstChild != null) {
+      myChangeTree.setSelectionPath(new TreePath(firstChild.getPath()));
+    }
   }
 
   @Override
