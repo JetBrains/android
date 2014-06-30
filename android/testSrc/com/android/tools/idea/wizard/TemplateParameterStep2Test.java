@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableMap;
@@ -110,8 +111,8 @@ public final class TemplateParameterStep2Test extends LightIdeaTestCase {
         addPath(new DynamicWizardPath() {
           @Override
           protected void init() {
-            myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE, ImmutableMap.<String, Object>of(), null, null,
-                                                AddAndroidActivityPath.KEY_PACKAGE_NAME);
+            myStep = new TemplateParameterStep2(FormFactorUtils.FormFactor.MOBILE, ImmutableMap.<String, Object>of(), null,
+                                                AddAndroidActivityPath.KEY_PACKAGE_NAME, new SourceProvider[0]);
             addStep(myStep);
           }
 

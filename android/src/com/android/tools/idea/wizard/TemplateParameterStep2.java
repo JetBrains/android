@@ -92,9 +92,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   private final Function<Parameter, Key<?>> myParameterToKey;
   private final Map<String, Object> myPresetParameters = Maps.newHashMap();
-  private final VirtualFile myTargetDirectory;
   @NotNull private final Key<String> myPackageNameKey;
   private final LoadingCache<File, Icon> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
+  private final SourceProvider[] mySourceProviders;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
   private JLabel myTemplateDescription;
@@ -114,11 +114,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
    *                         User will not be allowed to change their values.
    */
   public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
-                                @Nullable VirtualFile targetDirectory, @Nullable Disposable disposable,
-                                @NotNull Key<String> packageNameKey) {
+                                @Nullable Disposable disposable, @NotNull Key<String> packageNameKey,
+                                SourceProvider[] sourceProviders) {
     super("Choose options for your new file", null, formFactor.getIcon(), disposable);
+    mySourceProviders = sourceProviders;
     myPresetParameters.putAll(presetParameters);
-    myTargetDirectory = targetDirectory;
     myPackageNameKey = packageNameKey;
     myParameterToKey = CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(new ParameterKeyFunction()));
     myRootPanel.setBorder(createBodyBorder());
@@ -416,7 +416,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     for (Parameter param : templateEntry.getParameters()) {
       if (param != null) {
         Object value = getStateParameterValue(param);
-        String error = param.validate(getProject(), getModule(), getSourceProvider(),
+        String error = param.validate(getProject(), getModule(),
+                                      myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER),
                                       myState.get(myPackageNameKey),
                                       value != null ? value : "");
         if (error != null) {
@@ -445,17 +446,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     return true;
   }
 
-  @Nullable
-  private SourceProvider getSourceProvider() {
-    return myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER);
-  }
-
   @Override
   public void init() {
     super.init();
-    List<SourceProvider> sourceProviders = getSourceProviders();
-    if (sourceProviders.size() > 0) {
-      myState.put(AddAndroidActivityPath.KEY_SOURCE_PROVIDER, sourceProviders.get(0));
+    if (mySourceProviders.length > 0) {
+      myState.put(AddAndroidActivityPath.KEY_SOURCE_PROVIDER, mySourceProviders[0]);
     }
     register(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE, (JComponent)myTemplateDescription.getParent(),
              new ComponentBinding<TemplateEntry, JComponent>() {
@@ -553,8 +548,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   }
 
   private void addSourceSetControls(int row) {
-    List<SourceProvider> sourceProviders = getSourceProviders();
-    if (sourceProviders.size() > 1) {
+    if (mySourceProviders.length > 1) {
       if (mySourceSetLabel == null) {
         mySourceSetLabel = new JLabel("Target Source Set:");
         mySourceSet = new ComboBox();
@@ -564,30 +558,13 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
                                            "Please select the target source set in which to create the files.");
       }
       mySourceSet.removeAllItems();
-      for (SourceProvider sourceProvider : sourceProviders) {
+      for (SourceProvider sourceProvider : mySourceProviders) {
         //noinspection unchecked
         mySourceSet.addItem(new ComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
       }
       addComponent(myTemplateParameters, mySourceSetLabel, row, 0, false);
       addComponent(myTemplateParameters, mySourceSet, row, 1, true);
     }
-  }
-
-  @NotNull
-  private List<SourceProvider> getSourceProviders() {
-    Module module = getModule();
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        if (myTargetDirectory != null) {
-          return IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetDirectory, facet.getMainSourceSet());
-        }
-        else {
-          return IdeaSourceProvider.getAllSourceProviders(facet);
-        }
-      }
-    }
-    return ImmutableList.of();
   }
 
   private Iterable<Parameter> filterNonUIParameters(TemplateEntry entry) {

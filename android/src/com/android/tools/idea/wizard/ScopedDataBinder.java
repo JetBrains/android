@@ -465,20 +465,6 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
   }
 
   /**
-   * Connects the given {@link JRadioButton} to the given key and sets a listener to pick up changes that need to trigger validation
-   * and UI updates.
-   */
-  protected <T> void register(@NotNull Key<T> key, @NotNull JRadioButton radioButton, @Nullable T defaultValue) {
-    T currentValue = bindAndGet(key, radioButton, null);
-    radioButton.setSelected(currentValue != null && currentValue.equals(defaultValue));
-    if (defaultValue != null) {
-      myState.put(key, defaultValue);
-    }
-    radioButton.addFocusListener(this);
-    radioButton.addActionListener(this);
-  }
-
-  /**
    * Connects the given {@link JSlider} to the given key and sets a listener to pick up changes that need to trigger validation
    * and UI updates.
    */

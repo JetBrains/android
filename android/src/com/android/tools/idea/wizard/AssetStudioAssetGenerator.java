@@ -18,19 +18,21 @@ package com.android.tools.idea.wizard;
 
 import com.android.assetstudiolib.*;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -63,7 +65,73 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   private final NotificationIconGenerator myNotificationIconGenerator;
   private final LauncherIconGenerator myLauncherIconGenerator;
 
-  private TemplateWizardState myWizardState;
+  private AssetStudioContext myContext;
+
+  /**
+   * This is needed to migrate between "old" and "new" wizard frameworks
+   */
+  public interface AssetStudioContext {
+
+    int getPadding();
+
+    void setPadding(int padding);
+
+    @Nullable
+    SourceType getSourceType();
+
+    void setSourceType(SourceType sourceType);
+
+    @Nullable
+    AssetType getAssetType();
+
+    boolean isTrim();
+
+    void setTrim(boolean trim);
+
+    @Nullable
+    String getImagePath();
+
+    @Nullable
+    String getText();
+
+    void setText(String text);
+
+    @Nullable
+    String getClipartName();
+
+    void setClipartName(String clipartName);
+
+    Color getForegroundColor();
+
+    void setForegroundColor(Color fg);
+
+    @Nullable
+    String getFont();
+
+    void setFont(String font);
+
+    int getFontSize();
+
+    void setFontSize(int fontSize);
+
+    Scaling getScaling();
+
+    void setScaling(Scaling scaling);
+
+    @Nullable
+    String getAssetName();
+
+    GraphicGenerator.Shape getShape();
+
+    void setShape(GraphicGenerator.Shape shape);
+
+    Color getBackgroundColor();
+
+    void setBackgroundColor(Color bg);
+
+    @Nullable
+    String getAssetTheme();
+  }
 
   public static class ImageGeneratorException extends Exception {
     public ImageGeneratorException(String message) {
@@ -181,34 +249,39 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
     }
   }
 
+  public AssetStudioAssetGenerator(AssetStudioContext context) {
+    this(context, new ActionBarIconGenerator(), new NotificationIconGenerator(), new LauncherIconGenerator());
+  }
+
   public AssetStudioAssetGenerator(TemplateWizardState state) {
-    this(state, new ActionBarIconGenerator(), new NotificationIconGenerator(), new LauncherIconGenerator());
+    this(new TemplateWizardContextAdapter(state), new ActionBarIconGenerator(), new NotificationIconGenerator(),
+         new LauncherIconGenerator());
   }
 
   /**
    * Allows dependency injection for testing
    */
   @SuppressWarnings("UseJBColor") // These colors are for the graphics generator, not the plugin UI
-  public AssetStudioAssetGenerator(@NotNull TemplateWizardState state,
+  public AssetStudioAssetGenerator(@NotNull AssetStudioContext context,
                                    @Nullable ActionBarIconGenerator actionBarIconGenerator,
                                    @Nullable NotificationIconGenerator notificationIconGenerator,
                                    @Nullable LauncherIconGenerator launcherIconGenerator) {
-    myWizardState = state;
+    myContext = context;
     myActionBarIconGenerator = actionBarIconGenerator != null ? actionBarIconGenerator : new ActionBarIconGenerator();
     myNotificationIconGenerator = notificationIconGenerator != null ? notificationIconGenerator : new NotificationIconGenerator();
     myLauncherIconGenerator = launcherIconGenerator != null ? launcherIconGenerator : new LauncherIconGenerator();
 
-    myWizardState.put(ATTR_TEXT, "Aa");
-    myWizardState.put(ATTR_FONT, "Arial Black");
-    myWizardState.put(ATTR_SCALING, Scaling.CROP);
-    myWizardState.put(ATTR_SHAPE, GraphicGenerator.Shape.NONE);
-    myWizardState.put(ATTR_FONT_SIZE, 144);
-    myWizardState.put(ATTR_SOURCE_TYPE, AssetStudioAssetGenerator.SourceType.IMAGE);
-    myWizardState.put(ATTR_CLIPART_NAME, "android.png");
-    myWizardState.put(ATTR_FOREGROUND_COLOR, Color.BLUE);
-    myWizardState.put(ATTR_BACKGROUND_COLOR, Color.WHITE);
-    myWizardState.put(ATTR_TRIM, false);
-    myWizardState.put(ATTR_PADDING, 0);
+    myContext.setText("Aa");
+    myContext.setFont("Arial Black");
+    myContext.setScaling(Scaling.CROP);
+    myContext.setShape(GraphicGenerator.Shape.NONE);
+    myContext.setFontSize(144);
+    myContext.setSourceType(AssetStudioAssetGenerator.SourceType.IMAGE);
+    myContext.setClipartName("android.png");
+    myContext.setForegroundColor(Color.BLUE);
+    myContext.setBackgroundColor(Color.WHITE);
+    myContext.setTrim(false);
+    myContext.setPadding(0);
   }
 
   @Override
@@ -254,24 +327,23 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       categoryMap.clear();
     }
 
-    if (!myWizardState.hasAttr(ATTR_ASSET_TYPE)) {
+    AssetType type = myContext.getAssetType();
+    if (type == null) {
       // If we don't know what we're building, don't do it yet.
       return;
     }
+    boolean trim = myContext.isTrim();
+    int padding = myContext.getPadding();
 
-
-    AssetType type = AssetType.valueOf(myWizardState.getString(ATTR_ASSET_TYPE));
-    boolean trim = myWizardState.getBoolean(ATTR_TRIM);
-    int padding = myWizardState.getInt(ATTR_PADDING);
-
-    if (type == null) {
+    SourceType sourceType = myContext.getSourceType();
+    if (sourceType == null) {
       return;
     }
 
     BufferedImage sourceImage = null;
-    switch ((AssetStudioAssetGenerator.SourceType)myWizardState.get(ATTR_SOURCE_TYPE)) {
+    switch (sourceType) {
       case IMAGE: {
-        String path = (String)myWizardState.get(ATTR_IMAGE_PATH);
+        String path = myContext.getImagePath();
         if (path == null || path.isEmpty()) {
           throw new ImageGeneratorException("Path to image is empty.");
         }
@@ -289,7 +361,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
       }
 
       case CLIPART: {
-        String clipartName = (String)myWizardState.get(ATTR_CLIPART_NAME);
+        String clipartName = myContext.getClipartName();
         try {
           sourceImage = GraphicGenerator.getClipartImage(clipartName);
         }
@@ -298,7 +370,7 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
         }
 
         if (type.needsColors()) {
-          Paint paint = (Color)myWizardState.get(ATTR_FOREGROUND_COLOR);
+          Paint paint = myContext.getForegroundColor();
           sourceImage = Util.filledImage(sourceImage, paint);
         }
         break;
@@ -306,9 +378,9 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
       case TEXT: {
         TextRenderUtil.Options options = new TextRenderUtil.Options();
-        options.font = Font.decode(myWizardState.getString(ATTR_FONT) + " " + myWizardState.getInt(ATTR_FONT_SIZE));
-        options.foregroundColor = type.needsColors() ? ((Color)myWizardState.get(ATTR_FOREGROUND_COLOR)).getRGB() : 0xFFFFFFFF;
-        sourceImage = TextRenderUtil.renderTextImage(myWizardState.getString(ATTR_TEXT), 1, options);
+        options.font = Font.decode(myContext.getFont() + " " + myContext.getFontSize());
+        options.foregroundColor = type.needsColors() ? myContext.getForegroundColor().getRGB() : 0xFFFFFFFF;
+        sourceImage = TextRenderUtil.renderTextImage(myContext.getText(), 1, options);
 
         break;
       }
@@ -324,48 +396,44 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
 
     GraphicGenerator generator = null;
     GraphicGenerator.Options options = null;
-    String baseName = "";
-
-    if (myWizardState.hasAttr(ATTR_ASSET_NAME)) {
-      baseName = myWizardState.getString(ATTR_ASSET_NAME);
-    }
+    String baseName = Strings.nullToEmpty(myContext.getAssetName());
 
     switch (type) {
       case LAUNCHER: {
         generator = myLauncherIconGenerator;
           LauncherIconGenerator.LauncherOptions launcherOptions = new LauncherIconGenerator.LauncherOptions();
-          launcherOptions.shape = (GraphicGenerator.Shape)myWizardState.get(ATTR_SHAPE);
-          launcherOptions.crop = Scaling.CROP.equals(myWizardState.get(ATTR_SCALING));
+        launcherOptions.shape = myContext.getShape();
+        launcherOptions.crop = Scaling.CROP.equals(myContext.getScaling());
           launcherOptions.style = GraphicGenerator.Style.SIMPLE;
-          launcherOptions.backgroundColor = ((Color)myWizardState.get(ATTR_BACKGROUND_COLOR)).getRGB();
+        launcherOptions.backgroundColor = myContext.getBackgroundColor().getRGB();
           launcherOptions.isWebGraphic = !previewOnly;
           options = launcherOptions;
         }
         break;
       case ACTIONBAR: {
-          generator = myActionBarIconGenerator;
-          ActionBarIconGenerator.ActionBarOptions actionBarOptions =
-            new ActionBarIconGenerator.ActionBarOptions();
-          if (myWizardState.hasAttr(ATTR_ASSET_THEME)) {
-            ActionBarIconGenerator.Theme theme = ActionBarIconGenerator.Theme.valueOf(myWizardState.getString(ATTR_ASSET_THEME));
-            if (theme != null) {
-              switch (theme) {
-                case HOLO_DARK:
-                  actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_DARK;
-                  break;
-                case HOLO_LIGHT:
-                  actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_LIGHT;
-                  break;
-                case CUSTOM:
-                  actionBarOptions.theme = ActionBarIconGenerator.Theme.CUSTOM;
-                  actionBarOptions.customThemeColor = ((Color)myWizardState.get(ATTR_FOREGROUND_COLOR)).getRGB();
-                  break;
-              }
+        generator = myActionBarIconGenerator;
+        ActionBarIconGenerator.ActionBarOptions actionBarOptions = new ActionBarIconGenerator.ActionBarOptions();
+        String themeName = myContext.getAssetTheme();
+        if (!StringUtil.isEmpty(themeName)) {
+          ActionBarIconGenerator.Theme theme = ActionBarIconGenerator.Theme.valueOf(themeName);
+          if (theme != null) {
+            switch (theme) {
+              case HOLO_DARK:
+                actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_DARK;
+                break;
+              case HOLO_LIGHT:
+                actionBarOptions.theme = ActionBarIconGenerator.Theme.HOLO_LIGHT;
+                break;
+              case CUSTOM:
+                actionBarOptions.theme = ActionBarIconGenerator.Theme.CUSTOM;
+                actionBarOptions.customThemeColor = myContext.getForegroundColor().getRGB();
+                break;
             }
           }
-          actionBarOptions.sourceIsClipart = (myWizardState.get(ATTR_SOURCE_TYPE) == SourceType.CLIPART);
+        }
+        actionBarOptions.sourceIsClipart = (sourceType == SourceType.CLIPART);
 
-          options = actionBarOptions;
+        options = actionBarOptions;
         }
         break;
       case NOTIFICATION:
@@ -386,15 +454,24 @@ public class AssetStudioAssetGenerator implements GraphicGeneratorContext {
   public void outputImagesIntoVariantRoot(@NotNull File variantDir) {
     try {
       Map<String, Map<String, BufferedImage>> images = generateImages(false);
-      for (String density : images.keySet()) {
-        // TODO: The output directory needs to take flavor and build type into account, which will need to be configurable by the user
-        Map<String, BufferedImage> filenameMap = images.get(density);
-        for (String filename : filenameMap.keySet()) {
-          File outFile = new File(variantDir, filename);
+      for (Map<String, BufferedImage> density : images.values()) {
+        for (Map.Entry<String, BufferedImage> image : density.entrySet()) {
+          // TODO: The output directory needs to take flavor and build type into account, which will need to be configurable by the user
+          File file = new File(variantDir, image.getKey());
           try {
-            outFile.getParentFile().mkdirs();
-            BufferedImage image = filenameMap.get(filename);
-            ImageIO.write(image, "PNG", new FileOutputStream(outFile));
+            VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
+            VirtualFile imageFile = directory.findChild(file.getName());
+            if (imageFile == null || !imageFile.exists()) {
+              imageFile = directory.createChildData(this, file.getName());
+            }
+            OutputStream outputStream = imageFile.getOutputStream(this);
+            try {
+              ImageIO.write(image.getValue(), "PNG", outputStream);
+            }
+            finally {
+              outputStream.close();
+            }
+
           }
           catch (IOException e) {
             LOG.error(e);
