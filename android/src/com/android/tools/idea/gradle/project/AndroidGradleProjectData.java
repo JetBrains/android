@@ -224,9 +224,10 @@ public class AndroidGradleProjectData implements Serializable {
       try {
         AndroidGradleProjectData data = (AndroidGradleProjectData)ois.readObject();
         if (data.validate(rootDirPath)) {
-          data.applyTo(project);
-          PostProjectSetupTasksExecutor.getInstance(project).onProjectRestoreFromDisk();
-          return true;
+          if (data.applyTo(project)) {
+            PostProjectSetupTasksExecutor.getInstance(project).onProjectRestoreFromDisk();
+            return true;
+          }
         }
       }
       finally {
@@ -414,10 +415,14 @@ public class AndroidGradleProjectData implements Serializable {
    * @param project the project to apply the data to.
    */
   @VisibleForTesting
-  public void applyTo(Project project) {
+  public boolean applyTo(Project project) {
     final Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       ModuleData data = myData.get(module.getName());
+      // If no data is found, the cache doesn't match the project structure and we should resync.
+      if (data == null) {
+        return false;
+      }
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && module.getModuleFile() != null) {
@@ -440,6 +445,8 @@ public class AndroidGradleProjectData implements Serializable {
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     syncState.setLastGradleSyncTimestamp(myLastGradleSyncTimestamp);
+
+    return true;
   }
 
   /**
