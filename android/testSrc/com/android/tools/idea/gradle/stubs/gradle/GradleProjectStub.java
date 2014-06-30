@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,8 +86,9 @@ public class GradleProjectStub implements GradleProject {
     return myScript;
   }
 
+  // TODO
   @Override
   public File getBuildDirectory() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 }
