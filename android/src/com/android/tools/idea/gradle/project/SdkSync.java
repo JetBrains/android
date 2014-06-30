@@ -39,7 +39,6 @@ public final class SdkSync {
   }
 
   public static void syncIdeAndProjectAndroidHomes(@NotNull LocalProperties localProperties) {
-    //noinspection TestOnlyProblems
     syncIdeAndProjectAndroidHomes(localProperties, new FindValidSdkPathTask());
   }
 

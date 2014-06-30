@@ -25,7 +25,10 @@ import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -196,7 +199,7 @@ public class AndroidGradleProjectData implements Serializable {
    * @return whether the load was successful.
    */
   static public boolean loadFromDisk(Project project) {
-    if (!ENABLED) {
+    if (!ENABLED || needsAndroidSdkSync(project)) {
       return false;
     }
     try {
@@ -211,7 +214,24 @@ public class AndroidGradleProjectData implements Serializable {
     return false;
   }
 
-  static private boolean doLoadFromDisk(@NotNull Project project) throws IOException, ClassNotFoundException {
+  private static boolean needsAndroidSdkSync(@NotNull Project project) {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+      File ideSdkPath = DefaultSdks.getDefaultAndroidHome();
+      if (ideSdkPath != null) {
+        try {
+          LocalProperties localProperties = new LocalProperties(project);
+          File projectSdkPath = localProperties.getAndroidSdkPath();
+          return projectSdkPath == null || !FileUtil.filesEqual(ideSdkPath, projectSdkPath);
+        }
+        catch (IOException ignored) {
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private static boolean doLoadFromDisk(@NotNull Project project) throws IOException, ClassNotFoundException {
     FileInputStream fin = null;
     try {
       File rootDirPath = new File(FileUtil.toSystemDependentName(project.getBasePath()));
