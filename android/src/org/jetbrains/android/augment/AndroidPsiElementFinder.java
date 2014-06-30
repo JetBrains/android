@@ -8,7 +8,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementFinder;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.CommonProcessors;
@@ -17,7 +20,6 @@ import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,9 +93,7 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
     Project project = scope.getProject();
-    if (!qualifiedName.startsWith(INTERNAL_R_CLASS_QNAME) || 
-        project == null || 
-        !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (project == null || !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return PsiClass.EMPTY_ARRAY;
     }
 
