@@ -140,6 +140,13 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testSuppressLine2() throws Exception {
+    // Tests that issues on line 2, which are suppressed with a comment on line 1, are correctly
+    // handled (until recently, the suppression comment on the first line did not work)
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
