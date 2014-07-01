@@ -190,7 +190,10 @@ public class ChooseTemplateStep extends TemplateWizardStep implements ListSelect
 
   @Nullable
   protected static String validateApiLevels(@Nullable TemplateMetadata metadata, @NotNull TemplateWizardState templateState) {
-    if (metadata == null) {
+    // If this is not a real template, but a stub, no API level validation is necessary.
+    // If the given template has category="Application," then we're selecting a template to create a new module, in which case
+    // the current API level of the project is irrelevant since the new module will have its own minSDK/minBuild API levels.
+    if (metadata == null || metadata.getCategory() != null && metadata.getCategory().equals(Template.CATEGORY_APPLICATION)) {
       return null;
     }
     int minSdk = metadata.getMinSdk();
