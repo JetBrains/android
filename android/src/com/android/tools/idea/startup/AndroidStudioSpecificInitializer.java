@@ -26,6 +26,7 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
@@ -52,7 +53,9 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
@@ -114,6 +117,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
+    checkInstallation();
     cleanUpIdePreferences();
 
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
@@ -168,6 +172,49 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     checkAndSetAndroidSdkSources();
   }
 
+  private static void checkInstallation() {
+    String studioHome = PathManager.getHomePath();
+    if (StringUtil.isEmpty(studioHome)) {
+      LOG.info("Unable to find Studio home directory");
+      return;
+    }
+    File studioHomePath = new File(FileUtil.toSystemDependentName(studioHome));
+    if (!studioHomePath.isDirectory()) {
+      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
+      return;
+    }
+    File androidPluginLibFolderPath = new File(studioHomePath, FileUtil.join("plugins", "android", "lib"));
+    if (!androidPluginLibFolderPath.isDirectory()) {
+      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
+      return;
+    }
+
+    File[] children = FileUtil.notNullize(androidPluginLibFolderPath.listFiles());
+    if (hasMoreThanOneBuilderModelFile(children)) {
+      String msg = "Your Android Studio installation is corrupt and will not work properly. " +
+                   "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)\n" +
+                   "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
+                   "Please reinstall (and make sure the new installation directory is empty first.)";
+      String title = "Corrupt Installation";
+      Messages.showDialog(msg, title, new String[]{"Proceed Anyway"}, 0, Messages.getErrorIcon());
+    }
+  }
+
+  @VisibleForTesting
+  static boolean hasMoreThanOneBuilderModelFile(@NotNull File[] libraryFiles) {
+    int builderModelFileCount = 0;
+
+    for (File file : libraryFiles) {
+      String fileName = file.getName();
+      if (fileName.startsWith("builder-model-") && SdkConstants.EXT_JAR.equals(FileUtilRt.getExtension(fileName))) {
+        if (++builderModelFileCount > 1) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
 
   private static void cleanUpIdePreferences() {
     try {
