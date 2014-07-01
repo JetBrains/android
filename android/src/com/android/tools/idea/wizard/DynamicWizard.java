@@ -36,7 +36,6 @@ import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,11 +66,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
  *
  */
 public abstract class DynamicWizard extends DialogWrapper implements ScopedStateStore.ScopedStoreListener {
-  private static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
   Logger LOG = Logger.getInstance(DynamicWizard.class);
-
-  public static final Insets STUDIO_WIZARD_INSETS = new Insets(0, 12, 12, 12);
-  public static final int STUDIO_WIZARD_TOP_INSET = 18;
 
   // A queue of updates used to throttle the update() function.
   private final MergingUpdateQueue myUpdateQueue;
@@ -124,7 +119,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     if (window == null) {
       assert ApplicationManager.getApplication().isUnitTestMode();
     } else {
-      window.setPreferredSize(DEFAULT_WIZARD_WINDOW_SIZE);
+      window.setPreferredSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
     }
   }
 
@@ -173,7 +168,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   protected JComponent createSouthPanel() {
     mySouthPanel = (JPanel)super.createSouthPanel();
     assert mySouthPanel != null;
-    mySouthPanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
+    mySouthPanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     return mySouthPanel;
   }
 

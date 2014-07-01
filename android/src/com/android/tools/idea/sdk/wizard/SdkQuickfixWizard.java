@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 
 /**
  * Provides a wizard which can install a list of items.
