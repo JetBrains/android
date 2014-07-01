@@ -16,7 +16,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.persistence.DatabaseMessages;
 import com.intellij.persistence.database.DataSourceInfo;
 import com.intellij.persistence.database.DataSourceTemplate;
-import com.intellij.persistence.database.dialects.DatabaseDialect;
+import com.intellij.persistence.database.dialects.DatabaseDialectEx;
 import com.intellij.persistence.database.dialects.SqliteDialect;
 import com.intellij.persistence.database.psi.BasicDbPsiManager;
 import com.intellij.persistence.database.psi.DbDataSourceElement;
@@ -45,7 +45,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @Nullable
   @Override
-  public DatabaseDialect getDatabaseDialect(@NotNull DbDataSourceElement element) {
+  public DatabaseDialectEx getDatabaseDialect(@NotNull DbDataSourceElement element) {
     return SqliteDialect.INSTANCE;
   }
 
