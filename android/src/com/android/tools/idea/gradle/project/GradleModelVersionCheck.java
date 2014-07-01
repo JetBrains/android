@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.sdklib.repository.FullRevision;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 final class GradleModelVersionCheck {
   private static final Logger LOG = Logger.getInstance(GradleModelVersionCheck.class);
 
-  static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision(GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION);
+  static final FullRevision MINIMUM_SUPPORTED_VERSION = FullRevision.parseRevision(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION);
 
   static boolean isSupportedVersion(@NotNull AndroidProject androidProject) {
     return isSupportedVersion(androidProject, MINIMUM_SUPPORTED_VERSION);
