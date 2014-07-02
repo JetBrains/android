@@ -1135,6 +1135,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
               if (parent instanceof XmlAttributeValue) {
                 PsiElement attribute = parent.getParent();
+                if (attribute instanceof XmlProcessingInstruction) {
+                  // Don't care about edits in the processing instructions, e.g. editing the encoding attribute in
+                  // <?xml version="1.0" encoding="utf-8"?>
+                  return;
+                }
                 PsiElement tag = attribute.getParent();
                 assert attribute instanceof XmlAttribute : attribute;
                 XmlAttribute xmlAttribute = (XmlAttribute)attribute;
