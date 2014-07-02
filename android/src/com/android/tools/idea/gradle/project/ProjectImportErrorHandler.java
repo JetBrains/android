@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -30,6 +29,9 @@ import java.io.File;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+
 /**
  * Provides better error messages for android projects import failures.
  */
@@ -42,7 +44,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
 
   private static final String EMPTY_LINE = "\n\n";
-  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
+  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GRADLE_MINIMUM_VERSION + " is required";
   private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
 
   @Override
@@ -59,8 +61,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     if (isOldGradleVersion(rootCause)) {
-      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.",
-                                 GradleUtil.GRADLE_MINIMUM_VERSION);
+      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.", GRADLE_LATEST_VERSION);
       msg += ('\n' + FIX_GRADLE_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
