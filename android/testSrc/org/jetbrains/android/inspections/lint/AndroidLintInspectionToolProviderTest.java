@@ -18,6 +18,8 @@ package org.jetbrains.android.inspections.lint;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -28,11 +30,13 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
+  private static final boolean LIST_ISSUES_WITH_QUICK_FIXES = false;
   public void testAllLintChecksRegistered() throws Exception {
     assertTrue(checkAllLintChecksRegistered(getProject()));
   }
@@ -52,10 +56,25 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     // of AndroidLintInspectionToolProvider and we iterate these instead. This won't catch cases if
     // we declare a class there and forget to register in the plugin, but it's better than nothing.
     Set<String> registered = Sets.newHashSetWithExpectedSize(200);
+    Set<Issue> quickfixes = Sets.newLinkedHashSetWithExpectedSize(200);
     for (Class<?> c : AndroidLintInspectionToolProvider.class.getDeclaredClasses()) {
       if (AndroidLintInspectionBase.class.isAssignableFrom(c) && ((c.getModifiers() & Modifier.ABSTRACT) == 0)) {
         AndroidLintInspectionBase provider = (AndroidLintInspectionBase)c.newInstance();
         registered.add(provider.getIssue().getId());
+
+        boolean hasQuickFix = true;
+        try {
+          provider.getClass().getDeclaredMethod("getQuickFixes", String.class);
+        } catch (NoSuchMethodException e1) {
+          try {
+            provider.getClass().getDeclaredMethod("getQuickFixes", PsiElement.class, PsiElement.class, String.class);
+          } catch (NoSuchMethodException e2) {
+            hasQuickFix = false;
+          }
+        }
+        if (hasQuickFix) {
+          quickfixes.add(provider.getIssue());
+        }
       }
     }
 
@@ -157,7 +176,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       sb.append("\nAdd to AndroidLintInspectionToolProvider.java:\n");
       for (Issue issue : missing) {
         String id = issue.getId();
-        String detectorName = issue.getImplementation().getDetectorClass().getName();
+        String detectorName = getDetectorClass(issue).getName();
         String issueName = getIssueFieldName(issue);
         String messageKey = getMessageKey(issue);
         sb.append("" +
@@ -178,13 +197,35 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
       System.out.println(sb.toString());
       return false;
+    } else if (LIST_ISSUES_WITH_QUICK_FIXES) {
+      System.out.println("The following inspections have quickfixes (used for Reporter.java):\n");
+      List<String> fields = Lists.newArrayListWithExpectedSize(quickfixes.size());
+      Set<String> imports = Sets.newHashSetWithExpectedSize(quickfixes.size());
+      for (Issue issue : quickfixes) {
+        String detectorName = getDetectorClass(issue).getName();
+        imports.add(detectorName);
+        int index = detectorName.lastIndexOf('.');
+        if (index != -1) {
+          detectorName = detectorName.substring(index + 1);
+        }
+        String issueName = getIssueFieldName(issue);
+        fields.add(detectorName + "." + issueName);
+      }
+      Collections.sort(fields);
+      List<String> sortedImports = Lists.newArrayList(imports);
+      Collections.sort(sortedImports);
+      for (String cls : sortedImports) {
+        System.out.println("import " + cls + ";");
+      }
+      System.out.println();
+      System.out.println("sStudioFixes = Sets.newHashSet(\n" + Joiner.on(",\n").join(fields) + "\n);\n");
     }
 
     return true;
   }
 
   private static String getIssueFieldName(Issue issue) {
-    Class<? extends Detector> detectorClass = issue.getImplementation().getDetectorClass();
+    Class<? extends Detector> detectorClass = getDetectorClass(issue);
 
     // Use reflection on the detector class, check all field instances and compare id's to locate the right one
     for (Field field : detectorClass.getDeclaredFields()) {
@@ -204,6 +245,22 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     }
 
     return "/*findFieldFor: " + issue.getId() + "*/TODO";
+  }
+
+  private static Class<? extends Detector> getDetectorClass(Issue issue) {
+    Class<? extends Detector> detectorClass = issue.getImplementation().getDetectorClass();
+
+    // Undo the effects of IntellijLintIssueRegistry
+    if (detectorClass == IntellijApiDetector.class) {
+      detectorClass = ApiDetector.class;
+    } else if (detectorClass == IntellijGradleDetector.class) {
+      detectorClass = GradleDetector.class;
+    } else if (detectorClass == IntellijRegistrationDetector.class) {
+      detectorClass = RegistrationDetector.class;
+    } else if (detectorClass == IntellijViewTypeDetector.class) {
+      detectorClass = ViewTypeDetector.class;
+    }
+    return detectorClass;
   }
 
   private static String getBriefDescription(Issue issue) {
@@ -242,7 +299,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         issue == NamespaceDetector.UNUSED ||           // IDEA already does full validation
         issue == ManifestTypoDetector.ISSUE ||         // IDEA already does full validation
         issue == ManifestDetector.WRONG_PARENT ||      // IDEA already does full validation
-        issue == DeprecationDetector.ISSUE ||
         issue == LocaleDetector.STRING_LOCALE) {       // IDEA checks for this in Java code
       return false;
     }

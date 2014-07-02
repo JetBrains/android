@@ -15,6 +15,7 @@ import com.android.tools.lint.detector.api.*;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -360,6 +361,19 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
     }
 
     return null;
+  }
+
+  @Nullable private static volatile String ourSystemPath;
+
+  @Override
+  @Nullable
+  public File getCacheDir(boolean create) {
+    final String path = ourSystemPath != null ? ourSystemPath : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
+    File lint = new File(path, "lint");
+    if (create && !lint.exists()) {
+      lint.mkdirs();
+    }
+    return lint;
   }
 
   @Override

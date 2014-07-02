@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="test.pkg" >
+    <permission android:name="foo.permission.SIGNATURE_OR_SYSTEM"
+        android:protectionLevel="signature"/>
+
+    <application/>
+
+</manifest>
