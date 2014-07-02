@@ -80,12 +80,6 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome
 public final class GradleUtil {
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
 
-  @NonNls public static final String GRADLE_MINIMUM_VERSION = SdkConstants.GRADLE_MINIMUM_VERSION;
-  @NonNls public static final String GRADLE_LATEST_VERSION = SdkConstants.GRADLE_LATEST_VERSION;
-
-  @NonNls public static final String GRADLE_PLUGIN_MINIMUM_VERSION = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
-  @NonNls public static final String GRADLE_PLUGIN_LATEST_VERSION = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
-
   /** The name of the gradle wrapper executable associated with the current OS. */
   @NonNls public static final String GRADLE_WRAPPER_EXECUTABLE_NAME =
     SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WRAPPER_WIN : SdkConstants.FN_GRADLE_WRAPPER_UNIX;
