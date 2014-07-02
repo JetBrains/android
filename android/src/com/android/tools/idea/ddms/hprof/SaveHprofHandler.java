@@ -123,7 +123,7 @@ public class SaveHprofHandler implements ClientData.IHprofDumpHandler {
           throw new ExecutionException("Unable to find path to SDK.");
         }
 
-        String hprofConvPath = new File(sdkData.getLocation(), AndroidCommonUtils.toolPath(SdkConstants.FN_HPROF_CONV)).getPath();
+        String hprofConvPath = new File(sdkData.getLocation(), AndroidCommonUtils.platformToolPath(SdkConstants.FN_HPROF_CONV)).getPath();
         ProcessBuilder pb = new ProcessBuilder(hprofConvPath, androidHprof.getAbsolutePath(), myDestination.getAbsolutePath());
         BaseOSProcessHandler handler;
         handler = new BaseOSProcessHandler(pb.start(), "", null);
