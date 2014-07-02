@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.resources.Density;
 import com.android.resources.NightMode;
@@ -30,6 +31,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.android.ide.common.rendering.HardwareConfigHelper.isTv;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isWear;
 
 /**
  * An {@linkplain VaryingConfiguration} is a {@link Configuration} which
@@ -251,6 +255,8 @@ public class VaryingConfiguration extends NestedConfiguration {
       // tablets which are sitting right next to each other in the device list.
       // Instead, do this by screen size.
 
+      boolean isTv = isTv(device);
+      boolean isWear = isWear(device);
 
       double smallest = 100;
       double biggest = 1;
@@ -258,6 +264,8 @@ public class VaryingConfiguration extends NestedConfiguration {
         double size = getScreenSize(d);
         if (size < 0) {
           continue; // no data
+        } else if (isTv != isTv(d) || isWear != isWear(d)) {
+          continue;
         }
         if (size >= biggest) {
           biggest = size;
@@ -281,6 +289,9 @@ public class VaryingConfiguration extends NestedConfiguration {
 
       boolean canScaleNinePatch = supports(Capability.FIXED_SCALABLE_NINE_PATCH);
       for (Device d : devices) {
+        if (isTv != isTv(d) || isWear != isWear(d)) {
+          continue;
+        }
         double size = getScreenSize(d);
         if (size >= from && size < to) {
           if (!canScaleNinePatch) {
