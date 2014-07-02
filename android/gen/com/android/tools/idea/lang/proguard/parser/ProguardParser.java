@@ -47,56 +47,45 @@ public class ProguardParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // LINE_CMT CRLF
+  // LINE_CMT
   public static boolean comment(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "comment")) return false;
     if (!nextTokenIs(builder_, LINE_CMT)) return false;
     boolean result_ = false;
     Marker marker_ = enter_section_(builder_);
-    result_ = consumeTokens(builder_, 0, LINE_CMT, CRLF);
+    result_ = consumeToken(builder_, LINE_CMT);
     exit_section_(builder_, marker_, COMMENT, result_);
     return result_;
   }
 
   /* ********************************************************** */
-  // (multiLineFlag | singleLineFlag LINE_CMT?) CRLF
+  // multiLineFlag | singleLineFlag comment?
   public static boolean flag(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "flag")) return false;
     if (!nextTokenIs(builder_, FLAG_NAME)) return false;
     boolean result_ = false;
     Marker marker_ = enter_section_(builder_);
-    result_ = flag_0(builder_, level_ + 1);
-    result_ = result_ && consumeToken(builder_, CRLF);
+    result_ = multiLineFlag(builder_, level_ + 1);
+    if (!result_) result_ = flag_1(builder_, level_ + 1);
     exit_section_(builder_, marker_, FLAG, result_);
     return result_;
   }
 
-  // multiLineFlag | singleLineFlag LINE_CMT?
-  private static boolean flag_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "flag_0")) return false;
-    boolean result_ = false;
-    Marker marker_ = enter_section_(builder_);
-    result_ = multiLineFlag(builder_, level_ + 1);
-    if (!result_) result_ = flag_0_1(builder_, level_ + 1);
-    exit_section_(builder_, marker_, null, result_);
-    return result_;
-  }
-
-  // singleLineFlag LINE_CMT?
-  private static boolean flag_0_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "flag_0_1")) return false;
+  // singleLineFlag comment?
+  private static boolean flag_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "flag_1")) return false;
     boolean result_ = false;
     Marker marker_ = enter_section_(builder_);
     result_ = singleLineFlag(builder_, level_ + 1);
-    result_ = result_ && flag_0_1_1(builder_, level_ + 1);
+    result_ = result_ && flag_1_1(builder_, level_ + 1);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
-  // LINE_CMT?
-  private static boolean flag_0_1_1(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "flag_0_1_1")) return false;
-    consumeToken(builder_, LINE_CMT);
+  // comment?
+  private static boolean flag_1_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "flag_1_1")) return false;
+    comment(builder_, level_ + 1);
     return true;
   }
 
@@ -179,44 +168,104 @@ public class ProguardParser implements PsiParser {
   }
 
   /* ********************************************************** */
-  // (comment | flag | WS? CRLF)*
+  // (comment CRLF | flag CRLF | WS? CRLF)*
+  //                  (comment      | flag      | WS?     )?
   static boolean proguardFile(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "proguardFile")) return false;
+    boolean result_ = false;
+    Marker marker_ = enter_section_(builder_);
+    result_ = proguardFile_0(builder_, level_ + 1);
+    result_ = result_ && proguardFile_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // (comment CRLF | flag CRLF | WS? CRLF)*
+  private static boolean proguardFile_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_0")) return false;
     int pos_ = current_position_(builder_);
     while (true) {
-      if (!proguardFile_0(builder_, level_ + 1)) break;
-      if (!empty_element_parsed_guard_(builder_, "proguardFile", pos_)) break;
+      if (!proguardFile_0_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "proguardFile_0", pos_)) break;
       pos_ = current_position_(builder_);
     }
     return true;
   }
 
-  // comment | flag | WS? CRLF
-  private static boolean proguardFile_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "proguardFile_0")) return false;
+  // comment CRLF | flag CRLF | WS? CRLF
+  private static boolean proguardFile_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_0_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = enter_section_(builder_);
+    result_ = proguardFile_0_0_0(builder_, level_ + 1);
+    if (!result_) result_ = proguardFile_0_0_1(builder_, level_ + 1);
+    if (!result_) result_ = proguardFile_0_0_2(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // comment CRLF
+  private static boolean proguardFile_0_0_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_0_0_0")) return false;
     boolean result_ = false;
     Marker marker_ = enter_section_(builder_);
     result_ = comment(builder_, level_ + 1);
-    if (!result_) result_ = flag(builder_, level_ + 1);
-    if (!result_) result_ = proguardFile_0_2(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, CRLF);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // flag CRLF
+  private static boolean proguardFile_0_0_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_0_0_1")) return false;
+    boolean result_ = false;
+    Marker marker_ = enter_section_(builder_);
+    result_ = flag(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, CRLF);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
   // WS? CRLF
-  private static boolean proguardFile_0_2(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "proguardFile_0_2")) return false;
+  private static boolean proguardFile_0_0_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_0_0_2")) return false;
     boolean result_ = false;
     Marker marker_ = enter_section_(builder_);
-    result_ = proguardFile_0_2_0(builder_, level_ + 1);
+    result_ = proguardFile_0_0_2_0(builder_, level_ + 1);
     result_ = result_ && consumeToken(builder_, CRLF);
     exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
   // WS?
-  private static boolean proguardFile_0_2_0(PsiBuilder builder_, int level_) {
-    if (!recursion_guard_(builder_, level_, "proguardFile_0_2_0")) return false;
+  private static boolean proguardFile_0_0_2_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_0_0_2_0")) return false;
+    consumeToken(builder_, WS);
+    return true;
+  }
+
+  // (comment      | flag      | WS?     )?
+  private static boolean proguardFile_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_1")) return false;
+    proguardFile_1_0(builder_, level_ + 1);
+    return true;
+  }
+
+  // comment      | flag      | WS?
+  private static boolean proguardFile_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_1_0")) return false;
+    boolean result_ = false;
+    Marker marker_ = enter_section_(builder_);
+    result_ = comment(builder_, level_ + 1);
+    if (!result_) result_ = flag(builder_, level_ + 1);
+    if (!result_) result_ = proguardFile_1_0_2(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
+  }
+
+  // WS?
+  private static boolean proguardFile_1_0_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "proguardFile_1_0_2")) return false;
     consumeToken(builder_, WS);
     return true;
   }
