@@ -178,10 +178,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     if (requireRecentSdk() && ourPreviousSdkData == null) {
       ourPreviousSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
       if (ourPreviousSdkData != null) {
-        VersionCheck.VersionCheckResult check = VersionCheck.checkVersion(ourPreviousSdkData.getPath());
+        VersionCheck.VersionCheckResult check = VersionCheck.checkVersion(ourPreviousSdkData.getLocation().getPath());
         // "The sdk1.5" version of the SDK stored in the test directory isn't really a 22.0.5 version of the SDK even
         // though its sdk1.5/tools/source.properties says it is. We can't use this one for these tests.
-        if (!check.isCompatibleVersion() || ourPreviousSdkData.getPath().endsWith(File.separator + "sdk1.5")) {
+        if (!check.isCompatibleVersion() || ourPreviousSdkData.getLocation().getPath().endsWith(File.separator + "sdk1.5")) {
           AndroidSdkData sdkData = createTestSdkManager();
           assertNotNull(sdkData);
           AndroidSdkUtils.setSdkData(sdkData);
@@ -320,7 +320,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
     FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
     File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
-    GradleUtil.updateGradleDistributionUrl(GradleUtil.GRADLE_LATEST_VERSION, wrapperPropertiesFile);
+    GradleUtil.updateGradleDistributionUrl(GRADLE_LATEST_VERSION, wrapperPropertiesFile);
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
@@ -353,13 +353,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     assert sdkData != null;
 
     Template.convertApisToInt(projectWizardState.getParameters());
-    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
-    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
+    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
+    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
     projectWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
     projectWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, "TestModule");
     projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
     projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
-    final BuildToolInfo buildTool = sdkData.getLatestBuildTool();
+    BuildToolInfo buildTool = sdkData.getLatestBuildTool();
+    assertNotNull(buildTool);
     projectWizardState.put(TemplateMetadata.ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     IAndroidTarget[] targets = sdkData.getTargets();
     AndroidVersion version = targets[targets.length - 1].getVersion();
@@ -465,8 +466,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously. This
     // causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-    boolean generateSources = false;
-    projectImporter.importProject(projectName, projectRoot, generateSources, new GradleSyncListener() {
+    projectImporter.importProject(projectName, projectRoot, false /* do not generate sources */, new GradleSyncListener() {
       @Override
       public void syncStarted(@NotNull Project project) {
       }

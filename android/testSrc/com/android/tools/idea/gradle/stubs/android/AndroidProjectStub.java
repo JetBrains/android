@@ -67,7 +67,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getModelVersion() {
-    return GradleUtil.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
+    return SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   }
 
   @Override
