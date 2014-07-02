@@ -450,6 +450,10 @@ public class AndroidCommonUtils {
     return SdkConstants.OS_SDK_TOOLS_FOLDER + toolFileName;
   }
 
+  public static String platformToolPath(@NotNull String toolFileName) {
+    return SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER + toolFileName;
+  }
+
   public static boolean isIncludingInProguardSupported(int sdkToolsRevision) {
     return sdkToolsRevision == -1 || sdkToolsRevision >= 17;
   }
