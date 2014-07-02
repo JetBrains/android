@@ -1985,6 +1985,40 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
   }
 
+  public void testEditXmlProcessingInstructionAttr() throws Exception {
+    // Test editing an attribute in the XML prologue
+    VirtualFile file1 = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file1);
+    assertNotNull(psiFile1);
+    final ResourceFolderRepository resources = createRepository();
+    assertNotNull(resources);
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "app_name"));
+    assertFalse(resources.hasResourceItem(ResourceType.STRING, "app_name2"));
+    assertTrue(resources.hasResourceItem(ResourceType.STRING, "hello_world"));
+
+
+    final long generation = resources.getModificationCount();
+    final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+    final Document document = documentManager.getDocument(psiFile1);
+    assertNotNull(document);
+
+    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
+      @Override
+      public void run() {
+        String string = "utf-8";
+        final int offset = document.getText().indexOf(string);
+        assertTrue(offset != -1);
+        document.insertString(offset, "t");
+        documentManager.commitDocument(document);
+      }
+    });
+
+    // Edits in XML processing instructions have no effect on the resource repository
+    assertEquals(generation, resources.getModificationCount());
+    assertFalse(resources.isScanPending(psiFile1));
+    UIUtil.dispatchAllInvocationEvents();
+  }
+
   public void testIssue64239() throws Exception {
     // If you duplicate a string, then change its contents (which still duplicated),
     // and then finally rename the string, then the value of the second clone will
