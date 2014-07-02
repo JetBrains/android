@@ -31,10 +31,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.service.notification.FixGradleVersionInWrapperHyperlink.updateGradleVersion;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_LATEST_VERSION;
 
 class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   private final boolean myOpenMigrationGuide;
@@ -65,7 +65,7 @@ class FixGradleModelVersionHyperlink extends NotificationHyperlink {
           WriteCommandAction.runWriteCommandAction(project, new Runnable() {
             @Override
             public void run() {
-              buildFile.setValue(PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+              buildFile.setValue(PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
             }
           });
           atLeastOnUpdated = true;
