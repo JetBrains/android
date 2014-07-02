@@ -58,8 +58,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_MINIMUM_VERSION;
 
 /**
  * Imports Android-Gradle projects into IDEA.

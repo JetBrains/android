@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -45,6 +44,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
@@ -102,8 +103,8 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     }
     myWizardState = new NewProjectWizardState();
     Template.convertApisToInt(myWizardState.getParameters());
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GradleUtil.GRADLE_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GradleUtil.GRADLE_PLUGIN_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_PER_MODULE_REPOS, false);
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);
