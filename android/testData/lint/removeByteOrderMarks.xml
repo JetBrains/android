@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string <error descr="Found byte-order-mark in the middle of a file">name="<caret>hanping_chinese﻿_lite﻿_app_name"</error>>(Translated name)</string>
+</resources>
