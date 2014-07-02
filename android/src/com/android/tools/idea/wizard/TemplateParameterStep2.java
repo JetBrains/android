@@ -137,6 +137,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   public void setPresetValue(@NotNull String key, @Nullable Object value) {
     myPresetParameters.put(key, value);
+    invokeUpdate(null);
   }
 
   private static JComponent createEnumCombo(Parameter parameter) {
