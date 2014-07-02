@@ -20,6 +20,7 @@ import junit.framework.TestCase;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
@@ -74,6 +75,17 @@ public class DeviceArtDescriptorTest extends TestCase {
           assertTrue(id, reflectionOverlay.exists());
         }
       }
+    }
+  }
+
+  public void testCanFrameImage() {
+    // Regression test for issue 72580
+    //noinspection UndesirableClassUsage
+    BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB_PRE);
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      spec.canFrameImage(image, ScreenOrientation.LANDSCAPE);
+      spec.canFrameImage(image, ScreenOrientation.PORTRAIT);
     }
   }
 
