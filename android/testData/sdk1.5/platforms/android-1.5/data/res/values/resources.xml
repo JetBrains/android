@@ -10,6 +10,8 @@
   </style>
 
   <style name="Theme">
+      <item name="textAppearanceMedium">@android:style/TextAppearance.Medium</item>
+      <item name="textColorPrimary">@android:color/primary_text_dark</item>
   </style>
 
   <style name="Theme.Holo.Light" parent="Theme">
@@ -23,4 +25,21 @@
   <string name="cancel">cancel</string>
   <string name="private_str">private</string>
   <string name="defaultMsisdnAlphaTag"></string>
+
+  <color name="primary_text_dark">#000000</color>
+  <style name="TextAppearance.Medium">
+      <item name="android:textSize">18sp</item>
+      <item name="android:textStyle">normal</item>
+      <item name="android:textColor">?textColorPrimary</item>
+  </style>
+
+  <style name="TextAppearance">
+      <item name="android:textColor">?textColorPrimary</item>
+      <item name="android:textColorHighlight">#FFFF9200</item>
+      <item name="android:textColorHint">?textColorHint</item>
+      <item name="android:textColorLink">#5C5CFF</item>
+      <item name="android:textSize">16sp</item>
+      <item name="android:textStyle">normal</item>
+  </style>
+
 </resources>
