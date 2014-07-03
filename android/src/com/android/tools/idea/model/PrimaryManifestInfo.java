@@ -16,7 +16,7 @@
 package com.android.tools.idea.model;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;

@@ -17,7 +17,7 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.VersionCheck;
