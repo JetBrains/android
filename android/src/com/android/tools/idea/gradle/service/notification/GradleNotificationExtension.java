@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -88,7 +90,6 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?failed to find Build Tools revision (.*)");
 
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
-  @NonNls private static final String ANDROID_PLATFORM_HASH_PREFIX = "android-";
 
   @NotNull
   @Override
@@ -263,13 +264,10 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
           localAndroidSdk = androidSdkData.getLocalSdk();
         }
         if (localAndroidSdk != null) {
-          IAndroidTarget target = localAndroidSdk.getTargetFromHashString(platform);
-          if (target == null) {
-            if (platform.startsWith(ANDROID_PLATFORM_HASH_PREFIX)) {
-              platform = platform.substring(ANDROID_PLATFORM_HASH_PREFIX.length());
-            }
-            AndroidVersion version = SdkVersionInfo.getVersion(platform, localAndroidSdk.getTargets());
-            if (version != null) {
+          AndroidVersion version = AndroidTargetHash.getPlatformVersion(platform);
+          if (version != null) {
+            // Is the platform installed?
+            if (localAndroidSdk.getPkgInfo(PkgType.PKG_PLATFORM, version) == null) {
               hyperlinks.add(new InstallPlatformHyperlink(version));
             }
           }
