@@ -630,7 +630,7 @@ public class AndroidJavaDocRenderer {
           }
         }
 
-        if (!found && (!showResolution || lookupChain == null || resolver.getLookupChain().isEmpty())) {
+        if (!found && (!showResolution || lookupChain == null || lookupChain.isEmpty())) {
           builder.add(value);
         }
       } else if (item.value != null && item.value.getValue() != null) {
