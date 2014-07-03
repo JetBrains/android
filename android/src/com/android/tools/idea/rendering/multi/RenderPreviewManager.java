@@ -1107,6 +1107,12 @@ public class RenderPreviewManager implements Disposable {
         interesting = HardwareConfigHelper.isWear(device);
       } else if (HardwareConfigHelper.isNexus(device) && !HardwareConfigHelper.isGeneric(device)) {
         interesting = true;
+
+        // Skip the older Nexus 7 since having 2 side-by-side isn't very interesting, even if the 2012 and 2013 versions
+        // have different dpi's
+        if ("Nexus 7".equals(device.getId())) { // This is the 2012 edition. The 2013 edition has id "Nexus 7 2013".
+          interesting = false;
+        }
       }
 
       FolderConfiguration c = DeviceConfigHelper.getFolderConfig(state);
