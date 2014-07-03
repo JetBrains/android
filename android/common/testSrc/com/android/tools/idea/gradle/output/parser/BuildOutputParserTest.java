@@ -337,7 +337,7 @@ public class BuildOutputParserTest extends TestCase {
     }
     finally {
       //noinspection deprecation
-      Closeables.closeQuietly(out);
+      Closeables.close(out, true);
     }
   }
 
