@@ -86,4 +86,9 @@ public class GradleProjectStub implements GradleProject {
   public GradleScriptStub getBuildScript() {
     return myScript;
   }
+
+  @Override
+  public File getBuildDirectory() {
+    throw new UnsupportedOperationException();
+  }
 }
