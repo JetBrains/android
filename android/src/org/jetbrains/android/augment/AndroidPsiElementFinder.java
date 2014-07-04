@@ -8,10 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementFinder;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiPackage;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.CommonProcessors;
@@ -115,7 +112,7 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
       return PsiClass.EMPTY_ARRAY;
     }
     List<PsiClass> result = new SmartList<PsiClass>();
-    for (PsiClass parentClass : findClasses(parentName, scope)) {
+    for (PsiClass parentClass : JavaPsiFacade.getInstance(project).findClasses(parentName, scope)) {
       ContainerUtil.addIfNotNull(result, parentClass.findInnerClassByName(shortName, false));
     }
     return result.isEmpty() ? PsiClass.EMPTY_ARRAY : result.toArray(new PsiClass[result.size()]);
