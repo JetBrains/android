@@ -76,7 +76,11 @@ public final class AndroidGradleSettings {
       LOG.error(msg, e);
       return null;
     } finally {
-      Closeables.closeQuietly(fileInputStream);
+      try {
+        Closeables.close(fileInputStream, true);
+      } catch (IOException e) {
+        LOG.debug(e);
+      }
     }
     return properties.getProperty(SdkConstants.SDK_DIR_PROPERTY);
   }
