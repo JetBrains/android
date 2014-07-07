@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
@@ -40,11 +41,15 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -218,6 +223,30 @@ public class AndroidGradleProjectData implements Serializable {
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       File ideSdkPath = DefaultSdks.getDefaultAndroidHome();
       if (ideSdkPath != null) {
+        // Repair SDK for 'android-L'. See: https://code.google.com/p/android/issues/detail?id=72589
+        // TODO: remove this at some point (it's only there to upgrade user settings for people who used 0.8.0 and 0.8.1 with 20 and 21
+        // installed simultaneously)
+        for (Sdk sdk : DefaultSdks.getEligibleAndroidSdks()) {
+          SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
+          if (additionalData instanceof AndroidSdkAdditionalData) {
+            AndroidSdkAdditionalData androidData = (AndroidSdkAdditionalData)additionalData;
+            String hash = androidData.getBuildTargetHashString();
+            String lPreview = "android-L";
+            if (lPreview.equals(hash)) {
+              AndroidPlatform androidPlatform = ((AndroidSdkAdditionalData)additionalData).getAndroidPlatform();
+              if (androidPlatform != null) {
+                IAndroidTarget target = androidPlatform.getTarget();
+                File locationPath = new File(target.getLocation());
+                if (!locationPath.isDirectory() || !locationPath.getName().equals(lPreview)) {
+                  // reset the Android SDK home to force recreation of IDEA SDKs.
+                  DefaultSdks.setDefaultAndroidHome(ideSdkPath, DefaultSdks.getDefaultJdk());
+                  return true;
+                }
+              }
+            }
+          }
+        }
+
         try {
           LocalProperties localProperties = new LocalProperties(project);
           File projectSdkPath = localProperties.getAndroidSdkPath();
