@@ -16,7 +16,7 @@
 <component>
   <version codename="Beta" major="0" minor="8.1" eap="true"/>
   <company name="Google Inc." url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.909"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.1146"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="8bc34a" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>

@@ -280,7 +280,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                                            Map<MavenProject, String> mavenProject2ModuleName,
                                                            List<MavenProjectsProcessorTask> tasks) {
     final ModifiableRootModel rootModel = rootModelAdapter.getRootModel();
-    removeExtApklibDependencies(rootModel, modelsProvider);
+    removeUselessDependencies(rootModel, modelsProvider, mavenProject);
 
     for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
       if (mavenTree.findProject(depArtifact) != null) {
@@ -457,8 +457,8 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     return null;
   }
 
-  private static void removeExtApklibDependencies(ModifiableRootModel modifiableRootModel,
-                                                  MavenModifiableModelsProvider modelsProvider) {
+  private static void removeUselessDependencies(ModifiableRootModel modifiableRootModel,
+                                                MavenModifiableModelsProvider modelsProvider, MavenProject mavenProject) {
     for (OrderEntry entry : modifiableRootModel.getOrderEntries()) {
       if (entry instanceof ModuleOrderEntry) {
         final Module depModule = ((ModuleOrderEntry)entry).getModule();
@@ -466,11 +466,35 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
           modifiableRootModel.removeOrderEntry(entry);
         }
       }
-      else if (entry instanceof LibraryOrderEntry &&
-               containsDependencyOnApklibFile((LibraryOrderEntry)entry, modelsProvider)) {
-        modifiableRootModel.removeOrderEntry(entry);
+      else if (entry instanceof LibraryOrderEntry) {
+        final LibraryOrderEntry libOrderEntry = (LibraryOrderEntry)entry;
+
+        if (containsDependencyOnApklibFile(libOrderEntry, modelsProvider) ||
+            pointsIntoUnpackedLibsDir(libOrderEntry, modelsProvider, mavenProject)) {
+          modifiableRootModel.removeOrderEntry(entry);
+        }
       }
     }
+  }
+
+  private static boolean pointsIntoUnpackedLibsDir(@NotNull LibraryOrderEntry entry,
+                                                   @NotNull MavenModifiableModelsProvider provider,
+                                                   @NotNull MavenProject mavenProject) {
+    final Library library = entry.getLibrary();
+
+    if (library == null) {
+      return false;
+    }
+    final Library.ModifiableModel libraryModel = provider.getLibraryModel(library);
+    final String[] urls = libraryModel.getUrls(OrderRootType.CLASSES);
+    final String unpackedLibsDir = FileUtil.toCanonicalPath(mavenProject.getBuildDirectory()) + "/unpacked-libs";
+
+    for (String url : urls) {
+      if (VfsUtilCore.urlToPath(url).startsWith(unpackedLibsDir)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static boolean containsDependencyOnApklibFile(@NotNull LibraryOrderEntry libraryOrderEntry,
