@@ -7,13 +7,15 @@ import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.idea.ddms.DeviceComboBoxRenderer;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.javaee.dataSource.AbstractDataSourceConfigurable;
+import com.intellij.javaee.dataSource.DatabaseDriver;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.persistence.database.DbImplUtil;
 import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBRadioButton;
@@ -40,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> {
+public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> implements Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
@@ -88,7 +90,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         }
       }
     });
-    loadDevices();
+    myDeviceComboBox.setPreferredSize(new Dimension(300, myDeviceComboBox.getPreferredSize().height));
 
     myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
       @Override
@@ -107,7 +109,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         }
       }
     };
-    AndroidDebugBridge.addDeviceChangeListener(myDeviceListener);
 
     myDeviceComboBox.addActionListener(new ActionListener() {
       @Override
@@ -115,21 +116,32 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
         updateDataBases();
       }
     });
-    updateDataBases();
 
-    final ActionListener l = new ActionListener() {
+    ActionListener l = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         updateDbCombo();
       }
     };
     myPackageNameComboBox.addActionListener(l);
-    updateDbCombo();
-
-    myDeviceComboBox.setPreferredSize(new Dimension(300, myDeviceComboBox.getPreferredSize().height));
-
     myExternalStorageRadioButton.addActionListener(l);
     myInternalStorageRadioButton.addActionListener(l);
+
+    new UiNotifyConnector.Once(myPanel, new Activatable.Adapter() {
+      @Override
+      public void showNotify() {
+        loadDevices();
+        updateDataBases();
+        updateDbCombo();
+        registerDeviceListener();
+      }
+    });
+    new UiNotifyConnector(myPanel, new Activatable.Adapter() {
+      @Override
+      public void showNotify() {
+        checkDriverPresence();
+      }
+    });
   }
 
   @NotNull
@@ -328,18 +340,6 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   @Nullable
   @Override
   public JComponent createComponent() {
-
-    new UiNotifyConnector(myPanel, new Activatable() {
-      @Override
-      public void showNotify() {
-        checkDriverPresence();
-      }
-
-      @Override
-      public void hideNotify() {
-      }
-    });
-
     return myPanel;
   }
 
@@ -379,9 +379,23 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     myDataBaseComboBox.getEditor().setItem(StringUtil.notNullize(state.getDatabaseName()));
   }
 
+  private void registerDeviceListener() {
+    AndroidDebugBridge.addDeviceChangeListener(myDeviceListener);
+    Disposer.register(this, new Disposable() {
+      @Override
+      public void dispose() {
+        AndroidDebugBridge.removeDeviceChangeListener(myDeviceListener);
+      }
+    });
+  }
+
+  @Override
+  public void dispose() {
+  }
+
   @Override
   public void disposeUIResources() {
-    AndroidDebugBridge.removeDeviceChangeListener(myDeviceListener);
+    Disposer.dispose(this);
   }
 
   @Nullable
@@ -407,14 +421,15 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   }
 
   private void checkDriverPresence() {
-    if (!DbImplUtil.canConnectTo(myDataSource) && myDataSource.getDatabaseDriver() != null) {
+    final DatabaseDriver driver = myDataSource.getDatabaseDriver();
+    if (driver != null && !driver.isDownloaded()) {
       myController.showErrorNotification(this,
         "SQLite driver missing",
         "<font size=\"3\"><a href=\"create\">Download</a> SQLite driver files</font>",
         new Runnable() {
           @Override
           public void run() {
-            myDataSource.getDatabaseDriver().downloadDriver(myPanel, new Runnable() {
+            driver.downloadDriver(myPanel, new Runnable() {
               @Override
               public void run() {
                 fireStateChanged();
