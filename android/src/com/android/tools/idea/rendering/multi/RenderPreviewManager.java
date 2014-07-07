@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.resources.LayoutDirection;
 import com.android.resources.ResourceType;

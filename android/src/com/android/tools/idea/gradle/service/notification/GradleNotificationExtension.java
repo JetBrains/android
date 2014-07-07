@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
