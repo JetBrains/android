@@ -36,6 +36,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RecentsManager;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -68,27 +69,28 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PACKAGE_NAME);
   public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS);
   private static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
+  private static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.<Key<?>>of(KEY_PACKAGE_NAME);
+
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
 
   @Nullable private final ActivityGalleryStep myGalleryStep;
-  private final TemplateParameterStep2 myParameterStep;
+  private TemplateParameterStep2 myParameterStep;
   private final boolean myIsNewModule;
+  private IconStep myAssetStudioStep;
   private VirtualFile myTargetFolder;
   @Nullable private File myTemplate;
+  private final Map<String, Object> myPredefinedParameterValues;
+  private final Disposable myParentDisposable;
 
   /**
    * Creates a new instance of the wizard path.
    */
-  public AddAndroidActivityPath(@Nullable VirtualFile targetFolder,
-                                @NotNull Map<String, Object> predefinedParameterValues,
-                                @NotNull Disposable parentDisposable) {
-    this(targetFolder, null, predefinedParameterValues, parentDisposable);
-  }
-
   public AddAndroidActivityPath(@Nullable VirtualFile targetFolder, @Nullable File template,
                                 Map<String, Object> predefinedParameterValues,
                                 Disposable parentDisposable) {
     myTemplate = template;
+    myPredefinedParameterValues = predefinedParameterValues;
+    myParentDisposable = parentDisposable;
     myIsNewModule = false;
     myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
     FormFactorUtils.FormFactor formFactor = getFormFactor(targetFolder);
@@ -98,8 +100,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     else {
       myGalleryStep = null;
     }
-    myParameterStep = new TemplateParameterStep2(formFactor, predefinedParameterValues,
-                                                 myTargetFolder, parentDisposable, KEY_PACKAGE_NAME);
   }
 
   private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
@@ -313,14 +313,33 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       assert templateMetadata != null;
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }
-    addStep(myParameterStep);
+    SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
+    myParameterStep = new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues,
+                                                 myParentDisposable, KEY_PACKAGE_NAME, sourceProviders);
+    myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, null, myParentDisposable);
 
-    // TODO Assets support
-    //myAssetSetStep = new AssetSetStep(myState, myProject, myModule, null, this, myTargetFolder);
-    //Disposer.register(getDisposable(), myAssetSetStep);
-    //mySteps.add(myAssetSetStep);
-    //myAssetSetStep.setVisible(false);
+    addStep(myParameterStep);
+    addStep(myAssetStudioStep);
   }
+
+  @NotNull
+  public static SourceProvider[] getSourceProviders(@Nullable Module module, @Nullable VirtualFile targetDirectory) {
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        List<SourceProvider> providers;
+        if (targetDirectory != null) {
+          providers = IdeaSourceProvider.getSourceProvidersForFile(facet, targetDirectory, facet.getMainSourceSet());
+        }
+        else {
+          providers = IdeaSourceProvider.getAllSourceProviders(facet);
+        }
+        return ArrayUtil.toObjectArray(providers, SourceProvider.class);
+      }
+    }
+    return new SourceProvider[0];
+  }
+
 
   /**
    * Initial package name is either a package user selected when invoking the wizard or default package for the module.
@@ -365,10 +384,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     Map<String, Object> parameterMap = getTemplateParameterMap(templateEntry.getMetadata());
     saveRecentValues(project, parameterMap);
     template.render(VfsUtilCore.virtualToIoFile(project.getBaseDir()), moduleRoot, parameterMap, project);
-    // TODO Assets support
-    //if (myAssetSetStep.isStepVisible()) {
-    //  myAssetSetStep.createAssets(myModule);
-    //}
+    myAssetStudioStep.createAssets();
     if (Boolean.TRUE.equals(myState.get(KEY_OPEN_EDITORS))) {
       TemplateUtils.openEditors(project, template.getFilesToOpen(), true);
     }
@@ -380,6 +396,9 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     Map<String, Object> parameterValueMap = Maps.newHashMap();
     parameterValueMap.put(TemplateMetadata.ATTR_IS_NEW_PROJECT, myIsNewModule);
     parameterValueMap.putAll(getDirectories());
+    for (Key<?> parameter : IMPLICIT_PARAMETERS) {
+      parameterValueMap.put(parameter.name, myState.get(parameter));
+    }
     for (Parameter parameter : template.getParameters()) {
       parameterValueMap.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
     }

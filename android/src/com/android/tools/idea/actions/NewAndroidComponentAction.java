@@ -19,7 +19,6 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.NewAndroidActivityWizard;
-import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
@@ -39,7 +38,6 @@ import java.util.Set;
 public class NewAndroidComponentAction extends AnAction {
   // These categories will be using a new wizard
   public static Set<String> NEW_WIZARD_CATEGORIES = ImmutableSet.of("Activity", "Google");
-  private static final Set<String> EXCLUDED = ImmutableSet.of();
 
   private final String myTemplateCategory;
   private final String myTemplateName;
@@ -104,20 +102,10 @@ public class NewAndroidComponentAction extends AnAction {
     }
     VirtualFile targetFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
 
-    if (isActivityTemplate()) {
-      File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
-      NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
-      wizard.init();
-      wizard.show();
-    }
-    else {
-      NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(module, targetFile, myTemplateCategory, myTemplateName, EXCLUDED);
-
-      dialog.show();
-      if (dialog.isOK()) {
-        dialog.createTemplateObject();
-      }
-    }
+    File file = TemplateManager.getInstance().getTemplateFile(myTemplateCategory, myTemplateName);
+    NewAndroidActivityWizard wizard = new NewAndroidActivityWizard(module, targetFile, file);
+    wizard.init();
+    wizard.show();
 
     /*
     // TODO: Implement the getCreatedElements call for the wizard
