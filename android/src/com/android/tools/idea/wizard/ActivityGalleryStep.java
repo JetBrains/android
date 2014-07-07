@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.intellij.openapi.Disposable;
+import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +93,9 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
         saveState(myGallery);
       }
     });
-    return new JBScrollPane(myGallery);
+    JPanel panel = new JPanel(new JBCardLayout());
+    panel.add("only card", new JBScrollPane(myGallery));
+    return panel;
   }
 
   protected String getNoTemplateEntryName() {
