@@ -94,7 +94,7 @@ public final class ParameterDefaultValueComputerTest extends TestCase {
   public void testSimpleValuesDerival() {
     Map<Parameter, Object> defaultValuesMap = newDefaultValuesMap(myTemplateMetadata.getParameters(),
                                                                   ImmutableMap.<Parameter, Object>of(),
-                                                                  null);
+                                                                  ImmutableMap.<String, Object>of(), null);
     assertEquals(Boolean.FALSE, defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p1")));
     assertEquals("Hello", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p2")));
     assertEquals("", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p3")));
@@ -103,7 +103,7 @@ public final class ParameterDefaultValueComputerTest extends TestCase {
   public void testComputedValuesDerival() {
     Map<Parameter, Object> defaultValuesMap = newDefaultValuesMap(myTemplateMetadata.getParameters(),
                                                                   ImmutableMap.<Parameter, Object>of(),
-                                                                  null);
+                                                                  ImmutableMap.<String, Object>of(), null);
     assertEquals("Hello, World", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p4")));
     assertEquals("Hello, World!", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p5")));
     assertEquals(Boolean.TRUE, defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p6")));
@@ -111,7 +111,8 @@ public final class ParameterDefaultValueComputerTest extends TestCase {
 
   public void testComputedValuesDerivedFromNotNull() {
     Map<Parameter, Object> values = Maps.newHashMap();
-    Map<Parameter, Object> defaultValuesMap = newDefaultValuesMap(myTemplateMetadata.getParameters(), values, null);
+    Map<Parameter, Object> defaultValuesMap = newDefaultValuesMap(myTemplateMetadata.getParameters(), values,
+                                                                  ImmutableMap.<String, Object>of(), null);
     values.put(getParameterObject(myTemplateMetadata, "p2"), "Goodbye");
     assertEquals("Goodbye, World", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p4")));
     assertEquals("Goodbye, World!", defaultValuesMap.get(getParameterObject(myTemplateMetadata, "p5")));
