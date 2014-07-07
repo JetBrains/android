@@ -66,10 +66,11 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Integer> KEY_BUILD_SDK = createKey(TemplateMetadata.ATTR_BUILD_API, PATH, Integer.class);
   public static final Key<String> KEY_PACKAGE_NAME = createKey(TemplateMetadata.ATTR_PACKAGE_NAME, PATH, String.class);
   public static final Key<SourceProvider> KEY_SOURCE_PROVIDER = createKey("source.provider", PATH, SourceProvider.class);
+  public static final Key<String> KEY_SOURCE_PROVIDER_NAME = createKey(ATTR_SOURCE_PROVIDER_NAME, PATH, String.class);
   public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PACKAGE_NAME);
   public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS);
   private static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
-  private static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.<Key<?>>of(KEY_PACKAGE_NAME);
+  public static final Set<Key<String>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
 
@@ -254,7 +255,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     paths.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getAbsolutePath()));
     paths.put(ATTR_APPLICATION_PACKAGE, ManifestInfo.get(module, false).getPackage());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
-    paths.put(ATTR_SOURCE_PROVIDER_NAME, sourceProvider.getName());
     return paths;
   }
 
