@@ -97,6 +97,24 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertEquals("com.google.android.gms:play-services:19.0.1", myRepositoryUrlManager.getLibraryCoordinate("play-services"));
   }
 
+  public void testGetLibraryCoordinateReturnsPreview() throws Exception {
+    // Set up our fake file contents for the "maven-metadata.xml" file
+    myFileText = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><versioning>" +
+                 "<version>13.0.0</version> <version>19.0.1</version>" +
+                 "<version>13.0.0</version> <version>20.0.0-rc1</version>" +
+                 "</versioning>";
+    myFileExists = true;
+
+    // Check no preview when asked not to return previews
+    assertEquals("com.android.support:support-v4:19.0.1", myRepositoryUrlManager.getLibraryCoordinate("support-v4", null, false));
+
+    // Check preview returned when explicitly asked for previews
+    assertEquals("com.android.support:support-v4:20.0.0-rc1", myRepositoryUrlManager.getLibraryCoordinate("support-v4", null, true));
+
+    // Check preview returned by default
+    assertEquals("com.android.support:support-v4:20.0.0-rc1", myRepositoryUrlManager.getLibraryCoordinate("support-v4"));
+  }
+
   public void testGetArchiveForCoordinate() throws Exception {
     // Check null SDK
     AndroidSdkData oldMockSdk = mockSdkData;

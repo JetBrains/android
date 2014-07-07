@@ -16,15 +16,15 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
-import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.sdklib.repository.FullRevision;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -32,10 +32,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Helper class to aid in generating Maven URLs for various internal repository files (Support Library, AppCompat, etc).
@@ -104,10 +101,16 @@ public class RepositoryUrlManager {
     "// You must install or update the %1$s Repository through the SDK manager to use this dependency.";
 
   /** Model of our internal extras repository */
-  public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
-    .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
-    .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
+  private static final RangeMap<Integer, String> SUPPORT_LIBRARY_EXTENSIONS = ImmutableRangeMap.<Integer, String>builder()
+    .put(Range.closed(1, 19), SdkConstants.DOT_JAR)
+    .put(Range.atLeast(20), SdkConstants.DOT_AAR)
+    .build();
+  private static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
     .put(SUPPORT_ANNOTATIONS, new RepositoryLibrary(SUPPORT_ANNOTATIONS, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
+    .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE,
+                                              SUPPORT_LIBRARY_EXTENSIONS))
+    .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE,
+                                               SUPPORT_LIBRARY_EXTENSIONS))
     .put(APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(GRID_LAYOUT_ID_V7, new RepositoryLibrary(GRID_LAYOUT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(MEDIA_ROUTER_ID_V7, new RepositoryLibrary(MEDIA_ROUTER_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
@@ -127,6 +130,7 @@ public class RepositoryUrlManager {
   @VisibleForTesting
   RepositoryUrlManager() {}
 
+
   /**
    * Calculate the coordinate pointing to the highest valued version of the given library we
    * have available in our repository.
@@ -135,7 +139,7 @@ public class RepositoryUrlManager {
    */
   @Nullable
   public String getLibraryCoordinate(String libraryId) {
-    return getLibraryCoordinate(libraryId, null);
+    return getLibraryCoordinate(libraryId, null, true);
   }
 
   /**
@@ -147,8 +151,7 @@ public class RepositoryUrlManager {
    * @return a maven coordinate for the requested library or null if we don't support that library
    */
   @Nullable
-  public String getLibraryCoordinate(String libraryId, @Nullable String filterPrefix) {
-
+  public String getLibraryCoordinate(String libraryId, @Nullable String filterPrefix, boolean includePreviews) {
     // Check to see if this is a URL we support:
     if (!EXTRAS_REPOSITORY.containsKey(libraryId)) {
       return null;
@@ -168,9 +171,9 @@ public class RepositoryUrlManager {
       return String.format(library.baseCoordinate, library.id, REVISION_ANY);
     }
 
-    String version = getLatestVersionFromMavenMetadata(supportMetadataFile, filterPrefix);
+    String version = getLatestVersionFromMavenMetadata(supportMetadataFile, filterPrefix, includePreviews);
 
-    return String.format(library.baseCoordinate, library.id, version);
+    return version != null ? String.format(library.baseCoordinate, library.id, version) : null;
   }
 
   /**
@@ -193,7 +196,8 @@ public class RepositoryUrlManager {
     RepositoryLibrary library = EXTRAS_REPOSITORY.get(artifactId);
 
     File path = new File(String.format(library.basePath, sdkLocation, library.id));
-    String revisionPath = String.format(MAVEN_REVISION_PATH, library.id, revision) + library.archiveExtension;
+    String revisionPath = String.format(MAVEN_REVISION_PATH, library.id, revision) +
+                          library.getArchiveExtension(gradleCoordinate.getMajorVersion());
 
     return new File(path, revisionPath);
   }
@@ -210,11 +214,13 @@ public class RepositoryUrlManager {
   /**
    * Parses a Maven metadata file and returns a string of the highest found version
    * @param metadataFile the files to parse
+   * @param includePreviews if false, preview versions of the library will not be returned
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
-  private String getLatestVersionFromMavenMetadata(File metadataFile, @Nullable final String filterPrefix) {
+  @Nullable
+  private String getLatestVersionFromMavenMetadata(File metadataFile, @Nullable final String filterPrefix, boolean includePreviews) {
     String xml = readTextFile(metadataFile);
-    final List<FullRevision> versions = new LinkedList<FullRevision>();
+    final List<GradleCoordinate> versions = Lists.newLinkedList();
     try {
       SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(xml.getBytes()), new DefaultHandler() {
         boolean inVersionTag = false;
@@ -232,7 +238,7 @@ public class RepositoryUrlManager {
           if (inVersionTag) {
             String revision = new String(ch, start, length);
             if (filterPrefix == null || revision.startsWith(filterPrefix)) {
-              versions.add(FullRevision.parseRevision(revision));
+              versions.add(GradleCoordinate.parseVersionOnly(revision));
             }
             inVersionTag = false;
           }
@@ -244,18 +250,33 @@ public class RepositoryUrlManager {
 
     if (versions.isEmpty()) {
       return REVISION_ANY;
+    } else if (includePreviews) {
+      return GRADLE_COORDINATE_ORDERING.max(versions).getFullRevision();
     } else {
-      return Collections.max(versions).toString();
+      try {
+        return GRADLE_COORDINATE_ORDERING.max(Iterables.filter(versions, IS_NOT_PREVIEW)).getFullRevision();
+      } catch (NoSuchElementException e) {
+        return null;
+      }
     }
   }
 
   /**
-   * Get a helpful comment about how to install the parent repository for the given coordinate
+   * Evaluates to true iff the given FullRevision is not a preview version
    */
-  public static String getHelpComment(@NotNull GradleCoordinate coordinate) {
-    String repositoryName = coordinate.getArtifactId().equals(PLAY_SERVICES_ID) ? "Google" : "Support";
-    return String.format(HELP_COMMENT, repositoryName);
-  }
+  private static final Predicate<GradleCoordinate> IS_NOT_PREVIEW = new Predicate<GradleCoordinate>() {
+    @Override
+    public boolean apply(GradleCoordinate input) {
+      return !input.isPreview();
+    }
+  };
+
+  private static final Ordering<GradleCoordinate> GRADLE_COORDINATE_ORDERING = new Ordering<GradleCoordinate>() {
+    @Override
+    public int compare(GradleCoordinate left, GradleCoordinate right) {
+      return GradleCoordinate.COMPARE_PLUS_LOWER.compare(left, right);
+    }
+  };
 
   @Nullable
   protected AndroidSdkData tryToChooseAndroidSdk() {
@@ -275,14 +296,28 @@ public class RepositoryUrlManager {
     public final String id;
     public final String basePath;
     public final String baseCoordinate;
-    public final String archiveExtension;
+    private final RangeMap<Integer, String> myArchiveExtensions;
 
 
     private RepositoryLibrary(String id, String basePath, String baseCoordinate, String archiveExtension) {
       this.id = id;
       this.basePath = basePath;
       this.baseCoordinate = baseCoordinate;
-      this.archiveExtension = archiveExtension;
+      myArchiveExtensions = TreeRangeMap.create();
+      myArchiveExtensions.put(Range.<Integer>all(), archiveExtension);
+    }
+
+    private RepositoryLibrary(String id, String basePath, String baseCoordinate, RangeMap<Integer, String> archiveExtensions) {
+      this.id = id;
+      this.basePath = basePath;
+      this.baseCoordinate = baseCoordinate;
+      myArchiveExtensions = archiveExtensions;
+    }
+
+    @NotNull
+    public String getArchiveExtension(int revision) {
+      String extension = myArchiveExtensions.get(revision);
+      return extension == null ? "" : extension;
     }
   }
 }
