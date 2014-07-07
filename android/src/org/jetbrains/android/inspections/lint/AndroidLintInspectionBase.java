@@ -9,8 +9,6 @@ import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
-import com.intellij.lang.java.JavaLanguage;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -237,17 +235,6 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         new SuppressLintIntentionAction(myIssue.getId(), myElement).invoke(project, null, file);
       }
     }
-  }
-
-  @Override
-  public boolean isSuppressedFor(@NotNull PsiElement element) {
-    if (element.getLanguage() == JavaLanguage.INSTANCE) {
-      return SuppressManager.getInstance().isSuppressedFor(element, getShortName());
-    }
-    if (element.getLanguage() == XMLLanguage.INSTANCE) {
-      return XmlSuppressionProvider.isSuppressed(element, getShortName());
-    }
-    return false;
   }
 
   @TestOnly
