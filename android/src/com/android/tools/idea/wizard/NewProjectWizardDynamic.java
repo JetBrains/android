@@ -116,7 +116,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     // Collect files to open
-    for (DynamicWizardPath path : myPaths) {
+    for (AndroidStudioWizardPath path : myPaths) {
       if (path instanceof NewFormFactorModulePath) {
         myFilesToOpen.addAll(((NewFormFactorModulePath)path).getFilesToOpen());
       }
