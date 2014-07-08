@@ -163,6 +163,11 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myRootPane.add(component, BorderLayout.CENTER);
   }
 
+  @NotNull
+  protected String getTitle() {
+    return myTitle;
+  }
+
   @Override
   public void init() {
     myState.put(KEY_TITLE, myTitle);

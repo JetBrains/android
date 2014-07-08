@@ -24,9 +24,11 @@ import com.intellij.openapi.Disposable;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.update.UiNotifyConnector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.accessibility.AccessibleContext;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -45,7 +47,6 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   private final Key<TemplateEntry> myCurrentSelectionKey;
   private final boolean myShowSkipEntry;
   private ASGallery<Optional<TemplateEntry>> myGallery;
-  private boolean myShownFirstTime = true;
 
   public ActivityGalleryStep(@NotNull FormFactorUtils.FormFactor formFactor, boolean showSkipEntry,
                              Key<TemplateEntry> currentSelectionKey, @NotNull Disposable disposable) {
@@ -93,6 +94,11 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
         saveState(myGallery);
       }
     });
+    myGallery.setName("Templates Gallery");
+    AccessibleContext accessibleContext = myGallery.getAccessibleContext();
+    if (accessibleContext != null) {
+      accessibleContext.setAccessibleDescription(getTitle());
+    }
     JPanel panel = new JPanel(new JBCardLayout());
     panel.add("only card", new JBScrollPane(myGallery));
     return panel;
@@ -105,13 +111,14 @@ public class ActivityGalleryStep extends DynamicWizardStepWithHeaderAndDescripti
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-
-    // First time page is shown, controls are narrow hence gallery assumes single column mode.
-    // We need to scroll up.
-    if (myShownFirstTime) {
-      myShownFirstTime = false;
-      myGallery.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
-    }
+    //// First time page is shown, controls are narrow hence gallery assumes single column mode.
+    //// We need to scroll up.
+    UiNotifyConnector.doWhenFirstShown(myGallery, new Runnable() {
+      @Override
+      public void run() {
+        myGallery.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
+      }
+    });
   }
 
   @Override
