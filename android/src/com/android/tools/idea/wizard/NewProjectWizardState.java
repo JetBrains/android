@@ -30,7 +30,9 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 /**
  * Value object which holds the current state of the wizard pages for the
  * {@link NewProjectWizard}
+ * Deprecated by {@link NewProjectWizardDynamic} and {@link ConfigureAndroidProjectPath}
  */
+@Deprecated
 public class NewProjectWizardState extends NewModuleWizardState {
   public static final String ATTR_MODULE_NAME = "projectName";
 

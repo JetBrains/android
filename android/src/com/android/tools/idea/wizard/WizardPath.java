@@ -23,7 +23,9 @@ import static com.android.tools.idea.wizard.ChooseTemplateStep.MetadataListItem;
 
 /**
  * New module wizard supports several "paths". This is an interface for delegates that manage each path.
+ * Deprecated in favor of {@link DynamicWizardPath}
  */
+@Deprecated
 public interface WizardPath {
   /**
    * @return wizard steps (aka pages) that will be shown on this path.
