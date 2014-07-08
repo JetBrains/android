@@ -42,6 +42,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   private boolean myUpdateInProgress;
   // used by update() to save whether this step is valid and the wizard can progress.
   private boolean myIsValid;
+  private boolean myInitialized;
 
   public DynamicWizardStep() {
     myState = new ScopedStateStore(STEP, null, this);
@@ -57,7 +58,6 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     for (String keyName : myCurrentValues.keySet()) {
       myState.put(myState.createKey(keyName, Object.class), myCurrentValues.get(keyName));
     }
-    init();
   }
 
   /**
@@ -116,6 +116,10 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * The step should do any initialization/update work here to prepare for user interaction.
    */
   public void onEnterStep() {
+    if (!myInitialized) {
+      init();
+      myInitialized = true;
+    }
     invokeUpdate(null);
   }
 
