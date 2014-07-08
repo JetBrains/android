@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
@@ -34,7 +35,7 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     Element root = ((DomPullParser)parser).getRoot();
 
     String layout = XmlPrettyPrinter.prettyPrint(root, true);
-    assertEquals(
+    String oldXml =
       "<LinearLayout\n" +
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
       "layout_width=\"fill_parent\"\n" +
@@ -395,10 +396,20 @@ public class MenuPreviewRendererTest extends RenderTestBase {
       "    gravity=\"center\"\n" +
       "    text=\"(Note: Menu preview is only approximate)\"\n" +
       "    textColor=\"#ff0000\" />\n" +
-      "</LinearLayout>\n",
-      layout);
+      "</LinearLayout>\n";
+    String newXml = "<FrameLayout\n" +
+               "xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+               "android:layout_width=\"match_parent\"\n" +
+               "android:layout_height=\"match_parent\" />\n";
 
-    checkRendering(service, "menu/menu1.png");
+    if (service.getLayoutLib().supports(Capability.ACTION_BAR)) {
+      checkRendering(service, "menu/menu1.png");
+      assertEquals(newXml, layout);
+    } else {
+      assertEquals(oldXml, layout);
+      System.err.println("Not running MenuPreviewRendererTest.test: Associated layoutlib in test SDK needs " +
+                         "to use API 21 or higher");
+    }
   }
 
   public void testLightTheme() throws Exception {
@@ -409,6 +420,11 @@ public class MenuPreviewRendererTest extends RenderTestBase {
     RenderService service = getRenderService(file, configuration);
     assertNotNull(service);
 
-    checkRendering(service, "menu/menu1-light.png");
+    if (service.getLayoutLib().supports(Capability.ACTION_BAR)) {
+      checkRendering(service, "menu/menu1-light.png");
+    } else {
+      System.err.println("Not running MenuPreviewRendererTest.testLightTheme: Associated layoutlib in test SDK needs " +
+                         "to use API 21 or higher");
+    }
   }
 }
