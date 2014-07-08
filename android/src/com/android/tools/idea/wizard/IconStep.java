@@ -82,7 +82,6 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
   public static final Key<String> ATTR_IMAGE_PATH = createKey(AssetStudioAssetGenerator.ATTR_IMAGE_PATH, PATH, String.class);
   public static final Key<String> ATTR_ICON_RESOURCE = createKey("icon_resource", PATH, String.class);
   public static final Key<Integer> ATTR_FONT_SIZE = createKey(AssetStudioAssetGenerator.ATTR_FONT_SIZE, PATH, Integer.class);
-  public static final Key<String> ATTR_ICON_NAME = createKey(TemplateMetadata.ATTR_ICON_NAME, PATH, String.class);
   public static final Key<File> ATTR_OUTPUT_FOLDER = createKey(ChooseOutputResDirStep.ATTR_OUTPUT_FOLDER, STEP, File.class);
 
   private static final Logger LOG = Logger.getInstance(IconStep.class);
@@ -150,7 +149,6 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
   private JComponent[] myScalingButtons;
   private JComponent[] myShapeButtons;
   private String myDefaultName;
-  private boolean myIsVisible = false;
 
   @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
   public IconStep(Key<TemplateEntry> templateKey, Key<SourceProvider> sourceProviderKey,
@@ -271,13 +269,14 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
   @Override
   public void init() {
     super.init();
-    updateVisibility();
 
     myAssetGenerator = new AssetStudioAssetGenerator(new ScopedStateStoreAdapter(myState));
 
     myState.put(ATTR_ASSET_TYPE, AssetType.LAUNCHER);
+    //noinspection deprecation
     String relativeTemplatePath = FileUtil
-      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME, "root", "res", "drawable-xhdpi", "ic_launcher.png");
+      .join(Template.CATEGORY_PROJECTS, NewProjectWizardState.MODULE_TEMPLATE_NAME,
+            "root", "res", "drawable-xhdpi", "ic_launcher.png");
     myState.put(ATTR_IMAGE_PATH, new File(TemplateManager.getTemplateRootFolder(), relativeTemplatePath).getAbsolutePath());
 
     register(ATTR_OUTPUT_FOLDER, mySourceSetComboBox);
@@ -408,16 +407,27 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
 
   @Override
   public boolean isStepVisible() {
-    return myIsVisible;
+    TemplateEntry templateEntry = myState.get(myTemplateKey);
+    boolean isVisible = false;
+    if (templateEntry != null) {
+      TemplateMetadata templateMetadata = templateEntry.getMetadata();
+      if (templateMetadata.getIconType() != null) {
+        isVisible = true;
+      }
+    }
+    return isVisible;
   }
 
   @Override
   public void deriveValues(Set<Key> modified) {
     super.deriveValues(modified);
 
-    if (modified == null || modified.contains(myTemplateKey)) {
-      updateVisibility();
+    AssetType iconType = null;
+    TemplateEntry templateEntry = myState.get(myTemplateKey);
+    if (templateEntry != null) {
+      iconType = templateEntry.getMetadata().getIconType();
     }
+    finalizeAssetType(iconType);
 
     // Note that this combo may need to reflect source set from another wizard page
     updateDirectoryCombo();
@@ -492,21 +502,6 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
     requestPreviewUpdate();
   }
 
-  private void updateVisibility() {
-    TemplateEntry templateEntry = myState.get(myTemplateKey);
-    boolean isVisible = false;
-    if (templateEntry != null) {
-      TemplateMetadata templateMetadata = templateEntry.getMetadata();
-      if (templateMetadata.getIconType() != null) {
-        finalizeAssetType(templateMetadata.getIconType());
-        String iconName = templateMetadata.getIconName();
-        isVisible = true;
-      }
-    }
-    myIsVisible = isVisible;
-  }
-
-
   @Override
   public boolean validate() {
     if (!super.validate()) {
@@ -536,6 +531,9 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
       @Override
       public void run() {
         try {
+          if (myAssetGenerator == null) { // Init not done yet
+            return;
+          }
           myAssetGenerator.generateImages(myImageMap, true, true);
           SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -684,7 +682,7 @@ public class IconStep extends DynamicWizardStepWithHeaderAndDescription implemen
   * Must be run inside a write action. Creates the asset files on disk.
   */
   public void createAssets() {
-    if (myIsVisible) {
+    if (isStepVisible()) {
       File destination = myState.get(ATTR_OUTPUT_FOLDER);
       assert destination != null;
       // Asset generator will append "res" by itself
