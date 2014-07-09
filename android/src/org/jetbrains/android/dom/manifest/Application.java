@@ -73,4 +73,6 @@ public interface Application extends ManifestElement {
   AndroidAttributeValue<ResourceValue> getLabel();
 
   List<UsesLibrary> getUsesLibrarys();
+
+  List<MetaData> getMetaDatas();
 }

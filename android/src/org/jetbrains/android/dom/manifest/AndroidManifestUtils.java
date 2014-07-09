@@ -97,10 +97,13 @@ public class AndroidManifestUtils {
                          "permission-tree", "uses-permission", "compatible-screens", "uses-sdk", "uses-feature");
     }
     else if (element instanceof Application) {
-      Collections.addAll(strings, "activity", "activity-alias", "service", "provider", "receiver", "uses-library");
+      Collections.addAll(strings, "activity", "activity-alias", "service", "provider", "receiver", "uses-library", "meta-data");
     }
     else if (element instanceof Activity || element instanceof ActivityAlias || element instanceof Receiver || element instanceof Service) {
-      strings.add("intent-filter");
+      Collections.addAll(strings, "intent-filter", "meta-data");
+    }
+    else if (element instanceof Provider) {
+      Collections.addAll(strings, "meta-data");
     }
     else if (element instanceof IntentFilter) {
       strings.add("action");
