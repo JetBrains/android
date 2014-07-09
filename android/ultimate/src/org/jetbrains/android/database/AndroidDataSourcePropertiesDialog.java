@@ -16,6 +16,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.persistence.database.DbImplUtil;
 import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBRadioButton;
@@ -357,8 +358,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   public void apply() {
     saveData(myDataSource);
 
-    boolean canConnect = StringUtil.isNotEmpty(myDataSource.getState().getDeviceId());
-    if (canConnect) {
+    if (DbImplUtil.canConnectTo(myDataSource)) {
       AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
     }
 
