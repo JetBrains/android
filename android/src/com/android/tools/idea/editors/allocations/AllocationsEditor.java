@@ -58,12 +58,17 @@ public class AllocationsEditor implements FileEditor {
       public void run(@NotNull ProgressIndicator indicator) {
         indicator.setIndeterminate(true);
 
-        File allocationsFile = VfsUtilCore.virtualToIoFile(file);
+        final File allocationsFile = VfsUtilCore.virtualToIoFile(file);
         ByteBuffer data;
         try {
           data = ByteBufferUtil.mapFile(allocationsFile, 0, ByteOrder.BIG_ENDIAN);
         } catch (IOException ex) {
-          Messages.showErrorDialog(project, "Error reading from allocations file " + allocationsFile.getAbsolutePath(), getName());
+          ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+              Messages.showErrorDialog(project, "Error reading from allocations file " + allocationsFile.getAbsolutePath(), getName());
+            }
+          }, ModalityState.defaultModalityState());
           return;
         }
 
