@@ -130,6 +130,16 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testStringInt() throws Exception {
+    AndroidLintStringShouldBeIntInspection inspection = new AndroidLintStringShouldBeIntInspection();
+    doTest(inspection, null);
+  }
+
+  public void testDeprecatedPluginId() throws Exception {
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);

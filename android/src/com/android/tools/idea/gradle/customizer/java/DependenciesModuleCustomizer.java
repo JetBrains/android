@@ -15,20 +15,26 @@
  */
 package com.android.tools.idea.gradle.customizer.java;
 
+import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.customizer.AbstractDependenciesModuleCustomizer;
-import com.android.tools.idea.gradle.facet.JavaModel;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaModuleDependency;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
+import com.intellij.openapi.util.io.FileUtil;
+import org.gradle.tooling.model.idea.*;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,22 +47,76 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 import static java.util.Collections.singletonList;
 
-public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<JavaModel> {
+public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCustomizer<IdeaJavaProject> {
+  @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
+
   private static final Logger LOG = Logger.getInstance(AbstractDependenciesModuleCustomizer.class);
 
   private static final DependencyScope DEFAULT_DEPENDENCY_SCOPE = DependencyScope.COMPILE;
 
   @Override
-  protected void setUpDependencies(@NotNull ModifiableRootModel model, @NotNull JavaModel javaModel, @NotNull List<Message> errorsFound) {
-    for (IdeaModuleDependency dependency : javaModel.getModuleDependencies()) {
-      updateDependency(model, dependency, errorsFound);
-    }
-    for (IdeaSingleEntryLibraryDependency dependency : javaModel.getLibraryDependencies()) {
-      updateDependency(model, dependency, errorsFound);
+  protected void setUpDependencies(@NotNull ModifiableRootModel model,
+                                   @NotNull IdeaJavaProject javaProject,
+                                   @NotNull List<Message> errorsFound) {
+    List<String> unresolved = Lists.newArrayList();
+    List<? extends IdeaDependency> dependencies = javaProject.getDependencies();
+    for (IdeaDependency dependency : dependencies) {
+      if (dependency instanceof IdeaModuleDependency) {
+        updateDependency(model, (IdeaModuleDependency)dependency, errorsFound);
+        continue;
+      }
+      if (dependency instanceof IdeaSingleEntryLibraryDependency) {
+        IdeaSingleEntryLibraryDependency libDependency = (IdeaSingleEntryLibraryDependency)dependency;
+        if (isResolved(libDependency)) {
+          updateDependency(model, (IdeaSingleEntryLibraryDependency)dependency, errorsFound);
+          continue;
+        }
+        String name = getUnresolvedDependencyName(libDependency);
+        if (name != null) {
+          unresolved.add(name);
+        }
+      }
     }
 
-    List<String> unresolvedDependencies = javaModel.getUnresolvedDependencyNames();
-    reportUnresolvedDependencies(unresolvedDependencies, model.getProject());
+    Module module = model.getModule();
+
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
+    messages.reportUnresolvedDependencies(unresolved, module);
+
+    JavaGradleFacet facet = setAndGetJavaGradleFacet(module);
+    File buildFolderPath = javaProject.getBuildFolderPath();
+    if (Projects.isGradleProjectModule(module)) {
+      // For project module we store the path of "build" folder in the facet itself, so the caching mechanism can obtain the path when
+      // the project is opened. This module does not need a JavaModel.
+      facet.getConfiguration().BUILD_FOLDER_PATH =
+        buildFolderPath != null ? FileUtil.toSystemIndependentName(buildFolderPath.getPath()) : "";
+    }
+    else {
+      JavaModel javaModel = new JavaModel(unresolved, buildFolderPath);
+      facet.setJavaModel(javaModel);
+    }
+  }
+
+  private static boolean isResolved(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    String libraryName = getFileName(dependency);
+    return libraryName != null && !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
+  }
+
+  @Nullable
+  private static String getUnresolvedDependencyName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    String libraryName = getFileName(dependency);
+    if (libraryName == null) {
+      return null;
+    }
+    // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.
+    // We report the unresolved dependency as 'commons-collections:commons-collections:3.2'
+    return libraryName.substring(UNRESOLVED_DEPENDENCY_PREFIX.length()).replace(' ', ':');
+  }
+
+  @Nullable
+  private static String getFileName(@NotNull IdeaSingleEntryLibraryDependency dependency) {
+    File binaryPath = dependency.getFile();
+    return binaryPath != null ? binaryPath.getName() : null;
   }
 
   private static void updateDependency(@NotNull ModifiableRootModel model,
@@ -126,4 +186,25 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
     return DEFAULT_DEPENDENCY_SCOPE;
   }
+
+  @NotNull
+  private static JavaGradleFacet setAndGetJavaGradleFacet(Module module) {
+    JavaGradleFacet facet = JavaGradleFacet.getInstance(module);
+    if (facet != null) {
+      return facet;
+    }
+
+    // Module does not have Android-Gradle facet. Create one and add it.
+    FacetManager facetManager = FacetManager.getInstance(module);
+    ModifiableFacetModel model = facetManager.createModifiableModel();
+    try {
+      facet = facetManager.createFacet(JavaGradleFacet.getFacetType(), JavaGradleFacet.NAME, null);
+      model.addFacet(facet);
+    }
+    finally {
+      model.commit();
+    }
+    return facet;
+  }
+
 }

@@ -25,6 +25,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
+import java.text.Collator;
 import java.util.List;
 import java.util.Map;
 
@@ -51,12 +52,24 @@ import java.util.Map;
  * These objects are syntactically method calls in Groovy; the method name is the object's name, and the argument is a closure that
  * takes property/value statements (which are themselves method calls).
  */
-public class NamedObject {
+public class NamedObject implements Comparable<NamedObject> {
   private String myName;
+  private final boolean myAlwaysOnTop;
   private final Map<BuildFileKey, Object> myValues = Maps.newHashMap();
 
   public NamedObject(@NotNull String name) {
+    this(name, false);
+  }
+
+  protected NamedObject(@NotNull String name, boolean alwaysOnTop) {
     myName = name;
+    myAlwaysOnTop = alwaysOnTop;
+  }
+
+  public NamedObject(@NotNull NamedObject obj) {
+    myName = obj.myName;
+    myAlwaysOnTop = obj.myAlwaysOnTop;
+    myValues.putAll(obj.myValues);
   }
 
   @NotNull
@@ -88,6 +101,14 @@ public class NamedObject {
 
   public static ValueFactory getFactory(@NotNull List<BuildFileKey> properties) {
     return new Factory(properties);
+  }
+
+  @Override
+  public int compareTo(NamedObject o) {
+    if (myAlwaysOnTop != o.myAlwaysOnTop) {
+      return myAlwaysOnTop ? -1 : 1;
+    }
+    return Collator.getInstance().compare(myName, o.myName);
   }
 
   public static class Factory extends ValueFactory<NamedObject> {
@@ -158,7 +179,7 @@ public class NamedObject {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (!(o instanceof NamedObject)) return false;
 
     NamedObject that = (NamedObject)o;
 

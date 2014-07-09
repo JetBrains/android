@@ -30,12 +30,14 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.ui.JBColor;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.Document;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -59,7 +61,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
 
 
-  private static final String EXAMPLE_DOMAIN = "yourname.com";
+  private static final String EXAMPLE_DOMAIN = "example.com";
   public static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
   public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(INVALID_FILENAME_CHARS);
@@ -78,7 +80,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   private LabelWithEditLink myPackageName;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
-    super("Add information to your new project", null, null, disposable);
+    super("Configure your new project", null, null, disposable);
     setBodyComponent(myPanel);
   }
 
@@ -119,7 +121,10 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     myState.put(APPLICATION_NAME_KEY, "My Application");
     String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
     if (savedCompanyDomain == null) {
-      savedCompanyDomain = System.getProperty("user.name");
+      savedCompanyDomain = nameToPackage(System.getProperty("user.name"));
+      if (savedCompanyDomain != null) {
+        savedCompanyDomain = savedCompanyDomain + '.' + EXAMPLE_DOMAIN;
+      }
     }
     if (savedCompanyDomain == null) {
       savedCompanyDomain = EXAMPLE_DOMAIN;
@@ -279,18 +284,18 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     }
   }
 
+  private static String nameToPackage(String name) {
+    name = name.replace('-', '_');
+    name = name.replaceAll("[^a-zA-Z0-9_]", "");
+    name = name.toLowerCase();
+    return name;
+  }
+
   private static final ValueDeriver<String> myPackageNameDeriver = new ValueDeriver<String>() {
     @Nullable
     @Override
     public Set<Key<?>> getTriggerKeys() {
       return makeSetOf(APPLICATION_NAME_KEY, COMPANY_DOMAIN_KEY);
-    }
-
-    String nameToPackage(String name) {
-      name = name.replace('-', '_');
-      name = name.replaceAll("[^a-zA-Z0-9_]", "");
-      name = name.toLowerCase();
-      return name;
     }
 
     @Nullable
@@ -335,4 +340,16 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       return projectDir.getPath();
     }
   };
+
+  @Nullable
+  @Override
+  protected JComponent getHeader() {
+    return ConfigureAndroidProjectPath.buildConfigurationHeader();
+  }
+
+  @Override
+  @Nullable
+  protected JBColor getTitleTextColor() {
+    return ConfigureAndroidProjectPath.ANDROID_NPW_TITLE_COLOR;
+  }
 }

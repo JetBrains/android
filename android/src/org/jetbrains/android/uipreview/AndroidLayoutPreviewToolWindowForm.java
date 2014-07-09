@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.IncludeOverlay;
 import com.android.tools.idea.rendering.Overlay;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -383,11 +384,23 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
   @Override
-  public void resourceFoldersChanged(@NotNull AndroidFacet facet,
-                                     @NotNull List<VirtualFile> folders,
-                                     @NotNull Collection<VirtualFile> added,
-                                     @NotNull Collection<VirtualFile> removed) {
+  public void resourceFoldersChanged(@NotNull final AndroidFacet facet,
+                                     @NotNull final List<VirtualFile> folders,
+                                     @NotNull final Collection<VirtualFile> added,
+                                     @NotNull final Collection<VirtualFile> removed) {
     // The project app should already have been refreshed by their own variant listener
+
+    // The render() method requires being called on the dispatch thread
+    if (!ApplicationManager.getApplication().isDispatchThread()) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          resourceFoldersChanged(facet, folders, added, removed);
+        }
+      });
+     return;
+    }
+
     myToolWindowManager.render();
   }
 

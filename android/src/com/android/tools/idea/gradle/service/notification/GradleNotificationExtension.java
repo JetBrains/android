@@ -16,6 +16,12 @@
 package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
+import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.BuildToolInfo;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,10 +47,14 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -71,7 +81,14 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
   private static final Pattern UNKNOWN_HOST_PATTERN = Pattern.compile("Unknown host '(.*)'(.*)");
 
+  private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
+    Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
+
+  private static final Pattern MISSING_PLATFORM_PATTERN = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
+  private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?failed to find Build Tools revision (.*)");
+
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
+  @NonNls private static final String ANDROID_PLATFORM_HASH_PREFIX = "android-";
 
   @NotNull
   @Override
@@ -172,9 +189,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         }
       }
 
-      if (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO) ||
-          lastLine.contains(INSTALL_MISSING_PLATFORM) ||
-          lastLine.contains(INSTALL_MISSING_BUILD_TOOLS)) {
+      if (lastLine.contains(INSTALL_ANDROID_SUPPORT_REPO)) {
         List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
         if (!facets.isEmpty()) {
           // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
@@ -200,8 +215,85 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
       String firstLine = lines.get(0);
 
-      Matcher matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
+      Matcher matcher = SDK_BUILD_TOOLS_TOO_LOW_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        boolean buildToolInstalled = false;
 
+        String minimumVersion = matcher.group(3);
+
+        LocalSdk localAndroidSdk = null;
+        AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (androidSdkData != null) {
+          localAndroidSdk = androidSdkData.getLocalSdk();
+        }
+        if (localAndroidSdk != null) {
+          BuildToolInfo buildTool = localAndroidSdk.getBuildTool(FullRevision.parseRevision(minimumVersion));
+          buildToolInstalled = buildTool != null;
+        }
+
+        String gradlePath = matcher.group(2);
+        Module module = GradleUtil.findModuleByGradlePath(project, gradlePath);
+         if (module != null) {
+          VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
+          List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+          if (!buildToolInstalled) {
+            hyperlinks.add(new InstallBuildToolsHyperlink(minimumVersion, buildFile));
+          }
+          else if (buildFile != null) {
+            hyperlinks.add(new FixBuildToolsVersionHyperlink(buildFile, minimumVersion));
+          }
+          if (buildFile != null) {
+            hyperlinks.add(new OpenFileHyperlink(buildFile.getPath()));
+          }
+          if (!hyperlinks.isEmpty()) {
+            updateNotification(notification, project, msg, hyperlinks);
+            return;
+          }
+        }
+      }
+
+      matcher = MISSING_PLATFORM_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
+        String platform = matcher.group(2);
+
+        LocalSdk localAndroidSdk = null;
+        AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (androidSdkData != null) {
+          localAndroidSdk = androidSdkData.getLocalSdk();
+        }
+        if (localAndroidSdk != null) {
+          IAndroidTarget target = localAndroidSdk.getTargetFromHashString(platform);
+          if (target == null) {
+            if (platform.startsWith(ANDROID_PLATFORM_HASH_PREFIX)) {
+              platform = platform.substring(ANDROID_PLATFORM_HASH_PREFIX.length());
+            }
+            AndroidVersion version = SdkVersionInfo.getVersion(platform, localAndroidSdk.getTargets());
+            if (version != null) {
+              hyperlinks.add(new InstallPlatformHyperlink(version));
+            }
+          }
+        }
+        if (hyperlinks.isEmpty()) {
+          // We are unable to install platform automatically.
+          List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
+          if (!facets.isEmpty()) {
+            // We can only open SDK manager if the project has an Android facet. Android facet has a reference to the Android SDK manager.
+            hyperlinks.add(new OpenAndroidSdkManagerHyperlink());
+          }
+        }
+        updateNotification(notification, project, msg, hyperlinks);
+        return;
+      }
+
+      matcher = MISSING_BUILD_TOOLS_PATTERN.matcher(firstLine);
+      if (matcher.matches()) {
+        String version = matcher.group(2);
+        InstallBuildToolsHyperlink hyperlink = new InstallBuildToolsHyperlink(version, null);
+        updateNotification(notification, project, msg, hyperlink);
+      }
+
+      matcher = UNKNOWN_HOST_PATTERN.matcher(firstLine);
       if (matcher.matches()) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
 
@@ -390,7 +482,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
       for (int i = 0; i < hyperlinkCount; i++) {
         b.append(hyperlinks[i].toString());
         if (i < hyperlinkCount - 1) {
-          b.append(" ");
+          b.append("<br>");
         }
       }
       text += ('\n' + b.toString());

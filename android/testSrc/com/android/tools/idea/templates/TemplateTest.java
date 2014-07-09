@@ -50,8 +50,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_PLUGIN_LATEST_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
@@ -151,7 +149,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           System.out.println("recentSDK required= " + requireRecentSdk());
           System.out.println("getTestSdkPath= " + getTestSdkPath());
           System.out.println("getPlatformDir=" + getPlatformDir());
-          String location = sdkData.getPath();
+          String location = sdkData.getLocation().getPath();
           System.out.println("Using SDK at " + location);
           VersionCheck.VersionCheckResult result = VersionCheck.checkVersion(location);
           System.out.println("Version check=" + result.getRevision());

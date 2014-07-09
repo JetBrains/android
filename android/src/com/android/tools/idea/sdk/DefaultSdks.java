@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -30,7 +31,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -39,6 +39,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,11 +49,12 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.chooseNameForNewLibrary;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
 public final class DefaultSdks {
   private static final Logger LOG = Logger.getInstance(DefaultSdks.class);
-  private static final Pattern SDK_NAME_PATTERN = Pattern.compile(".*\\(\\d+\\)");
 
   private static final String ERROR_DIALOG_TITLE = "Project SDK Update";
 
@@ -220,13 +222,7 @@ public final class DefaultSdks {
         // Iterate over all current existing IJ Android SDKs
         for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
           if (sdk.getName().startsWith(AndroidSdkUtils.SDK_NAME_PREFIX)) {
-            // Try to set the path in the IntelliJ SDK to this Android SDK.
-            if (!setAndroidSdkPath(sdkData, sdk, resolvedPath)) {
-              // There wasn't a target in the Android SDK for this IntelliJ SDK. Maybe it
-              // points to an API target that doesn't exist in this Android SDK. Delete the
-              // IntelliJ SDK.
-              sdksToDelete.add(sdk);
-            }
+            sdksToDelete.add(sdk);
           }
         }
       }
@@ -254,7 +250,9 @@ public final class DefaultSdks {
 
   @NotNull
   public static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome) {
-    return createAndroidSdksForAllTargets(androidHome, null);
+    List<Sdk> sdks = createAndroidSdksForAllTargets(androidHome, null);
+    RunAndroidSdkManagerAction.updateInWelcomePage(null);
+    return sdks;
   }
 
   /**
@@ -263,17 +261,21 @@ public final class DefaultSdks {
    */
   @NotNull
   private static List<Sdk> createAndroidSdksForAllTargets(@NotNull File androidHome, @Nullable Sdk javaSdk) {
-    List<Sdk> sdks = Lists.newArrayList();
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHome);
-    if (sdkData != null) {
-      IAndroidTarget[] targets = sdkData.getTargets();
-      Sdk defaultJdk = javaSdk != null ? javaSdk : getDefaultJdk();
-      for (IAndroidTarget target : targets) {
-        if (target.isPlatform() && !doesDefaultAndroidSdkExist(target)) {
-          String name = AndroidSdkUtils.chooseNameForNewLibrary(target);
-          Sdk platform = AndroidSdkUtils.createNewAndroidPlatform(target, sdkData.getLocation().getPath(), name, defaultJdk, true);
-          sdks.add(platform);
-        }
+    if (sdkData == null) {
+      return Collections.emptyList();
+    }
+    IAndroidTarget[] targets = sdkData.getTargets();
+    if (targets.length == 0) {
+      return Collections.emptyList();
+    }
+    List<Sdk> sdks = Lists.newArrayList();
+    Sdk defaultJdk = javaSdk != null ? javaSdk : getDefaultJdk();
+    for (IAndroidTarget target : targets) {
+      if (target.isPlatform() && !doesDefaultAndroidSdkExist(target)) {
+        String name = chooseNameForNewLibrary(target);
+        Sdk sdk = createNewAndroidPlatform(target, sdkData.getLocation().getPath(), name, defaultJdk, true);
+        sdks.add(sdk);
       }
     }
     return sdks;
@@ -285,7 +287,9 @@ public final class DefaultSdks {
   private static boolean doesDefaultAndroidSdkExist(@NotNull IAndroidTarget target) {
     for (Sdk sdk : getEligibleAndroidSdks()) {
       IAndroidTarget platformTarget = getTarget(sdk);
-      if (platformTarget.getVersion().equals(target.getVersion())) {
+      AndroidVersion version = target.getVersion();
+      AndroidVersion existingVersion = platformTarget.getVersion();
+      if (existingVersion.equals(version)) {
         return true;
       }
     }
@@ -394,43 +398,6 @@ public final class DefaultSdks {
       //file doesn't exist yet
     }
     return path;
-  }
-
-  /**
-   * Sets the given Android SDK's home path to the given path, and resets all of its content roots.
-   */
-  private static boolean setAndroidSdkPath(@NotNull AndroidSdkData sdkData, @NotNull Sdk sdk, @NotNull String path) {
-    String name = sdk.getName();
-    if (!name.startsWith(AndroidSdkUtils.SDK_NAME_PREFIX) || SDK_NAME_PATTERN.matcher(name).matches()) {
-      return false;
-    }
-
-    SdkAdditionalData data = sdk.getSdkAdditionalData();
-    if (!(data instanceof AndroidSdkAdditionalData)) {
-      return false;
-    }
-
-    AndroidSdkAdditionalData androidSdkData = (AndroidSdkAdditionalData)data;
-    AndroidPlatform androidPlatform = androidSdkData.getAndroidPlatform();
-    if (androidPlatform == null) {
-      return false;
-    }
-
-    IAndroidTarget target = sdkData.findTargetByApiLevel(Integer.toString(androidPlatform.getApiLevel()));
-    if (target == null) {
-      return false;
-    }
-
-    SdkModificator sdkModificator = sdk.getSdkModificator();
-    sdkModificator.setHomePath(path);
-    sdkModificator.removeAllRoots();
-    for (OrderRoot orderRoot : AndroidSdkUtils.getLibraryRootsForTarget(target, path, true)) {
-      sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
-    }
-    ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-
-    sdkModificator.commitChanges();
-    return true;
   }
 
   /**

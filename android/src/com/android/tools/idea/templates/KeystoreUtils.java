@@ -78,7 +78,9 @@ public class KeystoreUtils {
         // Key password: "android"
         KeystoreHelper.createDebugStore(null, debugLocation, "android", "android", "AndroidDebugKey",logger);
       }
-      assert debugLocation.exists();
+      if (!debugLocation.exists()) {
+        throw new AndroidLocation.AndroidLocationException("Could not create debug keystore");
+      }
       return debugLocation;
     }
     catch (AndroidLocation.AndroidLocationException e) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.templates;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.base.Function;
 import com.intellij.openapi.diagnostic.Logger;
 
 import com.android.annotations.VisibleForTesting;
@@ -194,7 +195,7 @@ public class TemplateMetadata {
   }
 
   @Nullable
-  public String getThumbnailPath(TemplateWizardState currentState) {
+  public String getThumbnailPath(Function<String, Object> currentState) {
     // Apply selector logic. Pick the thumb first thumb that satisfies the largest number
     // of conditions.
     NodeList thumbs = myDocument.getElementsByTagName(TAG_THUMB);
@@ -227,7 +228,7 @@ public class TemplateMetadata {
           }
           String thumbNailValue = attribute.getValue();
 
-          if (currentState == null || !thumbNailValue.equals(currentState.get(parameter.id))) {
+          if (currentState == null || !thumbNailValue.equals(currentState.apply(parameter.id))) {
             match = false;
             break;
           }

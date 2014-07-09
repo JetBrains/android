@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure;
 
 import com.android.SdkConstants;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
@@ -23,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -95,5 +97,9 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
   @Override
   public Icon getIcon(boolean expanded) {
     return AllIcons.Nodes.Module;
+  }
+
+  public void selectDependency(@NotNull GradleCoordinate dependency) {
+    myModuleEditor.selectDependency(dependency);
   }
 }

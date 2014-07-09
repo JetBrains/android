@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.service.resolve;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.lint.checks.GradleDetector;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -409,10 +410,10 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
   private static String resolveAndroidExtension(PsiFile file) {
     assert file instanceof GroovyFile;
     List<String> plugins = GradleBuildFile.getPlugins((GroovyFile)file);
-    if (plugins.contains("android")) {
+    if (plugins.contains(GradleDetector.APP_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_APP_PLUGIN_ID)) {
       return ANDROID_FQCN;
     }
-    else if (plugins.contains("android-library")) {
+    else if (plugins.contains(GradleDetector.LIB_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_LIB_PLUGIN_ID)) {
       return ANDROID_LIB_FQCN;
     }
     else {

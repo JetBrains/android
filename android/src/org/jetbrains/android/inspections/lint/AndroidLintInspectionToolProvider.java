@@ -604,6 +604,61 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintGradleDeprecatedInspection extends AndroidLintInspectionBase {
+    public AndroidLintGradleDeprecatedInspection() {
+      super(AndroidBundle.message("android.lint.inspections.gradle.deprecated"), GradleDetector.DEPRECATED);
+    }
+
+    @NotNull
+    @Override
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
+      // Quickfix for replacing the old plugin id with the new one
+      final String from;
+      final String to;
+      if (message.contains(GradleDetector.APP_PLUGIN_ID) && message.contains(GradleDetector.OLD_APP_PLUGIN_ID)) {
+        from = GradleDetector.OLD_APP_PLUGIN_ID;
+        to = GradleDetector.APP_PLUGIN_ID;
+      } else if (message.contains(GradleDetector.LIB_PLUGIN_ID) && message.contains(GradleDetector.OLD_LIB_PLUGIN_ID)) {
+        from = GradleDetector.OLD_LIB_PLUGIN_ID;
+        to = GradleDetector.LIB_PLUGIN_ID;
+      } else {
+        from = to = null;
+      }
+      if (from != null) {
+        return new AndroidLintQuickFix[] { new AndroidLintQuickFix() {
+          @Override
+          public void apply(@NotNull PsiElement startElement,
+                            @NotNull PsiElement endElement,
+                            @NotNull AndroidQuickfixContexts.Context context) {
+            if (context instanceof AndroidQuickfixContexts.EditorContext && endElement.isValid()) {
+              final Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
+              String text = endElement.getText();
+              int index = text.lastIndexOf(from);
+              if (index != -1) {
+                int textOffset = endElement.getTextOffset() + 1;
+                editor.getDocument().replaceString(textOffset, textOffset + from.length(), to);
+              }
+            }
+          }
+
+          @Override
+          public boolean isApplicable(@NotNull PsiElement startElement,
+                                      @NotNull PsiElement endElement,
+                                      @NotNull AndroidQuickfixContexts.ContextType contextType) {
+            return true;
+          }
+
+          @NotNull
+          @Override
+          public String getName() {
+            return String.format("Replace %1$s with %2$s", from, to);
+          }
+        }};
+      }
+      return super.getQuickFixes(message);
+    }
+  }
+
   public static class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspectionBase {
     public AndroidLintGradleDynamicVersionInspection() {
       super(AndroidBundle.message("android.lint.inspections.gradle.dynamic.version"), GradleDetector.PLUS);
@@ -1145,6 +1200,11 @@ public class AndroidLintInspectionToolProvider {
   public static class AndroidLintStopShipInspection extends AndroidLintInspectionBase {
     public AndroidLintStopShipInspection() {
       super(AndroidBundle.message("android.lint.inspections.stop.ship"), CommentDetector.STOP_SHIP);
+    }
+  }
+  public static class AndroidLintStringShouldBeIntInspection extends AndroidLintInspectionBase {
+    public AndroidLintStringShouldBeIntInspection() {
+      super(AndroidBundle.message("android.lint.inspections.string.should.be.int"), GradleDetector.STRING_INTEGER);
     }
   }
   public static class AndroidLintSuspicious0dpInspection extends AndroidLintInspectionBase {

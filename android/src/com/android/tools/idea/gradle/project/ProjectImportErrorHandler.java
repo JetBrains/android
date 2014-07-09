@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -30,6 +29,9 @@ import java.io.File;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+
 /**
  * Provides better error messages for android projects import failures.
  */
@@ -37,14 +39,12 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   public static final String FAILED_TO_PARSE_SDK_ERROR = "failed to parse SDK";
 
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-  public static final String INSTALL_MISSING_PLATFORM = "Please install the missing platform from the Android SDK Manager.";
-  public static final String INSTALL_MISSING_BUILD_TOOLS = "Please install the missing Build Tools from the Android SDK Manager.";
   public static final String FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file.";
 
   private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
 
   private static final String EMPTY_LINE = "\n\n";
-  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GradleUtil.GRADLE_MINIMUM_VERSION + " is required";
+  private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GRADLE_MINIMUM_VERSION + " is required";
   private static final String SDK_DIR_PROPERTY_MISSING = "No sdk.dir property defined in local.properties file.";
 
   @Override
@@ -61,8 +61,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     if (isOldGradleVersion(rootCause)) {
-      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.",
-                                 GradleUtil.GRADLE_MINIMUM_VERSION);
+      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.", GRADLE_LATEST_VERSION);
       msg += ('\n' + FIX_GRADLE_VERSION);
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
@@ -78,14 +77,12 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       String msg = rootCause.getMessage();
       if (msg != null) {
         if (msg.startsWith("failed to find target android-")) {
-          String newMsg = msg + EMPTY_LINE + INSTALL_MISSING_PLATFORM;
           // Location of build.gradle is useless for this error. Omitting it.
-          return createUserFriendlyError(newMsg, null);
+          return createUserFriendlyError(msg, null);
         }
         if (msg.startsWith("failed to find Build Tools")) {
-          String newMsg = msg + EMPTY_LINE + INSTALL_MISSING_BUILD_TOOLS;
           // Location of build.gradle is useless for this error. Omitting it.
-          return createUserFriendlyError(newMsg, null);
+          return createUserFriendlyError(msg, null);
         }
       }
     }

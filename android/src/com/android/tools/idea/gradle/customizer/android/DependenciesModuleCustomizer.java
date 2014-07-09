@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.dependency.ModuleDependency;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.messages.Message;
+import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.google.common.base.Objects;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -55,7 +56,8 @@ public class DependenciesModuleCustomizer extends AbstractDependenciesModuleCust
     }
 
     Collection<String> unresolvedDependencies = androidProject.getDelegate().getUnresolvedDependencies();
-    reportUnresolvedDependencies(unresolvedDependencies, model.getProject());
+    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(model.getProject());
+    messages.reportUnresolvedDependencies(unresolvedDependencies, model.getModule());
   }
 
   private void updateDependency(@NotNull ModifiableRootModel model, @NotNull LibraryDependency dependency) {

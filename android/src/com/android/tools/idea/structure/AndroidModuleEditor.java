@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +42,7 @@ import java.util.concurrent.Callable;
  * Provides a Project Structure editor for an individual module. Can load a number of sub-editors in a tabbed pane.
  */
 public class AndroidModuleEditor implements Place.Navigator, Disposable {
-  public static final ImmutableList<BuildFileKey> BUILDFILE_GENERIC_PROPERTIES =
+  public static final ImmutableList<BuildFileKey> BUILD_FILE_GENERIC_PROPERTIES =
     ImmutableList.of(BuildFileKey.PLUGIN_VERSION, BuildFileKey.COMPILE_SDK_VERSION, BuildFileKey.BUILD_TOOLS_VERSION,
                      BuildFileKey.PLUGIN_REPOSITORY, BuildFileKey.LIBRARY_REPOSITORY, BuildFileKey.IGNORE_ASSETS_PATTERN,
                      BuildFileKey.INCREMENTAL_DEX, BuildFileKey.SOURCE_COMPATIBILITY,
@@ -49,6 +50,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   private final Project myProject;
   private final String myName;
   private final List<ModuleConfigurationEditor> myEditors = new ArrayList<ModuleConfigurationEditor>();
+  private TabbedPaneWrapper myTabbedPane;
   private JComponent myGenericSettingsPanel;
 
   public AndroidModuleEditor(@NotNull Project project, @NotNull String moduleName) {
@@ -63,6 +65,8 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       return new JPanel();
     }
 
+    final NamedObjectPanel.PanelGroup panelGroup = new NamedObjectPanel.PanelGroup();
+
     if (myGenericSettingsPanel == null) {
       myEditors.clear();
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -70,7 +74,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         myEditors.add(new GenericEditor<SingleObjectPanel>("Properties", new Callable<SingleObjectPanel>() {
           @Override
           public SingleObjectPanel call() {
-            SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILDFILE_GENERIC_PROPERTIES);
+            SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILD_FILE_GENERIC_PROPERTIES);
             panel.init();
             return panel;
           }
@@ -78,7 +82,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         myEditors.add(new GenericEditor<NamedObjectPanel>("Signing", new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config");
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.SIGNING_CONFIGS, "config", panelGroup);
             panel.init();
             return panel;
           }
@@ -86,7 +90,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         myEditors.add(new GenericEditor<NamedObjectPanel>("Flavors", new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor");
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.FLAVORS, "flavor", panelGroup);
             panel.init();
             return panel;
           }
@@ -94,7 +98,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
         myEditors.add(new GenericEditor<NamedObjectPanel>("Build Types", new Callable<NamedObjectPanel>() {
           @Override
           public NamedObjectPanel call() {
-            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType");
+            NamedObjectPanel panel = new NamedObjectPanel(myProject, myName, BuildFileKey.BUILD_TYPES, "buildType", panelGroup);
             panel.init();
             return panel;
           }
@@ -107,15 +111,15 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
           return new ModuleDependenciesPanel(myProject, myName);
         }
       }));
-      TabbedPaneWrapper tabbedPane = new TabbedPaneWrapper(this);
+      myTabbedPane = new TabbedPaneWrapper(this);
       for (ModuleConfigurationEditor editor : myEditors) {
         JComponent component = editor.createComponent();
         if (component != null) {
-          tabbedPane.addTab(editor.getDisplayName(), component);
+          myTabbedPane.addTab(editor.getDisplayName(), component);
           editor.reset();
         }
       }
-      myGenericSettingsPanel = tabbedPane.getComponent();
+      myGenericSettingsPanel = myTabbedPane.getComponent();
     }
     return myGenericSettingsPanel;
   }
@@ -147,6 +151,15 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
 
   public String getName() {
     return myName;
+  }
+
+  public void selectDependency(@NotNull GradleCoordinate dependency) {
+    myTabbedPane.setSelectedTitle(ProjectBundle.message("modules.classpath.title"));
+    JComponent selected = myTabbedPane.getSelectedComponent();
+    if (selected instanceof ModuleDependenciesPanel) {
+      ModuleDependenciesPanel dependenciesPanel = (ModuleDependenciesPanel)selected;
+      dependenciesPanel.select(dependency);
+    }
   }
 
   @Override

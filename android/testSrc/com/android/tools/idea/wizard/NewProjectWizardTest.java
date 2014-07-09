@@ -164,7 +164,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
     String gradleContents = TemplateUtils.readTextFile(gradleFile);
     assertNotNull(gradleContents);
-    assertTrue(gradleContents.contains("apply plugin: 'android-library'"));
+    assertTrue(gradleContents.contains("apply plugin: 'com.android.library'"));
 
     File manifestFile = new File(moduleDir, FileUtil.join("src", "main", SdkConstants.ANDROID_MANIFEST_XML));
     String manifestContents = TemplateUtils.readTextFile(manifestFile);
@@ -190,7 +190,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
 
     String gradleContents = TemplateUtils.readTextFile(gradleFile);
     assertNotNull(gradleContents);
-    assertTrue(gradleContents.contains("apply plugin: 'android'"));
+    assertTrue(gradleContents.contains("apply plugin: 'com.android.application'"));
 
     File manifestFile = new File(moduleDir, FileUtil.join("src", "main", SdkConstants.ANDROID_MANIFEST_XML));
     String manifestContents = TemplateUtils.readTextFile(manifestFile);
