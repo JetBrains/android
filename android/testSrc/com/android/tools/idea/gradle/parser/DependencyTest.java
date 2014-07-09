@@ -79,4 +79,22 @@ public class DependencyTest extends IdeaTestCase {
 
     assertTrue(one.matches(two));
   }
+
+  public void testModulesWithNamedArguments() throws Exception {
+    Map<String, Object> mapOne = ImmutableMap.of("path", (Object)"one", "configuration", (Object)"foo");
+    Map<String, Object> mapTwo = ImmutableMap.of("path", (Object)"one", "configuration", (Object)"foo");
+    Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapOne);
+    Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapTwo);
+
+    assertTrue(one.matches(two));
+  }
+
+  public void testModulesWithNamedArgumentsAndLeadingColons() throws Exception {
+    Map<String, Object> mapOne = ImmutableMap.of("path", (Object)":one", "configuration", (Object)"foo");
+    Map<String, Object> mapTwo = ImmutableMap.of("path", (Object)"one", "configuration", (Object)"foo");
+    Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapOne);
+    Dependency two = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.MODULE, mapTwo);
+
+    assertTrue(one.matches(two));
+  }
 }

@@ -28,7 +28,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrMethodCall;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 
@@ -117,11 +119,17 @@ public class Dependency extends BuildFileStatement {
   public Scope scope;
   public Type type;
   public Object data;
+  public String extraClosure;
 
-  public Dependency(@NotNull Scope scope, @NotNull Type type, @NotNull Object data) {
+  public Dependency(@NotNull Scope scope, @NotNull Type type, @NotNull Object data, @Nullable String extraClosure) {
     this.scope = scope;
     this.type = type;
     this.data = data;
+    this.extraClosure = extraClosure;
+  }
+
+  public Dependency(@NotNull Scope scope, @NotNull Type type, @NotNull Object data) {
+    this(scope, type, data, null);
   }
 
   @Override
@@ -130,10 +138,18 @@ public class Dependency extends BuildFileStatement {
     String extraGroovyCode;
     switch (type) {
       case EXTERNAL:
-        extraGroovyCode =  " '" + escapeLiteralString(data) + "'";
+        if (extraClosure != null) {
+          extraGroovyCode = "('" + escapeLiteralString(data) + "')";
+        } else {
+          extraGroovyCode =  " '" + escapeLiteralString(data) + "'";
+        }
         break;
       case MODULE:
-        extraGroovyCode =  " project('" + escapeLiteralString(data) + "')";
+        if (data instanceof Map) {
+          extraGroovyCode = " project(" + GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)data) + ")";
+        } else {
+          extraGroovyCode = " project('" + escapeLiteralString(data) + "')";
+        }
         break;
       case FILES:
         extraGroovyCode = " files('" + escapeLiteralString(data) + "')";
@@ -145,9 +161,11 @@ public class Dependency extends BuildFileStatement {
         extraGroovyCode = "";
         break;
     }
-    return ImmutableList.of(
-      (PsiElement)factory.createStatementFromText(scope.getGroovyMethodCall() + extraGroovyCode)
-    );
+    GrStatement statement = factory.createStatementFromText(scope.getGroovyMethodCall() + extraGroovyCode);
+    if (statement instanceof GrMethodCall && extraClosure != null) {
+      statement.add(factory.createClosureFromText(extraClosure));
+    }
+    return ImmutableList.of((PsiElement)statement);
   }
 
   /**
@@ -181,6 +199,14 @@ public class Dependency extends BuildFileStatement {
         if (dependency.type != Type.MODULE) {
           return false;
         }
+
+        if (data instanceof Map) {
+          s1 = GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)data).replaceAll("path: ':", "path: '");
+        }
+        if (dependency.data instanceof Map) {
+          s2 = GradleGroovyFile.convertMapToGroovySource((Map<String, Object>)dependency.data).replaceAll("path: ':", "path: '");
+        }
+
         if (s1.startsWith(":")) {
           s1 = s1.substring(1);
         }
@@ -294,6 +320,12 @@ public class Dependency extends BuildFileStatement {
         return getUnparseableStatements(statement);
       }
 
+      String extraClosure = null;
+      GrClosableBlock[] closureArguments = ((GrMethodCall)statement).getClosureArguments();
+      if (closureArguments.length > 0) {
+        extraClosure = closureArguments[0].getText();
+      }
+
       GrArgumentList argumentList = call.getArgumentList();
       List<BuildFileStatement> dependencies = Lists.newArrayList();
 
@@ -306,15 +338,20 @@ public class Dependency extends BuildFileStatement {
           if ("project".equals(methodName)) {
             Object value = GradleGroovyFile.getFirstLiteralArgumentValue(method);
             if (value != null) {
-              dependencies.add(new Dependency(scope, Dependency.Type.MODULE, value.toString()));
+              dependencies.add(new Dependency(scope, Dependency.Type.MODULE, value.toString(), extraClosure));
+            } else {
+              Map<String, Object> values = GradleGroovyFile.getNamedArgumentValues(method);
+              if (!values.isEmpty()) {
+                dependencies.add(new Dependency(scope, Type.MODULE, values, extraClosure));
+              }
             }
           } else if ("files".equals(methodName)) {
             for (Object o : GradleGroovyFile.getLiteralArgumentValues(method)) {
-              dependencies.add(new Dependency(scope, Dependency.Type.FILES, o.toString()));
+              dependencies.add(new Dependency(scope, Dependency.Type.FILES, o.toString(), extraClosure));
             }
           } else if ("fileTree".equals(methodName)) {
             Map<String, Object> values = GradleGroovyFile.getNamedArgumentValues(method);
-            dependencies.add(new Dependency(scope, Type.FILETREE, values));
+            dependencies.add(new Dependency(scope, Type.FILETREE, values, extraClosure));
           } else {
             // Oops, we didn't know how to parse this.
             LOG.warn("Didn't know how to parse dependency method call " + methodName);
@@ -322,7 +359,7 @@ public class Dependency extends BuildFileStatement {
         } else if (element instanceof GrLiteral) {
           Object value = ((GrLiteral)element).getValue();
           if (value != null) {
-            dependencies.add(new Dependency(scope, Dependency.Type.EXTERNAL, value.toString()));
+            dependencies.add(new Dependency(scope, Dependency.Type.EXTERNAL, value.toString(), extraClosure));
           }
         } else {
           return getUnparseableStatements(statement);
@@ -344,7 +381,7 @@ public class Dependency extends BuildFileStatement {
         if (ext != null) {
           coordinate = coordinate + "@" + ext;
         }
-        dependencies.add(new Dependency(scope, Dependency.Type.EXTERNAL, coordinate));
+        dependencies.add(new Dependency(scope, Dependency.Type.EXTERNAL, coordinate, extraClosure));
       }
       return dependencies;
     }
