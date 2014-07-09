@@ -1,11 +1,11 @@
 /*
- * Copyright 2000-2010 JetBrains s.r.o.
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,28 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom.manifest;
 
 import com.intellij.util.xml.Convert;
+import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
-import java.util.List;
-
 /**
- * @author coyote
+ * DOM element representing "meta-data" Android manifest element.
  */
-public interface ApplicationComponent extends ManifestElementWithName {
-  @Convert(ResourceReferenceConverter.class)
-  @AndroidResourceType("string")
-  AndroidAttributeValue<ResourceValue> getLabel();
+public interface MetaData extends ManifestElementWithName {
+  AndroidAttributeValue<String> getName();
 
   @Convert(ResourceReferenceConverter.class)
-  @AndroidResourceType("drawable")
-  AndroidAttributeValue<ResourceValue> getIcon();
+  AndroidAttributeValue<ResourceValue> getValue();
 
-  List<MetaData> getMetaDatas();
+  @Convert(ResourceReferenceConverter.class)
+  AndroidAttributeValue<ResourceValue> getResource();
 }
