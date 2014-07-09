@@ -15,7 +15,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
@@ -343,7 +342,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   @Override
   public String getShortName() {
-    return StringUtil.trimEnd(getClass().getSimpleName(), "Inspection");
+    return InspectionProfileEntry.getShortName(getClass().getSimpleName());
   }
 
   @NotNull
