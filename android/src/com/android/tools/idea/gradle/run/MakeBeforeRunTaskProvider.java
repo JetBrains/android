@@ -41,7 +41,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
-import org.gradle.tooling.model.GradleTask;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -120,7 +119,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   public boolean configureTask(RunConfiguration runConfiguration, MakeBeforeRunTask task) {
     GradleEditTaskDialog dialog = new GradleEditTaskDialog(myProject);
     dialog.setGoal(task.getGoal());
-    dialog.setAvailableGoals(getAvailableTasks());
+    dialog.setAvailableGoals(createAvailableTasks());
     dialog.show();
     if (!dialog.isOK()) {
       // since we allow tasks without any arguments (assumed to be equivalent to assembling the app),
@@ -134,9 +133,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return true;
   }
 
-  private List<GradleTask> getAvailableTasks() {
+  private List<String> createAvailableTasks() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<GradleTask> gradleTasks = Lists.newArrayList();
+    List<String> gradleTasks = Lists.newArrayList();
     for (Module module : moduleManager.getModules()) {
       AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
       if (facet == null) {
@@ -148,7 +147,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         continue;
       }
 
-      gradleTasks.addAll(gradleProject.getTasks());
+      gradleTasks.addAll(gradleProject.getTaskNames());
     }
 
     return gradleTasks;

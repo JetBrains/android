@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.parser.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Predicate;
@@ -313,15 +314,17 @@ public class ModuleDependenciesPanel extends EditorPanel {
     List<BuildFileStatement> dependencies = myGradleBuildFile.getDependencies();
     for (BuildFileStatement dependency : dependencies) {
       if (dependency instanceof Dependency) {
-        modules.remove(((Dependency)dependency).data);
+        Object data = ((Dependency)dependency).data;
+        if (data instanceof String) {
+          modules.remove(data);
+        }
       }
     }
     modules.remove(myModulePath);
     final Component parent = this;
-    final List<String> items = modules;
     final String title = ProjectBundle.message("classpath.chooser.title.add.module.dependency");
     final String description = ProjectBundle.message("classpath.chooser.description.add.module.dependency");
-    ChooseElementsDialog<String> dialog = new ChooseElementsDialog<String>(parent, items, title, description, true) {
+    ChooseElementsDialog<String> dialog = new ChooseElementsDialog<String>(parent, modules, title, description, true) {
       @Override
       protected Icon getItemIcon(final String item) {
         return AllIcons.Nodes.Module;
@@ -413,24 +416,23 @@ public class ModuleDependenciesPanel extends EditorPanel {
     BuildFileStatement entry = item.getEntry();
     String data = "";
     Icon icon = null;
-    if (entry != null) {
-      if (entry instanceof Dependency) {
-        Dependency dependency = (Dependency)entry;
-        data = dependency.getValueAsString();
-        switch(dependency.type) {
-          case EXTERNAL:
-            icon = MavenIcons.MavenLogo;
-            break;
-          case FILES:
-            icon = PlatformIcons.LIBRARY_ICON;
-            break;
-          case MODULE:
-            icon = AllIcons.Nodes.Module;
-            break;
-        }
-      } else {
-        data = entry.toString();
+    if (entry instanceof Dependency) {
+      Dependency dependency = (Dependency)entry;
+      data = dependency.getValueAsString();
+      //noinspection EnumSwitchStatementWhichMissesCases
+      switch (dependency.type) {
+        case EXTERNAL:
+          icon = MavenIcons.MavenLogo;
+          break;
+        case FILES:
+          icon = PlatformIcons.LIBRARY_ICON;
+          break;
+        case MODULE:
+          icon = AllIcons.Nodes.Module;
+          break;
       }
+    } else if (entry != null) {
+      data = entry.toString();
     }
     return SimpleTextCellAppearance.regular(data, icon);
   }
@@ -459,6 +461,13 @@ public class ModuleDependenciesPanel extends EditorPanel {
   @Override
   public boolean isModified() {
     return myModel.isModified();
+  }
+
+  public void select(@NotNull GradleCoordinate dependency) {
+    int row = myModel.getRow(dependency);
+    if (row >= 0) {
+      myEntryTable.getSelectionModel().setSelectionInterval(row, row);
+    }
   }
 
   private static class TableItemRenderer extends ColoredTableCellRenderer {

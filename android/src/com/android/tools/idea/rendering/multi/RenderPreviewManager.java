@@ -17,19 +17,22 @@ package com.android.tools.idea.rendering.multi;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.Capability;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
 import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.resources.Density;
 import com.android.resources.LayoutDirection;
+import com.android.resources.ResourceType;
 import com.android.resources.ScreenSize;
-import com.android.sdklib.*;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.google.common.collect.Lists;
@@ -42,9 +45,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
 import com.intellij.util.containers.IntArrayList;
 import com.intellij.util.ui.Animator;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -285,7 +290,7 @@ public class RenderPreviewManager implements Disposable {
   public void deleteManualPreviews() {
     disposePreviews();
     selectMode(NONE);
-    myRenderContext.zoomFit(true /* onlyZoomOut */, true /*allowZoomIn*/);
+    myRenderContext.zoomFit(true /* onlyZoomOut */, false /*allowZoomIn*/);
 
     // Not yet implemented; this shouldn't be called
     assert !SUPPORTS_MANUAL_PREVIEWS;
@@ -784,7 +789,7 @@ public class RenderPreviewManager implements Disposable {
       case NONE:
         // Can't just set myNeedZoom because with no previews, the paint
         // method does nothing
-        myRenderContext.zoomFit(false /* onlyZoomOut */, true /*allowZoomIn*/);
+        myRenderContext.zoomFit(false /* onlyZoomOut */, false /*allowZoomIn*/);
         myFixedRenderSize = null;
         myRenderContext.setMaxSize(0, 0);
         break;
@@ -929,18 +934,29 @@ public class RenderPreviewManager implements Disposable {
     if (module == null) {
       return;
     }
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
-    if (moduleInfo == null) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
       return;
     }
+    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
+    int highestApiLevel = highestTarget.getVersion().getFeatureLevel();
+
     int minSdkVersion = moduleInfo.getMinSdkVersion().getFeatureLevel();
     int min = Math.max(8, minSdkVersion);
-    int max = Math.min(SdkVersionInfo.HIGHEST_KNOWN_API, highestTarget.getVersion().getFeatureLevel());
+    int max = Math.min(SdkVersionInfo.HIGHEST_KNOWN_API, highestApiLevel);
+
+    AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
+    XmlFile xmlFile = myRenderContext.getXmlFile();
+    if (xmlFile == null) {
+      return;
+    }
+    String resourceName = ResourceHelper.getResourceName(xmlFile);
+    List<ResourceItem> items = resources.getResourceItem(ResourceType.LAYOUT, resourceName);
 
     // Froyo: Doesn't look right when rendered with a newer layoutlib: assets are all wrong.
-    addIfWithinInclusive(min, max, 8, list); // Froyo
-    addIfWithinInclusive(min, max, 9, list); // Gingerbread
-    addIfWithinInclusive(min, max, 14, list); // ICS
+    addIfWithinInclusive(min, max, 8, list, items); // Classic: Froyo
+    addIfWithinInclusive(min, max, 9, list, items); // Classic: Gingerbread
+    addIfWithinInclusive(min, max, 14, list, items); // Holo: ICS
 
     for (int i = 0, n = list.size(); i < n; i++) {
       int api = list.get(i);
@@ -961,7 +977,12 @@ public class RenderPreviewManager implements Disposable {
         }
       }
 
-      IAndroidTarget target = new CompatibilityRenderTarget(api > currentApi ? highestTarget : currentTarget, api, realTarget);
+      IAndroidTarget target;
+      if (realTarget == currentTarget) {
+        target = currentTarget;
+      } else {
+        target = new CompatibilityRenderTarget(api > currentApi ? highestTarget : currentTarget, api, realTarget);
+      }
       apiConfig.setTarget(target);
       String label = SdkVersionInfo.getCodeName(api);
       if (label == null) {
@@ -984,9 +1005,27 @@ public class RenderPreviewManager implements Disposable {
     setStashedPreview(preview);
   }
 
-  private static void addIfWithinInclusive(int min, int max, int value, IntArrayList list) {
+  private static void addIfWithinInclusive(int min, int max, int value, IntArrayList list, @Nullable List<ResourceItem> items) {
     if (value >= min && value <= max) {
-      list.add(value);
+      // Make sure we have a compatible match for this version for this resources
+      boolean foundCompatible = true;
+      if (items != null) {
+        foundCompatible = false;
+        // Make sure that if you're looking at a layout only present in say -v14, we don't attempt
+        // to render this in -v9.
+        for (ResourceItem item : items) {
+          FolderConfiguration configuration = item.getConfiguration();
+          VersionQualifier qualifier = configuration.getVersionQualifier();
+          if (qualifier == null || qualifier.getVersion() <= value) {
+            foundCompatible = true;
+            break;
+          }
+        }
+      }
+
+      if (foundCompatible) {
+        list.add(value);
+      }
     }
   }
 
@@ -1103,7 +1142,7 @@ public class RenderPreviewManager implements Disposable {
         String label;
         if (HardwareConfigHelper.isNexus(device)) {
           // Similar to HardwareConfigHelper#getNexusLabel, but narrower (omits dimensions and density)
-          String name = device.getName();
+          String name = device.getDisplayName();
           Screen screen = device.getDefaultHardware().getScreen();
           float length = (float) screen.getDiagonalLength();
           // Round dimensions to the nearest tenth
@@ -1629,7 +1668,7 @@ public class RenderPreviewManager implements Disposable {
           Configuration config1 = preview1.getConfiguration();
           Configuration config2 = preview2.getConfiguration();
           Device device1 = config1.getDevice();
-          Device device2 = config1.getDevice();
+          Device device2 = config2.getDevice();
           if (device1 != null && device2 != null) {
             Screen screen1 = device1.getDefaultHardware().getScreen();
             Screen screen2 = device2.getDefaultHardware().getScreen();
@@ -1740,7 +1779,7 @@ public class RenderPreviewManager implements Disposable {
     if (classicLayout) {
       myFixedRenderSize = null;
       myRenderContext.setMaxSize(0, 0);
-      myRenderContext.zoomFit(false, true);
+      myRenderContext.zoomFit(false, false);
       if (myPreviews != null) {
         for (RenderPreview preview : myPreviews) {
           preview.setMaxSize(getMaxWidth(), getMaxHeight());
@@ -1771,6 +1810,7 @@ public class RenderPreviewManager implements Disposable {
     SwapAnimation(RenderPreview preview1, RenderPreview preview2) {
       super("Switch Configurations", 16, DURATION, false);
       initialRect1 = new Rectangle(preview1.getX(), preview1.getY(), preview1.getWidth(), preview1.getHeight());
+      // TODO: Also look at vertical alignment of the left hand side image!
       Dimension scaledImageSize = myRenderContext.getScaledImageSize();
       initialRect2 = new Rectangle(0, 0, scaledImageSize.width, scaledImageSize.height);
       preview = preview2;
@@ -1803,6 +1843,7 @@ public class RenderPreviewManager implements Disposable {
     }
 
     private void paint(Graphics gc) {
+      //noinspection UseJBColor
       gc.setColor(Color.DARK_GRAY);
       Rectangle rect1 = currentRectangle1;
       if (rect1 != null) {
@@ -1817,6 +1858,7 @@ public class RenderPreviewManager implements Disposable {
     @Override
     protected void paintCycleEnd() {
       Disposer.dispose(this);
+      redraw();
     }
 
     @Override

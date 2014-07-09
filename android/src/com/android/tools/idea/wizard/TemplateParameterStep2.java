@@ -28,6 +28,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -44,6 +45,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaCodeFragment;
@@ -65,11 +67,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.text.Document;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -82,9 +88,13 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescription {
   public static final Logger LOG = Logger.getInstance(TemplateParameterStep2.class);
   public static final int COLUMN_COUNT = 3;
+  private static final Key<File> KEY_TEMPLATE_ICON = createKey("page.template.icon", ScopedStateStore.Scope.STEP, File.class);
+
   private final Function<Parameter, Key<?>> myParameterToKey;
-  private final Map<String, Object> myPresetParameters;
-  @Nullable private final VirtualFile myTargetDirectory;
+  private final Map<String, Object> myPresetParameters = Maps.newHashMap();
+  private final VirtualFile myTargetDirectory;
+  @NotNull private final Key<String> myPackageNameKey;
+  private final LoadingCache<File, Icon> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
   private JLabel myTemplateDescription;
@@ -104,10 +114,12 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
    *                         User will not be allowed to change their values.
    */
   public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
-                                @Nullable VirtualFile targetDirectory, @Nullable Disposable disposable) {
+                                @Nullable VirtualFile targetDirectory, @Nullable Disposable disposable,
+                                @NotNull Key<String> packageNameKey) {
     super("Choose options for your new file", null, formFactor.getIcon(), disposable);
-    myPresetParameters = presetParameters;
+    myPresetParameters.putAll(presetParameters);
     myTargetDirectory = targetDirectory;
+    myPackageNameKey = packageNameKey;
     myParameterToKey = CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(new ParameterKeyFunction()));
     myRootPanel.setBorder(createBodyBorder());
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
@@ -121,6 +133,10 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       sourceUrl = "";
     }
     return new TextFieldWithLaunchBrowserButton(sourceUrl);
+  }
+
+  public void setPresetValue(@NotNull String key, @Nullable Object value) {
+    myPresetParameters.put(key, value);
   }
 
   private static JComponent createEnumCombo(Parameter parameter) {
@@ -400,7 +416,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       if (param != null) {
         Object value = getStateParameterValue(param);
         String error = param.validate(getProject(), getModule(), getSourceProvider(),
-                                      myState.get(AddAndroidActivityPath.KEY_PACKAGE_NAME),
+                                      myState.get(myPackageNameKey),
                                       value != null ? value : "");
         if (error != null) {
           // Highlight?
@@ -454,6 +470,43 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         component.setVisible(!StringUtil.isEmpty(newValue));
       }
     });
+    register(KEY_TEMPLATE_ICON, myTemplateIcon, new ComponentBinding<File, JLabel>() {
+      @Override
+      public void setValue(@Nullable File newValue, @NotNull JLabel component) {
+        component.setIcon(newValue == null ? null : myThumbnailsCache.apply(newValue));
+      }
+    });
+    registerValueDeriver(KEY_TEMPLATE_ICON, new ValueDeriver<File>() {
+      @Nullable
+      @Override
+      public File deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable File currentValue) {
+        return getTemplateIconPath(state.get(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE));
+      }
+    });
+  }
+
+  @Nullable
+  private File getTemplateIconPath(@Nullable TemplateEntry entry) {
+    if (entry == null) {
+      return null;
+    }
+    final Map<String, Parameter> parameterIds = Maps.newHashMap();
+    for (Parameter parameter : entry.getParameters()) {
+      parameterIds.put(parameter.id, parameter);
+    }
+    String path = entry.getMetadata().getThumbnailPath(new Function<String, Object>() {
+      @Override
+      public Object apply(String input) {
+        return getStateParameterValue(parameterIds.get(input));
+      }
+    });
+    if (!StringUtil.isEmpty(path)) {
+      File file = new File(entry.getTemplateDir(), FileUtilRt.toSystemDependentName(path, '/'));
+      return file.isFile() ? file : null;
+    }
+    else {
+      return null;
+    }
   }
 
   private void setSelectedTemplate(@Nullable TemplateEntry template) {
@@ -461,15 +514,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       return;
     }
     TemplateMetadata metadata = template.getMetadata();
-    Image image = template.getImage();
-    final ImageIcon icon;
-    if (image != null) {
-      icon = new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH), template.getTitle());
-    }
-    else {
-      icon = null;
-    }
-    myTemplateIcon.setIcon(icon);
     myTemplateIcon.setText(template.getTitle());
 
     String string = ImportUIUtil.makeHtmlString(metadata.getDescription());
@@ -703,14 +747,13 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     public void actionPerformed(ActionEvent e) {
       final OnlyShowActivities filter = new OnlyShowActivities();
       TreeClassChooser chooser = TreeClassChooserFactory.getInstance(myProject)
-          .createWithInnerClassesScopeChooser("Select Activity",
-                                            GlobalSearchScope.projectScope(myProject),
-                                            new ClassFilter() {
-            @Override
-            public boolean isAccepted(PsiClass aClass) {
-              return filter.isDeclarationVisible(aClass, null) == JavaCodeFragment.VisibilityChecker.Visibility.VISIBLE;
-            }
-          }, null
+        .createWithInnerClassesScopeChooser("Select Activity", GlobalSearchScope.projectScope(myProject), new ClassFilter() {
+                                              @Override
+                                              public boolean isAccepted(PsiClass aClass) {
+                                                return filter.isDeclarationVisible(aClass, null) ==
+                                                       JavaCodeFragment.VisibilityChecker.Visibility.VISIBLE;
+                                              }
+                                            }, null
         );
       //noinspection unchecked
       Key<String> key = (Key<String>)getParameterKey(myParameter);
@@ -729,6 +772,25 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
+  private static class TemplateIconLoader extends CacheLoader<File, Icon> {
+    @Nullable
+    @Override
+    public Icon load(@NotNull File key) {
+      try {
+        if (key.isFile()) {
+          BufferedImage image = ImageIO.read(key);
+          if (image != null) {
+            return new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH));
+          }
+        }
+      }
+      catch (IOException e) {
+        Logger.getInstance(ActivityGalleryStep.class).warn(e);
+      }
+      return null;
+    }
+  }
+
   private class DeduplicateValuesFunction implements ParameterDefaultValueComputer.Deduplicator {
     private final Project project;
     private final Module module;
@@ -739,7 +801,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       project = getProject();
       module = getModule();
       provider = myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER);
-      packageName = myState.get(AddAndroidActivityPath.KEY_PACKAGE_NAME);
+      packageName = myState.get(myPackageNameKey);
     }
 
     @Override

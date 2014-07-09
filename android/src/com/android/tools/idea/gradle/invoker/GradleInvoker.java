@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.invoker;
 
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
@@ -33,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.util.Collection;
@@ -165,6 +167,10 @@ public class GradleInvoker {
   }
 
   public void executeTasks(@NotNull final List<String> gradleTasks) {
+    executeTasks(gradleTasks, Collections.<String>emptyList());
+  }
+
+  public void executeTasks(@NotNull final List<String> gradleTasks, @NotNull final List<String> commandLineArguments) {
     LOG.info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
       return;
@@ -182,10 +188,15 @@ public class GradleInvoker {
         FileDocumentManager.getInstance().saveAllDocuments();
         AfterGradleInvocationTask[] afterGradleInvocationTasks =
           myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
-        GradleTasksExecutor executor = new GradleTasksExecutor(myProject, gradleTasks, afterGradleInvocationTasks);
+        GradleTasksExecutor executor = new GradleTasksExecutor(myProject, gradleTasks, commandLineArguments, afterGradleInvocationTasks);
         executor.queue();
       }
     });
+  }
+
+  public void clearConsoleAndBuildMessages() {
+    GradleConsoleView.getInstance(myProject).clear();
+    GradleTasksExecutor.clearMessageView(myProject);
   }
 
   @VisibleForTesting

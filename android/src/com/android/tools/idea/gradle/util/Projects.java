@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.JavaModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.ide.DataManager;
@@ -32,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
@@ -52,6 +55,7 @@ import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VAR
  */
 public final class Projects {
   public static final Key<Boolean> HAS_UNRESOLVED_DEPENDENCIES = Key.create("has.unresolved.dependencies");
+  public static final Key<Boolean> HAS_WRONG_JDK = Key.create("has.wrong.jdk");
 
   private static final Logger LOG = Logger.getInstance(Projects.class);
   private static final Module[] NO_MODULES = new Module[0];
@@ -68,7 +72,7 @@ public final class Projects {
   }
 
   public static boolean hasErrors(@NotNull Project project) {
-    if (hasUnresolvedDependencies(project)) {
+    if (hasUnresolvedDependencies(project) || hasWrongJdk(project)) {
       return true;
     }
     ProjectSyncMessages messages = ProjectSyncMessages.getInstance(project);
@@ -82,7 +86,15 @@ public final class Projects {
   }
 
   private static boolean hasUnresolvedDependencies(@NotNull Project project) {
-    Boolean val = project.getUserData(HAS_UNRESOLVED_DEPENDENCIES);
+    return getBoolean(project, HAS_UNRESOLVED_DEPENDENCIES);
+  }
+
+  private static boolean hasWrongJdk(@NotNull Project project) {
+    return getBoolean(project, HAS_WRONG_JDK);
+  }
+
+  private static boolean getBoolean(@NotNull Project project, @NotNull Key<Boolean> key) {
+    Boolean val = project.getUserData(key);
     return val != null && val.booleanValue();
   }
 
@@ -237,5 +249,75 @@ public final class Projects {
       }
     }
     return false;
+  }
+
+  /**
+   * @see #isGradleProjectModule(com.intellij.openapi.module.Module)
+   */
+  @Nullable
+  public static Module findGradleProjectModule(@NotNull Project project) {
+    ModuleManager moduleManager = ModuleManager.getInstance(project);
+    Module[] modules = moduleManager.getModules();
+    if (modules.length == 1) {
+      return modules[0];
+    }
+    for (Module module : modules) {
+      if (isGradleProjectModule(module)) {
+        return module;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Indicates whether the given module is the one that represents the project.
+   * <p>
+   * For example, in this project:
+   * <pre>
+   * project1
+   * - module1
+   *   - module1.iml
+   * - module2
+   *   - module2.iml
+   * -project1.iml
+   * </pre>
+   * "project1" is the module that represents the project.
+   * </p>
+   *
+   * @param module the given module.
+   * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
+   */
+  public static boolean isGradleProjectModule(@NotNull Module module) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null && androidFacet.isGradleProject()) {
+      // If the module is an Android project, check that the module's path is the same as the project's.
+      File moduleRootDirPath = new File(FileUtil.toSystemDependentName(module.getModuleFilePath())).getParentFile();
+      return FileUtil.pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
+    }
+    // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
+    return AndroidGradleFacet.getInstance(module) == null;
+  }
+
+  @Nullable
+  public static File getBuildFolderPath(@NotNull Module module) {
+    if (module.isDisposed() || !isGradleProject(module.getProject())) {
+      return null;
+    }
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null && androidFacet.getIdeaAndroidProject() != null) {
+      return androidFacet.getIdeaAndroidProject().getDelegate().getBuildFolder();
+    }
+    JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+    if (javaFacet != null) {
+      JavaModel javaModel = javaFacet.getJavaModel();
+      if (javaModel != null) {
+        return javaFacet.getJavaModel().getBuildFolderPath();
+      }
+      String path = javaFacet.getConfiguration().BUILD_FOLDER_PATH;
+      if (StringUtil.isNotEmpty(path)) {
+        return new File(FileUtil.toSystemDependentName(path));
+      }
+    }
+    return null;
   }
 }

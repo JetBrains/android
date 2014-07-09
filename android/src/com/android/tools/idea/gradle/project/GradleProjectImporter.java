@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
+import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.FilePaths;
@@ -443,24 +444,24 @@ public class GradleProjectImporter {
                             @NotNull File projectRootDir,
                             @Nullable GradleSyncListener listener,
                             @Nullable Project project) throws IOException, ConfigurationException {
-    importProject(projectName, projectRootDir, listener, project, null);
+    importProject(projectName, projectRootDir, true, listener, project, null);
   }
 
   /**
    * Imports and opens the newly created Android project.
    *
-   * @param projectName          name of the project.
-   * @param projectRootDir       root directory of the project.
-   * @param listener             called after the project has been imported.
-   * @param initialLanguageLevel when creating a new project, sets the language level to the given version early on (this is because you
-   *                             cannot set a language level later on in the process without telling the user that the language level has
-   *                             changed and to re-open the project)
+   * @param projectName              name of the project.
+   * @param projectRootDir           root directory of the project.
+   * @param generateSourcesOnSuccess whether to generate sources after sync.
+   * @param listener                 called after the project has been imported.
+   * @param initialLanguageLevel     when creating a new project, sets the language level to the given version early on (this is because you
+   *                                 cannot set a language level later on in the process without telling the user that the language level
+   *                                 has changed and to re-open the project)
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void importProject(@NotNull String projectName,
-                            @NotNull File projectRootDir,
-                            @Nullable GradleSyncListener listener,
+                            @NotNull File projectRootDir, boolean generateSourcesOnSuccess, @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
     createTopLevelBuildFileIfNotExisting(projectRootDir);
@@ -487,7 +488,7 @@ public class GradleProjectImporter {
     }
 
     assert newProject != null;
-    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, true, listener);
+    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, generateSourcesOnSuccess, listener);
   }
 
   public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable GradleSyncListener listener)
@@ -598,15 +599,22 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
+    if (AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isDirectGradleInvocationEnabled(project)) {
+      // We cannot do the same when using JPS. We don't have access to the contents of the Message view used by JPS.
+      // For now, we can only improve the user experience in Android Studio.
+      GradleInvoker.getInstance(project).clearConsoleAndBuildMessages();
+    }
+
     // Prevent IDEA from syncing with Gradle. We want to have full control of syncing.
     project.putUserData(ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT, true);
 
     project.putUserData(Projects.HAS_UNRESOLVED_DEPENDENCIES, false);
+    project.putUserData(Projects.HAS_WRONG_JDK, false);
 
     final Application application = ApplicationManager.getApplication();
     final boolean isTest = application.isUnitTestMode();
 
-    PostProjectSyncTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
+    PostProjectSetupTasksExecutor.getInstance(project).setGenerateSourcesAfterSync(generateSourcesOnSuccess);
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.

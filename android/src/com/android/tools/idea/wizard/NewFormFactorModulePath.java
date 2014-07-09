@@ -67,7 +67,8 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Key<String> TEST_OUT_KEY = createKey(ATTR_TEST_OUT, PATH, String.class);
 
   private static final Key<String> RELATIVE_PACKAGE_KEY = createKey(ATTR_RELATIVE_PACKAGE, PATH, String.class);
-  private static final String RELATIVE_SRC_ROOT = "src/main/java";
+  private static final String RELATIVE_SRC_ROOT = FileUtil.join(TemplateWizard.MAIN_FLAVOR_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
+  private static final String RELATIVE_TEST_ROOT = FileUtil.join(TemplateWizard.TEST_SOURCE_PATH, TemplateWizard.JAVA_SOURCE_PATH);
 
   private FormFactorUtils.FormFactor myFormFactor;
   private File myTemplateFile;
@@ -120,7 +121,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     Map<String, Object> presetsMap = ImmutableMap.of(PACKAGE_NAME_KEY.name, (Object)myState.get(PACKAGE_NAME_KEY),
                                                      TemplateMetadata.ATTR_IS_LAUNCHER, true,
                                                      TemplateMetadata.ATTR_PARENT_ACTIVITY_CLASS, "");
-    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, null, myDisposable);
+    myParameterStep = new TemplateParameterStep2(myFormFactor, presetsMap, null, myDisposable, PACKAGE_NAME_KEY);
     addStep(myParameterStep);
   }
 
@@ -132,6 +133,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     keys.add(PROJECT_LOCATION_KEY);
     keys.add(NUM_ENABLED_FORM_FACTORS_KEY);
     deriveValues(keys);
+
+    // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
+    myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
   }
 
   @NotNull
@@ -143,6 +147,17 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       packageSegment = packageSegment.replace('.', File.separatorChar);
     }
     return FileUtil.join(RELATIVE_SRC_ROOT, packageSegment);
+  }
+
+  @NotNull
+  private String calculateTestDir() {
+    String packageSegment = myState.get(PACKAGE_NAME_KEY);
+    if (packageSegment == null) {
+      packageSegment = "";
+    } else {
+      packageSegment = packageSegment.replace('.', File.separatorChar);
+    }
+    return FileUtil.join(RELATIVE_TEST_ROOT, packageSegment);
   }
 
   @Override
@@ -162,6 +177,9 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     if (modified.contains(SRC_DIR_KEY) || modified.contains(PACKAGE_NAME_KEY)) {
       myState.put(SRC_DIR_KEY, calculateSrcDir());
+    }
+    if (modified.contains(TEST_DIR_KEY) || modified.contains(PACKAGE_NAME_KEY)) {
+      myState.put(TEST_DIR_KEY, calculateTestDir());
     }
     if (modified.contains(SRC_DIR_KEY) || basePathModified) {
       updateOutputPath(SRC_DIR_KEY, SRC_OUT_KEY);
@@ -220,8 +238,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
       Template template = Template.createFromPath(myTemplateFile);
       Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      // The parameter step holds onto its preset value for the package name, so we have to reset the value here
-      templateState.put(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
       template.render(projectRoot, moduleRoot, templateState);
       TemplateEntry templateEntry = myState.get(KEY_SELECTED_TEMPLATE);
       if (templateEntry == null) {
@@ -231,8 +247,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       for (Parameter parameter : templateEntry.getMetadata().getParameters()) {
         templateState.put(parameter.id, myState.get(myParameterStep.getParameterKey(parameter)));
       }
-      // The parameter step holds onto its preset value for the package name, so we have to reset the value here
-      templateState.put(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
       activityTemplate.render(projectRoot, moduleRoot, templateState);
       myFilesToOpen = activityTemplate.getFilesToOpen();
       return true;

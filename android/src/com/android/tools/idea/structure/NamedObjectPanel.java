@@ -19,14 +19,15 @@ import com.android.builder.model.*;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.AnActionButton;
-import com.intellij.ui.AnActionButtonRunnable;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.containers.SortedList;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -39,15 +40,33 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class NamedObjectPanel extends BuildFilePanel implements DocumentListener, ListSelectionListener {
+  /**
+   * The PanelGroup class allows UI panels to talk to each other so that a pane that maintains a list of
+   * {@link NamedObject} instances can talk to another pane that maintains a
+   * {@link com.android.tools.idea.gradle.parser.BuildFileKeyType#REFERENCE} to one of those instances. For example, panels that have a
+   * {@link com.android.tools.idea.gradle.parser.BuildFileKey#SIGNING_CONFIG} can pick up changes from the panel responsible for wrangling
+   * the {@link com.android.tools.idea.gradle.parser.BuildFileKey#SIGNING_CONFIGS}.
+   */
+  public static class PanelGroup {
+    private Collection<KeyValuePane> myPanes = Lists.newArrayList();
+
+    public void valuesUpdated(BuildFileKey key, Iterable<String> values) {
+      for (KeyValuePane pane : myPanes) {
+        pane.updateReferenceValues(key, values);
+      }
+    }
+  }
+
   private static final String DEFAULT_CONFIG = "defaultConfig";
   private static final BuildFileKey[] DEFAULT_CONFIG_KEYS =
       { BuildFileKey.APPLICATION_ID, BuildFileKey.VERSION_CODE, BuildFileKey.VERSION_NAME, BuildFileKey.MIN_SDK_VERSION,
-        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.TEST_APPLICATION_ID, BuildFileKey.TEST_INSTRUMENTATION_RUNNER };
+        BuildFileKey.TARGET_SDK_VERSION, BuildFileKey.TEST_APPLICATION_ID, BuildFileKey.TEST_INSTRUMENTATION_RUNNER,
+        BuildFileKey.SIGNING_CONFIG};
+  private static final Set<String> HARDCODED_BUILD_TYPES = ImmutableSet.of("debug", "release");
 
   private JPanel myPanel;
   private JBList myList;
@@ -57,17 +76,31 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private KeyValuePane myDetailsPane;
   private final BuildFileKey myBuildFileKey;
   private final String myNewItemName;
-  private final DefaultListModel myListModel;
+  private final SortedListModel myListModel;
   private NamedObject myCurrentObject;
   private Collection<NamedObject> myModelOnlyObjects = Lists.newArrayList();
   private Map<String, Map<BuildFileKey, Object>> myModelObjects = Maps.newHashMap();
+  private final PanelGroup myPanelGroup;
+  private volatile boolean myUpdating;
+
+  /** An object that can't be deleted because it's supplied by default by the model */
+  private static class UndeletableNamedObject extends NamedObject {
+    UndeletableNamedObject(@NotNull String name) {
+      super(name, true);
+    }
+
+    public UndeletableNamedObject(NamedObject obj) {
+      super(obj);
+    }
+  }
 
   public NamedObjectPanel(@NotNull Project project, @NotNull String moduleName, @NotNull BuildFileKey buildFileKey,
-                          @NotNull String newItemName) {
+                          @NotNull String newItemName, @NotNull PanelGroup panelGroup) {
     super(project, moduleName);
     myBuildFileKey = buildFileKey;
     myNewItemName = newItemName;
-    myListModel = new DefaultListModel();
+    myPanelGroup = panelGroup;
+    myListModel = new SortedListModel();
     myObjectName.getDocument().addDocumentListener(this);
 
     myList = new JBList();
@@ -84,6 +117,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     decorator.setAddAction(new AnActionButtonRunnable() {
       @Override
       public void run(AnActionButton button) {
+        updateCurrentObjectFromUi();
         addObject();
       }
     });
@@ -91,6 +125,13 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       @Override
       public void run(AnActionButton anActionButton) {
         removeObject();
+      }
+    });
+    decorator.setRemoveActionUpdater(new AnActionButtonUpdater() {
+      @Override
+      public boolean isEnabled(AnActionEvent e) {
+        NamedObject selectedObject = getSelectedObject();
+        return selectedObject != null && !(selectedObject instanceof UndeletableNamedObject);
       }
     });
     decorator.disableUpDownActions();
@@ -102,19 +143,27 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   @Override
   public void init() {
     super.init();
+    myPanelGroup.myPanes.add(myDetailsPane);
     if (myGradleBuildFile == null) {
       return;
     }
     List<NamedObject> namedObjects = (List<NamedObject>)myGradleBuildFile.getValue(myBuildFileKey);
     if (namedObjects != null) {
       for (NamedObject object : namedObjects) {
-        myListModel.addElement(object);
+        // If this is one of the known model-provided build types, then wrap it as a UndeletableNamedObject
+        // so that the user isn't allowed to delete it. In truth deleting it from this panel would just delete
+        // it from the build file and not cause any harm, but making it never deletable makes its behavior
+        // consistent between the case where you've customized it and you haven't.
+        if (myBuildFileKey == BuildFileKey.BUILD_TYPES && HARDCODED_BUILD_TYPES.contains(object.getName())) {
+          object = new UndeletableNamedObject(object);
+        }
+        addElement(object);
       }
     }
     // If this is a flavor panel, add a synthetic flavor entry for defaultConfig.
     if (myBuildFileKey == BuildFileKey.FLAVORS) {
       GrStatementOwner defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
-      NamedObject obj = new NamedObject("defaultConfig");
+      NamedObject obj = new UndeletableNamedObject(DEFAULT_CONFIG);
       if (defaultConfig != null) {
         for (BuildFileKey key : DEFAULT_CONFIG_KEYS) {
           Object value = myGradleBuildFile.getValue(defaultConfig, key);
@@ -130,7 +179,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           obj.setValue(key, value);
         }
       }
-      myListModel.addElement(obj);
+      addElement(obj);
     }
 
     NamedObject.Factory objectFactory = (NamedObject.Factory)myBuildFileKey.getValueFactory();
@@ -142,14 +191,14 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     // Query the model for its view of the world, and merge it with the build file-based view.
     for (NamedObject obj : getObjectsFromModel(properties)) {
       boolean found = false;
-      for (int i = 0; i < myListModel.size(); i++) {
-        if (((NamedObject)myListModel.get(i)).getName().equals(obj.getName())) {
+      for (NamedObject o : myListModel) {
+        if (o.getName().equals(obj.getName())) {
           found = true;
         }
       }
       if (!found) {
-        NamedObject namedObject = new NamedObject(obj.getName());
-        myListModel.addElement(namedObject);
+        NamedObject namedObject = new UndeletableNamedObject(obj.getName());
+        addElement(namedObject);
 
         // Keep track of objects that are only in the model and not in the build file. We want to avoid creating them in the build file
         // unless some value in them is changed to non-default.
@@ -160,10 +209,20 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     myList.updateUI();
 
     myDetailsPane.init(myGradleBuildFile, properties);
-    if (myListModel.size() > 0) {
+    if (myListModel.getSize() > 0) {
       myList.setSelectedIndex(0);
     }
     updateUiFromCurrentObject();
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        updatePanelGroup();
+      }
+    });
+  }
+
+  private int addElement(@NotNull NamedObject object) {
+    return myListModel.add(object);
   }
 
   @Override
@@ -172,8 +231,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       return;
     }
     List<NamedObject> objects = Lists.newArrayList();
-    for (int i = 0; i < myListModel.size(); i++) {
-      NamedObject obj = (NamedObject)myListModel.get(i);
+    for (NamedObject obj : myListModel) {
       // Save the defaultConfig separately and don't write it out as a regular flavor.
       if (myBuildFileKey == BuildFileKey.FLAVORS && obj.getName().equals(DEFAULT_CONFIG)) {
         GrStatementOwner defaultConfig = myGradleBuildFile.getClosure(BuildFileKey.DEFAULT_CONFIG.getPath());
@@ -218,10 +276,15 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     while (getNamedItem(name) != null) {
       name = myNewItemName + num++;
     }
-    myListModel.addElement(new NamedObject(name));
-    myList.setSelectedIndex(myListModel.size() - 1);
+    int index = addElement(new NamedObject(name));
+    // Select newly added element.
+    myList.getSelectionModel().setSelectionInterval(index, index);
+    updateUiFromCurrentObject();
+    // Make sure we scroll to selected element
+    myList.ensureIndexIsVisible(index);
     myList.updateUI();
     myModified = true;
+    updatePanelGroup();
   }
 
   private void removeObject() {
@@ -230,15 +293,15 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       return;
     }
     myListModel.remove(selectedIndex);
-    myList.setSelectedIndex(Math.max(0, Math.min(selectedIndex, myListModel.size() - 1)));
+    myList.setSelectedIndex(Math.max(0, Math.min(selectedIndex, myListModel.getSize() - 1)));
     myList.updateUI();
     myModified = true;
+    updatePanelGroup();
   }
 
   @Nullable
   private NamedObject getNamedItem(@NotNull String name) {
-    for (int i = 0; i < myListModel.size(); i++) {
-      NamedObject object = (NamedObject)myListModel.get(i);
+    for (NamedObject object : myListModel) {
       if (object.getName().equals(name)) {
         return object;
       }
@@ -277,23 +340,38 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   }
 
   private void updateCurrentObjectFromUi() {
+    if (myCurrentObject == null || myUpdating) {
+      return;
+    }
     String newName = myObjectName.getText();
     if (newName != null && !myCurrentObject.getName().equals(newName)) {
       myCurrentObject.setName(newName);
       myList.updateUI();
       myModified = true;
+      updatePanelGroup();
     }
   }
 
   private void updateUiFromCurrentObject() {
+    try {
+      myUpdating = true;
+      NamedObject currentObject = getSelectedObject();
+      myCurrentObject = currentObject;
+      myObjectName.setText(currentObject != null ? currentObject.getName() : "");
+      myObjectName.setEnabled(currentObject != null);
+      myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
+      myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
+      myDetailsPane.updateUiFromCurrentObject();
+    }
+    finally {
+      myUpdating = false;
+    }
+  }
+
+  @Nullable
+  private NamedObject getSelectedObject() {
     int selectedIndex = myList.getSelectedIndex();
-    NamedObject currentObject = selectedIndex >= 0 ? (NamedObject)myListModel.get(selectedIndex) : null;
-    myCurrentObject = currentObject;
-    myObjectName.setText(currentObject != null ? currentObject.getName() : "");
-    myObjectName.setEnabled(currentObject != null);
-    myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
-    myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
-    myDetailsPane.updateUiFromCurrentObject();
+    return selectedIndex >= 0 ? myListModel.get(selectedIndex) : null;
   }
 
   private void createUIComponents() {
@@ -317,7 +395,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       case BUILD_TYPES:
         for (String name : gradleProject.getBuildTypeNames()) {
           BuildTypeContainer buildTypeContainer = gradleProject.findBuildType(name);
-          NamedObject obj = new NamedObject(name);
+          NamedObject obj = new UndeletableNamedObject(name);
           if (buildTypeContainer == null) {
             break;
           }
@@ -336,7 +414,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       case FLAVORS:
         for (String name : gradleProject.getProductFlavorNames()) {
           ProductFlavorContainer productFlavorContainer = gradleProject.findProductFlavor(name);
-          NamedObject obj = new NamedObject(name);
+          NamedObject obj = new UndeletableNamedObject(name);
           if (productFlavorContainer == null) {
             break;
           }
@@ -369,11 +447,59 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
           obj.setValue(BuildFileKey.TEST_INSTRUMENTATION_RUNNER, flavor.getTestInstrumentationRunner());
           results.add(obj);
         }
-        results.add(new NamedObject(DEFAULT_CONFIG));
+        results.add(new UndeletableNamedObject(DEFAULT_CONFIG));
         break;
       default:
         break;
     }
     return results;
+  }
+
+  private void updatePanelGroup() {
+    List<String> values = Lists.newArrayList();
+    for (NamedObject o : myListModel) {
+      values.add(o.getName());
+    }
+    myPanelGroup.valuesUpdated(myBuildFileKey, values);
+  }
+
+  private static class SortedListModel extends AbstractListModel implements Iterable<NamedObject> {
+    private final SortedList<NamedObject> model = new SortedList<NamedObject>(new Comparator<NamedObject>() {
+      @Override
+      public int compare(NamedObject o1, NamedObject o2) {
+        assert o1 != null;
+        return o1.compareTo(o2);
+      }
+    });
+
+    @Override
+    public int getSize() {
+      return model.size();
+    }
+
+    public NamedObject get(int index) {
+      return model.get(index);
+    }
+
+    @Override
+    public Object getElementAt(int index) {
+      return get(index);
+    }
+
+    public int add(NamedObject o) {
+      if (model.add(o)) {
+        fireContentsChanged(this, 0, getSize());
+      }
+      return model.indexOf(o);
+    }
+
+    public void remove(int index) {
+      model.remove(index);
+    }
+
+    @Override
+    public Iterator<NamedObject> iterator() {
+      return model.iterator();
+    }
   }
 }

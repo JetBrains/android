@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
@@ -129,6 +130,18 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     });
   }
 
+  public boolean showDialogAndSelectDependency(@NotNull final Module module, @NotNull final GradleCoordinate dependency) {
+    return doShowDialog(new Runnable() {
+      @Override
+      public void run() {
+        AndroidModuleConfigurable configurable = mySidePanel.select(module);
+        if (configurable != null) {
+          configurable.selectDependency(dependency);
+        }
+      }
+    });
+  }
+
   public boolean showDialog() {
     return doShowDialog(null);
   }
@@ -224,19 +237,16 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       return;
     }
 
+    boolean dataChanged = false;
     for (Configurable configurable: myConfigurables) {
-      apply(configurable);
+      if (configurable.isModified()) {
+        dataChanged = true;
+        configurable.apply();
+      }
     }
 
-    ThreeState syncNeeded = GradleSyncState.getInstance(myProject).isSyncNeeded();
-    if (syncNeeded == ThreeState.YES) {
+    if (!myProject.isDefault() && (dataChanged || GradleSyncState.getInstance(myProject).isSyncNeeded() == ThreeState.YES)) {
       GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
-    }
-  }
-
-  private static void apply(@NotNull Configurable c) throws ConfigurationException {
-    if (c.isModified()) {
-      c.apply();
     }
   }
 
@@ -571,15 +581,17 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
       return new Dimension(Math.max(original.width, 100), original.height);
     }
 
-    void select(@NotNull Module module) {
+    @Nullable
+    AndroidModuleConfigurable select(@NotNull Module module) {
       for (int i = 0; i < myListModel.size(); i++) {
         Object object = myListModel.elementAt(i);
         if (object instanceof AndroidModuleConfigurable &&
             ((AndroidModuleConfigurable)object).getEditableObject() == module) {
             myList.setSelectedValue(object, true);
-            return;
+            return (AndroidModuleConfigurable)object;
         }
       }
+      return null;
     }
 
     void selectSdk() {

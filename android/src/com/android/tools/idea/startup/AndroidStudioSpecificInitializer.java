@@ -23,9 +23,10 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.ChooseApiLevelDialog;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
@@ -37,6 +38,11 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.HighlighterColors;
+import com.intellij.openapi.editor.XmlHighlighterColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.options.Configurable;
@@ -47,7 +53,9 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleScheme;
@@ -109,6 +117,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Override
   public void run() {
+    checkInstallation();
     cleanUpIdePreferences();
 
     if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
@@ -150,12 +159,62 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       }
     }
 
+    // Modify built-in "Default" color scheme to remove background from XML tags.
+    // "Darcula" and user schemes will not be touched.
+    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
+    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
+    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
     NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
 
     checkAndSetAndroidSdkSources();
   }
 
+  private static void checkInstallation() {
+    String studioHome = PathManager.getHomePath();
+    if (StringUtil.isEmpty(studioHome)) {
+      LOG.info("Unable to find Studio home directory");
+      return;
+    }
+    File studioHomePath = new File(FileUtil.toSystemDependentName(studioHome));
+    if (!studioHomePath.isDirectory()) {
+      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
+      return;
+    }
+    File androidPluginLibFolderPath = new File(studioHomePath, FileUtil.join("plugins", "android", "lib"));
+    if (!androidPluginLibFolderPath.isDirectory()) {
+      LOG.info(String.format("The path '%1$s' does not belong to an existing directory", androidPluginLibFolderPath.getPath()));
+      return;
+    }
+
+    File[] children = FileUtil.notNullize(androidPluginLibFolderPath.listFiles());
+    if (hasMoreThanOneBuilderModelFile(children)) {
+      String msg = "Your Android Studio installation is corrupt and will not work properly. " +
+                   "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)\n" +
+                   "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
+                   "Please reinstall (and make sure the new installation directory is empty first.)";
+      String title = "Corrupt Installation";
+      Messages.showDialog(msg, title, new String[]{"Proceed Anyway"}, 0, Messages.getErrorIcon());
+    }
+  }
+
+  @VisibleForTesting
+  static boolean hasMoreThanOneBuilderModelFile(@NotNull File[] libraryFiles) {
+    int builderModelFileCount = 0;
+
+    for (File file : libraryFiles) {
+      String fileName = file.getName();
+      if (fileName.startsWith("builder-model-") && SdkConstants.EXT_JAR.equals(FileUtilRt.getExtension(fileName))) {
+        if (++builderModelFileCount > 1) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
 
   private static void cleanUpIdePreferences() {
     try {
@@ -177,6 +236,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
     action = new ExperimentalActionsForTesting.ClearPrefsAction();
     am.registerAction("ClearPrefs", action);
+    androidToolsGroup.add(action);
+
+    action = new SdkQuickfixWizard.LaunchMe();
+    am.registerAction("ShowQuickfix", action);
     androidToolsGroup.add(action);
   }
 
@@ -276,6 +339,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void setupSdks() {
+    File androidHome = DefaultSdks.getDefaultAndroidHome();
+    if (androidHome != null) {
+      // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
+      return;
+    }
+
     final Sdk sdk = findFirstCompatibleAndroidSdk();
     if (sdk != null) {
       ApplicationManager.getApplication().invokeLater(new Runnable() {
@@ -288,6 +357,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       });
       return;
     }
+
     // Called in a 'invokeLater' block, otherwise file chooser will hang forever.
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -296,6 +366,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         if (androidSdkPath == null) {
           return;
         }
+
         Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.getPath(), true);
         if (sdk != null) {
           // Rename the SDK to fit our default naming convention.
@@ -326,11 +397,15 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   @Nullable
   private static Sdk findFirstCompatibleAndroidSdk() {
-    for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
+    List<Sdk> sdks = AndroidSdkUtils.getAllAndroidSdks();
+    for (Sdk sdk : sdks) {
       String sdkPath = sdk.getHomePath();
       if (VersionCheck.isCompatibleVersion(sdkPath)) {
         return sdk;
       }
+    }
+    if (!sdks.isEmpty()) {
+      return sdks.get(0);
     }
     return null;
   }
@@ -345,9 +420,9 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
       for (String path : ANDROID_SDK_RELATIVE_PATHS) {
         File dir = new File(studioHome, path);
-        String absolutePath = dir.getAbsolutePath();
+        String absolutePath = FileUtil.toCanonicalPath(dir.getAbsolutePath());
         LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
-        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath) && VersionCheck.isCompatibleVersion(dir)) {
+        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath)) {
           LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
           return new File(absolutePath);
         }
@@ -359,17 +434,13 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     String msg = String.format("Checking if ANDROID_HOME is set: '%1$s' is '%2$s'", SdkConstants.ANDROID_HOME_ENV, androidHomeValue);
     LOG.info(msg);
 
-    if (!StringUtil.isEmpty(androidHomeValue) &&
-        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
-        VersionCheck.isCompatibleVersion(androidHomeValue)) {
+    if (!StringUtil.isEmpty(androidHomeValue) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       LOG.info("Using Android SDK specified by the environment variable.");
       return new File(FileUtil.toSystemDependentName(androidHomeValue));
     }
 
     String sdkPath = getLastSdkPathUsedByAndroidTools();
-    if (!StringUtil.isEmpty(sdkPath) &&
-        AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue) &&
-        VersionCheck.isCompatibleVersion(sdkPath)) {
+    if (!StringUtil.isEmpty(sdkPath) && AndroidSdkType.getInstance().isValidSdkHome(androidHomeValue)) {
       msg = String.format("Last SDK used by Android tools: '%1$s'", sdkPath);
     } else {
       msg = "Unable to locate last SDK used by Android tools";
@@ -445,7 +516,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
           }
         }
         catch (IOException e) {
-          LOG.error("Failed to stop Gradle daemons", e);
+          LOG.info("Failed to stop Gradle daemons", e);
         }
       }
     });

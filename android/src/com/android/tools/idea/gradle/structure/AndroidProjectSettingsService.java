@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure;
 
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.compiler.actions.ArtifactAwareProjectSettingsService;
@@ -96,6 +97,11 @@ public class AndroidProjectSettingsService extends ProjectSettingsService implem
   public void openSdkSettings() {
     AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
     configurable.showDialogAndSelectSdksPage();
+  }
+
+  public void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency) {
+    AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(myProject);
+    configurable.showDialogAndSelectDependency(module, dependency);
   }
 
   @Override

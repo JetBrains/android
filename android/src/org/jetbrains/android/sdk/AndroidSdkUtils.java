@@ -24,9 +24,11 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.sdk.VersionCheck;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -78,6 +80,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+
+import static com.android.SdkConstants.FD_EXTRAS;
+import static com.android.SdkConstants.FD_M2_REPOSITORY;
 
 /**
  * @author Eugene.Kudelevsky
@@ -306,9 +311,6 @@ public final class AndroidSdkUtils {
                                              @NotNull String sdkName,
                                              @Nullable Sdk jdk,
                                              boolean addRoots) {
-    if (!VersionCheck.isCompatibleVersion(sdkPath)) {
-      return null;
-    }
     ProjectJdkTable table = ProjectJdkTable.getInstance();
     String tmpName = SdkConfigurationUtil.createUniqueSdkName(AndroidSdkType.SDK_NAME, Arrays.asList(table.getAllJdks()));
 
@@ -461,6 +463,8 @@ public final class AndroidSdkUtils {
 
   @Nullable
   public static Sdk findSuitableAndroidSdk(@NotNull String targetHashString) {
+    List<Pair<Boolean, Sdk>> matchingSdks = Lists.newArrayList();
+
     for (Sdk sdk : getAllAndroidSdks()) {
       SdkAdditionalData originalData = sdk.getSdkAdditionalData();
       if (!(originalData instanceof AndroidSdkAdditionalData)) {
@@ -472,13 +476,24 @@ public final class AndroidSdkUtils {
         continue;
       }
       String baseDir = androidPlatform.getSdkData().getLocation().getPath();
-      if (VersionCheck.isCompatibleVersion(baseDir)) {
-        String platformHashString = androidPlatform.getTarget().hashString();
-        if (targetHashString.equals(platformHashString)) {
-          return sdk;
-        }
+      String platformHashString = androidPlatform.getTarget().hashString();
+      if (targetHashString.equals(platformHashString)) {
+        boolean compatible = VersionCheck.isCompatibleVersion(baseDir);
+        matchingSdks.add(Pair.create(compatible, sdk));
       }
     }
+
+    for (Pair<Boolean, Sdk> sdk : matchingSdks) {
+      // We try to find an SDK that matches the given platform string and has a compatible Tools version.
+      if (sdk.getFirst()) {
+        return sdk.getSecond();
+      }
+    }
+    if (!matchingSdks.isEmpty()) {
+      // We got here because we have SDKs but none of them have a compatible Tools version. Pick the first one.
+      return matchingSdks.get(0).getSecond();
+    }
+
     return null;
   }
 
@@ -794,6 +809,16 @@ public final class AndroidSdkUtils {
   @Nullable
   public static AndroidSdkData tryToChooseAndroidSdk() {
     if (ourSdkData == null) {
+      if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
+        File path = DefaultSdks.getDefaultAndroidHome();
+        if (path != null) {
+          ourSdkData = AndroidSdkData.getSdkData(path.getPath());
+          if (ourSdkData != null) {
+            return ourSdkData;
+          }
+        }
+      }
+
       for (String s : getAndroidSdkPathsFromExistingPlatforms()) {
         ourSdkData = AndroidSdkData.getSdkData(s);
         if (ourSdkData != null) {
@@ -821,4 +846,20 @@ public final class AndroidSdkUtils {
 
     return null;
   }
+
+  @NotNull
+  public static File getAndroidSupportRepositoryLocation(@NotNull File androidHome) {
+    return getRepositoryLocation(androidHome, "android");
+  }
+
+  @NotNull
+  public static File getGoogleRepositoryLocation(@NotNull File androidHome) {
+    return getRepositoryLocation(androidHome, "google");
+  }
+
+  @NotNull
+  private static File getRepositoryLocation(@NotNull File androidHome, @NotNull String extrasName) {
+    return new File(androidHome, FileUtil.join(FD_EXTRAS, extrasName, FD_M2_REPOSITORY));
+  }
+
 }

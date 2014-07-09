@@ -1,1 +1,1 @@
-<warning descr="The `apply plugin` statement should only be used if there is a corresponding module for this build file.">apply plugin: 'android'</warning>
+<warning descr="The `apply plugin` statement should only be used if there is a corresponding module for this build file.">apply plugin: 'com.android.application'</warning>

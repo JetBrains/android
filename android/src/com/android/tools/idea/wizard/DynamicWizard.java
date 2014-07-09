@@ -36,10 +36,12 @@ import com.intellij.ui.components.panels.OpaquePanel;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
@@ -65,7 +67,11 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
  *
  */
 public abstract class DynamicWizard extends DialogWrapper implements ScopedStateStore.ScopedStoreListener {
+  private static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
   Logger LOG = Logger.getInstance(DynamicWizard.class);
+
+  public static final Insets STUDIO_WIZARD_INSETS = new Insets(0, 12, 12, 12);
+  public static final int STUDIO_WIZARD_TOP_INSET = 18;
 
   // A queue of updates used to throttle the update() function.
   private final MergingUpdateQueue myUpdateQueue;
@@ -98,6 +104,8 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   private JPanel myContentPanel;
   private Map<JComponent, String> myComponentToIdMap = Maps.newHashMap();
   private ScopedStateStore myState;
+  private JPanel myCenterPanel;
+  private JPanel mySouthPanel;
 
   public DynamicWizard(@Nullable Project project, @Nullable Module module, @NotNull String name) {
     super(project);
@@ -111,6 +119,36 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     }
     myState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, this);
     myIcon = new TallImageComponent(null);
+
+    Window window = getWindow();
+    if (window == null) {
+      assert ApplicationManager.getApplication().isUnitTestMode();
+    } else {
+      window.setPreferredSize(DEFAULT_WIZARD_WINDOW_SIZE);
+    }
+  }
+
+  @Override
+  public void init() {
+    super.init();
+
+    // Clear out the large border
+    Container centerRootPanel = myCenterPanel.getParent();
+    if (centerRootPanel != null) {
+      Container rootPanel = centerRootPanel.getParent();
+      if (rootPanel instanceof JPanel) {
+        // Clear out default borders, we'll set our own later
+        ((JPanel)rootPanel).setBorder(new EmptyBorder(0, 0, 0, 0));
+      }
+    }
+
+    myIsInitialized = true;
+
+    if (myCurrentPath != null) {
+      myCurrentPath.onPathStarted(true);
+      showStep(myCurrentPath.myCurrentStep);
+      myCurrentPath.myCurrentStep.invokeUpdate(null);
+    }
   }
 
   /**
@@ -119,11 +157,24 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    final JPanel panel = new JPanel(new BorderLayout());
+    myCenterPanel = new JPanel(new BorderLayout());
     myContentPanel = new JPanel(new CardLayout());
-    panel.add(myContentPanel, BorderLayout.CENTER);
-    panel.add(myIcon, BorderLayout.WEST);
-    return panel;
+    myCenterPanel.add(myContentPanel, BorderLayout.CENTER);
+    myCenterPanel.add(myIcon, BorderLayout.WEST);
+    return myCenterPanel;
+  }
+
+  /**
+   * Create the south panel that serves as the container for the wizard buttons.
+   * The base class does all the heavy lifting already, we just adjust the margins here.
+   */
+  @Nullable
+  @Override
+  protected JComponent createSouthPanel() {
+    mySouthPanel = (JPanel)super.createSouthPanel();
+    assert mySouthPanel != null;
+    mySouthPanel.setBorder(new EmptyBorder(STUDIO_WIZARD_INSETS));
+    return mySouthPanel;
   }
 
   /**
@@ -266,17 +317,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       return myCurrentPath.getCurrentStep();
     }
     return null;
-  }
-
-  @Override
-  public void init() {
-    super.init();
-    if (myCurrentPath != null) {
-      myCurrentPath.onPathStarted(true);
-      showStep(myCurrentPath.myCurrentStep);
-    }
-    myIsInitialized = true;
-    myCurrentPath.myCurrentStep.invokeUpdate(null);
   }
 
   @NotNull

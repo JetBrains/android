@@ -15,23 +15,20 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.parser.NamedObject;
-import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -39,8 +36,8 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +60,8 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
   private boolean myModified;
   private final Project myProject;
 
-  private final Set<String> myInstalledApis = new LinkedHashSet<String>();
+  private final Set<String> myInstalledApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
+  private final Set<String> myInstalledCompileApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
   private final Set<String> myInstalledBuildTools = new LinkedHashSet<String>();
   private final List<String> myJavaCompatibility = ImmutableList.of("JavaVersion.VERSION_1_6", "JavaVersion.VERSION_1_7");
 
@@ -71,7 +69,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     ImmutableMap.<BuildFileKey, Iterable<String>>builder()
       .put(BuildFileKey.MIN_SDK_VERSION, myInstalledApis)
       .put(BuildFileKey.TARGET_SDK_VERSION, myInstalledApis)
-      .put(BuildFileKey.COMPILE_SDK_VERSION, myInstalledApis)
+      .put(BuildFileKey.COMPILE_SDK_VERSION, myInstalledCompileApis)
       .put(BuildFileKey.BUILD_TOOLS_VERSION, myInstalledBuildTools)
       .put(BuildFileKey.SOURCE_COMPATIBILITY, myJavaCompatibility)
       .put(BuildFileKey.TARGET_COMPATIBILITY, myJavaCompatibility)
@@ -79,20 +77,28 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
 
   public KeyValuePane(Project project) {
     myProject = project;
-    for (Sdk sdk : DefaultSdks.getEligibleAndroidSdks()) {
-      AndroidSdkAdditionalData sdkAdditionalData = (AndroidSdkAdditionalData)sdk.getSdkAdditionalData();
-      if (sdkAdditionalData == null) {
-        continue;
+    LocalSdk sdk = null;
+    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    if (androidSdkData != null) {
+      sdk = androidSdkData.getLocalSdk();
+    }
+    if (sdk != null) {
+      for (IAndroidTarget target : sdk.getTargets()) {
+        if (target.isPlatform()) {
+          AndroidVersion version = target.getVersion();
+          String codename = version.getCodename();
+          if (codename != null) {
+            myInstalledApis.add(codename);
+            myInstalledCompileApis.add(AndroidTargetHash.getPlatformHashString(version));
+          }
+          else {
+            String apiString = Integer.toString(version.getApiLevel());
+            myInstalledApis.add(apiString);
+            myInstalledCompileApis.add(apiString);
+          }
+        }
+        myInstalledBuildTools.add(target.getBuildToolInfo().getRevision().toString());
       }
-      AndroidPlatform androidPlatform = sdkAdditionalData.getAndroidPlatform();
-      if (androidPlatform == null) {
-        continue;
-      }
-      IAndroidTarget target = androidPlatform.getTarget();
-      AndroidVersion version = target.getVersion();
-      String codename = version.getCodename();
-      myInstalledApis.add(codename != null ? codename : Integer.toString(version.getApiLevel()));
-      myInstalledBuildTools.add(target.getBuildToolInfo().getRevision().toString());
     }
   }
 
@@ -151,29 +157,16 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         }
         case REFERENCE: {
           constraints.setFill(GridConstraints.FILL_NONE);
-          ComboBox comboBox = getComboBox(true);
-          BuildFileKey referencedType = property.getReferencedType();
-          if (shouldUseComboBox(property)) {
-            for (String s : myKeysWithKnownValues.get(property)) {
-              comboBox.addItem(s);
-            }
-          }
-          else if (referencedType != null && gradleBuildFile != null) {
-            List<NamedObject> referencedObjects = (List<NamedObject>)gradleBuildFile.getValue(referencedType);
-            if (referencedObjects != null) {
-              for (NamedObject o : referencedObjects) {
-                comboBox.addItem(o.getName());
-              }
-            }
-          }
-          component = comboBox;
+          // The combo box's values will get populated later when the panel for the container reference type wakes up and notifies
+          // us of its current values.
+          component = getComboBox(true);
           break;
         }
         case CLOSURE:
         case STRING:
         case INTEGER:
         default: {
-          if (shouldUseComboBox(property)) {
+          if (hasKnownValues(property)) {
             constraints.setFill(GridConstraints.FILL_NONE);
             ComboBox comboBox = getComboBox(true);
             for (String s : myKeysWithKnownValues.get(property)) {
@@ -198,6 +191,23 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     constraints.setHSizePolicy(GridConstraints.SIZEPOLICY_FIXED);
     add(new JBLabel(""), constraints);
     updateUiFromCurrentObject();
+  }
+
+  public void updateReferenceValues(@NotNull BuildFileKey containerProperty, @NotNull Iterable<String> values) {
+    BuildFileKey itemType = containerProperty.getItemType();
+    if (itemType == null) {
+      return;
+    }
+    ComboBox comboBox = (ComboBox)myProperties.get(itemType);
+    if (comboBox == null) {
+      return;
+    }
+    String currentValue = comboBox.getEditor().getItem().toString();
+    comboBox.removeAllItems();
+    for (String value : values) {
+      comboBox.addItem(value);
+    }
+    comboBox.setSelectedItem(currentValue);
   }
 
   private ComboBox getComboBox(boolean editable) {
@@ -281,7 +291,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           break;
         case INTEGER:
           try {
-            if (shouldUseComboBox(key)) {
+            if (hasKnownValues(key)) {
               newValue = Integer.valueOf(((ComboBox)component).getEditor().getItem().toString());
             } else {
               newValue = Integer.valueOf(((JBTextField)component).getText());
@@ -305,7 +315,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         case CLOSURE:
         case STRING:
         default:
-          if (shouldUseComboBox(key)) {
+          if (hasKnownValues(key)) {
             newValue = ((ComboBox)component).getEditor().getItem();
             if ("".equals(newValue)) {
               newValue = null;
@@ -393,7 +403,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         case INTEGER:
         case STRING:
         default: {
-          if (shouldUseComboBox(key)) {
+          if (hasKnownValues(key)) {
             ComboBox comboBox = (ComboBox)component;
             comboBox.setSelectedItem(value != null ? value.toString() : "");
             JBTextField textField = (JBTextField)comboBox.getEditor().getEditorComponent();
@@ -421,7 +431,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     return !s.isEmpty() ? "(" + s + ")" : "";
   }
 
-  private boolean shouldUseComboBox(BuildFileKey key) {
+  private boolean hasKnownValues(BuildFileKey key) {
     return myKeysWithKnownValues.containsKey(key);
   }
 
@@ -449,9 +459,9 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
 
   @NotNull
   private static String getReferencePrefix(@NotNull BuildFileKey key) {
-    BuildFileKey referencedType = key.getReferencedType();
-    if (referencedType != null) {
-      String path = referencedType.getPath();
+    BuildFileKey containerType = key.getContainerType();
+    if (containerType != null) {
+      String path = containerType.getPath();
       String lastLeaf = path.substring(path.lastIndexOf('/') + 1);
       return lastLeaf + ".";
     } else {

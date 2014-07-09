@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.*;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -41,12 +42,10 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -99,7 +98,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       myGalleryStep = null;
     }
     myParameterStep = new TemplateParameterStep2(formFactor, predefinedParameterValues,
-                                                 myTargetFolder, parentDisposable);
+                                                 myTargetFolder, parentDisposable, KEY_PACKAGE_NAME);
   }
 
   private static FormFactorUtils.FormFactor getFormFactor(@Nullable VirtualFile targetFolder) {
@@ -112,9 +111,15 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    */
   @Nullable
   public static File findSrcDirectory(@NotNull SourceProvider sourceProvider) {
-    Collection<File> javaDirectories = sourceProvider.getJavaDirectories();
-    return javaDirectories.isEmpty() ? null : javaDirectories.iterator().next();
+    return Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
   }
+
+  @Nullable
+  private static File findTestDirectory(@NotNull Module module) {
+    List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
+    return testsRoot.size() == 0 ? null : VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+  }
+
 
   /**
    * Finds and returns the main res directory for the given project or null if one cannot be found.
@@ -201,12 +206,14 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
 
   private static Map<String, Object> selectSourceProvider(@NotNull SourceProvider sourceProvider,
                                                           @NotNull IdeaAndroidProject gradleProject,
+                                                          @NotNull Module module,
                                                           @NotNull String packageName) {
     Map<String, Object> paths = Maps.newHashMap();
     // Look up the resource directories inside this source set
     VirtualFile moduleDir = gradleProject.getRootDir();
     File ioModuleDir = VfsUtilCore.virtualToIoFile(moduleDir);
     File javaDir = findSrcDirectory(sourceProvider);
+    File testDir = findTestDirectory(module);
     String javaPath = getJavaPath(ioModuleDir, javaDir);
     paths.put(ATTR_SRC_DIR, javaPath);
 
@@ -231,13 +238,21 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       paths.put(ATTR_AIDL_DIR, aidlPath);
       paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
-
+    if (testDir == null) {
+      String absolutePath = Joiner.on('/').join(moduleDir.getPath(), TemplateWizard.TEST_SOURCE_PATH,
+                                                TemplateWizard.JAVA_SOURCE_PATH);
+      testDir = new File(FileUtil.toSystemDependentName(absolutePath));
+    }
     assert javaPath != null;
     // Calculate package name
     paths.put(TemplateMetadata.ATTR_PACKAGE_ROOT, packageName);
-    File srcOut = new File(javaDir, packageName.replace('.', File.separatorChar));
+    String relativePackageDir = packageName.replace('.', File.separatorChar);
+    File srcOut = new File(javaDir, relativePackageDir);
+    File testOut = new File(testDir, relativePackageDir);
+    paths.put(ATTR_TEST_DIR, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
+    paths.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getAbsolutePath()));
     paths.put(ATTR_APPLICATION_PACKAGE, gradleProject.computePackageName());
-    paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getPath()));
+    paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
     paths.put(ATTR_SOURCE_PROVIDER_NAME, sourceProvider.getName());
     return paths;
   }
@@ -400,7 +415,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     if (sourceProvider1 != null && gradleProject != null) {
       String packageName = myState.get(KEY_PACKAGE_NAME);
       assert packageName != null;
-      templateParameters.putAll(selectSourceProvider(sourceProvider1, gradleProject, packageName));
+      templateParameters.putAll(selectSourceProvider(sourceProvider1, gradleProject, module, packageName));
     }
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
     String minSdkName = minSdkVersion.getApiString();

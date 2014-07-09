@@ -22,15 +22,19 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 import org.jetbrains.annotations.NotNull;
 
-class OpenFileHyperlink extends NotificationHyperlink {
+public class OpenFileHyperlink extends NotificationHyperlink {
   @NotNull private final String myFilePath;
   private final int myLine;
+
+  public OpenFileHyperlink(@NotNull final String filePath) {
+    this(filePath, -1);
+  }
 
   /**
    * Creates a file hyperlink. The line number should be 0-based. The file path should be a file system dependent
    * path.
    */
-  OpenFileHyperlink(@NotNull final String filePath, final int line) {
+  public OpenFileHyperlink(@NotNull String filePath, int line) {
     super("openFile", "Open File");
     myFilePath = FileUtil.toSystemIndependentName(filePath);
     myLine = line;

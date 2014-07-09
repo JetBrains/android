@@ -59,9 +59,11 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JBCheckBox myRememberPasswordCheckBox;
 
   private final ExportSignedPackageWizard myWizard;
+  private final boolean myUseGradleForSigning;
 
-  public KeystoreStep(ExportSignedPackageWizard wizard) {
+  public KeystoreStep(ExportSignedPackageWizard wizard, boolean useGradleForSigning) {
     myWizard = wizard;
+    myUseGradleForSigning = useGradleForSigning;
     final Project project = wizard.getProject();
 
     final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);
@@ -145,11 +147,15 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       throw new CommitStepException(AndroidBundle.message("android.export.package.specify.key.password.error"));
     }
 
-    final KeyStore keyStore = loadKeyStore(new File(keyStoreLocation));
-    if (keyStore == null) {
-      throw new CommitStepException(AndroidBundle.message("android.export.package.keystore.error.title"));
+    if (myUseGradleForSigning) {
+      myWizard.setGradleSigningInfo(new GradleSigningInfo(keyStoreLocation, keyStorePassword, keyAlias, keyPassword));
+    } else {
+      final KeyStore keyStore = loadKeyStore(new File(keyStoreLocation));
+      if (keyStore == null) {
+        throw new CommitStepException(AndroidBundle.message("android.export.package.keystore.error.title"));
+      }
+      loadKeyAndSaveToWizard(keyStore, keyAlias, keyPassword);
     }
-    loadKeyAndSaveToWizard(keyStore, keyAlias, keyPassword);
 
     final Project project = myWizard.getProject();
     final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);

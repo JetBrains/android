@@ -54,7 +54,7 @@ public class DeviceChooserDialog extends DialogWrapper {
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myDeviceChooser.getDeviceTable();
+    return myDeviceChooser.getPreferredFocusComponent();
   }
 
   @Override

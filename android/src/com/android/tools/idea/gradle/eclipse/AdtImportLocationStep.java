@@ -23,7 +23,6 @@ import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -39,8 +38,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
-
-import static com.intellij.openapi.components.StorageScheme.DIRECTORY_BASED;
 
 class AdtImportLocationStep extends ProjectImportWizardStep {
   private JPanel myPanel;
@@ -59,25 +56,18 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
     mySourceProject = new File(FileUtil.toSystemDependentName(prev));
 
     String name = new File(prev).getName();
-    try {
-      //noinspection ConstantConditions
-      context.setProjectFileDirectory(null);
-      String defaultDir = context.getProjectFileDirectory();
-      if (new File(defaultDir).exists()) {
-        int index = 0;
-        while (true) {
-          String suffix = index == 0 ? "" : Integer.toString(index);
-          File file = new File(defaultDir, name + suffix);
-          if (!file.exists()) {
-            myDestDirText.setText(file.getPath());
-            break;
-          }
-          index++;
-        }
-      }
-    } finally {
-      context.setProjectFileDirectory(prev);
-    }
+    //noinspection ConstantConditions
+    context.setProjectFileDirectory(null);
+    String defaultDir = context.getProjectFileDirectory();
+    int index = 0;
+    File file;
+    do {
+      String suffix = index == 0 ? "" : Integer.toString(index);
+      index++;
+      file = new File(defaultDir, name + suffix);
+    } while (file.exists());
+    myDestDirText.setText(file.getPath());
+    context.setProjectFileDirectory(prev);
 
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     descriptor.setTitle("Choose Destination Directory");
@@ -154,20 +144,23 @@ class AdtImportLocationStep extends ProjectImportWizardStep {
 
     boolean shouldContinue = true;
 
-    String path = context.isCreatingNewProject() && context.getProjectStorageFormat() == DIRECTORY_BASED
-                        ? getProjectFileDirectory() + "/" + Project.DIRECTORY_STORE_FOLDER : getProjectFilePath();
-    File projectFile = new File(path);
-    if (projectFile.exists()) {
-      String title = "New Project";
-      String message = context.isCreatingNewProject() && context.getProjectStorageFormat() == DIRECTORY_BASED
-                             ? String.format("%1$s folder already exists in %2$s.\nIts content may be overwritten.\nContinue?",
-                                             Project.DIRECTORY_STORE_FOLDER, projectFile.getParentFile().getAbsolutePath())
-                             : String.format("The %2$s file \n''%1$s''\nalready exists.\nWould you like to overwrite it?",
-                                             projectFile.getAbsolutePath(), context.getPresentationName());
-      int answer = Messages.showYesNoDialog(message, title, Messages.getQuestionIcon());
-      shouldContinue = answer == 0;
+    File projectFile = new File(getProjectFileDirectory());
+    String title = "New Project";
+    if (projectFile.isFile()) {
+      shouldContinue = false;
+      String message = String.format("%s exists and is a file.\nPlease specify a different project location",
+                                     projectFile.getAbsolutePath());
+      Messages.showErrorDialog(message, title);
     }
-
+    else if (projectFile.isDirectory()) {
+      File[] files = projectFile.listFiles();
+      if (files != null && files.length > 0) {
+        String message = String.format("%1$s folder already exists and is not empty.\nIts content may be overwritten.\nContinue?",
+                                       projectFile.getAbsolutePath());
+        int answer = Messages.showYesNoDialog(message, title, Messages.getQuestionIcon());
+        shouldContinue = answer == 0;
+      }
+    }
     return shouldContinue;
   }
 
