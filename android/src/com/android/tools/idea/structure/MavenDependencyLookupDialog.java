@@ -16,24 +16,27 @@
 package com.android.tools.idea.structure;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.sdk.DefaultSdks;
-import com.google.common.base.Splitter;
+import com.android.builder.model.ApiVersion;
+import com.android.ide.common.repository.GradleCoordinate;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.AsyncProcessIcon;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.indices.MavenArtifactSearchResult;
@@ -48,7 +51,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,17 +64,17 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
    * Hardcoded list of common libraries that we will show in the dialog until the user actually does a search.
    */
   private static final List<Artifact> COMMON_LIBRARIES = ImmutableList.of(
-    new Artifact(newMavenArtifactInfo("com.google.code.gson", "gson", "2.2.+"), "GSON"),
-    new Artifact(newMavenArtifactInfo("joda-time", "joda-time", "2.3"), "Joda-time"),
-    new Artifact(newMavenArtifactInfo("com.squareup.picasso", "picasso", "2.3.+"), "Picasso"),
-    new Artifact(newMavenArtifactInfo("com.squareup", "otto", "1.3.+"), "Otto"),
-    new Artifact(newMavenArtifactInfo("org.slf4j", "slf4j-android", "1.7.+"), "slf4j"),
-    new Artifact(newMavenArtifactInfo("de.keyboardsurfer.android.widget", "crouton", "1.8.+"), "Crouton"),
-    new Artifact(newMavenArtifactInfo("com.nineoldandroids", "library", "2.4.+"), "Nine Old Androids"),
-    new Artifact(newMavenArtifactInfo("com.jakewharton", "butterknife", "5.1.+"), "Butterknife"),
-    new Artifact(newMavenArtifactInfo("com.google.guava", "guava", "16.0.+"), "Guava"),
-    new Artifact(newMavenArtifactInfo("com.squareup.okhttp", "okhttp", "2.0.+"), "okhttp"),
-    new Artifact(newMavenArtifactInfo("com.squareup.dagger", "dagger", "1.2.+"), "Dagger")
+    new Artifact("com.google.code.gson", "gson", "2.2.4", "GSON"),
+    new Artifact("joda-time", "joda-time", "2.3", "Joda-time"),
+    new Artifact("com.squareup.picasso", "picasso", "2.3.2", "Picasso"),
+    new Artifact("com.squareup", "otto", "1.3.5", "Otto"),
+    new Artifact("org.slf4j", "slf4j-android", "1.7.7", "slf4j"),
+    new Artifact("de.keyboardsurfer.android.widget", "crouton", "1.8.4", "Crouton"),
+    new Artifact("com.nineoldandroids", "library", "2.4.0", "Nine Old Androids"),
+    new Artifact("com.jakewharton", "butterknife", "5.1.1", "Butterknife"),
+    new Artifact("com.google.guava", "guava", "16.0.1", "Guava"),
+    new Artifact("com.squareup.okhttp", "okhttp", "2.0.0", "okhttp"),
+    new Artifact("com.squareup.dagger", "dagger", "1.2.1", "Dagger")
   );
 
   /**
@@ -113,6 +115,25 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       myDescription = description;
     }
 
+    public Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
+      super(groupId, artifactId, version, null, null, null, null);
+      myDescription = description;
+    }
+
+    @Nullable
+    public static Artifact fromCoordinate(@NotNull String libraryCoordinate, @Nullable String libraryId) {
+      GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+      if (gradleCoordinate == null) {
+        return null;
+      }
+      String groupId = gradleCoordinate.getGroupId();
+      String artifactId = gradleCoordinate.getArtifactId();
+      if (groupId == null || artifactId == null) {
+        return null;
+      }
+      return new Artifact(groupId, artifactId, gradleCoordinate.getFullRevision(), libraryId);
+    }
+
     public @NotNull String toString() {
       if (myDescription != null) {
         return myDescription + " (" + getCoordinates() + ")";
@@ -122,7 +143,7 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
 
     public @NotNull String getCoordinates() {
-      return getGroupId() + ":" + getArtifactId() + ":" + getVersion() + (getPackaging() != null ? ("@" + getPackaging()) : "");
+      return getGroupId() + ":" + getArtifactId() + ":" + getVersion();
     }
   }
 
@@ -161,9 +182,9 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     }
   }
 
-  public MavenDependencyLookupDialog(@NotNull Project project, boolean isAndroidModule) {
+  public MavenDependencyLookupDialog(@NotNull Project project, @Nullable Module module) {
     super(project, true);
-    myAndroidModule = isAndroidModule;
+    myAndroidModule = module != null && AndroidFacet.getInstance(module) != null;
     myProgressIcon.suspend();
 
     mySearchField.setButtonIcon(AllIcons.Actions.Menu_find);
@@ -186,9 +207,29 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
     });
 
-    File androidHome = DefaultSdks.getDefaultAndroidHome();
-    myShownItems.addAll(getAndroidSupportRepositoryArtifacts(androidHome));
-    myShownItems.addAll(getGoogleRepositoryArtifacts(androidHome));
+    boolean isPreviewVersion = false;
+    if (module != null) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet != null) {
+        IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+        if (androidProject != null) {
+          ApiVersion minSdkVersion = androidProject.getSelectedVariant().getMergedFlavor().getMinSdkVersion();
+          if (minSdkVersion != null) {
+            isPreviewVersion = new AndroidVersion(minSdkVersion.getApiLevel(), minSdkVersion.getCodename()).isPreview();
+          }
+        }
+      }
+    }
+    RepositoryUrlManager manager = RepositoryUrlManager.get();
+    for (String libraryId : RepositoryUrlManager.EXTRAS_REPOSITORY.keySet()) {
+      String libraryCoordinate = manager.getLibraryCoordinate(libraryId, null, isPreviewVersion);
+      if (libraryCoordinate != null) {
+        Artifact artifact = Artifact.fromCoordinate(libraryCoordinate, libraryId);
+        if (artifact != null) {
+          myShownItems.add(artifact);
+        }
+      }
+    }
     myShownItems.addAll(COMMON_LIBRARIES);
     myResultList.setModel(new CollectionComboBoxModel(myShownItems, null));
     myResultList.addListSelectionListener(new ListSelectionListener() {
@@ -211,74 +252,6 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
 
     init();
     myProject = project;
-  }
-
-  @NotNull
-  private static List<Artifact> getAndroidSupportRepositoryArtifacts(@Nullable File androidHome) {
-    List<Artifact> artifacts = Lists.newArrayList();
-    if (androidHome != null) {
-      File repositoryLocation = AndroidSdkUtils.getAndroidSupportRepositoryLocation(androidHome);
-      if (repositoryLocation.isDirectory()) {
-        File root = new File(repositoryLocation, FileUtil.join("com", "android", "support"));
-        addArtifacts("com.android.support", root, artifacts);
-      }
-    }
-    if (artifacts.isEmpty()) {
-      // If for some reason, the repository is empty, we hard-code libraries.
-      artifacts.add(new Artifact(newMavenArtifactInfo("com.android.support", "appcompat-v7", "+"), "AppCompat"));
-      artifacts.add(new Artifact(newMavenArtifactInfo("com.android.support", "support-v4", "+"), "Support v4"));
-      artifacts.add(new Artifact(newMavenArtifactInfo("com.android.support", "mediarouter-v7", "+"), "MediaRouter"));
-      artifacts.add(new Artifact(newMavenArtifactInfo("com.android.support", "gridlayout-v7", "+"), "GridLayout"));
-      artifacts.add(new Artifact(newMavenArtifactInfo("com.android.support", "support-v13", "+"), "Support v13"));
-    }
-    return artifacts;
-  }
-
-  @NotNull
-  private static List<Artifact> getGoogleRepositoryArtifacts(@Nullable File androidHome) {
-    List<Artifact> artifacts = Lists.newArrayList();
-    if (androidHome != null) {
-      File repositoryLocation = AndroidSdkUtils.getGoogleRepositoryLocation(androidHome);
-      if (repositoryLocation.isDirectory()) {
-        File root = new File(repositoryLocation, FileUtil.join("com", "google", "android", "gms"));
-        addArtifacts("com.google.android.gms", root, artifacts);
-      }
-    }
-    if (artifacts.isEmpty()) {
-      // If for some reason, the repository is empty, we hard-code libraries.
-      artifacts.add(new Artifact(newMavenArtifactInfo("com.google.android.gms", "play-services", "+"), "Google Play Services"));
-    }
-    return artifacts;
-  }
-
-  private static void addArtifacts(@NotNull String prefix, @NotNull File repositoryRoot, @NotNull List<Artifact> artifacts) {
-    if (repositoryRoot.isDirectory()) {
-      File[] children = FileUtil.notNullize(repositoryRoot.listFiles());
-      for (File child : children) {
-        if (child.isDirectory() && new File(child, "maven-metadata.xml").isFile()) {
-          String name = child.getName();
-          MavenArtifactInfo info = newMavenArtifactInfo(prefix, name, "+");
-          if (name.startsWith("play-services")) {
-            name = name.replaceAll("-", " ");
-            name = "Google " + StringUtil.capitalizeWords(name, true);
-          }
-          else if (!name.startsWith("support-")) {
-            int dashIndex = name.indexOf("-");
-            if (dashIndex > -1) {
-              name = name.substring(0, dashIndex);
-            }
-          }
-          name = StringUtil.capitalize(name);
-          artifacts.add(new Artifact(info, name));
-        }
-      }
-    }
-  }
-
-  @NotNull
-  private static MavenArtifactInfo newMavenArtifactInfo(@NotNull String groupId, @NotNull String artifactId, @NotNull String version) {
-    //noinspection ConstantConditions
-    return new MavenArtifactInfo(groupId, artifactId, version, null, null);
   }
 
   public @NotNull String getSearchText() {
