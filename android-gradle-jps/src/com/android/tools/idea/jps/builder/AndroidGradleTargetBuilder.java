@@ -426,7 +426,12 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         context.processMessage(createCompilerErrorMessage(message));
       }
       finally {
-        Closeables.closeQuietly(out);
+        try {
+          Closeables.close(out, true);
+        }
+        catch (IOException e1) {
+          LOG.debug(e1);
+        }
       }
     }
     throw new ProjectBuildException(e.getMessage());
