@@ -40,7 +40,7 @@
               <component id="45cf2" class="com.intellij.ui.components.JBTextField" binding="myFilterField">
                 <constraints/>
                 <properties>
-                  <preferredSize width="128" height="23"/>
+                  <preferredSize width="192" height="23"/>
                 </properties>
               </component>
               <component id="2a2cf" class="com.intellij.ui.components.JBCheckBox" binding="myIncludeTraceCheckBox" default-binding="true">

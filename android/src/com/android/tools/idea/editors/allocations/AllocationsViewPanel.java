@@ -136,11 +136,13 @@ public class AllocationsViewPanel {
     myFilterField.setText("");
     myIncludeTraceCheckBox.setSelected(false);
     myStackTraceEditorPane.setText("");
-    myAllocationsTable.getRowSorter().modelStructureChanged();
 
     // Clears selected row (if any) and resets focus
     myAllocationsTable.clearSelection();
     myAllocationsPane.requestFocusInWindow();
+
+    myAllocationsTable.getRowSorter().allRowsChanged();
+    myAllocationsTable.updateUI();
 
     myAllocationsPane.getVerticalScrollBar().setValue(0);
     myAllocationsPane.getHorizontalScrollBar().setValue(0);
