@@ -295,4 +295,9 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
       step.updateStep();
     }
   }
+
+  @NotNull
+  public Iterable<WizardPath> getPaths() {
+    return myPaths;
+  }
 }
