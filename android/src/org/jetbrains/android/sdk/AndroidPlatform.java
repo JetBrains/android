@@ -35,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.Set;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+
 /**
  * Created by IntelliJ IDEA.
  * User: Eugene.Kudelevsky
@@ -82,7 +84,7 @@ public class AndroidPlatform {
 
   @Nullable
   public static AndroidPlatform parse(@NotNull Sdk sdk) {
-    if (!(sdk.getSdkType().equals(AndroidSdkType.getInstance()))) {
+    if (!isAndroidSdk(sdk)) {
       return null;
     }
     String sdkPath = sdk.getHomePath();
