@@ -5,10 +5,10 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.ArrayUtil;
@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * @author Eugene.Kudelevsky
  */
-public abstract class AndroidRunSdkToolAction extends AnAction {
+public abstract class AndroidRunSdkToolAction extends DumbAwareAction {
   private static final Logger LOG = Logger.getInstance(AndroidRunSdkToolAction.class);
 
   public AndroidRunSdkToolAction(String text) {
