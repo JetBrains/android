@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
+import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
+import com.intellij.openapi.externalSystem.util.ExternalSystemBundle;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -29,17 +31,21 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.MessageView;
 import com.intellij.util.ThreeState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
+
+import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 
 /**
  * Notifies users that a Gradle project "sync" is either being in progress or failed.
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Logger LOG = Logger.getInstance(ProjectSyncStatusNotificationProvider.class);
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
 
   @NotNull private final Project myProject;
@@ -99,13 +105,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         }
       });
 
-      createActionLabel("Open Event Log", new Runnable() {
+      createActionLabel("Open 'Messages' View", new Runnable() {
         @Override
         public void run() {
-          ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow("Event Log");
-          if (window != null) {
-            window.activate(null, false);
-          }
+          ExternalSystemNotificationManager.getInstance(myProject).openMessageView(GradleConstants.SYSTEM_ID, PROJECT_SYNC);
         }
       });
 
