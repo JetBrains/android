@@ -70,6 +70,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.*;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
   private static final Logger LOG = Logger.getInstance(GradleNotificationExtension.class);
@@ -431,7 +432,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
       Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-      if (moduleSdk != null && moduleSdk.getSdkType().equals(AndroidSdkType.getInstance())) {
+      if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
         String sdkHomeDirPath = moduleSdk.getHomePath();
         File addonsDir = new File(sdkHomeDirPath, SdkConstants.FD_ADDONS);
         if (!addonsDir.isDirectory() || FileUtil.notNullize(addonsDir.listFiles()).length == 0) {

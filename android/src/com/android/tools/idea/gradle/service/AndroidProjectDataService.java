@@ -98,7 +98,11 @@ public class AndroidProjectDataService implements ProjectDataService<IdeaAndroid
       }
       catch (Throwable e) {
         LOG.error(String.format("Failed to set up Android modules in project '%1$s'", project.getName()), e);
-        GradleSyncState.getInstance(project).syncFailed(e.getMessage());
+        String msg = e.getMessage();
+        if (msg == null) {
+          msg = e.getClass().getCanonicalName();
+        }
+        GradleSyncState.getInstance(project).syncFailed(msg);
         return;
       }
     }
