@@ -76,6 +76,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+
 
 /**
  * @author Eugene.Kudelevsky
@@ -958,7 +960,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private boolean isAppropriateSdk(@NotNull Sdk sdk, MavenProject mavenProject) {
-    if (!(sdk.getSdkType() == AndroidSdkType.getInstance())) {
+    if (!isAndroidSdk(sdk)) {
       return false;
     }
     final String platformId = getPlatformFromConfig(mavenProject);
