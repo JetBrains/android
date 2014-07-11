@@ -17,10 +17,8 @@ package com.android.tools.idea.gradle.service.notification;
 
 import com.android.SdkConstants;
 import com.android.sdklib.AndroidTargetHash;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalSdk;
@@ -56,7 +54,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -77,18 +74,20 @@ import static com.android.tools.idea.gradle.project.ProjectImportErrorHandler.*;
 public class GradleNotificationExtension implements ExternalSystemNotificationExtension {
   private static final Logger LOG = Logger.getInstance(GradleNotificationExtension.class);
 
+  public static final String FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT = "Failed to sync Gradle project '%1$s'";
+
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
   private static final Pattern MISSING_DEPENDENCY_PATTERN = Pattern.compile("Could not find (.*)\\.");
   private static final Pattern MISSING_MATCHING_DEPENDENCY_PATTERN = Pattern.compile("Could not find any version that matches (.*)\\.");
+
   private static final Pattern UNKNOWN_HOST_PATTERN = Pattern.compile("Unknown host '(.*)'(.*)");
 
   private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
     Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
-
   private static final Pattern MISSING_PLATFORM_PATTERN = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
-  private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?failed to find Build Tools revision (.*)");
 
+  private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?failed to find Build Tools revision (.*)");
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
   @NotNull
@@ -464,7 +463,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                  @NotNull final Project project,
                                  @NotNull String errorMsg,
                                  @NotNull NotificationHyperlink... hyperlinks) {
-    String title = String.format("Failed to refresh Gradle project '%1$s'", project.getName());
+    String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
     updateNotification(notification, project, title, errorMsg, hyperlinks);
   }
 
