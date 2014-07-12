@@ -38,7 +38,8 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
   private final Module myModule;
 
   public AndroidModuleConfigurable(Project project, Module module, String modulePath) {
-    myDisplayName = modulePath.substring(modulePath.lastIndexOf(SdkConstants.GRADLE_PATH_SEPARATOR) + 1);
+    String moduleName = modulePath.substring(modulePath.lastIndexOf(SdkConstants.GRADLE_PATH_SEPARATOR) + 1);
+    myDisplayName = moduleName.isEmpty() ? project.getName() : moduleName;
     myModuleEditor = new AndroidModuleEditor(project, modulePath);
     myModule = module;
   }
