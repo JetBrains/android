@@ -18,13 +18,16 @@ package com.android.tools.idea.editors.allocations;
 import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AllocationsParser;
 import com.android.ddmlib.allocations.AllocationsParserTest;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.table.JBTable;
-import org.easymock.EasyMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import org.easymock.EasyMock;
+import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -142,10 +145,6 @@ public class ViewPanelSortTest {
 
   @BeforeClass
   public static void oneTimeSetUp() throws Exception {
-    Project mockProject = EasyMock.createMock(Project.class);
-    EasyMock.replay(mockProject);
-    AllocationsViewPanel panel = new AllocationsViewPanel(mockProject);
-
     ByteBuffer data = AllocationsParserTest.putAllocationInfo(new String[]{HEADERS[0][0], HEADERS[1][0], HEADERS[2][0], HEADERS[3][0]},
             new String[]{"eatTiramisu", "failUnitTest", "watchCatVideos", "passGo", "collectFakeMoney", "findWaldo"},
             new String[]{"Red.java", "SomewhatBlue.java", "LightCanaryishGrey.java"},
@@ -161,6 +160,7 @@ public class ViewPanelSortTest {
               {{1, 0, 1, 50}}, {{2, 2, 1, 666}}
             });
     sAllocations = AllocationsParser.parse(data);
+    AllocationsViewPanel panel = getPanel();
     panel.setAllocations(sAllocations.clone());
 
     Stack<Container> containers = new Stack<Container>();
@@ -178,5 +178,30 @@ public class ViewPanelSortTest {
     }
     assertNotNull(sGroupingCheckBox);
     assertNotNull(sAllocationsTable);
+  }
+
+  @NotNull
+  private static AllocationsViewPanel getPanel() {
+    Project mockProject = EasyMock.createMock(Project.class);
+    return new AllocationsViewPanel(mockProject) {
+      @Override
+      PropertiesComponent getProperties() {
+        return null;
+      }
+
+      @Override
+      void setValues(@NotNull String property, @NotNull String[] values) {
+      }
+
+      @Override
+      String[] getValues(@NotNull String property) {
+        return null;
+      }
+
+      @Override
+      ConsoleView getConsoleView() {
+        return null;
+      }
+    };
   }
 }
