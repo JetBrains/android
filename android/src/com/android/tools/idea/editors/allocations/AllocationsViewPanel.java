@@ -24,6 +24,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.JBSplitter;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
@@ -93,6 +94,12 @@ public class AllocationsViewPanel {
 
     myAllocationsTable = new JBTable();
     myAllocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    new TableSpeedSearch(myAllocationsTable) {
+      @Override
+      public int getElementCount() {
+        return myComponent.getRowCount() * myComponent.getColumnCount();
+      }
+    };
     myAllocationsPane = new JBScrollPane(myAllocationsTable);
 
     mySplitter.setFirstComponent(myAllocationsPane);
