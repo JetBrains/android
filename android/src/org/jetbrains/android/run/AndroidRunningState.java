@@ -28,7 +28,6 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -596,6 +595,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         return;
       }
       final AvdManager finalManager = manager;
+      assert finalManager != null;
       runInDispatchedThread(new Runnable() {
         @Override
         public void run() {
@@ -1224,8 +1224,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                 AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
                 String message =
                   errorCode.getMessage() + '\n' + e.getMessage() + '\n' + "The project may need to be synced with Gradle files.";
-                notification.showBalloon("Unexpected Error", message, NotificationType.ERROR,
-                                         new CustomNotificationListener(project, new SyncProjectHyperlink()));
+                notification.showBalloon("Unexpected Error", message, NotificationType.ERROR, new SyncProjectHyperlink());
               }
             }
           }
