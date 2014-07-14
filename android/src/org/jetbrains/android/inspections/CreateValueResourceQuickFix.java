@@ -23,6 +23,7 @@ import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -129,8 +130,10 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
         return false;
       }
     }
-    PsiDocumentManager.getInstance(myFile.getProject()).commitAllDocuments();
+    Project project = myFile.getProject();
+    PsiDocumentManager.getInstance(project).commitAllDocuments();
     UndoUtil.markPsiFileForUndo(myFile);
+    AndroidLayoutPreviewToolWindowManager.renderIfApplicable(project);
     return true;
   }
 
