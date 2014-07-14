@@ -53,47 +53,12 @@
           </grid>
         </children>
       </grid>
-      <splitpane id="ab63a">
+      <component id="f1054" class="com.intellij.ui.JBSplitter" binding="mySplitter">
         <constraints border-constraint="Center"/>
         <properties>
-          <dividerLocation value="158"/>
-          <orientation value="0"/>
+          <orientation value="true"/>
         </properties>
-        <border type="none"/>
-        <children>
-          <scrollpane id="5b9c5" class="com.intellij.ui.components.JBScrollPane" binding="myAllocationsPane">
-            <constraints>
-              <splitpane position="left"/>
-            </constraints>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <component id="6963d" class="com.intellij.ui.table.JBTable" binding="myAllocationsTable">
-                <constraints/>
-                <properties>
-                  <autoCreateRowSorter value="false"/>
-                </properties>
-              </component>
-            </children>
-          </scrollpane>
-          <scrollpane id="61891" class="com.intellij.ui.components.JBScrollPane">
-            <constraints>
-              <splitpane position="right"/>
-            </constraints>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <component id="1c69b" class="javax.swing.JEditorPane" binding="myStackTraceEditorPane">
-                <constraints/>
-                <properties>
-                  <contentType value="text/html"/>
-                  <editable value="false"/>
-                </properties>
-              </component>
-            </children>
-          </scrollpane>
-        </children>
-      </splitpane>
+      </component>
     </children>
   </grid>
 </form>

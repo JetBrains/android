@@ -17,27 +17,18 @@ package com.android.tools.idea.editors.allocations;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AllocationInfo;
-import com.google.common.collect.Lists;
-import com.intellij.execution.filters.ExceptionInfoCache;
-import com.intellij.execution.filters.ExceptionWorker;
+import com.intellij.execution.filters.TextConsoleBuilder;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.Trinity;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredTableCellRenderer;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
-import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,22 +48,22 @@ public class AllocationsViewPanel {
   static final String ALLOCATIONS_TABLE_NAME = "myAllocationsTable";
   private static final String COLUMN_ORDER_PROPERTY = "android.allocationsview.column.ordering";
   private static final String COLUMN_WIDTH_PROPERTY = "android.allocationsview.column.widths";
-  private static final String SEPARATOR = ":";
 
   private JPanel myContainer;
   private JBCheckBox myGroupingCheckBox;
-  private JBTable myAllocationsTable;
   private JBTextField myFilterField;
   private JBCheckBox myIncludeTraceCheckBox;
+  private JBSplitter mySplitter;
+
+  private JBTable myAllocationsTable;
   private JBScrollPane myAllocationsPane;
-  private JEditorPane myStackTraceEditorPane;
+  private ConsoleView myConsoleView;
 
   private Project myProject;
   private PropertiesComponent myProperties;
 
   private AllocationInfo[] myAllocations;
   private AllocationsViewModel myViewModel;
-  private TIntObjectHashMap<StackTrace> myStackTraces;
 
   @VisibleForTesting
   enum Column {
@@ -100,13 +91,16 @@ public class AllocationsViewPanel {
 
     // Grouping not yet implemented
     myGroupingCheckBox.setVisible(false);
-    myAllocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-    myStackTraceEditorPane.addHyperlinkListener(new StackTraceListener());
-    myStackTraceEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    myStackTraceEditorPane.setFont(myAllocationsTable.getFont());
-    // Shows a text cursor inside stack trace pane so user knows text is selectable
-    myStackTraceEditorPane.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+    myAllocationsTable = new JBTable();
+    myAllocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myAllocationsPane = new JBScrollPane(myAllocationsTable);
+
+    mySplitter.setFirstComponent(myAllocationsPane);
+
+    TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(myProject);
+    myConsoleView = consoleBuilder.getConsole();
+    mySplitter.setSecondComponent(myConsoleView.getComponent());
 
     // Lets ViewPanelSortTest find these components for testing
     myGroupingCheckBox.setName(GROUPING_CHECKBOX_NAME);
@@ -216,7 +210,7 @@ public class AllocationsViewPanel {
   private void resetTableView() {
     myFilterField.setText("");
     myIncludeTraceCheckBox.setSelected(false);
-    myStackTraceEditorPane.setText("");
+    myConsoleView.clear();
 
     // Clears selected row (if any) and resets focus
     myAllocationsTable.clearSelection();
@@ -236,7 +230,6 @@ public class AllocationsViewPanel {
     } else {
       resetTableView();
     }
-    myStackTraces = new TIntObjectHashMap<StackTrace>();
   }
 
   private class AllocationsViewModel {
@@ -359,48 +352,20 @@ public class AllocationsViewPanel {
           return;
         }
 
-        if (myStackTraces.get(row) == null) {
-          parseStackTrace(row);
-        }
-        myStackTraceEditorPane.setText(myStackTraces.get(row).toString());
-        myStackTraceEditorPane.setCaretPosition(0);
+        myConsoleView.clear();
+        myConsoleView.print(getStackTrace(row), ConsoleViewContentType.NORMAL_OUTPUT);
+        myConsoleView.scrollTo(0);
       }
 
-      private void parseStackTrace(int row) {
-        StackTraceElement[] elements = myAllocations[row].getStackTrace();
-        StackTrace trace = new StackTrace(elements.length);
-
-        ProjectFileIndex index = ProjectRootManager.getInstance(myProject).getFileIndex();
-        StringBuilder traceBuilder = new StringBuilder();
-        ExceptionWorker worker = new ExceptionWorker(new ExceptionInfoCache(GlobalSearchScope.allScope(myProject)));
-
-        for (int i = 0; i < elements.length; ++i) {
-          String line = "at " + elements[i].toString();
-          line = line.replaceAll("<", "&lt;");
-          line = line.replaceAll(">", "&gt");
-          worker.execute(line, line.length());
-          PsiFile file = worker.getFile();
-          VirtualFile vf;
-          if (file != null) {
-            vf = file.getVirtualFile();
-            // If a line in the stack trace has no line number info, ExceptionWorker keeps the previous file
-            if (i == 0 || !vf.equals(trace.getVirtualFile(i - 1))) {
-              trace.setVirtualFile(i, vf);
-              if (index.isInContent(vf)) {
-                Trinity<TextRange, TextRange, TextRange> info = worker.getInfo();
-                int highlightStartOffset = info.getThird().getStartOffset() + 1;
-                int highlightEndOffset = info.getThird().getEndOffset();
-                line = line.substring(0, highlightStartOffset)
-                       + "<a href='" + row + SEPARATOR + i + "'>" + line.substring(highlightStartOffset, highlightEndOffset) + "</a>"
-                       + line.substring(highlightEndOffset);
-              }
-            }
-          }
-          traceBuilder.append(line);
-          traceBuilder.append("<br />");
+      private String getStackTrace(int row) {
+        StringBuilder stackTrace = new StringBuilder();
+        StackTraceElement[] stackTraceElements = myAllocations[row].getStackTrace();
+        for (StackTraceElement element : stackTraceElements) {
+          stackTrace.append("at ");
+          stackTrace.append(element.toString());
+          stackTrace.append("\n");
         }
-        trace.setDescription(traceBuilder.toString());
-        myStackTraces.put(row, trace);
+        return stackTrace.toString();
       }
     }
 
@@ -438,57 +403,6 @@ public class AllocationsViewPanel {
         } else {
           this.setTextAlign(SwingConstants.LEFT);
         }
-      }
-    }
-  }
-
-  private static class StackTrace {
-    private String myDescription;
-    private VirtualFile[] myFiles;
-
-    public StackTrace(int depth) {
-      myFiles = new VirtualFile[depth];
-    }
-
-    public void setVirtualFile(int index, @Nullable VirtualFile vf) {
-      myFiles[index] = vf;
-    }
-
-    public void setDescription(@NotNull String description) {
-      myDescription = description;
-    }
-
-    @Nullable
-    public VirtualFile getVirtualFile(int index) {
-      return myFiles[index];
-    }
-
-    @NotNull
-    public String toString() {
-      return myDescription;
-    }
-  }
-
-  private class StackTraceListener implements HyperlinkListener {
-    @Override
-    public void hyperlinkUpdate(HyperlinkEvent e) {
-      if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-        String[] fileInfo = e.getDescription().split(SEPARATOR);
-        if (fileInfo.length != 2) {
-          Messages.showErrorDialog("Cannot get file information", "AllocationsViewPanel");
-          return;
-        }
-        int row = Integer.parseInt(fileInfo[0]);
-        int frame = Integer.parseInt(fileInfo[1]);
-
-        int lineNumber = myAllocations[row].getStackTrace()[frame].getLineNumber();
-        VirtualFile vf = myStackTraces.get(row).getVirtualFile(frame);
-        if (vf == null) {
-          Messages.showErrorDialog("Cannot find file", "AllocationsViewPanel");
-          return;
-        }
-        OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf, lineNumber - 1, 0);
-        FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
       }
     }
   }
