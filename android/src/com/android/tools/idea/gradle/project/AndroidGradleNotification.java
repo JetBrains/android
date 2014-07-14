@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.google.common.base.Objects;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
@@ -45,28 +47,61 @@ public class AndroidGradleNotification {
     myProject = project;
   }
 
-  public void showBalloon(@NotNull String title, @NotNull String message, @NotNull NotificationType type) {
-    showBalloon(title, message, type, null);
+  public void showBalloon(@NotNull String title, @NotNull String text, @NotNull NotificationType type) {
+    showBalloon(title, text, type, (NotificationListener)null);
   }
 
-
-  public void showBalloon(@NotNull final String title,
-                          @NotNull final String message,
-                          @NotNull final NotificationType type,
-                          @Nullable final NotificationListener listener) {
-    showBalloon(title, message, type, NOTIFICATION_GROUP, listener);
+  public void showBalloon(@NotNull String title,
+                          @NotNull String text,
+                          @NotNull NotificationType type,
+                          @NotNull NotificationHyperlink... hyperlinks) {
+    showBalloon(title, text, type, NOTIFICATION_GROUP, hyperlinks);
   }
 
-  public void showBalloon(@NotNull final String title,
-                          @NotNull final String message,
-                          @NotNull final NotificationType type,
-                          @NotNull final NotificationGroup group,
-                          @Nullable final NotificationListener listener) {
+  public void showBalloon(@NotNull String title,
+                          @NotNull String text,
+                          @NotNull NotificationType type,
+                          @NotNull NotificationGroup group,
+                          @NotNull NotificationHyperlink... hyperlinks) {
+    NotificationListener notificationListener = new CustomNotificationListener(myProject, hyperlinks);
+    String newText = addHyperlinksToText(text, hyperlinks);
+    showBalloon(title, newText, type, group, notificationListener);
+  }
+
+  @NotNull
+  private static String addHyperlinksToText(@NotNull String text, @NotNull NotificationHyperlink... hyperlinks) {
+    // We need both "<br>" and "\n" to separate lines. IDEA will show this message in a balloon (which respects "<br>", and in the
+    // 'Event Log' tool window, which respects "\n".)
+    if (hyperlinks.length == 0) {
+      return text;
+    }
+    StringBuilder b = new StringBuilder();
+    b.append(text);
+
+    for (NotificationHyperlink hyperlink : hyperlinks) {
+      b.append("<br>\n").append(hyperlink.toString());
+    }
+
+    return b.toString();
+  }
+
+  public void showBalloon(@NotNull String title,
+                          @NotNull String text,
+                          @NotNull NotificationType type,
+                          @Nullable NotificationListener listener) {
+    showBalloon(title, text, type, NOTIFICATION_GROUP, listener);
+  }
+
+  public void showBalloon(@NotNull String title,
+                          @NotNull String text,
+                          @NotNull NotificationType type,
+                          @NotNull NotificationGroup group,
+                          @Nullable NotificationListener listener) {
+    final Notification notification = group.createNotification(title, text, type, listener);
     Runnable notificationTask = new Runnable() {
       @Override
       public void run() {
         if (!myProject.isDisposed() && myProject.isOpen()) {
-          Notification notification = group.createNotification(title, message, type, listener);
           Notification old = myNotification;
           if (old != null) {
             boolean similar = Objects.equal(notification.getContent(), old.getContent());
