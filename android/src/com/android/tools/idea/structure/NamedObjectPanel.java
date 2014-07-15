@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
@@ -218,7 +219,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       public void run() {
         updatePanelGroup();
       }
-    });
+    }, ModalityState.any());
   }
 
   private int addElement(@NotNull NamedObject object) {
