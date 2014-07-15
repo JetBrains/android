@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.allocations;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AllocationInfo;
-import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -87,7 +86,7 @@ public class AllocationsViewPanel {
   }
 
   private void init() {
-    myProperties = PropertiesComponent.getInstance();
+    myProperties = getProperties();
 
     // Grouping not yet implemented
     myGroupingCheckBox.setVisible(false);
@@ -98,9 +97,10 @@ public class AllocationsViewPanel {
 
     mySplitter.setFirstComponent(myAllocationsPane);
 
-    TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(myProject);
-    myConsoleView = consoleBuilder.getConsole();
-    mySplitter.setSecondComponent(myConsoleView.getComponent());
+    myConsoleView = getConsoleView();
+    if (myConsoleView != null) {
+      mySplitter.setSecondComponent(myConsoleView.getComponent());
+    }
 
     // Lets ViewPanelSortTest find these components for testing
     myGroupingCheckBox.setName(GROUPING_CHECKBOX_NAME);
@@ -144,7 +144,7 @@ public class AllocationsViewPanel {
         for (int i = 0; i < columnOrdering.length; ++i) {
           columnOrdering[i] = Integer.toString(myAllocationsTable.getColumnModel().getColumn(i).getModelIndex());
         }
-        myProperties.setValues(COLUMN_ORDER_PROPERTY, columnOrdering);
+        setValues(COLUMN_ORDER_PROPERTY, columnOrdering);
       }
 
       @Override
@@ -157,14 +157,14 @@ public class AllocationsViewPanel {
       }
     });
 
-    String[] columnOrdering = myProperties.getValues(COLUMN_ORDER_PROPERTY);
+    String[] columnOrdering = getValues(COLUMN_ORDER_PROPERTY);
     if (columnOrdering != null) {
       for (int i = 0; i < columnOrdering.length; ++i) {
         myAllocationsTable.getColumnModel().moveColumn(myAllocationsTable.convertColumnIndexToView(Integer.parseInt(columnOrdering[i])), i);
       }
     }
 
-    String[] columnWidths = myProperties.getValues(COLUMN_WIDTH_PROPERTY);
+    String[] columnWidths = getValues(COLUMN_WIDTH_PROPERTY);
     if (columnWidths == null) {
       columnWidths = getDefaultColumnWidths();
     }
@@ -204,7 +204,7 @@ public class AllocationsViewPanel {
     for (Column column : columns) {
       widths[column.ordinal()] = Integer.toString(myAllocationsTable.getColumn(column.description).getWidth());
     }
-    myProperties.setValues(COLUMN_WIDTH_PROPERTY, widths);
+    setValues(COLUMN_WIDTH_PROPERTY, widths);
   }
 
   private void resetTableView() {
@@ -230,6 +230,29 @@ public class AllocationsViewPanel {
     } else {
       resetTableView();
     }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  PropertiesComponent getProperties() {
+    return PropertiesComponent.getInstance();
+  }
+
+  @VisibleForTesting
+  void setValues(@NotNull String property, @NotNull String[] values) {
+    myProperties.setValues(property, values);
+  }
+
+  @VisibleForTesting
+  @Nullable
+  String[] getValues(@NotNull String property) {
+    return myProperties.getValues(property);
+  }
+
+  @VisibleForTesting
+  @Nullable
+  ConsoleView getConsoleView() {
+    return TextConsoleBuilderFactory.getInstance().createBuilder(myProject).getConsole();
   }
 
   private class AllocationsViewModel {
