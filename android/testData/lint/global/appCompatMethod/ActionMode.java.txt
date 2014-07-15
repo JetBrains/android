@@ -1,0 +1,9 @@
+package android.support.v7.view;
+
+/**
+ * Just a unit testing stub
+ */
+public class ActionMode {
+    public interface Callback {
+    }
+}

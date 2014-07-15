@@ -1,13 +1,23 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.tools.lint.checks.CommentDetector;
+import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -41,6 +51,8 @@ public class AndroidLintTest extends AndroidTestCase {
     if ("testImlFileOutsideContentRoot".equals(getName())) {
       addModuleWithAndroidFacet(projectBuilder, modules, "module1", true);
       addModuleWithAndroidFacet(projectBuilder, modules, "module2", true);
+    } else if ("testAppCompatMethod".equals(getName())) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", false);
     }
   }
 
@@ -204,6 +216,188 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/res/values/typography.xml", "xml");
   }
 
+  public void testAlwaysShowAction() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAlwaysShowActionInspection(),
+                  "Replace with ifRoom", "/res/menu/menu.xml", "xml");
+  }
+
+  public void testAppCompatMethod() throws Exception {
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    for (Module module : modules) {
+      if (module != myModule && AndroidFacet.getInstance(module) != null) {
+        deleteManifest(module);
+      }
+    }
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "additionalModules/appcompat/AndroidManifest.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/ActionBarActivity.java.txt", "src/android/support/v7/app/ActionBarActivity.java");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/ActionMode.java.txt", "src/android/support/v7/view/ActionMode.java");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAppCompatMethodInspection(),
+                  "Replace with getSupportActionBar()", "/src/test/pkg/AppCompatTest.java", "java");
+  }
+
+  public void testUseValueOf() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUseValueOfInspection(),
+                  "Replace with valueOf()", "/src/test/pkg/UseValueOf.java", "java");
+  }
+
+  public void testEditEncoding() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintEnforceUTF8Inspection(),
+                  "Replace with utf-8", "/res/layout/layout.xml", "xml");
+  }
+
+  /* Inspections disabled; these tests make network connection to MavenCentral and can change every time there
+     is a new version available (which makes for unstable tests)
+
+  public void testNewerAvailable() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintNewerVersionAvailableInspection(),
+                  "Update to 17.0.0", "build.gradle", "gradle");
+  }
+
+  public void testGradlePlus() throws Exception {
+    GradleDetector.PLUS.setEnabledByDefault(true);
+    // NOTE: The android support repository must be installed in the SDK used by the test!
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDynamicVersionInspection(),
+                  "Replace with specific version", "build.gradle", "gradle");
+  }
+
+  */
+
+  public void testObsoleteDependency() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDependencyInspection(),
+                  "Change to 17.0.0", "build.gradle", "gradle");
+  }
+
+  public void testGradleDeprecation() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDeprecatedInspection(),
+                  "Replace with com.android.library", "build.gradle", "gradle");
+  }
+
+  public void testCheckPermission() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintUseCheckPermissionInspection(),
+                  "Change check to enforce", "/src/test/pkg/CheckPermissionTest.java", "java");
+  }
+
+  public void testMissingAppIcon() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingApplicationIconInspection(),
+                  "Set application icon", "AndroidManifest.xml", "xml");
+  }
+
+  public void testAllowBackup() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintAllowBackupInspection(),
+                  "Set backup attribute", "AndroidManifest.xml", "xml");
+  }
+
+  public void testRemoveByteOrderMarks() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintByteOrderMarkInspection(),
+                  "Remove byte order marks", "/res/layout/layout.xml", "xml");
+  }
+
+  public void testCommitToApply() throws Exception {
+    deleteManifest();
+    // Need to use targetSdkVersion 9
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintCommitPrefEditsInspection(),
+                  "Replace commit() with apply()", "/src/test/pkg/CommitToApply.java", "java");
+  }
+
+  public void testIncludeParams() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintIncludeLayoutParamInspection(),
+                  "Set layout_height", "/res/layout/layout.xml", "xml");
+  }
+
+  public void testInnerclassSeparator() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintInnerclassSeparatorInspection(),
+                  "Replace with .MyActivity$Inner", "AndroidManifest.xml", "xml");
+  }
+
+  public void testMenuTitle() throws Exception {
+    deleteManifest();
+    // Need to use targetSdkVersion 11
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMenuTitleInspection(),
+                  "Set title", "/res/menu/menu.xml", "xml");
+  }
+
+  public void testFragmentIds() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintMissingIdInspection(),
+                  "Set id", "/res/layout/layout.xml", "xml");
+  }
+
+  public void testOldTargetApi() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintOldTargetApiInspection(),
+                  "Update targetSdkVersion to 20", "AndroidManifest.xml", "xml");
+  }
+
+  /*
+  public void testOldTargetApiGradle() throws Exception {
+    // Doesn't work in incremental mode because this issue is also used for manifest files;
+    // we don't well support implementations pointing to different detectors for each file type
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintOldTargetApiInspection(),
+                  "Change to 17.0.0", "build.gradle", "gradle");
+  }
+  */
+
+  public void testPropertyFiles() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintPropertyEscapeInspection(),
+                  "Replace with C:\\\\foo\\\\bar", "local.properties", "properties");
+  }
+
+  public void testReferenceTypes() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintReferenceTypeInspection(),
+                  "Replace with @string/", "/res/values/strings.xml", "xml");
+  }
+
+  public void testSelectableText() throws Exception {
+    TextViewDetector.SELECTABLE.setEnabledByDefault(true);
+
+    deleteManifest();
+    // Need to use targetSdkVersion 11
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintSelectableTextInspection(), "Set android:textIsSelectable=true",
+                  "/res/layout/layout.xml", "xml");
+  }
+
+  public void testSignatureOrSystem() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintSignatureOrSystemPermissionsInspection(),
+                  "Replace with signature", "AndroidManifest.xml", "xml");
+  }
+
+  public void testSp() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintSpUsageInspection(),
+                  "Replace with sp", "/res/values/styles.xml", "xml");
+  }
+
+  public void testStopShip() throws Exception {
+    CommentDetector.STOP_SHIP.setEnabledByDefault(true);
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintStopShipInspection(), "Remove STOPSHIP", "/src/test/pkg/StopShip.java",
+                  "java");
+  }
+
+  public void testStringToInt() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintStringShouldBeIntInspection(),
+                  "Replace with integer", "build.gradle", "gradle");
+  }
+
+  public void testStringTypos() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintTyposInspection(),
+                  "Replace with \"the\"", "/res/values-no/strings.xml", "xml");
+  }
+
+  public void testWrongViewCall() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintWrongCallInspection(),
+                  "Replace call with draw()", "/src/test/pkg/WrongViewCall.java", "java");
+  }
+
+  public void testWrongCase() throws Exception {
+    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintWrongCaseInspection(),
+                  "Replace with merge", "/res/layout/layout.xml", "xml");
+  }
+
   public void testProguard() throws Exception {
     createManifest();
     final VirtualFile proguardCfgPath = myFixture.copyFileToProject(getGlobalTestDir() + "/proguard.cfg", "proguard.cfg");
@@ -358,9 +552,9 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestHighlighting(inspection, copyTo, extension);
 
     IntentionAction action = null;
-
     for (IntentionAction a : myFixture.getAvailableIntentions()) {
-      if (message.equals(a.getText())) {
+      String text = a.getText();
+      if (message.equals(text)) {
         action = a;
       }
     }

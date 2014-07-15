@@ -1,0 +1,6 @@
+<warning descr="'android-library' is deprecated; use 'com.android.library' instead">apply plugin: 'android-library'</warning>
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.0"
+}
