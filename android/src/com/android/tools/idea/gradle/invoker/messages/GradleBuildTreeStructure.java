@@ -40,10 +40,12 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
   private final ListMultimap<String, NavigatableMessageElement> myGroupNameToMessagesMap = ArrayListMultimap.create();
 
   @NotNull private final Project myProject;
+  @NotNull private final GradleBuildTreeViewConfiguration myConfiguration;
 
-  GradleBuildTreeStructure(@NotNull Project project, boolean canHideWarnings) {
-    super(project, canHideWarnings);
+  GradleBuildTreeStructure(@NotNull Project project, @NotNull GradleBuildTreeViewConfiguration configuration) {
+    super(project, false);
     myProject = project;
+    myConfiguration = configuration;
   }
 
   @Nullable
@@ -61,13 +63,38 @@ public class GradleBuildTreeStructure extends ErrorViewStructure {
   @Override
   public ErrorTreeElement[] getChildElements(Object element) {
     if (element instanceof ErrorTreeElement && element.getClass().getName().contains("MyRootElement")) {
-      return myMessages.toArray(new ErrorTreeElement[myMessages.size()]);
+      List<ErrorTreeElement> messages = Lists.newArrayListWithExpectedSize(myMessages.size());
+      for (ErrorTreeElement message : myMessages) {
+        if (canShow(message)) {
+           messages.add(message);
+        }
+      }
+      return messages.toArray(new ErrorTreeElement[messages.size()]);
     }
     if (element instanceof GroupingElement) {
       List<NavigatableMessageElement> children = myGroupNameToMessagesMap.get(((GroupingElement)element).getName());
-      return children.toArray(new ErrorTreeElement[children.size()]);
+      List<ErrorTreeElement> messages = Lists.newArrayListWithExpectedSize(children.size());
+      for (NavigatableMessageElement message : children) {
+        if (canShow(message)) {
+          messages.add(message);
+        }
+      }
+      return messages.toArray(new ErrorTreeElement[messages.size()]);
     }
     return ErrorTreeElement.EMPTY_ARRAY;
+  }
+
+  private boolean canShow(@NotNull ErrorTreeElement element) {
+    if (element instanceof GroupingElement) {
+      List<NavigatableMessageElement> children = myGroupNameToMessagesMap.get(((GroupingElement)element).getName());
+      for (NavigatableMessageElement child : children) {
+        if (canShow(child)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return myConfiguration.canShow(element.getKind());
   }
 
   @Override
