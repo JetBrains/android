@@ -7,6 +7,7 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.persistence.database.DataSourceInfo;
 import com.intellij.persistence.database.DataSourceTemplate;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
 import com.intellij.util.xmlb.annotations.Tag;
@@ -96,7 +97,8 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
 
   @NotNull
   public String buildUrl() {
-    return "jdbc:sqlite:" + FileUtil.toSystemDependentName(FileUtil.toCanonicalPath(buildLocalDbFileOsPath()));
+    String path = buildLocalDbFileOsPath();
+    return StringUtil.isEmpty(path) ? "" : "jdbc:sqlite:" + FileUtil.toSystemDependentName(FileUtil.toCanonicalPath(path));
   }
 
   @NotNull
