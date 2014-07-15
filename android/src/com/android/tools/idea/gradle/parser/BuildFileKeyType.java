@@ -118,15 +118,14 @@ public enum BuildFileKeyType {
 
     @Override
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
-      String path = FileUtil.toSystemIndependentName(((File)value).getPath());
       arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject())
-                    .createStatementFromText(Constants.FILE_METHOD_CALL + "('" + escapeLiteralString(path) + "')"));
+                    .createStatementFromText(Constants.FILE_METHOD_CALL + "('" + getFilePath(value, true) + "')"));
     }
 
     @Override
     @NotNull
     public String convertValueToExpression(@NotNull Object value) {
-      return Constants.FILE_METHOD_CALL + "('" + escapeLiteralString(value.toString()) + "')";
+      return Constants.FILE_METHOD_CALL + "('" + getFilePath(value, true) + "')";
     }
   },
   FILE_AS_STRING(File.class, "''") { // Represented in Groovy as '/path/to/file'
@@ -143,14 +142,13 @@ public enum BuildFileKeyType {
 
     @Override
     public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
-      String path = FileUtil.toSystemIndependentName(((File)value).getPath());
-      arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createLiteralFromValue(path));
+      arg.replace(GroovyPsiElementFactory.getInstance(arg.getProject()).createLiteralFromValue(getFilePath(value, false)));
     }
 
     @Override
     @NotNull
     public String convertValueToExpression(@NotNull Object value) {
-      return "'" + escapeLiteralString(value.toString()) + "'";
+      return "'" + getFilePath(value, true) + "'";
     }
   },
   REFERENCE(String.class, "reference") {
@@ -177,6 +175,11 @@ public enum BuildFileKeyType {
   @NotNull
   public String convertValueToExpression(@NotNull Object value) {
     return value.toString();
+  }
+
+  private static String getFilePath(Object value, boolean escape) {
+    String path = FileUtil.toSystemIndependentName(((File)value).getPath());
+    return escape ? escapeLiteralString(path) : path;
   }
 
   @Nullable
