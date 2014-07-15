@@ -196,14 +196,14 @@ public final class DefaultSdks {
 
   /**
    * Sets the path of Android Studio's default Android SDK. This method should be called in a write action. It is assumed that the given
-   * path has been validated by {@link #validateAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
+   * path has been validated by {@link #isValidAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
    *
    *
    * @param path the path of the Android SDK.
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
   public static List<Sdk> setDefaultAndroidHome(@NotNull File path, @Nullable Sdk javaSdk) {
-    if (validateAndroidSdkPath(path)) {
+    if (isValidAndroidSdkPath(path)) {
       assert ApplicationManager.getApplication().isWriteAccessAllowed();
 
       // Since removing SDKs is *not* asynchronous, we force an update of the SDK Manager.
@@ -244,8 +244,8 @@ public final class DefaultSdks {
   /**
    * @return {@code true} if the given Android SDK path points to a valid Android SDK.
    */
-  public static boolean validateAndroidSdkPath(@NotNull File path) {
-    return AndroidSdkType.validateAndroidSdk(path.getPath()).first;
+  public static boolean isValidAndroidSdkPath(@NotNull File path) {
+    return AndroidSdkType.validateAndroidSdk(path.getPath()).getFirst();
   }
 
   @NotNull
