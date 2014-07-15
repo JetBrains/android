@@ -580,12 +580,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
         if (r instanceof PsiReferenceExpression) {
           if (R_CLASS.equals(((PsiReferenceExpression)r).getReferenceName())) {
             String typeName = typeDef.getReferenceName();
-            for (ResourceType type : allowedValues.types) {
-              if (type.getName().equals(typeName)) {
-                return VALID;
-              }
-            }
-            return INVALID;
+            return isTypeAllowed(allowedValues, typeName);
           }
         }
       }
@@ -600,12 +595,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
             if (outerMost instanceof PsiClass && R_CLASS.equals(((PsiClass)outerMost).getName())) {
               PsiClass typeClass = (PsiClass)parent;
               String typeClassName = typeClass.getName();
-              for (ResourceType type : allowedValues.types) {
-                if (type.getName().equals(typeClassName)) {
-                  return VALID;
-                }
-              }
-              return INVALID;
+              return isTypeAllowed(allowedValues, typeClassName);
             }
           }
         }
@@ -676,6 +666,21 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     }
 
     return UNCERTAIN;
+  }
+
+  private static int isTypeAllowed(@NotNull AllowedValues allowedValues, @NotNull String typeName) {
+    if (allowedValues.types != null) {
+      for (ResourceType type : allowedValues.types) {
+        if (type.getName().equals(typeName)) {
+          return VALID;
+        }
+        if (type == ResourceType.DRAWABLE && ResourceType.COLOR.getName().equals(typeName)) {
+          // Can also supply colors for drawables
+          return VALID;
+        }
+      }
+    }
+    return INVALID;
   }
 
   // Would be nice to reuse the MagicConstantInspection's cache for this, but it's not accessible
