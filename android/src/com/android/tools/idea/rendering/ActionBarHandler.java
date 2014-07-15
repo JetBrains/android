@@ -27,10 +27,12 @@ import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
@@ -84,7 +86,7 @@ public class ActionBarHandler extends ActionBarCallback {
   /** Flag which controls whether we should be showing the menu */
   private static boolean ourShowMenu = false;
 
-  public static boolean isShowingMenu(@Nullable RenderContext context) {
+  public static boolean isShowingMenu(@SuppressWarnings("UnusedParameters") @Nullable RenderContext context) {
     return ourShowMenu;
   }
 
@@ -113,7 +115,7 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      XmlFile xmlFile = myRenderService.getPsiFile();
+      final XmlFile xmlFile = myRenderService.getPsiFile();
       String commaSeparatedMenus = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         myMenus = new ArrayList<String>();
@@ -129,27 +131,36 @@ public class ActionBarHandler extends ActionBarCallback {
             String pkg = ManifestInfo.get(myRenderService.getModule(), false).getPackage();
             context = startsWithDot ? pkg + context : pkg + '.' + context;
           }
-          Project project = xmlFile.getProject();
-          PsiClass clz = JavaPsiFacade.getInstance(project).findClass(context, GlobalSearchScope.allScope(project));
-          if (clz != null) {
-            for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
-              String matchText = method.getText();
-              Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
-              Set<String> menus = Sets.newTreeSet();
-              int index = 0;
-              while (true) {
-                if (matcher.find(index)) {
-                  menus.add(matcher.group(1));
-                  index = matcher.end();
-                } else {
-                  break;
+          final String fqn = context;
+          ApplicationManager.getApplication().runReadAction(new Runnable() {
+            @Override
+            public void run() {
+              Project project = xmlFile.getProject();
+              PsiClass clz = JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
+              if (clz != null) {
+                for (PsiMethod method : clz.findMethodsByName(ON_CREATE_OPTIONS_MENU, true)) {
+                  if (method instanceof PsiCompiledElement) {
+                    continue;
+                  }
+                  String matchText = method.getText();
+                  Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
+                  Set<String> menus = Sets.newTreeSet();
+                  int index = 0;
+                  while (true) {
+                    if (matcher.find(index)) {
+                      menus.add(matcher.group(1));
+                      index = matcher.end();
+                    } else {
+                      break;
+                    }
+                  }
+                  if (!menus.isEmpty()) {
+                    myMenus = new ArrayList<String>(menus);
+                  }
                 }
               }
-              if (!menus.isEmpty()) {
-                myMenus = new ArrayList<String>(menus);
-              }
             }
-          }
+          });
         }
       }
 
