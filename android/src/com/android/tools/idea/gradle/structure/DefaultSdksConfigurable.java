@@ -115,7 +115,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
     final FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose Android SDK Location", new Function<File, Void>() {
       @Override
       public Void fun(File file) {
-        if (!DefaultSdks.validateAndroidSdkPath(file)) {
+        if (!DefaultSdks.isValidAndroidSdkPath(file)) {
           throw new IllegalArgumentException(CHOOSE_VALID_SDK_DIRECTORY_ERR);
         }
         return null;
@@ -297,7 +297,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   }
 
   public boolean validate() throws ConfigurationException {
-    if (!DefaultSdks.validateAndroidSdkPath(getSdkLocation())) {
+    if (!DefaultSdks.isValidAndroidSdkPath(getSdkLocation())) {
       throw new ConfigurationException(CHOOSE_VALID_SDK_DIRECTORY_ERR);
     }
 
@@ -312,7 +312,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
   public List<ProjectConfigurationError> validateState() {
     List<ProjectConfigurationError> errors = Lists.newArrayList();
 
-    if (!DefaultSdks.validateAndroidSdkPath(getSdkLocation())) {
+    if (!DefaultSdks.isValidAndroidSdkPath(getSdkLocation())) {
       ProjectConfigurationError error =
         new ProjectConfigurationError(CHOOSE_VALID_SDK_DIRECTORY_ERR, mySdkLocationTextField.getTextField());
       errors.add(error);
@@ -334,7 +334,7 @@ public class DefaultSdksConfigurable extends BaseConfigurable implements Validat
     String jdkPath = getDefaultJdkPath();
     String sdkPath = getDefaultSdkPath();
     boolean validJdk = !jdkPath.isEmpty() && JavaSdk.checkForJdk(new File(jdkPath));
-    boolean validSdk = !sdkPath.isEmpty() && DefaultSdks.validateAndroidSdkPath(new File(sdkPath));
+    boolean validSdk = !sdkPath.isEmpty() && DefaultSdks.isValidAndroidSdkPath(new File(sdkPath));
     return !validJdk || !validSdk;
   }
 }
