@@ -152,7 +152,7 @@
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <projectConfigurable instance="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurable" id="gradle.compiler"
+    <projectConfigurable groupId="build" instance="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurable" id="gradle.compiler"
                          displayName="Compiler"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
