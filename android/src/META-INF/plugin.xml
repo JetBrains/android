@@ -165,6 +165,11 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.InsetOrClipOrScaleDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.ShapeDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.AnimationListDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.AnimatedStateListDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.RippleDomFileDescription"/>
+    <!-- Being considered:
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.VectorDomFileDescription"/>
+    -->
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.ColorDomFileDescription"/>
 
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
