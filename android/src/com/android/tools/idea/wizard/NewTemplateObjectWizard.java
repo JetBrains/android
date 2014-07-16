@@ -20,6 +20,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -264,7 +265,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     }
 
     // Calculate package name
-    String applicationPackageName = gradleProject.computePackageName();
+    String applicationPackageName = ManifestInfo.get(myModule, false).getPackage();
     String packageName = null;
     if (myTargetFolder != null && IdeaSourceProvider.containsFile(sourceProvider, VfsUtilCore.virtualToIoFile(myTargetFolder))) {
       packageName = getPackageFromDirectory(VfsUtilCore.virtualToIoFile(myTargetFolder), sourceProvider, myModule, myWizardState);
