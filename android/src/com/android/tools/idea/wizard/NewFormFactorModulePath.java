@@ -128,14 +128,16 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @Override
   public void onPathStarted(boolean fromBeginning) {
     super.onPathStarted(fromBeginning);
-    Set<Key> keys = Sets.newHashSetWithExpectedSize(3);
+    // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
+    myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
+
+    Set<Key> keys = Sets.newHashSetWithExpectedSize(5);
+    keys.add(PACKAGE_NAME_KEY);
     keys.add(SRC_DIR_KEY);
+    keys.add(TEST_DIR_KEY);
     keys.add(PROJECT_LOCATION_KEY);
     keys.add(NUM_ENABLED_FORM_FACTORS_KEY);
     deriveValues(keys);
-
-    // TODO: Refactor handling of presets in TemplateParameterStep2 so that this isn't necessary
-    myParameterStep.setPresetValue(PACKAGE_NAME_KEY.name, myState.get(PACKAGE_NAME_KEY));
   }
 
   @NotNull
