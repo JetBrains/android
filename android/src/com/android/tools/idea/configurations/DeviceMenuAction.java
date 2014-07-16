@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
@@ -100,9 +101,43 @@ public class DeviceMenuAction extends FlatComboAction {
           }
         }
       }
+
+      String skipPrefix = "Android ";
+      if (name.startsWith(skipPrefix)) {
+        name = name.substring(skipPrefix.length());
+      }
     }
 
     return name;
+  }
+
+  /** TODO: Combine with {@link com.android.tools.idea.wizard.FormFactorUtils.FormFactor} */
+  public enum FormFactor {
+    MOBILE, WEAR, GLASS, TV, CAR;
+
+    public static FormFactor getFormFactor(@NotNull Device device) {
+      if (HardwareConfigHelper.isWear(device)) {
+        return WEAR;
+      } else if (HardwareConfigHelper.isTv(device)) {
+        return TV;
+      }
+      // Glass, Car not yet in the device list
+
+      return MOBILE;
+    }
+
+    @NotNull
+    public Icon getIcon() {
+      switch (this) {
+        case CAR: return AndroidIcons.Car;
+        case WEAR: return AndroidIcons.Wear;
+        case TV: return AndroidIcons.Tv;
+        case GLASS: return AndroidIcons.Glass;
+        case MOBILE:
+        default:
+          return AndroidIcons.Mobile;
+      }
+    }
   }
 
   @Override
@@ -123,7 +158,8 @@ public class DeviceMenuAction extends FlatComboAction {
         boolean separatorNeeded = false;
         for (Device device : recent) {
           String label = getLabel(device, isNexus(device));
-          group.add(new SetDeviceAction(myRenderContext, label, device, device == current));
+          Icon icon = FormFactor.getFormFactor(device).getIcon();
+          group.add(new SetDeviceAction(myRenderContext, label, device, icon, device == current));
           separatorNeeded = true;
         }
         if (separatorNeeded) {
@@ -145,7 +181,8 @@ public class DeviceMenuAction extends FlatComboAction {
         if (device != null) {
           String avdName = "AVD: " + avd.getName();
           boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
-          group.add(new SetDeviceAction(myRenderContext, avdName, device, selected));
+          Icon icon = FormFactor.getFormFactor(device).getIcon();
+          group.add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
           separatorNeeded = true;
         }
       }
@@ -212,17 +249,26 @@ public class DeviceMenuAction extends FlatComboAction {
             }
           }
           String label = getLabel(device, true /*nexus*/);
-          group.add(new SetDeviceAction(myRenderContext, label, device, current == device));
+          Icon icon = FormFactor.getFormFactor(device).getIcon();
+          group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
         }
 
         group.addSeparator();
       }
 
-      // Generate the generic menu.
+      // Generate the generic menu. Add separator after Wear & TV devices
+      boolean firstGeneric = true;
       Collections.reverse(generic);
       for (final Device device : generic) {
+        if (firstGeneric) {
+          if (!HardwareConfigHelper.isWear(device) && !HardwareConfigHelper.isTv(device)) {
+            firstGeneric = false;
+            group.addSeparator();
+          }
+        }
         String label = getLabel(device, false /*nexus*/);
-        group.add(new SetDeviceAction(myRenderContext, label, device, current == device));
+        Icon icon = FormFactor.getFormFactor(device).getIcon();
+        group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
       }
     }
 
@@ -257,6 +303,7 @@ public class DeviceMenuAction extends FlatComboAction {
     public SetDeviceAction(@NotNull RenderContext renderContext,
                            @NotNull final String title,
                            @NotNull final Device device,
+                           @Nullable Icon defaultIcon,
                            final boolean select) {
       super(renderContext, title);
       myDevice = device;
@@ -264,6 +311,8 @@ public class DeviceMenuAction extends FlatComboAction {
         getTemplatePresentation().setIcon(AllIcons.Actions.Checked);
       } else if (ConfigurationAction.isBetterMatchLabel(title)) {
         getTemplatePresentation().setIcon(ConfigurationAction.getBetterMatchIcon());
+      } else if (defaultIcon != null) {
+        getTemplatePresentation().setIcon(defaultIcon);
       }
     }
 
