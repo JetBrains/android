@@ -16,18 +16,18 @@
 <devices>
 
   <device id="wear_square" name="Android Wear Square" url="TBD" physicalSize="1.65" physicalHeight="1.17" density="HDPI">
-    <orientation name="port" size="512,460" screenPos="122,88" screenSize="280,280" shadow="shadow.png"
+    <orientation name="port" size="512,460" screenPos="122,88" screenSize="280,280" crop="22,50,474,403" shadow="shadow.png"
                  back="back.png" lights="fore.png" mask="mask.png"/>
     <!-- how do we handle the other orientation? For now, duplicated -->
-    <orientation name="land" size="512,460" screenPos="122,88" screenSize="280,280" shadow="shadow.png"
+    <orientation name="land" size="512,460" screenPos="122,88" screenSize="280,280" crop="22,50,474,403" shadow="shadow.png"
                  back="back.png" lights="fore.png" mask="mask.png"/>
   </device>
 
   <device id="wear_round" name="Android Wear Round" url="TBD" physicalSize="1.65" physicalHeight="1.65" density="HDPI">
-    <orientation name="port" size="512,460" screenPos="96,62" screenSize="320,320" shadow="shadow.png"
+    <orientation name="port" size="512,460" screenPos="96,62" screenSize="320,320" crop="71,36,370,424" shadow="shadow.png"
                  back="back.png" lights="fore.png" mask="mask.png"/>
     <!-- how do we handle the other orientation? For now, duplicated -->
-    <orientation name="land" size="512,460" screenPos="96,62" screenSize="320,320" shadow="shadow.png"
+    <orientation name="land" size="512,460" screenPos="96,62" screenSize="320,320" crop="71,36,370,424" shadow="shadow.png"
                  back="back.png" lights="fore.png" mask="mask.png"/>
   </device>
 
