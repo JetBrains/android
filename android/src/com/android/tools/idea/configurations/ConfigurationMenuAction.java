@@ -20,43 +20,29 @@ import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
-import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
-import com.android.utils.Pair;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.ElementCreator;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.InputValidator;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.StreamUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
 import icons.AndroidIcons;
-import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
@@ -195,7 +181,6 @@ public class ConfigurationMenuAction extends FlatComboAction {
         RenderPreviewManager.toggleLayoutMode(myRenderContext);
       }
     });
-
   }
 
   static void addLocalePreviewAction(@NotNull RenderContext context, @NotNull DefaultActionGroup group, boolean enabled) {
@@ -323,160 +308,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      final VirtualFile file = myRenderContext.getVirtualFile();
-      if (file == null) {
-        assert false;
-        return; // Should not happen
-      }
-      Module module = myRenderContext.getModule();
-      if (module == null) {
-        assert false;
-        return; // Should not happen
-      }
-      final Project project = module.getProject();
-      final FolderConfiguration folderConfig;
-      if (myNewFolder == null) {
-        // Open a file chooser to select the configuration to be created
-        VirtualFile parentFolder = file.getParent();
-        assert parentFolder != null;
-        VirtualFile res = parentFolder.getParent();
-        folderConfig = selectFolderConfig(project, res);
-      }
-      else {
-        folderConfig = FolderConfiguration.getConfigForFolder(myNewFolder);
-      }
-      if (folderConfig == null) {
-        return;
-      }
-
-      Pair<String, VirtualFile> result = ApplicationManager.getApplication().runWriteAction(new Computable<Pair<String, VirtualFile>>() {
-        @Override
-        public Pair<String, VirtualFile> compute() {
-          String folderName = folderConfig.getFolderName(ResourceFolderType.LAYOUT);
-          try {
-            VirtualFile parentFolder = file.getParent();
-            assert parentFolder != null;
-            VirtualFile res = parentFolder.getParent();
-            VirtualFile newParentFolder = res.findChild(folderName);
-            if (newParentFolder == null) {
-              newParentFolder = res.createChildDirectory(this, folderName);
-              if (newParentFolder == null) {
-                String message = String.format("Could not create folder %1$s in %2$s", folderName, res.getPath());
-                return Pair.of(message, null);
-              }
-            }
-
-            final VirtualFile existing = newParentFolder.findChild(file.getName());
-            if (existing != null && existing.exists()) {
-              String message = String.format("File 'res/%1$s/%2$s' already exists!", folderName, file.getName());
-              return Pair.of(message, null);
-            }
-
-            // Attempt to get the document from the PSI file rather than the file on disk: get edited contents too
-            String text;
-            XmlFile xmlFile = myRenderContext.getXmlFile();
-            if (xmlFile != null) {
-              text = xmlFile.getText();
-            }
-            else {
-              text = StreamUtil.readText(file.getInputStream(), "UTF-8");
-            }
-            VirtualFile newFile = newParentFolder.createChildData(this, file.getName());
-            VfsUtil.saveText(newFile, text);
-            return Pair.of(null, newFile);
-          }
-          catch (IOException e2) {
-            String message = String.format("Failed to create File 'res/%1$s/%2$s' : %3$s", folderName, file.getName(), e2.getMessage());
-            return Pair.of(message, null);
-          }
-        }
-      });
-
-      String error = result.getFirst();
-      VirtualFile newFile = result.getSecond();
-      if (error != null) {
-        Messages.showErrorDialog(project, error, "Create Layout");
-      }
-      else {
-        // First create a compatible configuration based on the current configuration
-        Configuration configuration = myRenderContext.getConfiguration();
-        assert configuration != null;
-        ConfigurationManager configurationManager = configuration.getConfigurationManager();
-        configurationManager.createSimilar(newFile, file);
-
-        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, newFile, -1);
-        FileEditorManager.getInstance(project).openEditor(descriptor, true);
-      }
-    }
-  }
-
-  @Nullable
-  private static FolderConfiguration selectFolderConfig(final Project project, VirtualFile res) {
-    final PsiDirectory directory = PsiManager.getInstance(project).findDirectory(res);
-    if (directory == null) {
-      return null;
-    }
-    final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, ResourceFolderType.LAYOUT) {
-      @Override
-      protected InputValidator createValidator() {
-        return new ResourceDirectorySelector(project, directory);
-      }
-    };
-    dialog.setTitle("Select Layout Directory");
-    dialog.show();
-    final InputValidator validator = dialog.getValidator();
-    if (validator != null) {
-      PsiElement[] createdElements = ((ResourceDirectorySelector)validator).getCreatedElements();
-      if (createdElements != null && createdElements.length > 0) {
-        PsiDirectory dir = (PsiDirectory)createdElements[0];
-        return FolderConfiguration.getConfigForFolder(dir.getName());
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Selects (and optionally creates) a layout resource directory
-   */
-  private static class ResourceDirectorySelector extends ElementCreator implements InputValidator {
-    private final PsiDirectory myDirectory;
-    private PsiElement[] myCreatedElements = PsiElement.EMPTY_ARRAY;
-
-    public ResourceDirectorySelector(final Project project, final PsiDirectory directory) {
-      super(project, "Select Layout Directory");
-      myDirectory = directory;
-    }
-
-    @Override
-    public boolean checkInput(final String inputString) {
-      return true;
-    }
-
-    @Override
-    public PsiElement[] create(String newName) throws Exception {
-      return new PsiElement[]{myDirectory.createSubdirectory(newName)};
-    }
-
-    @Override
-    public String getActionName(String newName) {
-      return "Select Layout Directory";
-    }
-
-    @Override
-    public boolean canClose(final String inputString) {
-      // Already exists: ok
-      PsiDirectory subdirectory = myDirectory.findSubdirectory(inputString);
-      if (subdirectory != null) {
-        myCreatedElements = new PsiDirectory[]{subdirectory};
-        return true;
-      }
-      myCreatedElements = tryCreate(inputString);
-      return myCreatedElements.length > 0;
-    }
-
-    public final PsiElement[] getCreatedElements() {
-      return myCreatedElements;
+      OverrideResourceAction.forkResourceFile(myRenderContext, myNewFolder, true);
     }
   }
 }
