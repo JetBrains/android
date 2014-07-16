@@ -62,6 +62,13 @@ public class AndroidIcons {
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
 
+  // Form factors
+  public static final Icon Wear = load("/icons/wear.png");
+  public static final Icon Car = load("/icons/car.png");
+  public static final Icon Glass = load("/icons/glass.png");
+  public static final Icon Mobile = load("/icons/mobile.png");
+  public static final Icon Tv = load("/icons/tv.png");
+
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
     public static final Icon Night = load("/icons/nightmode.png");

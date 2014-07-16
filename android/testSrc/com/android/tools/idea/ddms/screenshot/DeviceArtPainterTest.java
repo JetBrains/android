@@ -49,6 +49,10 @@ public class DeviceArtPainterTest extends TestCase {
         // Already have crop data for this spec; skipping
         continue;
       }
+      if (spec.getName().startsWith("Android Wear ") || spec.getName().startsWith("Android TV")) {
+        // These images are already cropped
+        continue;
+      }
       System.out.println("for spec " + spec.getName() + " -- " + spec.getId());
       FrameData landscapeData = data.getFrameData(ScreenOrientation.LANDSCAPE, Integer.MAX_VALUE);
       // Must use computeImage rather than getImage here since we want to get the
