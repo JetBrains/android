@@ -25,7 +25,6 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.*;
@@ -224,7 +223,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             }
             final Annotation annotation = createAnnotation(holder, message, range, displayLevel);
 
-            for (AndroidLintQuickFix fix : inspection.getQuickFixes(message)) {
+            for (AndroidLintQuickFix fix : inspection.getQuickFixes(startElement, endElement, message)) {
               if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
                 annotation.registerFix(new MyFixingIntention(fix, startElement, endElement));
               }

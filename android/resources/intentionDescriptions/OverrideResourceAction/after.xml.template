@@ -1,0 +1,4 @@
+<resources>
+    <!-- Override in res/values-w820dp/dimens.xml -->
+    <dimen name="activity_horizontal_margin">64dp</dimen>
+</resources>
