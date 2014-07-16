@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
@@ -49,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
 import static com.android.tools.idea.configurations.ConfigurationListener.*;
 
 /**
@@ -322,7 +325,7 @@ public class ConfigurationManager implements Disposable {
     // Look up the default/fallback theme to use for this project (which
     // depends on the screen size when no particular theme is specified
     // in the manifest)
-    return manifest.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize());
+    return manifest.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getDevice());
   }
 
   @NotNull
@@ -465,7 +468,24 @@ public class ConfigurationManager implements Disposable {
 
     myStateVersion++;
     for (Configuration configuration : myCache.values()) {
+      // TODO: Null out the themes too if using a system theme (e.g. where the theme was not chosen
+      // by the activity or manifest default, but inferred based on the device and API level).
+      // For example, if you switch from an Android Wear device (where the default is DeviceDefault) to
+      // a Nexus 5 (where the default is currently Theme.Holo) we should recompute the theme for the
+      // configuration too!
+      boolean updateTheme = false;
+      String theme = configuration.getTheme();
+      if (theme != null && theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
+        updateTheme = true;
+        configuration.startBulkEditing();
+        configuration.setTheme(null);
+      }
+
       configuration.updated(CFG_DEVICE);
+
+      if (updateTheme) {
+        configuration.finishBulkEditing();
+      }
     }
   }
 

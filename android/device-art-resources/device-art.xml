@@ -15,6 +15,32 @@
 -->
 <devices>
 
+  <device id="wear_square" name="Android Wear Square" url="TBD" physicalSize="1.65" physicalHeight="1.17" density="HDPI">
+    <orientation name="port" size="512,460" screenPos="122,88" screenSize="280,280" shadow="shadow.png"
+                 back="back.png" lights="fore.png" mask="mask.png"/>
+    <!-- how do we handle the other orientation? For now, duplicated -->
+    <orientation name="land" size="512,460" screenPos="122,88" screenSize="280,280" shadow="shadow.png"
+                 back="back.png" lights="fore.png" mask="mask.png"/>
+  </device>
+
+  <device id="wear_round" name="Android Wear Round" url="TBD" physicalSize="1.65" physicalHeight="1.65" density="HDPI">
+    <orientation name="port" size="512,460" screenPos="96,62" screenSize="320,320" shadow="shadow.png"
+                 back="back.png" lights="fore.png" mask="mask.png"/>
+    <!-- how do we handle the other orientation? For now, duplicated -->
+    <orientation name="land" size="512,460" screenPos="96,62" screenSize="320,320" shadow="shadow.png"
+                 back="back.png" lights="fore.png" mask="mask.png"/>
+  </device>
+
+  <device id="tv_1080p" name="Android TV 1080p" url="TBD" physicalSize="48" physicalHeight="27" density="XHDPI">
+    <orientation name="land" size="2090,1255" screenPos="85,59" screenSize="1920,1080" shadow="shadow.png"
+                 back="back.png" lights="fore.png"/>
+  </device>
+
+  <device id="tv_720p" name="Android TV 720p" url="TBD" physicalSize="47.9" physicalHeight="27.0" density="TVDPI">
+    <orientation name="land" size="1394,837" screenPos="57,39" screenSize="1280,720" shadow="shadow.png"
+                 back="back.png" lights="fore.png"/>
+  </device>
+
   <device id="nexus_5" name="Nexus 5" url="http://www.google.com/nexus/5/" physicalSize="5" physicalHeight="5.43" density="XXHDPI">
     <orientation name="port" size="1690,2857" screenPos="304,436" screenSize="1080,1920" crop="160,241,1370,2405" shadow="port_shadow.png"
                  back="port_back.png" lights="port_fore.png"/>
