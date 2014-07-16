@@ -18,8 +18,11 @@ package com.android.tools.idea.editors.allocations;
 import com.android.ddmlib.AllocationInfo;
 import com.android.ddmlib.AllocationsParser;
 import com.android.ddmlib.allocations.AllocationsParserTest;
+import com.android.tools.idea.editors.allocations.AllocationsTableUtil.Column;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.table.JBTable;
@@ -103,7 +106,7 @@ public class ViewPanelSortTest {
   private static void checkRow(AllocationInfo allocation, int row) {
     for (int i = 0; i < COLUMN_COUNT; ++i) {
       Object value;
-      switch (AllocationsViewPanel.Column.values()[i]) {
+      switch (Column.values()[i]) {
         case ALLOCATION_ORDER:
           value = allocation.getAllocNumber();
           break;
@@ -127,7 +130,7 @@ public class ViewPanelSortTest {
   }
 
   private static AllocationInfo.SortMode columnToMode(int column) {
-    switch (AllocationsViewPanel.Column.values()[column]) {
+    switch (Column.values()[column]) {
       case ALLOCATION_ORDER:
         return AllocationInfo.SortMode.NUMBER;
       case ALLOCATED_CLASS:
@@ -145,6 +148,8 @@ public class ViewPanelSortTest {
 
   @BeforeClass
   public static void oneTimeSetUp() throws Exception {
+    setApplication();
+
     ByteBuffer data = AllocationsParserTest.putAllocationInfo(new String[]{HEADERS[0][0], HEADERS[1][0], HEADERS[2][0], HEADERS[3][0]},
             new String[]{"eatTiramisu", "failUnitTest", "watchCatVideos", "passGo", "collectFakeMoney", "findWaldo"},
             new String[]{"Red.java", "SomewhatBlue.java", "LightCanaryishGrey.java"},
@@ -153,12 +158,10 @@ public class ViewPanelSortTest {
               {Integer.parseInt(HEADERS[0][1]), 8, 0, 1}, {Integer.parseInt(HEADERS[3][1]), 4, 3, 1},
               {Integer.parseInt(HEADERS[1][1]), 8, 1, 2}, {Integer.parseInt(HEADERS[2][1]), 4, 2, 2},
               {Integer.parseInt(HEADERS[2][1]), 8, 2, 1}, {Integer.parseInt(HEADERS[1][1]), 4, 1, 1}},
-            new short[][][]{
-              {{1, 0, 1, 100}, {2, 5, 1, -2}}, {{0, 1, 0, -1}},
-              {{3, 4, 2, 10001}}, {{0, 3, 0, 0}},
-              {{2, 2, 1, 16}, {3, 4, 2, 10}}, {{0, 3, 0, -2}, {2, 5, 1, 1000}},
-              {{1, 0, 1, 50}}, {{2, 2, 1, 666}}
-            });
+            new short[][][]{{{1, 0, 1, 100}, {2, 5, 1, -2}}, {{0, 1, 0, -1}},
+              {{3, 4, 2, 10001}}, {{0, 3, 0, 0}}, {{2, 2, 1, 16}, {3, 4, 2, 10}},
+              {{0, 3, 0, -2}, {2, 5, 1, 1000}}, {{1, 0, 1, 50}}, {{2, 2, 1, 666}}});
+
     sAllocations = AllocationsParser.parse(data);
     AllocationsViewPanel panel = getPanel();
     panel.setAllocations(sAllocations.clone());
@@ -180,26 +183,21 @@ public class ViewPanelSortTest {
     assertNotNull(sAllocationsTable);
   }
 
+  private static void setApplication() {
+    Disposable mockDisposable = new Disposable() {
+      @Override
+      public void dispose() {
+      }
+    };
+    ApplicationManager.setApplication(new MockApplication(mockDisposable), mockDisposable);
+  }
+
   @NotNull
   private static AllocationsViewPanel getPanel() {
     Project mockProject = EasyMock.createMock(Project.class);
     return new AllocationsViewPanel(mockProject) {
       @Override
-      PropertiesComponent getProperties() {
-        return null;
-      }
-
-      @Override
-      void setValues(@NotNull String property, @NotNull String[] values) {
-      }
-
-      @Override
-      String[] getValues(@NotNull String property) {
-        return null;
-      }
-
-      @Override
-      ConsoleView getConsoleView() {
+      ConsoleView createConsoleView(@NotNull Project project) {
         return null;
       }
     };
