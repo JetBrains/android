@@ -24,6 +24,8 @@ import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -192,17 +194,10 @@ public class DeviceMenuAction extends FlatComboAction {
       }
     }
 
-    // Group the devices by manufacturer, then put them in the menu.
-    // If we don't have anything but Nexus devices, group them together rather than
-    // make many manufacturer submenus.
-    boolean haveNexus = false;
     if (!deviceList.isEmpty()) {
       Map<String, List<Device>> manufacturers = new TreeMap<String, List<Device>>();
       for (Device device : deviceList) {
         List<Device> devices;
-        if (isNexus(device)) {
-          haveNexus = true;
-        }
         if (manufacturers.containsKey(device.getManufacturer())) {
           devices = manufacturers.get(device.getManufacturer());
         }
@@ -213,66 +208,33 @@ public class DeviceMenuAction extends FlatComboAction {
         devices.add(device);
       }
       List<Device> nexus = new ArrayList<Device>();
-      List<Device> generic = new ArrayList<Device>();
-      if (haveNexus) {
-        // Nexus
-        for (List<Device> devices : manufacturers.values()) {
-          for (Device device : devices) {
-            if (isNexus(device)) {
-              if (device.getManufacturer().equals(MANUFACTURER_GENERIC)) {
-                generic.add(device);
-              }
-              else {
-                nexus.add(device);
-              }
-            }
-            else {
-              generic.add(device);
-            }
+      Map<FormFactor,List<Device>> deviceMap = Maps.newEnumMap(FormFactor.class);
+      for (FormFactor factor : FormFactor.values()) {
+        deviceMap.put(factor, Lists.<Device>newArrayList());
+      }
+      for (List<Device> devices : manufacturers.values()) {
+        for (Device device : devices) {
+          if (isNexus(device) && !device.getManufacturer().equals(MANUFACTURER_GENERIC)) {
+            nexus.add(device);
+          } else {
+            deviceMap.get(FormFactor.getFormFactor(device)).add(device);
           }
         }
       }
 
-      if (!nexus.isEmpty()) {
-        sortNexusList(nexus);
-        for (final Device device : nexus) {
-          if (device.getId().equals("Nexus 5")) {
-            // Hide Nexus 5 if using an older layoutlib than API 19 revision 2, due to rendering bugs
-            // fixed in that revision
-            IAndroidTarget target = myRenderContext.getConfiguration().getTarget();
-            if (target == null) {
-              continue;
-            }
-            AndroidVersion version = target.getVersion();
-            if (version.getApiLevel() < 19 || version.getApiLevel() == 19 && target.getRevision() < 2) {
-              continue;
-            }
-          }
-          String label = getLabel(device, true /*nexus*/);
-          Icon icon = FormFactor.getFormFactor(device).getIcon();
-          group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
-        }
+      sortNexusList(nexus);
+      addNexusDeviceSection(group, current, nexus);
+      group.addSeparator();
+      addDeviceSection(group, current, deviceMap, false, FormFactor.WEAR);
+      group.addSeparator();
+      addDeviceSection(group, current, deviceMap, false, FormFactor.TV);
+      group.addSeparator();
 
-        group.addSeparator();
-      }
-
-      // Generate the generic menu. Add separator after Wear & TV devices
-      boolean firstGeneric = true;
-      Collections.reverse(generic);
-      for (final Device device : generic) {
-        if (firstGeneric) {
-          if (!HardwareConfigHelper.isWear(device) && !HardwareConfigHelper.isTv(device)) {
-            firstGeneric = false;
-            group.addSeparator();
-          }
-        }
-        String label = getLabel(device, false /*nexus*/);
-        Icon icon = FormFactor.getFormFactor(device).getIcon();
-        group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
-      }
+      DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
+      addDeviceSection(genericGroup, current, deviceMap, true, FormFactor.MOBILE);
+      group.add(genericGroup);
     }
 
-    group.addSeparator();
     group.add(new RunAndroidAvdManagerAction("Add Device Definition..."));
     group.addSeparator();
     if (RenderPreviewMode.getCurrent() != RenderPreviewMode.SCREENS) {
@@ -282,6 +244,45 @@ public class DeviceMenuAction extends FlatComboAction {
     }
 
     return group;
+  }
+
+  private void addNexusDeviceSection(@NotNull DefaultActionGroup group, @Nullable Device current, @NotNull List<Device> devices) {
+    for (final Device device : devices) {
+      if (device.getId().equals("Nexus 5")) {
+        // Hide Nexus 5 if using an older layoutlib than API 19 revision 2, due to rendering bugs
+        // fixed in that revision
+        Configuration configuration = myRenderContext.getConfiguration();
+        if (configuration != null) {
+          IAndroidTarget target = configuration.getTarget();
+          if (target == null) {
+            continue;
+          }
+          AndroidVersion version = target.getVersion();
+          if (version.getApiLevel() < 19 || version.getApiLevel() == 19 && target.getRevision() < 2) {
+            continue;
+          }
+        }
+      }
+      String label = getLabel(device, true /*nexus*/);
+      Icon icon = FormFactor.getFormFactor(device).getIcon();
+      group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
+    }
+  }
+
+  private void addDeviceSection(@NotNull DefaultActionGroup group,
+                                @Nullable Device current,
+                                @NotNull Map<FormFactor, List<Device>> deviceMap,
+                                boolean reverse,
+                                @NotNull FormFactor factor) {
+    List<Device> generic = deviceMap.get(factor);
+    if (reverse) {
+      Collections.reverse(generic);
+    }
+    for (final Device device : generic) {
+      String label = getLabel(device, false /*nexus*/);
+      Icon icon = FormFactor.getFormFactor(device).getIcon();
+      group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
+    }
   }
 
   private String getLabel(Device device, boolean isNexus) {
