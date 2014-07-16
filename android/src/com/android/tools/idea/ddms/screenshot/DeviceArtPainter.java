@@ -21,6 +21,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.rendering.ImageUtils;
+import com.android.tools.idea.rendering.RenderedImage;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.reference.SoftReference;
@@ -293,7 +294,9 @@ public class DeviceArtPainter {
       Graphics2D g = result.createGraphics();
       g.setColor(Gray.TRANSPARENT);
       g.fillRect(0, 0, result.getWidth(), result.getHeight());
-      g.drawImage(scaledImage, screenX, screenY, null);
+
+      RenderedImage.paintClipped(g, scaledImage, device, screenX, screenY, false);
+
       BufferedImage scaledFrameImage = ImageUtils.scale(frameImage, downScale, downScale, 0, 0);
       g.drawImage(scaledFrameImage, 0, 0, null);
       g.dispose();
@@ -350,7 +353,12 @@ public class DeviceArtPainter {
     @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
     BufferedImage composite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = composite.createGraphics();
+<<<<<<< HEAD
     g.setColor(Gray.TRANSPARENT);
+=======
+    //noinspection UseJBColor
+    g.setColor(new Color(0, 0, 0, 0));
+>>>>>>> a2964f2
     g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
     NinePatch ninePatch = NinePatch.load(image, true, false);
@@ -760,6 +768,7 @@ public class DeviceArtPainter {
           BufferedImage dest = new BufferedImage(destWidth, destHeight, BufferedImage.TYPE_INT_ARGB);
           Graphics2D g = dest.createGraphics();
           g.setComposite(AlphaComposite.Src);
+          //noinspection UseJBColor
           g.setColor(new Color(0, true));
           g.fillRect(0, 0, destWidth, destHeight);
 
@@ -788,12 +797,20 @@ public class DeviceArtPainter {
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
       BufferedImage composite = new BufferedImage(myFrameWidth, myFrameHeight, BufferedImage.TYPE_INT_ARGB);
       Graphics g = composite.createGraphics();
+<<<<<<< HEAD
       g.setColor(Gray.TRANSPARENT);
+=======
+      //noinspection UseJBColor
+      g.setColor(new Color(0, 0, 0, 0));
+>>>>>>> a2964f2
       g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
       Graphics2D g2d = (Graphics2D)g;
       g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
 
+      BufferedImage mask = getImage(descriptor.getMask(myOrientation));
+
+      // Draw background shadow, if effects are enabled
       if (showEffects) {
         BufferedImage shadow = getImage(descriptor.getDropShadow(myOrientation));
         if (shadow != null) {
@@ -805,70 +822,92 @@ public class DeviceArtPainter {
         }
 
         // Ensure that the shadow background doesn't overlap the transparent screen rectangle in the middle
+        //noinspection UseJBColor
         g.setColor(new Color(0, true));
         Composite prevComposite = g2d.getComposite();
         // Wipe out alpha channel
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 1.0f));
-        //g.setColor(Color.RED);
-        g.fillRect(myX, myY, myWidth, myHeight);
+
+        if (mask != null) {
+          g2d.setComposite(AlphaComposite.DstOut);
+          g2d.drawImage(mask, 0, 0, null);
+        } else {
+          g2d.fillRect(myX, myY, myWidth, myHeight);
+        }
         g2d.setComposite(prevComposite);
       }
 
-      /*
+      if (mask != null) {
+        @SuppressWarnings("UndesirableClassUsage")
+        BufferedImage maskedImage = new BufferedImage(background.getWidth(), background.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D maskGraphics = maskedImage.createGraphics();
+        maskGraphics.drawImage(background, 0, 0, null);
+        Composite prevComposite = g2d.getComposite();
+        maskGraphics.setComposite(AlphaComposite.DstOut);
+        maskGraphics.drawImage(mask, 0, 0, null);
+        maskGraphics.dispose();
+        g2d.setComposite(prevComposite);
+        g.drawImage(maskedImage, 0, 0, myFrameWidth, myFrameHeight, cropX1, cropY1, cropX2, cropY2, null);
+      } else {
+        // More efficient painting of the hole
 
-           A+-------------------------------+B
-            |                               |
-            |                               |
-            |   myX,myY                     |
-           C|     D+------------------+E    |F
-            |      |                  |     |
-            |      |                  |     |
-            |      |                  |     |
-            |      | myHeight         |     | background.getHeight
-            |      |                  |     |
-            |      |                  |     |
-            |      |                  |     |
-           G|     H+------------------+I    |J
-            |            myWidth            |
-            |                               |
-            |                               |
-           K+-------------------------------+L
-                    background.getWidth
-       */
+        /*
 
-      // Paint background:
-      // Rectangle ABFC
-      // Rectangle CDHG
-      // Rectangle EFJI
-      // Rectangle GJLK
-      int dax = 0;
-      int day = 0;
-      int dcy = myY;
-      int dex = myX + myWidth;
-      int dfx = myFrameWidth;
-      int dgy = myY + myHeight;
-      int dhx = myX;
-      int dly = myFrameHeight;
+             A+-------------------------------+B
+              |                               |
+              |                               |
+              |   myX,myY                     |
+             C|     D+------------------+E    |F
+              |      |                  |     |
+              |      |                  |     |
+              |      |                  |     |
+              |      | myHeight         |     | background.getHeight
+              |      |                  |     |
+              |      |                  |     |
+              |      |                  |     |
+             G|     H+------------------+I    |J
+              |            myWidth            |
+              |                               |
+              |                               |
+             K+-------------------------------+L
+                      background.getWidth
+         */
+
+        // Paint background:
+        // Rectangle ABFC
+        // Rectangle CDHG
+        // Rectangle EFJI
+        // Rectangle GJLK
+        int dax = 0;
+        int day = 0;
+        int dcy = myY;
+        int dex = myX + myWidth;
+        int dfx = myFrameWidth;
+        int dgy = myY + myHeight;
+        int dhx = myX;
+        int dly = myFrameHeight;
 
 
-      int ax = cropX1;
-      int ay = cropY1;
-      int cy = cropY1 + myY;
-      int ex = cropX1 + myX + myWidth;
-      int fx = cropX2;
-      int gy = cropY1 + myY + myHeight;
-      int hx = cropX1 + myX;
-      int ly = cropY2;
+        int ax = cropX1;
+        int ay = cropY1;
+        int cy = cropY1 + myY;
+        int ex = cropX1 + myX + myWidth;
+        int fx = cropX2;
+        int gy = cropY1 + myY + myHeight;
+        int hx = cropX1 + myX;
+        int ly = cropY2;
 
-      // Draw rectangle ABFC
-      g.drawImage(background, dax, day, dfx, dcy, ax, ay, fx, cy, null);
-      // Draw rectangle GJKL
-      g.drawImage(background, dax, dgy, dfx, dly, ax, gy, fx, ly, null);
-      // Draw rectangle CDHG
-      g.drawImage(background, dax, dcy, dhx, dgy, ax, cy, hx, gy, null);
-      // Draw rectangle EFJI
-      g.drawImage(background, dex, dcy, dfx, dgy, ex, cy, fx, gy, null);
+        // Draw rectangle ABFC
+        g.drawImage(background, dax, day, dfx, dcy, ax, ay, fx, cy, null);
+        // Draw rectangle GJKL
+        g.drawImage(background, dax, dgy, dfx, dly, ax, gy, fx, ly, null);
+        // Draw rectangle CDHG
+        g.drawImage(background, dax, dcy, dhx, dgy, ax, cy, hx, gy, null);
+        // Draw rectangle EFJI
+        g.drawImage(background, dex, dcy, dfx, dgy, ex, cy, fx, gy, null);
+      }
 
+      // Draw screen glare, if effects are enabled
       if (showEffects) {
         BufferedImage glare = getImage(descriptor.getReflectionOverlay(myOrientation));
         if (glare != null) {
