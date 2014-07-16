@@ -16,12 +16,17 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.android.resources.ResourceType;
+import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.collect.Lists;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -30,9 +35,14 @@ import java.util.Map;
  */
 public class AndroidDrawableDomUtil {
   public static final Map<String, String> SPECIAL_STYLEABLE_NAMES = new HashMap<String, String>();
-  private static final String[] POSSIBLE_DRAWABLE_ROOTS =
+  private static final String[] DRAWABLE_ROOTS_V1 =
     new String[]{"selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition", "inset", "clip", "scale", "shape",
       "animation-list", "animated-rotate", "rotate"};
+  private static final String[] DRAWABLE_ROOTS_V20 =
+    new String[]{ "ripple", "animated-selector"
+      // Being considered:
+      /*, "vector", "material-progress"*/
+  };
 
   static {
     SPECIAL_STYLEABLE_NAMES.put("selector", "StateListDrawable");
@@ -45,7 +55,8 @@ public class AndroidDrawableDomUtil {
     SPECIAL_STYLEABLE_NAMES.put("animation-list", "AnimationDrawable");
     SPECIAL_STYLEABLE_NAMES.put("rotate", "RotateDrawable");
     SPECIAL_STYLEABLE_NAMES.put("animated-rotate", "AnimatedRotateDrawable");
-
+    SPECIAL_STYLEABLE_NAMES.put(RippleDomFileDescription.TAG, "RippleDrawable");
+    SPECIAL_STYLEABLE_NAMES.put(AnimatedStateListDomFileDescription.TAG, "AnimatedStateListDrawable");
     SPECIAL_STYLEABLE_NAMES.put("shape", "GradientDrawable");
     SPECIAL_STYLEABLE_NAMES.put("corners", "DrawableCorners");
     SPECIAL_STYLEABLE_NAMES.put("gradient", "GradientDrawableGradient");
@@ -62,7 +73,14 @@ public class AndroidDrawableDomUtil {
     return AndroidResourceDomFileDescription.doIsMyFile(file, new String[]{ResourceType.DRAWABLE.getName()});
   }
 
-  public static List<String> getPossibleRoots() {
-    return Arrays.asList(POSSIBLE_DRAWABLE_ROOTS);
+  public static List<String> getPossibleRoots(AndroidFacet facet) {
+    AndroidVersion sdkVersion = AndroidModuleInfo.get(facet).getBuildSdkVersion();
+    List<String> result = Lists.newArrayListWithExpectedSize(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V20.length);
+    Collections.addAll(result, DRAWABLE_ROOTS_V1);
+    if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 21) {
+      Collections.addAll(result, DRAWABLE_ROOTS_V20);
+    }
+
+    return result;
   }
 }
