@@ -830,7 +830,7 @@ public class DeviceArtPainter {
 
         if (mask != null) {
           g2d.setComposite(AlphaComposite.DstOut);
-          g2d.drawImage(mask, 0, 0, null);
+          g2d.drawImage(mask, -cropX1, -cropY1, null);
         } else {
           g2d.fillRect(myX, myY, myWidth, myHeight);
         }

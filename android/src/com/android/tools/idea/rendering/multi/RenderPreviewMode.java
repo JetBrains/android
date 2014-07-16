@@ -112,4 +112,11 @@ public enum RenderPreviewMode {
   }
 
   private static RenderPreviewMode ourCurrent = NONE;
+
+  /**
+   * Returns true if this preview mode includes device frames around the layouts
+   */
+  public boolean showsDeviceFrames() {
+    return this == SCREENS;
+  }
 }
