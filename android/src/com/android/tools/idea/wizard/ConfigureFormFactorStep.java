@@ -20,9 +20,11 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -243,8 +245,8 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       if (target.getVersion().isPreview() || target.getOptionalLibraries() != null && target.getOptionalLibraries().length > 0) {
         AndroidTargetComboBoxItem targetInfo = new AndroidTargetComboBoxItem(target);
         myTargets.add(targetInfo);
-        myInstalledVersions.add(targetInfo.target.getVersion());
       }
+      myInstalledVersions.add(target.getVersion());
     }
   }
 
@@ -308,11 +310,23 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           // First remove the last request, no need to install more than one platform
           myState.listRemove(INSTALL_REQUESTS_KEY, myInstallRequests.get(formFactor));
         }
-        if (target != null && !myInstalledVersions.contains(target.getVersion())) {
-          IPkgDesc platformDescription = PkgDesc.Builder.newPlatform(target.getVersion(), new MajorRevision(target.getRevision()),
-                                                                    target.getBuildToolInfo().getRevision()).create();
-          myState.listPush(INSTALL_REQUESTS_KEY, platformDescription);
-          myInstallRequests.put(formFactor, platformDescription);
+        if (target == null) {
+          AndroidVersion androidVersion = new AndroidVersion(targetItem.apiLevel, null);
+          if (!myInstalledVersions.contains(androidVersion) && myState.get(getInclusionKey(formFactor))) {
+            IPkgDesc platformDescription =
+              PkgDesc.Builder.newPlatform(androidVersion, new MajorRevision(1), FullRevision.NOT_SPECIFIED).create();
+            myState.listPush(INSTALL_REQUESTS_KEY, platformDescription);
+            myInstallRequests.put(formFactor, platformDescription);
+            populateApiLevels(formFactor, androidVersion.getApiLevel(), myHighestInstalledApiTarget);
+          }
+        }
+        else { // target != null
+          if (!myInstalledVersions.contains(target.getVersion())) {
+            IPkgDesc platformDescription = PkgDesc.Builder
+              .newPlatform(target.getVersion(), new MajorRevision(target.getRevision()), target.getBuildToolInfo().getRevision()).create();
+            myState.listPush(INSTALL_REQUESTS_KEY, platformDescription);
+            myInstallRequests.put(formFactor, platformDescription);
+          }
         }
         PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), targetItem.id.toString());
       }
@@ -366,6 +380,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     if (sdkData == null) {
       return new IAndroidTarget[0];
     }
+    sdkData.getLocalSdk().clearLocalPkg(PkgType.PKG_ALL);
     return getCompilationTargets(sdkData);
   }
 
