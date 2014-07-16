@@ -1,14 +1,23 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.VersionQualifier;
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.actions.OverrideResourceAction;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -678,7 +687,8 @@ public class AndroidLintInspectionToolProvider {
 
     @NotNull
     @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement,
+                                               @NotNull final String message) {
       // Quickfix for replacing packageName with applicationId.
       // This is a temporary quickfix to support older versions of the Gradle plugin: TODO REMOVE.
       if (message.contains("packageName")) {
@@ -714,7 +724,7 @@ public class AndroidLintInspectionToolProvider {
           }
         }};
       }
-      return super.getQuickFixes(message);
+      return super.getQuickFixes(startElement, endElement, message);
     }
   }
 
@@ -871,9 +881,8 @@ public class AndroidLintInspectionToolProvider {
 
     @NotNull
     @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      return getApiDetectorFixes(message);
-
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getApiDetectorFixes(startElement, endElement, message);
     }
   }
 
@@ -884,18 +893,36 @@ public class AndroidLintInspectionToolProvider {
 
     @NotNull
     @Override
-    public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      return getApiDetectorFixes(message);
+    public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+      return getApiDetectorFixes(startElement, endElement, message);
     }
   }
 
-  private static AndroidLintQuickFix[] getApiDetectorFixes(String message) {
+  private static AndroidLintQuickFix[] getApiDetectorFixes(@NotNull PsiElement startElement,
+                                                           @SuppressWarnings("UnusedParameters") @NotNull PsiElement endElement,
+                                                           String message) {
     // TODO: Return one for each parent context (declaration, method, class, outer class(es)
     Pattern pattern = Pattern.compile("\\s(\\d+)\\s"); //$NON-NLS-1$
     Matcher matcher = pattern.matcher(message);
     if (matcher.find()) {
       int api = Integer.parseInt(matcher.group(1));
-      return new AndroidLintQuickFix[] { new AddTargetApiQuickFix(api) };
+      List<AndroidLintQuickFix> list = Lists.newArrayList();
+      PsiFile file = startElement.getContainingFile();
+      if (file instanceof XmlFile) {
+        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+        if (folderType != null) {
+          FolderConfiguration config = ResourceHelper.getFolderConfiguration(file);
+          if (config != null) {
+            config.setVersionQualifier(new VersionQualifier(api));
+            String folder = config.getFolderName(folderType);
+            list.add(OverrideResourceAction.createFix(folder));
+          }
+        }
+      }
+
+      list.add(new AddTargetApiQuickFix(api));
+
+      return list.toArray(new AndroidLintQuickFix[list.size()]);
     }
     return AndroidLintQuickFix.EMPTY_ARRAY;
   }
@@ -1081,7 +1108,7 @@ public class AndroidLintInspectionToolProvider {
   }
   public static class AndroidLintLocaleFolderInspection extends AndroidLintInspectionBase {
     public AndroidLintLocaleFolderInspection() {
-      super(AndroidBundle.message("android.lint.inspections.locale.folder"), com.android.tools.lint.checks.LocaleFolderDetector.ISSUE);
+      super(AndroidBundle.message("android.lint.inspections.locale.folder"), LocaleFolderDetector.ISSUE);
     }
   }
   public static class AndroidLintLocalSuppressInspection extends AndroidLintInspectionBase {
