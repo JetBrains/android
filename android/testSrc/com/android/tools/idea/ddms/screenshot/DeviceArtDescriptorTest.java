@@ -30,9 +30,9 @@ public class DeviceArtDescriptorTest extends TestCase {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
     // Currently there are 9 devices for which we have device art, plus 2 generic/stretchable
-    assertEquals(11, specs.size());
+    assertEquals(15, specs.size());
 
-    DeviceArtDescriptor nexus4 = specs.get(1);
+    DeviceArtDescriptor nexus4 = specs.get(5);
     assertEquals("nexus_4", nexus4.getId());
 
     Point offsets = nexus4.getScreenPos(ScreenOrientation.PORTRAIT);
@@ -55,11 +55,14 @@ public class DeviceArtDescriptorTest extends TestCase {
       assertNotNull(id);
       assertNotNull(descriptor.getName());
       for (ScreenOrientation orientation : new ScreenOrientation[] { ScreenOrientation.LANDSCAPE, ScreenOrientation.PORTRAIT}) {
+        if (orientation == ScreenOrientation.PORTRAIT && id.startsWith("tv_")) {
+          continue;
+        }
         assertNotNull(id, descriptor.getFrameSize(orientation));
         assertNotNull(id, descriptor.getScreenPos(orientation));
         assertNotNull(id, descriptor.getScreenSize(orientation));
         //noinspection StatementWithEmptyBody
-        if (id.equals("phone") || id.equals("tablet")) {
+        if (id.equals("phone") || id.equals("tablet") || id.startsWith("wear_") || id.startsWith("tv_")) {
           // No crop for these
         } else {
           assertNotNull(id, descriptor.getCrop(orientation));
@@ -72,6 +75,23 @@ public class DeviceArtDescriptorTest extends TestCase {
         }
       }
     }
+  }
+
+  public void test2() throws FileNotFoundException {
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      if (!"wear_round".equals(spec.getId())) {
+        continue;
+      }
+
+      verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
+      verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
+      verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
+      verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
+
+      return;
+    }
+    fail("Did not find wear_round spec");
   }
 
   private static void verifyFileExists(@Nullable File f) {

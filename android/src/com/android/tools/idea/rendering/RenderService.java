@@ -519,7 +519,8 @@ public class RenderService implements IImageFactory {
     }
 
     // Don't show navigation buttons on older platforms
-    if (!myShowDecorations) {
+    Device device = myConfiguration.getDevice();
+    if (!myShowDecorations || HardwareConfigHelper.isWear(device)) {
       params.setForceNoDecor();
     }
     else {

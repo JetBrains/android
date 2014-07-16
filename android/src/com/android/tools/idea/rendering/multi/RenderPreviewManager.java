@@ -957,6 +957,7 @@ public class RenderPreviewManager implements Disposable {
     addIfWithinInclusive(min, max, 8, list, items); // Classic: Froyo
     addIfWithinInclusive(min, max, 9, list, items); // Classic: Gingerbread
     addIfWithinInclusive(min, max, 14, list, items); // Holo: ICS
+    addIfWithinInclusive(min, max, 21, list, items); // Material: LMP
 
     for (int i = 0, n = list.size(); i < n; i++) {
       int api = list.get(i);
