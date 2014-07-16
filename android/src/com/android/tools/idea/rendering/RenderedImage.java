@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
 import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
@@ -553,5 +555,43 @@ public class RenderedImage {
 
   public void imageChanged() {
     myScaledImage = null;
+  }
+
+  @Nullable
+  public static Shape getClip(@Nullable Device device, int x, int y, int width, int height) {
+    boolean round = device != null && HardwareConfigHelper.isRound(device);
+    if (round) {
+      int slop = 3; // to hide mask aliasing effects under device chrome by a pixel or two
+      return new Ellipse2D.Double(x - slop, y - slop, width + 2 * slop, height + 2 * slop);
+    }
+
+    return null;
+  }
+
+
+  /** Paints a rendered device image into the given graphics context  */
+  public static void paintClipped(@NotNull Graphics2D g,
+                                  @NotNull BufferedImage image,
+                                  @Nullable Device device,
+                                  int x,
+                                  int y,
+                                  boolean withRetina) {
+    Shape prevClip = null;
+    Shape clip = getClip(device, x, y, image.getWidth(), image.getHeight());
+    if (clip != null) {
+      prevClip = g.getClip();
+      g.setClip(clip);
+    }
+
+    if (withRetina) {
+      //noinspection ConstantConditions
+      UIUtil.drawImage(g, image, x, y, null);
+    } else {
+      g.drawImage(image, x, y, null);
+    }
+
+    if (clip != null) {
+      g.setClip(prevClip);
+    }
   }
 }
