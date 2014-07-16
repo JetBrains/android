@@ -80,9 +80,9 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   private List<FormFactor> myFormFactors = Lists.newArrayList();
   private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private Disposable myDisposable;
-  private Map<FormFactor, JComboBox> myFormFactorApiSelectors = Maps.newEnumMap(FormFactor.class);
+  private Map<FormFactor, JComboBox> myFormFactorApiSelectors = Maps.newHashMap();
   private IAndroidTarget myHighestInstalledApiTarget;
-  private Map<FormFactor, IPkgDesc> myInstallRequests = Maps.newEnumMap(FormFactor.class);
+  private Map<FormFactor, IPkgDesc> myInstallRequests = Maps.newHashMap();
 
   public ConfigureFormFactorStep(@NotNull Disposable disposable) {
     super("Select the form factors your app will run on", "Different platforms require separate SDKs",
@@ -214,7 +214,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
 
   private void populateComboBox(@NotNull JComboBox comboBox, int minSdk) {
     for (AndroidTargetComboBoxItem target : myTargets) {
-      if (target.apiLevel >= minSdk) {
+      if (target.apiLevel >= minSdk || (target.target != null && target.target.getVersion().isPreview())) {
         comboBox.addItem(target);
       }
     }
@@ -261,13 +261,16 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         myState.put(buildApiKey, TemplateMetadata.getBuildApiString(apiTarget.getVersion()));
       }
       myState.put(buildApiLevelKey, apiLevel);
-      if (apiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API) {
+      if (apiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API || (apiTarget != null && apiTarget.getVersion().isPreview())) {
         myState.put(targetApiLevelKey, apiLevel);
         if (apiTarget != null) {
           myState.put(targetApiStringKey, apiTarget.getVersion().getApiString());
         } else {
           myState.put(targetApiStringKey, Integer.toString(apiLevel));
         }
+      } else {
+        myState.put(targetApiLevelKey, myHighestInstalledApiTarget.getVersion().getApiLevel());
+        myState.put(targetApiStringKey, myHighestInstalledApiTarget.getVersion().getApiString());
       }
     }
   }
