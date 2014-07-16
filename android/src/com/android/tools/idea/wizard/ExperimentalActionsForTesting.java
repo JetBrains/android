@@ -34,6 +34,8 @@ public class ExperimentalActionsForTesting {
       PropertiesComponent properties = PropertiesComponent.getInstance();
       properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.MOBILE));
       properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.GLASS));
+      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.TV));
+      properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.WEAR));
       properties.unsetValue(ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN);
     }
   }
