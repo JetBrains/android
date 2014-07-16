@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -39,33 +40,34 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
 
-  public static enum FormFactor {
-    MOBILE("Mobile", AndroidIcons.Wizards.FormFactorPhoneTabletLight,
-                     AndroidIcons.Wizards.FormFactorPhoneTabletDark,
-                     "Phone and Tablet"),
-    WEAR("Wear", AndroidIcons.Wizards.FormFactorWearLight, AndroidIcons.Wizards.FormFactorWearDark, "Wear"),
-    GLASS("Glass", AndroidIcons.Wizards.FormFactorGlassLight, AndroidIcons.Wizards.FormFactorGlassDark, "Glass");
+  public static class FormFactor {
+    public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet");
+    public static final FormFactor WEAR = new FormFactor("Wear", AndroidIcons.Wizards.FormFactorWear, "Wear");
+    public static final FormFactor GLASS = new FormFactor("Glass", AndroidIcons.Wizards.FormFactorGlass, "Glass");
+    public static final FormFactor TV = new FormFactor("TV", AndroidIcons.Wizards.FormFactorTV, "TV");
+
+    private static final Map<String, FormFactor> myFormFactors = new ImmutableMap.Builder<String, FormFactor>()
+        .put(MOBILE.id, MOBILE)
+        .put(WEAR.id, WEAR)
+        .put(GLASS.id, GLASS)
+        .put(TV.id, TV).build();
 
     public final String id;
-    @Nullable private final Icon myLightIcon;
-    @Nullable private final Icon myDarkIcon;
+    @Nullable private final Icon myIcon;
     @Nullable private String displayName;
 
-    FormFactor(@NotNull String id, @Nullable Icon lightIcon, @Nullable Icon darkIcon, @Nullable String displayName) {
+    FormFactor(@NotNull String id, @Nullable Icon icon, @Nullable String displayName) {
       this.id = id;
-      myLightIcon = lightIcon;
-      myDarkIcon = darkIcon;
+      myIcon = icon;
       this.displayName = displayName;
     }
 
     @Nullable
     public static FormFactor get(@NotNull String id) {
-      for (FormFactor formFactor : FormFactor.values()) {
-        if (id.equalsIgnoreCase(formFactor.id)) {
-          return formFactor;
-        }
+      if (myFormFactors.containsKey(id)) {
+        return myFormFactors.get(id);
       }
-      return null;
+      return new FormFactor(id, null, id);
     }
 
     @Override
@@ -75,7 +77,7 @@ public class FormFactorUtils {
 
     @Nullable
     public Icon getIcon() {
-      return UIUtil.isUnderDarcula() ? myDarkIcon : myLightIcon;
+      return myIcon;
     }
   }
 

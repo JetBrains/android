@@ -118,12 +118,10 @@ public class AndroidIcons {
     public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
     public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
-    public static final Icon FormFactorPhoneTabletLight = load("/icons/wizards/phone_tablet_light.png"); // 64x64
-    public static final Icon FormFactorPhoneTabletDark = load("/icons/wizards/phone_tablet_dark.png"); // 64x64
-    public static final Icon FormFactorWearLight = load("/icons/wizards/wear-light.png"); // 64x64
-    public static final Icon FormFactorWearDark = load("/icons/wizards/wear-dark.png"); // 64x64
-    public static final Icon FormFactorGlassLight = load("/icons/wizards/glass-light.png"); // 64x64
-    public static final Icon FormFactorGlassDark = load("/icons/wizards/glass-dark.png"); // 64x64
+    public static final Icon FormFactorPhoneTablet = load("/icons/wizards/phone_tablet.png"); // 64x64
+    public static final Icon FormFactorWear = load("/icons/wizards/wear.png"); // 64x64
+    public static final Icon FormFactorGlass = load("/icons/wizards/glass.png"); // 64x64
+    public static final Icon FormFactorTV = load("/icons/wizards/tv.png"); // 64x64
     public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
   }
