@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.resources.ResourceFolderType;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
@@ -339,6 +343,25 @@ public class RenderedPanel extends JPanel implements Disposable {
 
       List<RenderedView> selectedViews = mySelectedViews;
       if (selectedViews != null && !selectedViews.isEmpty() && !myErrorPanel.isVisible()) {
+        Shape prevClip = g.getClip();
+        Shape clip = null;
+        Configuration configuration = myContext.getConfiguration();
+        if (configuration != null) {
+          Device device = configuration.getDevice();
+          if (device != null && HardwareConfigHelper.isRound(device)) {
+            Screen screen = device.getDefaultHardware().getScreen();
+            int width = screen.getXDimension();
+            int height = screen.getYDimension();
+            Rectangle m = fromModelToScreen(0, 0, width, height);
+            if (m != null) {
+              clip = RenderedImage.getClip(device, m.x + px, m.y + py, m.width, m.height);
+              if (clip != null) {
+                g.setClip(clip);
+              }
+            }
+          }
+        }
+
         for (RenderedView selected : selectedViews) {
           Rectangle r = fromModelToScreen(selected.x, selected.y, selected.w, selected.h);
           if (r == null) {
@@ -351,7 +374,12 @@ public class RenderedPanel extends JPanel implements Disposable {
 
           DesignerGraphics.drawFilledRect(DrawingStyle.SELECTION, g, x, y, w, h);
         }
+
+        if (clip != null) {
+          g.setClip(prevClip);
+        }
       }
+
       return true;
     }
     return false;
@@ -527,7 +555,8 @@ public class RenderedPanel extends JPanel implements Disposable {
     if (!myShowDeviceFrames) {
       useGray = true;
     } else if (myPreviewManager != null && RenderPreviewMode.getCurrent() != RenderPreviewMode.NONE) {
-      useGray = true;
+      // TODO: Don't do this if showing device frames or if we're not in Darcula!
+      useGray = !RenderPreviewMode.getCurrent().showsDeviceFrames();
     } else {
       if (myRenderResult != null) {
         RenderedImage image = myRenderResult.getImage();

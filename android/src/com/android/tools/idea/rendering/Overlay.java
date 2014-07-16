@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.OverlayContainer;
 import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
@@ -90,5 +94,29 @@ public abstract class Overlay implements Disposable {
         }
       }
     }
+  }
+
+  /**
+   * Sets a screen clip for the overlay if applicable. Returns the new clip if it was set.
+   */
+  @Nullable
+  protected Shape setScreenClip(@NotNull OverlayContainer container, @NotNull Component component, @NotNull Graphics2D gc,
+                                int deltaX, int deltaY) {
+    Configuration configuration = container.getConfiguration();
+    Shape clip = null;
+    if (configuration != null) {
+      Device device = configuration.getDevice();
+      if (device != null && HardwareConfigHelper.isRound(device)) {
+        Screen screen = device.getDefaultHardware().getScreen();
+        int width = screen.getXDimension();
+        int height = screen.getYDimension();
+        Rectangle m = container.fromModel(component, new Rectangle(0, 0, width, height));
+        clip = RenderedImage.getClip(device, m.x + deltaX, m.y + deltaY, m.width, m.height);
+      }
+      if (clip != null) {
+        gc.setClip(clip);
+      }
+    }
+    return clip;
   }
 }
