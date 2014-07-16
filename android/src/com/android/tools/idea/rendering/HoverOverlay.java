@@ -53,6 +53,12 @@ public class HoverOverlay extends Overlay {
     boolean hoverIsSelected = myHoveredView.tag != null && myContainer.isSelected(myHoveredView.tag);
     DrawingStyle style = hoverIsSelected ? DrawingStyle.HOVER_SELECTION : DrawingStyle.HOVER;
     Rectangle r = myContainer.fromModel(component, myHoveredView.getBounds());
+
+    Shape prevClip = gc.getClip();
+    Shape clip = setScreenClip(myContainer, component, gc, deltaX, deltaY);
     DesignerGraphics.drawFilledRect(style, gc, r.x + deltaX, r.y + deltaY, r.width, r.height);
- }
+    if (clip != null) {
+      gc.setClip(prevClip);
+    }
+  }
 }

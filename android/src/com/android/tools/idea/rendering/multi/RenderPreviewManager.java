@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.multi;
 
+import com.android.builder.model.ApiVersion;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.res2.ResourceItem;
@@ -31,6 +32,7 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.Locale;
@@ -945,6 +947,12 @@ public class RenderPreviewManager implements Disposable {
     int min = Math.max(8, minSdkVersion);
     int max = Math.min(SdkVersionInfo.HIGHEST_KNOWN_API, highestApiLevel);
 
+    // Don't attempt to render wear-layouts in older platforms
+    Device device = configuration.getDevice();
+    if (HardwareConfigHelper.isWear(device)) {
+      min = 20;
+    }
+
     AppResourceRepository resources = AppResourceRepository.getAppResources(facet, true);
     XmlFile xmlFile = myRenderContext.getXmlFile();
     if (xmlFile == null) {
@@ -956,7 +964,12 @@ public class RenderPreviewManager implements Disposable {
     // Froyo: Doesn't look right when rendered with a newer layoutlib: assets are all wrong.
     addIfWithinInclusive(min, max, 8, list, items); // Classic: Froyo
     addIfWithinInclusive(min, max, 9, list, items); // Classic: Gingerbread
-    addIfWithinInclusive(min, max, 14, list, items); // Holo: ICS
+    addIfWithinInclusive(min, max, 15, list, items); // Holo: ICS
+    if (min > 15 && min < 21) {
+      // If you set for example minSdkVersion to 17, that's still Holo, and we want to include it
+      // since 15 wasn't eligible!
+      addIfWithinInclusive(min, max, min, list, items); // Holo
+    }
     addIfWithinInclusive(min, max, 21, list, items); // Material: LMP
 
     for (int i = 0, n = list.size(); i < n; i++) {
@@ -991,13 +1004,11 @@ public class RenderPreviewManager implements Disposable {
       }
       apiConfig.setDisplayName(label);
       apiConfig.setTheme(null);
-      RenderPreview preview = RenderPreview.create(this, apiConfig, true);
-      preview.setShowFrame(false);
+      RenderPreview preview = RenderPreview.create(this, apiConfig, false);
       addPreview(preview);
     }
 
-    RenderPreview preview = RenderPreview.create(this, configuration, true);
-    preview.setShowFrame(false);
+    RenderPreview preview = RenderPreview.create(this, configuration, false);
     String codeName = SdkVersionInfo.getCodeName(currentTarget.getVersion().getFeatureLevel());
     if (codeName == null) {
       codeName = currentTarget.getVersion().getApiString();
@@ -1073,6 +1084,8 @@ public class RenderPreviewManager implements Disposable {
       useDefaultState = false;
     }
 
+    boolean isWear = HardwareConfigHelper.isWear(currentDevice);
+
     // Rearrange the devices a bit such that the most interesting devices bubble
     // to the front
     // 10" tablet, 7" tablet, reference phones, tiny phone, and in general the first
@@ -1090,7 +1103,10 @@ public class RenderPreviewManager implements Disposable {
         state = device.getAllStates().get(0);
       }
 
-      if (HardwareConfigHelper.isNexus(device) && !HardwareConfigHelper.isGeneric(device)) {
+      if (isWear) {
+        // If you're viewing a wear device, only show other wear devices as alternative screen sizes
+        interesting = HardwareConfigHelper.isWear(device);
+      } else if (HardwareConfigHelper.isNexus(device) && !HardwareConfigHelper.isGeneric(device)) {
         interesting = true;
       }
 
@@ -1154,13 +1170,17 @@ public class RenderPreviewManager implements Disposable {
         }
         screenConfig.setDisplayName(label);
         RenderPreview preview = RenderPreview.create(this, screenConfig, true);
-        preview.setShowFrame(true);
         addPreview(preview);
       }
     }
 
+    if (myPreviews != null && myPreviews.size() == 1) {
+      // If there is only one other device, don't show a label on it; it will be obvious from
+      // the context and just looks inconsistent (since there is no label on the main device)
+      myPreviews.get(0).setDisplayName("");
+    }
+
     RenderPreview preview = RenderPreview.create(this, configuration, true);
-    preview.setShowFrame(true);
     setStashedPreview(preview);
 
     // Sorted by screen size, in decreasing order
