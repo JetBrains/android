@@ -217,6 +217,12 @@ public class LicenseAgreementStep extends DynamicWizardStepWithHeaderAndDescript
   }
 
   @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    setChanges(createChangesList());
+  }
+
+  @Override
   public JComponent getPreferredFocusedComponent() {
     return myChangeTree;
   }
