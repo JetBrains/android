@@ -40,7 +40,7 @@ import java.util.Collections;
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.resources.ResourceResolver.*;
 
-class PsiResourceItem extends ResourceItem {
+public class PsiResourceItem extends ResourceItem {
   private final XmlTag myTag;
   private PsiFile myFile;
 
@@ -300,7 +300,10 @@ class PsiResourceItem extends ResourceItem {
     return value;
   }
 
-  private static String getTextContent(@NonNull XmlTag tag) {
+  /**
+   * Returns the text content of a given tag
+   */
+  public static String getTextContent(@NonNull XmlTag tag) {
     // We can't just use tag.getValue().getTrimmedText() here because we need to remove
     // intermediate elements such as <xliff> text:
     // TODO: Make sure I correct handle HTML content for XML items in <string> nodes!
