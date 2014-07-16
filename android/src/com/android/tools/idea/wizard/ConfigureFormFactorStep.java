@@ -290,7 +290,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         } else {
           myState.put(targetApiStringKey, Integer.toString(apiLevel));
         }
-      } else {
+      } else if (myHighestInstalledApiTarget != null) {
         myState.put(targetApiLevelKey, myHighestInstalledApiTarget.getVersion().getApiLevel());
         myState.put(targetApiStringKey, myHighestInstalledApiTarget.getVersion().getApiString());
       }
@@ -316,7 +316,13 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
           // Make sure we set target and build to the preview version as well
           populateApiLevels(formFactor, targetItem.apiLevel, target);
         } else {
-          populateApiLevels(formFactor, myHighestInstalledApiTarget.getVersion().getFeatureLevel(), myHighestInstalledApiTarget);
+          int targetApiLevel;
+          if (myHighestInstalledApiTarget != null) {
+            targetApiLevel = myHighestInstalledApiTarget.getVersion().getFeatureLevel();
+          } else {
+            targetApiLevel = 0;
+          }
+          populateApiLevels(formFactor, targetApiLevel, myHighestInstalledApiTarget);
         }
         // Check to see if this is installed. If not, request that we install it
         if (myInstallRequests.containsKey(formFactor)) {
