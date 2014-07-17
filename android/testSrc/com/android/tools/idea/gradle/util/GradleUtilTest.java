@@ -69,7 +69,7 @@ public class GradleUtilTest extends TestCase {
       assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
     }
     finally {
-      Closeables.closeQuietly(fileInputStream);
+      Closeables.close(fileInputStream, true /* swallowIOException */);
     }
   }
 
@@ -95,7 +95,7 @@ public class GradleUtilTest extends TestCase {
       assertEquals("http://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
     }
     finally {
-      Closeables.closeQuietly(fileInputStream);
+      Closeables.close(fileInputStream, true /* swallowIOException */);
     }
   }
 
@@ -121,7 +121,7 @@ public class GradleUtilTest extends TestCase {
       assertEquals("http://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
     }
     finally {
-      Closeables.closeQuietly(fileInputStream);
+      Closeables.close(fileInputStream, true /* swallowIOException */);
     }
   }
 
@@ -147,7 +147,7 @@ public class GradleUtilTest extends TestCase {
       assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
     }
     finally {
-      Closeables.closeQuietly(fileInputStream);
+      Closeables.close(fileInputStream, true /* swallowIOException */);
     }
   }
 
