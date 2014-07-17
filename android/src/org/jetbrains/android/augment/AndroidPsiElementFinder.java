@@ -17,7 +17,6 @@ import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,9 +90,7 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
     Project project = scope.getProject();
-    if (!qualifiedName.startsWith(INTERNAL_R_CLASS_QNAME) || 
-        project == null || 
-        !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (project == null || !ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return PsiClass.EMPTY_ARRAY;
     }
 
@@ -115,7 +112,7 @@ public class AndroidPsiElementFinder extends PsiElementFinder {
       return PsiClass.EMPTY_ARRAY;
     }
     List<PsiClass> result = new SmartList<PsiClass>();
-    for (PsiClass parentClass : findClasses(parentName, scope)) {
+    for (PsiClass parentClass : JavaPsiFacade.getInstance(project).findClasses(parentName, scope)) {
       ContainerUtil.addIfNotNull(result, parentClass.findInnerClassByName(shortName, false));
     }
     return result.isEmpty() ? PsiClass.EMPTY_ARRAY : result.toArray(new PsiClass[result.size()]);

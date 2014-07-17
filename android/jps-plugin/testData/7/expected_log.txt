@@ -1,5 +1,5 @@
 ______ENTRY_0:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --non-constant-id
@@ -15,7 +15,7 @@ $PROJECT_DIR$/root/lib/res
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
 ______ENTRY_2:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $PROJECT_DIR$/root/lib/res
@@ -23,7 +23,7 @@ $PROJECT_DIR$/root/lib/res
 $DATA_STORAGE_ROOT$/android/res_cache/lib
 
 ______ENTRY_3:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 -J
@@ -36,7 +36,7 @@ $PROJECT_DIR$/root/app/res
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
 ______ENTRY_4:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $PROJECT_DIR$/root/app/res
@@ -44,7 +44,7 @@ $PROJECT_DIR$/root/app/res
 $DATA_STORAGE_ROOT$/android/res_cache/app
 
 ______ENTRY_5:4
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -S
 $DATA_STORAGE_ROOT$/android/res_cache/app

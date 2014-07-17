@@ -6,7 +6,6 @@ import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.treeStructure.treetable.TreeTable;
-import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -148,8 +147,8 @@ public class VmStatsTreeUtils {
 
     public TableHeaderCellRenderer(TreeTable table) {
       myDefaultRenderer = table.getTableHeader().getDefaultRenderer();
-      if (myDefaultRenderer instanceof DefaultTableCellHeaderRenderer) {
-        ((DefaultTableCellHeaderRenderer)myDefaultRenderer).setHorizontalAlignment(SwingConstants.CENTER);
+      if (myDefaultRenderer instanceof DefaultTableCellRenderer) {
+        ((DefaultTableCellRenderer)myDefaultRenderer).setHorizontalAlignment(SwingConstants.CENTER);
       }
     }
 

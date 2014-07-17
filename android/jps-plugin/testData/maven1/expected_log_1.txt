@@ -1,5 +1,5 @@
 ______ENTRY_0:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --auto-add-overlay
@@ -17,7 +17,7 @@ $PROJECT_DIR$/root/lib/res
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
 ______ENTRY_1:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $COMBINED_RESOURCES_TMP$
@@ -25,7 +25,7 @@ $COMBINED_RESOURCES_TMP$
 $DATA_STORAGE_ROOT$/android/res_cache/app
 
 ______ENTRY_2:1
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -S
 $DATA_STORAGE_ROOT$/android/res_cache/app

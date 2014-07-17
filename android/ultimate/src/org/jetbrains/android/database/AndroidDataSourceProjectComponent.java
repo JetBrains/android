@@ -1,10 +1,10 @@
 package org.jetbrains.android.database;
 
+import com.intellij.database.autoconfig.DataSourceConfigUtil;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.persistence.database.autoconfig.DataSourceConfigUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
