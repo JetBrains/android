@@ -184,7 +184,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   private void loadDevices() {
     final AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(myProject);
     final IDevice[] devices = bridge != null ? getDevicesWithValidDeviceId(bridge) : new IDevice[0];
-    final String deviceId = myDataSource.getState().getDeviceId();
+    final String deviceId = myDataSource.getState().deviceId;
     final DefaultComboBoxModel model = new DefaultComboBoxModel(devices);
     Object selectedItem = null;
 
@@ -347,10 +347,10 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   public void saveData(@NotNull AndroidDataSource dataSource) {
     dataSource.setName(getNameValue());
     AndroidDataSource.State state = dataSource.getState();
-    state.setDeviceId(getSelectedDeviceId());
-    state.setPackageName(getSelectedPackage());
-    state.setDatabaseName(getSelectedDatabase());
-    state.setExternal(myExternalStorageRadioButton.isSelected());
+    state.deviceId = getSelectedDeviceId();
+    state.packageName = getSelectedPackage();
+    state.databaseName = getSelectedDatabase();
+    state.external = myExternalStorageRadioButton.isSelected();
     dataSource.resetUrl();
   }
 
@@ -372,11 +372,11 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
     AndroidDataSource.State state = myDataSource.getState();
     myNameField.setText(StringUtil.notNullize(myDataSource.getName()));
 
-    myInternalStorageRadioButton.setSelected(!state.isExternal());
-    myExternalStorageRadioButton.setSelected(state.isExternal());
+    myInternalStorageRadioButton.setSelected(!state.external);
+    myExternalStorageRadioButton.setSelected(state.external);
 
-    myPackageNameComboBox.getEditor().setItem(StringUtil.notNullize(state.getPackageName()));
-    myDataBaseComboBox.getEditor().setItem(StringUtil.notNullize(state.getDatabaseName()));
+    myPackageNameComboBox.getEditor().setItem(StringUtil.notNullize(state.packageName));
+    myDataBaseComboBox.getEditor().setItem(StringUtil.notNullize(state.databaseName));
   }
 
   private void registerDeviceListener() {

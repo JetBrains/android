@@ -1,6 +1,9 @@
 package org.jetbrains.android.database;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.SyncService;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -166,7 +169,7 @@ class AndroidDbUtil {
                                                         @NotNull AndroidDebugBridge debugBridge,
                                                         @NotNull AndroidDbErrorReporter errorReporter) {
     final AndroidDataSource.State state = dataSource.getState();
-    final String deviceId = state.getDeviceId();
+    final String deviceId = state.deviceId;
 
     if (deviceId == null) {
       errorReporter.reportError("device is not specified");
@@ -182,19 +185,19 @@ class AndroidDbUtil {
       errorReporter.reportError("the device is not online");
       return null;
     }
-    final String packageName = dataSource.getState().getPackageName();
+    final String packageName = dataSource.getState().packageName;
 
     if (packageName == null || packageName.length() == 0) {
       errorReporter.reportError("package name is not specified");
       return null;
     }
-    final String dbName = dataSource.getState().getDatabaseName();
+    final String dbName = dataSource.getState().databaseName;
 
     if (dbName == null || dbName.length() == 0) {
       errorReporter.reportError("database name is not specified");
       return null;
     }
-    return new AndroidDbConnectionInfo(device, packageName, dbName, dataSource.getState().isExternal());
+    return new AndroidDbConnectionInfo(device, packageName, dbName, dataSource.getState().external);
   }
 
   @Nullable

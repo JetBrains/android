@@ -186,7 +186,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
         result = ((AndroidDataSource)copyFrom).copy();
       }
       else {
-        result = new AndroidDataSource("");
+        result = new AndroidDataSource();
       }
       result.setName(StringUtil.notNullize(newName, getName()));
       result.resolveDriver();
