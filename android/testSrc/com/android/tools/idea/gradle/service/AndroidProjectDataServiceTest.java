@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
-import com.intellij.openapi.vfs.newvfs.impl.VirtualDirectoryImpl;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.IdeaTestCase;
 
@@ -73,7 +73,7 @@ public class AndroidProjectDataServiceTest extends IdeaTestCase {
     final String jdkPath = Jdks.getJdkHomePath(LanguageLevel.JDK_1_6);
 
     if (jdkPath != null) {
-      VirtualDirectoryImpl.allowRootAccess(jdkPath);
+      VfsRootAccess.allowRootAccess(jdkPath);
     }
     List<DataNode<IdeaAndroidProject>> nodes = Lists.newArrayList();
     Key<IdeaAndroidProject> key = AndroidProjectKeys.IDE_ANDROID_PROJECT;

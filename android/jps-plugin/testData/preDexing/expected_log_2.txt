@@ -1,5 +1,5 @@
 ______ENTRY_0:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --non-constant-id
@@ -15,7 +15,7 @@ $PROJECT_DIR$/root/lib1/res
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
 ______ENTRY_1:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $PROJECT_DIR$/root/lib1/res
@@ -23,7 +23,7 @@ $PROJECT_DIR$/root/lib1/res
 $DATA_STORAGE_ROOT$/android/res_cache/lib1
 
 ______ENTRY_2:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --non-constant-id
@@ -42,7 +42,7 @@ $PROJECT_DIR$/root/lib1/res
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
 ______ENTRY_3:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $PROJECT_DIR$/root/lib/res
@@ -95,7 +95,7 @@ $DATA_STORAGE_ROOT$/android/intermediate_artifacts/lib1/classes.jar
 --exclude
 
 ______ENTRY_7:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --auto-add-overlay
@@ -113,7 +113,7 @@ $PROJECT_DIR$/root/lib1/res
 $ANDROID_SDK_DIR$/platforms/android-1.5/android.jar
 
 ______ENTRY_8:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $PROJECT_DIR$/root/app/res
@@ -121,7 +121,7 @@ $PROJECT_DIR$/root/app/res
 $DATA_STORAGE_ROOT$/android/res_cache/app
 
 ______ENTRY_9:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -S
 $DATA_STORAGE_ROOT$/android/res_cache/app

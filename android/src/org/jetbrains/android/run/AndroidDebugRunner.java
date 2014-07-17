@@ -17,9 +17,7 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
-import com.intellij.debugger.ui.DebuggerContentInfo;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
-import com.intellij.debugger.ui.DebuggerSessionTab;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RemoteState;
@@ -33,19 +31,17 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
-import com.intellij.execution.ui.*;
-import com.intellij.execution.ui.layout.PlaceInGrid;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
@@ -53,22 +49,15 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentManagerAdapter;
-import com.intellij.ui.content.ContentManagerEvent;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
-import com.intellij.xdebugger.XDebuggerBundle;
-import icons.AndroidIcons;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
-import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.util.List;
 
@@ -82,8 +71,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   public static final Key<AndroidSessionInfo> ANDROID_SESSION_INFO = new Key<AndroidSessionInfo>("ANDROID_SESSION_INFO");
 
   private static final Object myDebugLock = new Object();
-  @NonNls private static final String ANDROID_DEBUG_SELECTED_TAB_PROPERTY = "ANDROID_DEBUG_SELECTED_TAB_";
   public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
 
   private static void tryToCloseOldSessions(final Executor executor, Project project) {
     final ExecutionManager manager = ExecutionManager.getInstance(project);
@@ -385,7 +374,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
       RemoteDebugProcessHandler process = new RemoteDebugProcessHandler(myProject);
       myState.setProcessHandler(process);
       myConsoleView = myState.getConfiguration().attachConsole(myState, executor);
-      final MyLogcatExecutionConsole console = new MyLogcatExecutionConsole(myProject, myDevice, process, myConsoleView,
+      final LogcatExecutionConsole console = new LogcatExecutionConsole(myProject, myDevice, myConsoleView,
                                                                             myState.getConfiguration().getType().getId());
       return new DefaultExecutionResult(console, process);
     }
@@ -425,111 +414,6 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
            profile instanceof AndroidRunConfigurationBase;
   }
 
-  private static class MyLogcatExecutionConsole implements ExecutionConsoleEx, ObservableConsoleView {
-    private final Project myProject;
-    private final AndroidLogcatView myToolWindowView;
-    private final ConsoleView myConsoleView;
-    private final String myConfigurationId;
-
-    private MyLogcatExecutionConsole(Project project,
-                                     IDevice device,
-                                     RemoteDebugProcessHandler process,
-                                     ConsoleView consoleView,
-                                     String configurationId) {
-      myProject = project;
-      myConsoleView = consoleView;
-      myConfigurationId = configurationId;
-      myToolWindowView = new AndroidLogcatView(project, device) {
-        @Override
-        protected boolean isActive() {
-          final DebuggerSessionTab sessionTab = DebuggerPanelsManager.getInstance(myProject).getSessionTab();
-          if (sessionTab == null) {
-            return false;
-          }
-          final Content content = sessionTab.getUi().findContent(ANDROID_LOGCAT_CONTENT_ID);
-          return content != null && content.isSelected();
-        }
-      };
-      Disposer.register(this, myToolWindowView);
-    }
-
-    @Override
-    public void buildUi(final RunnerLayoutUi layoutUi) {
-      final Content consoleContent = layoutUi.createContent(DebuggerContentInfo.CONSOLE_CONTENT, getComponent(),
-                                                            XDebuggerBundle.message("debugger.session.tab.console.content.name"),
-                                                            AllIcons.Debugger.Console, getPreferredFocusableComponent());
-
-      consoleContent.setCloseable(false);
-      layoutUi.addContent(consoleContent, 1, PlaceInGrid.bottom, false);
-
-      // todo: provide other icon
-      final Content logcatContent = layoutUi.createContent(ANDROID_LOGCAT_CONTENT_ID, myToolWindowView.getContentPanel(), "Logcat",
-                                                           AndroidIcons.Android, getPreferredFocusableComponent());
-      logcatContent.setCloseable(false);
-      logcatContent.setSearchComponent(myToolWindowView.createSearchComponent(myProject));
-      layoutUi.addContent(logcatContent, 2, PlaceInGrid.bottom, false);
-      final String selectedTabProperty = ANDROID_DEBUG_SELECTED_TAB_PROPERTY + myConfigurationId;
-
-      final String tabName = PropertiesComponent.getInstance().getValue(selectedTabProperty);
-      Content selectedContent = logcatContent;
-
-      if (tabName != null) {
-        for (Content content : layoutUi.getContents()) {
-          if (tabName.equals(content.getDisplayName())) {
-            selectedContent = content;
-          }
-        }
-      }
-      layoutUi.getContentManager().setSelectedContent(selectedContent);
-
-      layoutUi.addListener(new ContentManagerAdapter() {
-        @Override
-        public void selectionChanged(final ContentManagerEvent event) {
-          final Content content = event.getContent();
-
-          if (content.isSelected()) {
-            PropertiesComponent.getInstance().setValue(selectedTabProperty, content.getDisplayName());
-          }
-          myToolWindowView.activate();
-        }
-      }, myToolWindowView);
-
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          myToolWindowView.activate();
-        }
-      });
-    }
-
-    @Nullable
-    @Override
-    public String getExecutionConsoleId() {
-      return "ANDROID_LOGCAT";
-    }
-
-    @Override
-    public JComponent getComponent() {
-      return myConsoleView.getComponent();
-    }
-
-    @Override
-    public JComponent getPreferredFocusableComponent() {
-      return myConsoleView.getPreferredFocusableComponent();
-    }
-
-    @Override
-    public void dispose() {
-    }
-
-    @Override
-    public void addChangeListener(@NotNull ChangeListener listener, @NotNull Disposable parent) {
-      if (myConsoleView instanceof ObservableConsoleView) {
-        ((ObservableConsoleView)myConsoleView).addChangeListener(listener, parent);
-      }
-    }
-  }
-
   private class MyDebugLauncher implements DebugLauncher {
     private final Project myProject;
     private final Executor myExecutor;
@@ -562,6 +446,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
                                   myRunningState, device);
           RunContentDescriptor debugDescriptor = null;
           final ProcessHandler processHandler = myRunningState.getProcessHandler();
+          processHandler.detachProcess();
           try {
             synchronized (myDebugLock) {
               assert myRunDescriptor != null;
@@ -575,11 +460,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           }
           ProcessHandler newProcessHandler = debugDescriptor != null ? debugDescriptor.getProcessHandler() : null;
           if (debugDescriptor == null || newProcessHandler == null) {
-            processHandler.notifyTextAvailable("Can't start debugging.", STDERR);
-            processHandler.destroyProcess();
+            LOG.info("cannot start debugging");
             return;
           }
-          processHandler.detachProcess();
           final AndroidProcessText oldText = AndroidProcessText.get(processHandler);
           if (oldText != null) {
             oldText.printTo(newProcessHandler);
@@ -588,19 +471,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
 
           myRunningState.getProcessHandler().putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
             debugDescriptor, st, myExecutor.getId()));
-
-          final DebuggerSessionTab sessionTab = manager.getSessionTab();
-          assert sessionTab != null;
-          sessionTab.setEnvironment(myEnvironment);
-
-          RunProfile profile = myEnvironment.getRunProfile();
-          assert profile instanceof AndroidRunConfigurationBase;
-          RunContentManager runContentManager = ExecutionManager.getInstance(myProject).getContentManager();
-
           setActivateToolWindowWhenAddedProperty(myProject, myExecutor, debugDescriptor, "debugger connected");
-
-          runContentManager.showRunContent(myExecutor, debugDescriptor);
-          newProcessHandler.startNotify();
         }
       });
     }

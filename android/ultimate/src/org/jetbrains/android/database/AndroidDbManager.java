@@ -1,5 +1,14 @@
 package org.jetbrains.android.database;
 
+import com.intellij.database.DatabaseMessages;
+import com.intellij.database.dataSource.DataSourceTemplate;
+import com.intellij.database.dialects.DatabaseDialectEx;
+import com.intellij.database.dialects.SqliteDialect;
+import com.intellij.database.model.info.DataSourceInfo;
+import com.intellij.database.psi.BasicDbPsiManager;
+import com.intellij.database.psi.DbDataSourceElement;
+import com.intellij.database.psi.DbElement;
+import com.intellij.database.psi.DbPsiFacade;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -13,15 +22,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.persistence.DatabaseMessages;
-import com.intellij.persistence.database.DataSourceInfo;
-import com.intellij.persistence.database.DataSourceTemplate;
-import com.intellij.persistence.database.dialects.DatabaseDialect;
-import com.intellij.persistence.database.dialects.SqliteDialect;
-import com.intellij.persistence.database.psi.BasicDbPsiManager;
-import com.intellij.persistence.database.psi.DbDataSourceElement;
-import com.intellij.persistence.database.psi.DbElement;
-import com.intellij.persistence.database.psi.DbPsiFacade;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +45,7 @@ public class AndroidDbManager extends BasicDbPsiManager<AndroidDataSource> {
 
   @Nullable
   @Override
-  public DatabaseDialect getDatabaseDialect(@NotNull DbDataSourceElement element) {
+  public DatabaseDialectEx getDatabaseDialect(@NotNull DbDataSourceElement element) {
     return SqliteDialect.INSTANCE;
   }
 

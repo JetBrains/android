@@ -25,8 +25,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -77,6 +75,7 @@ public class UnimportedModuleNotificationProvider extends EditorNotifications.Pr
     return ImmutableSet.of(SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_SETTINGS_GRADLE).contains(file.getName());
   }
 
+  @NotNull
   @Override
   public Key<EditorNotificationPanel> getKey() {
     return KEY;
@@ -84,7 +83,7 @@ public class UnimportedModuleNotificationProvider extends EditorNotifications.Pr
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (!Projects.isGradleProject(myProject) || myIsImporting.get()) {
       return null;
     }

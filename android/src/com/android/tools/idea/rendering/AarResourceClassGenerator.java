@@ -23,14 +23,14 @@ import com.android.resources.ResourceType;
 import com.android.tools.lint.detector.api.ClassContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.asm4.ClassWriter;
-import org.jetbrains.asm4.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.MethodVisitor;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.jetbrains.asm4.Opcodes.*;
+import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 /**
  * The {@linkplain AarResourceClassGenerator} can generate R classes on the fly for a given resource repository.
@@ -203,7 +203,7 @@ public class AarResourceClassGenerator {
     MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     mv.visitCode();
     mv.visitVarInsn(ALOAD, 0);
-    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
     mv.visitInsn(RETURN);
     mv.visitMaxs(1, 1);
     mv.visitEnd();
