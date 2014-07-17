@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.WindowManager;
 import org.fest.swing.core.BasicRobot;
@@ -26,18 +27,32 @@ import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.runner.RunWith;
 
 import javax.swing.*;
+import java.awt.*;
 
 import static junit.framework.Assert.assertNotNull;
 
+@RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
   private IdeTestApplication myApplication;
 
+  private boolean myRunning;
   protected Robot myRobot;
 
   @Before
   public void setUp() {
+    if (GraphicsEnvironment.isHeadless()) {
+      // We currently do not support running UI tests in headless environments.
+      Class<? extends GuiTestCase> testClass = getClass();
+      Logger logger = Logger.getInstance(testClass);
+      logger.info("Skipping GUI test " + testClass.getCanonicalName() + " due to headless environment");
+      return;
+    }
+
+    myRunning = true;
+
     myApplication = GuiActionRunner.execute(new GuiQuery<IdeTestApplication>() {
       @Override
       protected IdeTestApplication executeInEDT() throws Throwable {
@@ -57,6 +72,10 @@ public abstract class GuiTestCase {
     });
 
     myRobot = BasicRobot.robotWithNewAwtHierarchy();
+  }
+
+  public boolean isRunning() {
+    return myRunning;
   }
 
   @After
