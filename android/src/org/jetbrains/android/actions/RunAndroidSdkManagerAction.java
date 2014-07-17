@@ -27,6 +27,7 @@ import com.intellij.openapi.progress.util.ProgressWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -52,7 +53,11 @@ public class RunAndroidSdkManagerAction extends AndroidRunSdkToolAction {
       if (sdkManagerAction instanceof RunAndroidSdkManagerAction) {
         Presentation presentation = sdkManagerAction.getTemplatePresentation();
 
-        Component c = component != null ? component : WelcomeFrame.getInstance().getComponent();
+        IdeFrame frame = WelcomeFrame.getInstance();
+        if (frame == null) {
+          return;
+        }
+        Component c = component != null ? component : frame.getComponent();
         DataContext dataContext = DataManager.getInstance().getDataContext(c);
 
         //noinspection ConstantConditions
