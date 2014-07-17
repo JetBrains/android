@@ -135,6 +135,7 @@ public class AndroidUtils {
   @NonNls public static final String MANIFEST_CLASS_NAME = "Manifest";
   @NonNls public static final String LAUNCH_ACTION_NAME = "android.intent.action.MAIN";
   @NonNls public static final String LAUNCH_CATEGORY_NAME = "android.intent.category.LAUNCHER";
+  @NonNls public static final String LEANBACK_LAUNCH_CATEGORY_NAME = "android.intent.category.LEANBACK_LAUNCHER";
   @NonNls public static final String DEFAULT_CATEGORY_NAME = "android.intent.category.DEFAULT";
   @NonNls public static final String INSTRUMENTATION_RUNNER_BASE_CLASS = "android.app.Instrumentation";
   @NonNls public static final String SERVICE_CLASS_NAME = "android.app.Service";
@@ -295,7 +296,9 @@ public class AndroidUtils {
       @Override
       public boolean value(ActivityWrapper activity) {
         for (IntentFilter filter : activity.getIntentFilters()) {
-          if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) && AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME)) {
+          if (AndroidDomUtil.containsAction(filter, LAUNCH_ACTION_NAME) &&
+                (AndroidDomUtil.containsCategory(filter, LAUNCH_CATEGORY_NAME) ||
+                 AndroidDomUtil.containsCategory(filter, LEANBACK_LAUNCH_CATEGORY_NAME))) {
             return true;
           }
         }
