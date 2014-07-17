@@ -3,6 +3,7 @@ package org.jetbrains.android.database;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.intellij.CommonBundle;
+import com.intellij.database.psi.DbDataSourceElement;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -11,7 +12,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.persistence.database.psi.DbDataSourceElement;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.intellij.persistence.database.view.DatabaseView.getSelectedElements;
+import static com.intellij.database.view.DatabaseView.getSelectedElements;
 
 /**
  * @author Eugene.Kudelevsky

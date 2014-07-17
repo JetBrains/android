@@ -23,6 +23,7 @@ import org.gradle.tooling.BuildLauncher;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 
 import static com.intellij.execution.ui.ConsoleViewContentType.ERROR_OUTPUT;
@@ -55,8 +56,8 @@ class GradleOutputForwarder {
   }
 
   void close() {
-    Closeables.closeQuietly(myOutput);
-    Closeables.closeQuietly(myStdErr);
+    try { Closeables.close(myOutput, true); } catch (IOException ignored) {}
+    try { Closeables.close(myStdErr, true); } catch (IOException ignored) {}
   }
 
   @NotNull

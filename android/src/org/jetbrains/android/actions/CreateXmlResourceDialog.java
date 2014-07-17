@@ -29,6 +29,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -49,7 +50,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.util.ModuleListCellRendererWrapper;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +65,7 @@ import java.util.*;
 public class CreateXmlResourceDialog extends DialogWrapper {
   private JPanel myPanel;
   private JTextField myNameField;
-  private JComboBox myModuleCombo;
+  private ModulesComboBox myModuleCombo;
   private JBLabel myModuleLabel;
   private JPanel myDirectoriesPanel;
   private JBLabel myDirectoriesLabel;
@@ -132,18 +132,8 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     }
     else {
       myModule = null;
-
-      final Module[] modules = modulesSet.toArray(new Module[modulesSet.size()]);
-      Arrays.sort(modules, new Comparator<Module>() {
-        @Override
-        public int compare(Module m1, Module m2) {
-          return m1.getName().compareTo(m2.getName());
-        }
-      });
-
-      myModuleCombo.setModel(new DefaultComboBoxModel(modules));
-      myModuleCombo.setSelectedItem(module);
-      myModuleCombo.setRenderer(new ModuleListCellRendererWrapper(myModuleCombo.getRenderer()));
+      myModuleCombo.setModules(modulesSet);
+      myModuleCombo.setSelectedModule(module);
     }
 
     if (defaultFile == null) {
@@ -223,11 +213,11 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     }
 
     if (myModule == null) {
-      final Object prev = myModuleCombo.getSelectedItem();
+      final Module prev = myModuleCombo.getSelectedModule();
       myModuleCombo.setSelectedItem(moduleForFile);
 
       if (!moduleForFile.equals(myModuleCombo.getSelectedItem())) {
-        myModuleCombo.setSelectedItem(prev);
+        myModuleCombo.setSelectedModule(prev);
         return;
       }
     }
@@ -551,7 +541,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
 
   @Nullable
   public Module getModule() {
-    return myModule != null ? myModule : (Module)myModuleCombo.getSelectedItem();
+    return myModule != null ? myModule : myModuleCombo.getSelectedModule();
   }
 
   @Override

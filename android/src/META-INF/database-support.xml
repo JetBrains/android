@@ -20,11 +20,11 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <persistence.database.dbPsiManager implementation="org.jetbrains.android.database.AndroidDbManager" order="first"/>
+    <database.dbPsiManager implementation="org.jetbrains.android.database.AndroidDbManager" order="first"/>
     <projectService serviceInterface="org.jetbrains.android.database.AndroidDataSourceStorage"
                     serviceImplementation="org.jetbrains.android.database.AndroidDataSourceStorage"/>
     <applicationService serviceInterface="org.jetbrains.android.database.AndroidRemoteDataBaseManager"
                         serviceImplementation="org.jetbrains.android.database.AndroidRemoteDataBaseManager"/>
-    <persistence.database.synchronizeHandler implementation="org.jetbrains.android.database.AndroidSynchronizeHandler"/>
+    <database.synchronizeHandler implementation="org.jetbrains.android.database.AndroidSynchronizeHandler"/>
   </extensions>
 </idea-plugin>

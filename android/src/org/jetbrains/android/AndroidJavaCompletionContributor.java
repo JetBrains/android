@@ -18,7 +18,7 @@ public class AndroidJavaCompletionContributor extends CompletionContributor {
   private static final String[] EXCLUDED_PACKAGES = new String[]{"javax.swing", "javafx"};
 
   @Override
-  public void fillCompletionVariants(CompletionParameters parameters, final CompletionResultSet resultSet) {
+  public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull final CompletionResultSet resultSet) {
     super.fillCompletionVariants(parameters, resultSet);
     final PsiElement position = parameters.getPosition();
     final AndroidFacet facet = AndroidFacet.getInstance(position);

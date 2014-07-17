@@ -43,6 +43,7 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
     myNotifications = notifications;
   }
 
+  @NotNull
   @Override
   public Key<EditorNotificationPanel> getKey() {
     return KEY;
@@ -50,7 +51,7 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     String name = file.getName();
     if (SdkConstants.FN_BUILD_GRADLE.equals(name) || SdkConstants.FN_SETTINGS_GRADLE.equals(name)) {
       GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(myProject);
