@@ -14,7 +14,6 @@ import com.intellij.util.xmlb.annotations.Tag;
 import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -30,8 +29,8 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
 
   private State myState = new State();
 
-  public AndroidDataSource(@Nullable String name) {
-    super(name, "org.sqlite.JDBC", "", null, null);
+  public AndroidDataSource() {
+    super("", "org.sqlite.JDBC", "", null, null);
   }
 
   @NotNull
@@ -41,14 +40,17 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
 
   @NotNull
   public State buildFullState() {
-    myState.setName(getName());
-    myState.setClasspathElements(serializeClasspathElements());
+    myState.name = getName();
+    //myState.uuid = getUniqueId();
+    myState.classpathElements = serializeClasspathElements();
     return myState;
   }
 
   public void loadState(@NotNull State state) {
     myState = state;
-    setName(state.getName());
+    setName(state.name);
+    // todo persist uuid must be preserved between sessions
+    //setUniqueId(state.uuid);
     setClasspathElements(deserializeClasspathElements());
     resetUrl();
   }
@@ -78,7 +80,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
 
   @NotNull
   private List<SimpleClasspathElement> deserializeClasspathElements() {
-    final Element[] serializedElements = myState.getClasspathElements();
+    final Element[] serializedElements = myState.classpathElements;
 
     if (serializedElements == null || serializedElements.length == 0) {
       return Collections.emptyList();
@@ -105,7 +107,7 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
   public String buildLocalDbFileOsPath() {
     final State state = getState();
     return AndroidRemoteDataBaseManager.buildLocalDbFileOsPath(
-      state.getDeviceId(), state.getPackageName(), state.getDatabaseName(), state.isExternal());
+      state.deviceId, state.packageName, state.databaseName, state.external);
   }
 
   @Override
@@ -115,15 +117,16 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
 
   @NotNull
   public AndroidDataSource copy() {
-    final AndroidDataSource newSource = new AndroidDataSource(getName());
-    final State newState = newSource.getState();
-    final State state = buildFullState();
-    newState.setName(state.getName());
-    newState.setDeviceId(state.getDeviceId());
-    newState.setPackageName(state.getPackageName());
-    newState.setDatabaseName(state.getDatabaseName());
-    newState.setExternal(state.isExternal());
-    newState.setClasspathElements(cloneElementsArray(state.getClasspathElements()));
+    AndroidDataSource newSource = new AndroidDataSource();
+    newSource.setName(getName());
+    State newState = newSource.getState();
+    State state = buildFullState();
+    newState.name = state.name;
+    newState.deviceId = state.deviceId;
+    newState.packageName = state.packageName;
+    newState.databaseName = state.databaseName;
+    newState.external = state.external;
+    newState.classpathElements = cloneElementsArray(state.classpathElements);
     newSource.resetUrl();
     return newSource;
   }
@@ -153,71 +156,25 @@ class AndroidDataSource extends LocalDataSource implements DataSourceInfo, Modif
     if (!(o instanceof AndroidDataSource)) return super.equalConfiguration(o);
 
     State s = ((AndroidDataSource)o).getState();
-    if (!Comparing.equal(myState.myDeviceId, s.myDeviceId)) return false;
-    if (!Comparing.equal(myState.myPackageName, s.myPackageName)) return false;
-    if (!Comparing.equal(myState.myDatabaseName, s.myDatabaseName)) return false;
-    if (!Comparing.equal(myState.myExternal, s.myExternal)) return false;
-    if (!Comparing.equal(myState.myExternal, s.myExternal)) return false;
+    if (!Comparing.equal(myState.deviceId, s.deviceId)) return false;
+    if (!Comparing.equal(myState.packageName, s.packageName)) return false;
+    if (!Comparing.equal(myState.databaseName, s.databaseName)) return false;
+    if (!Comparing.equal(myState.external, s.external)) return false;
+    if (!Comparing.equal(myState.external, s.external)) return false;
 
     return true;
   }
 
   @Tag("data-source")
   public static class State {
-    private String myName = "";
-    private String myDeviceId = "";
-    private String myPackageName = "";
-    private String myDatabaseName = "";
-    private boolean myExternal = false;
-    private Element[] myClasspathElements = new Element[0];
-
-    public String getDeviceId() {
-      return myDeviceId;
-    }
-
-    public String getDatabaseName() {
-      return myDatabaseName;
-    }
-
-    public String getPackageName() {
-      return myPackageName;
-    }
-
-    public String getName() {
-      return myName;
-    }
-
-    public boolean isExternal() {
-      return myExternal;
-    }
-
+    //@Attribute
+    //public String uuid = "";
+    public String deviceId = "";
+    public String name = "";
+    public String packageName = "";
+    public String databaseName = "";
+    public boolean external = false;
     @Tag("classpath-elements")
-    public Element[] getClasspathElements() {
-      return myClasspathElements;
-    }
-
-    public void setDeviceId(String deviceId) {
-      myDeviceId = deviceId;
-    }
-
-    public void setDatabaseName(String databaseName) {
-      myDatabaseName = databaseName;
-    }
-
-    public void setPackageName(String packageName) {
-      myPackageName = packageName;
-    }
-
-    public void setExternal(boolean external) {
-      myExternal = external;
-    }
-
-    public void setName(String name) {
-      myName = name;
-    }
-
-    public void setClasspathElements(Element[] classpathElements) {
-      myClasspathElements = classpathElements;
-    }
+    public Element[] classpathElements = new Element[0];
   }
 }
