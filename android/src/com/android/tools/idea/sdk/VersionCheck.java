@@ -98,7 +98,11 @@ public final class VersionCheck {
       String msg = String.format("Failed to read file: '%1$s' for Android SDK at '%2$s'", SdkConstants.FN_SOURCE_PROP, sdkPath);
       LOG.info(msg, e);
     } finally {
-      Closeables.closeQuietly(reader);
+      try {
+        Closeables.close(reader, true /* swallowIOException */);
+      } catch (IOException e) {
+        // Cannot happen
+      }
     }
     return new VersionCheckResult(toolsRevision);
   }
