@@ -182,7 +182,11 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
             LOG.info("Unable to read file: " + file.getPath(), e);
           }
           finally {
-            Closeables.closeQuietly(reader);
+            try {
+              Closeables.close(reader, true /* swallowIOException */);
+            } catch (IOException e) {
+              // Cannot happen
+            }
           }
           updateNotification(notification, project, msg, new OpenFileHyperlink(file.getPath(), 0));
           return;

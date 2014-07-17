@@ -487,7 +487,11 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     } catch (IOException e) {
       return null;
     } finally {
-      Closeables.closeQuietly(fis);
+      try {
+        Closeables.close(fis, true /* swallowIOException */);
+      } catch (IOException e) {
+        // Cannot happen
+      }
     }
     return properties.getProperty("lastSdkPath");
   }
