@@ -19,10 +19,10 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.asm4.ClassReader;
-import org.jetbrains.asm4.ClassVisitor;
-import org.jetbrains.asm4.ClassWriter;
-import org.jetbrains.asm4.Opcodes;
+import org.jetbrains.org.objectweb.asm.ClassReader;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
+import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.jetbrains.org.objectweb.asm.Opcodes;
 
 import java.util.Collection;
 
@@ -53,7 +53,7 @@ public class ClassConverter {
     assert maxVersion >= minVersion;
 
     ClassWriter classWriter = new ClassWriter(0);
-    ClassVisitor classVisitor = new ClassVisitor(Opcodes.ASM4, classWriter) {
+    ClassVisitor classVisitor = new ClassVisitor(Opcodes.ASM5, classWriter) {
       @Override
       public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         if (version > maxVersion) {

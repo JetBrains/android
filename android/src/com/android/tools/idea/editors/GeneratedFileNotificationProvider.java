@@ -44,6 +44,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
     myProject = project;
   }
 
+  @NotNull
   @Override
   public Key<EditorNotificationPanel> getKey() {
     return KEY;
@@ -51,7 +52,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(VirtualFile file, FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     AndroidProject androidProject = getAndroidProject(file);
     if (androidProject == null) {
       return null;

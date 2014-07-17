@@ -1,5 +1,5 @@
 ______ENTRY_0:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $PROJECT_DIR$/root/res
@@ -7,7 +7,7 @@ $PROJECT_DIR$/root/res
 $DATA_STORAGE_ROOT$/android/res_cache/module
 
 ______ENTRY_1:0
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -S
 $DATA_STORAGE_ROOT$/android/res_cache/module

@@ -132,7 +132,7 @@
   <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
   <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
-  <depends optional="true"  config-file="database-support.xml">com.intellij.persistence.database</depends>
+  <depends optional="true"  config-file="database-support.xml">com.intellij.database</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
@@ -560,7 +560,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.UnimportedModuleNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar"/>
-    <compileServer.plugin classpath="sdklib.jar;guava-15.0.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
+    <compileServer.plugin classpath="sdklib.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
 
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineStyleHandler"/>
     <inlineActionHandler implementation="org.jetbrains.android.refactoring.AndroidInlineLayoutHandler" order="first"/>

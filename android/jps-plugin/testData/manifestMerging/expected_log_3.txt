@@ -5,7 +5,7 @@ $PROJECT_DIR$/root/lib/AndroidManifest.xml
 $DATA_STORAGE_ROOT$/android/preprocessed_manifest/app/AndroidManifest.xml
 
 ______ENTRY_1:0
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -S
 $DATA_STORAGE_ROOT$/android/res_cache/app

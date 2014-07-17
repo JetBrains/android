@@ -2,6 +2,7 @@ package org.jetbrains.jps.android;
 
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
@@ -114,6 +115,9 @@ abstract class AndroidBuildTestingCommandExecutor implements AndroidBuildTesting
       String subarg = subargs[i];
       String s = FileUtil.toSystemIndependentName(subarg);
 
+      if (s.endsWith(".exe")) {
+        s = FileUtilRt.getNameWithoutExtension(s);
+      }
       for (Pair<String, Pattern> pair : myPathPatterns) {
         final String id = pair.getFirst();
         final Pattern prefixPattern = pair.getSecond();

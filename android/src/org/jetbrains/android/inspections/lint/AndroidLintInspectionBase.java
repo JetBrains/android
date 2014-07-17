@@ -9,8 +9,6 @@ import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
-import com.intellij.lang.java.JavaLanguage;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -44,7 +42,7 @@ import static com.android.tools.lint.detector.api.Issue.OutputFormat;
 /**
  * @author Eugene.Kudelevsky
  */
-public abstract class AndroidLintInspectionBase extends GlobalInspectionTool implements BatchSuppressableTool {
+public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.AndroidLintInspectionBase");
 
   private static final Object ISSUE_MAP_LOCK = new Object();
@@ -242,17 +240,6 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool imp
         new SuppressLintIntentionAction(myIssue.getId(), myElement).invoke(project, null, file);
       }
     }
-  }
-
-  @Override
-  public boolean isSuppressedFor(@NotNull PsiElement element) {
-    if (element.getLanguage() == JavaLanguage.INSTANCE) {
-      return SuppressManager.getInstance().isSuppressedFor(element, getShortName());
-    }
-    if (element.getLanguage() == XMLLanguage.INSTANCE) {
-      return XmlSuppressionProvider.isSuppressed(element, getShortName());
-    }
-    return false;
   }
 
   @TestOnly
