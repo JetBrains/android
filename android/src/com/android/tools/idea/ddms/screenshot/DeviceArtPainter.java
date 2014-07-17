@@ -353,12 +353,7 @@ public class DeviceArtPainter {
     @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
     BufferedImage composite = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = composite.createGraphics();
-<<<<<<< HEAD
     g.setColor(Gray.TRANSPARENT);
-=======
-    //noinspection UseJBColor
-    g.setColor(new Color(0, 0, 0, 0));
->>>>>>> a2964f2
     g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
     NinePatch ninePatch = NinePatch.load(image, true, false);
@@ -797,12 +792,7 @@ public class DeviceArtPainter {
       @SuppressWarnings("UndesirableClassUsage") // Don't need Retina image here, and it's more expensive
       BufferedImage composite = new BufferedImage(myFrameWidth, myFrameHeight, BufferedImage.TYPE_INT_ARGB);
       Graphics g = composite.createGraphics();
-<<<<<<< HEAD
       g.setColor(Gray.TRANSPARENT);
-=======
-      //noinspection UseJBColor
-      g.setColor(new Color(0, 0, 0, 0));
->>>>>>> a2964f2
       g.fillRect(0, 0, composite.getWidth(), composite.getHeight());
 
       Graphics2D g2d = (Graphics2D)g;
