@@ -1,5 +1,5 @@
 ______ENTRY_0:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 -J
@@ -23,7 +23,7 @@ Deleted files
 $DATA_STORAGE_ROOT$/targets/java-production/module/android/copied_sources/com/example/simple/R.java
 
 ______ENTRY_2:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 crunch
 -S
 $PROJECT_DIR$/root/res
@@ -31,7 +31,7 @@ $PROJECT_DIR$/root/res
 $DATA_STORAGE_ROOT$/android/res_cache/module
 
 ______ENTRY_3:2
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -S
 $DATA_STORAGE_ROOT$/android/res_cache/module

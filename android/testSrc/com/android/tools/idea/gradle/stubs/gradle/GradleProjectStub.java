@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +32,7 @@ public class GradleProjectStub implements GradleProject {
   @NotNull private final GradleScriptStub myScript;
   @NotNull private final List<GradleTaskStub> myTasks;
 
-  public GradleProjectStub(@NotNull String name, @NotNull String path, @Nullable File projectFile, @NotNull String...tasks) {
+  public GradleProjectStub(@NotNull String name, @NotNull String path, @Nullable File projectFile, @NotNull String... tasks) {
     myName = name;
     myPath = path;
     myScript = new GradleScriptStub(projectFile);
@@ -85,5 +84,10 @@ public class GradleProjectStub implements GradleProject {
   @Override
   public GradleScriptStub getBuildScript() {
     return myScript;
+  }
+
+  @Override
+  public File getBuildDirectory() {
+    throw new UnsupportedOperationException();
   }
 }

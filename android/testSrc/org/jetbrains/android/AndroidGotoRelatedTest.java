@@ -3,7 +3,7 @@ package org.jetbrains.android;
 import com.android.SdkConstants;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
-import com.intellij.ide.actions.GotoRelatedFileAction;
+import com.intellij.ide.actions.GotoRelatedSymbolAction;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -153,12 +153,12 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
   private List<GotoRelatedItem> doGotoRelatedFile(VirtualFile file) {
     myFixture.configureFromExistingVirtualFile(file);
 
-    final GotoRelatedFileAction action = new GotoRelatedFileAction();
+    final GotoRelatedSymbolAction action = new GotoRelatedSymbolAction();
     final TestActionEvent e = new TestActionEvent(action);
     action.beforeActionPerformedUpdate(e);
     final Presentation presentation = e.getPresentation();
     assertTrue(presentation.isEnabled() && presentation.isVisible());
-    return GotoRelatedFileAction.getItems(myFixture.getFile(), myFixture.getEditor(), null);
+    return GotoRelatedSymbolAction.getItems(myFixture.getFile(), myFixture.getEditor(), null);
   }
 
   private void doCheckLineMarkers(List<VirtualFile> expectedTargetFiles, Class<?> targetElementClass) {

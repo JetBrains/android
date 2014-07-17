@@ -14,7 +14,7 @@ $PROJECT_DIR$/root/myaar/classes.jar
 --exclude
 
 ______ENTRY_1:
-$ANDROID_SDK_DIR$/platform-tools/aapt.exe
+$ANDROID_SDK_DIR$/platform-tools/aapt
 package
 -m
 --auto-add-overlay

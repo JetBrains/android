@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.module.Module;
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
@@ -38,7 +39,6 @@ import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.android.util.ModuleListCellRendererWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +69,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
   private JPanel myRootElementFieldWrapper;
   private JBLabel myRootElementLabel;
   private JLabel myFileNameLabel;
-  private JComboBox myModuleCombo;
+  private ModulesComboBox myModuleCombo;
   private JBLabel myModuleLabel;
   private TextFieldWithAutoCompletion<String> myRootElementField;
   private InputValidator myValidator;
@@ -189,21 +189,13 @@ public class CreateResourceFileDialog extends DialogWrapper {
       modulesSet.add(depFacet.getModule());
     }
 
-    final Module[] modules = modulesSet.toArray(new Module[modulesSet.size()]);
-    Arrays.sort(modules, new Comparator<Module>() {
-      @Override
-      public int compare(Module m1, Module m2) {
-        return m1.getName().compareTo(m2.getName());
-      }
-    });
-    myModuleCombo.setModel(new DefaultComboBoxModel(modules));
+    myModuleCombo.setModules(modulesSet);
 
-    if (!chooseModule || modules.length == 1) {
+    if (!chooseModule || modulesSet.size() == 1) {
       myModuleLabel.setVisible(false);
       myModuleCombo.setVisible(false);
     }
-    myModuleCombo.setRenderer(new ModuleListCellRendererWrapper(myModuleCombo.getRenderer()));
-    myModuleCombo.setSelectedItem(module);
+    myModuleCombo.setSelectedModule(module);
 
     myDeviceConfiguratorPanel.updateAll();
     myDeviceConfiguratorWrapper.add(myDeviceConfiguratorPanel, BorderLayout.CENTER);
@@ -283,15 +275,6 @@ public class CreateResourceFileDialog extends DialogWrapper {
     return myFileNameField.getText().trim();
   }
 
-  private static boolean containsElement(@NotNull ListModel model, @NotNull Object objectToFind) {
-    for (int i = 0, n = model.getSize(); i < n; i++) {
-      if (objectToFind.equals(model.getElementAt(i))) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @Nullable
   protected InputValidator createValidator(@NotNull String subdirName) {
     return null;
@@ -337,7 +320,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
 
   @NotNull
   public Module getSelectedModule() {
-    return (Module)myModuleCombo.getSelectedItem();
+    return myModuleCombo.getSelectedModule();
   }
 
   @NotNull
@@ -347,8 +330,7 @@ public class CreateResourceFileDialog extends DialogWrapper {
 
   @NotNull
   protected String getRootElement() {
-    final String item = myRootElementField.getText().trim();
-    return item != null ? item.trim() : "";
+    return myRootElementField.getText().trim();
   }
 
   public InputValidator getValidator() {
