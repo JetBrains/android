@@ -20,11 +20,9 @@ import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
-import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -69,9 +67,6 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
     assert myProject != null;
-
-    // This node is only visible in the Android Pane
-    AndroidProjectViewPane pane = (AndroidProjectViewPane)ProjectView.getInstance(myProject).getCurrentProjectViewPane();
 
     List<AbstractTreeNode> children = Lists.newArrayList();
     final PsiManager psiManager = PsiManager.getInstance(myProject);
