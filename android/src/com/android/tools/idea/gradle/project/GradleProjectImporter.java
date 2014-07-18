@@ -27,6 +27,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.Application;
@@ -744,7 +745,7 @@ public class GradleProjectImporter {
                                                      Function<VirtualFile, Iterable<String>> parser) {
     Set<ModuleToImport> modulesSet = new HashSet<ModuleToImport>(modules.size());
     for (Map.Entry<String, VirtualFile> entry : modules.entrySet()) {
-      modulesSet.add(new ModuleToImport(entry.getKey(), entry.getValue(), parser));
+      modulesSet.add(new ModuleToImport(entry.getKey(), entry.getValue(), Suppliers.compose(parser, Suppliers.ofInstance(entry.getValue()))));
     }
     return modulesSet;
   }
