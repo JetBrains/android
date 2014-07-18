@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -63,5 +67,50 @@ public class ImportUIUtil {
       templateDescription = String.format("<html>%1$s</html>", templateDescription.trim());
     }
     return templateDescription;
+  }
+
+  /**
+   * Returns a relative path string to be shown in the UI. Wizard logic
+   * operates with VirtualFile's so these paths are only for user. The paths
+   * shown are relative to the file system location user specified, showing
+   * relative paths will be easier for the user to read.
+   */
+  static String getRelativePath(@Nullable VirtualFile baseFile, @Nullable VirtualFile file) {
+    if (file == null) {
+      return "";
+    }
+    String path = file.getPath();
+    if (baseFile == null) {
+      return path;
+    }
+    else if (file.equals(baseFile)) {
+      return ".";
+    }
+    else if (!baseFile.isDirectory()) {
+      return getRelativePath(baseFile.getParent(), file);
+    }
+    else {
+      String basePath = baseFile.getPath();
+      if (path.startsWith(basePath + "/")) {
+        return path.substring(basePath.length() + 1);
+      }
+      else if (file.getFileSystem().equals(baseFile.getFileSystem())) {
+        StringBuilder builder = new StringBuilder(basePath.length());
+        String prefix = Strings.commonPrefix(path, basePath);
+        if (!prefix.endsWith("/")) {
+          prefix = prefix.substring(0, prefix.lastIndexOf("/") + 1);
+        }
+        if (!path.startsWith(basePath)) {
+          Iterable<String> segments = Splitter.on("/").split(basePath.substring(prefix.length()));
+          Joiner.on("/").appendTo(builder, Iterables.transform(segments, Functions.constant("..")));
+          builder.append("/");
+        }
+        builder.append(path.substring(prefix.length()));
+        return builder.toString();
+      }
+      else {
+        return path;
+      }
+    }
   }
 }
