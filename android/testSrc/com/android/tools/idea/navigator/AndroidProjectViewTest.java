@@ -47,9 +47,14 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String expected =
       getProject().getName() + "\n" +
       " app (Android)\n" +
+      "  assets\n" +
+      "   raw.asset.txt\n" +
       "  java\n" +
+      "   Debug.java\n" +
       "   app\n" +
-      "    MainActivity\n";
+      "    MainActivity\n" +
+      "  rs\n" +
+      "   test.rs\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil
       .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
