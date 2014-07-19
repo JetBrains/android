@@ -15,33 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.BootstrapClassLoaderUtil;
-import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.WindowsCommandLineProcessor;
-import com.intellij.ide.plugins.PluginManager;
-import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.idea.IdeaApplication;
 import com.intellij.idea.Main;
-import com.intellij.idea.StartupUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.*;
-import com.intellij.openapi.application.ex.ApplicationEx;
-import com.intellij.openapi.application.ex.ApplicationManagerEx;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.impl.SystemDock;
-import com.intellij.openapi.wm.impl.WindowManagerImpl;
-import com.intellij.ui.AppUIUtil;
 import com.intellij.util.PlatformUtils;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 import static org.fest.reflect.core.Reflection.staticMethod;
 
@@ -50,26 +37,16 @@ public class IdeTestApplication implements Disposable {
 
   private static IdeTestApplication ourInstance;
 
-  public static synchronized IdeTestApplication getInstance() throws Exception {
-    return getInstance(null);
-  }
+  @NotNull private final UrlClassLoader myIdeClassLoader;
 
-  public static synchronized IdeTestApplication getInstance(@Nullable String configPath) throws Exception {
+  @NotNull
+  public static synchronized IdeTestApplication getInstance() throws Exception {
     System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "Idea");
-    final String configPathToUse = configPath != null ? configPath : PathManager.getOptionsPath();
 
     if (ourInstance == null) {
       new IdeTestApplication();
-      PluginManagerCore.getPlugins();
-      final ApplicationEx app = ApplicationManagerEx.getApplicationEx();
-      new WriteAction() {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          app.load(configPathToUse);
-          ideaApplicationMain();
-        }
-      }.execute();
     }
+
     return ourInstance;
   }
 
@@ -81,16 +58,14 @@ public class IdeTestApplication implements Disposable {
 
     pluginManagerStart(args);
     mainMain();
-    bootstrapMain();
-    mainImplStart();
-    startupUtilPrepareAndStart(args);
 
-    // duplicates what IdeaApplication#IdeaApplication does (this whole block.)
-    staticMethod("patchSystem").in(IdeaApplication.class).invoke();
-    ApplicationManagerEx.createApplication(true, false, false, true, ApplicationManagerEx.IDEA_APPLICATION, null);
-    staticMethod("initLAF").in(IdeaApplication.class).invoke();
+    myIdeClassLoader = BootstrapClassLoaderUtil.initClassLoader(true);
+    WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, myIdeClassLoader);
 
-    ideaApplicationMain(args);
+    Class<?> clazz = Class.forName("com.intellij.ide.plugins.PluginManager", true, myIdeClassLoader);
+    staticMethod("start").withParameterTypes(String.class, String.class, String[].class)
+                         .in(clazz)
+                         .invoke("com.intellij.idea.MainImpl", "start", args);
   }
 
   private static void pluginManagerStart(@NotNull String[] args) {
@@ -104,47 +79,9 @@ public class IdeTestApplication implements Disposable {
     staticMethod("installPatch").in(Main.class).invoke();
   }
 
-  private static void bootstrapMain() throws Exception {
-    // Duplicates what Bootstrap#main does.
-    UrlClassLoader newClassLoader = BootstrapClassLoaderUtil.initClassLoader(true);
-    WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, newClassLoader);
-  }
-
-  private static void startupUtilPrepareAndStart(@NotNull String[] args) {
-    // Duplicates what StartupUtil#prepareAndStart does.
-    AppUIUtil.updateFrameClass();
-    staticMethod("checkSystemFolders").in(StartupUtil.class).invoke();
-    staticMethod("lockSystemFolders").withParameterTypes(String[].class).in(StartupUtil.class).invoke(new Object[] {args});
-    Logger log = Logger.getInstance(IdeTestApplication.class);
-    staticMethod("loadSystemLibraries").withParameterTypes(Logger.class).in(StartupUtil.class).invoke(log);
-    staticMethod("fixProcessEnvironment").withParameterTypes(Logger.class).in(StartupUtil.class).invoke(log);
-    AppUIUtil.updateWindowIcon(JOptionPane.getRootFrame());
-    AppUIUtil.registerBundledFonts();
-  }
-
-  private static void mainImplStart() {
-    // Duplicates what MainImpl#start does.
-    PluginManager.installExceptionHandler();
-  }
-
-  private static void ideaApplicationMain(@NotNull String[] args) {
-    // Duplicates what IdeaApplication#main does
-    // SystemDock.updateMenu();
-
-    WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
-    IdeEventQueue.getInstance().setWindowManager(windowManager);
-
-    ApplicationEx app = ApplicationManagerEx.getApplicationEx();
-
-    Ref<Boolean> willOpenProject = new Ref<Boolean>(Boolean.FALSE);
-    AppLifecycleListener lifecyclePublisher = app.getMessageBus().syncPublisher(AppLifecycleListener.TOPIC);
-    lifecyclePublisher.appFrameCreated(args, willOpenProject);
-  }
-
-  private static void ideaApplicationMain() {
-    // duplicates what IdeaApplication#main does.
-    WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
-    windowManager.showFrame();
+  @NotNull
+  public UrlClassLoader getIdeClassLoader() {
+    return myIdeClassLoader;
   }
 
   @Override
