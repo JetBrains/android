@@ -63,8 +63,7 @@ public class AndroidModuleNode extends PackageViewModuleNode {
     List<AbstractTreeNode> result = Lists.newArrayList();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
-      // TODO: handle res folders and manifest files separately
-      if (sourceType == AndroidSourceType.RES || sourceType == AndroidSourceType.MANIFEST) {
+      if (sourceType == AndroidSourceType.MANIFEST) {
         continue;
       }
 
@@ -73,6 +72,8 @@ public class AndroidModuleNode extends PackageViewModuleNode {
         result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), sourceType, providers, myProjectViewPane));
       }
     }
+
+    // TODO: handle manifest and gradle files
 
     return result;
   }
