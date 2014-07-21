@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -60,7 +62,7 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
 
       @Override
       public void sdkHomeSelected(final Sdk sdk, final String newSdkHome) {
-        if (sdk.getSdkType().equals(AndroidSdkType.getInstance())) {
+        if (sdk != null && isAndroidSdk(sdk)) {
           myForm.internalJdkUpdate(sdk);
         }
       }

@@ -24,14 +24,18 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
+import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.FAILED_TO_SET_UP_SDK;
+import static com.intellij.openapi.roots.ModuleRootModificationUtil.setModuleSdk;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.findSuitableAndroidSdk;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToCreateAndroidSdk;
 
 /**
  * Sets an Android SDK to a module imported from an {@link com.android.builder.model.AndroidProject}.
@@ -63,13 +67,13 @@ public class AndroidSdkModuleCustomizer implements ModuleCustomizer<IdeaAndroidP
 
     String compileTarget = androidProject.getDelegate().getCompileTarget();
 
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(compileTarget);
+    Sdk sdk = findSuitableAndroidSdk(compileTarget);
     if (sdk == null) {
-      sdk = AndroidSdkUtils.tryToCreateAndroidSdk(androidSdkHomePath, compileTarget);
+      sdk = tryToCreateAndroidSdk(androidSdkHomePath, compileTarget);
     }
 
     if (sdk != null) {
-      ModuleRootModificationUtil.setModuleSdk(module, sdk);
+      setModuleSdk(module, sdk);
       return;
     }
 
