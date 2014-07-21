@@ -22,6 +22,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.templates.*;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -358,9 +359,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
         }
       }
     }
-    IdeaAndroidProject gradleProject = facet.getIdeaAndroidProject();
-    assert gradleProject != null;
-    return gradleProject.computePackageName();
+    return getApplicationPackageName();
   }
 
   @NotNull
@@ -412,7 +411,17 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     if (moduleRoot != null) {
       parameterValueMap.put(TemplateMetadata.ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
     }
+    if (Objects.equal(getApplicationPackageName(), parameterValueMap.get(TemplateMetadata.ATTR_PACKAGE_NAME))) {
+      parameterValueMap.remove(ATTR_APPLICATION_PACKAGE);
+    }
     return parameterValueMap;
+  }
+
+  private String getApplicationPackageName() {
+    //noinspection ConstantConditions
+    IdeaAndroidProject gradleProject = AndroidFacet.getInstance(getModule()).getIdeaAndroidProject();
+    assert gradleProject != null;
+    return gradleProject.computePackageName();
   }
 
   private Map<String, Object> getDirectories() {

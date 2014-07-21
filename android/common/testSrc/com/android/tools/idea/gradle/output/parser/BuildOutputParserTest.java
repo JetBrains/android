@@ -337,7 +337,7 @@ public class BuildOutputParserTest extends TestCase {
     }
     finally {
       //noinspection deprecation
-      Closeables.close(out, true);
+      Closeables.close(out, true /* swallowIOException */);
     }
   }
 
