@@ -25,6 +25,7 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.config.Storage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +56,7 @@ public class AllocationsViewPanel {
 
     myAllocationsTable = new JBTable();
     myConsoleView = createConsoleView(project);
-    AllocationsTableUtil.setUpTable(myAllocationsTable, myConsoleView);
+    AllocationsTableUtil.setUpTable(getStorage(), myAllocationsTable, myConsoleView);
     AllocationsFilterUtil.setUpFiltering(myAllocationsTable, myFilterField, myIncludeTraceCheckBox);
 
     myAllocationsPane = new JBScrollPane(myAllocationsTable);
@@ -99,5 +100,11 @@ public class AllocationsViewPanel {
   @Nullable
   ConsoleView createConsoleView(@NotNull Project project) {
     return TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  Storage.PropertiesComponentStorage getStorage() {
+    return new Storage.PropertiesComponentStorage("android.allocationsview.colummns");
   }
 }
