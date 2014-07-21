@@ -17,7 +17,6 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.Jdks;
-import com.android.utils.NullLogger;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModel;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -36,6 +35,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.List;
 import java.util.Map;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * @author Eugene.Kudelevsky
@@ -193,7 +194,7 @@ class AndroidSdkConfigurableForm {
   public void updateJdks(Sdk sdk, String previousName) {
     final Sdk[] sdks = mySdkModel.getSdks();
     for (Sdk currentSdk : sdks) {
-      if (currentSdk.getSdkType().equals(AndroidSdkType.getInstance())) {
+      if (currentSdk != null && isAndroidSdk(currentSdk)) {
         final AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)currentSdk.getSdkAdditionalData();
         final Sdk internalJava = data != null ? data.getJavaSdk() : null;
         if (internalJava != null && Comparing.equal(internalJava.getName(), previousName)) {

@@ -465,8 +465,9 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  public static Sdk findSuitableAndroidSdk(@NotNull String targetHashString) {
-    List<Pair<Boolean, Sdk>> matchingSdks = Lists.newArrayList();
+  public static Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
+    Set<String> foundSdkHomePaths = Sets.newHashSet();
+    List<Sdk> notCompatibleSdks = Lists.newArrayList();
 
     for (Sdk sdk : getAllAndroidSdks()) {
       SdkAdditionalData originalData = sdk.getSdkAdditionalData();
@@ -478,23 +479,21 @@ public final class AndroidSdkUtils {
       if (androidPlatform == null) {
         continue;
       }
-      String baseDir = androidPlatform.getSdkData().getLocation().getPath();
-      String platformHashString = androidPlatform.getTarget().hashString();
-      if (targetHashString.equals(platformHashString)) {
-        boolean compatible = VersionCheck.isCompatibleVersion(baseDir);
-        matchingSdks.add(Pair.create(compatible, sdk));
+      String sdkHomePath = sdk.getHomePath();
+      if (!foundSdkHomePaths.contains(sdkHomePath) && targetHash.equals(androidPlatform.getTarget().hashString())) {
+        if (VersionCheck.isCompatibleVersion(sdkHomePath)) {
+          return sdk;
+        }
+        notCompatibleSdks.add(sdk);
+        if (sdkHomePath != null) {
+          foundSdkHomePaths.add(sdkHomePath);
+        }
       }
     }
 
-    for (Pair<Boolean, Sdk> sdk : matchingSdks) {
-      // We try to find an SDK that matches the given platform string and has a compatible Tools version.
-      if (sdk.getFirst()) {
-        return sdk.getSecond();
-      }
-    }
-    if (!matchingSdks.isEmpty()) {
+    if (!notCompatibleSdks.isEmpty()) {
       // We got here because we have SDKs but none of them have a compatible Tools version. Pick the first one.
-      return matchingSdks.get(0).getSecond();
+      return notCompatibleSdks.get(0);
     }
 
     return null;
@@ -673,8 +672,8 @@ public final class AndroidSdkUtils {
     return null;
   }
 
-  private static boolean isAndroidSdk(@NotNull Sdk sdk) {
-    return sdk.getSdkType().equals(AndroidSdkType.getInstance());
+  public static boolean isAndroidSdk(@NotNull Sdk sdk) {
+    return sdk.getSdkType() == AndroidSdkType.getInstance();
   }
 
   public static boolean checkSdkRoots(@NotNull Sdk sdk, @NotNull IAndroidTarget target, boolean forMaven) {
