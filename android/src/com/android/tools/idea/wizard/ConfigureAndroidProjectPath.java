@@ -106,7 +106,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
 
   @Override
   public boolean performFinishingActions() {
-    String projectLocation = myState.get(ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY);
+    String projectLocation = myState.get(WizardConstants.PROJECT_LOCATION_KEY);
     if (projectLocation != null) {
       try {
         VirtualFile vf = VfsUtil.createDirectories(projectLocation);

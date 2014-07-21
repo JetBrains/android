@@ -38,8 +38,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
 /**
  * Presents a wizard to the user to create a new project.

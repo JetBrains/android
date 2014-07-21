@@ -22,6 +22,7 @@ import java.awt.*;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
@@ -37,7 +38,7 @@ public class WizardConstants {
   // Dimensions
   public static final Insets STUDIO_WIZARD_INSETS = new Insets(0, 12, 12, 12);
   public static final int STUDIO_WIZARD_TOP_INSET = 18;
-  static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
+  public static final Dimension DEFAULT_WIZARD_WINDOW_SIZE = new Dimension(1080, 650);
 
   // State Store Keys
   public static final ScopedStateStore.Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
@@ -54,4 +55,8 @@ public class WizardConstants {
   public static final ScopedStateStore.Key<String> SDK_DIR_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
   public static final ScopedStateStore.Key<String> MAVEN_URL_KEY = createKey(ATTR_MAVEN_URL, WIZARD, String.class);
   public static final ScopedStateStore.Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
+  public static final ScopedStateStore.Key<String> APPLICATION_NAME_KEY = createKey(ATTR_APP_TITLE, WIZARD, String.class);
+  public static final ScopedStateStore.Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
+  public static final ScopedStateStore.Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
+  public static final ScopedStateStore.Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
 }
