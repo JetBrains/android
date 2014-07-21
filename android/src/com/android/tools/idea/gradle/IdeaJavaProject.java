@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.Lists;
 import com.intellij.util.containers.ContainerUtil;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.IdeaContentRoot;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
@@ -48,10 +49,21 @@ public class IdeaJavaProject {
     myCompilerOutput = extendedModel != null ? extendedModel.getCompilerOutput() : null;
 
     // find "build" folder.
-    File buildFolderPath = extendedModel != null ? extendedModel.getBuildDir() : null;
+    File buildFolderPath = null;
+    try {
+      buildFolderPath = ideaModule.getGradleProject().getBuildDirectory();
+    }
+    catch (UnsupportedMethodException e) {
+      // Method "getBuildDirectory" was introduced in Gradle 2.0. We'll get this exception when the project uses an older Gradle version.
+    }
+
+    // TODO remove this workaround for getting the path of build folder once the Android Gradle plug-in supports Gradle 2.0.
+    if (buildFolderPath == null) {
+      buildFolderPath = extendedModel != null ? extendedModel.getBuildDir() : null;
+    }
 
     if (buildFolderPath == null) {
-      // We could not obtain path to "build" file. Now we need to guess it.
+      // We could not obtain path to "build" file. This has been happening on Windows 8. Now we need to guess the path.
       for (IdeaContentRoot contentRoot : myContentRoots) {
         for (File excluded : contentRoot.getExcludeDirectories()) {
           if (GradleUtil.BUILD_DIR_DEFAULT_NAME.equals(excluded.getName())) {
