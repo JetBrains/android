@@ -16,11 +16,7 @@
 package com.android.tools.idea.editors.allocations;
 
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AllocationInfo;
-import com.android.tools.idea.editors.allocations.AllocationsRowListener;
-import com.android.tools.idea.editors.allocations.AllocationsRowSorter;
-import com.android.tools.idea.editors.allocations.AllocationsTableModel;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.BaseTableView;
@@ -36,11 +32,7 @@ import javax.swing.event.TableColumnModelListener;
 import java.awt.*;
 
 public class AllocationsTableUtil {
-  private static final Storage.PropertiesComponentStorage STORAGE =
-          new Storage.PropertiesComponentStorage("android.allocationsview.columns");
-
-  @VisibleForTesting
-  public enum Column {
+  enum Column {
     ALLOCATION_ORDER("Allocation Order", 0),
     ALLOCATED_CLASS("Allocated Class", "com.sample.data.AllocatedClass"),
     ALLOCATION_SIZE("Allocation Size", 0),
@@ -55,7 +47,8 @@ public class AllocationsTableUtil {
     }
   }
 
-  public static void setUpTable(@NotNull final JBTable allocationsTable, @Nullable ConsoleView consoleView) {
+  public static void setUpTable(@Nullable final Storage.PropertiesComponentStorage storage, @NotNull final JBTable allocationsTable,
+                                @Nullable ConsoleView consoleView) {
     allocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     new TableSpeedSearch(allocationsTable) {
       @Override
@@ -67,36 +60,38 @@ public class AllocationsTableUtil {
     allocationsTable.setModel(new AllocationsTableModel(new AllocationInfo[]{}));
     allocationsTable.setRowSorter(new AllocationsRowSorter(allocationsTable.getModel()));
 
-    if (STORAGE.get("widthsSet") == null) {
-      STORAGE.put("widthsSet", Boolean.toString(true));
-      setDefaultColumnWidths(allocationsTable);
-      BaseTableView.storeWidth(STORAGE, allocationsTable.getColumnModel());
+    if (storage != null) {
+      if (storage.get("widthsSet") == null) {
+        storage.put("widthsSet", Boolean.toString(true));
+        setDefaultColumnWidths(allocationsTable);
+        BaseTableView.storeWidth(storage, allocationsTable.getColumnModel());
+      }
+      BaseTableView.restore(storage, allocationsTable);
+
+      allocationsTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
+        @Override
+        public void columnAdded(TableColumnModelEvent e) {
+        }
+
+        @Override
+        public void columnRemoved(TableColumnModelEvent e) {
+        }
+
+        @Override
+        public void columnMoved(TableColumnModelEvent e) {
+          BaseTableView.store(storage, allocationsTable);
+        }
+
+        @Override
+        public void columnMarginChanged(ChangeEvent e) {
+          BaseTableView.storeWidth(storage, allocationsTable.getColumnModel());
+        }
+
+        @Override
+        public void columnSelectionChanged(ListSelectionEvent e) {
+        }
+      });
     }
-    BaseTableView.restore(STORAGE, allocationsTable);
-
-    allocationsTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
-      @Override
-      public void columnAdded(TableColumnModelEvent e) {
-      }
-
-      @Override
-      public void columnRemoved(TableColumnModelEvent e) {
-      }
-
-      @Override
-      public void columnMoved(TableColumnModelEvent e) {
-        BaseTableView.store(STORAGE, allocationsTable);
-      }
-
-      @Override
-      public void columnMarginChanged(ChangeEvent e) {
-        BaseTableView.storeWidth(STORAGE, allocationsTable.getColumnModel());
-      }
-
-      @Override
-      public void columnSelectionChanged(ListSelectionEvent e) {
-      }
-    });
   }
 
   private static void setDefaultColumnWidths(@NotNull JBTable allocationsTable) {
