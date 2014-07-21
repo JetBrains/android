@@ -26,11 +26,11 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import icons.AndroidIcons;
@@ -42,24 +42,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_SDK_DIR;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * A path to configure global details of a new Android project
  */
 public class ConfigureAndroidProjectPath extends DynamicWizardPath {
-  public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
-  public static final Key<String> SDK_HOME_KEY = createKey(ATTR_SDK_DIR, WIZARD, String.class);
-  public static final Key<List> INSTALL_REQUESTS_KEY = createKey("packagesToInstall", WIZARD, List.class);
-  public static final JBColor ANDROID_NPW_TITLE_COLOR = new JBColor(0x689F38, 0xFFFFFF);
-  public static final JBColor ANDROID_NPW_HEADER_COLOR = new JBColor(0x689F38, 0x356822);
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidProjectPath.class);
 
   @NotNull
@@ -102,16 +91,16 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     BuildToolInfo buildTool = sdkData != null ? sdkData.getLatestBuildTool() : null;
     FullRevision minimumRequiredBuildToolVersion = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
-      myState.put(BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
+      myState.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
     } else {
       // We need to install a new build tools version
-      myState.listPush(INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
-      myState.put(BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
+      myState.listPush(WizardConstants.INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
+      myState.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
     }
 
     if (sdkData != null) {
       // Gradle expects a platform-neutral path
-      myState.put(SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getPath()));
+      myState.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getPath()));
     }
   }
 
@@ -125,7 +114,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
         Template projectTemplate = Template.createFromName(CATEGORY_PROJECTS, NewProjectWizardState.PROJECT_TEMPLATE_NAME);
         projectTemplate.render(projectRoot, projectRoot, myState.flatten());
         try {
-          NewProjectWizard.setGradleWrapperExecutable(projectRoot);
+          setGradleWrapperExecutable(projectRoot);
         }
         catch (IOException e) {
           LOG.error(e);
@@ -140,9 +129,13 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     return false;
   }
 
+  /**
+   * Create a header banner for steps in this path.
+   * @return
+   */
   protected static JPanel buildConfigurationHeader() {
     JPanel panel = new JPanel();
-    panel.setBackground(ANDROID_NPW_HEADER_COLOR);
+    panel.setBackground(WizardConstants.ANDROID_NPW_HEADER_COLOR);
     panel.setBorder(BorderFactory.createLineBorder(Color.RED));
     panel.setLayout(new GridLayoutManager(2, 2, new Insets(18, 0, 12, 0), 2, 2));
     GridConstraints c = new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_NORTHWEST,
@@ -163,5 +156,23 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     productLabel.setForeground(Color.WHITE);
     panel.add(productLabel, c);
     return panel;
+  }
+
+  /**
+   * Set the executable bit on the 'gradlew' wrapper script on Mac/Linux
+   * On Windows, we use a separate gradlew.bat file which does not need an
+   * executable bit.
+   * @throws IOException
+   */
+  public static void setGradleWrapperExecutable(File projectRoot) throws IOException {
+    if (SystemInfo.isUnix) {
+      File gradlewFile = new File(projectRoot, "gradlew");
+      if (!gradlewFile.isFile()) {
+        LOG.error("Could not find gradle wrapper. Command line builds may not work properly.");
+      }
+      else {
+        FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
+      }
+    }
   }
 }

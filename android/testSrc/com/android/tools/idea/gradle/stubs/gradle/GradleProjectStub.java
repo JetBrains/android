@@ -88,6 +88,6 @@ public class GradleProjectStub implements GradleProject {
 
   @Override
   public File getBuildDirectory() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 }

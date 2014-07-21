@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.annotations.NonNull;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
@@ -46,7 +45,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 
 
 public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescription {
@@ -158,7 +157,6 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
     return "InstallingSDKComponentsStep";
   }
 
-  @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
     return null;
@@ -291,19 +289,19 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
     }
 
     @Override
-    public void warning(@NonNull String msgFormat, Object... args) {
+    public void warning(@NotNull String msgFormat, Object... args) {
       if (myIndicator != null) myIndicator.setText2(String.format(msgFormat, args));
       outputLine(String.format(msgFormat, args));
     }
 
     @Override
-    public void info(@NonNull String msgFormat, Object... args) {
+    public void info(@NotNull String msgFormat, Object... args) {
       if (myIndicator != null) myIndicator.setText2(String.format(msgFormat, args));
       outputLine(String.format(msgFormat, args));
     }
 
     @Override
-    public void verbose(@NonNull String msgFormat, Object... args) {
+    public void verbose(@NotNull String msgFormat, Object... args) {
       // Don't log verbose stuff in the background indicator.
       outputLine(String.format(msgFormat, args));
     }
@@ -314,7 +312,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
      * It also detects progress-bar like text and updates the dialog's progress
      * bar accordingly.
      */
-    private void outputLine(String line) {
+    private void outputLine(@NotNull String line) {
       myLastLine = line;
       try {
         // skip some of the verbose output such as license text & refreshing http sources
@@ -384,8 +382,10 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
                 current = "";
               }
               myTextArea1.setText(current + fAddLine);
-              if (fAddLine.contains("Nothing was installed") || fAddLine.contains("Failed")) {
-                myBackgroundSuccess = Boolean.FALSE;
+              if (fAddLine.contains("Nothing was installed")) {
+                myBackgroundSuccess = false;
+              } else if (fAddLine.contains("Failed")) {
+                myBackgroundSuccess = false;
               } else if (fAddLine.contains("Done") && !fAddLine.contains("othing")) {
                 myBackgroundSuccess = Boolean.TRUE;
               }

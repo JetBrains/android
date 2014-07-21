@@ -31,8 +31,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -41,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
@@ -55,7 +52,9 @@ import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
  * through steps to configure the project, setting its location and build parameters, and allows
  * the user to choose an activity to populate it. The wizard is template-driven, using templates
  * that live in the ADK.
+ * Deprecated by {@link NewProjectWizardDynamic}
  */
+@Deprecated
 public class NewProjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener {
   private static final Logger LOG = Logger.getInstance("#" + NewProjectWizard.class.getName());
   private static final String ERROR_MSG_TITLE = "New Project Wizard";
@@ -165,7 +164,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
           ((NewProjectWizardState)wizardState).myProjectTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
-          setGradleWrapperExecutable(projectRoot);
+          ConfigureAndroidProjectPath.setGradleWrapperExecutable(projectRoot);
         }
 
         wizardState.myTemplate.render(projectRoot, moduleRoot, wizardState.myParameters);
@@ -225,18 +224,6 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
       String msg = errors.size() == 1 ? errors.get(0) : Joiner.on('\n').join(errors);
       Messages.showErrorDialog(msg, ERROR_MSG_TITLE);
       LOG.error(msg);
-    }
-  }
-
-  public static void setGradleWrapperExecutable(File projectRoot) throws IOException {
-    if (SystemInfo.isUnix) {
-      File gradlewFile = new File(projectRoot, "gradlew");
-      if (!gradlewFile.isFile()) {
-        LOG.error("Could not find gradle wrapper. Command line builds may not work properly.");
-      }
-      else {
-        FileUtil.setExecutableAttribute(gradlewFile.getPath(), true);
-      }
     }
   }
 }
