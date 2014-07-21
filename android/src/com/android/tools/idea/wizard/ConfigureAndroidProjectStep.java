@@ -37,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.Document;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -350,6 +349,6 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   @Override
   @Nullable
   protected JBColor getTitleTextColor() {
-    return ConfigureAndroidProjectPath.ANDROID_NPW_TITLE_COLOR;
+    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
   }
 }
