@@ -39,6 +39,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.APPLICATION_NAME_KEY;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.PROJECT_LOCATION_KEY;
@@ -85,7 +86,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
     ScopedStateStore state = getState();
     state.put(GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
-    state.put(GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_LATEST_VERSION);
+    state.put(GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     state.put(USE_PER_MODULE_REPOS_KEY, false);
     state.put(IS_NEW_PROJECT_KEY, true);
     state.put(IS_GRADLE_PROJECT_KEY, true);

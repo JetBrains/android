@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
@@ -36,15 +38,20 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,6 +59,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
+
+import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 
 /**
  * The Project data that needs to be persisted for it to be possible to reload the Project without the need of calling Gradle to
@@ -216,8 +226,18 @@ public class AndroidGradleProjectData implements Serializable {
 
   private static boolean needsAndroidSdkSync(@NotNull Project project) {
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
-      File ideSdkPath = DefaultSdks.getDefaultAndroidHome();
+      final File ideSdkPath = DefaultSdks.getDefaultAndroidHome();
       if (ideSdkPath != null) {
+        if (needsLPreviewPlatformReset()) {
+          // reset the Android SDK home to force recreation of IDEA SDKs.
+          ApplicationManager.getApplication().runWriteAction(new Runnable() {
+            @Override
+            public void run() {
+              DefaultSdks.setDefaultAndroidHome(ideSdkPath, DefaultSdks.getDefaultJdk());
+            }
+          });
+          return true;
+        }
         try {
           LocalProperties localProperties = new LocalProperties(project);
           File projectSdkPath = localProperties.getAndroidSdkPath();
@@ -227,6 +247,39 @@ public class AndroidGradleProjectData implements Serializable {
         }
       }
       return true;
+    }
+    return false;
+  }
+
+  private static boolean needsLPreviewPlatformReset() {
+    // Repair SDK for 'android-L'. See: https://code.google.com/p/android/issues/detail?id=72589
+    // TODO: remove this at some point (it's only there to upgrade user settings for people who used 0.8.0 and 0.8.1 with 20 and 21
+    // installed simultaneously)
+    for (Sdk sdk : DefaultSdks.getEligibleAndroidSdks()) {
+      SdkAdditionalData additionalData = sdk.getSdkAdditionalData();
+      if (additionalData instanceof AndroidSdkAdditionalData) {
+        AndroidPlatform androidPlatform = ((AndroidSdkAdditionalData)additionalData).getAndroidPlatform();
+        if (androidPlatform != null) {
+          IAndroidTarget target = androidPlatform.getTarget();
+          AndroidVersion version = target.getVersion();
+          if ("L".equals(version.getApiString()) && version.getApiLevel() == 20 && version.isPreview()) {
+            // This is "android-L"
+            String androidJarPath = target.getPath(IAndroidTarget.ANDROID_JAR);
+            File expectedPath = new File(androidJarPath);
+            VirtualFile[] libraryFiles = sdk.getRootProvider().getFiles(CLASSES);
+            for (VirtualFile libraryFile : libraryFiles) {
+              // Match the expected path of android.jar vs. the actual path. The expected path is the one coming from SDK Manager, while
+              // the actual path is the one in the IDEA SDK.
+              if (FN_FRAMEWORK_LIBRARY.equals(libraryFile.getName())) {
+                File actualPath = VfsUtilCore.virtualToIoFile(libraryFile);
+                return !FileUtil.filesEqual(expectedPath, actualPath);
+              }
+            }
+            // android.jar was never found.
+            return true;
+          }
+        }
+      }
     }
     return false;
   }

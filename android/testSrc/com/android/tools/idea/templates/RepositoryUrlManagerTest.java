@@ -36,7 +36,6 @@ public class RepositoryUrlManagerTest extends TestCase {
   private String myFileText;
   private boolean myFileExists = true;
 
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -130,6 +129,12 @@ public class RepositoryUrlManagerTest extends TestCase {
     assertTrue(RepositoryUrlManager.supports("gridlayout-v7"));
     assertTrue(RepositoryUrlManager.supports("appcompat-v7"));
     assertTrue(RepositoryUrlManager.supports("play-services"));
+    assertTrue(RepositoryUrlManager.supports("play-services-wearable"));
+    assertTrue(RepositoryUrlManager.supports("support-annotations"));
+    assertTrue(RepositoryUrlManager.supports("cardview-v7"));
+    assertTrue(RepositoryUrlManager.supports("recyclerview-v7"));
+    assertTrue(RepositoryUrlManager.supports("palette-v7"));
+    assertTrue(RepositoryUrlManager.supports("leanback-v17"));
 
     assertFalse(RepositoryUrlManager.supports("actionbar-sherlock"));
   }
