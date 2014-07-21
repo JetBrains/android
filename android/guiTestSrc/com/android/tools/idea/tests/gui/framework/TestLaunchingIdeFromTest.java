@@ -15,20 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
+import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.FrameFixture;
 import org.fest.swing.timing.Pause;
 import org.junit.Test;
 
-import javax.swing.*;
 import java.util.concurrent.TimeUnit;
 
 public class TestLaunchingIdeFromTest extends GuiTestCase {
   @Test
-  public void testMinimizeFrame() {
+  public void testCreateNewProject() {
+    FrameFixture welcomeFrame = WindowFinder.findFrame(WelcomeFrame.class).using(myRobot);
+    ActionButtonWithText createNewProjectButton =
+      myRobot.finder().find(welcomeFrame.target, new GenericTypeMatcher<ActionButtonWithText>(ActionButtonWithText.class) {
+        @Override
+        protected boolean isMatching(ActionButtonWithText buttonWithText) {
+          String text = buttonWithText.getAction().getTemplatePresentation().getText();
+          return ("Create New Project".equals(text));
+        }
+      });
+    myRobot.click(createNewProjectButton);
     Pause.pause(1, TimeUnit.MINUTES);
-    JFrame target = WindowManager.getInstance().findVisibleFrame();
-    FrameFixture ideFrame = new FrameFixture(myRobot, target);
-    ideFrame.iconify();
   }
 }
