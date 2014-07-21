@@ -17,9 +17,7 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
@@ -64,10 +62,16 @@ public class AndroidModuleNode extends PackageViewModuleNode {
     Iterable<IdeaSourceProvider> providers = IdeaSourceProvider.getCurrentSourceProviders(facet);
     List<AbstractTreeNode> result = Lists.newArrayList();
 
-    // TODO: for now we only include Java sources under a Java node, iterate over all sources types instead.
-    List<VirtualFile> sources = getSources(AndroidSourceType.JAVA, providers);
-    if (!sources.isEmpty()) {
-      result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), AndroidSourceType.JAVA, providers, myProjectViewPane));
+    for (AndroidSourceType sourceType : AndroidSourceType.values()) {
+      // TODO: handle res folders and manifest files separately
+      if (sourceType == AndroidSourceType.RES || sourceType == AndroidSourceType.MANIFEST) {
+        continue;
+      }
+
+      List<VirtualFile> sources = getSources(sourceType, providers);
+      if (!sources.isEmpty()) {
+        result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), sourceType, providers, myProjectViewPane));
+      }
     }
 
     return result;
