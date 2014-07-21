@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.android.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
@@ -84,7 +85,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
   /**
    * Data shown in this component
    */
-  @NotNull private ListModel myModel;
+  private ListModel myModel;
   /**
    * Filter string for the incremental search
    */
@@ -110,19 +111,17 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
                    @NotNull Function<? super E, Image> imageProvider,
                    @NotNull Function<? super E, String> labelProvider,
                    @NotNull Dimension thumbnailSize) {
+    Font listFont = UIUtil.getListFont();
+    if (listFont != null) {
+      setFont(listFont);
+    }
+
     setThumbnailSize(thumbnailSize);
     setImageProvider(imageProvider);
     setLabelProvider(labelProvider);
     setModel(model);
 
     setOpaque(true);
-    setPreferredSize(computePreferredSize());
-    addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        setPreferredSize(computePreferredSize());
-      }
-    });
     setFocusable(true);
     addMouseListener(new MouseAdapter() {
       @Override
@@ -156,10 +155,6 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
       }
     });
     setBackground(UIUtil.getListBackground());
-    Font listFont = UIUtil.getListFont();
-    if (listFont != null) {
-      setFont(listFont);
-    }
     InputMap inputMap = getInputMap(JComponent.WHEN_FOCUSED);
     ActionMap actionMap = getActionMap();
 
@@ -213,7 +208,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
   public void setThumbnailSize(@NotNull Dimension thumbnailSize) {
     if (!Objects.equal(thumbnailSize, myThumbnailSize)) {
       myThumbnailSize = thumbnailSize;
-      setPreferredSize(getPreferredSize());
+      invalidate();
       repaint(getVisibleRect());
     }
   }
@@ -292,14 +287,34 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
     }
   }
 
-  private int getCellAt(Point point) {
-    Insets borderInsets = getBorderInsets();
+  @VisibleForTesting
+  protected int getCellAt(@NotNull Point point) {
+    Insets borderInsets = getInsets();
     int columnCount = getColumnCount();
-    int columnWidth = getActualColumnWidth(columnCount, borderInsets);
-    int column = (point.x - borderInsets.left) / columnWidth;
-    int row = (point.y - borderInsets.top) / computeCellSize().height;
+    Dimension cellDimensions = computeCellSize();
+    int galleryWidth = getClientWidth(borderInsets);
+
+    int offsetX = point.x - borderInsets.left;
+    int offsetY = point.y - borderInsets.top;
+    if (offsetX >= galleryWidth || offsetX < 0) {
+      return -1;
+    }
+    int column = 0;
+    // We may have columns of (slightly) varied width due to rounding errors...
+    while (getColumnOffset(column + 1, columnCount, galleryWidth) <= offsetX) {
+      column++;
+    }
+
+    int row = offsetY / cellDimensions.height;
+    if (row < 0 || row > myModel.getSize() / columnCount) {
+      return -1;
+    }
     int selection = column + row * columnCount;
     return selection >= 0 && selection < myModel.getSize() ? selection : -1;
+  }
+
+  private int getClientWidth(Insets borderInsets) {
+    return getWidth() - borderInsets.left - borderInsets.right;
   }
 
   private int getNewSelectionIndex(int vdirection, int hdirection) {
@@ -330,10 +345,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
   }
 
   private void updateFocusRectangle() {
-    if (mySelectedIndex < 0) {
-      setSelectedIndex(0);
-    }
-    else {
+    if (mySelectedIndex >= 0) {
       repaint(getVisibleRect());
     }
   }
@@ -391,7 +403,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
     if (selectedIndex != mySelectedIndex) {
       mySelectedIndex = selectedIndex;
       repaint(getVisibleRect());
-      scrollRectToVisible(getCellRectangle(mySelectedIndex));
+      revealCell(mySelectedIndex);
       if (notifyListeners) {
         fireSelectionChanged(mySelectedIndex);
       }
@@ -410,23 +422,6 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
         isSelectionListener = object == ListSelectionListener.class;
       }
     }
-  }
-
-  private Rectangle getCellRectangle(int cell) {
-    int columnCount = getColumnCount();
-    Insets borderInsets = getBorderInsets();
-
-    int width = getActualColumnWidth(columnCount, borderInsets);
-    int height = computeCellSize().height;
-
-    int x = (cell % columnCount) * width + borderInsets.left;
-    int y = (cell / columnCount) * height + borderInsets.top;
-
-    return new Rectangle(x, y, width, height);
-  }
-
-  private int getActualColumnWidth(int columnCount, Insets borderInsets) {
-    return (getWidth() - borderInsets.left - borderInsets.right) / columnCount;
   }
 
   /**
@@ -450,54 +445,50 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
       }
       myModel = model;
       myModel.addListDataListener(myListDataListener);
-      setPreferredSize(computePreferredSize());
+      invalidate();
       setSelectedIndex(getElementIndex(myModel, element));
     }
   }
 
-  /**
-   * Try to deduce the "most square" size that fits all elements - this will
-   * make the widget area as small as possible. Prefer making it taller then
-   * wider, horizontal scroll is not cool.
-   */
-  private Dimension computePreferredSize() {
-    int itemCount = myModel.getSize();
-    if (itemCount == 0) {
-      return new Dimension(0, 0);
+  @Override
+  public Dimension getPreferredSize() {
+    Dimension preferredSize = super.getPreferredSize();
+    int itemCount = myModel == null ? 0 : myModel.getSize();
+    if (isPreferredSizeSet() || itemCount == 0) {
+      return preferredSize;
     }
-    else {
-      Dimension cellSize = computeCellSize();
-      final int width = getSize().width;
-      if (width == 0) { // Initial computation, try to make component as square as possible
-        int area = cellSize.width * cellSize.height * itemCount;
-        int rows = (int)Math.ceil(Math.sqrt(area) / cellSize.height);
-        // May need an extra column.
-        int columns = intDivideRoundUp(itemCount, rows);
-        return new Dimension(columns * cellSize.width, rows * cellSize.height);
-      }
-      else { // Avoid horizontal scroll
-        int rows = intDivideRoundUp(itemCount, getColumnCount());
-        Insets borderInsets = getBorderInsets();
-        int height = rows * cellSize.height + borderInsets.top + borderInsets.bottom;
-        return new Dimension(Math.max(width, cellSize.width), height);
-      }
-    }
-  }
-
-  private Insets getBorderInsets() {
-    Border border = getBorder();
-    return border != null ? border.getBorderInsets(this) : new Insets(0, 0, 0, 0);
-  }
-
-  private int getColumnCount() {
-    int width = getWidth();
+    Insets insets = getInsets();
+    int insetsWidth = insets.left + insets.right;
+    int insetsHeight = insets.top + insets.bottom;
     Dimension cellSize = computeCellSize();
-    Insets borderInsets = getBorderInsets();
-    width -= borderInsets.left + borderInsets.right;
-    return Math.max(width / cellSize.width, 1);
+    final int width = getWidth();
+    if (width == 0) {
+      return new Dimension(cellSize.width + insetsWidth, cellSize.height + insetsHeight);
+    }
+    else { // Avoid horizontal scroll
+      int rows = intDivideRoundUp(itemCount, getColumnCount());
+      int height = rows * cellSize.height + insetsHeight;
+      return new Dimension(Math.max(width, cellSize.width + insetsWidth), height);
+    }
   }
 
-  private Dimension computeCellSize() {
+  @VisibleForTesting
+  protected int getColumnCount() {
+    Dimension cellSize = computeCellSize();
+    int width = getClientWidth(getInsets());
+    int columnCount = Math.max(width / cellSize.width, 1);
+    if (myModel != null) {
+      int entries = myModel.getSize();
+      // If one row, spread out the entries - but don't increase the entry width more then 2x, doesn't look right then
+      if (columnCount > entries && columnCount < entries * 2) {
+        return entries;
+      }
+    }
+    return columnCount;
+  }
+
+  @VisibleForTesting
+  protected Dimension computeCellSize() {
     Dimension imageSize = myThumbnailSize;
     int width = imageSize.width + myCellMargin.left + myCellMargin.right;
     int textHeight = getFont().getSize();
@@ -519,22 +510,24 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
     int lastColumn = (clipRectangle.x + clipRectangle.width) / cellBounds.width;
     int firstRow = clipRectangle.y / cellBounds.height;
     int lastRow = intDivideRoundUp(clipRectangle.y + clipRectangle.height, cellBounds.height);
-    Insets borderInsets = getBorder() == null ? UIUtil.getListViewportPadding() : getBorder().getBorderInsets(this);
+    Insets borderInsets = getInsets();
+    int componentWidth = getClientWidth(borderInsets);
+    int columns = getColumnCount();
 
-    int componentWidth = getSize().width - (borderInsets.right + borderInsets.left);
-    int columns = componentWidth / cellBounds.width;
-
-    int cellWidth = cellBounds.width = componentWidth / columns; // Spread out the cells if we have extra space
     for (int row = firstRow; row <= lastRow; row++) {
-      for (int column = firstColumn; column < lastColumn; column++) {
+      for (int column = firstColumn; column <= lastColumn; column++) {
         int cell = row * columns + column;
         if (cell >= myModel.getSize()) {
           break;
         }
-        int cellX = column * cellWidth + borderInsets.left;
+        // Intermediate values like componentWidth/columns are not cached
+        // as we are doing integer math here and rounding errors might
+        // accumulate and cause "holes" in control we are painting.
+        final int cellX = getColumnOffset(column, columns, componentWidth);
+        final int width = getColumnOffset(column + 1, columns, componentWidth) - cellX;
         int cellY = row * cellBounds.height + borderInsets.top;
         int cellHeight = cellBounds.height - 1;
-        Rectangle bounds = new Rectangle(cellX, cellY, cellWidth, cellHeight);
+        Rectangle bounds = new Rectangle(cellX + borderInsets.left, cellY, width, cellHeight);
         paintCell(g, cell, bounds);
       }
     }
@@ -620,7 +613,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
 
   @Override
   public Dimension getPreferredScrollableViewportSize() {
-    return computePreferredSize();
+    return getPreferredSize();
   }
 
   @Override
@@ -654,7 +647,31 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
   private void reveal() {
     int selectedIndex = getSelectedIndex();
     if (selectedIndex > 0) {
-      scrollRectToVisible(getCellRectangle(selectedIndex));
+      revealCell(selectedIndex);
+    }
+  }
+
+  private void revealCell(int selectedIndex) {
+    int columnCount = getColumnCount();
+    Insets borderInsets = getInsets();
+
+    int width = getClientWidth(borderInsets);
+    int height = computeCellSize().height;
+
+    int column = selectedIndex % columnCount;
+    int x = getColumnOffset(column, columnCount, width) + borderInsets.left;
+    int y = (selectedIndex / columnCount) * height + borderInsets.top;
+
+    scrollRectToVisible(new Rectangle(x, y, width, height));
+  }
+
+  @VisibleForTesting
+  protected int getColumnOffset(int column, int columnCount, int galleryWidth) {
+    if (columnCount <= myModel.getSize()) {
+      return column * galleryWidth / columnCount;
+    }
+    else {
+      return column * computeCellSize().width;
     }
   }
 
@@ -729,8 +746,7 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
         final int newSelection = mySelectedIndex + e.getIndex1() - e.getIndex0() - 1;
         setSelectedIndex(newSelection, false);
       }
-      setPreferredSize(computePreferredSize());
-      repaint();
+      invalidate();
     }
 
     @Override
@@ -747,14 +763,12 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
         // Notify if selected element was deleted
         setSelectedIndex(newSelectionIndex, mySelectedIndex <= lastRemoved);
       }
-      setPreferredSize(computePreferredSize());
-      repaint();
+      invalidate();
     }
 
     @Override
     public void contentsChanged(ListDataEvent e) {
-      setPreferredSize(computePreferredSize());
-      repaint();
+      invalidate();
     }
   }
 
