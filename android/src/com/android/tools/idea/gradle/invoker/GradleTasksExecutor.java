@@ -385,7 +385,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
         addMessage(msg, null);
       }
       finally {
-        try { Closeables.close(out, true); } catch (IOException ignored) {}
+        try {
+          Closeables.close(out, true /* swallowIOException */);
+        } catch (IOException ex) {
+          // Cannot happen
+        }
       }
     }
   }
