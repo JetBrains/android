@@ -147,6 +147,11 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testIgnoresGStringsInDependencies() throws Exception {
+    AndroidLintGradleCompatiblePluginInspection inspection = new AndroidLintGradleCompatiblePluginInspection();
+    doTest(inspection, null);
+  }
+
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
