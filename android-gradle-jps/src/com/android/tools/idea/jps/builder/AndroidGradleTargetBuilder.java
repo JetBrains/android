@@ -354,8 +354,12 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
     finally {
       String outText = stdout.toString();
       context.processMessage(new ProgressMessage(outText, 1.0f));
-      try { Closeables.close(stdout, true); } catch (IOException ignored) {}
-      try { Closeables.close(stderr, true); } catch (IOException ignored) {}
+      try {
+        Closeables.close(stdout, true);
+        Closeables.close(stderr, true);
+      } catch (IOException e) {
+        LOG.debug(e);
+      }
       connection.close();
     }
   }
@@ -417,7 +421,12 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
         context.processMessage(createCompilerErrorMessage(message));
       }
       finally {
-        try { Closeables.close(out, true); } catch (IOException ignored) {}
+        try {
+          Closeables.close(out, true);
+        }
+        catch (IOException e1) {
+          LOG.debug(e1);
+        }
       }
     }
     throw new ProjectBuildException(e.getMessage());
