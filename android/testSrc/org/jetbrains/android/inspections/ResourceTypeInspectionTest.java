@@ -73,4 +73,9 @@ public class ResourceTypeInspectionTest extends InspectionTestCase {
   public void testFlow() throws Exception {
     doTest();
   }
+
+  public void testColorAsDrawable() throws Exception {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=73464
+    doTest();
+  }
 }
