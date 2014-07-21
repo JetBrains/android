@@ -53,7 +53,8 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     myNotificationIconGenerator = mock(NotificationIconGenerator.class);
     myActionBarIconGenerator = mock(ActionBarIconGenerator.class);
     myLauncherIconGenerator = mock(LauncherIconGenerator.class);
-    myAssetGenerator = new AssetStudioAssetGenerator(myState, myActionBarIconGenerator, myNotificationIconGenerator, myLauncherIconGenerator);
+    myAssetGenerator = new AssetStudioAssetGenerator(new TemplateWizardContextAdapter(myState), myActionBarIconGenerator,
+                                                     myNotificationIconGenerator, myLauncherIconGenerator);
     pickImage(myState);
     myState.put(ATTR_ASSET_NAME, ASSET_NAME);
   }
@@ -171,7 +172,8 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     ActionBarIconGenerator generator = mock(ActionBarIconGenerator.class);
 
     TemplateWizardState state = new TemplateWizardState();
-    AssetStudioAssetGenerator studioGenerator = new AssetStudioAssetGenerator(state, generator, null, null);
+    AssetStudioAssetGenerator studioGenerator = new AssetStudioAssetGenerator(new TemplateWizardContextAdapter(state),
+                                                                              generator, null, null);
     pickImage(state);
     state.put(ATTR_ASSET_TYPE, AssetType.ACTIONBAR.name());
     state.put(ATTR_ASSET_THEME, theme.name());

@@ -32,11 +32,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.SearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -508,19 +504,24 @@ public class Parameter {
       return false;
     }
     for (File resDir : sourceProvider.getResDirectories()) {
-      File[] resTypes = resDir.listFiles();
-      if (resTypes == null) {
-        continue;
+      if (existsResourceFile(resDir, resourceType, name)) {
+        return true;
       }
+    }
+    return false;
+  }
+
+  public static boolean existsResourceFile(File resDir, ResourceFolderType resourceType, String name) {
+    File[] resTypes = resDir.listFiles();
+    if (resTypes != null) {
       for (File resTypeDir : resTypes) {
         if (resTypeDir.isDirectory() && resourceType.equals(ResourceFolderType.getFolderType(resTypeDir.getName()))) {
           File[] files = resTypeDir.listFiles();
-          if (files == null) {
-            continue;
-          }
-          for (File f : files) {
-            if (getNameWithoutExtensions(f).equalsIgnoreCase(name)) {
-              return true;
+          if (files != null) {
+            for (File f : files) {
+              if (getNameWithoutExtensions(f).equalsIgnoreCase(name)) {
+                return true;
+              }
             }
           }
         }
@@ -529,7 +530,7 @@ public class Parameter {
     return false;
   }
 
-  @Nullable
+  @NotNull
   private static String getNameWithoutExtensions(@NotNull File f) {
     if (f.getName().indexOf('.') == -1) {
       return f.getName();

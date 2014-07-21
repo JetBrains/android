@@ -37,6 +37,7 @@ import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -189,14 +190,25 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       return;
     }
 
+    // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
+    // which doesn't delete files that have been removed or renamed
+    String cause = null;
     File[] children = FileUtil.notNullize(androidPluginLibFolderPath.listFiles());
     if (hasMoreThanOneBuilderModelFile(children)) {
-      String msg = "Your Android Studio installation is corrupt and will not work properly. " +
-                   "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)\n" +
+      cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
+    } else if (new File(studioHomePath, FileUtil.join("plugins", "android-designer")).exists()) {
+      cause = "(Found plugins/android-designer which should not be present.)";
+    }
+    if (cause != null) {
+      String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
+                   cause + "\n" +
                    "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
                    "Please reinstall (and make sure the new installation directory is empty first.)";
       String title = "Corrupt Installation";
-      Messages.showDialog(msg, title, new String[]{"Proceed Anyway"}, 0, Messages.getErrorIcon());
+      int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());
+      if (option == 0) {
+        ApplicationManagerEx.getApplicationEx().exit();
+      }
     }
   }
 

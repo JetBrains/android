@@ -215,6 +215,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
           // Pass
         }
       }
+
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
         public void run() {
@@ -384,9 +385,9 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
               }
               myTextArea1.setText(current + fAddLine);
               if (fAddLine.contains("Nothing was installed") || fAddLine.contains("Failed")) {
-                myBackgroundSuccess = false;
+                myBackgroundSuccess = Boolean.FALSE;
               } else if (fAddLine.contains("Done") && !fAddLine.contains("othing")) {
-                myBackgroundSuccess = true;
+                myBackgroundSuccess = Boolean.TRUE;
               }
             }
 
