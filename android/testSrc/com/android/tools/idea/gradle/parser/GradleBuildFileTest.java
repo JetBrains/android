@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -510,6 +511,20 @@ public class GradleBuildFileTest extends IdeaTestCase {
     Dependency dependency = (Dependency)dependencies.get(0);
     assertNotNull(dependency);
     assertEquals("com.google.guava:guava:12.0@jar", dependency.getValueAsString());
+  }
+
+  public void testGetDependencyInAnotherAlternateFormat() throws IOException {
+    GradleBuildFile file = getTestFile(
+      "    dependencies {\n" +
+      "        compile project(path: ':foo', configuration: 'bar')\n" +
+      "    }\n"
+    );
+    List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency dependency = (Dependency)dependencies.get(0);
+    assertNotNull(dependency);
+    Map<String, Object> expected = ImmutableMap.of("path", (Object)":foo", "configuration", (Object)"bar");
+    assert(Maps.difference(expected, (Map<? extends String, ?>)dependency.data).areEqual());
   }
 
   public void testGetsMavenRepositories() throws Exception {
@@ -1116,7 +1131,6 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals("foo", file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
   }
 
-
   public void testGetIntegerOrStringAsInteger() throws Exception {
     final GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -1128,6 +1142,35 @@ public class GradleBuildFileTest extends IdeaTestCase {
     GrStatementOwner closure = file.getClosure("android/defaultConfig");
     assertNotNull(closure);
     assertEquals("5", file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
+  }
+
+  public void testPreservesDependencyExcludes() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    compile('com.android.support:support-v4:13.0.+') {\n" +
+      "        exclude module: 'blah'\n" +
+      "    }\n" +
+      "}\n");
+
+    final List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency newDependency = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:1.0", null);
+    dependencies.add(newDependency);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+      }
+    });
+
+    String expected =
+      "dependencies {\n" +
+      "    compile('com.android.support:support-v4:13.0.+') {\n" +
+      "        exclude module: 'blah'\n" +
+      "    }\n" +
+      "    compile 'com.foo:1.0'\n" +
+      "}\n";
+    assertContents(file, expected);
   }
 
   private static String getSimpleTestFile() throws IOException {
