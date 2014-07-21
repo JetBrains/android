@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="FontSize">
+        <item name="android:textSize"><warning>28<caret>dp</warning></item>
+    </style>
+</resources>

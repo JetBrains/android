@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.FilePaths;
@@ -30,7 +29,6 @@ import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
-import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
@@ -303,13 +301,9 @@ public class PostProjectBuildTasksExecutor {
         GradleSettings.getInstance(myProject).setOfflineWork(false);
       }
     };
-    NotificationListener notificationListener = new CustomNotificationListener(myProject, disableOfflineModeHyperlink);
-
     String title = "Unresolved Dependencies";
-    String msg = "Unresolved dependencies detected while building project in offline mode. Please disable offline mode and try again. " +
-                 disableOfflineModeHyperlink.toString();
-
-    AndroidGradleNotification.getInstance(myProject).showBalloon(title, msg, NotificationType.ERROR, notificationListener);
+    String text = "Unresolved dependencies detected while building project in offline mode. Please disable offline mode and try again.";
+    AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, disableOfflineModeHyperlink);
   }
 
   /**

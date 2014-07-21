@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
@@ -31,7 +30,6 @@ import com.android.tools.idea.stats.StudioBuildStatsPersistenceComponent;
 import com.google.common.collect.Lists;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompileContext;
@@ -127,6 +125,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   }
 
   private void showMigrateToGradleWarning() {
+    String errMsg = "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.";
     NotificationHyperlink moreInfoHyperlink = new OpenMigrationToGradleUrlHyperlink();
     NotificationHyperlink doNotShowAgainHyperlink = new NotificationHyperlink("do.not.show", "Don't show this message again.") {
       @Override
@@ -134,17 +133,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
         PropertiesComponent.getInstance(myProject).setValue(SHOW_MIGRATE_TO_GRADLE_POPUP, Boolean.FALSE.toString());
       }
     };
-    NotificationListener notificationListener = new CustomNotificationListener(myProject, moreInfoHyperlink, doNotShowAgainHyperlink);
-
-    // We need both "<br>" and "\n" to separate lines. IDEA will show this message in a balloon (which respects "<br>", and in the
-    // 'Event Log' tool window, which respects "\n".)
-    String errMsg =
-      "This project does not use the Gradle build system. We recommend that you migrate to using the Gradle build system.<br>\n" +
-      moreInfoHyperlink.toString() + "<br>\n" +
-      doNotShowAgainHyperlink.toString();
 
     AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
-    notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, notificationListener);
+    notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, moreInfoHyperlink, doNotShowAgainHyperlink);
   }
 
   public void configureGradleProject(boolean reImportProject) {

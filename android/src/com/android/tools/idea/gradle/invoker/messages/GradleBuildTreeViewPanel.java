@@ -17,13 +17,17 @@ package com.android.tools.idea.gradle.invoker.messages;
 
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleToolWindowFactory;
 import com.google.common.base.Joiner;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.errorTreeView.*;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -42,6 +46,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import java.util.Locale;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
@@ -50,14 +55,18 @@ import static com.google.common.base.Strings.nullToEmpty;
  * they appear in the console. The original implementation sorts the messages by type.
  */
 public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
-  private final GradleBuildTreeStructure myTreeStructure = new GradleBuildTreeStructure(myProject, false);
+  private final GradleBuildTreeStructure myTreeStructure;
   private final ErrorViewTreeBuilder myBuilder;
+  private final GradleBuildTreeViewConfiguration myConfiguration;
 
   private volatile boolean myDisposed;
 
   public GradleBuildTreeViewPanel(@NotNull Project project) {
     //noinspection ConstantConditions
     super(project, null);
+
+    myConfiguration = GradleBuildTreeViewConfiguration.getInstance(project);
+    myTreeStructure = new GradleBuildTreeStructure(myProject, myConfiguration);
 
     DefaultTreeModel model = (DefaultTreeModel)myTree.getModel();
     myBuilder = new ErrorViewTreeBuilder(myTree, model, myTreeStructure);
@@ -96,10 +105,15 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
     });
   }
 
+  @Nullable
+  private GradleBuildTreeViewConfiguration getConfiguration() {
+    return myConfiguration;
+  }
+
   @Override
   protected void fillRightToolbarGroup(DefaultActionGroup group) {
     super.fillRightToolbarGroup(group);
-    group.add(new AnAction("Show Console Output", null, AndroidIcons.GradleConsole) {
+    group.add(new DumbAwareAction("Show Console Output", null, AndroidIcons.GradleConsole) {
       @Override
       public void actionPerformed(AnActionEvent e) {
         ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(GradleConsoleToolWindowFactory.ID);
@@ -113,6 +127,28 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
         e.getPresentation().setEnabledAndVisible(true);
       }
     });
+
+    DefaultActionGroup filterGroup = new DefaultActionGroup("GradleBuildMessagesFilter", true) {
+      @Override
+      public void update(AnActionEvent e) {
+        Presentation presentation = e.getPresentation();
+        presentation.setDescription("Filter messages to display");
+        presentation.setIcon(AllIcons.General.Filter);
+      }
+
+      @Override
+      public boolean isDumbAware() {
+        return true;
+      }
+    };
+
+    // We could have iterated through ErrorTreeElementKind.values() and have less code, but we want to keep this order:
+    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.ERROR));
+    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.WARNING));
+    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.INFO));
+    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.NOTE));
+    filterGroup.add(new FilterMessagesByKindAction(ErrorTreeElementKind.GENERIC));
+    group.add(filterGroup);
   }
 
   @Override
@@ -223,5 +259,29 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
   private NavigatableMessageElement getSelectedMessageElement() {
     ErrorTreeElement selectedElement = getSelectedErrorTreeElement();
     return selectedElement instanceof NavigatableMessageElement ? (NavigatableMessageElement)selectedElement : null;
+  }
+
+  private class FilterMessagesByKindAction extends ToggleAction {
+    @NotNull private final ErrorTreeElementKind myElementKind;
+
+    FilterMessagesByKindAction(@NotNull ErrorTreeElementKind elementKind) {
+      super(StringUtil.capitalize(elementKind.toString().toLowerCase(Locale.getDefault())));
+      myElementKind = elementKind;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      GradleBuildTreeViewConfiguration configuration = getConfiguration();
+      if (configuration == null) {
+        return false;
+      }
+      return configuration.canShow(myElementKind);
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myConfiguration.update(myElementKind, state);
+      myBuilder.updateTree();
+    }
   }
 }

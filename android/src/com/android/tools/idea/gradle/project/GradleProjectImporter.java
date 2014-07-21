@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -30,8 +29,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.*;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -90,6 +87,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.google.common.base.Predicates.*;
+import static com.intellij.notification.NotificationType.ERROR;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
@@ -376,10 +374,7 @@ public class GradleProjectImporter {
         @Override
         public void run() {
           String msg = String.format("The project '%s' is not a Gradle-based project", project.getName());
-          AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-
-          NotificationListener notificationListener = new CustomNotificationListener(project, new OpenMigrationToGradleUrlHyperlink());
-          notification.showBalloon("Project Sync", msg, NotificationType.ERROR, notificationListener);
+          AndroidGradleNotification.getInstance(project).showBalloon("Project Sync", msg, ERROR, new OpenMigrationToGradleUrlHyperlink());
 
           if (listener != null) {
             listener.syncFailed(project, msg);
