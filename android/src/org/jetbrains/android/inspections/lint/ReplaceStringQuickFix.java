@@ -62,7 +62,7 @@ class ReplaceStringQuickFix implements AndroidLintQuickFix {
     return myName;
   }
 
-  @NotNull
+  @Nullable
   protected String getNewValue() {
     return myNewValue;
   }
@@ -76,11 +76,12 @@ class ReplaceStringQuickFix implements AndroidLintQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     Document document = FileDocumentManager.getInstance().getDocument(startElement.getContainingFile().getVirtualFile());
-    if (document != null) {
+    String newValue = getNewValue();
+    if (document != null && newValue != null) {
       editBefore(document);
       TextRange range = getRange(startElement, endElement);
       if (range != null) {
-        document.replaceString(range.getStartOffset(), range.getEndOffset(), getNewValue());
+        document.replaceString(range.getStartOffset(), range.getEndOffset(), newValue);
         editAfter(document);
       }
     }
