@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 
 /**
  * Represents a portion of the flow through a wizard. Each path consists of a linear progression of
@@ -48,7 +47,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
  * <pre>[ Path A, Path B1, Path B2, Path C]</pre>
  * Paths B1 and B2 would contain logic in their isPathVisible() function to implement the branching.
  */
-public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreListener {
+public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreListener, AndroidStudioWizardPath {
   // List of steps in this path
   protected List<DynamicWizardStep> mySteps = Lists.newArrayList();
   // Reference to the parent wizard
@@ -73,6 +72,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * Attach this path to a {@link DynamicWizard}, linking it to that wizard's state.
    */
+  @Override
   public final void attachToWizard(@NotNull DynamicWizard wizard) {
     myWizard = wizard;
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -109,6 +109,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * @return the number of visible steps currently in this path.
    */
+  @Override
   public final int getVisibleStepCount() {
     int sum = 0;
     for (DynamicWizardStep step : mySteps) {
@@ -122,6 +123,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * @return the current step object for this path, or null if this path has not yet been started, or has already ended.
    */
+  @Override
   @Nullable
   public final DynamicWizardStep getCurrentStep() {
     return myCurrentStep;
@@ -133,6 +135,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * @param fromBeginning Whether the path is being started from the beginning or from the end. If true, the path will be initialized
    *                      to the beginning of the path. If false, it will be initialized to its ending state.
    */
+  @Override
   public void onPathStarted(boolean fromBeginning) {
     if (mySteps.size() == 0 || getVisibleStepCount() == 0) {
       return;
@@ -218,6 +221,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * path to the next path in the wizard.
    * @return true if the user can progress to the next step in this path.
    */
+  @Override
   public boolean canGoNext() {
     return (myCurrentStep == null || myCurrentStep.canGoNext()) && myIsValid;
   }
@@ -230,6 +234,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * path to the previous path in the wizard.
    * @return true if the user should be allowed to go back through this path.
    */
+  @Override
   public boolean canGoPrevious() {
     return myCurrentStep == null || myCurrentStep.canGoPrevious();
   }
@@ -237,6 +242,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * @return true iff this path has more visible steps following its current step.
    */
+  @Override
   public final boolean hasNext() {
     if (myCurrentStepIndex >= mySteps.size() - 1) {
       return false;
@@ -252,6 +258,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * @return true iff this path has more visible steps previous to its current step
    */
+  @Override
   public final boolean hasPrevious() {
     if (myCurrentStepIndex == 0) {
       return false;
@@ -267,6 +274,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * @return the next visible step in this path or null if there are no following visible steps
    */
+  @Override
   @Nullable
   public final DynamicWizardStep next() {
     if (myCurrentStep != null && (!myCurrentStep.canGoNext() || !myCurrentStep.commitStep())) {
@@ -291,6 +299,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   /**
    * @return the previous visible step in this path or null if there are no previous visible steps
    */
+  @Override
   @Nullable
   public final DynamicWizardStep previous() {
     if (myCurrentStep != null && !myCurrentStep.canGoPrevious()) {
@@ -315,6 +324,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * Subclasses which implement branching must override this function.
    * @return true if this path should be shown to the user.
    */
+  @Override
   public boolean isPathVisible() {
     return true;
   }
@@ -326,6 +336,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * will be enabled.
    * @return true if this path is required, false if it is optional.
    */
+  @Override
   public boolean isPathRequired() {
     return true;
   }
@@ -358,6 +369,7 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
    * Converts the given text to an HTML message if necessary, and then displays it to the user.
    * @param errorMessage the message to display
    */
+  @Override
   public final void setErrorHtml(String errorMessage) {
     if (myCurrentStep != null) {
       myCurrentStep.setErrorHtml(errorMessage);
@@ -375,11 +387,10 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     }
   }
 
-  /**
-   * Declare any finishing actions that will take place at the completion of the wizard.
-   * This function is called inside of a {@link WriteCommandAction}.
-   *
-   * @return <code>true</code> signals that the operation completed succesfully and the wizard may procede.
-   */
-  public abstract boolean performFinishingActions();
+  @Override
+  public void updateCurrentStep() {
+    if (getCurrentStep() != null) {
+      getCurrentStep().invokeUpdate(null);
+    }
+  }
 }

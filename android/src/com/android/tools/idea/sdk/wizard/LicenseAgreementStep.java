@@ -17,19 +17,15 @@ package com.android.tools.idea.sdk.wizard;
 
 import com.android.sdklib.internal.repository.packages.License;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
-import com.android.tools.idea.wizard.ConfigureAndroidProjectPath;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -42,10 +38,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 
 /**
  * A review step for reviewing the changes about to be made and accepting the required licences.
