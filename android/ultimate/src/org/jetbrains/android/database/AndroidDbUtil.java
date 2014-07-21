@@ -374,7 +374,8 @@ class AndroidDbUtil {
   @Nullable
   public static String getDeviceId(@NotNull IDevice device) {
     if (device.isEmulator()) {
-      return DEVICE_ID_EMULATOR_PREFIX + replaceByDirAllowedName(device.getAvdName());
+      String avdName = device.getAvdName();
+      return avdName == null ? null : DEVICE_ID_EMULATOR_PREFIX + replaceByDirAllowedName(avdName);
     }
     else {
       final String serialNumber = device.getSerialNumber();
