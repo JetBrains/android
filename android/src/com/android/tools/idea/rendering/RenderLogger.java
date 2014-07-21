@@ -146,7 +146,7 @@ public class RenderLogger extends LayoutLog {
     String description = describe(message);
 
     if (LOG_ALL) {
-      LOG.error("%1$s: %2$s", myName, description);
+      LOG.error(String.format("%1$s: %2$s", myName, description));
     }
 
     // Workaround: older layout libraries don't provide a tag for this error
@@ -172,7 +172,7 @@ public class RenderLogger extends LayoutLog {
   public void error(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
     String description = describe(message);
     if (LOG_ALL) {
-      LOG.error("%1$s: %2$s", throwable, myName, description);
+      LOG.error(String.format("%1$s: %2$s", myName, description), throwable);
     }
     if (throwable != null) {
       if (throwable instanceof ClassNotFoundException) {
