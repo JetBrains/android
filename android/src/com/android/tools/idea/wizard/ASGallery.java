@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.GraphicsUtil;
@@ -30,12 +31,15 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.accessibility.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.LineMetrics;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
@@ -47,7 +51,7 @@ import java.util.concurrent.ExecutionException;
  * relies on two functions to obtain image and lable for model object.
  * It does not support notions of "renderer" or "editor"
  */
-public class ASGallery<E> extends JComponent implements Scrollable {
+public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
   /**
    * Default insets around the cell contents.
    */
@@ -654,6 +658,14 @@ public class ASGallery<E> extends JComponent implements Scrollable {
     }
   }
 
+  @Override
+  public AccessibleContext getAccessibleContext() {
+    if (accessibleContext == null) {
+      accessibleContext = new AccessibleASGallery();
+    }
+    return accessibleContext;
+  }
+
   /**
    * Guava containers do not like <code>null</code> values. This function
    * wraps such values into {@link com.google.common.base.Optional}.
@@ -743,6 +755,107 @@ public class ASGallery<E> extends JComponent implements Scrollable {
     public void contentsChanged(ListDataEvent e) {
       setPreferredSize(computePreferredSize());
       repaint();
+    }
+  }
+
+  private final class AccessibleASGallery extends AccessibleJComponent implements PropertyChangeListener, ListSelectionListener {
+    private Map<Integer, Accessible> children = Maps.newHashMap();
+
+    public AccessibleASGallery() {
+      setAccessibleName(ASGallery.this.getName());
+      ASGallery.this.addPropertyChangeListener(this);
+      ASGallery.this.addListSelectionListener(this);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+      if ("name".equals(evt.getPropertyName())) {
+        setAccessibleName((String)evt.getNewValue());
+      }
+      else if ("model".equals(evt.getPropertyName())) {
+        firePropertyChange(AccessibleContext.ACCESSIBLE_INVALIDATE_CHILDREN, null, ASGallery.this);
+      }
+    }
+
+    @Override
+    public int getAccessibleChildrenCount() {
+      return getModel().getSize();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Accessible getAccessibleChild(int i) {
+      if (!children.containsKey(i)) {
+        children.put(i, new AccessibleCell(i));
+      }
+      return children.get(i);
+    }
+
+    @Override
+    public AccessibleRole getAccessibleRole() {
+      return AccessibleRole.LIST;
+    }
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+      firePropertyChange(AccessibleContext.ACCESSIBLE_ACTIVE_DESCENDANT_PROPERTY, false, true);
+      firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY, false, true);
+    }
+  }
+
+  private final class AccessibleCell extends AccessibleJComponent implements Accessible, AccessibleComponent, AccessibleAction {
+    private final int myIndex;
+
+    public AccessibleCell(int index) {
+      myIndex = index;
+    }
+
+    @Override
+    public AccessibleRole getAccessibleRole() {
+      return AccessibleRole.LABEL;
+    }
+
+    @Override
+    public AccessibleStateSet getAccessibleStateSet() {
+      final AccessibleState[] state = {AccessibleState.SELECTABLE, AccessibleState.SINGLE_LINE, AccessibleState.ACTIVE};
+      return new AccessibleStateSet(state);
+    }
+
+    @Override
+    public Accessible getAccessibleParent() {
+      return ASGallery.this;
+    }
+
+    @Override
+    public String getAccessibleName() {
+      final String label = getLabel(myIndex);
+      return StringUtil.isEmpty(label) ? "No Label" : label;
+    }
+
+    @Override
+    public int getAccessibleIndexInParent() {
+      return myIndex;
+    }
+
+    @Override
+    public AccessibleContext getAccessibleContext() {
+      return this;
+    }
+
+    @Override
+    public int getAccessibleActionCount() {
+      return 1;
+    }
+
+    @Override
+    public String getAccessibleActionDescription(int i) {
+      return AccessibleAction.CLICK;
+    }
+
+    @Override
+    public boolean doAccessibleAction(int i) {
+      setSelectedIndex(myIndex);
+      return true;
     }
   }
 }
