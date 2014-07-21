@@ -82,8 +82,8 @@ public class IdeTestApplication implements Disposable {
     pluginManagerStart(args);
     mainMain();
     bootstrapMain();
-    startupUtilPrepareAndStart(args);
     mainImplStart();
+    startupUtilPrepareAndStart(args);
 
     // duplicates what IdeaApplication#IdeaApplication does (this whole block.)
     staticMethod("patchSystem").in(IdeaApplication.class).invoke();
@@ -112,11 +112,12 @@ public class IdeTestApplication implements Disposable {
 
   private static void startupUtilPrepareAndStart(@NotNull String[] args) {
     // Duplicates what StartupUtil#prepareAndStart does.
+    AppUIUtil.updateFrameClass();
     staticMethod("checkSystemFolders").in(StartupUtil.class).invoke();
     staticMethod("lockSystemFolders").withParameterTypes(String[].class).in(StartupUtil.class).invoke(new Object[] {args});
     Logger log = Logger.getInstance(IdeTestApplication.class);
+    staticMethod("loadSystemLibraries").withParameterTypes(Logger.class).in(StartupUtil.class).invoke(log);
     staticMethod("fixProcessEnvironment").withParameterTypes(Logger.class).in(StartupUtil.class).invoke(log);
-    AppUIUtil.updateFrameClass();
     AppUIUtil.updateWindowIcon(JOptionPane.getRootFrame());
     AppUIUtil.registerBundledFonts();
   }
