@@ -72,7 +72,8 @@ public class ResourceFolderManager implements ModificationTracker {
   public void invalidate() {
     List<VirtualFile> old = myResDirCache;
     myResDirCache = null;
-    getFolders();
+    getFolders(); // sets myResDirCache as a side effect
+    //noinspection ConstantConditions
     if (!old.equals(myResDirCache)) {
       notifyChanged(old, myResDirCache);
     }
@@ -131,21 +132,6 @@ public class ResourceFolderManager implements ModificationTracker {
             }
           }
         }
-
-        // Add notification listener for when the project is initialized so we can update the
-        // resource set, if necessary
-        if (!myGradleInitListenerAdded) {
-          myGradleInitListenerAdded = true; // Avoid adding multiple listeners if we invalidate and call this repeatedly around startup
-          myFacet.addListener(new GradleSyncListener() {
-            @Override
-            public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
-              // Resource folders can change on sync
-              if (success) {
-                invalidate();
-              }
-            }
-          });
-        }
       } else {
         for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myFacet)) {
           resDirectories.addAll(provider.getResDirectories());
@@ -176,6 +162,21 @@ public class ResourceFolderManager implements ModificationTracker {
             }
           });
         }
+      }
+
+      // Add notification listener for when the project is initialized so we can update the
+      // resource set, if necessary
+      if (!myGradleInitListenerAdded) {
+        myGradleInitListenerAdded = true; // Avoid adding multiple listeners if we invalidate and call this repeatedly around startup
+        myFacet.addListener(new GradleSyncListener() {
+          @Override
+          public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
+            // Resource folders can change on sync
+            if (success) {
+              invalidate();
+            }
+          }
+        });
       }
 
       return resDirectories;
