@@ -24,6 +24,12 @@ public class ProguardFlagImpl extends ASTWrapperPsiElement implements ProguardFl
 
   @Override
   @Nullable
+  public ProguardComment getComment() {
+    return findChildByClass(ProguardComment.class);
+  }
+
+  @Override
+  @Nullable
   public ProguardMultiLineFlag getMultiLineFlag() {
     return findChildByClass(ProguardMultiLineFlag.class);
   }

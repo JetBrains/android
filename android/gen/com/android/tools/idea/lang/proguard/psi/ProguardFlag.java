@@ -8,6 +8,9 @@ import com.intellij.psi.PsiElement;
 public interface ProguardFlag extends PsiElement {
 
   @Nullable
+  ProguardComment getComment();
+
+  @Nullable
   ProguardMultiLineFlag getMultiLineFlag();
 
   @Nullable
