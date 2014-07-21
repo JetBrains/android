@@ -84,7 +84,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testResourceCompletion3() throws Throwable {
-    doTestCompletionVariants("av4.xml", "@android:", "@anim/", "@color/", "@dimen/", "@drawable/", "@id/", "@string/", "@style/");
+    doTestCompletionVariants("av4.xml", "@android:", "@color/", "@dimen/", "@drawable/", "@id/", "@string/", "@style/");
   }
 
   public void testTagNameCompletion1() throws Throwable {
