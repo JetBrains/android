@@ -54,7 +54,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectPath.INSTALL_REQUESTS_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 import static com.android.tools.idea.wizard.FormFactorUtils.*;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
@@ -502,6 +502,6 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
   @Override
   @Nullable
   protected JBColor getTitleTextColor() {
-    return ConfigureAndroidProjectPath.ANDROID_NPW_TITLE_COLOR;
+    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
   }
 }

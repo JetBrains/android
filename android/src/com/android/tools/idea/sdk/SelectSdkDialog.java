@@ -76,8 +76,8 @@ public class SelectSdkDialog extends DialogWrapper {
     }
 
     mySelectSdkDescriptionLabel.setText("Please provide the path to the Android SDK.");
-    mySdkHyperlinkLabel.setHyperlinkTarget("http://d.android.com");
-    mySdkHyperlinkLabel.setHyperlinkText("If you do not have the Android SDK, you can obtain it from ", "d.android.com", ".");
+    mySdkHyperlinkLabel.setHyperlinkTarget("http://d.android.com/sdk");
+    mySdkHyperlinkLabel.setHyperlinkText("If you do not have the Android SDK, you can obtain it from ", "d.android.com/sdk", ".");
 
     mySelectJdkDescriptionLabel.setText("Please provide the path to a Java Development Kit (JDK) installation.");
     myJdkHyperlinkLabel.setHyperlinkTarget("http://www.oracle.com/technetwork/java/javase/downloads/index.html");
