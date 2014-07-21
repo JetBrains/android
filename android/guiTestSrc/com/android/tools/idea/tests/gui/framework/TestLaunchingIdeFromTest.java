@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -33,8 +35,12 @@ public class TestLaunchingIdeFromTest extends GuiTestCase {
       myRobot.finder().find(welcomeFrame.target, new GenericTypeMatcher<ActionButtonWithText>(ActionButtonWithText.class) {
         @Override
         protected boolean isMatching(ActionButtonWithText buttonWithText) {
-          String text = buttonWithText.getAction().getTemplatePresentation().getText();
-          return ("Create New Project".equals(text));
+          AnAction action = buttonWithText.getAction();
+          if (action != null) {
+            String id = ActionManager.getInstance().getId(action);
+            return "WelcomeScreen.CreateNewProject".equals(id);
+          }
+          return false;
         }
       });
     myRobot.click(createNewProjectButton);
