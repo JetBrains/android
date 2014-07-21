@@ -22,11 +22,11 @@ import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -54,6 +54,9 @@ public class AllocationsEditor implements FileEditor {
 
   private void parseAllocationsFileInBackground(final Project project, final VirtualFile file) {
     final Task.Modal parseTask = new Task.Modal(project, "Parsing allocations file", false) {
+      private AllocationInfo[] myAllocations;
+      private String myErrorMessage;
+
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         indicator.setIndeterminate(true);
@@ -63,38 +66,28 @@ public class AllocationsEditor implements FileEditor {
         try {
           data = ByteBufferUtil.mapFile(allocationsFile, 0, ByteOrder.BIG_ENDIAN);
         } catch (IOException ex) {
-          ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-              Messages.showErrorDialog(project, "Error reading from allocations file " + allocationsFile.getAbsolutePath(), getName());
-            }
-          }, ModalityState.defaultModalityState());
-          return;
+          myErrorMessage = "Error reading from allocations file " + allocationsFile.getAbsolutePath();
+          throw new ProcessCanceledException();
         }
 
-        final AllocationInfo[] allocations;
         try {
-          allocations = AllocationsParser.parse(data);
+          myAllocations = AllocationsParser.parse(data);
         }
         catch (final Throwable throwable) {
-          ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-              //noinspection ThrowableResultOfMethodCallIgnored
-              Messages
-                .showErrorDialog(project, "Unexpected error while parsing allocations file: "
-                                          + Throwables.getRootCause(throwable).getMessage(), getName());
-            }
-          }, ModalityState.defaultModalityState());
-          return;
+          //noinspection ThrowableResultOfMethodCallIgnored
+          myErrorMessage = "Unexpected error while parsing allocations file: " + Throwables.getRootCause(throwable).getMessage();
+          throw new ProcessCanceledException();
         }
+      }
 
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            myAllocationsViewPanel.setAllocations(allocations);
-          }
-        });
+      @Override
+      public void onSuccess() {
+        myAllocationsViewPanel.setAllocations(myAllocations);
+      }
+
+      @Override
+      public void onCancel() {
+        Messages.showErrorDialog(project, myErrorMessage, getName());
       }
     };
     ApplicationManager.getApplication().invokeLater(new Runnable() {
