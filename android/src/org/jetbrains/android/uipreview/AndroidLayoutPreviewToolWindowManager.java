@@ -500,6 +500,24 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     });
   }
 
+  public static void renderIfApplicable(@Nullable final Project project) {
+    if (project != null) {
+      if (!ApplicationManager.getApplication().isDispatchThread()) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            renderIfApplicable(project);
+          }
+        });
+        return;
+      }
+      AndroidLayoutPreviewToolWindowManager preview = getInstance(project);
+      if (preview != null) {
+        preview.render();
+      }
+    }
+  }
+
   public boolean render() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 

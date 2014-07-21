@@ -76,7 +76,7 @@ public class IntellijGradleDetectorTest extends AndroidTestCase {
   }
 
   public void testPackage() throws Exception {
-    AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
     doTest(inspection, null);
   }
 
