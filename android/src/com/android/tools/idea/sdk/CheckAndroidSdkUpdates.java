@@ -18,11 +18,9 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.repository.local.UpdateResult;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
@@ -95,7 +93,6 @@ public abstract class CheckAndroidSdkUpdates {
       @Override
       protected void execute(@NotNull Project project) {
         RunAndroidSdkManagerAction.runSpecificSdkManager(project, sdkData.getLocalSdk().getLocation());
-
         Notification n = notification.getNotification();
         if (n != null) {
           n.expire();
@@ -103,11 +100,7 @@ public abstract class CheckAndroidSdkUpdates {
       }
     };
 
-    String msg =
-      "Updates are available for the Android SDK.<br>\n" +
-      sdkManagerHyperlink.toString();
-
-    NotificationListener notificationListener = new CustomNotificationListener(project, sdkManagerHyperlink);
-    notification.showBalloon("Android SDK", msg, NotificationType.INFORMATION, NOTIFICATION_GROUP, notificationListener);
+    String msg = "Updates are available for the Android SDK.";
+    notification.showBalloon("Android SDK", msg, NotificationType.INFORMATION, NOTIFICATION_GROUP, sdkManagerHyperlink);
   }
 }

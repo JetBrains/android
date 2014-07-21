@@ -529,12 +529,8 @@ public class PostProjectSetupTasksExecutor {
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(VersionCheck.MIN_TOOLS_REV);
-      CustomNotificationListener listener = new CustomNotificationListener(project, hyperlink);
-
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
-
-      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available." + "<br>\n" + hyperlink.toString();
-      notification.showBalloon("Android SDK Tools", message, INFORMATION, listener);
+      String message = "Version " + VersionCheck.MIN_TOOLS_REV + " is available.";
+      AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
       ourSdkVersionWarningShown = true;
     }
   }

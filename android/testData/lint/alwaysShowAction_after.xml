@@ -1,0 +1,40 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MyActivity"
+    tools:ignore="UnusedAttribute">
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/settings" />
+
+    <item
+        android:id="@+id/menu_search"
+        android:icon="@drawable/ic_action_search"
+        android:orderInCategory="1"
+        android:showAsAction="ifRoom"
+        android:title="@string/search" />
+
+    <item
+        android:id="@+id/menu_share"
+        android:icon="@drawable/ic_action_share"
+        android:orderInCategory="2"
+        android:showAsAction="always"
+        android:title="@string/share" />
+
+    <item
+        android:id="@+id/menu_stats"
+        android:orderInCategory="101"
+        android:showAsAction="always|collapseActionView"
+        android:title="Statistics"
+        tools:ignore="HardcodedText" />
+
+    <item
+        android:id="@+id/menu_debug"
+        android:orderInCategory="101"
+        android:showAsAction="never"
+        android:title="Debug"
+        tools:ignore="HardcodedText" />
+
+</menu>

@@ -20,8 +20,6 @@ import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.ide.BrowserUtil;
-import com.intellij.notification.NotificationListener;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -35,6 +33,7 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
 import static com.android.tools.idea.gradle.service.notification.FixGradleVersionInWrapperHyperlink.updateGradleVersion;
+import static com.intellij.notification.NotificationType.ERROR;
 
 class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   private final boolean myOpenMigrationGuide;
@@ -73,12 +72,10 @@ class FixGradleModelVersionHyperlink extends NotificationHyperlink {
       }
     }
     if (!atLeastOnUpdated) {
-      NotificationListener notificationListener =
-        new CustomNotificationListener(project, new SearchInBuildFilesHyperlink("com.android.tools.build:gradle"));
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
       String msg = "Unable to find any references to the Android Gradle plug-in in build.gradle files.\n\n" +
                    "Please click the link to perform a textual search and then update the build files manually.";
-      notification.showBalloon(ERROR_MSG_TITLE, msg, NotificationType.ERROR, notificationListener);
+      SearchInBuildFilesHyperlink hyperlink = new SearchInBuildFilesHyperlink("com.android.tools.build:gradle");
+      AndroidGradleNotification.getInstance(project).showBalloon(ERROR_MSG_TITLE, msg, ERROR, hyperlink);
       return;
     }
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
