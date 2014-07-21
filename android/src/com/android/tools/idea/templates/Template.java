@@ -946,7 +946,13 @@ public class Template {
       copyDirectory(sourceFile, destFolder);
     }
     else {
-      VfsUtilCore.copyFile(this, sourceFile, destFolder, dest.getName());
+      com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(sourceFile);
+      if (document != null) {
+        writeFile(document.getText(), dest);
+      }
+      else {
+        VfsUtilCore.copyFile(this, sourceFile, destFolder, dest.getName());
+      }
     }
   }
 
