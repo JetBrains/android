@@ -32,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.android.tools.idea.sdk.DefaultSdks.isValidAndroidSdkPath;
+
 public final class SdkSync {
   private static final String ERROR_DIALOG_TITLE = "Sync Android SDKs";
 
@@ -50,36 +52,42 @@ public final class SdkSync {
     }
 
     final File androidHomePath = DefaultSdks.getDefaultAndroidHome();
-    boolean hasIdeSdk = androidHomePath != null;
-
     final File projectAndroidHomePath = localProperties.getAndroidSdkPath();
-    boolean hasProjectSdk = projectAndroidHomePath != null;
-    boolean hasValidProjectSdk = hasProjectSdk && DefaultSdks.validateAndroidSdkPath(projectAndroidHomePath);
 
-    if (hasIdeSdk && !hasProjectSdk) {
-      // If we have the IDE default SDK and we don't have a project SDK, update local.properties with default SDK path and exit.
-      setProjectSdk(localProperties, androidHomePath);
-      return;
-    }
-
-    if (hasIdeSdk && !hasValidProjectSdk) {
-      // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
-      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          if (!ApplicationManager.getApplication().isUnitTestMode()) {
-            String format =
-              "The path\n'%1$s'\ndoes not refer to an Android SDK.\n\nAndroid Studio will use its default SDK instead:\n'%2$s'\n" +
-              "and will modify the project's local.properties file.";
-            Messages.showErrorDialog(String.format(format, projectAndroidHomePath, androidHomePath.getPath()), ERROR_DIALOG_TITLE);
+    if (androidHomePath != null) {
+      if (projectAndroidHomePath == null) {
+        // If we have the IDE default SDK and we don't have a project SDK, update local.properties with default SDK path and exit.
+        setProjectSdk(localProperties, androidHomePath);
+        return;
+      }
+      if (!isValidAndroidSdkPath(projectAndroidHomePath)) {
+        // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
+        UIUtil.invokeAndWaitIfNeeded(new Runnable() {
+          @Override
+          public void run() {
+            if (!ApplicationManager.getApplication().isUnitTestMode()) {
+              String format =
+                "The path\n'%1$s'\ndoes not refer to an Android SDK.\n\nAndroid Studio will use its default SDK instead:\n'%2$s'\n" +
+                "and will modify the project's local.properties file.";
+              Messages.showErrorDialog(String.format(format, projectAndroidHomePath, androidHomePath.getPath()), ERROR_DIALOG_TITLE);
+            }
+            setProjectSdk(localProperties, androidHomePath);
           }
-          setProjectSdk(localProperties, androidHomePath);
-        }
-      });
-      return;
+        });
+        return;
+      }
     }
+    else {
+      if (projectAndroidHomePath == null || !isValidAndroidSdkPath(projectAndroidHomePath)) {
+        // We don't have any SDK (IDE or project.)
+        File selectedPath = findSdkPathTask.selectValidSdkPath();
+        if (selectedPath == null) {
+          throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
+        }
+        setIdeSdk(selectedPath, localProperties);
+        return;
+      }
 
-    if (!hasIdeSdk && hasValidProjectSdk) {
       // If we have a valid project SDK but we don't have IDE default SDK, update IDE with project SDK path and exit.
       UIUtil.invokeAndWaitIfNeeded(new Runnable() {
         @Override
@@ -90,19 +98,7 @@ public final class SdkSync {
       return;
     }
 
-    if (!hasIdeSdk && !hasProjectSdk) {
-      // We don't have any SDK (IDE or project.)
-      File selectedPath = findSdkPathTask.selectValidSdkPath();
-      if (selectedPath == null) {
-        throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
-      }
-      setIdeSdk(selectedPath, localProperties);
-      return;
-    }
-
-    assert androidHomePath != null;
-
-    if (!FileUtil.filesEqual(projectAndroidHomePath, androidHomePath)) {
+    if (!FileUtil.filesEqual(androidHomePath, projectAndroidHomePath)) {
       UIUtil.invokeAndWaitIfNeeded(new Runnable() {
         @Override
         public void run() {
@@ -121,7 +117,7 @@ public final class SdkSync {
     }
   }
 
-  private static void setIdeSdk(final @NotNull File projectAndroidHomePath, @NotNull final LocalProperties localProperties) {
+  private static void setIdeSdk(@NotNull final File projectAndroidHomePath, @NotNull LocalProperties localProperties) {
     // There is one case where DefaultSdks.setDefaultAndroidHome will not update local.properties in the project. The conditions for this to
     // happen are:
     // 1. This is a fresh install of Android Studio and user does not set Android SDK
@@ -179,7 +175,7 @@ public final class SdkSync {
         return;
       }
       final File path = new File(dialog.getAndroidHome());
-      if (!DefaultSdks.validateAndroidSdkPath(path)) {
+      if (!isValidAndroidSdkPath(path)) {
         String format = "The path\n'%1$s'\ndoes not refer to a valid Android SDK. Would you like to try again?";
         int result = Messages.showYesNoDialog(String.format(format, path.getPath()), ERROR_DIALOG_TITLE, null);
         if (result == Messages.YES) {
