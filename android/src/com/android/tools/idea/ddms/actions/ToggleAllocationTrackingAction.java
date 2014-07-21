@@ -64,7 +64,6 @@ public class ToggleAllocationTrackingAction extends ToggleAction {
     super.update(e);
 
     Presentation presentation = e.getPresentation();
-    presentation.setVisible(Boolean.getBoolean("ALLOC_TRACK"));
 
     Client c = myDeviceContext.getSelectedClient();
     if (c == null) {
