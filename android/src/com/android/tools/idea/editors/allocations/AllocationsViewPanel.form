@@ -7,12 +7,12 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="99024" binding="myCustomizingPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
+      <grid id="99024" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
         <constraints border-constraint="North"/>
         <properties/>
         <border type="none"/>
         <children>
-          <grid id="8d3ab" binding="myGroupingPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+          <grid id="8d3ab" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
             <constraints/>
             <properties/>
             <border type="none"/>
@@ -26,12 +26,12 @@
               </component>
             </children>
           </grid>
-          <grid id="13cc2" binding="myFilterPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+          <grid id="13cc2" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
             <constraints/>
             <properties/>
             <border type="none"/>
             <children>
-              <component id="746f" class="com.intellij.ui.components.JBLabel" binding="myFilterLabel">
+              <component id="746f" class="com.intellij.ui.components.JBLabel">
                 <constraints/>
                 <properties>
                   <text value="Filter:"/>
@@ -53,7 +53,7 @@
           </grid>
         </children>
       </grid>
-      <splitpane id="ab63a" binding="mySplitPane">
+      <splitpane id="ab63a">
         <constraints border-constraint="Center"/>
         <properties>
           <dividerLocation value="158"/>
@@ -71,12 +71,12 @@
               <component id="6963d" class="com.intellij.ui.table.JBTable" binding="myAllocationsTable">
                 <constraints/>
                 <properties>
-                  <autoCreateRowSorter value="true"/>
+                  <autoCreateRowSorter value="false"/>
                 </properties>
               </component>
             </children>
           </scrollpane>
-          <scrollpane id="61891" class="com.intellij.ui.components.JBScrollPane" binding="myStackTracePane">
+          <scrollpane id="61891" class="com.intellij.ui.components.JBScrollPane">
             <constraints>
               <splitpane position="right"/>
             </constraints>

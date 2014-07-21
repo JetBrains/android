@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.allocations;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AllocationInfo;
 import com.intellij.execution.filters.ExceptionInfoCache;
 import com.intellij.execution.filters.ExceptionWorker;
@@ -29,8 +30,8 @@ import com.intellij.openapi.util.Trinity;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
@@ -39,38 +40,69 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+import javax.swing.event.*;
+import javax.swing.table.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.util.List;
 
 public class AllocationsViewPanel {
+  @VisibleForTesting
+  static final String GROUPING_CHECKBOX_NAME = "myGroupingCheckBox";
+  @VisibleForTesting
+  static final String ALLOCATIONS_TABLE_NAME = "myAllocationsTable";
+  private static final String SEPARATOR = ":";
+
   private JPanel myContainer;
   private JBCheckBox myGroupingCheckBox;
   private JBTable myAllocationsTable;
-  private JBLabel myFilterLabel;
   private JBTextField myFilterField;
   private JBCheckBox myIncludeTraceCheckBox;
-  private JPanel myGroupingPanel;
-  private JPanel myFilterPanel;
-  private JPanel myCustomizingPanel;
   private JBScrollPane myAllocationsPane;
-  private JBScrollPane myStackTracePane;
-  private JSplitPane mySplitPane;
   private JEditorPane myStackTraceEditorPane;
 
   private Project myProject;
   private AllocationInfo[] myAllocations;
+  private AllocationsViewModel myViewModel;
   private TIntObjectHashMap<StackTrace> myStackTraces;
-  private ExceptionWorker myExceptionWorker;
 
-  private static String SEPARATOR = ":";
+  @VisibleForTesting
+  enum Column {
+    ALLOCATION_ORDER("Allocation Order", Integer.class),
+    ALLOCATED_CLASS("Allocated Class", String.class),
+    ALLOCATION_SIZE("Allocation Size", Integer.class),
+    THREAD_ID("Thread Id", Integer.class),
+    ALLOCATION_SITE("Allocation Site", String.class);
+
+    public final String description;
+    public final Class dataClass;
+    Column(String description, Class dataClass) {
+      this.description = description;
+      this.dataClass = dataClass;
+    }
+  }
 
   public AllocationsViewPanel(@NotNull Project project) {
     myProject = project;
+    init();
+  }
+
+  private void init() {
+    // Grouping not yet implemented
+    myGroupingCheckBox.setVisible(false);
+    myAllocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+    myStackTraceEditorPane.addHyperlinkListener(new StackTraceListener());
+    myStackTraceEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
+    myStackTraceEditorPane.setFont(myAllocationsTable.getFont());
+    // Shows a text cursor inside stack trace pane so user knows text is selectable
+    myStackTraceEditorPane.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+
+    // Lets ViewPanelSortTest find these components for testing
+    myGroupingCheckBox.setName(GROUPING_CHECKBOX_NAME);
+    myAllocationsTable.setName(ALLOCATIONS_TABLE_NAME);
   }
 
   @NotNull
@@ -78,116 +110,193 @@ public class AllocationsViewPanel {
     return myContainer;
   }
 
-  private void showAllocations() {
-    // Disables grouping and filtering (not yet implemented)
-    myGroupingCheckBox.setEnabled(false);
-    myFilterField.setEnabled(false);
-    myFilterField.setText("Coming soon");
-    myIncludeTraceCheckBox.setEnabled(false);
+  private void setupTableView() {
+    myViewModel = new AllocationsViewModel();
 
-    myAllocationsTable.setModel(new AllocationsTableModel());
-    myAllocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myAllocationsTable.getSelectionModel().addListSelectionListener(new RowListener());
-
-    myStackTraces = new TIntObjectHashMap<StackTrace>();
-    myStackTraceEditorPane.addHyperlinkListener(new StackTraceListener());
-    myStackTraceEditorPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
-    myStackTraceEditorPane.setFont(myAllocationsTable.getFont());
-
-    /*
-     * Keeps focus in table if there is a currently selected row and none of the grouping checkbox, the filter text field, and the include
-     * trace checkbox is selected.  Allows user to continue scrolling through table with arrow keys after returning from a file linked to in
-     * the stack trace.
-     */
-    myStackTraceEditorPane.addFocusListener(new FocusAdapter() {
+    myIncludeTraceCheckBox.addItemListener(new ItemListener() {
       @Override
-      public void focusGained(FocusEvent e) {
-        if (myAllocationsTable.getSelectedRow() >= 0) {
-          myAllocationsTable.requestFocusInWindow();
-        }
+      public void itemStateChanged(ItemEvent e) {
+        myViewModel.updateFilter();
       }
     });
+
+    myFilterField.getDocument().addDocumentListener(myViewModel.getFilterListener());
+    myAllocationsTable.getSelectionModel().addListSelectionListener(myViewModel.getRowListener());
+
+    myAllocationsTable.setModel(myViewModel.getTableModel());
+    myAllocationsTable.setRowSorter(myViewModel.getRowSorter());
+
+    Enumeration<TableColumn> columns = myAllocationsTable.getColumnModel().getColumns();
+    while (columns.hasMoreElements()) {
+      columns.nextElement().setCellRenderer(myViewModel.getCellRenderer());
+    }
+  }
+
+  private void resetTableView() {
+    myFilterField.setText("");
+    myIncludeTraceCheckBox.setSelected(false);
+    myStackTraceEditorPane.setText("");
+    myAllocationsTable.getRowSorter().modelStructureChanged();
+
+    // Clears selected row (if any) and resets focus
+    myAllocationsTable.clearSelection();
+    myAllocationsPane.requestFocusInWindow();
+
+    myAllocationsPane.getVerticalScrollBar().setValue(0);
+    myAllocationsPane.getHorizontalScrollBar().setValue(0);
   }
 
   public void setAllocations(@NotNull AllocationInfo[] allocations) {
     myAllocations = allocations;
-    showAllocations();
+    if (myViewModel == null) {
+      setupTableView();
+    } else {
+      resetTableView();
+    }
+    myStackTraces = new TIntObjectHashMap<StackTrace>();
   }
 
-  private class AllocationsTableModel extends AbstractTableModel {
-    private final String[] COLUMN_NAMES = new String[] {
-      "Allocation Order", "Allocated Class", "Allocation Size", "Thread Id", "Class Allocated In", "Method Allocated In"
-    };
+  private class AllocationsViewModel {
+    private final TableModel myTableModel = new AllocationsTableModel();
+    private final TableRowSorter<TableModel> myRowSorter = new AllocationsRowSorter();
+    private final ListSelectionListener myRowListener = new AllocationsRowListener();
+    private final DocumentListener myFilterListener = new AllocationsFilterListener();
+    private final TableCellRenderer myCellRenderer = new DefaultCellRenderer();
 
-    private final Object[] DUMMY_DATA = new Object[] {0, "", 0, 0, "", ""};
-
-    @Override
-    public int getRowCount() {
-      return myAllocations.length;
+    @NotNull
+    public TableModel getTableModel() {
+      return myTableModel;
     }
 
-    @Override
-    public int getColumnCount() {
-      return COLUMN_NAMES.length;
+    @NotNull
+    public TableRowSorter<TableModel> getRowSorter() {
+      return myRowSorter;
     }
 
-    @Override
-    @Nullable
-    public Object getValueAt(int row, int column) {
-      AllocationInfo data = myAllocations[row];
-      switch (column) {
-        case 0:
-          return data.getAllocNumber();
-        case 1:
-          return data.getAllocatedClass();
-        case 2:
-          return data.getSize();
-        case 3:
-          return data.getThreadId();
-        case 4:
-          return data.getFirstTraceClassName();
-        case 5:
-          return data.getFirstTraceMethodName();
-        default:
-          return null;
+    @NotNull
+    public ListSelectionListener getRowListener() {
+      return myRowListener;
+    }
+
+    @NotNull
+    public DocumentListener getFilterListener() {
+      return myFilterListener;
+    }
+
+    @NotNull
+    public TableCellRenderer getCellRenderer() {
+      return myCellRenderer;
+    }
+
+    private void updateFilter() {
+      getRowSorter().setRowFilter(new AllocationsRowFilter());
+    }
+
+    private class AllocationsTableModel extends AbstractTableModel {
+      @Override
+      public int getRowCount() {
+        return myAllocations.length;
+      }
+
+      @Override
+      public int getColumnCount() {
+        return Column.values().length;
+      }
+
+      @Nullable
+      private Object getValueAt(@NotNull AllocationInfo data, int column) {
+        switch (Column.values()[column]) {
+          case ALLOCATION_ORDER:
+            return data.getAllocNumber();
+          case ALLOCATED_CLASS:
+            return data.getAllocatedClass();
+          case ALLOCATION_SIZE:
+            return data.getSize();
+          case THREAD_ID:
+            return data.getThreadId();
+          case ALLOCATION_SITE:
+            return data.getAllocationSite();
+          default:
+            return null;
+        }
+      }
+
+      @Override
+      @Nullable
+      public Object getValueAt(int row, int column) {
+        return getValueAt(myAllocations[row], column);
+      }
+
+      @Override
+      @NotNull
+      public String getColumnName(int column) {
+        return Column.values()[column].description;
+      }
+
+      @Override
+      @NotNull
+      public Class getColumnClass(int c) {
+        return Column.values()[c].dataClass;
       }
     }
 
-    @Override
-    @NotNull
-    public String getColumnName(int column) {
-      return COLUMN_NAMES[column];
+    private class AllocationsRowSorter extends TableRowSorter<TableModel> {
+      public AllocationsRowSorter() {
+        setModel(getTableModel());
+        setMaxSortKeys(1);
+      }
+
+      @Override
+      public void setSortKeys(@Nullable List<? extends SortKey> sortKeys) {
+        List<SortKey> keys = sortKeys == null ? new ArrayList<SortKey>() : new ArrayList<SortKey>(sortKeys);
+        // Does secondary sorting (breaks ties) on allocation size
+        if (keys.size() > 0 && keys.get(0).getColumn() != Column.ALLOCATION_SIZE.ordinal()) {
+          keys.add(1, new SortKey(Column.ALLOCATION_SIZE.ordinal(), keys.get(0).getSortOrder()));
+        }
+        super.setSortKeys(keys);
+      }
     }
 
-    @Override
-    @NotNull
-    public Class getColumnClass(int c) {
-      return DUMMY_DATA[c].getClass();
-    }
-  }
+    private class AllocationsRowListener implements ListSelectionListener {
+      private int getModelRow(int viewRow) {
+        return myAllocationsTable.convertRowIndexToModel(viewRow);
+      }
 
-  private class RowListener implements ListSelectionListener {
-    @Override
-    public void valueChanged(ListSelectionEvent event) {
-      if (event.getValueIsAdjusting()) { return; }
-      int row = myAllocationsTable.convertRowIndexToModel(myAllocationsTable.getSelectedRow());
+      @Override
+      public void valueChanged(ListSelectionEvent event) {
+        if (event.getValueIsAdjusting()) {
+          return;
+        }
+        int viewRow = myAllocationsTable.getSelectedRow();
+        if (viewRow < 0) {
+          return;
+        }
+        int row = getModelRow(viewRow);
+        if (row < 0) {
+          return;
+        }
 
-      if (myStackTraces.get(row) == null) {
+        if (myStackTraces.get(row) == null) {
+          parseStackTrace(row);
+        }
+        myStackTraceEditorPane.setText(myStackTraces.get(row).toString());
+        myStackTraceEditorPane.setCaretPosition(0);
+      }
+
+      private void parseStackTrace(int row) {
         StackTraceElement[] elements = myAllocations[row].getStackTrace();
         StackTrace trace = new StackTrace(elements.length);
 
-        if (myExceptionWorker == null) {
-          myExceptionWorker = new ExceptionWorker(new ExceptionInfoCache(GlobalSearchScope.allScope(myProject)));
-        }
         ProjectFileIndex index = ProjectRootManager.getInstance(myProject).getFileIndex();
         StringBuilder traceBuilder = new StringBuilder();
+        ExceptionWorker worker = new ExceptionWorker(new ExceptionInfoCache(GlobalSearchScope.allScope(myProject)));
 
         for (int i = 0; i < elements.length; ++i) {
           String line = "at " + elements[i].toString();
           line = line.replaceAll("<", "&lt;");
           line = line.replaceAll(">", "&gt");
-          myExceptionWorker.execute(line, line.length());
-          PsiFile file = myExceptionWorker.getFile();
+          worker.execute(line, line.length());
+          PsiFile file = worker.getFile();
           VirtualFile vf;
           if (file != null) {
             vf = file.getVirtualFile();
@@ -195,7 +304,7 @@ public class AllocationsViewPanel {
             if (i == 0 || !vf.equals(trace.getVirtualFile(i - 1))) {
               trace.setVirtualFile(i, vf);
               if (index.isInContent(vf)) {
-                Trinity<TextRange, TextRange, TextRange> info = myExceptionWorker.getInfo();
+                Trinity<TextRange, TextRange, TextRange> info = worker.getInfo();
                 int highlightStartOffset = info.getThird().getStartOffset() + 1;
                 int highlightEndOffset = info.getThird().getEndOffset();
                 line = line.substring(0, highlightStartOffset)
@@ -210,8 +319,43 @@ public class AllocationsViewPanel {
         trace.setDescription(traceBuilder.toString());
         myStackTraces.put(row, trace);
       }
-      myStackTraceEditorPane.setText(myStackTraces.get(row).toString());
-      myStackTraceEditorPane.setCaretPosition(0);
+    }
+
+    private class AllocationsFilterListener implements DocumentListener {
+      @Override
+      public void changedUpdate(@Nullable DocumentEvent e) {
+        updateFilter();
+      }
+
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        updateFilter();
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        updateFilter();
+      }
+    }
+
+    private class AllocationsRowFilter extends RowFilter<TableModel,Integer> {
+      @Override
+      public boolean include(Entry<? extends TableModel, ? extends Integer> entry) {
+        return myAllocations[entry.getIdentifier()].filter(myFilterField.getText(),
+                myIncludeTraceCheckBox.isSelected(), myFilterField.getLocale());
+      }
+    }
+
+    private class DefaultCellRenderer extends ColoredTableCellRenderer {
+      @Override
+      public void customizeCellRenderer(JTable table, Object value, boolean selected, boolean focused, int row, int column) {
+        append(value.toString());
+        if (value instanceof Number) {
+          this.setTextAlign(SwingConstants.RIGHT);
+        } else {
+          this.setTextAlign(SwingConstants.LEFT);
+        }
+      }
     }
   }
 
