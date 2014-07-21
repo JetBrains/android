@@ -53,8 +53,32 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   Debug.java\n" +
       "   app\n" +
       "    MainActivity\n" +
+      "  res\n" +
+      "   drawable\n" +
+      "    ic_launcher.png (mdpi)\n" +
+      "   layout\n" +
+      "    activity_main.xml\n" +
+      "   menu\n" +
+      "    main.xml\n" +
+      "   values\n" +
+      "    dimens.xml (3)\n" +
+      "     dimens.xml\n" +
+      "     dimens.xml (debug)\n" +
+      "     dimens.xml (w820dp)\n" +
+      "    strings.xml (2)\n" +
+      "     strings.xml\n" +
+      "     strings.xml (debug)\n" +
+      "    styles.xml\n" +
       "  rs\n" +
-      "   test.rs\n";
+      "   test.rs\n" +
+      " lib (Android)\n" +
+      "  java\n" +
+      "   lib\n" +
+      "  res\n" +
+      "   drawable\n" +
+      "    ic_launcher.png (mdpi)\n" +
+      "   values\n" +
+      "    strings.xml\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil
       .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
