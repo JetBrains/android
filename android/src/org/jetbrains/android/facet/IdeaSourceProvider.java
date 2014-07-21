@@ -165,11 +165,36 @@ public abstract class IdeaSourceProvider {
     public Set<VirtualFile> getAssetsDirectories() {
       return convertFileSet(myProvider.getAssetsDirectories());
     }
+
+    /**
+     * Compares another source provider with this for equality. Returns true if the specified object is also a Gradle source provider,
+     * has the same name, and the same set of source locations.
+     */
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Gradle that = (Gradle)o;
+      if (!myProvider.getName().equals(that.getName())) return false;
+      if (!myProvider.getManifestFile().getPath().equals(that.myProvider.getManifestFile().getPath())) return false;
+
+      return true;
+    }
+
+    /**
+     * Returns the hash code for this source provider. The hash code simply provides the hash of the manifest file's location,
+     * but this follows the required contract that if two source providers are equal, their hash codes will be the same.
+     */
+    @Override
+    public int hashCode() {
+      return myProvider.getManifestFile().getPath().hashCode();
+    }
   }
 
   /** {@linkplain IdeaSourceProvider} for a legacy (non-Gradle) Android project */
   private static class Legacy extends IdeaSourceProvider {
-    private final AndroidFacet myFacet;
+    @NotNull private final AndroidFacet myFacet;
 
     private Legacy(@NotNull AndroidFacet facet) {
       myFacet = facet;
@@ -243,6 +268,21 @@ public abstract class IdeaSourceProvider {
       assert dir != null;
       return Collections.singleton(dir);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      Legacy that = (Legacy)o;
+      return myFacet.equals(that.myFacet);
+    }
+
+    @Override
+    public int hashCode() {
+      return myFacet.hashCode();
+    }
+
   }
 
   /**

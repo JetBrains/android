@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.PresentationData;
@@ -31,6 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -48,7 +50,7 @@ import java.util.Set;
  */
 public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
   @NotNull private final AndroidSourceType mySourceType;
-  @NotNull private final Iterable<IdeaSourceProvider> mySourceProviders;
+  @NotNull private final List<IdeaSourceProvider> mySourceProviders;
   @NotNull private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidSourceTypeNode(@NotNull Project project,
@@ -59,7 +61,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
                                @NotNull AndroidProjectViewPane projectViewPane) {
     super(project, facet, viewSettings);
     mySourceType = sourceType;
-    mySourceProviders = sourceProviders;
+    mySourceProviders = ImmutableList.copyOf(sourceProviders);
     myProjectViewPane = projectViewPane;
   }
 
@@ -135,16 +137,16 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     AndroidSourceTypeNode that = (AndroidSourceTypeNode)o;
 
     if (mySourceType != that.mySourceType) return false;
-    if (mySourceProviders != that.mySourceProviders) return false;
-
-    return true;
+    return mySourceProviders.equals(that.mySourceProviders);
   }
 
   @Override
   public int hashCode() {
     int result = super.hashCode();
     result = 31 * result + mySourceType.hashCode();
-    result = 31 * result + mySourceProviders.hashCode();
+    for (IdeaSourceProvider provider : mySourceProviders) {
+      result = 31 * result + provider.hashCode();
+    }
     return result;
   }
 
