@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+
+import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static junit.framework.Assert.assertNotNull;
@@ -41,12 +47,28 @@ public abstract class GuiTestCase {
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
 
     myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
- }
+    myRobot.settings().delayBetweenEvents(30);
+  }
 
   @After
   public void tearDown() {
     if (myRobot != null) {
       myRobot.cleanUpWithoutDisposingWindows();
     }
+  }
+
+  @NotNull
+  protected WelcomeFrameFixture findWelcomeFrame() {
+    return WelcomeFrameFixture.find(myRobot);
+  }
+
+  @NotNull
+  protected NewProjectWizardFixture findNewProjectWizard() {
+    return NewProjectWizardFixture.find(myRobot);
+  }
+
+  @NotNull
+  protected IdeFrameFixture findIdeFrame(@NotNull String projectName, @NotNull File projectPath) {
+    return IdeFrameFixture.find(myRobot, projectName, projectPath);
   }
 }
