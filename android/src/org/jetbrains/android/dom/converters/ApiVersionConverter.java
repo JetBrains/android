@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom.converters;
 
-import com.android.ide.common.sdk.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;

@@ -246,6 +246,13 @@ public class DeviceArtDescriptor {
       return true;
     }
 
+    // Not all devices are available in all orientations
+    if (orientation == ScreenOrientation.PORTRAIT && myPortrait == null) {
+      return false;
+    } else if (orientation == ScreenOrientation.LANDSCAPE && myLandscape == null) {
+      return false;
+    }
+
     // Make sure that the aspect ratio is nearly identical to the image aspect ratio
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     double descriptorAspectRatio = getAspectRatio(orientation);
