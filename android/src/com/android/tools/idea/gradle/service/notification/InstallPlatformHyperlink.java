@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
 import com.android.sdklib.repository.MajorRevision;
@@ -29,22 +28,24 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-class InstallPlatformHyperlink extends NotificationHyperlink {
-  @NotNull private final AndroidVersion myAndroidVersion;
+public class InstallPlatformHyperlink extends NotificationHyperlink {
+  @NotNull private final AndroidVersion[] myAndroidVersions;
 
-  InstallPlatformHyperlink(@NotNull AndroidVersion androidVersion) {
-    super("install.android.platform", "Install missing platform and sync project");
-    myAndroidVersion = androidVersion;
+  public InstallPlatformHyperlink(@NotNull AndroidVersion... androidVersions) {
+    super("install.android.platform", "Install missing platform(s) and sync project");
+    myAndroidVersions = androidVersions;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
     List<IPkgDesc> requested = Lists.newArrayList();
-    FullRevision minBuildToolsRev = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
-    requested.add(PkgDesc.Builder.newPlatform(myAndroidVersion, new MajorRevision(1), minBuildToolsRev).create());
+    for (AndroidVersion version : myAndroidVersions) {
+      requested.add(PkgDesc.Builder.newPlatform(version, new MajorRevision(1), FullRevision.NOT_SPECIFIED).create());
+    }
     SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
     wizard.init();
-    wizard.show();
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    if (wizard.showAndGet()) {
+      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    }
   }
 }
