@@ -102,15 +102,15 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     JComponent header = getHeader();
     if (header != null) {
       myCustomHeaderPanel.add(header, BorderLayout.CENTER);
-      header.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
+      header.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
       myCustomHeaderPanel.setVisible(true);
       myCustomHeaderPanel.repaint();
-      myTitlePanel.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
+      myTitlePanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     } else {
-      Insets topSegmentInsets = new Insets(DynamicWizard.STUDIO_WIZARD_TOP_INSET,
-                                           DynamicWizard.STUDIO_WIZARD_INSETS.left,
-                                           DynamicWizard.STUDIO_WIZARD_INSETS.bottom,
-                                           DynamicWizard.STUDIO_WIZARD_INSETS.right);
+      Insets topSegmentInsets = new Insets(WizardConstants.STUDIO_WIZARD_TOP_INSET,
+                                           WizardConstants.STUDIO_WIZARD_INSETS.left,
+                                           WizardConstants.STUDIO_WIZARD_INSETS.bottom,
+                                           WizardConstants.STUDIO_WIZARD_INSETS.right);
       myNorthPanel.setBorder(new EmptyBorder(topSegmentInsets));
     }
 
@@ -159,7 +159,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   }
 
   protected final void setBodyComponent(JComponent component) {
-    component.setBorder(new EmptyBorder(DynamicWizard.STUDIO_WIZARD_INSETS));
+    component.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     myRootPane.add(component, BorderLayout.CENTER);
   }
 
