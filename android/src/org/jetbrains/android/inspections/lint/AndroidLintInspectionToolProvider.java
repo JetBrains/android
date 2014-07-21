@@ -25,6 +25,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 import java.io.File;
@@ -715,7 +716,7 @@ public class AndroidLintInspectionToolProvider {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
         if (plus != null && plus.getArtifactId() != null) {
           return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with specific version", before, "specific version") {
-            @NotNull
+            @Nullable
             @Override
             protected String getNewValue() {
               String filter = plus.getFullRevision();
@@ -767,7 +768,7 @@ public class AndroidLintInspectionToolProvider {
                 }
               }
 
-              return super.getNewValue();
+              return null;
             }
           }};
         }
