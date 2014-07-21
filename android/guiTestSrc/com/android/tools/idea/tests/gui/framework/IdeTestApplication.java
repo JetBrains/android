@@ -41,7 +41,7 @@ public class IdeTestApplication implements Disposable {
 
   @NotNull
   public static synchronized IdeTestApplication getInstance() throws Exception {
-    System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "Idea");
+    System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "AndroidStudio");
 
     if (ourInstance == null) {
       new IdeTestApplication();
