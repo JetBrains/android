@@ -105,7 +105,7 @@ public class AndroidSdkData {
         }
       }
     }
-    if (!DefaultSdks.validateAndroidSdkPath(canonicalLocation)) {
+    if (!DefaultSdks.isValidAndroidSdkPath(canonicalLocation)) {
       return null;
     }
     LocalSdk localSdk = new LocalSdk(canonicalLocation);
