@@ -275,7 +275,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
           throw new IllegalStateException(parameter.type.toString());
       }
     }
+    if (!StringUtil.isEmpty(parameter.help) && dataComponent.getAccessibleContext() != null) {
+      dataComponent.getAccessibleContext().setAccessibleDescription(parameter.help);
+    }
     register(parameter, dataComponent);
+    label.setLabelFor(dataComponent);
     return Arrays.asList(label, dataComponent);
   }
 
