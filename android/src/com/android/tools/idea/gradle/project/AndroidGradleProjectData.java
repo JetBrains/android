@@ -71,7 +71,7 @@ public class AndroidGradleProjectData implements Serializable {
   @NotNull @NonNls private static final String STATE_FILE_NAME = "model_data.bin";
   private static final boolean ENABLED = !Boolean.getBoolean("studio.disable.synccache");
 
-  private static final Set<Class<?>> SUPPORTED_TYPES =
+  @SuppressWarnings("unchecked") private static final Set<Class<?>> SUPPORTED_TYPES =
     ImmutableSet.of(File.class, Boolean.class, String.class, Collection.class, Map.class, Set.class);
 
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectData.class);
@@ -99,12 +99,27 @@ public class AndroidGradleProjectData implements Serializable {
   private AndroidGradleProjectData() {
   }
 
+  public static void removeFrom(@NotNull Project project) {
+    if (!ENABLED) {
+      return;
+    }
+    try {
+      File stateFile = getProjectStateFile(project);
+      if (stateFile.isFile()) {
+        FileUtil.delete(stateFile);
+      }
+    }
+    catch (IOException e) {
+      LOG.warn(String.format("Failed to remove state for project %1$s'", project.getName()));
+    }
+  }
+
   /**
    * Persists the gradle model of this project to disk.
    *
-   * @param project the Project to get the data from.
+   * @param project the project to get the data from.
    */
-  public static void save(Project project) {
+  public static void save(@NotNull Project project) {
     if (!ENABLED) {
       return;
     }
@@ -112,21 +127,21 @@ public class AndroidGradleProjectData implements Serializable {
       AndroidGradleProjectData data = createFrom(project);
       if (data != null) {
         File file = getProjectStateFile(project);
-        file.getParentFile().mkdirs();
+        FileUtil.ensureExists(file.getParentFile());
         data.saveTo(file);
       }
     }
     catch (IOException e) {
-      LOG.info("Error while saving persistent state from project", e);
+      LOG.info(String.format("Error while saving persistent state from project '%1$s'", project.getName()), e);
     }
   }
 
   @Nullable
   @VisibleForTesting
-  static AndroidGradleProjectData createFrom(Project project) throws IOException {
+  static AndroidGradleProjectData createFrom(@NotNull Project project) throws IOException {
     AndroidGradleProjectData data = new AndroidGradleProjectData();
     File rootDirPath = new File(project.getBasePath());
-    final Module[] modules = ModuleManager.getInstance(project).getModules();
+    Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
       ModuleData moduleData = new ModuleData();
 
@@ -140,7 +155,7 @@ public class AndroidGradleProjectData implements Serializable {
           moduleData.mySelectedVariant = ideaAndroidProject.getSelectedVariant().getName();
         }
         else {
-          LOG.warn("Trying to create project data from a not initialized project. Abort.");
+          LOG.warn(String.format("Trying to create project data from a not initialized project '%1$s'. Abort.", project.getName()));
           return null;
         }
       }
@@ -153,7 +168,7 @@ public class AndroidGradleProjectData implements Serializable {
           moduleData.myIdeaGradleProject = ideaGradleProject;
         }
         else {
-          LOG.warn("Trying to create project data from a not initialized project. Abort.");
+          LOG.warn(String.format("Trying to create project data from a not initialized project '%1$s'. Abort.", project.getName()));
           return null;
         }
       }
@@ -187,6 +202,7 @@ public class AndroidGradleProjectData implements Serializable {
     return new File(homePath, FileUtil.join(SdkConstants.DOT_GRADLE, SdkConstants.FN_GRADLE_PROPERTIES));
   }
 
+  @NotNull
   private static byte[] createChecksum(@NotNull File file) throws IOException {
     // For files tracked by the IDE we get the content from the virtual files, otherwise we revert to io.
     VirtualFile vf = VfsUtil.findFileByIoFile(file, true);
@@ -208,7 +224,7 @@ public class AndroidGradleProjectData implements Serializable {
    * @param project the project for which to load the data.
    * @return whether the load was successful.
    */
-  static public boolean loadFromDisk(Project project) {
+  public static boolean loadFromDisk(@NotNull Project project) {
     if (!ENABLED || needsAndroidSdkSync(project)) {
       return false;
     }
@@ -216,10 +232,10 @@ public class AndroidGradleProjectData implements Serializable {
       return doLoadFromDisk(project);
     }
     catch (IOException e) {
-      LOG.info("Error accessing project cache, sync will be needed.");
+      LOG.info(String.format("Error accessing state cache for project '%1$s', sync will be needed.", project.getName()));
     }
     catch (ClassNotFoundException e) {
-      LOG.info("Cannot recover cache, sync will be needed.");
+      LOG.info(String.format("Cannot recover state cache for project '%1$s', sync will be needed.", project.getName()));
     }
     return false;
   }
@@ -338,6 +354,7 @@ public class AndroidGradleProjectData implements Serializable {
    * @param <T>    the type of the object.
    * @return the reproxied object.
    */
+  @SuppressWarnings("unchecked")
   @Nullable
   @VisibleForTesting
   static <T> T reproxy(Type type, T object) {
@@ -534,25 +551,20 @@ public class AndroidGradleProjectData implements Serializable {
    *
    * @param file the file where to save this data.
    */
-  private void saveTo(File file) {
+  private void saveTo(File file) throws IOException {
+    FileOutputStream fos = null;
     try {
-      FileOutputStream fos = null;
+      fos = new FileOutputStream(file);
+      ObjectOutputStream oos = new ObjectOutputStream(fos);
       try {
-        fos = new FileOutputStream(file);
-        ObjectOutputStream oos = new ObjectOutputStream(fos);
-        try {
-          oos.writeObject(this);
-        }
-        finally {
-          Closeables.close(oos, false);
-        }
+        oos.writeObject(this);
       }
       finally {
-        Closeables.close(fos, false);
+        Closeables.close(oos, false);
       }
     }
-    catch (IOException e) {
-      LOG.warn("Error while trying to save the project state.");
+    finally {
+      Closeables.close(fos, false);
     }
   }
 
@@ -583,12 +595,12 @@ public class AndroidGradleProjectData implements Serializable {
     private static final Method EQUALS = getObjectMethod("equals", Object.class);
     private final Map<String, Object> values;
 
-    WrapperInvocationHandler(Map<String, Object> values) {
+    WrapperInvocationHandler(@NotNull Map<String, Object> values) {
       this.values = values;
     }
 
     @NotNull
-    private static Method getObjectMethod(String name, Class<?>... types) {
+    private static Method getObjectMethod(@NotNull String name, @NotNull Class<?>... types) {
       try {
         return Object.class.getMethod(name, types);
       }
