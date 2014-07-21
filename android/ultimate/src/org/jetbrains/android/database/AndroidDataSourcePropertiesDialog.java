@@ -8,6 +8,8 @@ import com.android.tools.idea.ddms.DeviceComboBoxRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
 import com.intellij.database.dataSource.DatabaseDriver;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.javaee.dataSource.AbstractDataSourceConfigurable;
+import com.intellij.javaee.dataSource.DatabaseDriver;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -357,8 +359,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
   public void apply() {
     saveData(myDataSource);
 
-    boolean canConnect = StringUtil.isNotEmpty(myDataSource.getState().getDeviceId());
-    if (canConnect) {
+    if (DbImplUtil.canConnectTo(myDataSource)) {
       AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
     }
 
