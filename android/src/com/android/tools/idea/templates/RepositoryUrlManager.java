@@ -62,6 +62,24 @@ public class RepositoryUrlManager {
   /** The path ID of the Play Services library */
   public static final String PLAY_SERVICES_ID = "play-services";
 
+  /** The path ID of the Wearable Play Services library */
+  public static final String PLAY_SERVICES_WEARABLE_ID = "play-services-wearable";
+
+  /** The path ID of the cardview library*/
+  public static final String CARDVIEW_ID_V7 = "cardview-v7";
+
+  /** The path ID of the leanback library*/
+  public static final String LEANBACK_ID_V17 = "leanback-v17";
+
+  /** The path ID of the palette library*/
+  public static final String PALETTE_ID_V7 = "palette-v7";
+
+  /** The path ID of the recyclerview library*/
+  public static final String RECYCLER_VIEW_ID_V7 = "recyclerview-v7";
+
+  /** The path ID of the support-annotations library*/
+  public static final String SUPPORT_ANNOTATIONS = "support-annotations";
+
   /** The path ID of the compatibility library (which was its id for releases 1-3). */
   public static final String COMPATIBILITY_ID = "compatibility";
 
@@ -89,10 +107,16 @@ public class RepositoryUrlManager {
   public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
     .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
     .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
+    .put(SUPPORT_ANNOTATIONS, new RepositoryLibrary(SUPPORT_ANNOTATIONS, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
     .put(APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(GRID_LAYOUT_ID_V7, new RepositoryLibrary(GRID_LAYOUT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(MEDIA_ROUTER_ID_V7, new RepositoryLibrary(MEDIA_ROUTER_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(PLAY_SERVICES_ID, new RepositoryLibrary(PLAY_SERVICES_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(PLAY_SERVICES_WEARABLE_ID, new RepositoryLibrary(PLAY_SERVICES_WEARABLE_ID, GOOGLE_REPOSITORY_BASE_PATH, GOOGLE_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(CARDVIEW_ID_V7, new RepositoryLibrary(CARDVIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(PALETTE_ID_V7, new RepositoryLibrary(PALETTE_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(RECYCLER_VIEW_ID_V7, new RepositoryLibrary(RECYCLER_VIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(LEANBACK_ID_V17, new RepositoryLibrary(LEANBACK_ID_V17, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .build();
 
 
@@ -111,6 +135,20 @@ public class RepositoryUrlManager {
    */
   @Nullable
   public String getLibraryCoordinate(String libraryId) {
+    return getLibraryCoordinate(libraryId, null);
+  }
+
+  /**
+   * Calculate the coordinate pointing to the highest valued version of the given library we
+   * have available in our repository.
+   * @param libraryId the id of the library to find
+   * @param filterPrefix an optional prefix libraries must match; e.g. if the prefix is "18." then only coordinates
+   *           in version 18.x will be considered
+   * @return a maven coordinate for the requested library or null if we don't support that library
+   */
+  @Nullable
+  public String getLibraryCoordinate(String libraryId, @Nullable String filterPrefix) {
+
     // Check to see if this is a URL we support:
     if (!EXTRAS_REPOSITORY.containsKey(libraryId)) {
       return null;
@@ -130,7 +168,7 @@ public class RepositoryUrlManager {
       return String.format(library.baseCoordinate, library.id, REVISION_ANY);
     }
 
-    String version = getLatestVersionFromMavenMetadata(supportMetadataFile);
+    String version = getLatestVersionFromMavenMetadata(supportMetadataFile, filterPrefix);
 
     return String.format(library.baseCoordinate, library.id, version);
   }
@@ -174,7 +212,7 @@ public class RepositoryUrlManager {
    * @param metadataFile the files to parse
    * @return the string representing the highest version found in the file or "0.0.0" if no versions exist in the file
    */
-  private String getLatestVersionFromMavenMetadata(File metadataFile) {
+  private String getLatestVersionFromMavenMetadata(File metadataFile, @Nullable final String filterPrefix) {
     String xml = readTextFile(metadataFile);
     final List<FullRevision> versions = new LinkedList<FullRevision>();
     try {
@@ -192,7 +230,10 @@ public class RepositoryUrlManager {
         public void characters(char[] ch, int start, int length) throws SAXException {
           // Get the version and compare it to the current known max version
           if (inVersionTag) {
-            versions.add(FullRevision.parseRevision(new String(ch, start, length)));
+            String revision = new String(ch, start, length);
+            if (filterPrefix == null || revision.startsWith(filterPrefix)) {
+              versions.add(FullRevision.parseRevision(revision));
+            }
             inVersionTag = false;
           }
         }

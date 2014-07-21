@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.multi;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.*;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import org.jetbrains.annotations.NotNull;

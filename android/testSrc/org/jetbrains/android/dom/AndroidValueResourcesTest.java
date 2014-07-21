@@ -358,7 +358,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
       getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(14, 43));
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(16, 43));
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
@@ -376,7 +376,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
       getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
     myFixture.configureFromExistingVirtualFile(file);
-    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(17, 17));
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(19, 17));
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
