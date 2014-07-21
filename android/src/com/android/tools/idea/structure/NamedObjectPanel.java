@@ -227,7 +227,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
 
   @Override
   public void apply() {
-    if (!myModified ||  myGradleBuildFile == null) {
+    if ((!myModified && !myDetailsPane.isModified()) ||  myGradleBuildFile == null) {
       return;
     }
     List<NamedObject> objects = Lists.newArrayList();
