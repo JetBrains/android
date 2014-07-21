@@ -29,13 +29,16 @@
 
 // The tokens used in this grammar are defined in Proguard.flex.
 
-// The structure of a ProGuard file consist of flags, comments and whitespace.
-proguardFile ::= (comment | flag | WS? CRLF)*
+// The structure of a ProGuard file consist of flags and comments
+// delimited by newlines. A trailing newline at the end of the file
+// is optional.
+proguardFile ::= (comment CRLF | flag CRLF | WS? CRLF)*
+                 (comment      | flag      | WS?     )?
 
-comment ::= LINE_CMT CRLF
+comment ::= LINE_CMT
 
 // A flag can be either single line or multiline (in case it includes a Java spec).
-flag ::= (multiLineFlag | singleLineFlag LINE_CMT?) CRLF
+flag ::= (multiLineFlag | singleLineFlag comment?)
 
 multiLineFlag ::= FLAG_NAME FLAG_ARG* javaSection
 
