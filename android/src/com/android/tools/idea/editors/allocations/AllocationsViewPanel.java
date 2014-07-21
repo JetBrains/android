@@ -17,8 +17,10 @@ package com.android.tools.idea.editors.allocations;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AllocationInfo;
+import com.google.common.collect.Lists;
 import com.intellij.execution.filters.ExceptionInfoCache;
 import com.intellij.execution.filters.ExceptionWorker;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -53,6 +55,8 @@ public class AllocationsViewPanel {
   static final String GROUPING_CHECKBOX_NAME = "myGroupingCheckBox";
   @VisibleForTesting
   static final String ALLOCATIONS_TABLE_NAME = "myAllocationsTable";
+  private static final String COLUMN_ORDER_PROPERTY = "android.allocationsview.column.ordering";
+  private static final String COLUMN_WIDTH_PROPERTY = "android.allocationsview.column.widths";
   private static final String SEPARATOR = ":";
 
   private JPanel myContainer;
@@ -64,23 +68,25 @@ public class AllocationsViewPanel {
   private JEditorPane myStackTraceEditorPane;
 
   private Project myProject;
+  private PropertiesComponent myProperties;
+
   private AllocationInfo[] myAllocations;
   private AllocationsViewModel myViewModel;
   private TIntObjectHashMap<StackTrace> myStackTraces;
 
   @VisibleForTesting
   enum Column {
-    ALLOCATION_ORDER("Allocation Order", Integer.class),
-    ALLOCATED_CLASS("Allocated Class", String.class),
-    ALLOCATION_SIZE("Allocation Size", Integer.class),
-    THREAD_ID("Thread Id", Integer.class),
-    ALLOCATION_SITE("Allocation Site", String.class);
+    ALLOCATION_ORDER("Allocation Order", 0),
+    ALLOCATED_CLASS("Allocated Class", "com.sample.data.AllocatedClass"),
+    ALLOCATION_SIZE("Allocation Size", 0),
+    THREAD_ID("Thread Id", 0),
+    ALLOCATION_SITE("Allocation Site", "com.sample.data.AllocationSite.method(AllocationSite.java:000)");
 
     public final String description;
-    public final Class dataClass;
-    Column(String description, Class dataClass) {
+    public final Object sampleData;
+    Column(String description, Object sampleData) {
       this.description = description;
-      this.dataClass = dataClass;
+      this.sampleData = sampleData;
     }
   }
 
@@ -90,6 +96,8 @@ public class AllocationsViewPanel {
   }
 
   private void init() {
+    myProperties = PropertiesComponent.getInstance();
+
     // Grouping not yet implemented
     myGroupingCheckBox.setVisible(false);
     myAllocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -126,10 +134,83 @@ public class AllocationsViewPanel {
     myAllocationsTable.setModel(myViewModel.getTableModel());
     myAllocationsTable.setRowSorter(myViewModel.getRowSorter());
 
-    Enumeration<TableColumn> columns = myAllocationsTable.getColumnModel().getColumns();
-    while (columns.hasMoreElements()) {
-      columns.nextElement().setCellRenderer(myViewModel.getCellRenderer());
+    myAllocationsTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
+      @Override
+      public void columnAdded(TableColumnModelEvent e) {
+      }
+
+      @Override
+      public void columnRemoved(TableColumnModelEvent e) {
+      }
+
+      @Override
+      public void columnMoved(TableColumnModelEvent e) {
+        Column[] columns = Column.values();
+        String[] columnOrdering = new String[columns.length];
+        for (int i = 0; i < columnOrdering.length; ++i) {
+          columnOrdering[i] = Integer.toString(myAllocationsTable.getColumnModel().getColumn(i).getModelIndex());
+        }
+        myProperties.setValues(COLUMN_ORDER_PROPERTY, columnOrdering);
+      }
+
+      @Override
+      public void columnMarginChanged(ChangeEvent e) {
+        saveColumnWidths();
+      }
+
+      @Override
+      public void columnSelectionChanged(ListSelectionEvent e) {
+      }
+    });
+
+    String[] columnOrdering = myProperties.getValues(COLUMN_ORDER_PROPERTY);
+    if (columnOrdering != null) {
+      for (int i = 0; i < columnOrdering.length; ++i) {
+        myAllocationsTable.getColumnModel().moveColumn(myAllocationsTable.convertColumnIndexToView(Integer.parseInt(columnOrdering[i])), i);
+      }
     }
+
+    String[] columnWidths = myProperties.getValues(COLUMN_WIDTH_PROPERTY);
+    if (columnWidths == null) {
+      columnWidths = getDefaultColumnWidths();
+    }
+
+    for (Column column : Column.values()) {
+      TableColumn tableColumn = myAllocationsTable.getColumn(column.description);
+      tableColumn.setCellRenderer(myViewModel.getCellRenderer());
+      tableColumn.setPreferredWidth(Integer.parseInt(columnWidths[column.ordinal()]));
+    }
+    saveColumnWidths();
+  }
+
+  private String[] getDefaultColumnWidths() {
+    Column[] columns = Column.values();
+    int cumulativeWidth = 0;
+    String[] defaultWidths = new String[columns.length];
+    FontMetrics metrics = myAllocationsTable.getFontMetrics(myAllocationsTable.getFont());
+    for (Column column : columns) {
+      // Multiples width by ~1.5 so text is not right against column sides
+      int columnWidth = 3 * Math.max(metrics.stringWidth(column.description), metrics.stringWidth(String.valueOf(column.sampleData))) / 2;
+      defaultWidths[column.ordinal()] = Integer.toString(columnWidth);
+      if (column != Column.ALLOCATION_SITE) {
+        cumulativeWidth += columnWidth;
+      }
+    }
+    // If possible, uses remaining width, which makes the table respect the preferred column widths exactly.
+    int remainingWidth = myAllocationsTable.getWidth() - cumulativeWidth;
+    if (remainingWidth > 0) {
+      defaultWidths[Column.ALLOCATION_SITE.ordinal()] = Integer.toString(remainingWidth);
+    }
+    return defaultWidths;
+  }
+
+  private void saveColumnWidths() {
+    Column[] columns = Column.values();
+    String[] widths = new String[columns.length];
+    for (Column column : columns) {
+      widths[column.ordinal()] = Integer.toString(myAllocationsTable.getColumn(column.description).getWidth());
+    }
+    myProperties.setValues(COLUMN_WIDTH_PROPERTY, widths);
   }
 
   private void resetTableView() {
@@ -238,7 +319,7 @@ public class AllocationsViewPanel {
       @Override
       @NotNull
       public Class getColumnClass(int c) {
-        return Column.values()[c].dataClass;
+        return Column.values()[c].sampleData.getClass();
       }
     }
 
