@@ -58,6 +58,9 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.Projects.isGradleProject;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
+
 public class AndroidGradleProjectComponent extends AbstractProjectComponent {
   @NonNls private static final String SHOW_MIGRATE_TO_GRADLE_POPUP = "show.migrate.to.gradle.popup";
 
@@ -105,7 +108,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
 
-    boolean isGradleProject = Projects.isGradleProject(myProject);
+    boolean isGradleProject = isGradleProject(myProject);
     if (isGradleProject) {
       configureGradleProject(true);
     }
@@ -178,8 +181,17 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
 
   @Override
   public void projectClosed() {
-    if (Projects.isGradleProject(myProject)) {
-      AndroidGradleProjectData.save(myProject);
+    if (isGradleProject(myProject)) {
+      if (lastGradleSyncFailed(myProject)) {
+        // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
+        // last sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the
+        // project did not change, and if we don't force a sync, the project will use the cached state and it would look like there are
+        // no errors.
+        AndroidGradleProjectData.removeFrom(myProject);
+      }
+      else {
+        AndroidGradleProjectData.save(myProject);
+      }
     }
     if (myDisposable != null) {
       Disposer.dispose(myDisposable);
@@ -194,7 +206,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
    */
   public void checkForSupportedModules() {
     Module[] modules = ModuleManager.getInstance(myProject).getModules();
-    if (modules.length == 0 || !Projects.isGradleProject(myProject)) {
+    if (modules.length == 0 || !isGradleProject(myProject)) {
       return;
     }
     final List<Module> unsupportedModules = new ArrayList<Module>();
