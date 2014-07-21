@@ -1,0 +1,6 @@
+buildscript {
+  ext.androidGradleVersion = '0.11.0'
+  dependencies {
+    classpath "com.android.tools.build:gradle:$androidGradleVersion"
+  }
+}
