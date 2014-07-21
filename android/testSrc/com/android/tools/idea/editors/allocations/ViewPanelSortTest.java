@@ -20,15 +20,13 @@ import com.android.ddmlib.AllocationsParser;
 import com.android.ddmlib.allocations.AllocationsParserTest;
 import com.android.tools.idea.editors.allocations.AllocationsTableUtil.Column;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.mock.MockApplication;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.table.JBTable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.intellij.util.config.Storage;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
 import org.junit.BeforeClass;
@@ -148,8 +146,6 @@ public class ViewPanelSortTest {
 
   @BeforeClass
   public static void oneTimeSetUp() throws Exception {
-    setApplication();
-
     ByteBuffer data = AllocationsParserTest.putAllocationInfo(new String[]{HEADERS[0][0], HEADERS[1][0], HEADERS[2][0], HEADERS[3][0]},
             new String[]{"eatTiramisu", "failUnitTest", "watchCatVideos", "passGo", "collectFakeMoney", "findWaldo"},
             new String[]{"Red.java", "SomewhatBlue.java", "LightCanaryishGrey.java"},
@@ -183,21 +179,17 @@ public class ViewPanelSortTest {
     assertNotNull(sAllocationsTable);
   }
 
-  private static void setApplication() {
-    Disposable mockDisposable = new Disposable() {
-      @Override
-      public void dispose() {
-      }
-    };
-    ApplicationManager.setApplication(new MockApplication(mockDisposable), mockDisposable);
-  }
-
   @NotNull
   private static AllocationsViewPanel getPanel() {
     Project mockProject = EasyMock.createMock(Project.class);
     return new AllocationsViewPanel(mockProject) {
       @Override
       ConsoleView createConsoleView(@NotNull Project project) {
+        return null;
+      }
+
+      @Override
+      Storage.PropertiesComponentStorage getStorage() {
         return null;
       }
     };
