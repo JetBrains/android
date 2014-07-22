@@ -87,7 +87,7 @@ public final class GradleUtil {
   @NonNls private static final String GRADLE_EXECUTABLE_NAME =
     SystemInfo.isWindows ? SdkConstants.FN_GRADLE_WIN : SdkConstants.FN_GRADLE_UNIX;
 
-  @NonNls private static final String GRADLEW_PROPERTIES_PATH =
+  @NonNls public static final String GRADLEW_PROPERTIES_PATH =
     FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);

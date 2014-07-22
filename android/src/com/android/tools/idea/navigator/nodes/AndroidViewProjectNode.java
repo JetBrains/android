@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.ProjectTreeStructure;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -31,12 +31,14 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
@@ -58,18 +60,22 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     // add a node for every module that has a source root
     // TODO: make this conditional on getSettings().isShowModules(), otherwise collapse them all at the root
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
-    List<AbstractTreeNode> moduleNodes = Lists.newArrayListWithExpectedSize(modules.size());
+    List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(modules.size());
     for (Module module : modules) {
       if (ModuleRootManager.getInstance(module).getSourceRoots().length > 0) {
-        moduleNodes.add(new AndroidModuleNode(project, module, settings, myProjectViewPane));
+        children.add(new AndroidModuleNode(project, module, settings, myProjectViewPane));
       }
+    }
+
+    if (Projects.isBuildWithGradle(project)) {
+      children.add(new AndroidBuildScriptsGroupNode(project, Collections.<PsiDirectory>emptyList(), settings));
     }
 
     // TODO: What about files in the base project directory
 
     // TODO: Do we want to show the External Libraries Node or a Dependencies node
 
-    return moduleNodes;
+    return children;
   }
 
   @Nullable
