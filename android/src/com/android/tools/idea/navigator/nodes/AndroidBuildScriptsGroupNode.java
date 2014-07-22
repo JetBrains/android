@@ -32,6 +32,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
@@ -50,7 +51,7 @@ import java.util.Set;
 public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirectory>> {
   private static final Set<String> ourBuildFileNames =
     ImmutableSet.of(SdkConstants.FN_SETTINGS_GRADLE, SdkConstants.FN_GRADLE_PROPERTIES, SdkConstants.FN_BUILD_GRADLE,
-        SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
+                    SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
 
   public AndroidBuildScriptsGroupNode(Project project, List<PsiDirectory> psiDirectories, ViewSettings viewSettings) {
     super(project, psiDirectories, viewSettings);
@@ -81,7 +82,10 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     addPsiFile(myProject, psiManager, children, baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
     addPsiFile(myProject, psiManager, children, baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), null);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      addPsiFile(myProject, psiManager, children, AndroidGradleProjectData.getGradleUserSettingsFile(), "Global Properties");
+      File userSettingsFile = AndroidGradleProjectData.getGradleUserSettingsFile();
+      if (userSettingsFile != null) {
+        addPsiFile(myProject, psiManager, children, VfsUtil.findFileByIoFile(userSettingsFile, false), "Global Properties");
+      }
     }
 
     for (Module m : ModuleManager.getInstance(myProject).getModules()) {
