@@ -246,13 +246,11 @@ public class RenderErrorPanel extends JPanel {
 
   private void setupStyle() {
     // Make the scrollPane transparent
-    if (myScrollPane != null) {
-      JViewport viewPort = myScrollPane.getViewport();
-      viewPort.setOpaque(false);
-      viewPort.setBackground(null);
-      myScrollPane.setOpaque(false);
-      myScrollPane.setBackground(null);
-    }
+    JViewport viewPort = myScrollPane.getViewport();
+    viewPort.setOpaque(false);
+    viewPort.setBackground(null);
+    myScrollPane.setOpaque(false);
+    myScrollPane.setBackground(null);
 
     Document document = myHTMLViewer.getDocument();
     if (!(document instanceof StyledDocument)) {
@@ -272,6 +270,7 @@ public class RenderErrorPanel extends JPanel {
     // Make background semitransparent
     Color background = myHTMLViewer.getBackground();
     if (background != null) {
+      //noinspection UseJBColor
       background = new Color(background.getRed(), background.getGreen(), background.getBlue(), ERROR_PANEL_OPACITY);
       myHTMLViewer.setBackground(background);
     }
@@ -350,15 +349,18 @@ public class RenderErrorPanel extends JPanel {
 
       Collection<String> customViews = null;
       Collection<String> androidViewClassNames = null;
-      Collection<String> views = getAllViews(logger.getModule());
-      if (!views.isEmpty()) {
-        customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
-        androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
-        for (String fqcn : views) {
-          if (fqcn.startsWith("android.") && !viewNeedsPackage(fqcn)) {
-            androidViewClassNames.add(fqcn);
-          } else {
-            customViews.add(fqcn);
+      Module module = logger.getModule();
+      if (module != null) {
+        Collection<String> views = getAllViews(module);
+        if (!views.isEmpty()) {
+          customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
+          androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
+          for (String fqcn : views) {
+            if (fqcn.startsWith("android.") && !viewNeedsPackage(fqcn)) {
+              androidViewClassNames.add(fqcn);
+            } else {
+              customViews.add(fqcn);
+            }
           }
         }
       }
@@ -672,9 +674,9 @@ public class RenderErrorPanel extends JPanel {
         builder.add(className);
         builder.add(" (");
         builder.addLink("Open Class", myLinkManager.createOpenClassUrl(className));
-        if (throwable != null) {
+        if (throwable != null && module != null) {
           builder.add(", ");
-          ShowExceptionFix detailsFix = new ShowExceptionFix(logger.getModule().getProject(), throwable);
+          ShowExceptionFix detailsFix = new ShowExceptionFix(module.getProject(), throwable);
           builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
         }
         builder.add(", ");
@@ -824,6 +826,9 @@ public class RenderErrorPanel extends JPanel {
 
   private static void reportRelevantCompilationErrors(RenderLogger logger, HtmlBuilder builder, RenderTask renderTask) {
     Module module = logger.getModule();
+    if (module == null) {
+      return;
+    }
     Project project = module.getProject();
     WolfTheProblemSolver wolfgang = WolfTheProblemSolver.getInstance(project);
     if (wolfgang.hasProblemFilesBeneath(module)) {
@@ -841,7 +846,7 @@ public class RenderErrorPanel extends JPanel {
                           "which can cause rendering failures. Fix resource problems first.");
           builder.newline().newline();
         }
-      } else if (renderTask.getLayoutlibCallback() != null && renderTask.getLayoutlibCallback().isUsed()) {
+      } else if (renderTask.getLayoutlibCallback().isUsed()) {
         boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(new Condition<VirtualFile>() {
           @Override
           public boolean value(VirtualFile virtualFile) {
@@ -860,6 +865,9 @@ public class RenderErrorPanel extends JPanel {
 
   private void reportMissingSizeAttributes(@NotNull final RenderLogger logger, final HtmlBuilder builder, RenderTask renderTask) {
     Module module = logger.getModule();
+    if (module == null) {
+      return;
+    }
     Project project = module.getProject();
     if (logger.isMissingSize()) {
       // Emit hyperlink about missing attributes; the action will operate on all of them
@@ -1188,7 +1196,11 @@ public class RenderErrorPanel extends JPanel {
                                  @NotNull XmlTag tag,
                                  @NotNull String id,
                                  @NotNull String attribute) {
-    Project project = logger.getModule().getProject();
+    Module module = logger.getModule();
+    if (module == null) {
+      return;
+    }
+    Project project = module.getProject();
     String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(project, tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
     String fillUrl = myLinkManager.createCommandLink(new SetAttributeFix(project, tag, attribute, ANDROID_URI, fill));
 
@@ -1245,6 +1257,7 @@ public class RenderErrorPanel extends JPanel {
       for (String className : names) {
         builder.listItem();
         builder.add(className);
+        //noinspection ThrowableResultOfMethodCallIgnored
         Throwable throwable = classesWithIncorrectFormat.get(className);
         if (throwable instanceof InconvertibleClassError) {
           InconvertibleClassError error = (InconvertibleClassError)throwable;
@@ -1256,6 +1269,9 @@ public class RenderErrorPanel extends JPanel {
       builder.endList();
 
       Module module = logger.getModule();
+      if (module == null) {
+        return;
+      }
       final List<Module> problemModules = getProblemModules(module);
       if (!problemModules.isEmpty()) {
         builder.add("The following modules are built with incompatible JDK:").newline();
