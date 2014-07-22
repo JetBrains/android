@@ -93,8 +93,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "  rs\n" +
       "   test.rs\n" +
       " lib (Android)\n" +
-      "  java\n" +
-      "   lib\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (main)\n" +
       "  res\n" +
