@@ -57,10 +57,15 @@ public class AllocationsRowListener implements ListSelectionListener {
   private String getStackTrace(int row) {
     StringBuilder stackTrace = new StringBuilder();
     StackTraceElement[] stackTraceElements = ((AllocationsTableModel) myAllocationsTable.getModel()).getAllocation(row).getStackTrace();
-    for (StackTraceElement element : stackTraceElements) {
-      stackTrace.append("at ");
-      stackTrace.append(element.toString());
-      stackTrace.append("\n");
+    if (stackTraceElements != null) {
+      for (StackTraceElement element : stackTraceElements) {
+        if (element == null) {
+          continue;
+        }
+        stackTrace.append("at ");
+        stackTrace.append(element.toString());
+        stackTrace.append("\n");
+      }
     }
     return stackTrace.toString();
   }
