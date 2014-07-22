@@ -31,7 +31,7 @@
         <properties>
           <componentStyle value="SMALL"/>
           <fontColor value="BRIGHTER"/>
-          <text value="&lt;html&gt;Enter keyword, pattern or class name to search by or Maven coordinates, i.e. 'guava', 'com.google.code.gson:gson:2.2.4':&lt;/html&gt;"/>
+          <text value="&lt;html&gt;Enter terms for Maven Central search, or fully-qualified coordinates (e.g. &lt;i&gt;com.google.code.gson:gson:2.2.4&lt;/i&gt;)&lt;/html&gt;"/>
         </properties>
       </component>
       <scrollpane id="dfc80" class="com.intellij.ui.components.JBScrollPane">
