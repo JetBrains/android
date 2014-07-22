@@ -64,18 +64,14 @@ public class AndroidModuleNode extends PackageViewModuleNode {
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
       if (sourceType == AndroidSourceType.MANIFEST) {
-        continue;
-      }
-
-      List<VirtualFile> sources = getSources(sourceType, providers);
-      if (!sources.isEmpty()) {
-        result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), sourceType, providers, myProjectViewPane));
+        result.add(new AndroidManifestsGroupNode(myProject, facet, getSettings(), providers));
+      } else {
+        List<VirtualFile> sources = getSources(sourceType, providers);
+        if (!sources.isEmpty()) {
+          result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), sourceType, providers, myProjectViewPane));
+        }
       }
     }
-
-    result.add(new AndroidManifestsGroupNode(myProject, facet, getSettings(), providers));
-
-    // TODO: handle gradle files
 
     return result;
   }

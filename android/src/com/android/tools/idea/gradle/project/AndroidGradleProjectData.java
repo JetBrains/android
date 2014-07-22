@@ -194,12 +194,12 @@ public class AndroidGradleProjectData implements Serializable {
   }
 
   @Nullable
-  private static File getGradleUserSettingsFile() {
-    String homePath = System.getProperty("user.home");
-    if (homePath == null) {
+  public static VirtualFile getGradleUserSettingsFile() {
+    VirtualFile home = VfsUtil.getUserHomeDir();
+    if (home == null) {
       return null;
     }
-    return new File(homePath, FileUtil.join(SdkConstants.DOT_GRADLE, SdkConstants.FN_GRADLE_PROPERTIES));
+    return home.findFileByRelativePath(FileUtil.join(SdkConstants.DOT_GRADLE, SdkConstants.FN_GRADLE_PROPERTIES));
   }
 
   @NotNull
