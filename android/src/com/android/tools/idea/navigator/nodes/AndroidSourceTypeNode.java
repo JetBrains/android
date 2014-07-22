@@ -76,8 +76,8 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
       case RES:
         return getMergedRes();
       case MANIFEST:
-        // TODO: not called as yet
-        throw new UnsupportedOperationException();
+        // Manifest nodes are handled under the AndroidManifestsGroupNode.
+        throw new IllegalStateException();
       default:
         return getProjectViewChildren();
     }
