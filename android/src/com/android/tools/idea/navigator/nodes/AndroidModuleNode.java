@@ -73,7 +73,9 @@ public class AndroidModuleNode extends PackageViewModuleNode {
       }
     }
 
-    // TODO: handle manifest and gradle files
+    result.add(new AndroidManifestsGroupNode(myProject, facet, getSettings(), providers));
+
+    // TODO: handle gradle files
 
     return result;
   }
