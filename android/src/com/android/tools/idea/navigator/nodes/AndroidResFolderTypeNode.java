@@ -17,9 +17,7 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -32,11 +30,16 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.containers.ContainerUtil;
+import com.siyeh.ig.psiutils.IteratorUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>> implements AndroidProjectViewNode {
   @NotNull private final AndroidFacet myFacet;
@@ -72,8 +75,7 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
   public boolean contains(@NotNull VirtualFile file) {
     for (PsiDirectory psiDirectory : getValue()) {
       final VirtualFile folder = psiDirectory.getVirtualFile();
-      VirtualFile commonAncestor = VfsUtilCore.getCommonAncestor(folder, file);
-      if (folder.equals(commonAncestor)) {
+      if (VfsUtilCore.isAncestor(folder, file, true)) {
         return true;
       }
     }
@@ -87,22 +89,17 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
     // all resource folders of a given folder type
     List<PsiDirectory> folders = getValue();
 
-    Map<String,Set<PsiFile>> map = Maps.newHashMap();
+    Multimap<String,PsiFile> multimap = HashMultimap.create();
     for (PsiDirectory res : folders) {
       for (PsiFile file : res.getFiles()) {
         String resName = file.getName();
-        Set<PsiFile> allRes = map.get(resName);
-        if (allRes == null) {
-          allRes = Sets.newLinkedHashSetWithExpectedSize(5);
-          map.put(resName, allRes);
-        }
-        allRes.add(file);
+        multimap.put(resName, file);
       }
     }
 
-    List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(map.size());
-    for (String resName : map.keySet()) {
-      List<PsiFile> files = Lists.newArrayList(map.get(resName));
+    List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(multimap.size());
+    for (String resName : multimap.keySet()) {
+      List<PsiFile> files = Lists.newArrayList(multimap.get(resName));
       if (files.size() > 1) {
         children.add(new AndroidResGroupNode(myProject, myFacet, files, resName, getSettings()));
       } else {

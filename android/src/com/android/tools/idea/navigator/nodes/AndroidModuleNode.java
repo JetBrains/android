@@ -63,13 +63,19 @@ public class AndroidModuleNode extends PackageViewModuleNode {
     List<AbstractTreeNode> result = Lists.newArrayList();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
+      List<VirtualFile> sources = getSources(sourceType, providers);
+      if (sources.isEmpty()) {
+        continue;
+      }
+
       if (sourceType == AndroidSourceType.MANIFEST) {
         result.add(new AndroidManifestsGroupNode(myProject, facet, getSettings(), providers));
-      } else {
-        List<VirtualFile> sources = getSources(sourceType, providers);
-        if (!sources.isEmpty()) {
-          result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), sourceType, providers, myProjectViewPane));
-        }
+      }
+      else if (sourceType == AndroidSourceType.RES) {
+        result.add(new AndroidResFolderNode(myProject, facet, getSettings(), providers, myProjectViewPane));
+      }
+      else {
+        result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), sourceType, providers, myProjectViewPane));
       }
     }
 
