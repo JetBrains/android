@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.util.Disposer;
@@ -44,8 +47,23 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     PsiDirectory dir = getBaseFolder();
     assertNotNull(dir);
 
+    String rootModuleName = null;
+    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
+      if (GradleUtil.getGradlePath(module) == null) {
+        rootModuleName = module.getName();
+      }
+    }
+    assertNotNull(rootModuleName);
+
+    String projectName = getProject().getName();
     String expected =
-      getProject().getName() + "\n" +
+      projectName + "\n" +
+      " Gradle Scripts\n" +
+      "  build.gradle (app)\n" +
+      "  build.gradle (lib)\n" +
+      "  build.gradle (" + rootModuleName + ")\n" +
+      "  gradle-wrapper.properties\n" +
+      "  settings.gradle (Project Settings)\n" +
       " app (Android)\n" +
       "  assets\n" +
       "   raw.asset.txt\n" +
