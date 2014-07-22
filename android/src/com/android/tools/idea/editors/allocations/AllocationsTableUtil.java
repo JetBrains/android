@@ -49,7 +49,8 @@ public class AllocationsTableUtil {
 
   public static void setUpTable(@Nullable final Storage.PropertiesComponentStorage storage, @NotNull final JBTable allocationsTable,
                                 @Nullable ConsoleView consoleView) {
-    allocationsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    // Allows multiple selection (some users want to copy/paste the whole table into a spreadsheet)
+    allocationsTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     new TableSpeedSearch(allocationsTable) {
       @Override
       public int getElementCount() {

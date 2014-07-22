@@ -41,10 +41,11 @@ public class AllocationsRowListener implements ListSelectionListener {
     if (event.getValueIsAdjusting()) {
       return;
     }
-    int viewRow = myAllocationsTable.getSelectedRow();
-    if (viewRow < 0) {
+    // Does not show a stack trace for multiple row selection
+    if (myAllocationsTable.getSelectedRowCount() != 1) {
       return;
     }
+    int viewRow = myAllocationsTable.getSelectedRow();
 
     int row = myAllocationsTable.convertRowIndexToModel(viewRow);
     myConsoleView.clear();
