@@ -185,7 +185,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
           }
 
           @Override
-          public void syncEnded(@NotNull Project project) {
+          public void syncSucceeded(@NotNull Project project) {
           }
 
           @Override

@@ -26,7 +26,21 @@ public interface GradleSyncListener {
    *
    * @param project the IDEA project created from the Gradle one.
    */
-  void syncEnded(@NotNull Project project);
+  void syncSucceeded(@NotNull Project project);
 
   void syncFailed(@NotNull Project project, @NotNull String errorMessage);
+
+  abstract class Adapter implements GradleSyncListener {
+    @Override
+    public void syncStarted(@NotNull Project project) {
+    }
+
+    @Override
+    public void syncSucceeded(@NotNull Project project) {
+    }
+
+    @Override
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+    }
+  }
 }

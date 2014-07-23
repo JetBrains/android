@@ -115,7 +115,7 @@ public class GradleSyncState {
     syncPublisher(new Runnable() {
       @Override
       public void run() {
-        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncEnded(myProject);
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject);
         ProjectValidator.mergeQueuedMessages(myProject);
       }
     });
