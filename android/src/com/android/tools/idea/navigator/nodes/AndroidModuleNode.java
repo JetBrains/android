@@ -59,7 +59,7 @@ public class AndroidModuleNode extends PackageViewModuleNode {
     }
 
     @SuppressWarnings("ConstantConditions")
-    Iterable<IdeaSourceProvider> providers = IdeaSourceProvider.getCurrentSourceProviders(facet);
+    List<IdeaSourceProvider> providers = IdeaSourceProvider.getCurrentSourceProviders(facet);
     List<AbstractTreeNode> result = Lists.newArrayList();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
