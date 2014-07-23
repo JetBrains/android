@@ -180,6 +180,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
       register(FormFactorUtils.getInclusionKey(formFactor), inclusionCheckBox);
       FormFactorSdkControls controls = new FormFactorSdkControls();
       JComboBox minSdkComboBox = controls.getMinSdkCombo();
+      minSdkComboBox.setName(formFactor.id + ".minSdk");
       controls.layout(myFormFactorPanel, ++row, inclusionCheckBox.getIconTextGap());
 
       // Check for a saved value for the min api level
