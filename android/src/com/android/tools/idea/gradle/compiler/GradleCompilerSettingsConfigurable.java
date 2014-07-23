@@ -59,8 +59,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private JCheckBox myConfigureOnDemandCheckBox;
   @SuppressWarnings("UnusedDeclaration")
   private HyperlinkLabel myConfigureOnDemandDocHyperlinkLabel;
+  private final String myDisplayName;
 
-  public GradleCompilerSettingsConfigurable(@NotNull Project project) {
+  public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
+    myDisplayName = displayName;
     myCompilerConfiguration = CompilerWorkspaceConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     myGradleSettings = GradleSettings.getInstance(project);
@@ -86,7 +88,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   @Nls
   public String getDisplayName() {
-    return "Gradle";
+    return myDisplayName;
   }
 
   @Override
