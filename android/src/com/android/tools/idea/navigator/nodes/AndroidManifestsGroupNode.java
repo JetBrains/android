@@ -39,12 +39,12 @@ import java.util.List;
 
 public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
   private static final String MANIFESTS_NODE = "manifests";
-  @NotNull private final Iterable<IdeaSourceProvider> mySourceProviders;
+  @NotNull private final List<IdeaSourceProvider> mySourceProviders;
 
   protected AndroidManifestsGroupNode(@NotNull Project project,
                                       @NotNull AndroidFacet facet,
                                       @NotNull ViewSettings viewSettings,
-                                      @NotNull Iterable<IdeaSourceProvider> sourceProviders) {
+                                      @NotNull List<IdeaSourceProvider> sourceProviders) {
     super(project, facet, viewSettings);
     mySourceProviders = sourceProviders;
   }
