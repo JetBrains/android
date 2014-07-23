@@ -96,7 +96,7 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     }
 
     @Override
-    public void syncEnded(@NotNull Project project) {
+    public void syncSucceeded(@NotNull Project project) {
       disposeOnTearDown(project);
       // Verify that project was imported correctly.
       assertEquals(myProjectName, project.getName());

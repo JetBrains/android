@@ -472,7 +472,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
 
       @Override
-      public void syncEnded(@NotNull Project project) {
+      public void syncSucceeded(@NotNull Project project) {
       }
 
       @Override

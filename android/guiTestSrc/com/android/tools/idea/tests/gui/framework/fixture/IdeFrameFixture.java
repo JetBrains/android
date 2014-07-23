@@ -15,21 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
 import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
+import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTestConstants.LONG_TIMEOUT;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.swing.timing.Pause.pause;
@@ -80,10 +88,43 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public IdeFrameFixture waitForSourceGenerationToFinish() {
+    Project project = getProject();
+    Disposable disposable = new NoOpDisposable();
+
+    try {
+      MessageBusConnection connection = project.getMessageBus().connect(disposable);
+      final ProjectBuildListener listener = new ProjectBuildListener(SOURCE_GEN);
+      connection.subscribe(GRADLE_BUILD_TOPIC, listener);
+
+      pause(new Condition("'Source generation for project \"" + project.getName() + "\"'") {
+        @Override
+        public boolean test() {
+          return listener.myBuildFinished;
+        }
+      }, LONG_TIMEOUT);
+    }
+    finally {
+      Disposer.dispose(disposable);
+    }
+
+    return this;
+  }
+
+  @NotNull
   public Project getProject() {
     Project project = target.getProject();
     assertNotNull(project);
     return project;
+  }
+
+  public void close() {
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ProjectManager.getInstance().closeProject(getProject());
+      }
+    });
   }
 
   private static class ProjectSyncListener implements GradleSyncListener {
@@ -95,7 +136,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }
 
     @Override
-    public void syncEnded(@NotNull Project project) {
+    public void syncSucceeded(@NotNull Project project) {
       mySyncEnded = true;
     }
 
@@ -103,6 +144,23 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       mySyncError = new AssertionError("Project sync for \"" + project.getName() + "\" failed: " + errorMessage);
       mySyncEnded = true;
+    }
+  }
+
+  private static class ProjectBuildListener implements GradleBuildListener {
+    @NotNull private final BuildMode myExpectedBuildMode;
+
+    boolean myBuildFinished;
+
+    ProjectBuildListener(@NotNull BuildMode expectedBuildMode) {
+      myExpectedBuildMode = expectedBuildMode;
+    }
+
+    @Override
+    public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
+      if (myExpectedBuildMode == mode) {
+        myBuildFinished = true;
+      }
     }
   }
 
