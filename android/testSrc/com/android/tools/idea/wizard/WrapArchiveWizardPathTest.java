@@ -331,7 +331,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
         }
 
         @Override
-        public void syncEnded(@NotNull Project project) {
+        public void syncSucceeded(@NotNull Project project) {
           Module module = ModuleManager.getInstance(myProject).findModuleByName(myModuleName);
           assert module != null;
           FacetManager facetManager = FacetManager.getInstance(module);

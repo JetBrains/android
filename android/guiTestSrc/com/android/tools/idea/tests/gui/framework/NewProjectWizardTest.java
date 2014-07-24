@@ -19,9 +19,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import org.fest.swing.timing.Pause;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 
@@ -52,6 +54,11 @@ public class NewProjectWizardTest extends GuiTestCase {
     newProjectWizard.clickFinish();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectName, projectPath);
-    projectFrame.waitForProjectSyncToFinish();
+    projectFrame.waitForProjectSyncToFinish()
+                .waitForSourceGenerationToFinish();
+
+    //projectFrame.close();
+
+    Pause.pause(1, TimeUnit.MINUTES);
   }
 }
