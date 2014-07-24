@@ -129,13 +129,8 @@ public class GradleSyncState {
     cleanUpProjectPreferences();
   }
 
-  private void syncPublisher(@NotNull final Runnable publishingTask) {
-    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(publishingTask);
-      }
-    });
+  private void syncPublisher(@NotNull Runnable publishingTask) {
+    AppUIUtil.invokeLaterIfProjectAlive(myProject, publishingTask);
   }
 
   public void notifyUser() {

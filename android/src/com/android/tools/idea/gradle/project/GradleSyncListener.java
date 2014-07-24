@@ -30,6 +30,13 @@ public interface GradleSyncListener {
 
   void syncFailed(@NotNull Project project, @NotNull String errorMessage);
 
+  /**
+   * Invoked when the state of a project has been loaded from a disk cache, instead of syncing with Gradle.
+   *
+   * @param project the project.
+   */
+  void syncSkipped(@NotNull Project project);
+
   abstract class Adapter implements GradleSyncListener {
     @Override
     public void syncStarted(@NotNull Project project) {
@@ -41,6 +48,10 @@ public interface GradleSyncListener {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+    }
+
+    @Override
+    public void syncSkipped(@NotNull Project project) {
     }
   }
 }
