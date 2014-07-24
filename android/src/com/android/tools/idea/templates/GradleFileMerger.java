@@ -154,16 +154,19 @@ public class GradleFileMerger {
     for (String key : dependencies.keySet()) {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
 
-      // If this coordinate points to an artifact in one of our repositories, mark it will a comment if they don't
-      // have that repository available.
-      if (RepositoryUrlManager.supports(highest.getArtifactId())) {
-        String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, false /* No previews */);
-        GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+      // For test consistency, don't depend on installed SDK state while testing
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
+        // that we can add instead of a plus revision.
+        if (RepositoryUrlManager.supports(highest.getArtifactId())) {
+          String libraryCoordinate = urlManager.getLibraryCoordinate(highest.getArtifactId(), null, false /* No previews */);
+          GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
 
-        if (available != null) {
-          File archiveFile = urlManager.getArchiveForCoordinate(available);
-          if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
-            highest = available;
+          if (available != null) {
+            File archiveFile = urlManager.getArchiveForCoordinate(available);
+            if (archiveFile != null && archiveFile.exists() && COMPARE_PLUS_LOWER.compare(available, highest) >= 0) {
+              highest = available;
+            }
           }
         }
       }
