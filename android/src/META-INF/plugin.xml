@@ -117,6 +117,9 @@
     <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
+    <action id="Android.Debugger.ViewBitmapAction" class="com.android.tools.idea.run.ViewBitmapAction">
+      <add-to-group group-id="Debugger.FramePanelPopup" anchor="last"/>
+    </action>
   </actions>
 
   <depends>JUnit</depends>
