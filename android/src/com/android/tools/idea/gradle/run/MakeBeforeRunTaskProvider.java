@@ -179,15 +179,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // See: https://code.google.com/p/android/issues/detail?id=70718
       GradleSyncState syncState = GradleSyncState.getInstance(myProject);
       if (syncState.isSyncNeeded() != ThreeState.NO) {
-        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener() {
-          @Override
-          public void syncStarted(@NotNull Project project) {
-          }
-
-          @Override
-          public void syncSucceeded(@NotNull Project project) {
-          }
-
+        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener.Adapter() {
           @Override
           public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
             errorMsgRef.set(errorMessage);

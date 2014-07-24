@@ -325,11 +325,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
       settingsGradle.addModule(GradleUtil.makeAbsolute(myModuleName), VfsUtilCore.virtualToIoFile(directory.getParent()));
       final AtomicReference<String> error = Atomics.newReference();
       final AtomicBoolean done = new AtomicBoolean(false);
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener() {
-        @Override
-        public void syncStarted(@NotNull Project project) {
-        }
-
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener.Adapter() {
         @Override
         public void syncSucceeded(@NotNull Project project) {
           Module module = ModuleManager.getInstance(myProject).findModuleByName(myModuleName);
