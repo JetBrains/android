@@ -53,8 +53,9 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     ImmutableSet.of(SdkConstants.FN_SETTINGS_GRADLE, SdkConstants.FN_GRADLE_PROPERTIES, SdkConstants.FN_BUILD_GRADLE,
                     SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
 
-  public AndroidBuildScriptsGroupNode(Project project, List<PsiDirectory> psiDirectories, ViewSettings viewSettings) {
-    super(project, psiDirectories, viewSettings);
+  public AndroidBuildScriptsGroupNode(@NotNull Project project, @NotNull ViewSettings viewSettings) {
+    // TODO: Should this class really be parametrized on List<PsiDirectory>?
+    super(project, Collections.<PsiDirectory>emptyList(), viewSettings);
   }
 
   @Override
@@ -71,40 +72,35 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
-    assert myProject != null;
-
-    PsiManager psiManager = PsiManager.getInstance(myProject);
     List<PsiFileNode> children = Lists.newArrayList();
 
     VirtualFile baseDir = myProject.getBaseDir();
 
-    addPsiFile(myProject, psiManager, children, baseDir.findChild(SdkConstants.FN_SETTINGS_GRADLE), "Project Settings");
-    addPsiFile(myProject, psiManager, children, baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
-    addPsiFile(myProject, psiManager, children, baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), null);
+    addPsiFile(children, baseDir.findChild(SdkConstants.FN_SETTINGS_GRADLE), "Project Settings");
+    addPsiFile(children, baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
+    addPsiFile(children, baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), null);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       File userSettingsFile = AndroidGradleProjectData.getGradleUserSettingsFile();
       if (userSettingsFile != null) {
-        addPsiFile(myProject, psiManager, children, VfsUtil.findFileByIoFile(userSettingsFile, false), "Global Properties");
+        addPsiFile(children, VfsUtil.findFileByIoFile(userSettingsFile, false), "Global Properties");
       }
     }
 
     for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-      addPsiFile(myProject, psiManager, children, GradleUtil.getGradleBuildFile(m), m.getName());
+      addPsiFile(children, GradleUtil.getGradleBuildFile(m), m.getName());
     }
 
     return children;
   }
 
-  private void addPsiFile(@NotNull Project project,
-                          @NotNull PsiManager psiManager,
-                          @NotNull List<PsiFileNode> psiFileNodes,
-                          @Nullable VirtualFile file,
-                          @Nullable String qualifier) {
-    if (file != null) {
-      PsiFile psiFile = psiManager.findFile(file);
-      if (psiFile != null) {
-        psiFileNodes.add(new AndroidBuildScriptNode(project, psiFile, getSettings(), qualifier));
-      }
+  private void addPsiFile(@NotNull List<PsiFileNode> psiFileNodes, @Nullable VirtualFile file, @Nullable String qualifier) {
+    if (file == null) {
+      return;
+    }
+
+    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+    if (psiFile != null) {
+      psiFileNodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), qualifier));
     }
   }
 

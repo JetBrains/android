@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -42,7 +40,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@link AndroidSourceTypeNode} is a virtual node in the package view of an Android module under which all sources
@@ -53,7 +53,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   @NotNull private final AndroidSourceType mySourceType;
   @NotNull private final List<IdeaSourceProvider> mySourceProviders;
-  @NotNull private final AndroidProjectViewPane myProjectViewPane;
+  @NotNull protected final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidSourceTypeNode(@NotNull Project project,
                                @NotNull AndroidFacet facet,
@@ -70,26 +70,11 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
-    assert myProject != null;
-
-    switch (mySourceType) {
-      case RES:
-        return getMergedRes();
-      case MANIFEST:
-        // Manifest nodes are handled under the AndroidManifestsGroupNode.
-        throw new IllegalStateException();
-      default:
-        return getProjectViewChildren();
-    }
-  }
-
-  @NotNull
-  public Collection<? extends AbstractTreeNode> getProjectViewChildren() {
     List<AbstractTreeNode> children = Lists.newArrayList();
     ProjectViewDirectoryHelper projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject);
     AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
 
-    for (PsiDirectory directory : getSourceDirectories(myProject, mySourceProviders, mySourceType)) {
+    for (PsiDirectory directory : getSourceDirectories()) {
       Collection<AbstractTreeNode> directoryChildren = projectViewDirectoryHelper.getDirectoryChildren(directory, getSettings(), true);
       children.addAll(directoryChildren);
 
@@ -100,54 +85,12 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     return children;
   }
 
-  /**
-   * Returns the children of the res folder. Rather than showing the existing directory hierarchy, this merges together
-   * all the folders by their {@link com.android.resources.ResourceFolderType}.
-   */
-  public Collection<? extends AbstractTreeNode> getMergedRes() {
-    // collect all res folders from all source providers
-    List<PsiDirectory> resFolders = Lists.newArrayList();
-    for (PsiDirectory directory : getSourceDirectories(myProject, mySourceProviders, mySourceType)) {
-      resFolders.addAll(Lists.newArrayList(directory.getSubdirectories()));
-    }
-
-    // group all the res folders by their folder type
-    EnumMap<ResourceFolderType, Set<PsiDirectory>> foldersByResourceType = Maps.newEnumMap(ResourceFolderType.class);
-    for (PsiDirectory resFolder : resFolders) {
-      ResourceFolderType type = ResourceFolderType.getFolderType(resFolder.getName());
-      Set<PsiDirectory> folders = foldersByResourceType.get(type);
-      if (folders == null) {
-        folders = Sets.newHashSet();
-        foldersByResourceType.put(type, folders);
-      }
-      folders.add(resFolder);
-    }
-
-    // create a node for each res folder type that actually has some resources
-    AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
-    List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(foldersByResourceType.size());
-    for (ResourceFolderType type : foldersByResourceType.keySet()) {
-      Set<PsiDirectory> folders = foldersByResourceType.get(type);
-      final AndroidResFolderTypeNode androidResFolderTypeNode =
-        new AndroidResFolderTypeNode(myProject, getValue(), Lists.newArrayList(folders), getSettings(), type, myProjectViewPane);
-      children.add(androidResFolderTypeNode);
-
-      // Inform the tree builder of the node that this particular virtual file maps to
-      for (PsiDirectory folder : folders) {
-        treeBuilder.createMapping(folder.getVirtualFile(), androidResFolderTypeNode);
-      }
-    }
-    return children;
-  }
-
-  private static List<PsiDirectory> getSourceDirectories(@NotNull Project project,
-                                                         @NotNull List<IdeaSourceProvider> sourceProviders,
-                                                         @NotNull AndroidSourceType sourceType) {
-    PsiManager psiManager = PsiManager.getInstance(project);
+  protected List<PsiDirectory> getSourceDirectories() {
+    PsiManager psiManager = PsiManager.getInstance(myProject);
     List<PsiDirectory> psiDirectories = Lists.newArrayList();
 
-    for (IdeaSourceProvider sourceProvider : sourceProviders) {
-      for (VirtualFile file : sourceType.getSources(sourceProvider)) {
+    for (IdeaSourceProvider sourceProvider : mySourceProviders) {
+      for (VirtualFile file : mySourceType.getSources(sourceProvider)) {
         final PsiDirectory directory = psiManager.findDirectory(file);
         if (directory != null) {
           psiDirectories.add(directory);
