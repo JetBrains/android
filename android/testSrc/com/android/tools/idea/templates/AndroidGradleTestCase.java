@@ -466,15 +466,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously. This
     // causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-    projectImporter.importProject(projectName, projectRoot, false /* do not generate sources */, new GradleSyncListener() {
-      @Override
-      public void syncStarted(@NotNull Project project) {
-      }
-
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-      }
-
+    projectImporter.importProject(projectName, projectRoot, false /* do not generate sources */, new GradleSyncListener.Adapter() {
       @Override
       public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
         fail(errorMessage);

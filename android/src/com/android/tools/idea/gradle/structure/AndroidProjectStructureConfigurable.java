@@ -427,6 +427,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     reset();
   }
 
+  @Override
+  public void syncSkipped(@NotNull Project project) {
+  }
+
   private static void revalidateAndRepaint(@NotNull JComponent c) {
     c.revalidate();
     c.repaint();
