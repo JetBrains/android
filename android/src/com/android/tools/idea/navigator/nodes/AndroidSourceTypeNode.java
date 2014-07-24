@@ -59,11 +59,11 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
                                @NotNull AndroidFacet facet,
                                @NotNull ViewSettings viewSettings,
                                @NotNull AndroidSourceType sourceType,
-                               @NotNull Iterable<IdeaSourceProvider> sourceProviders,
+                               @NotNull List<IdeaSourceProvider> sourceProviders,
                                @NotNull AndroidProjectViewPane projectViewPane) {
     super(project, facet, viewSettings);
     mySourceType = sourceType;
-    mySourceProviders = ImmutableList.copyOf(sourceProviders);
+    mySourceProviders = sourceProviders;
     myProjectViewPane = projectViewPane;
   }
 

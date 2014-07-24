@@ -286,7 +286,7 @@ public abstract class IdeaSourceProvider {
   }
 
   /**
-   * Returns an iterable of source providers, in the overlay order (meaning that later providers
+   * Returns a list of source providers, in the overlay order (meaning that later providers
    * override earlier providers when they redefine resources) for the currently selected variant.
    * <p>
    * Note that the list will never be empty; there is always at least one source provider.
@@ -294,7 +294,7 @@ public abstract class IdeaSourceProvider {
    * The overlay source order is defined by the Android Gradle plugin.
    */
   @NotNull
-  public static Iterable<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
+  public static List<IdeaSourceProvider> getCurrentSourceProviders(@NotNull AndroidFacet facet) {
     if (!facet.isGradleProject()) {
       return Collections.singletonList(facet.getMainIdeaSourceSet());
     }
@@ -499,9 +499,8 @@ public abstract class IdeaSourceProvider {
   }
 
   /**
-   * Returns an iterable of all IDEA source providers, for the given facet,
-   * in the overlay order (meaning that later providers
-   * override earlier providers when they redefine resources.)
+   * Returns a list of all IDEA source providers, for the given facet, in the overlay order
+   * (meaning that later providers override earlier providers when they redefine resources.)
    * <p>
    * Note that the list will never be empty; there is always at least one source provider.
    * <p>
