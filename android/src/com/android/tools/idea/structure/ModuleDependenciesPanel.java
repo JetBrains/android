@@ -278,8 +278,7 @@ public class ModuleDependenciesPanel extends EditorPanel {
 
   private void addExternalDependency() {
     Module module = GradleUtil.findModuleByGradlePath(myProject, myModulePath);
-    boolean isAndroidModule = module != null && AndroidFacet.getInstance(module) != null;
-    MavenDependencyLookupDialog dialog = new MavenDependencyLookupDialog(myProject, isAndroidModule);
+    MavenDependencyLookupDialog dialog = new MavenDependencyLookupDialog(myProject, module);
     dialog.setTitle("Choose Library Dependency");
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
