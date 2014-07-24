@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
@@ -60,19 +61,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
-  public IdeFrameFixture waitForProjectSyncToFinish() {
+  public IdeFrameFixture waitForGradleProjectToBeOpened() {
     Project project = getProject();
     Disposable disposable = new NoOpDisposable();
 
+    final ProjectSyncListener listener = new ProjectSyncListener();
     try {
       MessageBusConnection connection = project.getMessageBus().connect(disposable);
-      final ProjectSyncListener listener = new ProjectSyncListener();
       connection.subscribe(GRADLE_SYNC_TOPIC, listener);
 
       pause(new Condition("'Sync project \"" + project.getName() + "\"'") {
         @Override
         public boolean test() {
-          return listener.mySyncEnded;
+          return listener.mySyncFinished;
         }
       }, LONG_TIMEOUT);
 
@@ -84,11 +85,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       Disposer.dispose(disposable);
     }
 
-    return this;
+    if (!listener.mySyncWasSkipped) {
+      waitForSourceGenerationToFinish();
+    }
+
+    return waitForBackgroundTasksToFinish();
   }
 
-  @NotNull
-  public IdeFrameFixture waitForSourceGenerationToFinish() {
+  private void waitForSourceGenerationToFinish() {
     Project project = getProject();
     Disposable disposable = new NoOpDisposable();
 
@@ -107,7 +111,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     finally {
       Disposer.dispose(disposable);
     }
+  }
 
+  @NotNull
+  public IdeFrameFixture waitForBackgroundTasksToFinish() {
+    pause(new Condition("'Background tasks to finish'") {
+      @Override
+      public boolean test() {
+        ProgressManager progressManager = ProgressManager.getInstance();
+        return !progressManager.hasModalProgressIndicator() &&
+               !progressManager.hasProgressIndicator() &&
+               !progressManager.hasUnsafeProgressIndicator();
+      }
+    }, LONG_TIMEOUT);
     return this;
   }
 
@@ -127,23 +143,26 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     });
   }
 
-  private static class ProjectSyncListener implements GradleSyncListener {
+  private static class ProjectSyncListener extends GradleSyncListener.Adapter {
     AssertionError mySyncError;
-    boolean mySyncEnded;
-
-    @Override
-    public void syncStarted(@NotNull Project project) {
-    }
+    boolean mySyncFinished;
+    boolean mySyncWasSkipped;
 
     @Override
     public void syncSucceeded(@NotNull Project project) {
-      mySyncEnded = true;
+      mySyncFinished = true;
     }
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       mySyncError = new AssertionError("Project sync for \"" + project.getName() + "\" failed: " + errorMessage);
-      mySyncEnded = true;
+      mySyncFinished = true;
+    }
+
+    @Override
+    public void syncSkipped(@NotNull Project project) {
+      mySyncFinished = true;
+      mySyncWasSkipped = true;
     }
   }
 
