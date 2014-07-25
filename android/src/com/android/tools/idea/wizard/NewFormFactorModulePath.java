@@ -36,6 +36,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
+import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PACKAGE_NAME_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 import static com.android.tools.idea.wizard.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
@@ -201,6 +202,20 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
     if (modified.contains(TEST_DIR_KEY) || basePathModified) {
       updateOutputPath(TEST_DIR_KEY, TEST_OUT_KEY);
+    }
+    if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
+      Integer newApiLevel = myState.get(NEWLY_INSTALLED_API_KEY);
+      Key<Integer> targetApiLevelKey = FormFactorUtils.getTargetApiLevelKey(myFormFactor);
+      Integer currentTargetLevel = myState.get(targetApiLevelKey);
+      if (currentTargetLevel == null || newApiLevel > currentTargetLevel) {
+        // If the newly installed is greater than the current target, we know we're not targeting
+        // a preview version, so we can safely set build/target api levels to the newly installed level
+        String newApiString = Integer.toString(newApiLevel);
+        myState.put(targetApiLevelKey, newApiLevel);
+        myState.put(FormFactorUtils.getTargetApiStringKey(myFormFactor), newApiString);
+        myState.put(FormFactorUtils.getBuildApiLevelKey(myFormFactor), newApiLevel);
+        myState.put(FormFactorUtils.getBuildApiKey(myFormFactor), newApiString);
+      }
     }
   }
 
