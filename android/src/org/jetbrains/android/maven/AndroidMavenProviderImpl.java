@@ -122,7 +122,7 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
                                   String resOutputDir,
                                   ResourceProcessor processor) {
     final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(project).getFileIndex();
-    if (!fileIndex.isIgnored(file)) {
+    if (!fileIndex.isExcluded(file)) {
       String relPath = VfsUtilCore.getRelativePath(file, sourceRoot, '/');
       if (relPath != null && MavenUtil.isIncluded(relPath, includes, excludes)) {
         if (processor.process(file, resOutputDir + "/" + relPath)) {
