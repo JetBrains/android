@@ -330,7 +330,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       if (facet != null) {
         List<SourceProvider> providers;
         if (targetDirectory != null) {
-          providers = IdeaSourceProvider.getSourceProvidersForFile(facet, targetDirectory, facet.getMainSourceSet());
+          providers = IdeaSourceProvider.getSourceProvidersForFile(facet, targetDirectory, facet.getMainSourceProvider());
         }
         else {
           providers = IdeaSourceProvider.getAllSourceProviders(facet);
@@ -347,7 +347,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    */
   private String getInitialPackageName(Module module, AndroidFacet facet) {
     if (myTargetFolder != null) {
-      List<SourceProvider> sourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceSet());
+      List<SourceProvider> sourceProviders =
+        IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceProvider());
       File targetDirectoryFile = VfsUtilCore.virtualToIoFile(myTargetFolder);
       if (sourceProviders.size() > 0 && IdeaSourceProvider.containsFile(sourceProviders.get(0), targetDirectoryFile)) {
         File srcDirectory = findSrcDirectory(sourceProviders.get(0));

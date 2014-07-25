@@ -77,7 +77,7 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
     myPaidSourceProvider = paidFlavor.getSourceProvider();
     assertNotNull(myPaidSourceProvider);
 
-    myMainSourceProvider = myAppFacet.getMainSourceSet();
+    myMainSourceProvider = myAppFacet.getMainSourceProvider();
     assertNotNull(myMainSourceProvider);
 
     TemplateMetadata mockMetadata = Mockito.mock(TemplateMetadata.class);

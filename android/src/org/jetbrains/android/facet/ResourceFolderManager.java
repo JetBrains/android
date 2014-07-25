@@ -181,7 +181,7 @@ public class ResourceFolderManager implements ModificationTracker {
 
       return resDirectories;
     } else {
-      return new ArrayList<VirtualFile>(myFacet.getMainIdeaSourceSet().getResDirectories());
+      return new ArrayList<VirtualFile>(myFacet.getMainIdeaSourceProvider().getResDirectories());
     }
   }
 
