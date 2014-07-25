@@ -15,15 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.ApiVersion;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.intellij.openapi.project.Project;
 import org.junit.Test;
 
 import java.io.File;
 
+import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static junit.framework.Assert.assertNotNull;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class NewProjectWizardTest extends GuiTestCase {
   @Test
@@ -42,17 +51,37 @@ public class NewProjectWizardTest extends GuiTestCase {
     File projectPath = configureAndroidProjectStep.getLocationInFileSystem();
     newProjectWizard.clickNext();
 
-    newProjectWizard.configureFormFactorStep().selectMinimumSdkApi(MOBILE, "19");
+    String minSdkApi = "19";
+    newProjectWizard.configureFormFactorStep().selectMinimumSdkApi(MOBILE, minSdkApi);
     newProjectWizard.clickNext();
 
     // Skip "Add Activity" step
     newProjectWizard.clickNext();
 
-    newProjectWizard.chooseOptionsForNewFileStep().enterActivityName("MainActivity");
+    ChooseOptionsForNewFileStepFixture chooseOptionsForNewFileStep = newProjectWizard.chooseOptionsForNewFileStep();
+    chooseOptionsForNewFileStep.enterActivityName("MainActivity");
+    String layoutName = chooseOptionsForNewFileStep.getLayoutName();
     newProjectWizard.clickFinish();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectName, projectPath);
     projectFrame.waitForGradleProjectToBeOpened();
+
+    Project project = projectFrame.getProject();
+    String layoutFileName = layoutName + DOT_XML;
+    File expectedToBeOpened = new File(join(project.getBasePath(), "app", "src", "main", "res", "layout", layoutFileName));
+
+    projectFrame.waitForFileToBeOpenedAndSelected(expectedToBeOpened);
+
+    // Verify state of project
+    projectFrame.requireModuleCount(2);
+    IdeaAndroidProject appAndroidProject = projectFrame.getAndroidProjectForModule("app");
+    assertThat(appAndroidProject.getVariantNames()).as("variants").containsOnly("debug", "release");
+    assertThat(appAndroidProject.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
+
+    AndroidProject model = appAndroidProject.getDelegate();
+    ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
+    assertNotNull("minSdkVersion", minSdkVersion);
+    assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo(minSdkApi);
 
     //projectFrame.close();
   }

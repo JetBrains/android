@@ -21,6 +21,7 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.fest.swing.timing.Timeout.timeout;
 
 public final class GuiTestConstants {
+  public static Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
   public static Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
   private GuiTestConstants() {
