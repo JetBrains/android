@@ -153,6 +153,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myVmOptionsEditor.setText(vmOptions);
     myAutoMakeCheckBox.setSelected(myCompilerConfiguration.MAKE_PROJECT_ON_SAVE);
     myUseInProcessBuildCheckBox.setSelected(myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD);
+    myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
     myAutoMakeCheckBox.setText("Make project automatically (only works while not running / debugging" +
                                (PowerSaveMode.isEnabled() ? ", disabled in Power Save mode" : "") +
                                ")");

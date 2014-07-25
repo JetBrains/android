@@ -21,6 +21,8 @@ import com.google.common.collect.Sets;
 import junit.framework.TestCase;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.util.DistributionLocator;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard;
 import org.jetbrains.annotations.NonNls;
@@ -44,6 +46,7 @@ public class ExportSignedPackageTest extends TestCase {
     File projectDir = new File(androidPlugin, BASE_PATH + projectPath);
     GradleConnector connector = GradleConnector.newConnector();
     connector.forProjectDirectory(projectDir);
+    connector.useDistribution(new DistributionLocator().getDistributionFor(GradleVersion.version("1.10")));
 
     AndroidProject model = null;
     ProjectConnection connection = connector.connect();
