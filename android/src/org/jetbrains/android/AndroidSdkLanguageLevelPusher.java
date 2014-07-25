@@ -85,7 +85,7 @@ public class AndroidSdkLanguageLevelPusher extends AbstractProjectComponent {
               return false;
             }
             if (file.isDirectory()) {
-              PushedFilePropertiesUpdater.findAndUpdateValue(project, file, javaPusher, LanguageLevel.HIGHEST);
+              PushedFilePropertiesUpdater.getInstance(project).findAndUpdateValue(file, javaPusher, LanguageLevel.HIGHEST);
             }
             return true;
           }
