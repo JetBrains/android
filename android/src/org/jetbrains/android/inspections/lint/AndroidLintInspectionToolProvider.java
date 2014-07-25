@@ -727,7 +727,18 @@ public class AndroidLintInspectionToolProvider {
               // have that repository available.
               String artifactId = plus.getArtifactId();
               if (RepositoryUrlManager.supports(plus.getArtifactId())) {
+                // First look for matches, where we don't allow preview versions
                 String libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter, false);
+                if (libraryCoordinate != null) {
+                  GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+                  if (available != null) {
+                    return available.toString();
+                  }
+                }
+                // If that didn't yield any matches, try again, this time allowing preview platforms.
+                // This is necessary if the artifact filter includes enough of a version where there are
+                // only preview matches.
+                libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter, true);
                 if (libraryCoordinate != null) {
                   GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
                   if (available != null) {
