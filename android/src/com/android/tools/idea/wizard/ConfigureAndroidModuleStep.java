@@ -827,28 +827,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
 
     public AndroidTargetComboBoxItem(@NotNull IAndroidTarget target) {
-      super(getId(target), getLabel(target), 1, 1);
+      super(getId(target), AndroidSdkUtils.getTargetLabel(target), 1, 1);
       this.target = target;
       apiLevel = target.getVersion().getFeatureLevel();
-    }
-
-    @NotNull
-    @VisibleForTesting
-    static String getLabel(@NotNull IAndroidTarget target) {
-      if (target.isPlatform()
-          && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        if (target.getVersion().isPreview()) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel()) + "+: " + target.getName();
-        }
-        String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-        if (name == null) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel());
-        } else {
-          return name;
-        }
-      } else {
-        return TemplateUtils.getTargetLabel(target);
-      }
     }
 
     @NotNull
