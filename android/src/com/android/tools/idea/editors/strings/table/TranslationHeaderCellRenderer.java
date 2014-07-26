@@ -23,7 +23,8 @@ import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
-/* Renderer for the header of a column that shows the translations for a locale.  This header displays a flag icon
+/**
+ * Renderer for the header of a column that shows the translations for a locale.  This header displays a flag icon
  * and, depending on the current column width, either the full name of the locale - e.g., Czech (cs) - or a
  * brief name - e.g., cs.
  */

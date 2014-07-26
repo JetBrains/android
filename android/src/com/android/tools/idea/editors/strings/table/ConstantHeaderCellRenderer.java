@@ -20,7 +20,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-// Renderer for the header of a column that is always present in the table (e.g., Key).
+/**
+ * Renderer for the header of a column that is always present in the table (e.g., Key).
+ */
 public class ConstantHeaderCellRenderer implements HeaderCellRenderer {
   private final int myCollapsedWidth;
   private final int myExpandedWidth;
