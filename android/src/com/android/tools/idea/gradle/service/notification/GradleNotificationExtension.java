@@ -85,7 +85,9 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
 
   private static final Pattern SDK_BUILD_TOOLS_TOO_LOW_PATTERN =
     Pattern.compile("The SDK Build Tools revision \\((.*)\\) is too low for project '(.*)'. Minimum required is (.*)");
-  private static final Pattern MISSING_PLATFORM_PATTERN = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
+  private static final Pattern MISSING_PLATFORM_PATTERN_1 = Pattern.compile("(Cause: )?failed to find target (.*) : (.*)");
+  // This second format is used in older versions of the Android Gradle plug-in (0.9.+)
+  private static final Pattern MISSING_PLATFORM_PATTERN_2 = Pattern.compile("(Cause: )?failed to find target (.*)");
 
   private static final Pattern MISSING_BUILD_TOOLS_PATTERN = Pattern.compile("(Cause: )?failed to find Build Tools revision (.*)");
   private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
@@ -256,8 +258,13 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
         }
       }
 
-      matcher = MISSING_PLATFORM_PATTERN.matcher(firstLine);
-      if (matcher.matches()) {
+      matcher = MISSING_PLATFORM_PATTERN_1.matcher(firstLine);
+      boolean missingPlatform = matcher.matches();
+      if (!missingPlatform) {
+        matcher = MISSING_PLATFORM_PATTERN_2.matcher(firstLine);
+        missingPlatform = matcher.matches();
+      }
+      if (missingPlatform) {
         List<NotificationHyperlink> hyperlinks = Lists.newArrayList();
         String platform = matcher.group(2);
 
