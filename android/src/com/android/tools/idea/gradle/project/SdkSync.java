@@ -89,12 +89,7 @@ public final class SdkSync {
       }
 
       // If we have a valid project SDK but we don't have IDE default SDK, update IDE with project SDK path and exit.
-      UIUtil.invokeAndWaitIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          setIdeSdk(projectAndroidHomePath, localProperties);
-        }
-      });
+      setIdeSdk(projectAndroidHomePath, localProperties);
       return;
     }
 
@@ -125,10 +120,15 @@ public final class SdkSync {
     // Just to be on the safe side, we update local.properties.
     setProjectSdk(localProperties, projectAndroidHomePath);
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+    UIUtil.invokeLaterIfNeeded(new Runnable() {
       @Override
       public void run() {
-        DefaultSdks.setDefaultAndroidHome(projectAndroidHomePath);
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            DefaultSdks.setDefaultAndroidHome(projectAndroidHomePath);
+          }
+        });
       }
     });
   }

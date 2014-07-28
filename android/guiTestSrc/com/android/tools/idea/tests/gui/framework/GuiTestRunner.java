@@ -21,6 +21,7 @@ import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
 import org.junit.internal.runners.statements.Fail;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.fest.swing.finder.WindowFinder.findFrame;
+import static org.junit.Assert.fail;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private Class<? extends Annotation> myBeforeClass;
@@ -49,6 +51,15 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   public GuiTestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
+
+    try {
+      // A random class which is reachable from module community-main's classpath but not
+      // module android's classpath
+      Class.forName("git4idea.repo.GitConfig");
+    } catch (ClassNotFoundException e) {
+      fail("Invalid test run configuration. Edit your test configuration and make sure that " +
+           "\"Use classpath of module\" is set to \"community-main\", NOT \"android\" !");
+    }
   }
 
   @Override
