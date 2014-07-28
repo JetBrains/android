@@ -43,15 +43,18 @@ public class IdeTestApplication implements Disposable {
   @NotNull private final UrlClassLoader myIdeClassLoader;
 
   @NotNull
-  public static synchronized IdeTestApplication getInstance() throws Exception {
+  public static synchronized LoadResult getInstance() throws Exception {
     System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "AndroidStudio");
     System.setProperty(PathManager.PROPERTY_CONFIG_PATH, getConfigDirPath().getPath());
 
+    boolean firstTimeLoaded = false;
+
     if (ourInstance == null) {
+      firstTimeLoaded = true;
       new IdeTestApplication();
     }
 
-    return ourInstance;
+    return new LoadResult(ourInstance, firstTimeLoaded);
   }
 
   private static File getConfigDirPath() throws IOException {
@@ -116,4 +119,24 @@ public class IdeTestApplication implements Disposable {
     }
     ourInstance = null;
   }
+
+  public static class LoadResult {
+    @NotNull private final IdeTestApplication myApp;
+    private final boolean myFirstTimeLoaded;
+
+    public LoadResult(@NotNull IdeTestApplication app, boolean firstTimeLoaded) {
+      myApp = app;
+      myFirstTimeLoaded = firstTimeLoaded;
+    }
+
+    @NotNull
+    public IdeTestApplication getApp() {
+      return myApp;
+    }
+
+    public boolean isFirstTimeLoaded() {
+      return myFirstTimeLoaded;
+    }
+  }
 }
+

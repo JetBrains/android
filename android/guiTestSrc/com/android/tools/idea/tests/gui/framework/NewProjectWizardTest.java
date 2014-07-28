@@ -18,11 +18,13 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.project.Project;
 import org.junit.Test;
 
@@ -35,9 +37,11 @@ import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class NewProjectWizardTest extends GuiTestCase {
-  @Test
-  public void testCreateNewProject() {
+  @Test @IdeGuiTest
+  public void testCreateNewMobileProject() {
     final String projectName = "Test Application";
+
+    GeneralSettings.getInstance().setShowTipsOnStartup(false);
 
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
     welcomeFrame.newProjectButton().click();
@@ -82,7 +86,10 @@ public class NewProjectWizardTest extends GuiTestCase {
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo(minSdkApi);
+  }
 
-    //projectFrame.close();
+  @Test @IdeGuiTest(closeProjectBeforeExecution = false)
+  public void testSomething() {
+    System.out.println("Hello");
   }
 }
