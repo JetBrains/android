@@ -76,7 +76,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   AndroidManifest.xml (main)\n" +
       "  res\n" +
       "   drawable\n" +
-      "    ic_launcher.png (mdpi)\n" +
+      "    ic_launcher.png (2)\n" +
+      "     ic_launcher.png (hdpi, debug)\n" +
+      "     ic_launcher.png (mdpi)\n" +
       "   layout\n" +
       "    activity_main.xml\n" +
       "   menu\n" +

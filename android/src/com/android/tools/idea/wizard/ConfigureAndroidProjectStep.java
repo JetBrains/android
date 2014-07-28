@@ -170,13 +170,6 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       setErrorHtml("The application name for most apps begins with an uppercase letter");
     }
 
-    // Company Domain validation
-    String companyDomain = myState.get(WizardConstants.COMPANY_DOMAIN_KEY);
-    if (companyDomain == null || companyDomain.isEmpty()) {
-      setErrorHtml("Please enter a company domain");
-      return false;
-    }
-
     // Package name validation
     String packageName = myState.get(WizardConstants.PACKAGE_NAME_KEY);
     if (packageName == null) {
@@ -185,7 +178,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     } else {
       String message = AndroidUtils.validateAndroidPackageName(packageName);
       if (message != null) {
-        setErrorHtml(message);
+        setErrorHtml("Invalid package name: " + message);
         return false;
       }
     }

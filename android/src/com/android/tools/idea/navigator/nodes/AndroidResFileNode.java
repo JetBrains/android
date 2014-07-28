@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceConstants;
+import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -40,17 +41,8 @@ public class AndroidResFileNode extends PsiFileNode {
     super.update(data);
 
     String text = data.getPresentableText();
-    if (text == null) {
-      text = getName();
-    }
-    if (text == null && getVirtualFile() != null) {
-      text = getVirtualFile().getName();
-    }
-
-    if (text != null) {
-      data.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      data.setPresentableText(text);
-    }
+    data.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    data.setPresentableText(text);
 
     String qualifier = getQualifier(getValue());
     if (qualifier != null) {
@@ -70,7 +62,7 @@ public class AndroidResFileNode extends PsiFileNode {
   private static String getQualifier(@NotNull PsiFile resFile) {
     PsiDirectory resTypeFolder = resFile.getParent();
     if (resTypeFolder == null) { // cannot happen
-      return "";
+      return null;
     }
 
     String folderName = resTypeFolder.getName();
@@ -94,16 +86,8 @@ public class AndroidResFileNode extends PsiFileNode {
     }
 
     StringBuilder sb = new StringBuilder(10);
-    if (qualifier != null) {
-      sb.append(" (");
-      sb.append(qualifier);
-    }
-
-    if (providerName != null) {
-      sb.append(sb.length() > 0 ? ", " : " (");
-      sb.append(providerName);
-    }
-
+    sb.append(" (");
+    sb.append(Joiner.on(", ").skipNulls().join(qualifier, providerName));
     sb.append(')');
     return sb.toString();
   }

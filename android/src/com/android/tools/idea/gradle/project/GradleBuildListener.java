@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.facet;
+package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.gradle.util.BuildMode;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Interface implemented by listeners on Gradle sync events.
- * To register for notification, call {@link AndroidFacet#addListener(GradleSyncListener)}
- */
-public interface GradleSyncListener {
+public interface GradleBuildListener {
   /**
-   * A gradle sync has completed (as well as source generation)
-   *
-   * @param facet the facet affected by the sync
-   * @param success whether the gradle sync was successful
+   * A Gradle project's build has completed.
+   * @param project the target project.
+   * @param mode the build operation that was executed.
    */
-  void performedGradleSync(@NotNull AndroidFacet facet, boolean success);
+  void buildFinished(@NotNull Project project, @Nullable BuildMode mode);
 }

@@ -43,8 +43,8 @@ import java.util.concurrent.Callable;
  */
 public class AndroidModuleEditor implements Place.Navigator, Disposable {
   public static final ImmutableList<BuildFileKey> BUILD_FILE_GENERIC_PROPERTIES =
-    ImmutableList.of(BuildFileKey.PLUGIN_VERSION, BuildFileKey.COMPILE_SDK_VERSION, BuildFileKey.BUILD_TOOLS_VERSION,
-                     BuildFileKey.PLUGIN_REPOSITORY, BuildFileKey.LIBRARY_REPOSITORY, BuildFileKey.IGNORE_ASSETS_PATTERN,
+    ImmutableList.of(BuildFileKey.COMPILE_SDK_VERSION, BuildFileKey.BUILD_TOOLS_VERSION,
+                     BuildFileKey.LIBRARY_REPOSITORY, BuildFileKey.IGNORE_ASSETS_PATTERN,
                      BuildFileKey.INCREMENTAL_DEX, BuildFileKey.SOURCE_COMPATIBILITY,
                      BuildFileKey.TARGET_COMPATIBILITY);
   private final Project myProject;

@@ -414,7 +414,7 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   }
 
   @Override
-  public void syncEnded(@NotNull Project project) {
+  public void syncSucceeded(@NotNull Project project) {
     myNotificationPanel.removeAll();
     revalidateAndRepaint(myNotificationPanel);
     reset();
@@ -425,6 +425,10 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
     myNotificationPanel.removeAll();
     revalidateAndRepaint(myNotificationPanel);
     reset();
+  }
+
+  @Override
+  public void syncSkipped(@NotNull Project project) {
   }
 
   private static void revalidateAndRepaint(@NotNull JComponent c) {

@@ -16,10 +16,12 @@
 package org.jetbrains.android.facet;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -168,13 +170,11 @@ public class ResourceFolderManager implements ModificationTracker {
       // resource set, if necessary
       if (!myGradleInitListenerAdded) {
         myGradleInitListenerAdded = true; // Avoid adding multiple listeners if we invalidate and call this repeatedly around startup
-        myFacet.addListener(new GradleSyncListener() {
+        myFacet.addListener(new GradleSyncListener.Adapter() {
           @Override
-          public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
+          public void syncSucceeded(@NotNull Project project) {
             // Resource folders can change on sync
-            if (success) {
-              invalidate();
-            }
+            invalidate();
           }
         });
       }

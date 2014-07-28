@@ -119,4 +119,8 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
       window.activate(null, false);
     }
   }
+
+  @Override
+  public void syncSkipped(@NotNull Project project) {
+  }
 }

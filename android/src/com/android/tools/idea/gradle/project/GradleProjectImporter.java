@@ -291,7 +291,7 @@ public class GradleProjectImporter {
     try {
       importProject(projectDir.getName(), projectDirPath, new NewProjectImportGradleSyncListener() {
         @Override
-        public void syncEnded(@NotNull Project project) {
+        public void syncSucceeded(@NotNull Project project) {
           activateProjectView(project);
         }
       }, parentProject);
@@ -640,7 +640,7 @@ public class GradleProjectImporter {
               projectComponent.configureGradleProject(false);
             }
             if (listener != null) {
-              listener.syncEnded(project);
+              listener.syncSucceeded(project);
             }
           }
         };
