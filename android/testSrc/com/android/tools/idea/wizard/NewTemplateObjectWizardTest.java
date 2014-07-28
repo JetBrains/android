@@ -363,7 +363,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
   @NotNull
   private static SourceProvider getFirstSourceProvider(AndroidFacet facet, @Nullable VirtualFile file) {
     Iterator<SourceProvider> sourceProviderIterator =
-     IdeaSourceProvider.getSourceProvidersForFile(facet, file, facet.getMainSourceSet()).iterator();
+     IdeaSourceProvider.getSourceProvidersForFile(facet, file, facet.getMainSourceProvider()).iterator();
     return sourceProviderIterator.next();
   }
 }
