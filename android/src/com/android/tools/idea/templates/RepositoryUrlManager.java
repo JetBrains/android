@@ -105,7 +105,7 @@ public class RepositoryUrlManager {
     .put(Range.closed(1, 19), SdkConstants.DOT_JAR)
     .put(Range.atLeast(20), SdkConstants.DOT_AAR)
     .build();
-  private static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
+  public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
     .put(SUPPORT_ANNOTATIONS, new RepositoryLibrary(SUPPORT_ANNOTATIONS, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
     .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE,
                                               SUPPORT_LIBRARY_EXTENSIONS))
