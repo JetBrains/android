@@ -25,6 +25,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
@@ -204,8 +205,15 @@ public final class Projects {
   public static Module[] getModulesToBuildFromSelection(@NotNull Project project, @Nullable DataContext dataContext) {
     if (dataContext == null) {
       ProjectView projectView = ProjectView.getInstance(project);
-      JComponent treeComponent = projectView.getCurrentProjectViewPane().getComponentToFocus();
-      dataContext = DataManager.getInstance().getDataContext(treeComponent);
+      final AbstractProjectViewPane pane = projectView.getCurrentProjectViewPane();
+
+      if (pane != null) {
+        JComponent treeComponent = pane.getComponentToFocus();
+        dataContext = DataManager.getInstance().getDataContext(treeComponent);
+      }
+      else {
+        return NO_MODULES;
+      }
     }
     Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
     if (modules != null) {
