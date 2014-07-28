@@ -346,6 +346,7 @@ public class AndroidCommonUtils {
                                                                              @NotNull String[] proguardConfigFileOsPaths,
                                                                              @NotNull String inputJarOsPath,
                                                                              @NotNull String[] externalJarOsPaths,
+                                                                             @NotNull String[] providedJarOsPaths,
                                                                              @NotNull String outputJarFileOsPath,
                                                                              @Nullable String logDirOutputOsPath) throws IOException {
     final List<String> commands = new ArrayList<String>();
@@ -392,6 +393,10 @@ public class AndroidCommonUtils {
         builder.append(File.pathSeparatorChar);
         builder.append(quotePath(lib.getJarPath()));
       }
+    }
+    for (String path : providedJarOsPaths) {
+      builder.append(File.pathSeparatorChar);
+      builder.append(quotePath(path));
     }
     commands.add(builder.toString());
 
