@@ -158,7 +158,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     try {
       final NewProjectImportGradleSyncListener callback = new NewProjectImportGradleSyncListener() {
         @Override
-        public void syncEnded(@NotNull final Project project) {
+        public void syncSucceeded(@NotNull final Project project) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {

@@ -26,7 +26,32 @@ public interface GradleSyncListener {
    *
    * @param project the IDEA project created from the Gradle one.
    */
-  void syncEnded(@NotNull Project project);
+  void syncSucceeded(@NotNull Project project);
 
   void syncFailed(@NotNull Project project, @NotNull String errorMessage);
+
+  /**
+   * Invoked when the state of a project has been loaded from a disk cache, instead of syncing with Gradle.
+   *
+   * @param project the project.
+   */
+  void syncSkipped(@NotNull Project project);
+
+  abstract class Adapter implements GradleSyncListener {
+    @Override
+    public void syncStarted(@NotNull Project project) {
+    }
+
+    @Override
+    public void syncSucceeded(@NotNull Project project) {
+    }
+
+    @Override
+    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+    }
+
+    @Override
+    public void syncSkipped(@NotNull Project project) {
+    }
+  }
 }
