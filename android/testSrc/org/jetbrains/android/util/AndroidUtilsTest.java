@@ -53,6 +53,7 @@ public class AndroidUtilsTest extends LightIdeaTestCase {
     assertEquals("A digit cannot be the first character in a package segment", validateAndroidPackageName("foo.1bar"));
     assertEquals("The character '\u00f8' is not allowed in Android application package names", validateAndroidPackageName("my.p\u00f8"));
     assertEquals("The character '$' is not allowed in Android application package names", validateAndroidPackageName("foo.bar$"));
+    assertEquals("Package segments must be of non-zero length", validateAndroidPackageName(".foo.bar"));
     assertNull(validateAndroidPackageName("foo.bar"));
     assertNull(validateAndroidPackageName("foo.b1.ar_"));
     assertNull(validateAndroidPackageName("Foo.Bar"));

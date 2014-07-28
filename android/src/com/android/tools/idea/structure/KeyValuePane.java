@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkVersionInfo;
-import com.android.sdklib.AndroidTargetHash;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
+import com.android.sdklib.repository.local.LocalPkgInfo;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
@@ -84,21 +85,16 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       sdk = androidSdkData.getLocalSdk();
     }
     if (sdk != null) {
-      for (IAndroidTarget target : sdk.getTargets()) {
-        if (target.isPlatform()) {
-          AndroidVersion version = target.getVersion();
-          String codename = version.getCodename();
-          if (codename != null) {
-            myInstalledApis.add(codename);
-            myInstalledCompileApis.add(AndroidTargetHash.getPlatformHashString(version));
-          }
-          else {
-            String apiString = Integer.toString(version.getApiLevel());
-            myInstalledApis.add(apiString);
-            myInstalledCompileApis.add(apiString);
-          }
+      LocalPkgInfo[] buildToolsPackages = sdk.getPkgsInfos(PkgType.PKG_BUILD_TOOLS);
+      for (LocalPkgInfo buildToolsPackage : buildToolsPackages) {
+        if (!(buildToolsPackage instanceof LocalBuildToolPkgInfo)) {
+          continue;
         }
-        myInstalledBuildTools.add(target.getBuildToolInfo().getRevision().toString());
+        BuildToolInfo buildToolInfo = ((LocalBuildToolPkgInfo)buildToolsPackage).getBuildToolInfo();
+        if (buildToolInfo == null) {
+          continue;
+        }
+        myInstalledBuildTools.add(buildToolInfo.getRevision().toString());
       }
     }
   }

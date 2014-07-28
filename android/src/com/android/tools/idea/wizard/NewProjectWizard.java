@@ -188,7 +188,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         }
         projectImporter.importProject(projectName, projectRoot, true, new NewProjectImportGradleSyncListener() {
           @Override
-          public void syncEnded(@NotNull final Project project) {
+          public void syncSucceeded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example
             // the layout editor won't add Design tabs to the file
             StartupManagerEx manager = StartupManagerEx.getInstanceEx(project);

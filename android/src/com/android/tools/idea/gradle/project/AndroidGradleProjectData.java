@@ -49,6 +49,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.AppUIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -61,6 +62,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
+import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 
 /**
@@ -224,12 +226,21 @@ public class AndroidGradleProjectData implements Serializable {
    * @param project the project for which to load the data.
    * @return whether the load was successful.
    */
-  public static boolean loadFromDisk(@NotNull Project project) {
+  public static boolean loadFromDisk(@NotNull final Project project) {
     if (!ENABLED || needsAndroidSdkSync(project)) {
       return false;
     }
     try {
-      return doLoadFromDisk(project);
+      boolean loaded = doLoadFromDisk(project);
+      if (loaded) {
+        AppUIUtil.invokeLaterIfProjectAlive(project, new Runnable() {
+          @Override
+          public void run() {
+            project.getMessageBus().syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(project);
+          }
+        });
+      }
+      return loaded;
     }
     catch (IOException e) {
       LOG.info(String.format("Error accessing state cache for project '%1$s', sync will be needed.", project.getName()));
