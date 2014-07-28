@@ -1173,6 +1173,35 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertContents(file, expected);
   }
 
+  public void testPreservesModuleDependencyExcludes() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    compile(project(':blah')) {\n" +
+      "        exclude group: 'blah'\n" +
+      "    }\n" +
+      "}\n");
+
+    final List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency newDependency = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:1.0", null);
+    dependencies.add(newDependency);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+      }
+    });
+
+    String expected =
+      "dependencies {\n" +
+      "    compile(project(':blah')) {\n" +
+      "        exclude group: 'blah'\n" +
+      "    }\n" +
+      "    compile 'com.foo:1.0'\n" +
+      "}\n";
+    assertContents(file, expected);
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +
