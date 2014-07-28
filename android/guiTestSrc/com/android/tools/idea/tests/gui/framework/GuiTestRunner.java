@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.lang.UrlClassLoader;
-import org.fest.swing.core.BasicRobot;
-import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
 import org.junit.internal.runners.statements.Fail;
@@ -33,14 +31,16 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
-import javax.swing.*;
 import java.awt.*;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import static org.fest.swing.finder.WindowFinder.findFrame;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.reflect.core.Reflection.method;
+import static org.fest.reflect.core.Reflection.staticMethod;
 import static org.junit.Assert.fail;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
@@ -56,7 +56,8 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       // A random class which is reachable from module community-main's classpath but not
       // module android's classpath
       Class.forName("git4idea.repo.GitConfig");
-    } catch (ClassNotFoundException e) {
+    }
+    catch (ClassNotFoundException e) {
       fail("Invalid test run configuration. Edit your test configuration and make sure that " +
            "\"Use classpath of module\" is set to \"community-main\", NOT \"android\" !");
     }
@@ -112,35 +113,15 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     return !GraphicsEnvironment.isHeadless();
   }
 
+  @SuppressWarnings("unchecked")
   private void loadClassesWithIdeClassLoader() throws Exception {
-    Robot robot = null;
-    try {
-      robot = BasicRobot.robotWithNewAwtHierarchy();
+    UrlClassLoader ideClassLoader = getIdeTestApplication().getIdeClassLoader();
+    Thread.currentThread().setContextClassLoader(ideClassLoader);
 
-      IdeTestApplication testApplication = IdeTestApplication.getInstance();
-      // wait till IDE is up
-      findFrame(JFrame.class).withTimeout(5, TimeUnit.MINUTES).using(robot);
-
-      UrlClassLoader ideClassLoader = testApplication.getIdeClassLoader();
-      Thread.currentThread().setContextClassLoader(ideClassLoader);
-
-      myBeforeClass = loadAnnotationClass(Before.class, ideClassLoader);
-      myAfterClass = loadAnnotationClass(After.class, ideClassLoader);
-
-      myTestClass = new TestClass(ideClassLoader.loadClass(getTestClass().getJavaClass().getName()));
-    }
-    finally {
-      if (robot != null) {
-        robot.cleanUpWithoutDisposingWindows();
-      }
-    }
-  }
-
-  @NotNull
-  private static Class<? extends Annotation> loadAnnotationClass(@NotNull Class<? extends Annotation> annotationClass,
-                                                                 @NotNull ClassLoader classLoader) throws ClassNotFoundException {
-    //noinspection unchecked
-    return (Class<? extends Annotation>)classLoader.loadClass(annotationClass.getName());
+    Class<?> testClass = getTestClass().getJavaClass();
+    myTestClass = new TestClass(ideClassLoader.loadClass(testClass.getName()));
+    myBeforeClass = (Class<? extends Annotation>)ideClassLoader.loadClass(Before.class.getName());
+    myAfterClass = (Class<? extends Annotation>)ideClassLoader.loadClass(After.class.getName());
   }
 
   @Override
@@ -150,6 +131,41 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodInvoker(FrameworkMethod method, Object test) {
+    try {
+      UrlClassLoader ideClassLoader = IdeTestApplication.getInstance().getApp().getIdeClassLoader();
+      //noinspection unchecked
+      Class<? extends Annotation> ideGuiTestClass =
+        (Class<? extends Annotation>)ideClassLoader.loadClass(IdeGuiTest.class.getCanonicalName());
+      Annotation annotation = method.getMethod().getAnnotation(ideGuiTestClass);
+      if (annotation != null && Proxy.isProxyClass(annotation.getClass())) {
+        InvocationHandler invocationHandler = Proxy.getInvocationHandler(annotation);
+        Method closeProjectBeforeExecutionMethod = ideGuiTestClass.getDeclaredMethod("closeProjectBeforeExecution");
+        Object result = invocationHandler.invoke(annotation, closeProjectBeforeExecutionMethod, new Object[0]);
+        assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
+        if ((Boolean)result) {
+          method("closeAllProjects").in(test).invoke();
+        }
+      }
+    }
+    catch (Throwable e) {
+      return new Fail(e);
+    }
     return new MethodInvoker(method, test);
+  }
+
+  @NotNull
+  private static IdeTestApplication getIdeTestApplication() throws Exception {
+    IdeTestApplication.LoadResult result = IdeTestApplication.getInstance();
+    IdeTestApplication testApplication = result.getApp();
+
+    // wait till IDE is up
+    UrlClassLoader ideClassLoader = testApplication.getIdeClassLoader();
+    Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
+    if (result.isFirstTimeLoaded()) {
+      // Invokes GuiTests#waitForIdeToStart
+      staticMethod("waitForIdeToStart").in(clazz).invoke();
+    }
+
+    return testApplication;
   }
 }

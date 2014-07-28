@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.framework;
+package com.android.tools.idea.tests.gui.framework.annotation;
 
-import org.fest.swing.timing.Timeout;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.fest.swing.timing.Timeout.timeout;
-
-public final class GuiTestConstants {
-  public static Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
-  public static Timeout LONG_TIMEOUT = timeout(5, MINUTES);
-
-  private GuiTestConstants() {
-  }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface IdeGuiTest {
+  boolean closeProjectBeforeExecution() default true;
 }
