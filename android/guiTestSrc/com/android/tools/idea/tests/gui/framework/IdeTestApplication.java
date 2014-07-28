@@ -19,17 +19,20 @@ import com.intellij.ide.BootstrapClassLoaderUtil;
 import com.intellij.ide.WindowsCommandLineProcessor;
 import com.intellij.idea.Main;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.application.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PlatformUtils;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.IOException;
+
+import static com.intellij.openapi.util.io.FileUtil.ensureExists;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.fest.reflect.core.Reflection.staticMethod;
 
 public class IdeTestApplication implements Disposable {
@@ -42,12 +45,21 @@ public class IdeTestApplication implements Disposable {
   @NotNull
   public static synchronized IdeTestApplication getInstance() throws Exception {
     System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "AndroidStudio");
+    System.setProperty(PathManager.PROPERTY_CONFIG_PATH, getConfigDirPath().getPath());
 
     if (ourInstance == null) {
       new IdeTestApplication();
     }
 
     return ourInstance;
+  }
+
+  private static File getConfigDirPath() throws IOException {
+    String homeDirPath = toSystemDependentName(PathManager.getHomePath());
+    assert !homeDirPath.isEmpty();
+    File configDirPath = new File(homeDirPath, FileUtil.join("androidStudio", "gui-tests", "config"));
+    ensureExists(configDirPath);
+    return configDirPath;
   }
 
   private IdeTestApplication() throws Exception {

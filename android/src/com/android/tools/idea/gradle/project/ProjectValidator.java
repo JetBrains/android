@@ -130,25 +130,33 @@ public class ProjectValidator {
       File file = location != null ? location.getFile() : null;
       VirtualFile virtualFile = file != null ? LocalFileSystem.getInstance().findFileByIoFile(file) : null;
       Position start = location != null ? location.getStart() : null;
+      Message.Type type = convertSeverity(severity);
       if (virtualFile != null && start != null) {
-        int line = start.getLine();
-        int column = start.getColumn();
-        int offset = start.getOffset();
-        if (line == -1 && offset >= 0) {
-          PsiManager psiManager = PsiManager.getInstance(myProject);
-          PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
-          PsiFile psiFile = psiManager.findFile(virtualFile);
-          if (psiFile != null) {
-            Document document = psiDocumentManager.getDocument(psiFile);
-            if (document != null) {
-              line = document.getLineNumber(offset);
-              column = offset - document.getLineStartOffset(line);
+        try {
+          int line = start.getLine();
+          int column = start.getColumn();
+          int offset = start.getOffset();
+          if (line == -1 && offset >= 0) {
+            PsiManager psiManager = PsiManager.getInstance(myProject);
+            PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
+            PsiFile psiFile = psiManager.findFile(virtualFile);
+            if (psiFile != null) {
+              Document document = psiDocumentManager.getDocument(psiFile);
+              if (document != null) {
+                line = document.getLineNumber(offset);
+                column = offset - document.getLineStartOffset(line);
+              }
             }
           }
+          myMessages.add(new Message(myProject, GROUP_NAME, type, virtualFile, line, column, message));
+        } catch (Exception e) {
+          // There are cases where the offset lookup is wrong; e.g.
+          //   java.lang.IndexOutOfBoundsException: Wrong offset: 312. Should be in range: [0, 16]
+          // in this case, just report the message without a location
+          myMessages.add(new Message(GROUP_NAME, type, message));
         }
-        myMessages.add(new Message(myProject, GROUP_NAME, convertSeverity(severity), virtualFile, line, column, message));
       } else {
-        myMessages.add(new Message(GROUP_NAME, convertSeverity(severity), message));
+        myMessages.add(new Message(GROUP_NAME, type, message));
       }
     }
 
