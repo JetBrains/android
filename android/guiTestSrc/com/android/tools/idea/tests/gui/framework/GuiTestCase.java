@@ -20,13 +20,19 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
+import java.awt.*;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
@@ -46,8 +52,7 @@ public abstract class GuiTestCase {
     Application application = ApplicationManager.getApplication();
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
 
-    myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
-    myRobot.settings().delayBetweenEvents(30);
+    setUpRobot();
   }
 
   @After
@@ -70,5 +75,23 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture findIdeFrame(@NotNull String projectName, @NotNull File projectPath) {
     return IdeFrameFixture.find(myRobot, projectName, projectPath);
+  }
+
+  protected void closeAllProjects() {
+    setUpRobot();
+
+    for (Frame frame : Frame.getFrames()) {
+      if (frame instanceof IdeFrameImpl) {
+        IdeFrameFixture ideFrame = new IdeFrameFixture(myRobot, (IdeFrameImpl)frame);
+        ideFrame.close();
+      }
+    }
+  }
+
+  private void setUpRobot() {
+    if (myRobot == null) {
+      myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
+      myRobot.settings().delayBetweenEvents(30);
+    }
   }
 }
