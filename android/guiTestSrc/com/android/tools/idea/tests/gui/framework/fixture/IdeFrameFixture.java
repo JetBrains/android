@@ -15,33 +15,46 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 
 import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTestConstants.LONG_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTestConstants.SHORT_TIMEOUT;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
+import static org.fest.util.Strings.quote;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
@@ -56,7 +69,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     return new IdeFrameFixture(robot, ideFrame);
   }
 
-  public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
+  private IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
     super(robot, target);
   }
 
@@ -70,7 +83,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       MessageBusConnection connection = project.getMessageBus().connect(disposable);
       connection.subscribe(GRADLE_SYNC_TOPIC, listener);
 
-      pause(new Condition("'Sync project \"" + project.getName() + "\"'") {
+      pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
         @Override
         public boolean test() {
           return listener.mySyncFinished;
@@ -101,7 +114,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       final ProjectBuildListener listener = new ProjectBuildListener(SOURCE_GEN);
       connection.subscribe(GRADLE_BUILD_TOPIC, listener);
 
-      pause(new Condition("'Source generation for project \"" + project.getName() + "\"'") {
+      pause(new Condition("Source generation for project " + quote(project.getName()) + " to finish'") {
         @Override
         public boolean test() {
           return listener.myBuildFinished;
@@ -115,7 +128,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public IdeFrameFixture waitForBackgroundTasksToFinish() {
-    pause(new Condition("'Background tasks to finish'") {
+    pause(new Condition("Background tasks to finish") {
       @Override
       public boolean test() {
         ProgressManager progressManager = ProgressManager.getInstance();
@@ -125,6 +138,41 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       }
     }, LONG_TIMEOUT);
     return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture requireModuleCount(int expected) {
+    Module[] modules = getModuleManager().getModules();
+    assertThat(modules).as("Module count in project " + quote(getProject().getName())).hasSize(expected);
+    return this;
+  }
+
+  @NotNull
+  public IdeaAndroidProject getAndroidProjectForModule(@NotNull String name) {
+    Module module = getModule(name);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && facet.isGradleProject()) {
+      IdeaAndroidProject androidProject = facet.getIdeaAndroidProject();
+      if (androidProject != null) {
+        return androidProject;
+      }
+    }
+    throw new AssertionError("Unable to find IdeaAndroidProject for module " + quote(name));
+  }
+
+  @NotNull
+  public Module getModule(@NotNull String name) {
+    for (Module module : getModuleManager().getModules()) {
+      if (name.equals(module.getName())) {
+        return module;
+      }
+    }
+    throw new AssertionError("Unable to find module with name " + quote(name));
+  }
+
+  @NotNull
+  private ModuleManager getModuleManager() {
+    return ModuleManager.getInstance(getProject());
   }
 
   @NotNull
@@ -141,6 +189,32 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
         ProjectManager.getInstance().closeProject(getProject());
       }
     });
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForFileToBeOpenedAndSelected(@NotNull final File path) {
+    pause(new Condition("File " + quote(path.getName()) + " to be opened") {
+      @Override
+      public boolean test() {
+        final VirtualFile virtualFile = findFileByIoFile(path, true);
+        if (virtualFile != null) {
+          return GuiActionRunner.execute(new GuiQuery<Boolean>() {
+            @Override
+            protected Boolean executeInEDT() throws Throwable {
+              FileEditorManager editorManager = FileEditorManager.getInstance(getProject());
+              FileEditor selectedEditor = editorManager.getSelectedEditor(virtualFile);
+              if (selectedEditor != null) {
+                JComponent component = selectedEditor.getComponent();
+                return component.isVisible() && component.isShowing();
+              }
+              return false;
+            }
+          });
+        }
+        return false;
+      }
+    }, SHORT_TIMEOUT);
+    return this;
   }
 
   private static class ProjectSyncListener extends GradleSyncListener.Adapter {

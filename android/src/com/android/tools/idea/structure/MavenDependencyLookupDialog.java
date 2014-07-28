@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -35,12 +36,16 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBList;
+import com.intellij.util.net.HttpConfigurable;
 import com.intellij.util.ui.AsyncProcessIcon;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
+import org.jdom.xpath.XPath;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.idea.maven.indices.MavenArtifactSearchResult;
-import org.jetbrains.idea.maven.indices.MavenArtifactSearcher;
 import org.jetbrains.idea.maven.model.MavenArtifactInfo;
 import org.jetbrains.idea.maven.utils.MavenLog;
 
@@ -51,6 +56,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +67,9 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private static final String AAR_PACKAGING = "@" + SdkConstants.EXT_AAR;
   private static final String JAR_PACKAGING = "@" + SdkConstants.EXT_JAR;
   private static final int RESULT_LIMIT = 50;
+  private static final int SEARCH_TIMEOUT = 10000;
+  private static final String MAVEN_CENTRAL_SEARCH_URL = "http://search.maven.org/solrsearch/select?rows=%d&wt=xml&q=\"%s\"";
+  private static final Logger LOG = Logger.getInstance(MavenDependencyLookupDialog.class);
 
   /**
    * Hardcoded list of common libraries that we will show in the dialog until the user actually does a search.
@@ -100,7 +111,6 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
   private JBList myResultList;
   private final List<Artifact> myShownItems = Lists.newArrayList();
   private final ExecutorService mySearchWorker = Executors.newSingleThreadExecutor();
-  private final Project myProject;
   private final boolean myAndroidModule;
 
   /**
@@ -251,7 +261,6 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     });
 
     init();
-    myProject = project;
   }
 
   public @NotNull String getSearchText() {
@@ -266,8 +275,8 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       return;
     }
     myProgressIcon.resume();
-    myResultList.clearSelection();
     synchronized (myShownItems) {
+      myResultList.clearSelection();
       myShownItems.clear();
       ((CollectionComboBoxModel)myResultList.getModel()).update();
     }
@@ -296,26 +305,13 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       if (!myProgressIcon.isRunning()) {
         return;
       }
-      MavenArtifactSearcher searcher = new MavenArtifactSearcher();
-      List<MavenArtifactSearchResult> searchResults = searcher.search(myProject, text, 100);
+      List<String> results = searchMavenCentral(text);
       if (!myProgressIcon.isRunning()) {
         return;
       }
       synchronized(myShownItems) {
-        for (MavenArtifactSearchResult result : searchResults) {
-          if (result.versions.isEmpty()) {
-            continue;
-          }
-          MavenArtifactInfo artifact = result.versions.get(0);
-          if (artifact == null ||
-              (!SdkConstants.EXT_JAR.equals(artifact.getPackaging()) && !SdkConstants.EXT_AAR.equals(artifact.getPackaging()))) {
-            continue;
-          }
-          if (myShownItems.size() >= RESULT_LIMIT) {
-            myProgressIcon.suspend();
-            break;
-          }
-          Artifact wrappedArtifact = new Artifact(artifact, null);
+        for (String s : results) {
+          Artifact wrappedArtifact = Artifact.fromCoordinate(s, null);
           if (!myShownItems.contains(wrappedArtifact)) {
             myShownItems.add(wrappedArtifact);
           }
@@ -364,6 +360,47 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     } finally {
       myProgressIcon.suspend();
     }
+  }
+
+  @NotNull
+  private static List<String> searchMavenCentral(@NotNull String text) {
+    try {
+      String url = String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text);
+      final HttpURLConnection urlConnection = HttpConfigurable.getInstance().openHttpConnection(url);
+      urlConnection.setConnectTimeout(SEARCH_TIMEOUT);
+      urlConnection.setReadTimeout(SEARCH_TIMEOUT);
+      urlConnection.setRequestProperty("accept", "application/xml");
+
+      InputStream inputStream = urlConnection.getInputStream();
+      Document document;
+      try {
+        document = new SAXBuilder().build(inputStream);
+      }
+      finally {
+        inputStream.close();
+      }
+      XPath idPath = XPath.newInstance("str[@name='id']");
+      XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
+      List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(document);
+      List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
+      for (Element element : artifacts) {
+        try {
+          String id = ((Element)idPath.selectSingleNode(element)).getValue();
+          String version = ((Element)versionPath.selectSingleNode(element)).getValue();
+          results.add(id + ":" + version);
+        } catch (NullPointerException e) {
+          // A result is missing an ID or version. Just skip it.
+        }
+      }
+      return results;
+    }
+    catch (JDOMException e) {
+      LOG.warn(e);
+    }
+    catch (IOException e) {
+      LOG.warn(e);
+    }
+    return Collections.emptyList();
   }
 
   @Override
