@@ -32,7 +32,7 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture {
   @NotNull private final AbstractButtonDriver myButtonDriver;
   @NotNull private final JComboBoxDriver myComboBoxDriver;
 
-  public ConfigureFormFactorStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
+  protected ConfigureFormFactorStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
     super(robot, target);
     myButtonDriver = new AbstractButtonDriver(robot);
     myComboBoxDriver = new JComboBoxDriver(robot);

@@ -32,7 +32,7 @@ import java.io.File;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixture {
-  public ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
+  protected ConfigureAndroidProjectStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
     super(robot, target);
   }
 
