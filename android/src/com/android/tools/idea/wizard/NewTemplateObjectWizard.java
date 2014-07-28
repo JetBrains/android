@@ -152,7 +152,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     if (gradleProject != null) {
       myGradleProject = gradleProject;
       // Select the source set that we're targeting
-      mySourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceSet());
+      mySourceProviders = IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetFolder, facet.getMainSourceProvider());
       SourceProvider sourceProvider = mySourceProviders.get(0);
 
       selectSourceProvider(sourceProvider, gradleProject);
