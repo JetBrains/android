@@ -120,6 +120,9 @@
     <action id="Android.Debugger.ViewBitmapAction" class="com.android.tools.idea.run.ViewBitmapAction">
       <add-to-group group-id="Debugger.FramePanelPopup" anchor="last"/>
     </action>
+    <action class="com.android.tools.idea.actions.ShowLicensesUsedAction" id="Android.ShowLicenses">
+      <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
+    </action>
   </actions>
 
   <depends>JUnit</depends>
