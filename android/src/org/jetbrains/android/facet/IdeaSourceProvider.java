@@ -610,7 +610,7 @@ public abstract class IdeaSourceProvider {
       }
       return false;
     } else {
-      return candidate.equals(facet.getMainIdeaSourceSet().getManifestFile());
+      return candidate.equals(facet.getMainIdeaSourceProvider().getManifestFile());
     }
   }
 
