@@ -150,6 +150,9 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
         result.add(new MyJarBuildRootDescriptor(this, preDexedFile, false, true));
       }
     }
+    for (String path : AndroidJpsUtil.getProvidedLibraries(dataPaths, myModule)) {
+      result.add(new MyProvidedJarBuildRootDescriptor(this, new File(path)));
+    }
     return result;
   }
 
@@ -209,6 +212,12 @@ public class AndroidDexBuildTarget extends AndroidBuildTarget {
     @NotNull
     public ClassesDirType getClassesDirType() {
       return myClassesDirType;
+    }
+  }
+
+  public static class MyProvidedJarBuildRootDescriptor extends AndroidFileBasedBuildRootDescriptor {
+    public MyProvidedJarBuildRootDescriptor(@NotNull BuildTarget target, @NotNull File file) {
+      super(target, file);
     }
   }
 
