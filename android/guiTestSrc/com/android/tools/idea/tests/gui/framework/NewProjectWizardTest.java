@@ -52,6 +52,8 @@ public class NewProjectWizardTest extends GuiTestCase {
     newProjectWizard.clickFinish();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectName, projectPath);
-    projectFrame.waitForProjectSyncToFinish();
+    projectFrame.waitForGradleProjectToBeOpened();
+
+    //projectFrame.close();
   }
 }

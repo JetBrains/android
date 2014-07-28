@@ -26,7 +26,9 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
@@ -79,6 +81,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
@@ -139,7 +142,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaAndroidProject myIdeaAndroidProject;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
-  private final List<GradleSyncListener> myGradleSyncListeners = Lists.newArrayList();
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
@@ -1077,27 +1079,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myIdeaAndroidProject = project;
   }
 
-  public void projectSyncCompleted(boolean success) {
-    if (myIdeaAndroidProject != null && !myGradleSyncListeners.isEmpty()) {
-      // Make copy first since listeners may remove themselves as they are notified, and we
-      // don't want a concurrent modification exception
-      List<GradleSyncListener> listeners = new ArrayList<GradleSyncListener>(myGradleSyncListeners);
-      for (GradleSyncListener listener : listeners) {
-        listener.performedGradleSync(this, success);
-      }
-    }
-  }
-
   public void addListener(@NotNull GradleSyncListener listener) {
-    synchronized (myGradleSyncListeners) {
-      myGradleSyncListeners.add(listener);
-    }
-  }
-
-  public void removeListener(@NotNull GradleSyncListener listener) {
-    synchronized (myGradleSyncListeners) {
-      myGradleSyncListeners.remove(listener);
-    }
+    Module module = getModule();
+    MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
+    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, listener);
   }
 
   /**

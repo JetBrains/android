@@ -727,7 +727,7 @@ public class AndroidLintInspectionToolProvider {
               // have that repository available.
               String artifactId = plus.getArtifactId();
               if (RepositoryUrlManager.supports(plus.getArtifactId())) {
-                String libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter);
+                String libraryCoordinate = RepositoryUrlManager.get().getLibraryCoordinate(artifactId, filter, false);
                 if (libraryCoordinate != null) {
                   GradleCoordinate available = GradleCoordinate.parseCoordinateString(libraryCoordinate);
                   if (available != null) {

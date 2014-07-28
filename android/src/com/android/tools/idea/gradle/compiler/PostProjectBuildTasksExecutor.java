@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.output.GradleMessage;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -50,6 +51,8 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.ui.AppUIUtil;
+import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +80,9 @@ import static com.intellij.util.ThreeState.YES;
  * Both JPS and the "direct Gradle invocation" build strategies ares supported.
  */
 public class PostProjectBuildTasksExecutor {
+  public static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC =
+    new Topic<GradleBuildListener>("Gradle project build", GradleBuildListener.class);
+
   private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
 
   @NotNull private final Project myProject;
@@ -178,15 +184,7 @@ public class PostProjectBuildTasksExecutor {
       BuildMode buildMode = buildSettings.getBuildMode();
       buildSettings.removeAll();
 
-      if (SOURCE_GEN.equals(buildMode)) {
-        // Notify facets after project was synced. This only happens after importing a project.
-        // Importing a project means:
-        // * Creating a new project
-        // * Importing an existing project
-        // * Syncing with Gradle files
-        // * Opening Studio with an already imported project
-        notifyProjectSyncCompleted();
-      }
+      notifySourceGenerationFinished(buildMode);
 
       syncJavaLangLevel();
 
@@ -317,14 +315,17 @@ public class PostProjectBuildTasksExecutor {
     }
   }
 
-  private void notifyProjectSyncCompleted() {
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      if (androidFacet != null) {
-        androidFacet.projectSyncCompleted(true);
+  private void notifySourceGenerationFinished(@Nullable final BuildMode buildMode) {
+    syncPublisher(new Runnable() {
+      @Override
+      public void run() {
+        myProject.getMessageBus().syncPublisher(GRADLE_BUILD_TOPIC).buildFinished(myProject, buildMode);
       }
-    }
+    });
+  }
+
+  private void syncPublisher(@NotNull Runnable publishingTask) {
+    AppUIUtil.invokeLaterIfProjectAlive(myProject, publishingTask);
   }
 
   public void updateJavaLangLevelAfterBuild() {

@@ -20,14 +20,16 @@ import com.android.builder.model.AndroidLibrary;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.GradleBuildListener;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.util.Pair;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.GradleSyncListener;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -94,13 +96,10 @@ public class AppResourceRepository extends MultiResourceRepository {
     List<LocalResourceRepository> delegates = computeRepositories(facet, libraries);
     final AppResourceRepository repository = new AppResourceRepository(facet, delegates, libraries);
 
-    facet.addListener(new GradleSyncListener() {
+    facet.addListener(new GradleSyncListener.Adapter() {
       @Override
-      public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
-        // Libraries can change when we sync with Gradle
-        if (success) {
-          repository.updateRoots();
-        }
+      public void syncSucceeded(@NotNull Project project) {
+        repository.updateRoots();
       }
     });
 

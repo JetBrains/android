@@ -90,13 +90,9 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     myImporter.importProject(myProjectName, myProjectRootDir, callback);
   }
 
-  private class MyGradleSyncListener implements GradleSyncListener {
+  private class MyGradleSyncListener extends GradleSyncListener.Adapter {
     @Override
-    public void syncStarted(@NotNull Project project) {
-    }
-
-    @Override
-    public void syncEnded(@NotNull Project project) {
+    public void syncSucceeded(@NotNull Project project) {
       disposeOnTearDown(project);
       // Verify that project was imported correctly.
       assertEquals(myProjectName, project.getName());

@@ -16,12 +16,12 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.GradleSyncListener;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -75,13 +75,11 @@ public final class ProjectResourceRepository extends MultiResourceRepository {
     final ProjectResourceRepository repository = new ProjectResourceRepository(facet, resources);
 
     // TODO: Avoid this in non-Gradle projects?
-    facet.addListener(new GradleSyncListener() {
+    facet.addListener(new GradleSyncListener.Adapter() {
       @Override
-      public void performedGradleSync(@NotNull AndroidFacet facet, boolean success) {
+      public void syncSucceeded(@NotNull Project project) {
         // Dependencies can change when we sync with Gradle
-        if (success) {
-          repository.updateRoots();
-        }
+        repository.updateRoots();
       }
     });
 

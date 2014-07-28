@@ -937,6 +937,9 @@ public class AndroidUtils {
         if (lexer.getTokenType() instanceof IKeywordElementType) {
           return "Package names cannot contain Java keywords like '" + segment + "'";
         }
+        if (segment.isEmpty()) {
+          return "Package segments must be of non-zero length";
+        }
         return segment + " is not a valid identifier";
       }
       if (index1 == name.length()) {

@@ -68,7 +68,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     }
 
     if (Projects.isBuildWithGradle(project)) {
-      children.add(new AndroidBuildScriptsGroupNode(project, Collections.<PsiDirectory>emptyList(), settings));
+      children.add(new AndroidBuildScriptsGroupNode(project, settings));
     }
 
     // TODO: What about files in the base project directory
