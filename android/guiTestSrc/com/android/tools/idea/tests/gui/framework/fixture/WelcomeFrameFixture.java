@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
-import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -26,14 +25,15 @@ import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import java.awt.*;
 
 public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
   @NotNull
   public static WelcomeFrameFixture find(@NotNull Robot robot) {
-    JFrame visibleFrame = WindowManagerEx.getInstanceEx().findVisibleFrame();
-    if (visibleFrame instanceof WelcomeFrame) {
-      return new WelcomeFrameFixture(robot, (WelcomeFrame)visibleFrame);
+    for (Frame frame : Frame.getFrames()) {
+      if (frame instanceof WelcomeFrame && frame.isShowing()) {
+        return new WelcomeFrameFixture(robot, (WelcomeFrame)frame);
+      }
     }
     throw new ComponentLookupException("Unable to find 'Welcome' window");
   }
