@@ -80,7 +80,7 @@ public class AndroidRootUtil {
   @Deprecated
   public static VirtualFile getManifestFile(@NotNull AndroidFacet facet) {
     if (facet.isGradleProject()) {
-      return facet.getMainIdeaSourceSet().getManifestFile();
+      return facet.getMainIdeaSourceProvider().getManifestFile();
     }
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
   }
@@ -92,7 +92,7 @@ public class AndroidRootUtil {
    */
   @Nullable
   public static VirtualFile getPrimaryManifestFile(@NotNull AndroidFacet facet) {
-    return facet.getMainIdeaSourceSet().getManifestFile();
+    return facet.getMainIdeaSourceProvider().getManifestFile();
   }
 
   @Nullable

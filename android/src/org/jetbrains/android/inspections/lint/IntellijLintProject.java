@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.lint.client.api.LintClient;
-import com.android.tools.lint.detector.api.LintUtils;
 import com.android.tools.lint.detector.api.Project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -590,14 +589,14 @@ class IntellijLintProject extends Project {
     public List<File> getManifestFiles() {
       if (mManifestFiles == null) {
         mManifestFiles = Lists.newArrayList();
-        File mainManifest = myFacet.getMainSourceSet().getManifestFile();
+        File mainManifest = myFacet.getMainSourceProvider().getManifestFile();
         if (mainManifest.exists()) {
           mManifestFiles.add(mainManifest);
         }
 
-        List<SourceProvider> flavorSourceSets = myFacet.getFlavorSourceSets();
-        if (flavorSourceSets != null) {
-          for (SourceProvider provider : flavorSourceSets) {
+        List<SourceProvider> flavorSourceProviders = myFacet.getFlavorSourceProviders();
+        if (flavorSourceProviders != null) {
+          for (SourceProvider provider : flavorSourceProviders) {
             File manifestFile = provider.getManifestFile();
             if (manifestFile.exists()) {
               mManifestFiles.add(manifestFile);
@@ -613,9 +612,9 @@ class IntellijLintProject extends Project {
           }
         }
 
-        SourceProvider buildTypeSourceSet = myFacet.getBuildTypeSourceSet();
-        if (buildTypeSourceSet != null) {
-          File manifestFile = buildTypeSourceSet.getManifestFile();
+        SourceProvider buildTypeSourceProvider = myFacet.getBuildTypeSourceProvider();
+        if (buildTypeSourceProvider != null) {
+          File manifestFile = buildTypeSourceProvider.getManifestFile();
           if (manifestFile.exists()) {
             mManifestFiles.add(manifestFile);
           }

@@ -169,13 +169,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Returns the main source set of the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
+   * Returns the main source provider for the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
    * which provides information about the old project.
-   *
-   * @return the main source set
    */
   @NotNull
-  public SourceProvider getMainSourceSet() {
+  public SourceProvider getMainSourceProvider() {
     if (myIdeaAndroidProject != null) {
       return myIdeaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
     } else {
@@ -187,13 +185,13 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @NotNull
-  public IdeaSourceProvider getMainIdeaSourceSet() {
+  public IdeaSourceProvider getMainIdeaSourceProvider() {
     if (!isGradleProject()) {
       if (myMainIdeaSourceSet == null) {
         myMainIdeaSourceSet = IdeaSourceProvider.create(this);
       }
     } else {
-      SourceProvider mainSourceSet = getMainSourceSet();
+      SourceProvider mainSourceSet = getMainSourceProvider();
       if (myMainIdeaSourceSet == null || mainSourceSet != myMainSourceSet) {
         myMainIdeaSourceSet = IdeaSourceProvider.create(mainSourceSet);
       }
@@ -209,7 +207,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return the build type source set or null
    */
   @Nullable
-  public SourceProvider getBuildTypeSourceSet() {
+  public SourceProvider getBuildTypeSourceProvider() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
       BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
@@ -221,14 +219,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getBuildTypeSourceSet()} but typed for internal IntelliJ usage with
+   * Like {@link #getBuildTypeSourceProvider()} but typed for internal IntelliJ usage with
    * {@link VirtualFile} instead of {@link File} references
    *
    * @return the build type source set or null
    */
   @Nullable
-  public IdeaSourceProvider getIdeaBuildTypeSourceSet() {
-    SourceProvider sourceProvider = getBuildTypeSourceSet();
+  public IdeaSourceProvider getIdeaBuildTypeSourceProvider() {
+    SourceProvider sourceProvider = getBuildTypeSourceProvider();
     if (sourceProvider != null) {
       return IdeaSourceProvider.create(sourceProvider);
     } else {
@@ -265,7 +263,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return the flavor source providers or null in legacy projects
    */
   @Nullable
-  public List<SourceProvider> getFlavorSourceSets() {
+  public List<SourceProvider> getFlavorSourceProviders() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
       List<String> productFlavors = selectedVariant.getProductFlavors();
@@ -283,14 +281,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getFlavorSourceSets()} but typed for internal IntelliJ usage with
+   * Like {@link #getFlavorSourceProviders()} but typed for internal IntelliJ usage with
    * {@link VirtualFile} instead of {@link File} references
    *
    * @return the flavor source providers or null in legacy projects
    */
   @Nullable
-  public List<IdeaSourceProvider> getIdeaFlavorSourceSets() {
-    List<SourceProvider> sourceProviders = getFlavorSourceSets();
+  public List<IdeaSourceProvider> getIdeaFlavorSourceProviders() {
+    List<SourceProvider> sourceProviders = getFlavorSourceProviders();
     if (sourceProviders != null) {
       List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayListWithExpectedSize(sourceProviders.size());
       for (SourceProvider provider : sourceProviders) {
@@ -377,7 +375,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * This returns the primary resource directory; the default location to place
    * newly created resources etc.  This method is marked deprecated since we should
    * be gradually adding in UI to allow users to choose specific resource folders
-   * among the available flavors (see {@link #getFlavorSourceSets()} etc).
+   * among the available flavors (see {@link #getFlavorSourceProviders()} etc).
    *
    * @return the primary resource dir, if any
    */
@@ -848,7 +846,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public Manifest getManifest() {
-    File manifestIoFile = getMainSourceSet().getManifestFile();
+    File manifestIoFile = getMainSourceProvider().getManifestFile();
 
     final VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
     if (manifestFile == null) return null;
