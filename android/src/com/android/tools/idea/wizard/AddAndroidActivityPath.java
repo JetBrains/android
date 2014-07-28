@@ -296,8 +296,10 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null;
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
-    assert platform != null;
-    myState.put(KEY_BUILD_SDK, platform.getTarget().getVersion().getFeatureLevel());
+
+    if (platform != null) {
+      myState.put(KEY_BUILD_SDK, platform.getTarget().getVersion().getFeatureLevel());
+    }
 
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
