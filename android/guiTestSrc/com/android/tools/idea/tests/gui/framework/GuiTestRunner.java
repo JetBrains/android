@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.lang.UrlClassLoader;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.internal.runners.model.ReflectiveCallable;
@@ -40,7 +39,6 @@ import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.reflect.core.Reflection.staticMethod;
 import static org.junit.Assert.fail;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
@@ -115,7 +113,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @SuppressWarnings("unchecked")
   private void loadClassesWithIdeClassLoader() throws Exception {
-    UrlClassLoader ideClassLoader = getIdeTestApplication().getIdeClassLoader();
+    UrlClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
     Thread.currentThread().setContextClassLoader(ideClassLoader);
 
     Class<?> testClass = getTestClass().getJavaClass();
@@ -132,7 +130,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
   @Override
   protected Statement methodInvoker(FrameworkMethod method, Object test) {
     try {
-      UrlClassLoader ideClassLoader = IdeTestApplication.getInstance().getApp().getIdeClassLoader();
+      UrlClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
       //noinspection unchecked
       Class<? extends Annotation> ideGuiTestClass =
         (Class<? extends Annotation>)ideClassLoader.loadClass(IdeGuiTest.class.getCanonicalName());
@@ -151,21 +149,5 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       return new Fail(e);
     }
     return new MethodInvoker(method, test);
-  }
-
-  @NotNull
-  private static IdeTestApplication getIdeTestApplication() throws Exception {
-    IdeTestApplication.LoadResult result = IdeTestApplication.getInstance();
-    IdeTestApplication testApplication = result.getApp();
-
-    // wait till IDE is up
-    UrlClassLoader ideClassLoader = testApplication.getIdeClassLoader();
-    Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
-    if (result.isFirstTimeLoaded()) {
-      // Invokes GuiTests#waitForIdeToStart
-      staticMethod("waitForIdeToStart").in(clazz).invoke();
-    }
-
-    return testApplication;
   }
 }
