@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class ColumnResizeListener extends MouseAdapter {
-  private final JBTable myTable;
+public class HeaderCellSelectionListener extends MouseAdapter {
+  private final JTable myTable;
   private int myUserResizeIndex;
 
-  public ColumnResizeListener(@NotNull JBTable table) {
+  public HeaderCellSelectionListener(@NotNull JTable table) {
     myTable = table;
     myUserResizeIndex = -1;
   }
