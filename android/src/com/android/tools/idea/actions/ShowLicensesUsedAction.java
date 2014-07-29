@@ -26,6 +26,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.PathUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -73,15 +75,12 @@ public class ShowLicensesUsedAction extends AnAction {
       assert licenseDir.exists() : licenseDir;
       for (File file : TemplateUtils.listFiles(licenseDir)) {
         sb.append("<br><br>");
-        String licenseText = null;
-        try {
-          licenseText = Files.toString(file, Charsets.UTF_8);
-          licenseText = licenseText.replaceAll("\\<.*?\\>", "");
-          sb.append(licenseText.replace("\n", "<br>"));
-        }
-        catch (IOException e) {
-          e.printStackTrace();
-        }
+        sb.append(getLicenseText(file));
+      }
+
+      File androidLicenses = new File(PathManager.getPreInstalledPluginsPath(), PathUtil.toSystemDependentName("android/lib/NOTICE"));
+      if (androidLicenses.exists()) {
+        sb.append(getLicenseText(androidLicenses));
       }
 
       String text = "<html>" + sb.toString() + "</html>";
@@ -89,6 +88,16 @@ public class ShowLicensesUsedAction extends AnAction {
       pane.setPreferredSize(new Dimension(600, 400));
       panel.add(pane, BorderLayout.CENTER);
       return panel;
+    }
+
+    @NotNull
+    private static String getLicenseText(@NotNull File f) {
+      try {
+        return Files.toString(f, Charsets.UTF_8).replaceAll("\\<.*?\\>", "").replace("\n", "<br>");
+      }
+      catch (IOException e) {
+        return "";
+      }
     }
   }
 }
