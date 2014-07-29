@@ -42,7 +42,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static icons.AndroidIcons.Wizards.NewProjectSidePanel;
@@ -103,7 +103,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
     myWizardState = new NewProjectWizardState();
     Template.convertApisToInt(myWizardState.getParameters());
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     myWizardState.put(TemplateMetadata.ATTR_PER_MODULE_REPOS, false);
 
     myConfigureAndroidModuleStep = new ConfigureAndroidModuleStep(myWizardState, myProject, NewProjectSidePanel, this);

@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
@@ -137,7 +137,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
       myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
     }
     myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     update();
 
     myInitializationComplete = true;
