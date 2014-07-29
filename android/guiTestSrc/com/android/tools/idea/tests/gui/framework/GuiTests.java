@@ -37,7 +37,9 @@ import static org.fest.swing.timing.Timeout.timeout;
 public final class GuiTests {
   public static Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
   public static Timeout LONG_TIMEOUT = timeout(5, MINUTES);
+  public static String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
+  // Called by IdeTestApplication via reflection.
   public static void waitForIdeToStart() {
     Robot robot = null;
     try {
