@@ -24,6 +24,7 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
@@ -90,7 +91,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private final Function<Parameter, Key<?>> myParameterToKey;
   private final Map<String, Object> myPresetParameters = Maps.newHashMap();
   @NotNull private final Key<String> myPackageNameKey;
-  private final LoadingCache<File, Icon> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
+  private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
   private final SourceProvider[] mySourceProviders;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
@@ -512,8 +513,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     register(KEY_TEMPLATE_ICON, myTemplateIcon, new ComponentBinding<File, JLabel>() {
       @Override
       public void setValue(@Nullable File newValue, @NotNull JLabel component) {
-        Icon thumbnail = newValue == null ? null : myThumbnailsCache.apply(newValue);
-        component.setIcon(thumbnail);
+        Optional<Icon> thumbnail = newValue == null ? null : myThumbnailsCache.apply(newValue);
+        Icon icon = thumbnail != null ? thumbnail.orNull() : null;
+        component.setIcon(icon);
         component.setVisible(thumbnail != null);
       }
     });
@@ -803,22 +805,29 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private static class TemplateIconLoader extends CacheLoader<File, Icon> {
+  private static class TemplateIconLoader extends CacheLoader<File, Optional<Icon>> {
     @Nullable
     @Override
-    public Icon load(@NotNull File key) {
+    public Optional<Icon> load(@NotNull File key) {
+      Logger log = Logger.getInstance(ActivityGalleryStep.class);
       try {
         if (key.isFile()) {
           BufferedImage image = ImageIO.read(key);
           if (image != null) {
-            return new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH));
+            return Optional.<Icon>of(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
           }
+          else {
+            log.error("File " + key.getAbsolutePath() + " exists but is not a valid image");
+          }
+        }
+        else {
+          log.error("Image file " + key.getAbsolutePath() + " was not found");
         }
       }
       catch (IOException e) {
-        Logger.getInstance(ActivityGalleryStep.class).warn(e);
+        log.warn(e);
       }
-      return null;
+      return Optional.absent();
     }
   }
 
