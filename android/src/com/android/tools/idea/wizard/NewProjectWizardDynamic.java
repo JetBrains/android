@@ -62,7 +62,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
       super.init();
       Messages.showErrorDialog(msg, title);
-      throw new IllegalStateException(msg);
     }
     addPath(new ConfigureAndroidProjectPath(getDisposable()));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
