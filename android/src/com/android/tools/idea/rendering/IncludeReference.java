@@ -174,7 +174,7 @@ public class IncludeReference {
       });
     }
     XmlTag rootTag = file.getRootTag();
-    if (rootTag != null) {
+    if (rootTag != null && rootTag.isValid()) {
       return rootTag.getAttributeValue(ATTR_RENDER_IN, TOOLS_URI);
     }
 
