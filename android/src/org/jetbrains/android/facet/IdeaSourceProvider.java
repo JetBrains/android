@@ -77,6 +77,9 @@ public abstract class IdeaSourceProvider {
   public abstract Set<VirtualFile> getJniDirectories();
 
   @NotNull
+  public abstract Set<VirtualFile> getJniLibsDirectories();
+
+  @NotNull
   public abstract Set<VirtualFile> getResDirectories();
 
   @NotNull
@@ -151,6 +154,12 @@ public abstract class IdeaSourceProvider {
     @Override
     public Set<VirtualFile> getJniDirectories() {
       return convertFileSet(myProvider.getJniDirectories());
+    }
+
+    @NotNull
+    @Override
+    public Set<VirtualFile> getJniLibsDirectories() {
+      return convertFileSet(myProvider.getJniLibsDirectories());
     }
 
     @NotNull
@@ -246,6 +255,12 @@ public abstract class IdeaSourceProvider {
     @NotNull
     @Override
     public Set<VirtualFile> getJniDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Set<VirtualFile> getJniLibsDirectories() {
       return Collections.emptySet();
     }
 
@@ -698,6 +713,13 @@ public abstract class IdeaSourceProvider {
     @Override
     public List<VirtualFile> apply(IdeaSourceProvider provider) {
       return Lists.newArrayList(provider.getJniDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> JNI_LIBS_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getJniLibsDirectories());
     }
   };
 
