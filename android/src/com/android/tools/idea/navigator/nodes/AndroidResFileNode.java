@@ -59,7 +59,11 @@ public class AndroidResFileNode extends PsiFileNode {
   }
 
   @Nullable
-  private static String getQualifier(@NotNull PsiFile resFile) {
+  private static String getQualifier(@Nullable PsiFile resFile) {
+    if (resFile == null) { // happens if psiFile becomes invalid
+      return null;
+    }
+
     PsiDirectory resTypeFolder = resFile.getParent();
     if (resTypeFolder == null) { // cannot happen
       return null;
