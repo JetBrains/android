@@ -58,8 +58,16 @@ public class AndroidModuleNode extends PackageViewModuleNode {
       return super.getChildren();
     }
 
-    @SuppressWarnings("ConstantConditions")
-    List<IdeaSourceProvider> providers = IdeaSourceProvider.getCurrentSourceProviders(facet);
+    List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getCurrentSourceProviders(facet);
+    sourceProviders.addAll(IdeaSourceProvider.getCurrentTestSourceProviders(facet));
+    return getChildren(facet, getSettings(), myProjectViewPane, sourceProviders);
+  }
+
+  public static Collection<AbstractTreeNode> getChildren(AndroidFacet facet,
+                                                         ViewSettings settings,
+                                                         AndroidProjectViewPane pane,
+                                                         List<IdeaSourceProvider> providers) {
+    Project project = facet.getModule().getProject();
     List<AbstractTreeNode> result = Lists.newArrayList();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
@@ -69,13 +77,13 @@ public class AndroidModuleNode extends PackageViewModuleNode {
       }
 
       if (sourceType == AndroidSourceType.MANIFEST) {
-        result.add(new AndroidManifestsGroupNode(myProject, facet, getSettings(), providers));
+        result.add(new AndroidManifestsGroupNode(project, facet, settings, providers));
       }
       else if (sourceType == AndroidSourceType.RES) {
-        result.add(new AndroidResFolderNode(myProject, facet, getSettings(), providers, myProjectViewPane));
+        result.add(new AndroidResFolderNode(project, facet, settings, providers, pane));
       }
       else {
-        result.add(new AndroidSourceTypeNode(myProject, facet, getSettings(), sourceType, providers, myProjectViewPane));
+        result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, providers, pane));
       }
     }
 

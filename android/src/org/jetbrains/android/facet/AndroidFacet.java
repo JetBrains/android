@@ -200,6 +200,22 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     return myMainIdeaSourceSet;
   }
 
+  @NotNull
+  public List<IdeaSourceProvider> getMainIdeaTestSourceProviders() {
+    if (!isGradleProject()) {
+      return Collections.emptyList();
+    }
+
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+    for (SourceProviderContainer container : myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders()) {
+      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
+      }
+    }
+
+    return providers;
+  }
+
   /**
    * Returns the source provider for the current build type, which will never be null for a Gradle based
    * Android project, and always null for a legacy Android project
@@ -232,6 +248,24 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     } else {
       return null;
     }
+  }
+
+  @NotNull
+  public List<IdeaSourceProvider> getIdeaBuildTypeTestSourceProvider() {
+    if (myIdeaAndroidProject == null) {
+      return Collections.emptyList();
+    }
+
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+    Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
+    assert buildType != null;
+    for (SourceProviderContainer container : buildType.getExtraSourceProviders()) {
+      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
+      }
+    }
+    return providers;
   }
 
   public ResourceFolderManager getResourceFolderManager() {
@@ -299,6 +333,28 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     } else {
       return null;
     }
+  }
+
+  @NotNull
+  public List<IdeaSourceProvider> getIdeaFlavorTestSourceProviders() {
+    if (myIdeaAndroidProject == null) {
+      return Collections.emptyList();
+    }
+
+    Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    List<String> productFlavors = selectedVariant.getProductFlavors();
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+    for (String flavor : productFlavors) {
+      ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
+      assert productFlavor != null;
+      for (SourceProviderContainer container : productFlavor.getExtraSourceProviders()) {
+        if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+          providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
+        }
+      }
+    }
+
+    return providers;
   }
 
   /**
