@@ -77,6 +77,9 @@ public abstract class IdeaSourceProvider {
   public abstract Set<VirtualFile> getJniDirectories();
 
   @NotNull
+  public abstract Set<VirtualFile> getJniLibsDirectories();
+
+  @NotNull
   public abstract Set<VirtualFile> getResDirectories();
 
   @NotNull
@@ -151,6 +154,12 @@ public abstract class IdeaSourceProvider {
     @Override
     public Set<VirtualFile> getJniDirectories() {
       return convertFileSet(myProvider.getJniDirectories());
+    }
+
+    @NotNull
+    @Override
+    public Set<VirtualFile> getJniLibsDirectories() {
+      return convertFileSet(myProvider.getJniLibsDirectories());
     }
 
     @NotNull
@@ -251,6 +260,12 @@ public abstract class IdeaSourceProvider {
 
     @NotNull
     @Override
+    public Set<VirtualFile> getJniLibsDirectories() {
+      return Collections.emptySet();
+    }
+
+    @NotNull
+    @Override
     public Set<VirtualFile> getResDirectories() {
       String resRelPath = myFacet.getProperties().RES_FOLDER_RELATIVE_PATH;
       final VirtualFile dir =  AndroidRootUtil.getFileByRelativeModulePath(myFacet.getModule(), resRelPath, true);
@@ -323,6 +338,28 @@ public abstract class IdeaSourceProvider {
     if (variantProvider != null) {
       providers.add(variantProvider);
     }
+
+    return providers;
+  }
+
+  @NotNull
+  public static List<IdeaSourceProvider> getCurrentTestSourceProviders(@NotNull AndroidFacet facet) {
+    if (!facet.isGradleProject()) {
+      return Collections.emptyList();
+    }
+
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+
+    providers.addAll(facet.getMainIdeaTestSourceProviders());
+    providers.addAll(facet.getIdeaFlavorTestSourceProviders());
+
+    //TODO: Does this make sense?
+    //providers.addAll(facet.getIdeaMultiFlavorTestSourceProviders());
+
+    providers.addAll(facet.getIdeaBuildTypeTestSourceProvider());
+
+    //TODO: Does this make sense?
+    //providers.addAll(facet.getIdeaVariantTestSourceProvider());
 
     return providers;
   }
@@ -676,6 +713,13 @@ public abstract class IdeaSourceProvider {
     @Override
     public List<VirtualFile> apply(IdeaSourceProvider provider) {
       return Lists.newArrayList(provider.getJniDirectories());
+    }
+  };
+
+  public static Function<IdeaSourceProvider, List<VirtualFile>> JNI_LIBS_PROVIDER = new Function<IdeaSourceProvider, List<VirtualFile>>() {
+    @Override
+    public List<VirtualFile> apply(IdeaSourceProvider provider) {
+      return Lists.newArrayList(provider.getJniLibsDirectories());
     }
   };
 
