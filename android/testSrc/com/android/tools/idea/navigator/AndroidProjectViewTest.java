@@ -71,6 +71,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   Debug.java\n" +
       "   app\n" +
       "    MainActivity\n" +
+      "   app\n" +
+      "    MainActivityTest.java\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (debug)\n" +
       "   AndroidManifest.xml (main)\n" +
@@ -95,6 +97,10 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "  rs\n" +
       "   test.rs\n" +
       " lib (Android)\n" +
+      "  jni\n" +
+      "   hello.c\n" +
+      "  jniLibs\n" +
+      "   libc.so\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (main)\n" +
       "  res\n" +
