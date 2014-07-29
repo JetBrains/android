@@ -64,6 +64,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Key<Boolean> KEY_IS_LAUNCHER = createKey("is.launcher.activity", PATH, Boolean.class);
   public static final Key<TemplateEntry> KEY_SELECTED_TEMPLATE = createKey("selected.template", PATH, TemplateEntry.class);
   public static final Key<AndroidVersion> KEY_MIN_SDK = createKey(TemplateMetadata.ATTR_MIN_API, PATH, AndroidVersion.class);
+  public static final Key<AndroidVersion> KEY_TARGET_API = createKey(TemplateMetadata.ATTR_TARGET_API, PATH, AndroidVersion.class);
   public static final Key<Integer> KEY_BUILD_SDK = createKey(TemplateMetadata.ATTR_BUILD_API, PATH, Integer.class);
   public static final Key<String> KEY_PACKAGE_NAME = createKey(TemplateMetadata.ATTR_PACKAGE_NAME, PATH, String.class);
   public static final Key<SourceProvider> KEY_SOURCE_PROVIDER = createKey("source.provider", PATH, SourceProvider.class);
@@ -305,6 +306,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
 
     myState.put(KEY_MIN_SDK, minSdkVersion);
+    myState.put(KEY_TARGET_API, moduleInfo.getTargetSdkVersion());
     myState.put(KEY_PACKAGE_NAME, getInitialPackageName(module, facet));
     myState.put(KEY_OPEN_EDITORS, true);
     if (myGalleryStep != null) {
@@ -453,6 +455,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     String minSdkName = minSdkVersion.getApiString();
 
     templateParameters.put(ATTR_MIN_API, minSdkName);
+    templateParameters.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
     templateParameters.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
 
     templateParameters.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
