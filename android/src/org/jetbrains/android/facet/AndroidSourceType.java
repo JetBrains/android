@@ -33,6 +33,7 @@ public enum AndroidSourceType {
   AIDL("aidl", IdeaSourceProvider.AIDL_PROVIDER, AllIcons.Modules.SourceRoot),
   RESOURCES("resources", IdeaSourceProvider.RESOURCES_PROVIDER, AllIcons.Modules.ResourcesRoot),
   JNI("jni", IdeaSourceProvider.JNI_PROVIDER, AllIcons.Modules.SourceRoot),
+  JNILIBS("jniLibs", IdeaSourceProvider.JNI_LIBS_PROVIDER, AllIcons.Modules.ResourcesRoot),
   ASSETS("assets", IdeaSourceProvider.ASSETS_PROVIDER, AllIcons.Modules.ResourcesRoot),
   RS("rs", IdeaSourceProvider.RS_PROVIDER, AllIcons.Modules.SourceRoot);
 
