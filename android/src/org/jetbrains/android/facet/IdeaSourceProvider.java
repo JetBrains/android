@@ -342,6 +342,28 @@ public abstract class IdeaSourceProvider {
     return providers;
   }
 
+  @NotNull
+  public static List<IdeaSourceProvider> getCurrentTestSourceProviders(@NotNull AndroidFacet facet) {
+    if (!facet.isGradleProject()) {
+      return Collections.emptyList();
+    }
+
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+
+    providers.addAll(facet.getMainIdeaTestSourceProviders());
+    providers.addAll(facet.getIdeaFlavorTestSourceProviders());
+
+    //TODO: Does this make sense?
+    //providers.addAll(facet.getIdeaMultiFlavorTestSourceProviders());
+
+    providers.addAll(facet.getIdeaBuildTypeTestSourceProvider());
+
+    //TODO: Does this make sense?
+    //providers.addAll(facet.getIdeaVariantTestSourceProvider());
+
+    return providers;
+  }
+
   private Collection<VirtualFile> getAllSourceFolders() {
     List<VirtualFile> srcDirectories = Lists.newArrayList();
     srcDirectories.addAll(getJavaDirectories());

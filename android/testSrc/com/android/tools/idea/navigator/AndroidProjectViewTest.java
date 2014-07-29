@@ -71,6 +71,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   Debug.java\n" +
       "   app\n" +
       "    MainActivity\n" +
+      "   app\n" +
+      "    MainActivityTest.java\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (debug)\n" +
       "   AndroidManifest.xml (main)\n" +
