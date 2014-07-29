@@ -80,7 +80,7 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
                                                        "    }\n" +
                                                        "    dependencies {\n" +
                                                        "        classpath 'com.android.tools.build:gradle:" +
-                                                       SdkConstants.GRADLE_PLUGIN_LATEST_VERSION + "'\n" +
+                                                       SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION + "'\n" +
                                                        "    }\n" +
                                                        "}\n" +
                                                        "\n" +
