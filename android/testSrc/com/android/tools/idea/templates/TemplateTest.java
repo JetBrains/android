@@ -503,7 +503,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     Template.convertApisToInt(values.getParameters());
     values.put(ATTR_CREATE_ACTIVITY, createWithProject);
     values.put(ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    values.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    values.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     values.put(ATTR_MODULE_NAME, "TestModule");
     values.put(ATTR_PACKAGE_NAME, "test.pkg");
 
