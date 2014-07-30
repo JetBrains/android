@@ -17,11 +17,14 @@ package com.android.tools.idea.editors.strings.table;
 
 enum ConstantColumn {
   KEY("Key", "hello_strings_editor"),
-  DEFAULT_VALUE("Default Value", "Hello, editor! This is a default value for a string key.");
+  DEFAULT_VALUE("Default Value", "Hello, editor! This is a default value for a string key."),
+  UNTRANSLATABLE("Untranslatable", true);
 
+  public static final int COUNT = ConstantColumn.values().length;
   public final String name;
-  public final String sampleData;
-  ConstantColumn(String name, String sampleData) {
+  public final Object sampleData;
+
+  ConstantColumn(String name, Object sampleData) {
     this.name = name;
     this.sampleData = sampleData;
   }
