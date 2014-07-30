@@ -57,7 +57,7 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
     }
     catch (ClassNotFoundException e) {
       fail("Invalid test run configuration. Edit your test configuration and make sure that " +
-           "\"Use classpath of module\" is set to \"community-main\", NOT \"android\" !");
+           "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
     }
   }
 
