@@ -20,15 +20,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.openapi.wm.impl.WindowManagerImpl;
+import com.intellij.util.SystemProperties;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
@@ -36,6 +34,7 @@ import java.awt.*;
 import java.io.File;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
 import static junit.framework.Assert.assertNotNull;
 
 @RunWith(GuiTestRunner.class)
@@ -62,6 +61,14 @@ public abstract class GuiTestCase {
     }
   }
 
+  @AfterClass
+  public static void tearDownPerClass() {
+    boolean inSuite = SystemProperties.getBooleanProperty(GUI_TESTS_RUNNING_IN_SUITE_PROPERTY, false);
+    if (!inSuite) {
+      IdeTestApplication.disposeInstance();
+    }
+  }
+
   @NotNull
   protected WelcomeFrameFixture findWelcomeFrame() {
     return WelcomeFrameFixture.find(myRobot);
@@ -77,6 +84,7 @@ public abstract class GuiTestCase {
     return IdeFrameFixture.find(myRobot, projectName, projectPath);
   }
 
+  // Called by GuiTestRunner via reflection.
   protected void closeAllProjects() {
     setUpRobot();
 
