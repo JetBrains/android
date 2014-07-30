@@ -45,53 +45,13 @@ import static com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 
 /**
- * Adds Gradle jars to the build process' classpath and adds extra Gradle-related configuration options.
+ * Adds extra Android-Gradle related configuration options.
  */
 public class AndroidGradleBuildProcessParametersProvider extends BuildProcessParametersProvider {
   @NotNull private final Project myProject;
 
-  private List<String> myClasspath;
-
   public AndroidGradleBuildProcessParametersProvider(@NotNull Project project) {
     myProject = project;
-  }
-
-  /**
-   * Adds Gradle to the build process' classpath.
-   *
-   * @return a list containing the locations of all jars necessary to include Gradle in the classpath.
-   */
-  @Override
-  @NotNull
-  public List<String> getClassPath() {
-    if (myClasspath == null) {
-      myClasspath = getGradleClassPath();
-    }
-    return myClasspath;
-  }
-
-  @NotNull
-  private static List<String> getGradleClassPath() {
-    String gradleLibDirPath = null;
-    String gradleToolingApiJarPath = PathUtil.getJarPathForClass(ProjectConnection.class);
-    if (!Strings.isNullOrEmpty(gradleToolingApiJarPath)) {
-      gradleLibDirPath = PathUtil.getParentPath(gradleToolingApiJarPath);
-    }
-    if (gradleLibDirPath == null || gradleLibDirPath.isEmpty()) {
-      return Collections.emptyList();
-    }
-    List<String> classpath = Lists.newArrayList();
-    File gradleLibDir = new File(gradleLibDirPath);
-    if (!gradleLibDir.isDirectory()) {
-      return Collections.emptyList();
-    }
-    File[] children = FileUtil.notNullize(gradleLibDir.listFiles());
-    for (File child : children) {
-      if (child.isFile() && child.getName().endsWith(SdkConstants.DOT_JAR)) {
-        classpath.add(child.getAbsolutePath());
-      }
-    }
-    return classpath;
   }
 
   @Override
