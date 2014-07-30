@@ -59,4 +59,5 @@ public class WizardConstants {
   public static final ScopedStateStore.Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
   public static final ScopedStateStore.Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
   public static final ScopedStateStore.Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
+  public static final ScopedStateStore.Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
 }
