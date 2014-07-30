@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.internal.repository.updater.SdkUpdaterNoWindow;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.SdkState;
 import com.android.tools.idea.wizard.DynamicWizardStepWithHeaderAndDescription;
 import com.android.utils.ILogger;
@@ -45,6 +47,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.INSTALL_REQUESTS_KEY;
 
 
@@ -59,6 +62,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
   private JPanel myContentPanel;
   private boolean myInstallFinished;
   private Boolean myBackgroundSuccess = null;
+  private boolean myBeforeInstall = true;
 
   public SmwOldApiDirectInstall(@NotNull Disposable disposable) {
     super("Installing Requested Components", "", null, disposable);
@@ -79,6 +83,11 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
 
   @Override
   public boolean validate() {
+    return myInstallFinished;
+  }
+
+  @Override
+  public boolean canGoPrevious() {
     return myInstallFinished;
   }
 
@@ -187,6 +196,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
       // The command-line API is a bit archaic and has some drastic limitations, one of them being that
       // it blindly re-install stuff even if already present IIRC.
 
+      myBeforeInstall = false;
       String osSdkFolder = mySdkData.getLocation().getPath();
       SdkManager sdkManager = SdkManager.createManager(osSdkFolder, myLogger);
 
@@ -227,12 +237,40 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
             myProgressBar.setEnabled(false);
           } else {
             myLabelProgress2.setText("Done");
+            List requestedChanges = myState.get(INSTALL_REQUESTS_KEY);
+            checkForUpgrades(requestedChanges);
             myState.remove(INSTALL_REQUESTS_KEY);
           }
           myInstallFinished = true;
           invokeUpdate(null);
         }
       });
+    }
+  }
+
+  /**
+   * Look through the list of completed changes, and set a key if any new platforms
+   * were installed.
+   */
+  private void checkForUpgrades(@Nullable List completedChanges) {
+    if (completedChanges == null) {
+      return;
+    }
+    int highestNewApiLevel = 0;
+    for (Object o : completedChanges) {
+      if (! (o instanceof IPkgDesc)) {
+        continue;
+      }
+      IPkgDesc pkgDesc = (IPkgDesc)o;
+      if (pkgDesc.getType().equals(PkgType.PKG_PLATFORM)) {
+        AndroidVersion version = pkgDesc.getAndroidVersion();
+        if (version != null && version.getApiLevel() > highestNewApiLevel) {
+          highestNewApiLevel = version.getApiLevel();
+        }
+      }
+    }
+    if (highestNewApiLevel > 0) {
+      myState.put(NEWLY_INSTALLED_API_KEY, highestNewApiLevel);
     }
   }
 
