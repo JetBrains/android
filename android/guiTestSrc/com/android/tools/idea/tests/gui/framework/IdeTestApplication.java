@@ -47,7 +47,7 @@ public class IdeTestApplication implements Disposable {
     System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "AndroidStudio");
     System.setProperty(PathManager.PROPERTY_CONFIG_PATH, getConfigDirPath().getPath());
 
-    if (ourInstance == null) {
+    if (!isLoaded()) {
       ourInstance = new IdeTestApplication();
       UrlClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
       Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
@@ -105,8 +105,8 @@ public class IdeTestApplication implements Disposable {
     disposeInstance();
   }
 
-  private static synchronized void disposeInstance() {
-    if (ourInstance == null) {
+  public static synchronized void disposeInstance() {
+    if (!isLoaded()) {
       return;
     }
     final Application applicationEx = ApplicationManager.getApplication();
@@ -121,23 +121,9 @@ public class IdeTestApplication implements Disposable {
     ourInstance = null;
   }
 
-  public static class LoadResult {
-    @NotNull private final IdeTestApplication myApp;
-    private final boolean myFirstTimeLoaded;
-
-    public LoadResult(@NotNull IdeTestApplication app, boolean firstTimeLoaded) {
-      myApp = app;
-      myFirstTimeLoaded = firstTimeLoaded;
-    }
-
-    @NotNull
-    public IdeTestApplication getApp() {
-      return myApp;
-    }
-
-    public boolean isFirstTimeLoaded() {
-      return myFirstTimeLoaded;
-    }
+  public static synchronized boolean isLoaded() {
+    return ourInstance != null;
   }
+
 }
 
