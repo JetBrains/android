@@ -19,8 +19,8 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.Table;
-import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
@@ -28,12 +28,14 @@ import java.util.Map;
 
 public class StringResourceTableModel extends AbstractTableModel {
   private final List<String> myKeys;
+  private final List<String> myUntranslatableKeys;
   private final List<Locale> myLocales;
   private final Map<String, String> myDefaultValues;
   private final Table<String, Locale, String> myTranslations;
 
   public StringResourceTableModel(@NotNull StringResourceData data) {
     myKeys = data.getKeys();
+    myUntranslatableKeys = data.getUntranslatableKeys();
     myLocales = data.getLocales();
     myDefaultValues = data.getDefaultValues();
     myTranslations = data.getTranslations();
@@ -46,14 +48,14 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return myLocales.size() + ConstantColumn.values().length;
+    return myLocales.size() + ConstantColumn.COUNT;
   }
 
   @NotNull
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
-    if (columnIndex >= ConstantColumn.values().length) {
-      Locale locale = myLocales.get(columnIndex - ConstantColumn.values().length);
+    if (columnIndex >= ConstantColumn.COUNT) {
+      Locale locale = myLocales.get(columnIndex - ConstantColumn.COUNT);
       return myTranslations.contains(myKeys.get(rowIndex), locale) ? clip(myTranslations.get(myKeys.get(rowIndex), locale)) : "";
     }
     switch (ConstantColumn.values()[columnIndex]) {
@@ -61,6 +63,8 @@ public class StringResourceTableModel extends AbstractTableModel {
         return myKeys.get(rowIndex);
       case DEFAULT_VALUE:
         return myDefaultValues.containsKey(myKeys.get(rowIndex)) ? clip(myDefaultValues.get(myKeys.get(rowIndex))) : "";
+      case UNTRANSLATABLE:
+        return myUntranslatableKeys.contains(myKeys.get(rowIndex));
       default:
         return "";
     }
@@ -77,12 +81,51 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Override
   public String getColumnName(int column) {
-    if (column >= ConstantColumn.values().length) {
+    if (column >= ConstantColumn.COUNT) {
       /* The names of the translation columns are set by TranslationHeaderCellRenderer. The value returned here will be shown only if
        * the renderer somehow cannot set the names.
        */
-      return LocaleMenuAction.getLocaleLabel(myLocales.get(column - ConstantColumn.values().length), false);
+      return LocaleMenuAction.getLocaleLabel(myLocales.get(column - ConstantColumn.COUNT), false);
     }
     return ConstantColumn.values()[column].name;
+  }
+
+  @Override
+  public Class getColumnClass(int column) {
+    if (column >= ConstantColumn.COUNT) {
+      return ConstantColumn.DEFAULT_VALUE.sampleData.getClass();
+    } else {
+      return ConstantColumn.values()[column].sampleData.getClass();
+    }
+  }
+
+  @Nullable
+  public String getCellProblem(int row, int column) {
+    if (String.valueOf(getValueAt(row, column)).isEmpty()) {
+      if (column < ConstantColumn.COUNT) {
+        return ConstantColumn.values()[column].name + " should not be empty";
+      } else if (!myUntranslatableKeys.contains(myKeys.get(row))) {
+        return "Translation for " + myKeys.get(row) + " should not be empty";
+      }
+    } else if (myUntranslatableKeys.contains(myKeys.get(row)) && column >= ConstantColumn.COUNT) {
+      return "Key " + myKeys.get(row) + " should not be translated";
+    }
+    return null;
+  }
+
+  @Nullable
+  public String getKeyProblem(int row) {
+    for (int column = 0, n = getColumnCount(); column < n; ++column) {
+      if (getCellProblem(row, column) != null) {
+        if (column < ConstantColumn.COUNT) {
+          return ConstantColumn.values()[column].name + " is missing";
+        } else if (myUntranslatableKeys.contains(myKeys.get(row))) {
+          return "Key should not be translated into " + getColumnName(column);
+        } else {
+          return "Translation for " + getColumnName(column) + " is missing";
+        }
+      }
+    }
+    return null;
   }
 }
