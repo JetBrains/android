@@ -27,6 +27,8 @@ import java.util.Map;
 public class StringResourceData {
   // The string names
   private final List<String> myKeys;
+  // A key is present in this set if and only if it is tagged translatable = false
+  private final List<String> myUntranslatableKeys;
   // The locales for which a translation of at least one string exists
   private final List<Locale> myLocales;
   // Map from string names to default values.  Does not contain entries for strings without default values.
@@ -34,9 +36,10 @@ public class StringResourceData {
   // Map from (string name, locale) pairs to translations.  Does not contain entries for missing translations.
   private final Table<String, Locale, String> myTranslations;
 
-  public StringResourceData(@NotNull List<String> keys, @NotNull List<Locale> locales, @NotNull Map<String,String> defaultValues,
-                            @NotNull Table<String, Locale, String> translations) {
+  public StringResourceData(@NotNull List<String> keys, @NotNull List<String> untranslatableKeys, @NotNull List<Locale> locales,
+                            @NotNull Map<String,String> defaultValues, @NotNull Table<String, Locale, String> translations) {
     myKeys = ImmutableList.copyOf(keys);
+    myUntranslatableKeys = ImmutableList.copyOf(untranslatableKeys);
     myLocales = ImmutableList.copyOf(locales);
     myDefaultValues = ImmutableMap.copyOf(defaultValues);
     myTranslations = ImmutableTable.copyOf(translations);
@@ -45,6 +48,11 @@ public class StringResourceData {
   @NotNull
   public List<String> getKeys() {
     return myKeys;
+  }
+
+  @NotNull
+  public List<String> getUntranslatableKeys() {
+    return myUntranslatableKeys;
   }
 
   @NotNull
