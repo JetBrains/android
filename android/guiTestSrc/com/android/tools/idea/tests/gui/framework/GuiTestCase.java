@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
-import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
@@ -33,9 +33,13 @@ import org.junit.runner.RunWith;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 
+import static com.android.tools.idea.templates.AndroidGradleTestCase.createGradleWrapper;
+import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getTestProjectsRootDirPath;
 import static junit.framework.Assert.assertNotNull;
 
 @RunWith(GuiTestRunner.class)
@@ -53,7 +57,6 @@ public abstract class GuiTestCase {
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
 
     setUpRobot();
-    GeneralSettings.getInstance().setShowTipsOnStartup(false);
   }
 
   @After
@@ -91,6 +94,7 @@ public abstract class GuiTestCase {
     return IdeFrameFixture.find(myRobot, projectPath, null);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   // Called by GuiTestRunner via reflection.
   protected void closeAllProjects() {
     setUpRobot();
@@ -108,5 +112,23 @@ public abstract class GuiTestCase {
       myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
       myRobot.settings().delayBetweenEvents(30);
     }
+  }
+
+  @NotNull
+  protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
+    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
+    welcomeFrame.openProjectButton().click();
+
+    File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
+    createGradleWrapper(projectPath);
+    updateGradleVersions(projectPath);
+
+    FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
+    openProjectDialog.select(projectPath).clickOK();
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    projectFrame.waitForGradleProjectToBeOpened();
+
+    return projectFrame;
   }
 }
