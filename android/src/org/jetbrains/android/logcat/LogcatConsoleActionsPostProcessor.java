@@ -56,13 +56,11 @@ public class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostProcess
   private AnAction[] processActions(AndroidLogcatView.AndroidLogConsole console, AnAction[] actions) {
     List<AnAction> actionList = new ArrayList<AnAction>(actions.length);
 
-    AnAction scrollToEndAction = null;
-
     // remove actions that don't make sense for logcat
     for (AnAction a : actions) {
       // remove the existing clear all action
       if (a instanceof ConsoleViewImpl.ClearAllAction) {
-        continue;
+        a = new ClearLogCatAction(console);
       }
 
       // remove the scroll to end action, we'll add it back at the top
@@ -70,19 +68,10 @@ public class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostProcess
         String message = "Scroll to the end. Clicking on a particular line stops scrolling and keeps that line visible.";
         a.getTemplatePresentation().setDescription(message);
         a.getTemplatePresentation().setText(message);
-        scrollToEndAction = a;
-        continue;
       }
 
       actionList.add(a);
     }
-
-    if (scrollToEndAction != null) {
-      actionList.add(0, scrollToEndAction);
-    }
-
-    // add logcat specific actions
-    actionList.add(0, new ClearLogCatAction(console));
 
     return actionList.toArray(new AnAction[actionList.size()]);
   }

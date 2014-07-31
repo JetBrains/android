@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogConsoleListener;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
@@ -229,20 +230,14 @@ public abstract class AndroidLogcatView implements Disposable {
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
-    final DefaultActionGroup group1 = new DefaultActionGroup();
-    ActionGroup toolbarActions = myLogConsole.getToolbarActions();
-    if (toolbarActions != null) {
-      group1.addAll(toolbarActions);
-    }
-    group1.add(new MyRestartAction());
-    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group1, false);
     final ConsoleView console = myLogConsole.getConsole();
-
     if (console != null) {
+      final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN,
+                                                                                    myLogConsole.getOrCreateActions(), false);
       toolbar.setTargetComponent(console.getComponent());
+      final JComponent tbComp1 = toolbar.getComponent();
+      myPanel.add(tbComp1, BorderLayout.WEST);
     }
-    final JComponent tbComp1 = toolbar.getComponent();
-    myPanel.add(tbComp1, BorderLayout.EAST);
 
     myPanel.add(consoleComponent, BorderLayout.CENTER);
     Disposer.register(this, myLogConsole);
@@ -478,6 +473,12 @@ public abstract class AndroidLogcatView implements Disposable {
     @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
     public AndroidLogConsole(Project project, AndroidLogFilterModel logFilterModel) {
       super(project, new MyLoggingReader(), "", false, logFilterModel);
+      ConsoleView console = getConsole();
+      if (console instanceof ConsoleViewImpl) {
+        ConsoleViewImpl c = ((ConsoleViewImpl)console);
+        c.addCustomConsoleAction(new Separator());
+        c.addCustomConsoleAction(new MyRestartAction());
+      }
     }
 
     @Override
