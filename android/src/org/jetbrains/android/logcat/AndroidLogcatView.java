@@ -490,8 +490,8 @@ public abstract class AndroidLogcatView implements Disposable {
       IDevice device = getSelectedDevice();
       if (device != null) {
         AndroidLogcatUtil.clearLogcat(myProject, device);
-        myLogConsole.clear();
       }
+      myLogConsole.clear();
     }
   }
 
