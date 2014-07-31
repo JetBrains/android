@@ -173,6 +173,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.AnimationListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.AnimatedStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.RippleDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.ColorDrawableDomFileDescription"/>
     <!-- Being considered:
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.VectorDomFileDescription"/>
     -->
