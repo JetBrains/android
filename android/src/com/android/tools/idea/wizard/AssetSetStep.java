@@ -508,7 +508,7 @@ public class AssetSetStep extends TemplateWizardStep implements Disposable {
 
   private boolean drawableExists(String resourceName) {
     if (mySourceProvider != null) {
-      return Parameter.existsResourceFile(mySourceProvider, ResourceFolderType.DRAWABLE, resourceName);
+      return Parameter.existsResourceFile(mySourceProvider, myModule, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, resourceName);
     }
     return Parameter.existsResourceFile(myModule, ResourceType.DRAWABLE, resourceName);
   }
