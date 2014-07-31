@@ -150,6 +150,12 @@ public class Dependency extends BuildFileStatement {
         } else {
           extraGroovyCode = " project('" + escapeLiteralString(data) + "')";
         }
+        if (extraClosure != null) {
+          // If there's a closure with exclusion rules, then we need extra parentheses:
+          // compile project(':foo') { ... } is not valid Groovy syntax
+          // compile(project(':foo')) { ... } is correct
+          extraGroovyCode = "(" + extraGroovyCode.substring(1) + ")";
+        }
         break;
       case FILES:
         extraGroovyCode = " files('" + escapeLiteralString(data) + "')";
