@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.tools.idea.rendering.LocalResourceRepositoryAsVirtualFile;
 import com.android.tools.idea.rendering.StringResourceData;
 import com.android.tools.idea.rendering.StringResourceParser;
-import com.android.tools.idea.rendering.LocalResourceRepository;
-import com.android.tools.idea.rendering.ProjectResourceRepository;
-import com.google.common.base.Throwables;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,15 +25,12 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,16 +38,18 @@ import javax.swing.*;
 import java.beans.PropertyChangeListener;
 
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
+  public static final Icon ICON = AndroidIcons.Globe;
+  public static final String NAME = "String Resource Editor";
+
   private final Project myProject;
-  private final VirtualFile myFile;
+  private final LocalResourceRepositoryAsVirtualFile myRepositoryFile;
   private final StringResourceViewPanel myViewPanel;
 
   private long myModificationCount;
-  private LocalResourceRepository myRepository;
 
-  public StringResourceEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public StringResourceEditor(@NotNull Project project, @NotNull VirtualFile repositoryFile) {
     myProject = project;
-    myFile = file;
+    myRepositoryFile = (LocalResourceRepositoryAsVirtualFile) repositoryFile;
     myViewPanel = new StringResourceViewPanel();
     parseStringResourceDataInBackground();
   }
@@ -82,7 +79,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @NotNull
   @Override
   public String getName() {
-    return "Table";
+    return NAME;
   }
 
   @NotNull
@@ -107,7 +104,8 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   @Override
   public void selectNotify() {
-    if (myRepository != null && myModificationCount != myRepository.getModificationCount()) {
+    // TODO Doesn't refresh if a strings.xml file is deleted while the editor is visible
+    if (myModificationCount != myRepositoryFile.getModificationCount()) {
       final Task.Modal parseTask = new ParseTask("Updating string resource data");
       ApplicationManager.getApplication().invokeLater(new Runnable() {
         @Override
@@ -154,7 +152,6 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   private class ParseTask extends Task.Modal {
     private StringResourceData myData;
-    private String myErrorMessage;
 
     public ParseTask(@NotNull String title) {
       super(StringResourceEditor.this.myProject, title, false);
@@ -163,32 +160,13 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-
-      if (myRepository == null) {
-        final Module module = ModuleUtilCore.findModuleForFile(myFile, StringResourceEditor.this.myProject);
-        if (module == null) {
-          myErrorMessage = "Cannot find module for file: " + myFile.getName();
-          throw new ProcessCanceledException();
-        }
-        myRepository = ProjectResourceRepository.getProjectResources(module, true);
-        if (myRepository == null) {
-          myErrorMessage = "Cannot find resources for module: " + module.getName();
-          throw new ProcessCanceledException();
-        }
-      }
-
-      myModificationCount = myRepository.getModificationCount();
-      myData = StringResourceParser.parse(myRepository);
+      myModificationCount = myRepositoryFile.getModificationCount();
+      myData = StringResourceParser.parse(myRepositoryFile.getRepository());
     }
 
     @Override
     public void onSuccess() {
       myViewPanel.setStringResourceData(myData);
-    }
-
-    @Override
-    public void onCancel() {
-      Messages.showErrorDialog(StringResourceEditor.this.myProject, myErrorMessage, getName());
     }
   }
 }
