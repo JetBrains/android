@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.GrStatement;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
@@ -28,7 +29,7 @@ import java.util.List;
 
 public abstract class BuildFileStatementFactory extends ValueFactory<BuildFileStatement> {
   @Override
-  public void setValues(@NotNull GrStatementOwner closure, @NotNull List<BuildFileStatement> statements) {
+  public void setValues(@NotNull GrStatementOwner closure, @NotNull List<BuildFileStatement> statements, @Nullable KeyFilter filter) {
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(closure.getProject());
     closure = (GrStatementOwner)closure.replace(factory.createClosureFromText("{\n}"));
     for (BuildFileStatement statement : statements) {
@@ -40,7 +41,7 @@ public abstract class BuildFileStatementFactory extends ValueFactory<BuildFileSt
   }
 
   @Override
-  protected void setValue(@NotNull GrStatementOwner closure, @NotNull BuildFileStatement value) {
+  protected void setValue(@NotNull GrStatementOwner closure, @NotNull BuildFileStatement value, @Nullable KeyFilter filter) {
   }
 
   @NotNull

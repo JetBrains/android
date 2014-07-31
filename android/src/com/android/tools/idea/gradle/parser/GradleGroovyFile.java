@@ -492,7 +492,8 @@ class GradleGroovyFile {
   /**
    * Sets the value for the given key
    */
-  static void setValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value, boolean reformatClosure) {
+  static void setValueStatic(@NotNull GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value, boolean reformatClosure,
+                             @Nullable ValueFactory.KeyFilter filter) {
     if (value == GradleBuildFile.UNRECOGNIZED_VALUE) {
       return;
     }
@@ -508,7 +509,7 @@ class GradleGroovyFile {
       if (arg == null) {
         return;
       }
-      key.setValue(arg, value);
+      key.setValue(arg, value, filter);
     }
   }
 
