@@ -26,6 +26,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlo
 import java.util.List;
 
 import static com.android.tools.idea.gradle.parser.BuildFileKeyType.*;
+import static com.android.tools.idea.gradle.parser.ValueFactory.KeyFilter;
 
 /**
  * Enumerates the values we know how to parse out of the build file. This includes values that only occur in one place
@@ -57,7 +58,7 @@ public enum BuildFileKey {
     }
 
     @Override
-    public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
+    public void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value, @Nullable KeyFilter filter) {
       PLUGIN_CLASSPATH.setValue(arg, SdkConstants.GRADLE_PLUGIN_NAME + value);
     }
   },
@@ -259,8 +260,12 @@ public enum BuildFileKey {
   }
 
   protected void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value) {
+    setValue(arg, value, null);
+  }
+
+  protected void setValue(@NotNull GroovyPsiElement arg, @NotNull Object value, @Nullable KeyFilter filter) {
     if (myValueFactory != null && arg instanceof GrClosableBlock && value instanceof List) {
-      myValueFactory.setValues((GrClosableBlock) arg, (List)value);
+      myValueFactory.setValues((GrClosableBlock) arg, (List)value, filter);
     } else {
       myType.setValue(arg, value);
     }
