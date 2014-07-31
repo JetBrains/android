@@ -55,12 +55,20 @@ import java.util.*;
 import java.util.List;
 
 public class KeyValuePane extends JPanel implements DocumentListener, ItemListener {
+  /**
+   * Listener class that gets called any time the value for the given key is modified in the UI. This should be used to mark that
+   * value is "dirty" and ensure it gets written out to the build file.
+   */
+  public interface ModificationListener {
+    void modified(@NotNull BuildFileKey key);
+  }
+
   private final BiMap<BuildFileKey, JComponent> myProperties = HashBiMap.create();
   private boolean myIsUpdating;
   private Map<BuildFileKey, Object> myCurrentBuildFileObject;
   private Map<BuildFileKey, Object> myCurrentModelObject;
-  private boolean myModified;
   private final Project myProject;
+  private final ModificationListener myListener;
 
   private final Set<String> myInstalledApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
   private final Set<String> myInstalledCompileApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
@@ -77,8 +85,9 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       .put(BuildFileKey.TARGET_COMPATIBILITY, myJavaCompatibility)
       .build();
 
-  public KeyValuePane(Project project) {
+  public KeyValuePane(@NotNull Project project, @NotNull ModificationListener listener) {
     myProject = project;
+    myListener = listener;
     LocalSdk sdk = null;
     AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     if (androidSdkData != null) {
@@ -199,12 +208,17 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     if (comboBox == null) {
       return;
     }
-    String currentValue = comboBox.getEditor().getItem().toString();
-    comboBox.removeAllItems();
-    for (String value : values) {
-      comboBox.addItem(value);
+    myIsUpdating = true;
+    try {
+      String currentValue = comboBox.getEditor().getItem().toString();
+      comboBox.removeAllItems();
+      for (String value : values) {
+        comboBox.addItem(value);
+      }
+      comboBox.setSelectedItem(currentValue);
+    } finally {
+      myIsUpdating = false;
     }
-    comboBox.setSelectedItem(currentValue);
   }
 
   private ComboBox getComboBox(boolean editable) {
@@ -342,7 +356,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         } else {
           myCurrentBuildFileObject.put(key, newValue);
         }
-        myModified = true;
+        myListener.modified(key);
       }
     }
   }
@@ -472,13 +486,5 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     } else {
       return "";
     }
-  }
-
-  public boolean isModified() {
-    return myModified;
-  }
-
-  public void clearModified() {
-    myModified = false;
   }
 }

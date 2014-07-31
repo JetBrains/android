@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.parser;
 
-import com.android.annotations.Nullable;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 
 import java.util.List;
@@ -29,6 +31,17 @@ import java.util.List;
  * It can take a closure and turn it into a list of Java objects, or given a list of Java objects, write them into the closure.
  */
 public abstract class ValueFactory<E> {
+
+  /**
+   * Specifies a filter that allows greater control over whether certain keys get written to the build file or not. Intended for use in
+   * composite types such as {@link com.android.tools.idea.gradle.parser.NamedObject} to prevent writing out of sub-keys that don't need
+   * to be written (necessary since you normally invoke a call to write out the entire object). If you avoid overwriting unmodified keys,
+   * then you won't stomp on user-specified script that the user didn't intend to change.
+   */
+  public interface KeyFilter {
+    boolean shouldWriteKey(BuildFileKey key, Object object);
+  }
+
   @NotNull
   public List<E> getValues(@NotNull GrStatementOwner closure) {
     List<E> result = Lists.newArrayList();
@@ -52,16 +65,31 @@ public abstract class ValueFactory<E> {
    * <p>It also calls {@link #removeValue(org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner, Object)} to remove objects
    * that aren't in the passed-in list.</p>
    */
-  public void setValues(@NotNull GrStatementOwner closure, @NotNull List<E> values) {
+  public void setValues(@NotNull GrStatementOwner closure, @NotNull List<E> values, @Nullable KeyFilter filter) {
     for (E value : values) {
-      setValue(closure, value);
+      setValue(closure, value, filter);
     }
-    for (E existingValue : getValues(closure)) {
-      if (!values.contains(existingValue)) {
-        removeValue(closure, existingValue);
-      }
+    for (E existingValue : findValuesToDelete(closure, values)) {
+      removeValue(closure, existingValue);
     }
     GradleGroovyFile.reformatClosure(closure);
+  }
+
+  /**
+   * This method is called when all of the values underneath the key are being replaced via a call to
+   * {@link #setValues(org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner, java.util.List, com.android.tools.idea.gradle.parser.ValueFactory.KeyFilter)}.
+   * It looks for values that are in the build file that are not in the replacement values; these entries in the build file need to be
+   * removed. The method returns those need-to-be-deleted objects. The base implementation does an {@link Object#equals(Object)} test on
+   * objects to determine if a build file object exists in the replacement value list or not; subclasses can override this to provide more
+   * specialized behavior.
+   */
+  protected Iterable<E> findValuesToDelete(@NotNull GrStatementOwner closure, @NotNull final List<E> replacementValues) {
+    return Iterables.filter(getValues(closure), new Predicate<E>() {
+      @Override
+      public boolean apply(E input) {
+        return !replacementValues.contains(input);
+      }
+    });
   }
 
   /**
@@ -75,7 +103,7 @@ public abstract class ValueFactory<E> {
   /**
    * See {@link #setValues(org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner, java.util.List)} for documentation.
    */
-  protected abstract void setValue(@NotNull GrStatementOwner closure, @NotNull E value);
+  protected abstract void setValue(@NotNull GrStatementOwner closure, @NotNull E value, @Nullable KeyFilter filter);
 
   /**
    * Given a PSI element that represents a single statement or line of code, returns the Java objects parsed from that element. This
