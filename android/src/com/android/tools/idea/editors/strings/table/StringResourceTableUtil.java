@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.rendering.StringResourceData;
+import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,6 +47,14 @@ public class StringResourceTableUtil {
         }
       }
     });
+
+    new TableSpeedSearch(table) {
+      @Override
+      public int getElementCount() {
+        // TableSpeedSearch computes the element count from the underlying model, which is problematic when not all cells are visible
+        return myComponent.getRowCount() * myComponent.getColumnCount();
+      }
+    };
   }
 
   public static void initTableData(@NotNull JBTable table, @NotNull StringResourceData data) {
