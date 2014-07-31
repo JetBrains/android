@@ -17,9 +17,13 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.resources.ResourceFolder;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.ResourceFolderRegistry;
+import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
@@ -429,7 +433,7 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.LAYOUT);
       }
-      exists = provider != null ? existsResourceFile(provider, ResourceFolderType.LAYOUT, value) :
+      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, value) :
                                   existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
@@ -437,7 +441,7 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.DRAWABLE);
       }
-      exists = provider != null ? existsResourceFile(provider, ResourceFolderType.DRAWABLE, value) :
+      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value) :
                                   existsResourceFile(module, ResourceType.DRAWABLE, value);
     }
     if (constraints.contains(Constraint.ID)) {
@@ -491,20 +495,29 @@ public class Parameter {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       AppResourceRepository repository = facet.getAppResources(true);
-      if (repository != null) {
-        return repository.hasResourceItem(resourceType, name);
-      }
+      return repository.hasResourceItem(resourceType, name);
     }
     return false;
   }
 
-  public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider,
-                                           @NotNull ResourceFolderType resourceType, @Nullable String name) {
+  public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider, @Nullable Module module,
+                                           @NotNull ResourceFolderType resourceFolderType, @NotNull ResourceType resourceType,
+                                           @Nullable String name) {
     if (name == null || name.isEmpty() || sourceProvider == null) {
       return false;
     }
+    AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
     for (File resDir : sourceProvider.getResDirectories()) {
-      if (existsResourceFile(resDir, resourceType, name)) {
+      if (facet != null) {
+        VirtualFile virtualResDir = VfsUtil.findFileByIoFile(resDir, false);
+        if (virtualResDir != null) {
+          ResourceFolderRepository folderRepository = ResourceFolderRegistry.get(facet, virtualResDir);
+          List<ResourceItem> resourceItemList = folderRepository.getResourceItem(resourceType, name);
+          if (resourceItemList != null && !resourceItemList.isEmpty()) {
+            return true;
+          }
+        }
+      } else if (existsResourceFile(resDir, resourceFolderType, name)) {
         return true;
       }
     }
