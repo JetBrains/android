@@ -32,7 +32,7 @@ public class NonGroovyValueFactory extends ValueFactory {
   }
 
   @Override
-  protected void setValue(@NotNull GrStatementOwner closure, @NotNull Object value) {
+  protected void setValue(@NotNull GrStatementOwner closure, @NotNull Object value, @Nullable KeyFilter filter) {
   }
 
   @Nullable
@@ -48,6 +48,6 @@ public class NonGroovyValueFactory extends ValueFactory {
   }
 
   @Override
-  public void setValues(@NotNull GrStatementOwner closure, @NotNull List values) {
+  public void setValues(@NotNull GrStatementOwner closure, @NotNull List values, @Nullable KeyFilter filter) {
   }
 }

@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.gradle.parser;
 
-import com.android.tools.idea.gradle.IdeaGradleProject;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
@@ -34,6 +30,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.util.GrStatementOwner;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.gradle.parser.ValueFactory.KeyFilter;
 
 /**
  * GradleBuildFile uses PSI to parse build.gradle files and provides high-level methods to read and mutate the file. For many things in
@@ -110,7 +108,7 @@ public class GradleBuildFile extends GradleGroovyFile {
   public void setValue(@NotNull BuildFileKey key, @NotNull Object value) {
     checkInitialized();
     commitDocumentChanges();
-    setValue(myGroovyFile, key, value);
+    setValue(myGroovyFile, key, value, null);
   }
 
   /**
@@ -119,10 +117,32 @@ public class GradleBuildFile extends GradleGroovyFile {
   public void setValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value) {
     checkInitialized();
     commitDocumentChanges();
+    setValue(root, key, value, null);
+  }
+
+  /**
+   * Modifies the value in the file. Must be run inside a write action. The filter is intended for composite value types (e.g.
+   * {@link com.android.tools.idea.gradle.parser.NamedObject} and allows greater control over whether a sub-key gets written
+   * out.
+   */
+  public void setValue(@NotNull BuildFileKey key, @NotNull Object value, @Nullable KeyFilter filter) {
+    checkInitialized();
+    commitDocumentChanges();
+    setValue(myGroovyFile, key, value, filter);
+  }
+
+  /**
+   * Modifies the value in the file. Must be run inside a write action. The filter is intended for composite value types (e.g.
+   * {@link com.android.tools.idea.gradle.parser.NamedObject} and allows greater control over whether a sub-key gets written
+   * out.
+   */
+  public void setValue(@Nullable GrStatementOwner root, @NotNull BuildFileKey key, @NotNull Object value, @Nullable KeyFilter filter) {
+    checkInitialized();
+    commitDocumentChanges();
     if (root == null) {
       root = myGroovyFile;
     }
-    setValueStatic(root, key, value, true);
+    setValueStatic(root, key, value, true, filter);
   }
 
   /**
