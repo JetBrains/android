@@ -38,7 +38,6 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -48,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.Collection;
 
 import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
@@ -63,14 +63,27 @@ import static org.fest.util.Strings.quote;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
-  public static IdeFrameFixture find(@NotNull Robot robot, @NotNull final String projectName, @NotNull final File projectPath) {
-    IdeFrameImpl ideFrame = robot.finder().find(new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
+  public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
+    final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
       @Override
       protected boolean isMatching(IdeFrameImpl frame) {
         Project project = frame.getProject();
-        return project != null && projectPath.getPath().equals(project.getBasePath()) && projectName.equals(project.getName());
+        if (project != null && projectPath.getPath().equals(project.getBasePath())) {
+          return projectName == null || projectName.equals(project.getName());
+        }
+        return false;
       }
-    });
+    };
+
+    pause(new Condition("IdeFrame " + quote(projectPath.getPath()) + " to show up") {
+      @Override
+      public boolean test() {
+        Collection<IdeFrameImpl> frames = robot.finder().findAll(matcher);
+        return !frames.isEmpty();
+      }
+    }, LONG_TIMEOUT);
+
+    IdeFrameImpl ideFrame = robot.finder().find(matcher);
     return new IdeFrameFixture(robot, ideFrame);
   }
 
