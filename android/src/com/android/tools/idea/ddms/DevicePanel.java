@@ -167,7 +167,11 @@ public class DevicePanel implements Disposable,
           }
         }
 
-        append(String.format(" (%d)", cd.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+        if (cd.isValidUserId() && cd.getUserId() != 0) {
+          append(String.format(" (user %1$d)", cd.getUserId()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+        }
+
+        append(String.format(" (%1$d)", cd.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
       }
     });
     new ListSpeedSearch(myClientsList) {
