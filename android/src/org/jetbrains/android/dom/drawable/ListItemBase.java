@@ -16,19 +16,23 @@ public interface ListItemBase extends DrawableDomElement {
   @AndroidResourceType("drawable")
   AndroidAttributeValue<ResourceValue> getDrawable();
 
-  List<BitmapOrNinePatchElement> getBitmaps();
-
-  List<BitmapOrNinePatchElement> getNinePatches();
-
+  // See android.graphics.drawable.Drawable.createFromXmlInner
+  List<DrawableSelector> getSelectors();
+  List<AnimatedStateListTransition> getAnimatedSelectors();
+  List<LevelList> getLevelLists();
+  List<LayerList> getLayerLists();
+  List<LayerList> getTransitions();
+  List<Ripple> getRipples(); // API 21
+  List<ColorDrawable> getColors();
   List<Shape> getShapes();
-
-  List<InsetOrClipOrScale> getClips();
-
+  // Being considered:
+  //List<Vector> getVectors();
   List<InsetOrClipOrScale> getScales();
-
-  List<InsetOrClipOrScale> getInsets();
-
-  List<InsetOrClipOrScale> getAnimatedRotates();
-
+  List<InsetOrClipOrScale> getClips();
   List<InsetOrClipOrScale> getRotates();
+  List<InsetOrClipOrScale> getAnimatedRotates();
+  List<AnimationList> getAnimationLists();
+  List<InsetOrClipOrScale> getInsets();
+  List<BitmapOrNinePatchElement> getBitmaps();
+  List<BitmapOrNinePatchElement> getNinePatches();
 }
