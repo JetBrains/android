@@ -28,8 +28,10 @@ public class ConstantHeaderCellRenderer implements HeaderCellRenderer {
   private final int myExpandedWidth;
 
   public ConstantHeaderCellRenderer(int index, @NotNull FontMetrics metrics) {
-    myCollapsedWidth = PADDING + metrics.stringWidth(ConstantColumn.values()[index].name);
-    myExpandedWidth = PADDING + metrics.stringWidth(ConstantColumn.values()[index].sampleData);
+    int descriptionWidth = PADDING + metrics.stringWidth(ConstantColumn.values()[index].name);
+    int dataWidth = PADDING + metrics.stringWidth(String.valueOf(ConstantColumn.values()[index].sampleData));
+    myCollapsedWidth = Math.min(descriptionWidth, dataWidth);
+    myExpandedWidth = Math.max(descriptionWidth, dataWidth);
   }
 
   @Override
