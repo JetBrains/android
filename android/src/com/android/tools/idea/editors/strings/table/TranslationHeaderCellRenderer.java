@@ -41,7 +41,7 @@ public class TranslationHeaderCellRenderer implements HeaderCellRenderer {
     myCollapsedWidth =
       PADDING + metrics.stringWidth(myLocale.getFlagImage().getIconWidth() + LocaleMenuAction.getLocaleLabel(myLocale, true));
     myExpandedWidth =
-      PADDING + metrics.stringWidth(ConstantColumn.DEFAULT_VALUE.sampleData);
+      PADDING + metrics.stringWidth(String.valueOf(ConstantColumn.DEFAULT_VALUE.sampleData));
     myNameSwitchWidth =
       PADDING + metrics.stringWidth(myLocale.getFlagImage().getIconWidth() + LocaleMenuAction.getLocaleLabel(myLocale, false));
     myBrief = true;

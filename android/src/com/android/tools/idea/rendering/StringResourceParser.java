@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceType;
 import com.google.common.collect.*;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -30,6 +32,7 @@ public class StringResourceParser {
     List<String> keys = Lists.newArrayList(repository.getItemsOfType(ResourceType.STRING));
     Collections.sort(keys);
 
+    final Set<String> untranslatableKeys = Sets.newHashSet();
     // Uses a tree set to sort the locales by language code
     final Set<Locale> locales = Sets.newTreeSet(Locale.LANGUAGE_CODE_COMPARATOR);
     Map<String,String> defaultValues = Maps.newHashMapWithExpectedSize(keys.size());
@@ -40,6 +43,12 @@ public class StringResourceParser {
         continue;
       }
       for (ResourceItem item : items) {
+        if (item instanceof PsiResourceItem) {
+          XmlTag tag = ((PsiResourceItem) item).getTag();
+          if (tag != null && String.valueOf(tag.getAttributeValue((SdkConstants.ATTR_TRANSLATABLE))).equals(SdkConstants.VALUE_FALSE)) {
+            untranslatableKeys.add(key);
+          }
+        }
         FolderConfiguration config = item.getConfiguration();
         LanguageQualifier languageQualifier = config.getLanguageQualifier();
         if (languageQualifier == null) {
@@ -54,6 +63,6 @@ public class StringResourceParser {
       }
     }
 
-    return new StringResourceData(keys, Lists.newArrayList(locales), defaultValues, translations);
+    return new StringResourceData(keys, Lists.newArrayList(untranslatableKeys), Lists.newArrayList(locales), defaultValues, translations);
   }
 }

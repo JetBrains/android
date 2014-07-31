@@ -16,12 +16,9 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.rendering.StringResourceData;
-import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.table.JBTable;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
@@ -31,15 +28,7 @@ import java.awt.event.MouseAdapter;
 import java.util.*;
 
 public class StringResourceTableUtil {
-  private static final TableCellRenderer CELL_RENDERER = new ColoredTableCellRenderer() {
-    @Override
-    protected void customizeCellRenderer(JTable table, Object value, boolean selected, boolean hasFocus, int row, int column) {
-      String strValue = String.valueOf(value);
-      append(strValue);
-      // Shades empty cells (missing translations) a different color
-      setBackground(strValue.isEmpty() && !selected ? UIUtil.getDecoratedRowColor() : getBackground());
-    }
-  };
+  private static final TableCellRenderer CELL_RENDERER = new CellRenderer();
 
   public static void initTableView(@NotNull final JBTable table) {
     MouseAdapter resizeListener = new ColumnResizeListener(table);
@@ -68,12 +57,19 @@ public class StringResourceTableUtil {
       column.setCellRenderer(CELL_RENDERER);
       int index = column.getModelIndex();
       FontMetrics fm = table.getFontMetrics(table.getFont());
-      HeaderCellRenderer renderer = index < ConstantColumn.values().length
+      HeaderCellRenderer renderer = index < ConstantColumn.COUNT
                                     ? new ConstantHeaderCellRenderer(index, fm)
-                                    : new TranslationHeaderCellRenderer(fm, data.getLocales().get(index - ConstantColumn.values().length));
+                                    : new TranslationHeaderCellRenderer(fm, data.getLocales().get(index - ConstantColumn.COUNT));
       column.setHeaderRenderer(renderer);
       // Sets Key and Default Value columns to initially display at full width and all others to be collapsed
-      setPreferredWidth(column, index < ConstantColumn.values().length ? renderer.getFullExpandedWidth() : renderer.getCollapsedWidth());
+      int width;
+      if (index < ConstantColumn.COUNT
+          && (ConstantColumn.values()[index] == ConstantColumn.KEY || ConstantColumn.values()[index] == ConstantColumn.DEFAULT_VALUE)) {
+        width = renderer.getFullExpandedWidth();
+      } else {
+        width = renderer.getCollapsedWidth();
+      }
+      setPreferredWidth(column, width);
     }
 
     expandToViewportWidthIfNecessary(table, -1);
@@ -88,7 +84,7 @@ public class StringResourceTableUtil {
    * Caller should pass in -1 for ignoreIndex to specify that this method can touch all of the columns.
    */
   static void expandToViewportWidthIfNecessary(@NotNull JBTable table, int ignoreIndex) {
-    if (table.getColumnModel().getColumnCount() < ConstantColumn.values().length) {
+    if (table.getColumnModel().getColumnCount() < ConstantColumn.COUNT) {
       // Table has no data
       return;
     }
@@ -99,8 +95,8 @@ public class StringResourceTableUtil {
     }
 
     int totalNumColumns = table.getColumnModel().getColumnCount();
-    int numColumnsForDistribution = totalNumColumns - ConstantColumn.values().length;
-    if (ConstantColumn.values().length <= ignoreIndex && ignoreIndex < totalNumColumns) {
+    int numColumnsForDistribution = totalNumColumns - ConstantColumn.COUNT;
+    if (ConstantColumn.COUNT <= ignoreIndex && ignoreIndex < totalNumColumns) {
       --numColumnsForDistribution;
     }
     if (numColumnsForDistribution == 0) {
@@ -110,7 +106,7 @@ public class StringResourceTableUtil {
       return;
     }
     int extraWidth = widthToFillViewport / numColumnsForDistribution;
-    for (int i = ConstantColumn.values().length; i < totalNumColumns; ++i) {
+    for (int i = ConstantColumn.COUNT; i < totalNumColumns; ++i) {
       if (i == ignoreIndex) {
         continue;
       }
