@@ -330,7 +330,8 @@ public class PsiResourceItem extends ResourceItem {
     text = ValueXmlHelper.unescapeResourceString(text, true, true);
     value.setValue(text);
 
-    if (myTag.getSubTags().length > 0) {
+    String rawXmlText = myTag.getValue().getText();
+    if (text == null || !text.equals(rawXmlText)) {
       value.setRawXmlValue(myTag.getValue().getText());
     }
 
