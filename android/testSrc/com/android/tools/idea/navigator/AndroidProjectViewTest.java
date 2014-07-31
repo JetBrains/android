@@ -69,10 +69,10 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "   raw.asset.txt\n" +
       "  java\n" +
       "   Debug.java\n" +
-      "   app\n" +
-      "    MainActivity\n" +
-      "   app\n" +
+      "   app (androidTest)\n" +
       "    MainActivityTest.java\n" +
+      "   app (main)\n" +
+      "    MainActivity\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (debug)\n" +
       "   AndroidManifest.xml (main)\n" +
