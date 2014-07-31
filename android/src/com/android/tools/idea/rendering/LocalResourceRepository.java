@@ -141,12 +141,20 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   private final String myDisplayName;
 
   @Nullable private List<MultiResourceRepository> myParents;
+  private LocalResourceRepositoryAsVirtualFile myFile;
 
   protected long myGeneration;
 
   protected LocalResourceRepository(@NotNull String displayName) {
     super(false);
     myDisplayName = displayName;
+  }
+
+  public LocalResourceRepositoryAsVirtualFile asVirtualFile() {
+    if (myFile == null) {
+      myFile = new LocalResourceRepositoryAsVirtualFile(this);
+    }
+    return myFile;
   }
 
   @NotNull
