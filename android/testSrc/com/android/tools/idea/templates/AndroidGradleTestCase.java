@@ -235,7 +235,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private static void updateGradleVersions(@NotNull File file) throws IOException {
+  public static void updateGradleVersions(@NotNull File file) throws IOException {
     if (file.isDirectory()) {
       File[] files = file.listFiles();
       if (files != null) {

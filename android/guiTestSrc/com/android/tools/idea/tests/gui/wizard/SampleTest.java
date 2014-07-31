@@ -20,16 +20,17 @@ import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.project.Project;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
@@ -38,7 +39,7 @@ import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class SampleTest extends GuiTestCase {
-  @Test @IdeGuiTest /*@Ignore*/
+  @Test @IdeGuiTest
   public void testCreateNewMobileProject() {
     final String projectName = "Test Application";
 
@@ -87,18 +88,8 @@ public class SampleTest extends GuiTestCase {
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo(minSdkApi);
   }
 
-  @Test @IdeGuiTest
-  public void testOpenProject() {
-    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.openProjectButton().click();
-
-    // TODO parameterize the path of the test project to open and just pass the name of the project.
-    File projectPath = new File("/Users/alruiz/AndroidStudioProjects/MyApplication");
-
-    FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-    openProjectDialog.select(projectPath).clickOK();
-
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectToBeOpened();
+  @Test @IdeGuiTest @Ignore
+  public void testOpenProject() throws IOException {
+    openProject("SimpleApplication");
   }
 }
