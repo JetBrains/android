@@ -17,13 +17,14 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.LocalResourceRepositoryAsVirtualFile;
 import com.android.tools.idea.rendering.ResourceHelper;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorPolicy;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.FileEditorState;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -32,18 +33,45 @@ import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
 public class StringResourceEditorProvider implements FileEditorProvider, DumbAware {
-  public static final String FILE_NAME = "strings";
   public static final String ID = "string-resource-editor";
+
+  public static boolean canViewTranslations(@NotNull Project project, @NotNull VirtualFile file) {
+    if (Boolean.getBoolean("STRINGS_EDITOR")) {
+      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
+      if (psiFile instanceof XmlFile
+          && ResourceHelper.getResourceName(file).equals("strings")
+          && ResourceHelper.getFolderType(file) == ResourceFolderType.VALUES) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static void openEditor(@NotNull final Project project, @NotNull VirtualFile file) {
+    final LocalResourceRepositoryAsVirtualFile vf = LocalResourceRepositoryAsVirtualFile.getInstance(project, file);
+    if (vf == null) {
+      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+        @Override
+        public void run() {
+          Messages.showErrorDialog(project, "Cannot read project resources", StringResourceEditor.NAME);
+        }
+      }, ModalityState.defaultModalityState());
+      return;
+    }
+    vf.setIcon(StringResourceEditor.ICON);
+    vf.setName(StringResourceEditor.NAME);
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, vf);
+        FileEditorManager.getInstance(project).openEditor(descriptor, true);
+      }
+    });
+  }
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    if (!Boolean.getBoolean("STRINGS_EDITOR")) {
-      return false;
-    }
-    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-    return psiFile instanceof XmlFile
-           && ResourceHelper.getResourceName(file).equals(FILE_NAME)
-           && ResourceHelper.getFolderType(file) == ResourceFolderType.VALUES;
+    return file instanceof LocalResourceRepositoryAsVirtualFile;
   }
 
   @NotNull

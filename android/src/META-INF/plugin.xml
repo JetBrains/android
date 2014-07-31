@@ -52,6 +52,9 @@
     <action id="Android.ConvertToNinePatch" class="com.android.tools.idea.actions.ConvertToNinePatchAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
     </action>
+    <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
+      <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
+    </action>
     <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
@@ -569,6 +572,7 @@
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AutoImportNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.ProjectSyncStatusNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.UnimportedModuleNotificationProvider"/>
+    <editorNotificationProvider implementation="com.android.tools.idea.editors.StringResourceEditorNotificationProvider"/>
 
     <compileServer.plugin classpath="jps/android-jps-plugin.jar;jps/android-gradle-jps.jar;android-common.jar;android-rt.jar"/>
     <compileServer.plugin classpath="sdklib.jar;common.jar;jarutils.jar;layoutlib-api.jar;manifest-merger.jar"/>
