@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -176,7 +177,12 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
             value = ((IDevice)userObject).getName();
           }
           else if (userObject instanceof Client) {
-            value = ((Client)userObject).getClientData().getClientDescription();
+            final ClientData clientData = ((Client)userObject).getClientData();
+            String description = clientData.getClientDescription();
+            if (clientData.isValidUserId() && clientData.getUserId() != 0) {
+              description += " (user " + Integer.toString(clientData.getUserId()) + ")";
+            }
+            value = description;
           }
         }
 
