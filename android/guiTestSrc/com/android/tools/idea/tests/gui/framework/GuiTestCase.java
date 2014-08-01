@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
@@ -52,6 +53,7 @@ public abstract class GuiTestCase {
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
 
     setUpRobot();
+    GeneralSettings.getInstance().setShowTipsOnStartup(false);
   }
 
   @After
@@ -81,7 +83,12 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture findIdeFrame(@NotNull String projectName, @NotNull File projectPath) {
-    return IdeFrameFixture.find(myRobot, projectName, projectPath);
+    return IdeFrameFixture.find(myRobot, projectPath, projectName);
+  }
+
+  @NotNull
+  protected IdeFrameFixture findIdeFrame(@NotNull File projectPath) {
+    return IdeFrameFixture.find(myRobot, projectPath, null);
   }
 
   // Called by GuiTestRunner via reflection.
