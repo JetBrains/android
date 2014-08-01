@@ -129,24 +129,26 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
 
   @Override
   protected Statement methodInvoker(FrameworkMethod method, Object test) {
-    try {
-      UrlClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
-      //noinspection unchecked
-      Class<? extends Annotation> ideGuiTestClass =
-        (Class<? extends Annotation>)ideClassLoader.loadClass(IdeGuiTest.class.getCanonicalName());
-      Annotation annotation = method.getMethod().getAnnotation(ideGuiTestClass);
-      if (annotation != null && Proxy.isProxyClass(annotation.getClass())) {
-        InvocationHandler invocationHandler = Proxy.getInvocationHandler(annotation);
-        Method closeProjectBeforeExecutionMethod = ideGuiTestClass.getDeclaredMethod("closeProjectBeforeExecution");
-        Object result = invocationHandler.invoke(annotation, closeProjectBeforeExecutionMethod, new Object[0]);
-        assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
-        if ((Boolean)result) {
-          method("closeAllProjects").in(test).invoke();
+    if (canRunGuiTests()) {
+      try {
+        UrlClassLoader ideClassLoader = IdeTestApplication.getInstance().getIdeClassLoader();
+        //noinspection unchecked
+        Class<? extends Annotation> ideGuiTestClass =
+          (Class<? extends Annotation>)ideClassLoader.loadClass(IdeGuiTest.class.getCanonicalName());
+        Annotation annotation = method.getMethod().getAnnotation(ideGuiTestClass);
+        if (annotation != null && Proxy.isProxyClass(annotation.getClass())) {
+          InvocationHandler invocationHandler = Proxy.getInvocationHandler(annotation);
+          Method closeProjectBeforeExecutionMethod = ideGuiTestClass.getDeclaredMethod("closeProjectBeforeExecution");
+          Object result = invocationHandler.invoke(annotation, closeProjectBeforeExecutionMethod, new Object[0]);
+          assertThat(result).isInstanceOfAny(Boolean.class, boolean.class);
+          if ((Boolean)result) {
+            method("closeAllProjects").in(test).invoke();
+          }
         }
       }
-    }
-    catch (Throwable e) {
-      return new Fail(e);
+      catch (Throwable e) {
+        return new Fail(e);
+      }
     }
     return new MethodInvoker(method, test);
   }
