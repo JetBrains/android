@@ -1202,6 +1202,54 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertContents(file, expected);
   }
 
+  public void testFiltering() throws IOException {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        debug {\n" +
+      "            keyAlias 'a1'\n" +
+      "            keyPassword 'a2'\n" +
+      "            storeFile file('/a3')\n" +
+      "            storePassword 'a4'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n");
+    final List<NamedObject> signingConfigs = (List<NamedObject>)file.getValue(BuildFileKey.SIGNING_CONFIGS);
+    assertEquals(1, signingConfigs.size());
+    NamedObject signingConfig = signingConfigs.get(0);
+    assertEquals("a1", signingConfig.getValue(BuildFileKey.KEY_ALIAS));
+    assertEquals("a2", signingConfig.getValue(BuildFileKey.KEY_PASSWORD));
+    assertEquals(new File("/a3"), signingConfig.getValue(BuildFileKey.STORE_FILE));
+    assertEquals("a4", signingConfig.getValue(BuildFileKey.STORE_PASSWORD));
+
+    signingConfig.setValue(BuildFileKey.KEY_ALIAS, "b1");
+    signingConfig.setValue(BuildFileKey.KEY_PASSWORD, "b2");
+    signingConfig.setValue(BuildFileKey.STORE_FILE, new File("/b3"));
+    signingConfig.setValue(BuildFileKey.STORE_PASSWORD, "b4");
+
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.SIGNING_CONFIGS, signingConfigs, new ValueFactory.KeyFilter() {
+          @Override
+          public boolean shouldWriteKey(BuildFileKey key, Object object) {
+            return key == BuildFileKey.KEY_ALIAS;
+          }});}});
+
+    String expected =
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        debug {\n" +
+      "            keyAlias 'b1'\n" +
+      "            keyPassword 'a2'\n" +
+      "            storeFile file('/a3')\n" +
+      "            storePassword 'a4'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n";
+    assertContents(file, expected);
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +

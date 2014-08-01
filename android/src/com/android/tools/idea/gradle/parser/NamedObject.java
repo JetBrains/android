@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.parser;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -118,8 +120,27 @@ public class NamedObject implements Comparable<NamedObject> {
       myProperties = properties;
     }
 
+    /**
+     * When looking for values to delete, do a less fragile comparison based only on object names and not identity.
+     */
     @Override
-    protected void setValue(@NotNull GrStatementOwner closure, @NotNull NamedObject object) {
+    protected Iterable<NamedObject> findValuesToDelete(@NotNull GrStatementOwner closure,
+                                                       @NotNull final List<NamedObject> replacementValues) {
+      return Iterables.filter(getValues(closure), new Predicate<NamedObject>() {
+        @Override
+        public boolean apply(NamedObject input) {
+          for (NamedObject value : replacementValues) {
+            if (value.getName().equals(input.getName())) {
+              return false;
+            }
+          }
+          return true;
+        }
+      });
+    }
+
+    @Override
+    protected void setValue(@NotNull GrStatementOwner closure, @NotNull NamedObject object, @Nullable KeyFilter filter) {
       GrClosableBlock subclosure = GradleGroovyFile.getMethodClosureArgument(closure, object.myName);
       GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(closure.getProject());
       if (subclosure == null) {
@@ -130,9 +151,13 @@ public class NamedObject implements Comparable<NamedObject> {
         }
       }
       for (BuildFileKey property : myProperties) {
+        if (filter != null && !filter.shouldWriteKey(property, object)) {
+          continue;
+        }
         Object value = object.getValue(property);
         if (value != null) {
-          GradleGroovyFile.setValueStatic(subclosure, property, value, false);
+          // Don't need to pass the filter along. It's already done its job on the parent key.
+          GradleGroovyFile.setValueStatic(subclosure, property, value, false, null);
         } else if (GradleGroovyFile.getValueStatic(subclosure, property) != GradleBuildFile.UNRECOGNIZED_VALUE) {
           GradleGroovyFile.removeValueStatic(subclosure, property);
         }

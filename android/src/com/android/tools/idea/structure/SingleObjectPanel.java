@@ -17,6 +17,7 @@ package com.android.tools.idea.structure;
 
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,19 +27,21 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class SingleObjectPanel extends BuildFilePanel {
+public class SingleObjectPanel extends BuildFilePanel implements KeyValuePane.ModificationListener {
   protected final GrClosableBlock myRoot;
   protected final Map<BuildFileKey, Object> myValues = Maps.newHashMap();
   protected final List<BuildFileKey> myProperties;
   protected final KeyValuePane myDetailPane;
+  private Set<BuildFileKey> myModifiedKeys = Sets.newHashSet();
 
   public SingleObjectPanel(@NotNull Project project, @NotNull String moduleName, @Nullable GrClosableBlock root,
                            @NotNull List<BuildFileKey> properties) {
     super(project, moduleName);
     myRoot = root;
     myProperties = properties;
-    myDetailPane = new KeyValuePane(project);
+    myDetailPane = new KeyValuePane(project, this);
     if (myGradleBuildFile != null) {
       for (BuildFileKey key : properties) {
         Object value = myGradleBuildFile.getValue(myRoot, key);
@@ -67,6 +70,9 @@ public class SingleObjectPanel extends BuildFilePanel {
       return;
     }
     for (BuildFileKey key : myProperties) {
+      if (!myModifiedKeys.contains(key)) {
+        continue;
+      }
       Object value = myValues.get(key);
       if (value != null) {
         myGradleBuildFile.setValue(myRoot, key, value);
@@ -74,11 +80,16 @@ public class SingleObjectPanel extends BuildFilePanel {
         myGradleBuildFile.removeValue(myRoot, key);
       }
     }
-    myDetailPane.clearModified();
+    myModifiedKeys.clear();
   }
 
   @Override
   public boolean isModified() {
-    return myDetailPane.isModified();
+    return !myModifiedKeys.isEmpty();
+  }
+
+  @Override
+  public void modified(@NotNull BuildFileKey key) {
+    myModifiedKeys.add(key);
   }
 }
