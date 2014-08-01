@@ -17,13 +17,13 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -76,13 +76,44 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
     for (PsiDirectory directory : getSourceDirectories()) {
       Collection<AbstractTreeNode> directoryChildren = projectViewDirectoryHelper.getDirectoryChildren(directory, getSettings(), true);
-      children.addAll(directoryChildren);
+
+      if (mySourceType == AndroidSourceType.JAVA) {
+        children.addAll(annotateWithSourceProvider(directoryChildren));
+      } else {
+        children.addAll(directoryChildren);
+      }
 
       // Inform the tree builder of the node that this particular virtual file maps to
       treeBuilder.createMapping(directory.getVirtualFile(), this);
     }
 
     return children;
+  }
+
+  private Collection<AbstractTreeNode> annotateWithSourceProvider(Collection<AbstractTreeNode> directoryChildren) {
+    List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(directoryChildren.size());
+
+    for (AbstractTreeNode child : directoryChildren) {
+      if (child instanceof PsiDirectoryNode) {
+        PsiDirectory directory = ((PsiDirectoryNode)child).getValue();
+        children.add(new AndroidPsiDirectoryNode(myProject, directory, getSettings(), findSourceProvider(directory.getVirtualFile())));
+      } else {
+        children.add(child);
+      }
+    }
+
+    return children;
+  }
+
+  @Nullable
+  private IdeaSourceProvider findSourceProvider(VirtualFile virtualFile) {
+    for (IdeaSourceProvider provider : mySourceProviders) {
+      if (provider.containsFile(virtualFile)) {
+        return provider;
+      }
+    }
+
+    return null;
   }
 
   protected List<PsiDirectory> getSourceDirectories() {
