@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.fest.reflect.core.Reflection.staticMethod;
@@ -45,10 +46,16 @@ public class IdeTestApplication implements Disposable {
   @NotNull
   public static synchronized IdeTestApplication getInstance() throws Exception {
     System.setProperty(PlatformUtils.PLATFORM_PREFIX_KEY, "AndroidStudio");
-    System.setProperty(PathManager.PROPERTY_CONFIG_PATH, getConfigDirPath().getPath());
+    File configDirPath = getConfigDirPath();
+    System.setProperty(PathManager.PROPERTY_CONFIG_PATH, configDirPath.getPath());
+
+    // Force Swing FileChooser on Mac (instead of native one) to be able to use FEST to drive it.
+    System.setProperty("native.mac.file.chooser.enabled", "false");
 
     if (!isLoaded()) {
       ourInstance = new IdeTestApplication();
+      delete(configDirPath);
+      ensureExists(configDirPath);
       UrlClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
       Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
       // Invokes GuiTests#waitForIdeToStart
