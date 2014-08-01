@@ -25,6 +25,8 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -182,7 +184,7 @@ public class PsiResourceItem extends ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(new TextResourceValue(type, name, isFrameworks));
+        value = parseTextValue(new PsiTextResourceValue(type, name, isFrameworks));
         break;
       default:
         value = parseValue(new ResourceValue(type, name, isFrameworks));
@@ -324,17 +326,11 @@ public class PsiResourceItem extends ResourceItem {
   }
 
   @NonNull
-  private TextResourceValue parseTextValue(@NonNull TextResourceValue value) {
+  private PsiTextResourceValue parseTextValue(@NonNull PsiTextResourceValue value) {
     assert myTag != null;
     String text = getTextContent(myTag);
     text = ValueXmlHelper.unescapeResourceString(text, true, true);
     value.setValue(text);
-
-    String rawXmlText = myTag.getValue().getText();
-    if (text == null || !text.equals(rawXmlText)) {
-      value.setRawXmlValue(myTag.getValue().getText());
-    }
-
     return value;
   }
 
@@ -433,5 +429,29 @@ public class PsiResourceItem extends ResourceItem {
   @Override
   public String toString() {
     return super.toString() + ": " + (myTag != null ? getTextContent(myTag) : "null");
+  }
+
+  private class PsiTextResourceValue extends TextResourceValue {
+    public PsiTextResourceValue(ResourceType type, String name, boolean isFramework) {
+      super(type, name, isFramework);
+    }
+
+    @Override
+    public String getRawXmlValue() {
+      if (myTag != null) {
+        if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+          return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+            @Override
+            public String compute() {
+              return myTag.getValue().getText();
+            }
+          });
+        }
+        return myTag.getValue().getText();
+      }
+      else {
+        return getValue();
+      }
+    }
   }
 }
