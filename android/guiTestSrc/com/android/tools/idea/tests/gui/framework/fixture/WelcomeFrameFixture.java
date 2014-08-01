@@ -42,18 +42,30 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
     super(robot, target);
   }
 
+  @NotNull
   public ActionButtonWithTextFixture newProjectButton() {
-    ActionButtonWithText button = robot.finder().find(target, new GenericTypeMatcher<ActionButtonWithText>(ActionButtonWithText.class) {
-      @Override
-      protected boolean isMatching(ActionButtonWithText buttonWithText) {
-        AnAction action = buttonWithText.getAction();
-        if (action != null) {
-          String id = ActionManager.getInstance().getId(action);
-          return "WelcomeScreen.CreateNewProject".equals(id);
-        }
-        return false;
-      }
-    });
+    ActionButtonWithText button = getActionButtonWithId("WelcomeScreen.CreateNewProject");
     return new ActionButtonWithTextFixture(robot, button);
+  }
+
+  @NotNull
+  public ActionButtonWithTextFixture openProjectButton() {
+    ActionButtonWithText button = getActionButtonWithId("WelcomeScreen.OpenProject");
+    return new ActionButtonWithTextFixture(robot, button);
+  }
+
+  @NotNull
+  private ActionButtonWithText getActionButtonWithId(@NotNull final String buttonActionId) {
+    return robot.finder().find(target, new GenericTypeMatcher<ActionButtonWithText>(ActionButtonWithText.class) {
+        @Override
+        protected boolean isMatching(ActionButtonWithText buttonWithText) {
+          AnAction action = buttonWithText.getAction();
+          if (action != null) {
+            String id = ActionManager.getInstance().getId(action);
+            return buttonActionId.equals(id);
+          }
+          return false;
+        }
+      });
   }
 }
