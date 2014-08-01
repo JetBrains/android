@@ -356,7 +356,9 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         } else {
           myCurrentBuildFileObject.put(key, newValue);
         }
-        myListener.modified(key);
+        if (GradleBuildFile.shouldWriteValue(currentValue, newValue)) {
+          myListener.modified(key);
+        }
       }
     }
   }

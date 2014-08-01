@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -217,5 +218,35 @@ public class GradleBuildFile extends GradleGroovyFile {
   public boolean hasAndroidPlugin() {
     List<String> plugins = getPlugins();
     return plugins.contains("android") || plugins.contains("android-library");
+  }
+
+  /**
+   * Returns true if the current and new values differ in a way that should cause us to write them out to the build file. This differs from
+   * simple object equality in that if the only differences between current and new are in unparseable objects, then we ignore those
+   * differences for the purpose of this check -- since we don't understand unparseable statements, we can't meaningfully perform object
+   * equality checks on them and we should endeavor to not write them back out to the file if we can avoid it.
+   */
+  public static boolean shouldWriteValue(@Nullable Object currentValue, @Nullable Object newValue) {
+    if (Objects.equal(currentValue, newValue)) {
+      return false;
+    }
+    // If it's a list type, then iterate though the elements. If each element is equal or if both the current and new values at a given list
+    // position are both unparseable, then we don't need to write it out.
+    if (!(currentValue instanceof List && newValue instanceof List)) {
+      return true;
+    }
+    List currentList = (List)currentValue;
+    List newList = (List)newValue;
+    if (currentList.size() != newList.size()) {
+      return true;
+    }
+    for (int i = 0; i < currentList.size(); i++) {
+      Object currentObj = currentList.get(i);
+      Object newObj = newList.get(i);
+      if (!currentObj.equals(newObj) && !(currentObj instanceof UnparseableStatement && newObj instanceof UnparseableStatement)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
