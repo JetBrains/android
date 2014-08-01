@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -26,10 +27,17 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
+import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.io.File;
 
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static junit.framework.Assert.assertNotNull;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
@@ -40,6 +48,15 @@ public final class GuiTests {
   public static String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
   // Called by IdeTestApplication via reflection.
+  @SuppressWarnings("UnusedDeclaration")
+  public static void setUpDefaultGeneralSettings() {
+    GeneralSettings settings = GeneralSettings.getInstance();
+    settings.setShowTipsOnStartup(false);
+    settings.setLastProjectCreationLocation(getNewProjectsRootDirPath().getPath());
+  }
+
+  // Called by IdeTestApplication via reflection.
+  @SuppressWarnings("UnusedDeclaration")
   public static void waitForIdeToStart() {
     Robot robot = null;
     try {
@@ -84,6 +101,20 @@ public final class GuiTests {
         robot.cleanUpWithoutDisposingWindows();
       }
     }
+  }
+
+  @NotNull
+  public static File getNewProjectsRootDirPath() {
+    return new File(getTestProjectsRootDirPath(), "newProjects");
+  }
+
+  @NotNull
+  public static File getTestProjectsRootDirPath() {
+    String testDataPath = AndroidTestBase.getTestDataPath();
+    assertNotNull(testDataPath);
+    assertThat(testDataPath).isNotEmpty();
+    testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
+    return new File(testDataPath, "guiTests");
   }
 
   private GuiTests() {

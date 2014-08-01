@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.ide.BootstrapClassLoaderUtil;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.WindowsCommandLineProcessor;
 import com.intellij.idea.Main;
 import com.intellij.openapi.Disposable;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getNewProjectsRootDirPath;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -54,12 +56,15 @@ public class IdeTestApplication implements Disposable {
 
     if (!isLoaded()) {
       ourInstance = new IdeTestApplication();
-      delete(configDirPath);
-      ensureExists(configDirPath);
+      recreateDirectory(configDirPath);
+
+      File newProjectsRootDirPath = getNewProjectsRootDirPath();
+      recreateDirectory(newProjectsRootDirPath);
+
       UrlClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
       Class<?> clazz = ideClassLoader.loadClass(GuiTests.class.getCanonicalName());
-      // Invokes GuiTests#waitForIdeToStart
       staticMethod("waitForIdeToStart").in(clazz).invoke();
+      staticMethod("setUpDefaultGeneralSettings").in(clazz).invoke();
     }
 
     return ourInstance;
@@ -71,6 +76,11 @@ public class IdeTestApplication implements Disposable {
     File configDirPath = new File(homeDirPath, FileUtil.join("androidStudio", "gui-tests", "config"));
     ensureExists(configDirPath);
     return configDirPath;
+  }
+
+  private static void recreateDirectory(@NotNull File path) throws IOException {
+    delete(path);
+    ensureExists(path);
   }
 
   private IdeTestApplication() throws Exception {
