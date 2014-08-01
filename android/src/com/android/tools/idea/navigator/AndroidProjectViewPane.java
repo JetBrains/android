@@ -19,6 +19,7 @@ import com.android.tools.idea.navigator.nodes.AndroidProjectViewNode;
 import com.android.tools.idea.navigator.nodes.AndroidSourceTypeNode;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
@@ -170,6 +171,22 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
           } else {
             return null;
           }
+        }
+      }
+    }
+
+    if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
+      NodeDescriptor selectedDescriptor = getSelectedDescriptor();
+      if (selectedDescriptor instanceof AndroidProjectViewNode) {
+        PsiDirectory[] directories = ((AndroidProjectViewNode)selectedDescriptor).getDirectories();
+        if (directories.length > 0) {
+          List<VirtualFile> virtualFiles = Lists.newArrayListWithExpectedSize(directories.length);
+          for (PsiDirectory directory : directories) {
+            if (directory.isValid()) {
+              virtualFiles.add(directory.getVirtualFile());
+            }
+          }
+          return virtualFiles.toArray(new VirtualFile[virtualFiles.size()]);
         }
       }
     }
