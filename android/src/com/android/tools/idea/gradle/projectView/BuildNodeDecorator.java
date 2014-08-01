@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.projectView;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ProjectViewNodeDecorator;
@@ -32,6 +33,7 @@ import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.File;
 
@@ -58,9 +60,13 @@ public class BuildNodeDecorator implements ProjectViewNodeDecorator {
       return;
     }
 
+    final Project project = directory.getProject();
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+      return;
+    }
+
     // If the build dir is inside the module's content root, ProjectRootsUtil.isModuleContentRoot will return false. The reason is that when
     // we set up the project during a sync, we don't create additional content roots if the build dir is inside the module.
-    final Project project = directory.getProject();
     final VirtualFile folder = directory.getVirtualFile();
     if (!ProjectRootsUtil.isModuleContentRoot(folder, project)) {
       return;
