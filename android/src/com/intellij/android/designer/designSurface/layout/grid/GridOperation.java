@@ -419,13 +419,15 @@ public abstract class GridOperation extends AbstractEditOperation {
       GridInfo gridInfo = getGridInfo();
       Dimension size = gridInfo.getSize(this);
 
-      for (int column = 0; column < gridInfo.vLines.length; column++) {
-        int x = gridInfo.getCellPosition(this, 0, column).x;
-        g.drawLine(x, 0, x, size.height);
-      }
-      for (int row = 0; row < gridInfo.hLines.length; row++) {
-        int y = gridInfo.getCellPosition(this, row, 0).y;
-        g.drawLine(0, y, size.width, y);
+      if (gridInfo.vLines.length > 0 && gridInfo.hLines.length > 0) {
+        for (int column = 0; column < gridInfo.vLines.length; column++) {
+          int x = gridInfo.getCellPosition(this, 0, column).x;
+          g.drawLine(x, 0, x, size.height);
+        }
+        for (int row = 0; row < gridInfo.hLines.length; row++) {
+          int y = gridInfo.getCellPosition(this, row, 0).y;
+          g.drawLine(0, y, size.width, y);
+        }
       }
       g.drawRect(0, 0, size.width - 1, size.height - 1);
       g.drawRect(1, 1, size.width - 3, size.height - 3);
