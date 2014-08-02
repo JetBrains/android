@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.idea.rendering.StringResourceData;
+import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -24,26 +24,26 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.*;
 
-public class StringResourceTableUtil {
+public class ColumnUtil {
   private static final TableCellRenderer CELL_RENDERER = new CellRenderer();
 
-  public static void initData(@NotNull JTable table, @NotNull StringResourceData data) {
-    table.setModel(new StringResourceTableModel(data));
+  public static void setColumns(@NotNull JTable table) {
+    StringResourceTableModel model = (StringResourceTableModel) table.getModel();
 
     Enumeration<TableColumn> columns = table.getColumnModel().getColumns();
     while (columns.hasMoreElements()) {
       TableColumn column = columns.nextElement();
       column.setCellRenderer(CELL_RENDERER);
       int index = column.getModelIndex();
-      FontMetrics fm = table.getFontMetrics(table.getFont());
-      HeaderCellRenderer renderer = index < ConstantColumn.COUNT
-                                    ? new ConstantHeaderCellRenderer(index, fm)
-                                    : new TranslationHeaderCellRenderer(fm, data.getLocales().get(index - ConstantColumn.COUNT));
+      FontMetrics fontMetrics = table.getFontMetrics(table.getFont());
+      Locale locale = model.localeOfColumn(index);
+      HeaderCellRenderer renderer =
+        locale == null ? new ConstantHeaderCellRenderer(index, fontMetrics) : new TranslationHeaderCellRenderer(fontMetrics, locale);
       column.setHeaderRenderer(renderer);
       // Sets Key and Default Value columns to initially display at full width and all others to be collapsed
       int width;
-      if (index < ConstantColumn.COUNT
-          && (ConstantColumn.values()[index] == ConstantColumn.KEY || ConstantColumn.values()[index] == ConstantColumn.DEFAULT_VALUE)) {
+      if (ConstantColumn.indexMatchesColumn(index, ConstantColumn.KEY) ||
+          ConstantColumn.indexMatchesColumn(index, ConstantColumn.DEFAULT_VALUE)) {
         width = renderer.getFullExpandedWidth();
       } else {
         width = renderer.getCollapsedWidth();

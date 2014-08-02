@@ -38,7 +38,7 @@ public class OpenStringResourceEditorAction extends AnAction {
     final Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
     final VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
     if (project != null && file != null) {
-      show = StringResourceEditorProvider.canViewTranslations(project, file);
+      show = StringResourceEditorProvider.canViewTranslations(file);
     }
     e.getPresentation().setVisible(show);
     e.getPresentation().setEnabled(show);
