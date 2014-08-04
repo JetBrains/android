@@ -886,7 +886,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final MavenId mavenId = artifact.getMavenId();
     adm.setResolvedInfoForArtifact(mavenId, info);
 
-    projectForExternalApklib.read(generalSettings, mavenProjectsManager.getAvailableProfiles(), mavenProjectReader, locator);
+    projectForExternalApklib.read(generalSettings, mavenProjectsManager.getExplicitProfiles(), mavenProjectReader, locator);
     projectForExternalApklib.resolve(project, generalSettings, embedder, mavenProjectReader, locator, context);
 
     final String apiLevel = getPlatformFromConfig(projectForExternalApklib);
@@ -907,7 +907,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
           if (vFakePomFile != null) {
             final MavenProject fakeProject = new MavenProject(vFakePomFile);
-            fakeProject.read(generalSettings, mavenProjectsManager.getAvailableProfiles(), mavenProjectReader, locator);
+            fakeProject.read(generalSettings, mavenProjectsManager.getExplicitProfiles(), mavenProjectReader, locator);
             fakeProject.resolve(project, generalSettings, embedder, mavenProjectReader, locator, context);
             deps = fakeProject.getDependencies();
 
