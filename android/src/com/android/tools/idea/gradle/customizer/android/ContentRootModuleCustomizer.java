@@ -32,18 +32,31 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject> {
-  public static final List<String> EXCLUDED_OUTPUT_FOLDER_NAMES = Arrays.asList(FD_INTERMEDIATES, FD_OUTPUTS);
+  // TODO This is a temporary solution. The real fix is in the Android Gradle plug-in we need to take exploded-aar/${library}/${version}/res
+  // folder somewhere else out of "exploded-aar" so the IDE can index it, but we need to exclude everything else in "exploded-aar"
+  // (e.g. jar files) to avoid unnecessary indexing.
+  private static final String[] EXCLUDED_INTERMEDIATE_FOLDER_NAMES = {"assets", "bundles", "classes", "coverage-instrumented-classes",
+    "dependency-cache", "dex-cache", "dex", "incremental", "jacoco", "javaResources", "libs", "lint", "manifests", "ndk", "pre-dexed",
+    "proguard", "res", "rs", "symbols"};
+
+  @NotNull public static final List<String> EXCLUDED_OUTPUT_FOLDER_NAMES = Lists.newArrayList(FD_OUTPUTS);
+
+  static {
+    for (String name : EXCLUDED_INTERMEDIATE_FOLDER_NAMES) {
+      EXCLUDED_OUTPUT_FOLDER_NAMES.add(join(FD_INTERMEDIATES, name));
+    }
+  }
 
   @Override
   @NotNull
