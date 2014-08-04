@@ -36,7 +36,7 @@ public class SdkSyncTest extends IdeaTestCase {
     super.setUp();
     AndroidTestCaseHelper.removeExistingAndroidSdks();
     myLocalProperties = new LocalProperties(myProject);
-    myAndroidSdkPath = new File(AndroidTestCaseHelper.getAndroidSdkPath());
+    myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
 
     assertNull(DefaultSdks.getDefaultAndroidHome());
   }

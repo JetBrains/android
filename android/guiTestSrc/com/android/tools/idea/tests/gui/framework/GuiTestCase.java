@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
@@ -120,8 +122,7 @@ public abstract class GuiTestCase {
     welcomeFrame.openProjectButton().click();
 
     File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
-    createGradleWrapper(projectPath);
-    updateGradleVersions(projectPath);
+    setUpProject(projectPath);
 
     FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
     openProjectDialog.select(projectPath).clickOK();
@@ -130,5 +131,17 @@ public abstract class GuiTestCase {
     projectFrame.waitForGradleProjectToBeOpened();
 
     return projectFrame;
+  }
+
+  private static void setUpProject(@NotNull File projectPath) throws IOException {
+    createGradleWrapper(projectPath);
+    updateGradleVersions(projectPath);
+
+    File androidHomePath = DefaultSdks.getDefaultAndroidHome();
+    assertNotNull(androidHomePath);
+
+    LocalProperties localProperties = new LocalProperties(projectPath);
+    localProperties.setAndroidSdkPath(androidHomePath);
+    localProperties.save();
   }
 }
