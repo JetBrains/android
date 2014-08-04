@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.projectView;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ProjectViewNodeDecorator;
@@ -27,6 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /** Provides custom icons for modules based on the module type. */
@@ -41,6 +43,10 @@ public class ModuleNodeIconDecorator implements ProjectViewNodeDecorator {
     PsiDirectory psiDirectory = psiDirectoryNode.getValue();
 
     Project project = psiDirectory.getProject();
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+      return;
+    }
+
     VirtualFile folder = psiDirectory.getVirtualFile();
     Module module = ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(folder);
     if (module != null && isModuleFolder(folder, module)) {
