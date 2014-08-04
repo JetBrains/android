@@ -33,6 +33,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import static com.android.builder.model.AndroidProject.FD_GENERATED;
+import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.tools.idea.gradle.customizer.android.ContentRootModuleCustomizer.EXCLUDED_OUTPUT_FOLDER_NAMES;
 
 /**
@@ -327,7 +328,7 @@ public class IdeaAndroidProject implements Serializable {
       return false;
     }
     String name = path.getName();
-    if (EXCLUDED_OUTPUT_FOLDER_NAMES.contains(name)) {
+    if (FD_INTERMEDIATES.equals(name) || EXCLUDED_OUTPUT_FOLDER_NAMES.contains(name)) {
       // already excluded.
       return false;
     }
