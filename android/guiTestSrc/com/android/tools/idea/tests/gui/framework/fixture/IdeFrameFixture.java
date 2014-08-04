@@ -25,18 +25,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
-import com.intellij.openapi.wm.impl.WindowManagerImpl;
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
@@ -44,7 +39,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.io.File;
 import java.util.Collection;
 
@@ -52,8 +46,6 @@ import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
@@ -197,41 +189,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     Project project = target.getProject();
     assertNotNull(project);
     return project;
-  }
-
-  public void close() {
-    waitForBackgroundTasksToFinish();
-    boolean welcomeFrameShown = GuiActionRunner.execute(new GuiQuery<Boolean>() {
-      @Override
-      protected Boolean executeInEDT() throws Throwable {
-        Project project = getProject();
-        closeAndDispose(project);
-
-        Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-        if (openProjects.length == 0) {
-          WelcomeFrame.showNow();
-
-          WindowManagerImpl windowManager = (WindowManagerImpl)WindowManager.getInstance();
-          windowManager.disposeRootFrame();
-          return true;
-        }
-        return false;
-      }
-    });
-
-    if (welcomeFrameShown) {
-      pause(new Condition("'Welcome' frame to show up") {
-        @Override
-        public boolean test() {
-          for (Frame frame : Frame.getFrames()) {
-            if (frame instanceof WelcomeFrame && frame.isShowing()) {
-              return true;
-            }
-          }
-          return false;
-        }
-      }, SHORT_TIMEOUT);
-    }
   }
 
   // TODO EditorFixture can be a better home for this method
