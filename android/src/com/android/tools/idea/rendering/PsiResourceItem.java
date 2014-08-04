@@ -438,7 +438,7 @@ public class PsiResourceItem extends ResourceItem {
 
     @Override
     public String getRawXmlValue() {
-      if (myTag != null) {
+      if (myTag != null && myTag.isValid()) {
         if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
           return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
             @Override
