@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -38,13 +37,13 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Collection;
@@ -235,30 +234,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }
   }
 
+  // TODO EditorFixture can be a better home for this method
   @NotNull
-  public IdeFrameFixture waitForFileToBeOpenedAndSelected(@NotNull final File path) {
-    pause(new Condition("File " + quote(path.getName()) + " to be opened") {
+  public FileFixture openFile(@NotNull File path) {
+    final VirtualFile virtualFile = findFileByIoFile(path, true);
+    assertNotNull("No VirtualFile found for path " + quote(path.getPath()), virtualFile);
+
+    GuiActionRunner.execute(new GuiTask() {
       @Override
-      public boolean test() {
-        final VirtualFile virtualFile = findFileByIoFile(path, true);
-        if (virtualFile != null) {
-          return GuiActionRunner.execute(new GuiQuery<Boolean>() {
-            @Override
-            protected Boolean executeInEDT() throws Throwable {
-              FileEditorManager editorManager = FileEditorManager.getInstance(getProject());
-              FileEditor selectedEditor = editorManager.getSelectedEditor(virtualFile);
-              if (selectedEditor != null) {
-                JComponent component = selectedEditor.getComponent();
-                return component.isVisible() && component.isShowing();
-              }
-              return false;
-            }
-          });
-        }
-        return false;
+      protected void executeInEDT() throws Throwable {
+        FileEditorManager editorManager = FileEditorManager.getInstance(getProject());
+        editorManager.openFile(virtualFile, true);
       }
-    }, SHORT_TIMEOUT);
-    return this;
+    });
+
+    FileFixture file = new FileFixture(getProject(), path);
+    file.requireOpenAndSelected();
+
+    return file;
   }
 
   private static class ProjectSyncListener extends GradleSyncListener.Adapter {

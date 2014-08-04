@@ -250,7 +250,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
       Matcher matcher = pattern.matcher(contents);
       if (matcher.find()) {
-        contents = contents.substring(0, matcher.start(1)) + SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION +
+        contents = contents.substring(0, matcher.start(1)) + SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION +
                    contents.substring(matcher.end(1));
         changed = true;
       }
