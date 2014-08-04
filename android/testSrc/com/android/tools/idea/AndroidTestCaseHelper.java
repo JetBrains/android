@@ -32,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 
+import java.io.File;
+
 import static org.junit.Assert.assertNotNull;
 
 public class AndroidTestCaseHelper {
@@ -53,14 +55,15 @@ public class AndroidTestCaseHelper {
     return jdk;
   }
 
-  @Nullable
-  public static String getAndroidSdkPath() {
+  @NotNull
+  public static File getAndroidSdkPath() {
     String path = AndroidTestCaseHelper.getSystemPropertyOrEnvironmentVariable(AndroidTestBase.SDK_PATH_PROPERTY);
     if (Strings.isNullOrEmpty(path)) {
-      String format = "Please specify the path of an Android SDK (v22.0.0) in the system property or environment variable '%1$s'";
+      String format = "Please specify the path of an Android SDK in the system property or environment variable '%1$s'";
       Assert.fail(String.format(format, AndroidTestBase.SDK_PATH_PROPERTY));
     }
-    return path;
+    // If we got here is because the path is not null or empty.
+    return new File(path);
   }
 
   @Nullable
