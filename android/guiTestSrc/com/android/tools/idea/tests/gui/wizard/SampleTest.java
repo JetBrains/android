@@ -20,6 +20,7 @@ import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
@@ -74,7 +75,8 @@ public class SampleTest extends GuiTestCase {
     String layoutFileName = layoutName + DOT_XML;
     File expectedToBeOpened = new File(join(project.getBasePath(), "app", "src", "main", "res", "layout", layoutFileName));
 
-    projectFrame.waitForFileToBeOpenedAndSelected(expectedToBeOpened);
+    FileFixture file = new FileFixture(project, expectedToBeOpened);
+    file.requireOpenAndSelected();
 
     // Verify state of project
     projectFrame.requireModuleCount(2);
