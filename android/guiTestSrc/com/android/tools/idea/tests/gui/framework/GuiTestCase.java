@@ -27,6 +27,8 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -126,8 +128,13 @@ public abstract class GuiTestCase {
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
     welcomeFrame.openProjectButton().click();
 
-    File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
-    setUpProject(projectPath);
+    final File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        setUpProject(projectPath);
+      }
+    });
 
     FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
     openProjectDialog.select(projectPath).clickOK();
