@@ -37,7 +37,7 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    mySdkPath = AndroidTestCaseHelper.getAndroidSdkPath().getPath();
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
