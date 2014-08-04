@@ -39,7 +39,6 @@ import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
-import static org.junit.Assert.fail;
 
 public class GuiTestRunner extends BlockJUnit4ClassRunner {
   private Class<? extends Annotation> myBeforeClass;
@@ -56,8 +55,8 @@ public class GuiTestRunner extends BlockJUnit4ClassRunner {
       Class.forName("git4idea.repo.GitConfig");
     }
     catch (ClassNotFoundException e) {
-      fail("Invalid test run configuration. Edit your test configuration and make sure that " +
-           "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
+      throw new InitializationError("Invalid test run configuration. Edit your test configuration and make sure that " +
+                                    "\"Use classpath of module\" is set to \"community-main\", *NOT* \"android\"!");
     }
   }
 
