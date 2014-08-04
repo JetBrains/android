@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.tools.idea.sdk.DefaultSdks;
 import com.intellij.ide.GeneralSettings;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -25,6 +28,8 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
 import org.jetbrains.android.AndroidTestBase;
@@ -45,6 +50,7 @@ import static org.fest.swing.timing.Timeout.timeout;
 public final class GuiTests {
   public static Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
   public static Timeout LONG_TIMEOUT = timeout(5, MINUTES);
+
   public static String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
 
   // Called by IdeTestApplication via reflection.
@@ -53,6 +59,19 @@ public final class GuiTests {
     GeneralSettings settings = GeneralSettings.getInstance();
     settings.setShowTipsOnStartup(false);
     settings.setLastProjectCreationLocation(getNewProjectsRootDirPath().getPath());
+
+    final File androidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            DefaultSdks.setDefaultAndroidHome(androidSdkPath);
+          }
+        });
+      }
+    });
   }
 
   // Called by IdeTestApplication via reflection.

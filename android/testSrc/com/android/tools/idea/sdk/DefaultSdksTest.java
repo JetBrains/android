@@ -45,7 +45,7 @@ public class DefaultSdksTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = new File(AndroidTestCaseHelper.getAndroidSdkPath());
+    myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
