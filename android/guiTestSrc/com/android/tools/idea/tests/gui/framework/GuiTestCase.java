@@ -27,6 +27,7 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.SystemProperties;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.Robot;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,10 +43,14 @@ import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradl
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getTestProjectsRootDirPath;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static junit.framework.Assert.assertNotNull;
+import static org.fest.assertions.Assertions.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
+  @NonNls private static final String FN_DOT_IDEA = ".idea";
+
   protected Robot myRobot;
 
   @Before
@@ -143,5 +148,25 @@ public abstract class GuiTestCase {
     LocalProperties localProperties = new LocalProperties(projectPath);
     localProperties.setAndroidSdkPath(androidHomePath);
     localProperties.save();
+
+    File toDotIdea = new File(projectPath, FN_DOT_IDEA);
+    if (toDotIdea.isDirectory()) {
+      File fromDotIdea = new File(getTestProjectsRootDirPath(), join("commonFiles", FN_DOT_IDEA));
+      assertThat(fromDotIdea).isDirectory();
+
+      for (File from : notNullize(fromDotIdea.listFiles())) {
+        if (from.isDirectory()) {
+          File destination = new File(toDotIdea, from.getName());
+          if (!destination.isDirectory()) {
+            copyDirContent(from, destination);
+          }
+          continue;
+        }
+        File to = new File(toDotIdea, from.getName());
+        if (!to.isFile()) {
+          copy(from, to);
+        }
+      }
+    }
   }
 }

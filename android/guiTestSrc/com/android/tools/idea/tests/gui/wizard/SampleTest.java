@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.Choos
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.project.Project;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -51,8 +50,8 @@ public class SampleTest extends GuiTestCase {
 
     ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.configureAndroidProjectStep();
     configureAndroidProjectStep.enterApplicationName(projectName)
-                               .enterCompanyDomain("Google")
-                               .enterPackageName("com.google");
+                               .enterCompanyDomain("com.android")
+                               .enterPackageName("com.android.test.app");
     File projectPath = configureAndroidProjectStep.getLocationInFileSystem();
     newProjectWizard.clickNext();
 
@@ -90,7 +89,7 @@ public class SampleTest extends GuiTestCase {
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo(minSdkApi);
   }
 
-  @Test @IdeGuiTest @Ignore
+  @Test @IdeGuiTest
   public void testOpenProject() throws IOException {
     openProject("SimpleApplication");
   }
