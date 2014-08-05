@@ -130,6 +130,7 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
     }
   }
 
+  @Nullable
   private static List<AttributeFormat> parseAttrFormat(String formatString) {
     List<AttributeFormat> result = new ArrayList<AttributeFormat>();
     final String[] formats = formatString.split("\\|");
@@ -158,9 +159,8 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
         final String strIntValue = value.getAttributeValue(ATTR_VALUE);
         if (strIntValue != null) {
           try {
-            int intValue = strIntValue.startsWith("0x")
-                           ? Integer.parseInt(strIntValue.substring(2), 16)
-                           : Integer.parseInt(strIntValue);
+            // Integer.decode cannot handle "ffffffff", see JDK issue 6624867
+            int intValue = (int) (long) Long.decode(strIntValue);
             Map<String, Integer> value2Int = myEnumMap.get(def.getName());
             if (value2Int == null) {
               value2Int = new HashMap<String, Integer>();

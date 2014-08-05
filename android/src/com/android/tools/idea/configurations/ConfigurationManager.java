@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.ide.common.resources.configuration.RegionQualifier;
@@ -340,7 +338,7 @@ public class ConfigurationManager implements Disposable {
 
   @Override
   public void dispose() {
-    myUserDeviceManager.dispose();
+    Disposer.dispose(myUserDeviceManager);
   }
 
   @Nullable
