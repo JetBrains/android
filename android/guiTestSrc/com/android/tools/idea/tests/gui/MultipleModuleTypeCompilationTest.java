@@ -22,8 +22,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static junit.framework.Assert.assertTrue;
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=73640">73640</a>.
@@ -34,5 +36,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
     IdeFrameFixture ideFrame = importProject("MultipleModuleTypes");
     GradleInvocationResult result = ideFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
+    List<String> invokedTasks = result.getTasks();
+    assertThat(invokedTasks).containsOnly(":app:compileDebugJava", ":javaLib:compileJava");
   }
 }
