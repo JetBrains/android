@@ -53,6 +53,8 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
+  private EditorFixture myEditor;
+
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
     final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
@@ -209,6 +211,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     file.requireOpenAndSelected();
 
     return file;
+  }
+
+  @NotNull
+  public EditorFixture getEditor() {
+    if (myEditor == null) {
+      myEditor = new EditorFixture(robot, this);
+    }
+
+    return myEditor;
   }
 
   private static class ProjectSyncListener extends GradleSyncListener.Adapter {

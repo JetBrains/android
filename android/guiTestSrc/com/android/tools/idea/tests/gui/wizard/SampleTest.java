@@ -20,6 +20,7 @@ import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.intellij.openapi.util.io.FileUtil.join;
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -92,5 +94,39 @@ public class SampleTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testOpenProject() throws IOException {
     openProject("SimpleApplication");
+  }
+
+  @Test @IdeGuiTest
+  public void testEditor() throws IOException {
+    IdeFrameFixture projectFrame = openProject("SimpleApplication");
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
+
+    assertEquals("strings.xml", editor.getCurrentFileName());
+    assertEquals(0, editor.getCurrentLineNumber());
+
+    editor.moveTo(editor.findOffset(null, "app_name", true));
+
+    assertEquals("<string name=\"^app_name\">Simple Application</string>", editor.getCurrentLineContents(true, true, 0));
+    int offset = editor.findOffset(null, "Simple Application", true);
+    editor.moveTo(offset);
+    assertEquals("<string name=\"app_name\">^Simple Application</string>", editor.getCurrentLineContents(true, true, 0));
+    editor.select(offset, offset + "Simple".length());
+    assertEquals("<string name=\"app_name\">|>^Simple<| Application</string>", editor.getCurrentLineContents(true, true, 0));
+    editor.enterText("Tester");
+    editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE);
+    editor.enterText("d");
+    assertEquals("<string name=\"app_name\">Tested^ Application</string>", editor.getCurrentLineContents(true, true, 0));
+    editor.invokeAction(EditorFixture.EditorAction.UNDO);
+    editor.invokeAction(EditorFixture.EditorAction.UNDO);
+    assertEquals("<string name=\"app_name\">Tester^ Application</string>", editor.getCurrentLineContents(true, true, 0));
+
+    editor.invokeAction(EditorFixture.EditorAction.TOGGLE_COMMENT);
+    assertEquals("    <!--<string name=\"app_name\">Tester Application</string>-->\n" +
+                 "    <string name=\"hello_world\">Hello w^orld!</string>\n" +
+                 "    <string name=\"action_settings\">Settings</string>", editor.getCurrentLineContents(false, true, 1));
+    editor.moveTo(editor.findOffset(" ", "<string name=\"action", true));
+    editor.enterText("    ");
+    editor.invokeAction(EditorFixture.EditorAction.FORMAT);
   }
 }
