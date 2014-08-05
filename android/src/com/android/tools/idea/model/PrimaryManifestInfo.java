@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -338,7 +339,11 @@ class PrimaryManifestInfo extends ManifestInfo {
       if (myVFile == null || !myVFile.exists()) {
         return null;
       }
-      PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(myVFile);
+      Project project = myModule.getProject();
+      if (project.isDisposed()) {
+        return null;
+      }
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(myVFile);
       return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
     }
 
