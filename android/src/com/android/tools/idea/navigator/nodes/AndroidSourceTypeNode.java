@@ -49,10 +49,8 @@ import java.util.Set;
  * corresponding to a particular {@link org.jetbrains.android.facet.AndroidSourceType} are grouped together.
  */
 public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
-  public static final Key<IdeaSourceProvider> SOURCE_PROVIDER = Key.create("Android.SourceProvider");
-
   @NotNull private final AndroidSourceType mySourceType;
-  @NotNull private final List<IdeaSourceProvider> mySourceProviders;
+  @NotNull protected final List<IdeaSourceProvider> mySourceProviders;
   @NotNull protected final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidSourceTypeNode(@NotNull Project project,
@@ -125,7 +123,6 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
         final PsiDirectory directory = psiManager.findDirectory(file);
         if (directory != null) {
           psiDirectories.add(directory);
-          directory.putUserData(SOURCE_PROVIDER, sourceProvider);
         }
       }
     }
