@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -55,7 +54,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.siyeh.ig.psiutils.IteratorUtils;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -70,7 +68,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -235,7 +232,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get("");
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        return Collections.singletonList(GradleBuilds.createBuildTask(gradleProjectPath, taskName));
+        return Collections.singletonList(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
       } else {
         LOG.error("Unable to find default variant");
         return Collections.emptyList();
@@ -247,7 +244,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       Variant v = variantsByFlavor.get(flavor);
       if (v != null) {
         String taskName = v.getMainArtifact().getAssembleTaskName();
-        assembleTasks.add(GradleBuilds.createBuildTask(gradleProjectPath, taskName));
+        assembleTasks.add(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
       }
     }
 
