@@ -16,10 +16,15 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.impl.ActionMenu;
+import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
+import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -39,11 +44,15 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
+import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -117,24 +126,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   private void waitForSourceGenerationToFinish() {
-    Project project = getProject();
-    Disposable disposable = new NoOpDisposable();
-
-    try {
-      MessageBusConnection connection = project.getMessageBus().connect(disposable);
-      final ProjectBuildListener listener = new ProjectBuildListener(SOURCE_GEN);
-      connection.subscribe(GRADLE_BUILD_TOPIC, listener);
-
-      pause(new Condition("Source generation for project " + quote(project.getName()) + " to finish'") {
-        @Override
-        public boolean test() {
-          return listener.myBuildFinished;
-        }
-      }, LONG_TIMEOUT);
-    }
-    finally {
-      Disposer.dispose(disposable);
-    }
+    BuildMode buildMode = SOURCE_GEN;
+    waitForBuildToFinish(buildMode);
   }
 
   @NotNull
@@ -220,6 +213,88 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }
 
     return myEditor;
+  }
+
+  @NotNull
+  public GradleInvocationResult invokeProjectMake() {
+    final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<GradleInvocationResult>();
+    ProjectBuilder.getInstance(getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+        resultRef.set(result);
+      }
+
+      @Override
+      public boolean execute(CompileContext context) {
+        return false;
+      }
+    });
+    ActionMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
+    robot.click(makeProjectMenuItem);
+
+    waitForBuildToFinish(COMPILE_JAVA);
+
+    GradleInvocationResult result = resultRef.get();
+    assertNotNull(result);
+
+    return result;
+  }
+
+  @NotNull
+  private ActionMenuItem findActionMenuItem(@NotNull String...path) {
+    int segmentCount = path.length;
+    assertThat(segmentCount).as("ActionMenuItems appear only in pop-up menus. To find one a path with more than one segment is required " +
+                                "(e.g. \"Build\", \"Make Project\")")
+                            .isGreaterThan(1);
+    Container root = target;
+    for (int i = 0; i < segmentCount; i++) {
+      final String segment = path[i];
+      if (i == 0) {
+        ActionMenu found = robot.finder().find(root, new GenericTypeMatcher<ActionMenu>(ActionMenu.class) {
+          @Override
+          protected boolean isMatching(ActionMenu actionMenu) {
+            return segment.equals(actionMenu.getText());
+          }
+        });
+        robot.click(found);
+        root = robot.findActivePopupMenu();
+        continue;
+      }
+      ActionMenuItem found = robot.finder().find(root, new GenericTypeMatcher<ActionMenuItem>(ActionMenuItem.class) {
+        @Override
+        protected boolean isMatching(ActionMenuItem actionMenuItem) {
+          return segment.equals(actionMenuItem.getText());
+        }
+      });
+      if (i < segmentCount - 1) {
+        robot.click(found);
+        root = robot.findActivePopupMenu();
+        continue;
+      }
+      return found;
+    }
+    throw new AssertionError("ActionMenuItem with path " + Arrays.toString(path) + " should have been found already");
+  }
+
+  private void waitForBuildToFinish(@NotNull BuildMode buildMode) {
+    Project project = getProject();
+    Disposable disposable = new NoOpDisposable();
+
+    try {
+      MessageBusConnection connection = project.getMessageBus().connect(disposable);
+      final ProjectBuildListener listener = new ProjectBuildListener(buildMode);
+      connection.subscribe(GRADLE_BUILD_TOPIC, listener);
+
+      pause(new Condition("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'") {
+        @Override
+        public boolean test() {
+          return listener.myBuildFinished;
+        }
+      }, LONG_TIMEOUT);
+    }
+    finally {
+      Disposer.dispose(disposable);
+    }
   }
 
   private static class ProjectSyncListener extends GradleSyncListener.Adapter {
