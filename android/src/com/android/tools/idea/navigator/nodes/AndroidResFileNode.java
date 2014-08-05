@@ -21,7 +21,6 @@ import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
@@ -31,9 +30,17 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class AndroidResFileNode extends PsiFileNode {
-  public AndroidResFileNode(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull ViewSettings settings) {
+  private final List<IdeaSourceProvider> mySourceProviders;
+
+  public AndroidResFileNode(@NotNull Project project,
+                            @NotNull PsiFile psiFile,
+                            @NotNull ViewSettings settings,
+                            @NotNull List<IdeaSourceProvider> sourceProviders) {
     super(project, psiFile, settings);
+    mySourceProviders = sourceProviders;
   }
 
   @Override
@@ -59,7 +66,7 @@ public class AndroidResFileNode extends PsiFileNode {
   }
 
   @Nullable
-  private static String getQualifier(@Nullable PsiFile resFile) {
+  private String getQualifier(@Nullable PsiFile resFile) {
     if (resFile == null) { // happens if psiFile becomes invalid
       return null;
     }
@@ -76,7 +83,7 @@ public class AndroidResFileNode extends PsiFileNode {
     String providerName = null;
     PsiDirectory resFolder = resTypeFolder.getParent();
     if (resFolder != null) {
-      IdeaSourceProvider ideaSourceProvider = resFolder.getUserData(AndroidSourceTypeNode.SOURCE_PROVIDER);
+      IdeaSourceProvider ideaSourceProvider = findSourceProviderForResFolder(resFolder);
       if (ideaSourceProvider != null) {
         providerName = ideaSourceProvider.getName();
         if (SdkConstants.FD_MAIN.equals(providerName)) {
@@ -94,5 +101,16 @@ public class AndroidResFileNode extends PsiFileNode {
     sb.append(Joiner.on(", ").skipNulls().join(qualifier, providerName));
     sb.append(')');
     return sb.toString();
+  }
+
+  @Nullable
+  private IdeaSourceProvider findSourceProviderForResFolder(@NotNull PsiDirectory resDirectory) {
+    for (IdeaSourceProvider provider : mySourceProviders) {
+      if (provider.getResDirectories().contains(resDirectory.getVirtualFile())) {
+        return provider;
+      }
+    }
+
+    return null;
   }
 }
