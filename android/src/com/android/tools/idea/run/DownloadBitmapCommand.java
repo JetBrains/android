@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import com.google.common.collect.ImmutableList;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.DebuggerUtils;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
@@ -54,6 +55,7 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
 
   public interface CompletionCallback {
     void bitmapDownloaded(@NotNull BufferedImage image);
+    void error(@NotNull String message);
   }
 
   public DownloadBitmapCommand(@NotNull Value bitmapValue,
@@ -83,12 +85,20 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
     if (BITMAP_DRAWABLE_FQCN.equals(fqcn)) {
       bitmap = getBitmapFromDrawable(evaluationContext, (ObjectReference)bitmap);
       if (bitmap == null) {
+        myCallback.error("Unable to obtain bitmap from drawable");
         return;
       }
     }
 
+    String config = getBitmapConfigName((ObjectReference)bitmap, evaluationContext);
+    if (!"\"ARGB_8888\"".equals(config)) {
+      myCallback.error("Unsupported bitmap configuration: " + config);
+      return;
+    }
+
     Dimension size = getDimension(evaluationContext, bitmap);
     if (size == null) {
+      myCallback.error("Unable to determine image dimensions.");
       return;
     }
 
@@ -97,11 +107,13 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
       myProgressWindow.setText("Scaling down bitmap");
       bitmap = createScaledBitmap(evaluationContext, (ObjectReference)bitmap, size);
       if (bitmap == null) {
+        myCallback.error("Unable to create scaled bitmap");
         return;
       }
 
       size = getDimension(evaluationContext, bitmap);
       if (size == null) {
+        myCallback.error("Unable to obtained scaled bitmap's dimensions");
         return;
       }
     }
@@ -111,21 +123,27 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
     }
     myProgressWindow.setText("Retrieving pixel data");
 
-    // TODO: The mBuffer field is supposedly present in current implementations of the bitmap class,
-    // but is not guaranteed to exist in the future. If not available, we should probably fall back
-    // to invoking a copyPixelsToBuffer and obtaining data from that buffer
+    List<Value> pixelValues;
+
     Field bufferField = ((ObjectReference)bitmap).referenceType().fieldByName("mBuffer");
-    if (bufferField == null) {
-      return;
+    if (bufferField != null) {
+      // if the buffer field is available, we can directly copy over the values
+      Value bufferValue = ((ObjectReference)bitmap).getValue(bufferField);
+      if (!(bufferValue instanceof ArrayReference)) {
+        return;
+      }
+      pixelValues =((ArrayReference)bufferValue).getValues();
+    } else {
+      // if there is no buffer field (on older platforms that store data on native heap), then resort to creating a new buffer,
+      // and invoking copyPixelsToBuffer to copy the pixel data into the newly created buffer
+      pixelValues = copyToBuffer(evaluationContext, (ObjectReference)bitmap, size);
+      if (pixelValues == null) {
+        myCallback.error("Unable to extract image data: Bitmap has no buffer field.");
+        return;
+      }
     }
 
-    Value bufferValue = ((ObjectReference)bitmap).getValue(bufferField);
-    if (!(bufferValue instanceof ArrayReference)) {
-      return;
-    }
-
-    List<Value> pixelValues = ((ArrayReference)bufferValue).getValues();
-    byte[] argb = new byte[pixelValues.size()]; // TODO: assumes CONFIG_ARGB
+    byte[] argb = new byte[pixelValues.size()];
     for (int i = 0; i < pixelValues.size(); i++) {
       Value pixelValue = pixelValues.get(i);
       if (pixelValue instanceof ByteValue) {
@@ -141,6 +159,54 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
   }
 
   @Nullable
+  private static String getBitmapConfigName(ObjectReference bitmap, EvaluationContextImpl evaluationContext) throws EvaluateException {
+    Value config = getBitmapConfig(evaluationContext, bitmap);
+    if (!(config instanceof ObjectReference)) {
+      return null;
+    }
+
+    Field f = ((ObjectReference)config).referenceType().fieldByName("name");
+    if (f == null) {
+      return null;
+    }
+
+    return ((ObjectReference)config).getValue(f).toString();
+  }
+
+  @Nullable
+  private static List<Value> copyToBuffer(EvaluationContextImpl evaluationContext, ObjectReference bitmap, Dimension size) throws EvaluateException {
+    DebugProcessImpl debugProcess = evaluationContext.getDebugProcess();
+    VirtualMachineProxyImpl virtualMachineProxy = debugProcess.getVirtualMachineProxy();
+
+    List<ReferenceType> classes = virtualMachineProxy.classesByName("byte[]");
+    if (classes.size() != 1 || !(classes.get(0) instanceof ArrayType)) {
+      return null;
+    }
+    ArrayType byteArrayType = (ArrayType)classes.get(0);
+
+    classes = virtualMachineProxy.classesByName("java.nio.ByteBuffer");
+    if (classes.size() != 1 || !(classes.get(0) instanceof ClassType)) {
+      return null;
+    }
+    ClassType byteBufferType = (ClassType)classes.get(0);
+    Method wrapMethod = DebuggerUtils.findMethod(byteBufferType, "wrap", "([B)Ljava/nio/ByteBuffer;");
+    if (wrapMethod == null) {
+      return null;
+    }
+
+    ArrayReference byteArray = byteArrayType.newInstance(size.width * size.height * 4);
+    Value byteBufferRef = debugProcess.invokeMethod(evaluationContext, byteBufferType, wrapMethod, ImmutableList.of(byteArray));
+
+    Method copyToBufferMethod = DebuggerUtils.findMethod(bitmap.referenceType(), "copyPixelsToBuffer", "(Ljava/nio/Buffer;)V");
+    if (copyToBufferMethod == null) {
+      return null;
+    }
+
+    debugProcess.invokeMethod(evaluationContext, bitmap, copyToBufferMethod, ImmutableList.of(byteBufferRef));
+    return byteArray.getValues();
+  }
+
+  @Nullable
   private static Dimension getDimension(@NotNull EvaluationContextImpl context, @NotNull Value bitmap) throws EvaluateException {
     DebugProcessImpl debugProcess = context.getDebugProcess();
 
@@ -151,11 +217,21 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
   }
 
   @Nullable
+  private static Value getBitmapConfig(EvaluationContextImpl context, ObjectReference bitmap) throws EvaluateException {
+    DebugProcessImpl debugProcess = context.getDebugProcess();
+    Method getConfig = DebuggerUtils.findMethod(bitmap.referenceType(), "getConfig", "()Landroid/graphics/Bitmap$Config;");
+    if (getConfig == null) {
+      return null;
+    }
+    return debugProcess.invokeMethod(context, bitmap, getConfig, Collections.emptyList());
+  }
+
+  @Nullable
   private static Value getBitmapFromDrawable(@NotNull EvaluationContextImpl context, @NotNull ObjectReference bitmap)
     throws EvaluateException {
     DebugProcessImpl debugProcess = context.getDebugProcess();
     Method getBitmapMethod = DebuggerUtils
-      .findMethod((bitmap).referenceType(), "getBitmap", "()Landroid/graphics/Bitmap;");
+      .findMethod(bitmap.referenceType(), "getBitmap", "()Landroid/graphics/Bitmap;");
     if (getBitmapMethod == null) {
       return null;
     }
@@ -168,7 +244,7 @@ public class DownloadBitmapCommand extends SuspendContextCommandImpl {
                                           @NotNull Dimension currentDimensions) throws EvaluateException {
     DebugProcessImpl debugProcess = context.getDebugProcess();
     Method createScaledBitmapMethod = DebuggerUtils
-      .findMethod((bitmap).referenceType(), "createScaledBitmap", "(Landroid/graphics/Bitmap;IIZ)Landroid/graphics/Bitmap;");
+      .findMethod(bitmap.referenceType(), "createScaledBitmap", "(Landroid/graphics/Bitmap;IIZ)Landroid/graphics/Bitmap;");
     if (createScaledBitmapMethod == null) {
       return null;
     }
