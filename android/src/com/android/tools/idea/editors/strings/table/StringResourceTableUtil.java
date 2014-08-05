@@ -16,48 +16,18 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.rendering.StringResourceData;
-import com.intellij.ui.TableSpeedSearch;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
 import java.util.*;
 
 public class StringResourceTableUtil {
   private static final TableCellRenderer CELL_RENDERER = new CellRenderer();
 
-  public static void initTableView(@NotNull final JBTable table) {
-    MouseAdapter resizeListener = new ColumnResizeListener(table);
-    table.getTableHeader().addMouseListener(resizeListener);
-    table.getTableHeader().addMouseMotionListener(resizeListener);
-
-    table.getParent().addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        /* If necessary, grows the table to fill the viewport. Does not trigger when the user drags a column to resize
-         * (taken care of by ColumnResizeListener).
-         */
-        if (table.getTableHeader().getResizingColumn() == null) {
-          expandToViewportWidthIfNecessary(table, -1);
-        }
-      }
-    });
-
-    new TableSpeedSearch(table) {
-      @Override
-      public int getElementCount() {
-        // TableSpeedSearch computes the element count from the underlying model, which is problematic when not all cells are visible
-        return myComponent.getRowCount() * myComponent.getColumnCount();
-      }
-    };
-  }
-
-  public static void initTableData(@NotNull JBTable table, @NotNull StringResourceData data) {
+  public static void initData(@NotNull JTable table, @NotNull StringResourceData data) {
     table.setModel(new StringResourceTableModel(data));
 
     Enumeration<TableColumn> columns = table.getColumnModel().getColumns();
@@ -84,15 +54,18 @@ public class StringResourceTableUtil {
     expandToViewportWidthIfNecessary(table, -1);
   }
 
-  // Returns the additional width needed for the table to fill its viewport.  A value <= 0 indicates that the table is sufficiently wide.
-  static int getAdditionalWidthToFillViewport(@NotNull JBTable table) {
+  /**
+   * Returns the additional width needed for the table to fill its viewport.  A value <= 0 indicates that the table is sufficiently wide.
+   */
+  static int getAdditionalWidthToFillViewport(@NotNull JTable table) {
     return table.getParent().getWidth() - table.getPreferredSize().width;
   }
 
-  /* Expands the table to fill its viewport horizontally by distributing extra width among the columns except the one at ignoreIndex.
+  /**
+   * Expands the table to fill its viewport horizontally by distributing extra width among the columns except the one at ignoreIndex.
    * Caller should pass in -1 for ignoreIndex to specify that this method can touch all of the columns.
    */
-  static void expandToViewportWidthIfNecessary(@NotNull JBTable table, int ignoreIndex) {
+  static void expandToViewportWidthIfNecessary(@NotNull JTable table, int ignoreIndex) {
     if (table.getColumnModel().getColumnCount() < ConstantColumn.COUNT) {
       // Table has no data
       return;
@@ -132,7 +105,8 @@ public class StringResourceTableUtil {
     setPreferredWidth(column, column.getPreferredWidth() + widthToFillViewport);
   }
 
-  /* Sets the width of a column, switching between brief and full column names if necessary.
+  /**
+   * Sets the width of a column, switching between brief and full column names if necessary.
    * Whenever possible, should be used in place of a direct call to column.setPreferredWidth(width).
    */
   static void setPreferredWidth(@NotNull TableColumn column, int width) {
