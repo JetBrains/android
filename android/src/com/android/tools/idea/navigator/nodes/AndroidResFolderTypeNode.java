@@ -33,6 +33,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.containers.ContainerUtil;
 import com.siyeh.ig.psiutils.IteratorUtils;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +45,7 @@ import java.util.Set;
 public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>> implements AndroidProjectViewNode {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ResourceFolderType myFolderType;
+  @NotNull private final List<IdeaSourceProvider> mySourceProviders;
   @NotNull private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidResFolderTypeNode(@NotNull Project project,
@@ -51,10 +53,12 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
                                   @NotNull List<PsiDirectory> folders,
                                   @NotNull ViewSettings settings,
                                   @NotNull ResourceFolderType folderType,
+                                  @NotNull List<IdeaSourceProvider> sourceProviders,
                                   @NotNull AndroidProjectViewPane projectViewPane) {
     super(project, folders, settings);
     myFacet = facet;
     myFolderType = folderType;
+    mySourceProviders = sourceProviders;
     myProjectViewPane = projectViewPane;
   }
 
@@ -101,9 +105,9 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
     for (String resName : multimap.keySet()) {
       List<PsiFile> files = Lists.newArrayList(multimap.get(resName));
       if (files.size() > 1) {
-        children.add(new AndroidResGroupNode(myProject, myFacet, files, resName, getSettings()));
+        children.add(new AndroidResGroupNode(myProject, myFacet, files, resName, getSettings(), mySourceProviders));
       } else {
-        children.add(new AndroidResFileNode(myProject, files.get(0), getSettings()));
+        children.add(new AndroidResFileNode(myProject, files.get(0), getSettings(), mySourceProviders));
       }
     }
     return children;

@@ -68,7 +68,8 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
     for (ResourceFolderType type : foldersByResourceType.keySet()) {
       Set<PsiDirectory> folders = foldersByResourceType.get(type);
       final AndroidResFolderTypeNode androidResFolderTypeNode =
-        new AndroidResFolderTypeNode(myProject, getValue(), Lists.newArrayList(folders), getSettings(), type, myProjectViewPane);
+        new AndroidResFolderTypeNode(myProject, getValue(), Lists.newArrayList(folders), getSettings(), type, mySourceProviders,
+                                     myProjectViewPane);
       children.add(androidResFolderTypeNode);
 
       // Inform the tree builder of the node that this particular virtual file maps to
