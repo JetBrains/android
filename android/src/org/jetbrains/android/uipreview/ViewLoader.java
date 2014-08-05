@@ -24,7 +24,6 @@ import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
-import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.util.Pair;
 import com.intellij.openapi.application.ApplicationManager;
@@ -405,7 +404,7 @@ public class ViewLoader {
     final String rClassName = getRClassName(myModule);
     try {
       if (rClassName == null) {
-        LOG.info("loadAndParseRClass: failed to find manifest package for project %1$s");
+        LOG.info(String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
         return;
       }
       myLogger.setResourceClass(rClassName);
