@@ -54,15 +54,26 @@ public class StringResourceTableModel extends AbstractTableModel {
   @NotNull
   @Override
   public Object getValueAt(int rowIndex, int columnIndex) {
+    return getClippedValue(rowIndex, columnIndex);
+  }
+
+  @NotNull
+  public Object getClippedValue(int rowIndex, int columnIndex) {
+    Object value = getValue(rowIndex, columnIndex);
+    return value instanceof String ? clip(String.valueOf(value)) : value;
+  }
+
+  @NotNull
+  public Object getValue(int rowIndex, int columnIndex) {
     if (columnIndex >= ConstantColumn.COUNT) {
-      Locale locale = myLocales.get(columnIndex - ConstantColumn.COUNT);
-      return myTranslations.contains(myKeys.get(rowIndex), locale) ? clip(myTranslations.get(myKeys.get(rowIndex), locale)) : "";
+        Locale locale = myLocales.get(columnIndex - ConstantColumn.COUNT);
+        return myTranslations.contains(myKeys.get(rowIndex), locale) ? myTranslations.get(myKeys.get(rowIndex), locale).trim() : "";
     }
     switch (ConstantColumn.values()[columnIndex]) {
       case KEY:
         return myKeys.get(rowIndex);
       case DEFAULT_VALUE:
-        return myDefaultValues.containsKey(myKeys.get(rowIndex)) ? clip(myDefaultValues.get(myKeys.get(rowIndex))) : "";
+        return myDefaultValues.containsKey(myKeys.get(rowIndex)) ? myDefaultValues.get(myKeys.get(rowIndex)).trim() : "";
       case UNTRANSLATABLE:
         return myUntranslatableKeys.contains(myKeys.get(rowIndex));
       default:
@@ -70,11 +81,11 @@ public class StringResourceTableModel extends AbstractTableModel {
     }
   }
 
-  /* Clips a value to a single line to fit in a default JTable cell
+  /**
+   * Clips a value to a single line to fit in a default JTable cell
    * TODO Take this out when we can handle multi-line values correctly
    */
   private static String clip(String str) {
-    str = str.trim();
     int end = str.indexOf('\n');
     return end < 0 ? str : str.substring(0, end) + "[...]";
   }
@@ -82,9 +93,8 @@ public class StringResourceTableModel extends AbstractTableModel {
   @Override
   public String getColumnName(int column) {
     if (column >= ConstantColumn.COUNT) {
-      /* The names of the translation columns are set by TranslationHeaderCellRenderer. The value returned here will be shown only if
-       * the renderer somehow cannot set the names.
-       */
+      // The names of the translation columns are set by TranslationHeaderCellRenderer.
+      // The value returned here will be shown only if the renderer somehow cannot set the names.
       return LocaleMenuAction.getLocaleLabel(myLocales.get(column - ConstantColumn.COUNT), false);
     }
     return ConstantColumn.values()[column].name;
