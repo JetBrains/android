@@ -100,6 +100,17 @@ public class ViewBitmapAction extends DebuggerAction {
           }
         });
       }
+
+      @Override
+      public void error(@NotNull final String message) {
+        DebuggerInvocationUtil.swingInvokeLater(project, new Runnable() {
+          @Override
+          public void run() {
+            JBPopup popup = JBPopupFactory.getInstance().createMessage(message);
+            popup.show(JBPopupFactory.getInstance().guessBestPopupLocation(actionContext));
+          }
+        });
+      }
     };
 
     DownloadBitmapCommand downloadBitmapCommand =
