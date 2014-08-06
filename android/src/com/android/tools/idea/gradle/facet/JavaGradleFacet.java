@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.facet;
 
 import com.android.tools.idea.gradle.JavaModel;
+import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
 import com.intellij.facet.impl.FacetUtil;
@@ -45,6 +47,9 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
   private static final Logger LOG = Logger.getInstance(JavaGradleFacet.class);
 
   @NotNull public static FacetTypeId<JavaGradleFacet> TYPE_ID = new FacetTypeId<JavaGradleFacet>("java-gradle");
+
+  @NonNls public static final String TEST_CLASSES_TASK_NAME = "testClasses";
+  @NonNls public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
 
   @NonNls public static final String ID = "java-gradle";
   @NonNls public static final String NAME = "Java-Gradle";
@@ -107,5 +112,17 @@ public class JavaGradleFacet extends Facet<JavaGradleFacetConfiguration> {
 
   public void setJavaModel(@NotNull JavaModel javaModel) {
     myJavaModel = javaModel;
+  }
+
+  @Nullable
+  public String getGradleTaskName(@NotNull BuildMode buildMode) {
+    switch (buildMode) {
+      case ASSEMBLE:
+        return GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
+      case COMPILE_JAVA:
+        return COMPILE_JAVA_TASK_NAME;
+      default:
+        return null;
+    }
   }
 }

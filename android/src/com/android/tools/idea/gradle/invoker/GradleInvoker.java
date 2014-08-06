@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.invoker;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -31,10 +33,10 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.util.Collection;
@@ -79,7 +81,7 @@ public class GradleInvoker {
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     // "Clean" also generates sources.
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, GradleBuilds.TestCompileType.NONE);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), BuildMode.SOURCE_GEN, TestCompileType.NONE);
     tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     executeTasks(tasks);
   }
@@ -94,7 +96,7 @@ public class GradleInvoker {
     setProjectBuildMode(buildMode);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, GradleBuilds.TestCompileType.NONE);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
 
     executeTasks(tasks);
   }
@@ -102,11 +104,11 @@ public class GradleInvoker {
   public void compileJava(@NotNull Module[] modules) {
     BuildMode buildMode = BuildMode.COMPILE_JAVA;
     setProjectBuildMode(buildMode);
-    List<String> tasks = findTasksToExecute(modules, buildMode, GradleBuilds.TestCompileType.NONE);
+    List<String> tasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     executeTasks(tasks);
   }
 
-  public void assemble(@NotNull Module[] modules, @NotNull GradleBuilds.TestCompileType testCompileType) {
+  public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = BuildMode.ASSEMBLE;
     setProjectBuildMode(buildMode);
     List<String> tasks = findTasksToExecute(modules, buildMode, testCompileType);
@@ -118,7 +120,7 @@ public class GradleInvoker {
     setProjectBuildMode(buildMode);
 
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, GradleBuilds.TestCompileType.NONE);
+    List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
     if (!tasks.isEmpty()) {
       tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
     }
@@ -132,7 +134,7 @@ public class GradleInvoker {
 
   private List<String> findTasksToExecute(@NotNull Module[] modules,
                                           @NotNull BuildMode buildMode,
-                                          @NotNull GradleBuilds.TestCompileType testCompileType) {
+                                          @NotNull TestCompileType testCompileType) {
     List<String> tasks = Lists.newArrayList();
 
     if (BuildMode.ASSEMBLE == buildMode) {
@@ -148,14 +150,7 @@ public class GradleInvoker {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;
       }
-      AndroidGradleFacet androidGradleFacet = AndroidGradleFacet.getInstance(module);
-      if (androidGradleFacet == null) {
-        continue;
-      }
-      String gradleProjectPath = androidGradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
-      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-      JpsAndroidModuleProperties properties = androidFacet != null ? androidFacet.getProperties() : null;
-      GradleBuilds.findAndAddBuildTask(module.getName(), buildMode, gradleProjectPath, properties, tasks, testCompileType);
+      findAndAddGradleBuildTasks(module, buildMode, tasks, testCompileType);
     }
 
     if (tasks.isEmpty()) {
@@ -186,8 +181,7 @@ public class GradleInvoker {
       @Override
       public void run() {
         FileDocumentManager.getInstance().saveAllDocuments();
-        AfterGradleInvocationTask[] afterGradleInvocationTasks =
-          myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
+        AfterGradleInvocationTask[] afterGradleInvocationTasks = myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
         GradleTasksExecutor executor = new GradleTasksExecutor(myProject, gradleTasks, commandLineArguments, afterGradleInvocationTasks);
         executor.queue();
       }
@@ -197,6 +191,77 @@ public class GradleInvoker {
   public void clearConsoleAndBuildMessages() {
     GradleConsoleView.getInstance(myProject).clear();
     GradleTasksExecutor.clearMessageView(myProject);
+  }
+
+  public static void findAndAddGradleBuildTasks(@NotNull Module module,
+                                                @NotNull BuildMode buildMode,
+                                                @NotNull List<String> tasks,
+                                                @NotNull TestCompileType testCompileType) {
+    AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+    if (gradleFacet == null) {
+      return;
+    }
+    String gradlePath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
+    if (StringUtil.isEmpty(gradlePath)) {
+      // Gradle project path is never, ever null. If the path is empty, it shows as ":". We had reports of this happening. It is likely that
+      // users manually added the Android-Gradle facet to a project. After all it is likely not to be a Gradle module. Better quit and not
+      // build the module.
+      String msg = String.format("Module '%1$s' does not have a Gradle path. It is likely that this module was manually added by the user.",
+                                 module.getName());
+      LOG.info(msg);
+      return;
+    }
+
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet != null) {
+      JpsAndroidModuleProperties properties = androidFacet.getProperties();
+      String gradleTaskName;
+      switch (buildMode) {
+        case SOURCE_GEN:
+          gradleTaskName = properties.SOURCE_GEN_TASK_NAME;
+          break;
+        case ASSEMBLE:
+          gradleTaskName = properties.ASSEMBLE_TASK_NAME;
+          break;
+        default:
+          gradleTaskName = properties.COMPILE_JAVA_TASK_NAME;
+      }
+      tasks.add(createBuildTask(gradlePath, gradleTaskName));
+
+      if (testCompileType == TestCompileType.ANDROID_TESTS) {
+        gradleTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
+        if (gradleTaskName != null) {
+          tasks.add(createBuildTask(gradlePath, gradleTaskName));
+        }
+      }
+    }
+    else {
+      JavaGradleFacet javaFacet = JavaGradleFacet.getInstance(module);
+      if (javaFacet != null) {
+        String gradleTaskName = javaFacet.getGradleTaskName(buildMode);
+        if (gradleTaskName != null) {
+          tasks.add(createBuildTask(gradlePath, gradleTaskName));
+        }
+        if (testCompileType == TestCompileType.JAVA_TESTS) {
+          tasks.add(createBuildTask(gradlePath, JavaGradleFacet.TEST_CLASSES_TASK_NAME));
+        }
+      }
+    }
+  }
+
+  @NotNull
+  public static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
+    if (gradleProjectPath.equals(SdkConstants.GRADLE_PATH_SEPARATOR)) {
+      // Prevent double colon when dealing with root module (e.g. "::assemble");
+      return gradleProjectPath + taskName;
+    }
+    return gradleProjectPath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
+  }
+
+  public enum TestCompileType {
+    NONE,            // don't compile any tests
+    ANDROID_TESTS,   // compile tests that are part of an Android Module
+    JAVA_TESTS       // compile tests that are part of a Java module
   }
 
   @VisibleForTesting
