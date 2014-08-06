@@ -47,6 +47,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,6 +87,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     // used for sorting the sequence of panes, but the weight cannot match any existing pane's weight
     // IDEA's panes start with 0 (project view pane) and go up (1 for package view, favorites seems to use 4, ..)
     return 142;
+  }
+
+  @NotNull
+  public static List<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
+    List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getCurrentSourceProviders(facet);
+    sourceProviders.addAll(IdeaSourceProvider.getCurrentTestSourceProviders(facet));
+    return sourceProviders;
   }
 
   @Override
