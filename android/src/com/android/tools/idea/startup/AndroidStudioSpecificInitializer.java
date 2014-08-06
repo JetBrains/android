@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.memory.MemoryProfilerAction;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
@@ -249,6 +250,8 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     action = new ExperimentalActionsForTesting.ClearPrefsAction();
     am.registerAction("ClearPrefs", action);
     androidToolsGroup.add(action);
+
+    androidToolsGroup.add(new MemoryProfilerAction());
 
     action = new SdkQuickfixWizard.LaunchMe();
     am.registerAction("ShowQuickfix", action);
