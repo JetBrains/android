@@ -371,7 +371,6 @@ public class Parameter {
   protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                                                       @Nullable String packageName, @Nullable String value) {
     GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) :
-                                    project != null ? GlobalSearchScope.projectScope(project) :
                                     GlobalSearchScope.EMPTY_SCOPE;
 
     Set<Constraint> violations = Sets.newHashSet();
@@ -565,8 +564,10 @@ public class Parameter {
         }
       }
       return false;
-    } else {
+    } else if (searchScope != GlobalSearchScope.EMPTY_SCOPE) {
       return JavaPsiFacade.getInstance(project).findClass(fullyQualifiedClassName, searchScope) != null;
+    } else {
+      return false;
     }
   }
 

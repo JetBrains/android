@@ -298,6 +298,9 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     myValueDerivers.put(key, deriver);
   }
 
+  protected <T> void unregisterValueDeriver(@NotNull Key<T> key) {
+    myValueDerivers.remove(key);
+  }
   /**
    * Allows clients of {@link ScopedDataBinder} to use custom JComponents by writing their own
    * setValue and getValue functions to support their custom implementations.
