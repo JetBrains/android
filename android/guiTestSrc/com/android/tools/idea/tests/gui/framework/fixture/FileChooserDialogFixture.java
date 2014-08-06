@@ -48,12 +48,28 @@ import static org.fest.util.Strings.quote;
 public class FileChooserDialogFixture extends ComponentFixture<JDialog> {
   @NotNull
   public static FileChooserDialogFixture findOpenProjectDialog(@NotNull Robot robot) {
-    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
+    return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(JDialog dialog) {
         return dialog.isShowing() && "Open Project".equals(dialog.getTitle());
       }
     });
+  }
+
+  @NotNull
+  public static FileChooserDialogFixture findImportProjectDialog(@NotNull Robot robot) {
+    return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(JDialog dialog) {
+        String title = dialog.getTitle();
+        return dialog.isShowing() && title != null && title.startsWith("Select") && title.endsWith("Project to Import");
+      }
+    });
+  }
+
+  @NotNull
+  private static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull GenericTypeMatcher<JDialog> matcher) {
+    JDialog dialog = robot.finder().find(matcher);
     return new FileChooserDialogFixture(robot, dialog);
   }
 

@@ -49,6 +49,12 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
   }
 
   @NotNull
+  public ActionButtonWithTextFixture importProjectButton() {
+    ActionButtonWithText button = getActionButtonWithId("WelcomeScreen.ImportProject");
+    return new ActionButtonWithTextFixture(robot, button);
+  }
+
+  @NotNull
   public ActionButtonWithTextFixture openProjectButton() {
     ActionButtonWithText button = getActionButtonWithId("WelcomeScreen.OpenProject");
     return new ActionButtonWithTextFixture(robot, button);
