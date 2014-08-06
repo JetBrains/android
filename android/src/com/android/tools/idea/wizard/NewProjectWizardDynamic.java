@@ -63,10 +63,25 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       super.init();
       Messages.showErrorDialog(msg, title);
     }
+    addPaths();
+    initState();
+    super.init();
+  }
+
+  /**
+   * Add the steps for this wizard
+   */
+  protected void addPaths() {
     addPath(new ConfigureAndroidProjectPath(getDisposable()));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
       addPath(path);
     }
+  }
+
+  /**
+   * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
+   */
+  protected void initState() {
     ScopedStateStore state = getState();
     state.put(WizardConstants.GRADLE_VERSION_KEY, GRADLE_LATEST_VERSION);
     state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, GRADLE_PLUGIN_RECOMMENDED_VERSION);
@@ -88,7 +103,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     if (mavenUrl != null) {
       state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
     }
-    super.init();
   }
 
   @Override
