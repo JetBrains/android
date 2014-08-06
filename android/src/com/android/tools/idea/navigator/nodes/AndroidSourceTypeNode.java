@@ -18,7 +18,6 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -27,7 +26,6 @@ import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -50,18 +48,18 @@ import java.util.Set;
  */
 public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
   @NotNull private final AndroidSourceType mySourceType;
-  @NotNull protected final List<IdeaSourceProvider> mySourceProviders;
+  @NotNull private final Set<VirtualFile> mySourceRoots;
   @NotNull protected final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidSourceTypeNode(@NotNull Project project,
                                @NotNull AndroidFacet facet,
                                @NotNull ViewSettings viewSettings,
                                @NotNull AndroidSourceType sourceType,
-                               @NotNull List<IdeaSourceProvider> sourceProviders,
+                               @NotNull Set<VirtualFile> sources,
                                @NotNull AndroidProjectViewPane projectViewPane) {
     super(project, facet, viewSettings);
     mySourceType = sourceType;
-    mySourceProviders = sourceProviders;
+    mySourceRoots = sources;
     myProjectViewPane = projectViewPane;
   }
 
@@ -94,7 +92,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     for (AbstractTreeNode child : directoryChildren) {
       if (child instanceof PsiDirectoryNode) {
         PsiDirectory directory = ((PsiDirectoryNode)child).getValue();
-        children.add(new AndroidPsiDirectoryNode(myProject, directory, getSettings(), findSourceProvider(directory.getVirtualFile())));
+        children.add(new AndroidPsiDirectoryNode(myProject, directory, getSettings(), findJavaSourceProvider(directory.getVirtualFile())));
       } else {
         children.add(child);
       }
@@ -104,8 +102,8 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   }
 
   @Nullable
-  private IdeaSourceProvider findSourceProvider(VirtualFile virtualFile) {
-    for (IdeaSourceProvider provider : mySourceProviders) {
+  private IdeaSourceProvider findJavaSourceProvider(VirtualFile virtualFile) {
+    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(getValue())) {
       if (provider.containsFile(virtualFile)) {
         return provider;
       }
@@ -116,14 +114,12 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   protected List<PsiDirectory> getSourceDirectories() {
     PsiManager psiManager = PsiManager.getInstance(myProject);
-    List<PsiDirectory> psiDirectories = Lists.newArrayList();
+    List<PsiDirectory> psiDirectories = Lists.newArrayListWithExpectedSize(mySourceRoots.size());
 
-    for (IdeaSourceProvider sourceProvider : mySourceProviders) {
-      for (VirtualFile file : mySourceType.getSources(sourceProvider)) {
-        final PsiDirectory directory = psiManager.findDirectory(file);
-        if (directory != null) {
-          psiDirectories.add(directory);
-        }
+    for (VirtualFile root : mySourceRoots) {
+      final PsiDirectory directory = psiManager.findDirectory(root);
+      if (directory != null) {
+        psiDirectories.add(directory);
       }
     }
 
@@ -151,11 +147,9 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   public boolean contains(@NotNull VirtualFile file) {
     //TODO: first check if the file is of my source type
 
-    for (IdeaSourceProvider sourceProvider : mySourceProviders) {
-      for (VirtualFile folder : mySourceType.getSources(sourceProvider)) {
-        if (VfsUtilCore.isAncestor(folder, file, false)) {
-          return true;
-        }
+    for (VirtualFile root : mySourceRoots) {
+      if (VfsUtilCore.isAncestor(root, file, false)) {
+        return true;
       }
     }
 
@@ -177,15 +171,15 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     AndroidSourceTypeNode that = (AndroidSourceTypeNode)o;
 
     if (mySourceType != that.mySourceType) return false;
-    return mySourceProviders.equals(that.mySourceProviders);
+    return mySourceRoots.equals(that.mySourceRoots);
   }
 
   @Override
   public int hashCode() {
     int result = super.hashCode();
     result = 31 * result + mySourceType.hashCode();
-    for (IdeaSourceProvider provider : mySourceProviders) {
-      result = 31 * result + provider.hashCode();
+    for (VirtualFile root : mySourceRoots) {
+      result = 31 * result + root.hashCode();
     }
     return result;
   }
@@ -199,18 +193,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   @NotNull
   @Override
   public PsiDirectory[] getDirectories() {
-    PsiManager psiManager = PsiManager.getInstance(myProject);
-    Set<PsiDirectory> folders = Sets.newHashSet();
-
-    for (IdeaSourceProvider provider : mySourceProviders) {
-      for (VirtualFile vf : mySourceType.getSources(provider)) {
-        PsiDirectory folder = psiManager.findDirectory(vf);
-        if (folder != null) {
-          folders.add(folder);
-        }
-      }
-    }
-
+    List<PsiDirectory> folders = getSourceDirectories();
     return folders.toArray(new PsiDirectory[folders.size()]);
   }
 }

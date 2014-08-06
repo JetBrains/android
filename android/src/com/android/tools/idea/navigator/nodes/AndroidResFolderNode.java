@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
@@ -37,9 +38,9 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
   public AndroidResFolderNode(@NotNull Project project,
                               @NotNull AndroidFacet facet,
                               @NotNull ViewSettings viewSettings,
-                              @NotNull List<IdeaSourceProvider> sourceProviders,
+                              @NotNull Set<VirtualFile> sourceRoots,
                               @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, facet, viewSettings, AndroidSourceType.RES, sourceProviders, projectViewPane);
+    super(project, facet, viewSettings, AndroidSourceType.RES, sourceRoots, projectViewPane);
   }
 
   /**
@@ -68,8 +69,7 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
     for (ResourceFolderType type : foldersByResourceType.keySet()) {
       Set<PsiDirectory> folders = foldersByResourceType.get(type);
       final AndroidResFolderTypeNode androidResFolderTypeNode =
-        new AndroidResFolderTypeNode(myProject, getValue(), Lists.newArrayList(folders), getSettings(), type, mySourceProviders,
-                                     myProjectViewPane);
+        new AndroidResFolderTypeNode(myProject, getValue(), Lists.newArrayList(folders), getSettings(), type, myProjectViewPane);
       children.add(androidResFolderTypeNode);
 
       // Inform the tree builder of the node that this particular virtual file maps to
