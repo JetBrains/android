@@ -153,7 +153,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
     assertNotNull(wizard.myWizardState.get(ATTR_MIN_API));
     assertEquals(myAppFacet.getAndroidModuleInfo().getMinSdkVersion().getFeatureLevel(), wizard.myWizardState.getInt(ATTR_MIN_API_LEVEL));
     assertEquals(false, wizard.myWizardState.getBoolean(ATTR_IS_LIBRARY_MODULE));
-    assertEquals("app", wizard.myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
+    assertEquals("app", wizard.myWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME));
 
     assertNotNull(wizard.myWizardState.get(ATTR_TARGET_API_STRING));
 
@@ -163,7 +163,7 @@ public class NewTemplateObjectWizardTest extends AndroidGradleTestCase {
                                          Template.CATEGORY_OTHER);
     Disposer.register(getTestRootDisposable(), wizard.getDisposable());
     assertEquals(true, wizard.myWizardState.getBoolean(ATTR_IS_LIBRARY_MODULE));
-    assertEquals("lib", wizard.myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
+    assertEquals("lib", wizard.myWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME));
   }
 
   public void testTemplateChanged() throws Exception {
