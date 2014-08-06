@@ -43,6 +43,7 @@ public final class GradleBuilds {
 
   @NonNls public static final String BUILD_SRC_FOLDER_NAME = "buildSrc";
 
+  @Deprecated
   public enum TestCompileType {
     NONE,            // don't compile any tests
     ANDROID_TESTS,   // compile tests that are part of an Android Module
@@ -52,6 +53,7 @@ public final class GradleBuilds {
   private GradleBuilds() {
   }
 
+  @Deprecated
   public static void findAndAddBuildTask(@NotNull String moduleName,
                                          @NotNull BuildMode buildMode,
                                          @Nullable String gradleProjectPath,
@@ -105,7 +107,7 @@ public final class GradleBuilds {
   }
 
   @NotNull
-  public static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
+  private static String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
     if (gradleProjectPath.equals(SdkConstants.GRADLE_PATH_SEPARATOR)) {
       // Prevent double colon when dealing with root module (e.g. "::assemble");
       return gradleProjectPath + taskName;
