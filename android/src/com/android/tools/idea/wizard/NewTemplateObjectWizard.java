@@ -199,7 +199,7 @@ public class NewTemplateObjectWizard extends TemplateWizard implements TemplateP
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(myModule.getModuleFilePath()).getParentFile().getName();
-    myWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
+    myWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, moduleName);
 
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {

@@ -115,7 +115,7 @@ public class TemplateWizardState implements Function<String, Object> {
   @VisibleForTesting
   public void populateDirectoryParameters() throws IOException {
     File projectRoot = new File(getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
-    File moduleRoot = new File(projectRoot, getString(NewProjectWizardState.ATTR_MODULE_NAME));
+    File moduleRoot = new File(projectRoot, getString(FormFactorUtils.ATTR_MODULE_NAME));
     File mainFlavorSourceRoot = new File(moduleRoot, TemplateWizard.MAIN_FLAVOR_SOURCE_PATH);
     File testSourceRoot = new File(moduleRoot, TemplateWizard.TEST_SOURCE_PATH);
 
