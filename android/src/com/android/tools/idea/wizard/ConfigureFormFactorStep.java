@@ -60,6 +60,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
@@ -220,6 +221,14 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         myFormFactorPanel.add(myHelpMeChooseLabel, c);
       }
       row++;
+    }
+  }
+
+  @Override
+  public void onEnterStep() {
+    super.onEnterStep();
+    if (myState.containsKey(NEWLY_INSTALLED_API_KEY)) {
+      initializeTargets();
     }
   }
 
