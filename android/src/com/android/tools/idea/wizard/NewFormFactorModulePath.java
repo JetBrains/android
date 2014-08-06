@@ -171,10 +171,10 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   public void deriveValues(Set<Key> modified) {
     if (modified.contains(NUM_ENABLED_FORM_FACTORS_KEY)) {
       //noinspection ConstantConditions
-      if (myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
+      if (myState.containsKey(NUM_ENABLED_FORM_FACTORS_KEY) && myState.get(NUM_ENABLED_FORM_FACTORS_KEY) == 1) {
         myState.put(myModuleNameKey, "app");
       }
-      else {
+      else if (!myState.containsKey(myModuleNameKey)) {
         myState.put(myModuleNameKey, FormFactorUtils.getModuleName(myFormFactor));
       }
     }

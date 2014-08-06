@@ -256,6 +256,10 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     action = new SdkQuickfixWizard.LaunchMe();
     am.registerAction("ShowQuickfix", action);
     androidToolsGroup.add(action);
+
+    action = new ExperimentalActionsForTesting.NewNewModuleWizardAction();
+    am.registerAction("NewNewModuleWizard", action);
+    androidToolsGroup.add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
