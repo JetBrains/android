@@ -16,7 +16,11 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.intellij.codeInsight.dataflow.SetUtil;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -32,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * {@link com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode} does not classify source types, and just assumes that all source
@@ -58,9 +63,7 @@ public class AndroidModuleNode extends PackageViewModuleNode {
       return super.getChildren();
     }
 
-    List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getCurrentSourceProviders(facet);
-    sourceProviders.addAll(IdeaSourceProvider.getCurrentTestSourceProviders(facet));
-    return getChildren(facet, getSettings(), myProjectViewPane, sourceProviders);
+    return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
   }
 
   public static Collection<AbstractTreeNode> getChildren(AndroidFacet facet,
@@ -70,29 +73,58 @@ public class AndroidModuleNode extends PackageViewModuleNode {
     Project project = facet.getModule().getProject();
     List<AbstractTreeNode> result = Lists.newArrayList();
 
-    for (AndroidSourceType sourceType : AndroidSourceType.values()) {
-      List<VirtualFile> sources = getSources(sourceType, providers);
-      if (sources.isEmpty()) {
-        continue;
-      }
+    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = getSourcesBySourceType(providers);
 
+    for (AndroidSourceType sourceType : sourcesByType.keySet()) {
       if (sourceType == AndroidSourceType.MANIFEST) {
-        result.add(new AndroidManifestsGroupNode(project, facet, settings, providers));
+        result.add(new AndroidManifestsGroupNode(project, facet, settings, sourcesByType.get(sourceType)));
       }
       else if (sourceType == AndroidSourceType.RES) {
-        result.add(new AndroidResFolderNode(project, facet, settings, providers, pane));
+        result.add(new AndroidResFolderNode(project, facet, settings, sourcesByType.get(sourceType), pane));
       }
       else {
-        result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, providers, pane));
+        result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), pane));
       }
     }
 
     return result;
   }
 
+  private static HashMultimap<AndroidSourceType,VirtualFile> getSourcesBySourceType(List<IdeaSourceProvider> providers) {
+    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = HashMultimap.create();
+
+    // Multiple source types can sometimes be present in the same source folder, e.g.:
+    //    sourcesSets.main.java.srcDirs = sourceSets.main.aidl.srcDirs = ['src']
+    // in such a case, we only want to show one of them. Source sets can be either proper or improper subsets. It is not entirely
+    // obvious there is a perfect solution here, but since this is not a common occurence, we resort to the easiest solution here:
+    // If a set of sources has partially been included as part of another source type's source set, then we simply don't include it
+    // as part of this source type.
+    Set<VirtualFile> allSources = Sets.newHashSet();
+
+    for (AndroidSourceType sourceType : AndroidSourceType.values()) {
+      Set<VirtualFile> sources = getSources(sourceType, providers);
+      if (sources.isEmpty()) {
+        continue;
+      }
+
+      if (SetUtil.intersect(allSources, sources).isEmpty()) {
+        // if we haven't seen any of these source folders, then create a new source type folder
+        sourcesByType.putAll(sourceType, sources);
+      } else if (!allSources.containsAll(sources)) {
+        // if we have a partial overlap, we put just the non overlapping sources into this source type
+        sources.removeAll(allSources);
+        sourcesByType.putAll(sourceType, sources);
+      }
+
+      allSources.addAll(sources);
+    }
+
+    return sourcesByType;
+  }
+
   @NotNull
-  private static List<VirtualFile> getSources(AndroidSourceType sourceType, Iterable<IdeaSourceProvider> providers) {
-    List<VirtualFile> sources = Lists.newArrayList();
+  private static Set<VirtualFile> getSources(AndroidSourceType sourceType, Iterable<IdeaSourceProvider> providers) {
+    Set<VirtualFile> sources = Sets.newHashSet();
 
     for (IdeaSourceProvider provider : providers) {
       sources.addAll(sourceType.getSources(provider));

@@ -114,6 +114,42 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                             printInfo);
   }
 
+  public void testCommonRoots() throws Exception {
+    loadProject("projects/navigator/packageview/commonroots");
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+
+    Queryable.PrintInfo printInfo = new Queryable.PrintInfo();
+    PsiDirectory dir = getBaseFolder();
+    assertNotNull(dir);
+
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertEquals(1, modules.length);
+
+    String projectName = getProject().getName();
+    String expected =
+      projectName + "\n" +
+      " Gradle Scripts\n" +
+      "  build.gradle (" + modules[0].getName() + ")\n" +
+      "  gradle-wrapper.properties\n" +
+      " " + modules[0].getName() + " (Android)\n" +
+      "  java\n" +
+      "   foo (main)\n" +
+      "    Foo.java\n" +
+      "  manifests\n" +
+      "   AndroidManifest.xml (main)\n" +
+      "  res\n" +
+      "   values\n" +
+      "    dimens.xml (w820dp)\n" +
+      "  resources\n" +
+      "   sample_resource.txt\n";
+    int numLines = expected.split("\n").length;
+    ProjectViewTestUtil
+      .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
+                            printInfo);
+  }
+
   @Nullable
   private PsiDirectory getBaseFolder() throws Exception {
     VirtualFile folder = getProject().getBaseDir();
