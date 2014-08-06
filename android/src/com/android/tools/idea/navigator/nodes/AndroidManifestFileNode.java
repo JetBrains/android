@@ -16,7 +16,9 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.ide.projectView.PresentationData;
+import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -31,16 +33,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidManifestFileNode extends PsiFileNode implements AndroidProjectViewNode {
-  @NotNull private final IdeaSourceProvider mySourceProvider;
   @NotNull private final AndroidFacet myFacet;
 
   public AndroidManifestFileNode(@NotNull Project project,
                                  @NotNull PsiFile psiFile,
                                  @NotNull ViewSettings settings,
-                                 @NotNull IdeaSourceProvider provider,
-                                 AndroidFacet facet) {
+                                 @NotNull AndroidFacet facet) {
     super(project, psiFile, settings);
-    mySourceProvider = provider;
     myFacet = facet;
   }
 
@@ -49,12 +48,23 @@ public class AndroidManifestFileNode extends PsiFileNode implements AndroidProje
     super.update(data);
 
     // if it is not part of the main source set, then append the provider name
-    if (!SdkConstants.FD_MAIN.equals(mySourceProvider.getName())) {
+    IdeaSourceProvider sourceProvider = getSourceProvider(getValue());
+    if (sourceProvider != null && !SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
       PsiFile file = getValue();
       data.addText(file.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      data.addText(" (" + mySourceProvider.getName() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+      data.addText(" (" + sourceProvider.getName() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
       data.setPresentableText(file.getName());
     }
+  }
+
+  @Nullable
+  private IdeaSourceProvider getSourceProvider(@NotNull PsiFile file) {
+    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(myFacet)) {
+      if (file.getVirtualFile().equals(provider.getManifestFile())) {
+        return provider;
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -76,7 +86,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements AndroidProje
     PsiFile file = getValue();
     sb.append(file.getName());
     sb.append(" (");
-    sb.append(mySourceProvider.getName());
+    sb.append(getSourceProvider(getValue()).getName());
     sb.append(")");
     return sb.toString();
   }
