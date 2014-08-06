@@ -293,9 +293,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
     // Persist the min API level choices on a per-form factor basis
     int enabledFormFactors = 0;
     for (FormFactor formFactor : myFormFactors) {
-      Key<AndroidTargetComboBoxItem> key = getTargetComboBoxKey(formFactor);
-      if (modified.contains(key)) {
-        AndroidTargetComboBoxItem targetItem = myState.get(key);
+      Key<AndroidTargetComboBoxItem> targetApiKey = getTargetComboBoxKey(formFactor);
+      Key<Boolean> inclusionKey = getInclusionKey(formFactor);
+      if (modified.contains(targetApiKey) || modified.contains(inclusionKey)) {
+        AndroidTargetComboBoxItem targetItem = myState.get(targetApiKey);
         if (targetItem == null) {
           continue;
         }
@@ -321,7 +322,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         }
         if (target == null) {
           AndroidVersion androidVersion = new AndroidVersion(targetItem.apiLevel, null);
-          if (!myInstalledVersions.contains(androidVersion) && myState.get(getInclusionKey(formFactor))) {
+          if (!myInstalledVersions.contains(androidVersion) && myState.get(inclusionKey)) {
             IPkgDesc platformDescription =
               PkgDesc.Builder.newPlatform(androidVersion, new MajorRevision(1), FullRevision.NOT_SPECIFIED).create();
             myState.listPush(INSTALL_REQUESTS_KEY, platformDescription);
@@ -339,7 +340,7 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         }
         PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(formFactor), targetItem.id.toString());
       }
-      Boolean included = myState.get(getInclusionKey(formFactor));
+      Boolean included = myState.get(inclusionKey);
       // Disable api selection for non-enabled form factors and check to see if only one is selected
       if (included != null) {
         if (myFormFactorApiSelectors.containsKey(formFactor)) {
