@@ -15,34 +15,33 @@
  */
 package com.android.tools.idea.wizard;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.base.Predicate;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.INVALID_FILENAME_CHARS;
-import static com.android.tools.idea.wizard.ConfigureFormFactorStep.AndroidTargetComboBoxItem;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
+import static com.android.tools.idea.wizard.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 
 /**
  * Utility methods for dealing with Form Factors in Wizards.
  */
 public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
+  public static final String ATTR_MODULE_NAME = "projectName";
 
   public static class FormFactor {
     public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet", 15,
