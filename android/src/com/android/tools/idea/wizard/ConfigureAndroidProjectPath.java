@@ -60,7 +60,7 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    putSdkDependentParams();
+    putSdkDependentParams(myState);
 
     addStep(new ConfigureAndroidProjectStep(myParentDisposable));
     addStep(new ConfigureFormFactorStep(myParentDisposable));
@@ -86,21 +86,30 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
     return "Configure Android Project";
   }
 
-  public void putSdkDependentParams() {
+  /**
+   * Populate the given state with a set of variables that depend on the user's installed SDK. This method should
+   * be called early in the initialization of a wizard or path.
+   * Variables:
+   * Build Tools Version: Used to populate the project level build.gradle with the correct Gradle plugin version number
+   *                      If the required build tools version is not installed, a request is added for installation
+   * SDK Home: The location of the installed SDK
+   * @param state the state store to populate with the values stored in the SDK
+   */
+  public static void putSdkDependentParams(@NotNull ScopedStateStore state) {
     final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
     BuildToolInfo buildTool = sdkData != null ? sdkData.getLatestBuildTool() : null;
     FullRevision minimumRequiredBuildToolVersion = FullRevision.parseRevision(SdkConstants.MIN_BUILD_TOOLS_VERSION);
     if (buildTool != null && buildTool.getRevision().compareTo(minimumRequiredBuildToolVersion) >= 0) {
-      myState.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
+      state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, buildTool.getRevision().toString());
     } else {
       // We need to install a new build tools version
-      myState.listPush(WizardConstants.INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
-      myState.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
+      state.listPush(WizardConstants.INSTALL_REQUESTS_KEY, PkgDesc.Builder.newBuildTool(minimumRequiredBuildToolVersion).create());
+      state.put(WizardConstants.BUILD_TOOLS_VERSION_KEY, minimumRequiredBuildToolVersion.toString());
     }
 
     if (sdkData != null) {
       // Gradle expects a platform-neutral path
-      myState.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getPath()));
+      state.put(WizardConstants.SDK_HOME_KEY, FileUtil.toSystemIndependentName(sdkData.getPath()));
     }
   }
 
