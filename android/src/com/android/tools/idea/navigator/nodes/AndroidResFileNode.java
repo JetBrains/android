@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceConstants;
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -26,6 +27,7 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,14 +35,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class AndroidResFileNode extends PsiFileNode {
-  private final List<IdeaSourceProvider> mySourceProviders;
+  private final AndroidFacet myFacet;
 
   public AndroidResFileNode(@NotNull Project project,
                             @NotNull PsiFile psiFile,
                             @NotNull ViewSettings settings,
-                            @NotNull List<IdeaSourceProvider> sourceProviders) {
+                            @NotNull AndroidFacet facet) {
     super(project, psiFile, settings);
-    mySourceProviders = sourceProviders;
+    myFacet = facet;
   }
 
   @Override
@@ -105,7 +107,7 @@ public class AndroidResFileNode extends PsiFileNode {
 
   @Nullable
   private IdeaSourceProvider findSourceProviderForResFolder(@NotNull PsiDirectory resDirectory) {
-    for (IdeaSourceProvider provider : mySourceProviders) {
+    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(myFacet)) {
       if (provider.getResDirectories().contains(resDirectory.getVirtualFile())) {
         return provider;
       }

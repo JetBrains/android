@@ -29,35 +29,29 @@ import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
   private static final String MANIFESTS_NODE = "manifests";
-  @NotNull private final List<IdeaSourceProvider> mySourceProviders;
+  @NotNull private final Set<VirtualFile> mySources;
 
   protected AndroidManifestsGroupNode(@NotNull Project project,
                                       @NotNull AndroidFacet facet,
                                       @NotNull ViewSettings viewSettings,
-                                      @NotNull List<IdeaSourceProvider> sourceProviders) {
+                                      @NotNull Set<VirtualFile> sources) {
     super(project, facet, viewSettings);
-    mySourceProviders = sourceProviders;
+    mySources = sources;
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    for (IdeaSourceProvider provider : mySourceProviders) {
-      VirtualFile manifestFile = provider.getManifestFile();
-      if (file.equals(manifestFile)) {
-        return true;
-      }
-    }
-    return false;
+    return mySources.contains(file);
   }
 
   @NotNull
@@ -66,15 +60,10 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
     PsiManager psiManager = PsiManager.getInstance(myProject);
 
     List<AbstractTreeNode> children = Lists.newArrayList();
-    for (IdeaSourceProvider provider : mySourceProviders) {
-      VirtualFile manifest = provider.getManifestFile();
-      if (manifest == null) {
-        continue;
-      }
-
+    for (VirtualFile manifest : mySources) {
       PsiFile psiFile = psiManager.findFile(manifest);
       if (psiFile != null) {
-        children.add(new AndroidManifestFileNode(myProject, psiFile, getSettings(), provider, getValue()));
+        children.add(new AndroidManifestFileNode(myProject, psiFile, getSettings(), getValue()));
       }
     }
     return children;

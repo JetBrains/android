@@ -29,7 +29,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,19 +40,16 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   @NotNull private final String myResName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final List<PsiFile> myFiles;
-  @NotNull private final List<IdeaSourceProvider> mySourceProviders;
 
   public AndroidResGroupNode(@NotNull Project project,
                              @NotNull AndroidFacet facet,
                              @NotNull List<PsiFile> files,
                              @NotNull String resName,
-                             @NotNull ViewSettings settings,
-                             List<IdeaSourceProvider> sourceProviders) {
+                             @NotNull ViewSettings settings) {
     super(project, files, settings);
     myResName = resName;
     myFacet = facet;
     myFiles = files;
-    mySourceProviders = sourceProviders;
   }
 
   @NotNull
@@ -89,7 +85,7 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   public Collection<? extends AbstractTreeNode> getChildren() {
     List<PsiFileNode> children = Lists.newArrayListWithExpectedSize(myFiles.size());
     for (PsiFile file : myFiles) {
-      children.add(new AndroidResFileNode(myProject, file, getSettings(), mySourceProviders));
+      children.add(new AndroidResFileNode(myProject, file, getSettings(), myFacet));
     }
     return children;
   }
