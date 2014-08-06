@@ -25,7 +25,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -36,11 +35,10 @@ import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +53,6 @@ import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecut
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
@@ -186,26 +183,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     return project;
   }
 
-  // TODO EditorFixture can be a better home for this method
-  @NotNull
-  public FileFixture openFile(@NotNull File path) {
-    final VirtualFile virtualFile = findFileByIoFile(path, true);
-    assertNotNull("No VirtualFile found for path " + quote(path.getPath()), virtualFile);
-
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        FileEditorManager editorManager = FileEditorManager.getInstance(getProject());
-        editorManager.openFile(virtualFile, true);
-      }
-    });
-
-    FileFixture file = new FileFixture(getProject(), path);
-    file.requireOpenAndSelected();
-
-    return file;
-  }
-
   @NotNull
   public EditorFixture getEditor() {
     if (myEditor == null) {
@@ -295,6 +272,23 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     finally {
       Disposer.dispose(disposable);
     }
+  }
+
+  @NotNull
+  public FileFixture findExistingFileByRelativePath(@NotNull String relativePath) {
+    VirtualFile file = findFileByRelativePath(relativePath, true);
+    return new FileFixture(getProject(), file);
+  }
+
+  @Nullable
+  @Contract("_, true -> !null")
+  public VirtualFile findFileByRelativePath(@NotNull String relativePath, boolean requireExists) {
+    Project project = getProject();
+    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
+    if (requireExists) {
+      assertNotNull("Unable to find file with relative path " + quote(relativePath), file);
+    }
+    return file;
   }
 
   private static class ProjectSyncListener extends GradleSyncListener.Adapter {

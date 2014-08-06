@@ -17,15 +17,16 @@ package com.android.tools.idea.tests.gui;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static com.intellij.openapi.util.io.FileUtil.join;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=74341">74341</a>.
@@ -34,8 +35,11 @@ public class AarDependencyTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testEditorFindsAppCompatStyle() throws IOException {
     IdeFrameFixture ideFrame = importProject("AarDependency");
-    String projectPath = ideFrame.getProject().getBasePath();
-    FileFixture file = ideFrame.openFile(new File(projectPath, join("app", "src", "main", "res", "values", "styles.xml")));
+
+    String stringsXmlPath = "app/src/main/res/values/strings.xml";
+    ideFrame.getEditor().open(stringsXmlPath, EditorFixture.Tab.EDITOR);
+
+    FileFixture file = ideFrame.findExistingFileByRelativePath(stringsXmlPath);
     file.requireCodeAnalysisHighlightCount(ERROR, 0);
   }
 }
