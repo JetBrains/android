@@ -474,7 +474,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
     String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();
-    templateParameters.put(NewProjectWizardState.ATTR_MODULE_NAME, moduleName);
+    templateParameters.put(FormFactorUtils.ATTR_MODULE_NAME, moduleName);
 
     return templateParameters;
   }
