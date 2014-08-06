@@ -134,20 +134,6 @@ public class IntellijGradleDetector extends GradleDetector {
           }
 
           @Override
-          public void visitCallExpression(GrCallExpression callExpression) {
-            if (callExpression instanceof GrMethodCall) {
-              GrMethodCall methodCall = (GrMethodCall) callExpression;
-              GrClosableBlock block = PsiTreeUtil.getParentOfType(methodCall, GrClosableBlock.class, true);
-              String parentName = block != null ? getClosureName(block) : null;
-              String statementName = methodCall.getInvokedExpression().getText();
-              if (isInterestingBlock(statementName, parentName)) {
-                checkBlock(context, statementName, parentName, methodCall);
-              }
-            }
-            super.visitCallExpression(callExpression);
-          }
-
-          @Override
           public void visitApplicationStatement(GrApplicationStatement applicationStatement) {
             GrClosableBlock block = PsiTreeUtil.getParentOfType(applicationStatement, GrClosableBlock.class, true);
             String parentName = block != null ? getClosureName(block) : null;
