@@ -74,6 +74,8 @@ public abstract class GuiTestCase {
     Application application = ApplicationManager.getApplication();
     assertNotNull(application); // verify that we are using the IDE's ClassLoader.
 
+    setUpDefaultProjectCreationLocationPath();
+
     myRobot = BasicRobot.robotWithCurrentAwtHierarchy();
     myRobot.settings().delayBetweenEvents(30);
   }
