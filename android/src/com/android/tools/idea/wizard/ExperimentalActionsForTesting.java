@@ -18,6 +18,11 @@ package com.android.tools.idea.wizard;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -38,6 +43,22 @@ public class ExperimentalActionsForTesting {
       properties.unsetValue(FormFactorUtils.getPropertiesComponentMinSdkKey(FormFactorUtils.FormFactor.WEAR));
       properties.unsetValue(ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN);
     }
+  }
+
+  public static class NewNewModuleWizardAction extends AnAction {
+    public NewNewModuleWizardAction() {
+      super("Test New Module Wizard");
+    }
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+      NewModuleWizardDynamic wizard = new NewModuleWizardDynamic(project, null);
+      wizard.init();
+      wizard.show();
+    }
+
+
   }
 }
 

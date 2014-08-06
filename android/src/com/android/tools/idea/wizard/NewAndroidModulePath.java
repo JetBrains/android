@@ -92,7 +92,7 @@ public final class NewAndroidModulePath implements WizardPath {
       try {
         myWizardState.populateDirectoryParameters();
         File projectRoot = new File(myProject.getBasePath());
-        File moduleRoot = new File(projectRoot, myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
+        File moduleRoot = new File(projectRoot, myWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME));
         // TODO: handle return type of "mkdirs".
         projectRoot.mkdirs();
         myWizardState.updateParameters();
