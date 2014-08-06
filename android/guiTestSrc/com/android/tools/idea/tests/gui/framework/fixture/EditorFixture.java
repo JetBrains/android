@@ -575,10 +575,8 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final String relativePath, @NotNull Tab tab) {
-    assertFalse("Should use / in test relative paths, not File.separator", relativePath.contains("\\"));
-    Project project = myFrame.getProject();
-    VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
-    assertNotNull(relativePath, file);
+    assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
+    VirtualFile file = myFrame.findFileByRelativePath(relativePath, true);
     return open(file, tab);
   }
 
