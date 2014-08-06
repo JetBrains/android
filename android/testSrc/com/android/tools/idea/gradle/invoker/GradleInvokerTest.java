@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -138,7 +137,7 @@ public class GradleInvokerTest extends IdeaTestCase {
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
-    myInvoker.assemble(new Module[]{myModule}, GradleBuilds.TestCompileType.NONE);
+    myInvoker.assemble(new Module[]{myModule}, GradleInvoker.TestCompileType.NONE);
   }
 
   public void testRebuild() throws Exception {

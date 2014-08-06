@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -44,6 +45,7 @@ import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
+import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.util.GradleVersion;
@@ -135,10 +137,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                                              gradleModule.getGradleProject(), buildFilePath);
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
-    if (androidProject == null) {
+    if (androidProject == null && isJavaProject(gradleModule)) {
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule);
     }
+  }
+
+  private static boolean isJavaProject(@NotNull IdeaModule gradleModule) {
+    for (GradleTask task : gradleModule.getGradleProject().getTasks()) {
+      if (JavaGradleFacet.COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void createJavaProject(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
@@ -146,15 +157,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     IdeaJavaProject javaProject = new IdeaJavaProject(gradleModule, model);
     ideModule.createChild(AndroidProjectKeys.IDE_JAVA_PROJECT, javaProject);
   }
-
-  private void populateContentRootsForProjectModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    // We need to warn users that we were not able to undo the exclusion of the top-level build folder. The IDE will not work properly.
-    String msg = UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX + String.format(" '%1$s'.\n", gradleModule.getProject().getName());
-    msg +=
-      "The IDE will not find references to the project's dependencies, and, as a result, basic functionality will not work properly.";
-    throw new IllegalArgumentException(msg);
-  }
-
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
