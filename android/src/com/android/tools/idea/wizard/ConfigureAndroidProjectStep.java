@@ -65,14 +65,19 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
         "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
 
 
-  private TextFieldWithBrowseButton myProjectLocation;
-  private JTextField myAppName;
-  private JPanel myPanel;
-  private JTextField myCompanyDomain;
-  private LabelWithEditLink myPackageName;
+  protected TextFieldWithBrowseButton myProjectLocation;
+  protected JTextField myAppName;
+  protected JPanel myPanel;
+  protected JTextField myCompanyDomain;
+  protected LabelWithEditLink myPackageName;
+  protected JLabel myProjectLocationLabel;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
-    super("Configure your new project", null, null, disposable);
+    this("Configure your new project", disposable);
+  }
+
+  public ConfigureAndroidProjectStep(String title, Disposable parentDisposable) {
+    super(title, null, null, parentDisposable);
     setBodyComponent(myPanel);
   }
 
@@ -161,29 +166,10 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   @Override
   public boolean validate() {
     setErrorHtml("");
-    // App Name validation
-    String appName = myState.get(WizardConstants.APPLICATION_NAME_KEY);
-    if (appName == null || appName.isEmpty()) {
-      setErrorHtml("Please enter an application name (shown in launcher)");
-      return false;
-    } else if (Character.isLowerCase(appName.charAt(0))) {
-      setErrorHtml("The application name for most apps begins with an uppercase letter");
-    }
+    return validateAppName() && validatePackageName() && validateLocation();
+  }
 
-    // Package name validation
-    String packageName = myState.get(WizardConstants.PACKAGE_NAME_KEY);
-    if (packageName == null) {
-      setErrorHtml("Please enter a package name (This package uniquely identifies your application)");
-      return false;
-    } else {
-      String message = AndroidUtils.validateAndroidPackageName(packageName);
-      if (message != null) {
-        setErrorHtml("Invalid package name: " + message);
-        return false;
-      }
-    }
-
-    // Project location validation
+  protected boolean validateLocation() {
     String projectLocation = myState.get(WizardConstants.PROJECT_LOCATION_KEY);
     if (projectLocation == null || projectLocation.isEmpty()) {
       setErrorHtml("Please specify a project location");
@@ -240,7 +226,32 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       setErrorHtml("The project location's parent directory must be a directory, not a plain file");
       return false;
     }
+    return true;
+  }
 
+  protected boolean validateAppName() {
+    String appName = myState.get(WizardConstants.APPLICATION_NAME_KEY);
+    if (appName == null || appName.isEmpty()) {
+      setErrorHtml("Please enter an application name (shown in launcher)");
+      return false;
+    } else if (Character.isLowerCase(appName.charAt(0))) {
+      setErrorHtml("The application name for most apps begins with an uppercase letter");
+    }
+    return true;
+  }
+
+  protected boolean validatePackageName() {
+    String packageName = myState.get(WizardConstants.PACKAGE_NAME_KEY);
+    if (packageName == null) {
+      setErrorHtml("Please enter a package name (This package uniquely identifies your application)");
+      return false;
+    } else {
+      String message = AndroidUtils.validateAndroidPackageName(packageName);
+      if (message != null) {
+        setErrorHtml("Invalid package name: " + message);
+        return false;
+      }
+    }
     return true;
   }
 
