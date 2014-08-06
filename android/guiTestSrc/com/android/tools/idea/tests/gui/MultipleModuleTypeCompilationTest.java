@@ -31,7 +31,7 @@ import static junit.framework.Assert.assertTrue;
 public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
-    IdeFrameFixture ideFrame = openProject("MultipleModuleTypes");
+    IdeFrameFixture ideFrame = importProject("MultipleModuleTypes");
     GradleInvocationResult result = ideFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
   }

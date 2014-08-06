@@ -135,7 +135,6 @@ public abstract class GuiTestCase {
     boolean welcomeFrameShown = GuiActionRunner.execute(new GuiQuery<Boolean>() {
       @Override
       protected Boolean executeInEDT() throws Throwable {
-
         Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
         if (openProjects.length == 0) {
           WelcomeFrame.showNow();
@@ -164,28 +163,30 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
+  protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
+    final File projectPath = setUpProject(projectDirName, false);
+
+    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
+    welcomeFrame.importProjectButton().click();
+
+    FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
+    return openProjectAndWaitUntilOpened(projectPath, importProjectDialog);
+  }
+
+  @NotNull
   protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
+    final File projectPath = setUpProject(projectDirName, true);
+
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
     welcomeFrame.openProjectButton().click();
 
-    final File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        setUpProject(projectPath);
-      }
-    });
-
     FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-    openProjectDialog.select(projectPath).clickOK();
-
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectToBeOpened();
-
-    return projectFrame;
+    return openProjectAndWaitUntilOpened(projectPath, openProjectDialog);
   }
 
-  private static void setUpProject(@NotNull File projectPath) throws IOException {
+  @NotNull
+  private static File setUpProject(@NotNull String projectDirName, boolean createIdeaProjectFolder) throws IOException {
+    final File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
     createGradleWrapper(projectPath);
     updateGradleVersions(projectPath);
 
@@ -196,8 +197,10 @@ public abstract class GuiTestCase {
     localProperties.setAndroidSdkPath(androidHomePath);
     localProperties.save();
 
-    File toDotIdea = new File(projectPath, FN_DOT_IDEA);
-    if (toDotIdea.isDirectory()) {
+    if (createIdeaProjectFolder) {
+      File toDotIdea = new File(projectPath, FN_DOT_IDEA);
+      ensureExists(toDotIdea);
+
       File fromDotIdea = new File(getTestProjectsRootDirPath(), join("commonFiles", FN_DOT_IDEA));
       assertThat(fromDotIdea).isDirectory();
 
@@ -215,5 +218,17 @@ public abstract class GuiTestCase {
         }
       }
     }
+
+    return projectPath;
+  }
+
+  @NotNull
+  private IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull File projectPath, @NotNull FileChooserDialogFixture fileChooserDialog) {
+    fileChooserDialog.select(projectPath).clickOK();
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    projectFrame.waitForGradleProjectToBeOpened();
+
+    return projectFrame;
   }
 }
