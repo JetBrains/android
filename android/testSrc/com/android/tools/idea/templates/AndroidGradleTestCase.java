@@ -356,7 +356,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     projectWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
     projectWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     projectWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-    projectWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, "TestModule");
+    projectWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, "TestModule");
     projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
     projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
     BuildToolInfo buildTool = sdkData.getLatestBuildTool();
@@ -388,7 +388,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     // Sync model
     if (syncModel) {
-      String projectName = projectWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      String projectName = projectWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
       File projectRoot = new File(projectWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
       assertEquals(projectRoot, VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir()));
       importProject(myFixture.getProject(), projectName, projectRoot);

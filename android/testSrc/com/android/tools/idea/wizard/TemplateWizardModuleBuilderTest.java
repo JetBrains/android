@@ -30,7 +30,7 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.AssetStudioAssetGenerator.ATTR_ASSET_TYPE;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
+import static com.android.tools.idea.wizard.FormFactorUtils.ATTR_MODULE_NAME;
 
 
 /**
