@@ -56,9 +56,8 @@ public final class GuiTests {
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
   public static void setUpDefaultGeneralSettings() {
-    GeneralSettings settings = GeneralSettings.getInstance();
-    settings.setShowTipsOnStartup(false);
-    settings.setLastProjectCreationLocation(getNewProjectsRootDirPath().getPath());
+    GeneralSettings.getInstance().setShowTipsOnStartup(false);
+    setUpDefaultProjectCreationLocationPath();
 
     final File androidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
     GuiActionRunner.execute(new GuiTask() {
@@ -72,6 +71,10 @@ public final class GuiTests {
         });
       }
     });
+  }
+
+  public static void setUpDefaultProjectCreationLocationPath() {
+    GeneralSettings.getInstance().setLastProjectCreationLocation(getProjectCreationLocationPath().getPath());
   }
 
   // Called by IdeTestApplication via reflection.
@@ -123,7 +126,7 @@ public final class GuiTests {
   }
 
   @NotNull
-  public static File getNewProjectsRootDirPath() {
+  public static File getProjectCreationLocationPath() {
     return new File(getTestProjectsRootDirPath(), "newProjects");
   }
 
