@@ -211,7 +211,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (myTemplateState.myHidden.contains(ATTR_IS_LIBRARY_MODULE)) {
       myLibraryCheckBox.setVisible(false);
     }
-    if (myTemplateState.myHidden.contains(ATTR_MODULE_NAME)) {
+    if (myTemplateState.myHidden.contains(FormFactorUtils.ATTR_MODULE_NAME)) {
       myModuleName.setVisible(false);
       myModuleNameLabel.setVisible(false);
     }
@@ -261,7 +261,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
 
-    register(ATTR_MODULE_NAME, myModuleName);
+    register(FormFactorUtils.ATTR_MODULE_NAME, myModuleName);
     register(ATTR_PROJECT_LOCATION, myProjectLocation);
     register(ATTR_APP_TITLE, myAppName);
     register(ATTR_PACKAGE_NAME, myPackageName);
@@ -342,7 +342,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @Override
   @Nullable
   public String getHelpText(@NotNull String param) {
-    if (param.equals(ATTR_MODULE_NAME)) {
+    if (param.equals(FormFactorUtils.ATTR_MODULE_NAME)) {
       return "This module name is used only by the IDE. It can typically be the same as the application name.";
     } else if (param.equals(ATTR_APP_TITLE)) {
       return "The application name is shown in the Play store, as well as in the Manage Applications list in Settings.";
@@ -433,7 +433,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   protected void deriveValues() {
-    updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
+    updateDerivedValue(FormFactorUtils.ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
       @Override
       public String call() {
         return computeModuleName();
@@ -490,7 +490,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
     if (!myTemplateState.hasAttr(ATTR_PACKAGE_NAME)) {
-      myTemplateState.put(ATTR_PACKAGE_NAME, SAMPLE_PACKAGE_PREFIX + '.' + myTemplateState.getString(ATTR_MODULE_NAME));
+      myTemplateState.put(ATTR_PACKAGE_NAME, SAMPLE_PACKAGE_PREFIX + '.' + myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME));
     }
     String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
@@ -498,7 +498,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
                                  "not be used", SAMPLE_PACKAGE_PREFIX));
     }
 
-    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME);
     if (moduleName.isEmpty()) {
       setErrorHtml("Please specify a module name.");
       return false;
@@ -638,7 +638,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   @VisibleForTesting
   String computePackageName() {
-    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME);
     String projectName = myTemplateState.getString(ATTR_APP_TITLE);
     projectName = nameToPackage(projectName);
     moduleName = nameToPackage(moduleName);
@@ -659,7 +659,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   @VisibleForTesting
   String computePackagePrefix(String packageName) {
-    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME);
     String projectName = myTemplateState.getString(ATTR_APP_TITLE);
     if (!projectName.isEmpty()) {
       projectName = nameToPackage(projectName);
