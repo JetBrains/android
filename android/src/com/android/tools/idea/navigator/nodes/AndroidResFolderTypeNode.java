@@ -17,7 +17,9 @@ package com.android.tools.idea.navigator.nodes;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -30,22 +32,16 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.ContainerUtil;
-import com.siyeh.ig.psiutils.IteratorUtils;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>> implements AndroidProjectViewNode {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ResourceFolderType myFolderType;
-  @NotNull private final List<IdeaSourceProvider> mySourceProviders;
   @NotNull private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidResFolderTypeNode(@NotNull Project project,
@@ -53,12 +49,10 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
                                   @NotNull List<PsiDirectory> folders,
                                   @NotNull ViewSettings settings,
                                   @NotNull ResourceFolderType folderType,
-                                  @NotNull List<IdeaSourceProvider> sourceProviders,
                                   @NotNull AndroidProjectViewPane projectViewPane) {
     super(project, folders, settings);
     myFacet = facet;
     myFolderType = folderType;
-    mySourceProviders = sourceProviders;
     myProjectViewPane = projectViewPane;
   }
 
@@ -105,9 +99,9 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
     for (String resName : multimap.keySet()) {
       List<PsiFile> files = Lists.newArrayList(multimap.get(resName));
       if (files.size() > 1) {
-        children.add(new AndroidResGroupNode(myProject, myFacet, files, resName, getSettings(), mySourceProviders));
+        children.add(new AndroidResGroupNode(myProject, myFacet, files, resName, getSettings()));
       } else {
-        children.add(new AndroidResFileNode(myProject, files.get(0), getSettings(), mySourceProviders));
+        children.add(new AndroidResFileNode(myProject, files.get(0), getSettings(), myFacet));
       }
     }
     return children;
