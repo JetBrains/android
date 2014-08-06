@@ -27,7 +27,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Test;
 
 import java.io.File;
@@ -35,7 +35,6 @@ import java.io.IOException;
 
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
@@ -72,12 +71,8 @@ public class SampleTest extends GuiTestCase {
     IdeFrameFixture projectFrame = findIdeFrame(projectName, projectPath);
     projectFrame.waitForGradleProjectToBeOpened();
 
-    Project project = projectFrame.getProject();
-    String layoutFileName = layoutName + DOT_XML;
-    File expectedToBeOpened = new File(join(project.getBasePath(), "app", "src", "main", "res", "layout", layoutFileName));
-
-    FileFixture file = new FileFixture(project, expectedToBeOpened);
-    file.requireOpenAndSelected();
+    FileFixture layoutFile = projectFrame.findExistingFileByRelativePath("app/src/main/res/layout/" + layoutName + DOT_XML);
+    layoutFile.requireOpenAndSelected();
 
     // Verify state of project
     projectFrame.requireModuleCount(2);

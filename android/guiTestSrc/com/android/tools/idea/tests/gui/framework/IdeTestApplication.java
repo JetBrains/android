@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.intellij.ide.BootstrapClassLoaderUtil;
-import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.WindowsCommandLineProcessor;
 import com.intellij.idea.Main;
 import com.intellij.openapi.Disposable;
@@ -32,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.getNewProjectsRootDirPath;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationLocationPath;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -58,7 +57,7 @@ public class IdeTestApplication implements Disposable {
       ourInstance = new IdeTestApplication();
       recreateDirectory(configDirPath);
 
-      File newProjectsRootDirPath = getNewProjectsRootDirPath();
+      File newProjectsRootDirPath = getProjectCreationLocationPath();
       recreateDirectory(newProjectsRootDirPath);
 
       UrlClassLoader ideClassLoader = ourInstance.getIdeClassLoader();

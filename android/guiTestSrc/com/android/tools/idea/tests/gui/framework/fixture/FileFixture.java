@@ -23,6 +23,8 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -38,6 +40,7 @@ import java.util.Collection;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.method;
@@ -47,13 +50,12 @@ import static org.fest.util.Strings.quote;
 public class FileFixture {
   @NotNull private final Project myProject;
   @NotNull private final File myPath;
+  @NotNull private final VirtualFile myVirtualFile;
 
-  private final VirtualFile myVirtualFile;
-
-  public FileFixture(@NotNull Project project, @NotNull File path) {
+  public FileFixture(@NotNull Project project, @NotNull VirtualFile file) {
     myProject = project;
-    myPath = path;
-    myVirtualFile = findFileByIoFile(path, true);
+    myPath = virtualToIoFile(file);
+    myVirtualFile = file;
   }
 
   @NotNull
