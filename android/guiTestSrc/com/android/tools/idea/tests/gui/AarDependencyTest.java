@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.bugs;
+package com.android.tools.idea.tests.gui;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
@@ -30,10 +30,10 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 /**
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=74341">74341</a>.
  */
-public class Issue74341Test extends GuiTestCase {
+public class AarDependencyTest extends GuiTestCase {
   @Test @IdeGuiTest
-  public void testFindsAppCompatStyle() throws IOException {
-    IdeFrameFixture ideFrame = openProject("Issue74341");
+  public void testEditorFindsAppCompatStyle() throws IOException {
+    IdeFrameFixture ideFrame = importProject("AarDependency");
     String projectPath = ideFrame.getProject().getBasePath();
     FileFixture file = ideFrame.openFile(new File(projectPath, join("app", "src", "main", "res", "values", "styles.xml")));
     file.requireCodeAnalysisHighlightCount(ERROR, 0);
