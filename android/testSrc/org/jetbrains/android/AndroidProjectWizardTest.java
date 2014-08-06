@@ -35,8 +35,6 @@ import org.jetbrains.android.newProject.AndroidModuleWizardStep;
 import org.jetbrains.android.newProject.AndroidProjectTemplatesFactory;
 import org.jetbrains.android.sdk.AndroidSdkType;
 
-import java.util.Arrays;
-
 /**
  * @author Dmitry Avdeev
  *         Date: 11/8/12
@@ -86,9 +84,6 @@ public class AndroidProjectWizardTest extends NewProjectWizardTestCase {
         Sdk defaultJdk = jdkTable.createSdk(ANDROID, AndroidSdkType.getInstance());
         jdkTable.addJdk(defaultJdk);
         mySdks.add(defaultJdk);
-
-        Sdk[] jdks = jdkTable.getAllJdks();
-        System.out.println(Arrays.asList(jdks));
 
         Project defaultProject = ProjectManager.getInstance().getDefaultProject();
         ProjectRootManager.getInstance(defaultProject).setProjectSdk(defaultJdk);
