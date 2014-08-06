@@ -117,7 +117,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
    */
   private void setUpStandardProjectCreation() throws Exception {
     File baseDir = new File(getProject().getBasePath());
-    myWizardState.put(ATTR_MODULE_NAME, MODULE_NAME);
+    myWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, MODULE_NAME);
     myWizardState.put(ATTR_PROJECT_LOCATION, baseDir.getPath());
     String projectName = "ThisIsAProjectName";
     myWizardState.put(ATTR_APP_TITLE, projectName);
@@ -142,7 +142,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
                      "local.properties");
 
     // Make sure we created the module files
-    File moduleBase = new File(baseDir, myWizardState.getString(ATTR_MODULE_NAME));
+    File moduleBase = new File(baseDir, myWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME));
     assertFilesExist(moduleBase,
                      ".gitignore",
                      "build.gradle",
@@ -260,7 +260,7 @@ public class NewProjectWizardTest extends AndroidGradleTestCase {
     String projectName = "ThisIsAProjectName";
     myWizardState.put(ATTR_APP_TITLE, projectName);
     myWizardState.put(ATTR_PACKAGE_NAME, "com.test.package");
-    myWizardState.put(ATTR_MODULE_NAME, MODULE_NAME);
+    myWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, MODULE_NAME);
     File baseDir;
 
     // Check apostrophe in file path
