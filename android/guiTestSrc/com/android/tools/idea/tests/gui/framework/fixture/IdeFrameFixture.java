@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -93,6 +94,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public IdeFrameFixture waitForGradleProjectToBeOpened() {
     Project project = getProject();
+
+    // ensure GradleInvoker (in-process build) is always enabled.
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
+
     Disposable disposable = new NoOpDisposable();
 
     final ProjectSyncListener listener = new ProjectSyncListener();
@@ -206,15 +212,51 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
         return false;
       }
     });
-    ActionMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
-    robot.click(makeProjectMenuItem);
-
+    selectProjectMakeAction();
     waitForBuildToFinish(COMPILE_JAVA);
 
     GradleInvocationResult result = resultRef.get();
     assertNotNull(result);
 
     return result;
+  }
+
+  @NotNull
+  public CompileContext invokeProjectMakeUsingJps() {
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(getProject());
+    buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = false;
+
+    final AtomicReference<CompileContext> contextRef = new AtomicReference<CompileContext>();
+    ProjectBuilder.getInstance(getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+      @Override
+      public void execute(@NotNull GradleInvocationResult result) {
+      }
+
+      @Override
+      public boolean execute(CompileContext context) {
+        contextRef.set(context);
+        return false;
+      }
+    });
+    selectProjectMakeAction();
+
+    pause(new Condition("Build (" + COMPILE_JAVA + ") for project " + quote(getProject().getName()) + " to finish'") {
+      @Override
+      public boolean test() {
+        CompileContext context = contextRef.get();
+        return context != null;
+      }
+    }, LONG_TIMEOUT);
+
+    CompileContext context = contextRef.get();
+    assertNotNull(context);
+
+    return context;
+  }
+
+  protected void selectProjectMakeAction() {
+    ActionMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
+    robot.click(makeProjectMenuItem);
   }
 
   @NotNull
