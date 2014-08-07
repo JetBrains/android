@@ -51,10 +51,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
@@ -706,11 +703,33 @@ public final class AndroidSdkUtils {
 
   @Nullable
   public static AndroidDebugBridge getDebugBridge(@NotNull Project project) {
+    AndroidSdkData data = getProjectSdkData(project);
+    if (data == null) {
+      data = getFirstAndroidModuleSdkData(project);
+    }
+    return data == null ? null : data.getDebugBridge(project);
+  }
+
+  @Nullable
+  private static AndroidSdkData getFirstAndroidModuleSdkData(Project project) {
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     for (AndroidFacet facet : facets) {
-      final AndroidDebugBridge debugBridge = facet.getDebugBridge();
-      if (debugBridge != null) {
-        return debugBridge;
+      AndroidPlatform androidPlatform = facet.getConfiguration().getAndroidPlatform();
+      if (androidPlatform != null) {
+        return androidPlatform.getSdkData();
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static AndroidSdkData getProjectSdkData(Project project) {
+    Sdk projectSdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    if (projectSdk != null && projectSdk.getSdkType() == AndroidSdkType.getInstance()) {
+      AndroidSdkAdditionalData sdkData = (AndroidSdkAdditionalData)projectSdk.getSdkAdditionalData();
+      if (sdkData != null) {
+        AndroidPlatform platform = sdkData.getAndroidPlatform();
+        return platform != null ? platform.getSdkData() : null;
       }
     }
     return null;
