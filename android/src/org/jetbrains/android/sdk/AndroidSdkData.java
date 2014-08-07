@@ -18,8 +18,6 @@ package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.DdmPreferences;
-import com.android.ddmlib.Log;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
@@ -43,10 +41,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.containers.HashMap;
-import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.logcat.AdbErrors;
 import org.jetbrains.android.util.AndroidCommonUtils;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,14 +58,10 @@ import java.util.Map;
 public class AndroidSdkData {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkData");
 
-  private static volatile boolean myDdmLibInitialized = false;
-  private static volatile boolean myAdbCrashed = false;
-  private static final Object myDdmsLock = new Object();
-  private static volatile boolean ourDdmLibTerminated = false;
-
   private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDatas =
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
 
+  private static final Ddmlib myDdmlib = new Ddmlib();
   private final LocalSdk myLocalSdk;
   private final RemoteSdk myRemoteSdk;
   private final SettingsController mySettingsController;
@@ -147,8 +139,10 @@ public class AndroidSdkData {
     myLocalSdk = localSdk;
     mySettingsController = new SettingsController(new NullLogger() /* TODO */);
     myRemoteSdk = new RemoteSdk(mySettingsController);
-    myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_PLATFORM_TOOLS);
-    mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(localSdk.getPath(), SdkConstants.FD_TOOLS);
+    String path = localSdk.getPath();
+    assert path != null;
+    myPlatformToolsRevision = AndroidCommonUtils.parsePackageRevision(path, SdkConstants.FD_PLATFORM_TOOLS);
+    mySdkToolsRevision = AndroidCommonUtils.parsePackageRevision(path, SdkConstants.FD_TOOLS);
     myDeviceManager = DeviceManager.createInstance(localSdk.getLocation(), new MessageBuildingSdkLog());
   }
 
@@ -229,7 +223,7 @@ public class AndroidSdkData {
 
   @Override
   public int hashCode() {
-    return getLocation().hashCode();
+    return FileUtil.fileHashCode(getLocation());
   }
 
   @SuppressWarnings("AssignmentToStaticFieldFromInstanceMethod")
@@ -237,34 +231,23 @@ public class AndroidSdkData {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     while (true) {
-      final MyInitializeDdmlibTask task = new MyInitializeDdmlibTask(project);
+      final MyInitializeDdmlibTask task = new MyInitializeDdmlibTask(project, myDdmlib);
 
       AdbErrors.clear();
 
-      Thread t = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          doInitializeDdmlib();
-          task.finish();
-        }
-      });
-
-      t.start();
+      myDdmlib.initialize(getAdbPath());
 
       boolean retryWas = false;
-
       while (!task.isFinished()) {
         ProgressManager.getInstance().run(task);
-
         boolean finished = task.isFinished();
 
         if (task.isCanceled()) {
-          myAdbCrashed = !finished;
-          forceInterrupt(t);
+          myDdmlib.setAdbCrashed(!finished);
           return false;
         }
 
-        myAdbCrashed = false;
+        myDdmlib.setAdbCrashed(false);
 
         if (!finished) {
           final String adbErrorString = combine(AdbErrors.getErrors());
@@ -276,13 +259,12 @@ public class AndroidSdkData {
                                                  Messages.getErrorIcon());
           if (result == 2) {
             // cancel
-            myAdbCrashed = true;
-            forceInterrupt(t);
+            myDdmlib.setAdbCrashed(true);
             return false;
           }
           else if (result == 1) {
             // restart
-            myAdbCrashed = true;
+            myDdmlib.setAdbCrashed(true);
             retryWas = true;
           }
         }
@@ -310,72 +292,6 @@ public class AndroidSdkData {
     return builder.toString();
   }
 
-  @SuppressWarnings({"BusyWait"})
-  private static void forceInterrupt(Thread thread) {
-    /*
-      ddmlib has incorrect handling of InterruptedException, so we need to invoke it several times,
-      because there are three blocking invokation in succession
-    */
-
-    for (int i = 0; i < 6 && thread.isAlive(); i++) {
-      thread.interrupt();
-      try {
-        Thread.sleep(200);
-      }
-      catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-
-  private void doInitializeDdmlib() {
-    doInitializeDdmlib(getAdbPath());
-  }
-
-  private static void doInitializeDdmlib(@NotNull String adbPath) {
-    synchronized (myDdmsLock) {
-      if (!myDdmLibInitialized) {
-        myDdmLibInitialized = true;
-        ourDdmLibTerminated = false;
-        DdmPreferences.setLogLevel(Log.LogLevel.INFO.getStringValue());
-        DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
-        AndroidDebugBridge.init(AndroidEnableAdbServiceAction.isAdbServiceEnabled());
-        LOG.info("DDMLib initialized");
-        final AndroidDebugBridge bridge = AndroidDebugBridge.createBridge(adbPath, true);
-        waitUntilConnect(bridge);
-        if (!bridge.isConnected()) {
-          LOG.info("Failed to connect debug bridge");
-        }
-      }
-      else {
-        final AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
-        final boolean forceRestart = myAdbCrashed || (bridge != null && !bridge.isConnected());
-        if (forceRestart) {
-          LOG.info("Restart debug bridge: " + (myAdbCrashed ? "crashed" : "disconnected"));
-        }
-        final AndroidDebugBridge newBridge = AndroidDebugBridge.createBridge(adbPath, forceRestart);
-        waitUntilConnect(newBridge);
-        if (!newBridge.isConnected()) {
-          LOG.info("Failed to connect debug bridge after restart");
-        }
-      }
-    }
-  }
-
-  private static void waitUntilConnect(@NotNull AndroidDebugBridge bridge) {
-    while (!bridge.isConnected() && !Thread.currentThread().isInterrupted() && !ourDdmLibTerminated) {
-      synchronized (myDdmsLock) {
-        try {
-          myDdmsLock.wait(1000);
-        }
-        catch (InterruptedException e) {
-          LOG.debug(e);
-          return;
-        }
-      }
-    }
-  }
-
   private String getAdbPath() {
     String path = getLocation() + File.separator + SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER + SdkConstants.FN_ADB;
     if (!new File(path).exists()) {
@@ -391,14 +307,7 @@ public class AndroidSdkData {
   }
 
   public static void terminateDdmlib() {
-    synchronized (myDdmsLock) {
-      ourDdmLibTerminated = true;
-      myDdmsLock.notifyAll();
-      AndroidDebugBridge.disconnectBridge();
-      AndroidDebugBridge.terminate();
-      LOG.info("DDMLib terminated");
-      myDdmLibInitialized = false;
-    }
+    myDdmlib.terminate();
   }
 
   @Nullable
@@ -442,29 +351,23 @@ public class AndroidSdkData {
 
   private static class MyInitializeDdmlibTask extends Task.Modal {
     private final Object myLock = new Object();
-    private volatile boolean myFinished;
+    private final Ddmlib myDdmlib;
     private volatile boolean myCanceled;
 
-    public MyInitializeDdmlibTask(Project project) {
+    public MyInitializeDdmlibTask(Project project, Ddmlib ddmlib) {
       super(project, "Waiting for ADB", true);
+      myDdmlib = ddmlib;
     }
 
     public boolean isFinished() {
       synchronized (myLock) {
-        return myFinished;
+        return myDdmlib.isConnected();
       }
     }
 
     public boolean isCanceled() {
       synchronized (myLock) {
         return myCanceled;
-      }
-    }
-
-    public void finish() {
-      synchronized (myLock) {
-        myFinished = true;
-        myLock.notifyAll();
       }
     }
 
@@ -484,7 +387,7 @@ public class AndroidSdkData {
 
         final long timeout = 10000;
 
-        while (!myFinished && !myCanceled && !indicator.isCanceled()) {
+        while (myDdmlib.isConnectionInProgress() && !myCanceled && !indicator.isCanceled()) {
           long wastedTime = System.currentTimeMillis() - startTime;
           if (wastedTime >= timeout) {
             break;
