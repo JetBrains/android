@@ -401,10 +401,16 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   private static void handleBuildException(BuildException e, CompileContext context, String stdErr) throws ProjectBuildException {
     Collection<GradleMessage> compilerMessages = new BuildOutputParser().parseGradleOutput(stdErr);
     if (!compilerMessages.isEmpty()) {
+      boolean hasError = false;
       for (GradleMessage message : compilerMessages) {
+        if (message.getKind() == GradleMessage.Kind.ERROR) {
+          hasError = true;
+        }
         context.processMessage(AndroidGradleJps.createCompilerMessage(message));
       }
-      return;
+      if (hasError) {
+        return;
+      }
     }
     // There are no error messages to present. Show some feedback indicating that something went wrong.
     if (!stdErr.isEmpty()) {
