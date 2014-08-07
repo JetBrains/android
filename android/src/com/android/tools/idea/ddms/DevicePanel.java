@@ -86,18 +86,13 @@ public class DevicePanel implements Disposable,
     myDeviceContext = context;
     Disposer.register(myProject, this);
 
-    if (!AndroidSdkUtils.activateDdmsIfNecessary(project, new Computable<AndroidDebugBridge>() {
-      @Nullable
-      @Override
-      public AndroidDebugBridge compute() {
-        return AndroidSdkUtils.getDebugBridge(myProject);
-      }
-    })) {
+    BridgeProvider bridgeProvider = new BridgeProvider(myProject);
+    if (!AndroidSdkUtils.activateDdmsIfNecessary(project, bridgeProvider)) {
       myBridge = null;
       return;
     }
 
-    myBridge = AndroidSdkUtils.getDebugBridge(myProject);
+    myBridge = bridgeProvider.compute();
     if (myBridge == null) {
       return;
     }
@@ -344,5 +339,26 @@ public class DevicePanel implements Disposable,
     group.add(new ToggleAllocationTrackingAction(myDeviceContext));
 
     return group;
+  }
+
+  private static class BridgeProvider implements Computable<AndroidDebugBridge> {
+    private boolean myFirstCompute = true;
+    private final Project myProject;
+    private AndroidDebugBridge myBridge;
+
+    public BridgeProvider(Project project) {
+      myProject = project;
+    }
+
+    @Nullable
+    @Override
+    public AndroidDebugBridge compute() {
+      boolean bridgeDisconnected = myBridge != null && !myBridge.isConnected();
+      if (myFirstCompute || bridgeDisconnected) {
+        myFirstCompute = false;
+        myBridge = AndroidSdkUtils.getDebugBridge(myProject);
+      }
+      return myBridge;
+    }
   }
 }
