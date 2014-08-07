@@ -37,7 +37,7 @@ public class AndroidDrawableDomUtil {
   public static final Map<String, String> SPECIAL_STYLEABLE_NAMES = new HashMap<String, String>();
   private static final String[] DRAWABLE_ROOTS_V1 =
     new String[]{"selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition", "inset", "clip", "scale", "shape",
-      "animation-list", "animated-rotate", "rotate"};
+      "animation-list", "animated-rotate", "rotate", "color"};
   private static final String[] DRAWABLE_ROOTS_V20 =
     new String[]{ "ripple", "animated-selector"
       // Being considered:
@@ -64,6 +64,8 @@ public class AndroidDrawableDomUtil {
     SPECIAL_STYLEABLE_NAMES.put("size", "GradientDrawableSize");
     SPECIAL_STYLEABLE_NAMES.put("solid", "GradientDrawableSolid");
     SPECIAL_STYLEABLE_NAMES.put("stroke", "GradientDrawableStroke");
+    SPECIAL_STYLEABLE_NAMES.put("transition", "LayerDrawable"); // Transition extends LayerDrawable, doesn't define its own styleable
+    SPECIAL_STYLEABLE_NAMES.put(ColorDrawableDomFileDescription.TAG, "ColorDrawable");
   }
 
   private AndroidDrawableDomUtil() {
