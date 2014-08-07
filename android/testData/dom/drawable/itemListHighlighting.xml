@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <item android:state_activated="true" tools:ignore="NewApi,UnusedAttribute">
+        <selector />
+        <animated-selector android:fromId="@+id/from" android:toId="@+id/to" />
+        <level-list />
+        <layer-list />
+        <transition />
+        <ripple android:color="#44ffaa" />
+        <color android:color="#aa00aa" />
+        <shape />
+        <!-- Being considered: <vector />-->
+        <scale />
+        <clip />
+        <rotate />
+        <animated-rotate />
+        <animation-list />
+        <inset />
+        <<error descr="'src' attribute should be defined">bitmap</error> />
+    </item>
+</selector>
