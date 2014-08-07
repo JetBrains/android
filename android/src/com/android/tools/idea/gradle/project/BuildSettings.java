@@ -25,7 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class BuildSettings {
   private static final Key<BuildMode> PROJECT_BUILD_MODE_KEY = Key.create("android.gradle.project.build.mode");
-  private static final Key<String[]> SELECTED_MODULE_NAMES_KEY = Key.create("android.gradle.project.selected.module.names");
+  private static final Key<Module[]> SELECTED_MODULE_NAMES_KEY = Key.create("android.gradle.project.selected.module.names");
+  private static final Key<String> RUN_CONFIGURATION_TYPE_ID = Key.create("android.gradle.project.run.configuration.type.id");
 
   @NotNull private final Project myProject;
 
@@ -41,6 +42,7 @@ public class BuildSettings {
   public void removeAll() {
     setModulesToBuild(null);
     setBuildMode(null);
+    setRunConfigurationTypeId(null);
   }
 
   @Nullable
@@ -52,21 +54,21 @@ public class BuildSettings {
     myProject.putUserData(PROJECT_BUILD_MODE_KEY, action);
   }
 
-  public void setModulesToBuild(@Nullable Module[] modules) {
-    String[] moduleNames = null;
-    if (modules != null) {
-      int moduleCount = modules.length;
-      moduleNames = new String[moduleCount];
-      for (int i = 0; i < moduleCount; i++) {
-        moduleNames[i] = modules[i].getName();
-      }
-    }
-    myProject.putUserData(SELECTED_MODULE_NAMES_KEY, moduleNames);
-  }
-
   @Nullable
-  public String[] getModulesToBuildNames() {
+  public Module[] getModulesToBuild() {
     return myProject.getUserData(SELECTED_MODULE_NAMES_KEY);
   }
 
+  public void setModulesToBuild(@Nullable Module[] modules) {
+    myProject.putUserData(SELECTED_MODULE_NAMES_KEY, modules);
+  }
+
+  @Nullable
+  public String getRunConfigurationTypeId() {
+    return myProject.getUserData(RUN_CONFIGURATION_TYPE_ID);
+  }
+
+  public void setRunConfigurationTypeId(@Nullable String id) {
+    myProject.putUserData(RUN_CONFIGURATION_TYPE_ID, id);
+  }
 }

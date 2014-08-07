@@ -20,12 +20,17 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.compiler.CompilerMessageCategory;
+import com.intellij.openapi.compiler.CompilerMessage;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static com.intellij.openapi.compiler.CompilerMessageCategory.ERROR;
+import static com.intellij.openapi.compiler.CompilerMessageCategory.INFORMATION;
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -33,6 +38,8 @@ import static org.fest.assertions.Assertions.assertThat;
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=73640">73640</a>.
  */
 public class MultipleModuleTypeCompilationTest extends GuiTestCase {
+  private static final Pattern JPS_EXECUTING_TASKS_MSG_PATTERN = Pattern.compile("Gradle: Executing tasks: \\[(.*)\\]");
+
   @Test @IdeGuiTest
   public void testAssembleTaskIsNotInvokedForLocalAarModule() throws IOException {
     IdeFrameFixture ideFrame = importProject("MultipleModuleTypes");
@@ -45,9 +52,22 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
     IdeFrameFixture ideFrame = importProject("MultipleModuleTypes");
-
     CompileContext context = ideFrame.invokeProjectMakeUsingJps();
-    int errorCount = context.getMessageCount(CompilerMessageCategory.ERROR);
-    assertThat(errorCount).isGreaterThan(0);
+
+    String[] invokedTasks = null;
+    for (CompilerMessage msg : context.getMessages(INFORMATION)) {
+      String text = msg.getMessage();
+      Matcher matcher = JPS_EXECUTING_TASKS_MSG_PATTERN.matcher(text);
+      if (matcher.matches()) {
+        String allTasks = matcher.group(1);
+        invokedTasks = allTasks.split(", ");
+        break;
+      }
+    }
+    // In JPS we cannot call "compileJava" because in JPS "Make" means "assemble".
+    assertThat(invokedTasks).containsOnly(":app:assembleDebug", ":javaLib:assemble");
+
+    int errorCount = context.getMessageCount(ERROR);
+    assertEquals(0, errorCount);
   }
 }
