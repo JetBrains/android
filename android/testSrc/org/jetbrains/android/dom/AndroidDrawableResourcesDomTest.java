@@ -79,6 +79,14 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
     doTestCompletion();
   }
 
+  public void testSelectorHighlighting() throws Throwable {
+    doTestHighlighting();
+  }
+
+  public void testItemListHighlighting() throws Throwable {
+    doTestHighlighting();
+  }
+
   public void testBitmapHighlighting1() throws Throwable {
     doTestHighlighting();
   }
@@ -293,7 +301,7 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
 
   public void testRootTagCompletion() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition",
-                             "inset", "clip", "scale", "shape", "animation-list", "animated-rotate", "rotate");
+                             "inset", "clip", "color", "scale", "shape", "animation-list", "animated-rotate", "rotate");
   }
 
   public void testInlineClip() throws Throwable {
