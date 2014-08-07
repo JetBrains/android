@@ -43,6 +43,8 @@ public class AndroidInitialConfigurator {
   @NonNls private static final String CONFIG_V1 = "AndroidInitConfigurator.V1";
   @NonNls private static final String CONFIG_V2 = "AndroidInitConfigurator.V2";
   @NonNls private static final String CONFIG_V3 = "AndroidInitConfigurator.V3";
+  @NonNls private static final String CONFIG_V4 = "AndroidInitConfigurator.V4";
+
   @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
   @SuppressWarnings("SpellCheckingInspection")
@@ -81,11 +83,16 @@ public class AndroidInitialConfigurator {
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
-    if (!propertiesComponent.getBoolean(CONFIG_V3, false)) {
-      propertiesComponent.setValue(CONFIG_V3, "true");
-      // See http://youtrack.jetbrains.com/issue/IDEA-113332
-      // It's not really fixed but worked around by turning off the =-quoting
-      WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
+    if (!propertiesComponent.getBoolean(CONFIG_V4, false)) {
+      propertiesComponent.setValue(CONFIG_V4, "true");
+      UISettings.getInstance().HIDE_TOOL_STRIPES = false;
+
+      if (!propertiesComponent.getBoolean(CONFIG_V3, false)) {
+        propertiesComponent.setValue(CONFIG_V3, "true");
+        // See http://youtrack.jetbrains.com/issue/IDEA-113332
+        // It's not really fixed but worked around by turning off the =-quoting
+        WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
+      }
 
       if (!propertiesComponent.getBoolean(CONFIG_V1, false)) {
         propertiesComponent.setValue(CONFIG_V1, "true");
