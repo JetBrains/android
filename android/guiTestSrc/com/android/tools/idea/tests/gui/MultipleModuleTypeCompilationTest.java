@@ -19,6 +19,8 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompilerMessageCategory;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -38,5 +40,14 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
     assertThat(invokedTasks).containsOnly(":app:compileDebugJava", ":javaLib:compileJava");
+  }
+
+  @Test @IdeGuiTest
+  public void testAssembleTaskIsNotInvokedForLocalAarModuleOnJps() throws IOException {
+    IdeFrameFixture ideFrame = importProject("MultipleModuleTypes");
+
+    CompileContext context = ideFrame.invokeProjectMakeUsingJps();
+    int errorCount = context.getMessageCount(CompilerMessageCategory.ERROR);
+    assertThat(errorCount).isGreaterThan(0);
   }
 }
