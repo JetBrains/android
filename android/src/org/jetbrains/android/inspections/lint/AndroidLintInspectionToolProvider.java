@@ -1172,6 +1172,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintCustomViewStyleableInspection extends AndroidLintInspectionBase {
+    public AndroidLintCustomViewStyleableInspection() {
+      super(AndroidBundle.message("android.lint.inspections.custom.view.styleable"), CustomViewDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintCutPasteIdInspection extends AndroidLintInspectionBase {
     public AndroidLintCutPasteIdInspection() {
       super(AndroidBundle.message("android.lint.inspections.cut.paste.id"), CutPasteDetector.ISSUE);
