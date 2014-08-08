@@ -321,7 +321,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         }
         if (target == null) {
           AndroidVersion androidVersion = new AndroidVersion(targetItem.apiLevel, null);
-          if (!myInstalledVersions.contains(androidVersion) && myState.get(getInclusionKey(formFactor))) {
+          if (myHighestInstalledApiTarget == null ||
+              androidVersion.getApiLevel() > myHighestInstalledApiTarget.getVersion().getApiLevel() &&
+              !myInstalledVersions.contains(androidVersion) &&
+              myState.get(getInclusionKey(formFactor))) {
             IPkgDesc platformDescription =
               PkgDesc.Builder.newPlatform(androidVersion, new MajorRevision(1), FullRevision.NOT_SPECIFIED).create();
             myState.listPush(INSTALL_REQUESTS_KEY, platformDescription);
