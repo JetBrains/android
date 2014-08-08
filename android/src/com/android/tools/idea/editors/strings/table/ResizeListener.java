@@ -19,10 +19,10 @@ import javax.swing.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-public class TableResizeListener extends ComponentAdapter {
+public class ResizeListener extends ComponentAdapter {
   private final JTable myTable;
 
-  public TableResizeListener(JTable table) {
+  public ResizeListener(JTable table) {
     myTable = table;
   }
 
@@ -31,7 +31,7 @@ public class TableResizeListener extends ComponentAdapter {
     // If necessary, grows the table to fill the viewport.
     // Does not trigger when the user drags a column to resize (taken care of by ColumnResizeListener).
     if (myTable.getTableHeader().getResizingColumn() == null) {
-      StringResourceTableUtil.expandToViewportWidthIfNecessary(myTable, -1);
+      ColumnUtil.expandToViewportWidthIfNecessary(myTable, -1);
     }
   }
 }

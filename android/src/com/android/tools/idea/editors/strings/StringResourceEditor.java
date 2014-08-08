@@ -16,17 +16,12 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.rendering.LocalResourceRepositoryAsVirtualFile;
-import com.android.tools.idea.rendering.StringResourceData;
-import com.android.tools.idea.rendering.StringResourceParser;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -42,26 +37,26 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   public static final String NAME = "String Resource Editor";
 
   private final Project myProject;
-  private final LocalResourceRepositoryAsVirtualFile myRepositoryFile;
   private final StringResourceViewPanel myViewPanel;
-
-  private long myModificationCount;
+  private final StringResourceDataController myController;
 
   public StringResourceEditor(@NotNull Project project, @NotNull VirtualFile repositoryFile) {
     myProject = project;
-    myRepositoryFile = (LocalResourceRepositoryAsVirtualFile) repositoryFile;
     myViewPanel = new StringResourceViewPanel();
-    parseStringResourceDataInBackground();
+    myController = new StringResourceDataController(this, (LocalResourceRepositoryAsVirtualFile)repositoryFile);
   }
 
-  private void parseStringResourceDataInBackground() {
-    final Task.Modal parseTask = new ParseTask("Parsing string resource data");
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        parseTask.queue();
-      }
-    });
+  @NotNull
+  Project getProject() {
+    return myProject;
+  }
+
+  void onDataInitialized() {
+    myViewPanel.initDataController(myController);
+  }
+
+  void onDataUpdated() {
+    myViewPanel.onDataUpdated();
   }
 
   @NotNull
@@ -105,14 +100,8 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @Override
   public void selectNotify() {
     // TODO Doesn't refresh if a strings.xml file is deleted while the editor is visible
-    if (myModificationCount != myRepositoryFile.getModificationCount()) {
-      final Task.Modal parseTask = new ParseTask("Updating string resource data");
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          parseTask.queue();
-        }
-      });
+    if (!myController.dataIsCurrent()) {
+      myController.updateData();
     }
   }
 
@@ -148,25 +137,5 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   @Override
   public void dispose() {
-  }
-
-  private class ParseTask extends Task.Modal {
-    private StringResourceData myData;
-
-    public ParseTask(@NotNull String title) {
-      super(StringResourceEditor.this.myProject, title, false);
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      indicator.setIndeterminate(true);
-      myModificationCount = myRepositoryFile.getModificationCount();
-      myData = StringResourceParser.parse(myRepositoryFile.getRepository());
-    }
-
-    @Override
-    public void onSuccess() {
-      myViewPanel.setStringResourceData(myData);
-    }
   }
 }
