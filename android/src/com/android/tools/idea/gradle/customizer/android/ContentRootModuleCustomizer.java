@@ -202,8 +202,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidProject) {
     File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-    ContentEntry parentContentEntry = findParentContentEntry(contentEntries, buildFolderPath);
-    assert parentContentEntry != null;
+    ContentEntry parentContentEntry = FilePaths.findParentContentEntry(buildFolderPath, contentEntries);
+    if (parentContentEntry == null) {
+      return;
+    }
 
     // Explicitly exclude the output folders created by the Android Gradle plug-in
     for (String folderName : EXCLUDED_OUTPUT_FOLDER_NAMES) {
