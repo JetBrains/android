@@ -253,6 +253,12 @@ public class DeviceArtDescriptor {
       return false;
     }
 
+    // Don't support framing images smaller than our screen size (we don't want to stretch the image)
+    Dimension screenSize = getArtDescriptor(orientation).getScreenSize();
+    if (image.getWidth() < screenSize.getWidth() || image.getHeight() < screenSize.getHeight()) {
+      return false;
+    }
+
     // Make sure that the aspect ratio is nearly identical to the image aspect ratio
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     double descriptorAspectRatio = getAspectRatio(orientation);
