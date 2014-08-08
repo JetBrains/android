@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.res2.ResourceItem;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -32,12 +36,12 @@ public class StringResourceData {
   // The locales for which a translation of at least one string exists
   private final List<Locale> myLocales;
   // Map from string names to default values.  Does not contain entries for strings without default values.
-  private final Map<String,String> myDefaultValues;
+  private final Map<String, ResourceItem> myDefaultValues;
   // Map from (string name, locale) pairs to translations.  Does not contain entries for missing translations.
-  private final Table<String, Locale, String> myTranslations;
+  private final Table<String, Locale, ResourceItem> myTranslations;
 
   public StringResourceData(@NotNull List<String> keys, @NotNull List<String> untranslatableKeys, @NotNull List<Locale> locales,
-                            @NotNull Map<String,String> defaultValues, @NotNull Table<String, Locale, String> translations) {
+                            @NotNull Map<String, ResourceItem> defaultValues, @NotNull Table<String, Locale, ResourceItem> translations) {
     myKeys = ImmutableList.copyOf(keys);
     myUntranslatableKeys = ImmutableList.copyOf(untranslatableKeys);
     myLocales = ImmutableList.copyOf(locales);
@@ -61,12 +65,27 @@ public class StringResourceData {
   }
 
   @NotNull
-  public Map<String, String> getDefaultValues() {
+  public Map<String, ResourceItem> getDefaultValues() {
     return myDefaultValues;
   }
 
   @NotNull
-  public Table<String, Locale, String> getTranslations() {
+  public Table<String, Locale, ResourceItem> getTranslations() {
     return myTranslations;
+  }
+
+  @NotNull
+  public static String resourceToString(@NotNull ResourceItem item) {
+    ResourceValue value = item.getResourceValue(false);
+    return value == null ? "" : value.getRawXmlValue().trim();
+  }
+
+  @Nullable
+  static XmlTag resourceToXmlTag(@NotNull ResourceItem item) {
+    if (item instanceof PsiResourceItem) {
+      XmlTag tag = ((PsiResourceItem) item).getTag();
+      return tag != null && tag.isValid() ? tag : null;
+    }
+    return null;
   }
 }

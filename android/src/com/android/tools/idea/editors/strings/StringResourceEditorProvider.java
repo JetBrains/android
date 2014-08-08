@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.AndroidPsiUtils;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.LocalResourceRepositoryAsVirtualFile;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,22 +27,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class StringResourceEditorProvider implements FileEditorProvider, DumbAware {
   public static final String ID = "string-resource-editor";
 
-  public static boolean canViewTranslations(@NotNull Project project, @NotNull VirtualFile file) {
+  public static boolean canViewTranslations(@NotNull VirtualFile file) {
     if (Boolean.getBoolean("STRINGS_EDITOR")) {
-      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, file);
-      if (psiFile instanceof XmlFile
-          && ResourceHelper.getResourceName(file).equals("strings")
-          && ResourceHelper.getFolderType(file) == ResourceFolderType.VALUES) {
-        return true;
-      }
+      return file.getName().equals(AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING)) &&
+             ResourceHelper.getFolderType(file) == ResourceFolderType.VALUES;
     }
     return false;
   }
@@ -59,6 +54,7 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
       return;
     }
     vf.setIcon(StringResourceEditor.ICON);
+    vf.setProject(project);
     vf.setName(StringResourceEditor.NAME);
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
