@@ -21,9 +21,7 @@ import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleBuilds;
-import com.android.tools.idea.gradle.util.GradleBuilds.*;
 import com.android.tools.idea.jps.AndroidGradleJps;
-import com.android.tools.idea.jps.model.JpsAndroidGradleModuleExtension;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
@@ -39,14 +37,10 @@ import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.model.JpsAndroidSdkProperties;
 import org.jetbrains.jps.android.model.JpsAndroidSdkType;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import org.jetbrains.jps.builders.BuildOutputConsumer;
 import org.jetbrains.jps.builders.DirtyFilesHolder;
-import org.jetbrains.jps.builders.java.JavaBuilderUtil;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.TargetBuilder;
@@ -65,7 +59,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -107,15 +100,16 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
     LOG.info("Using execution settings: " + executionSettings);
 
-
-    String[] buildTasks = getBuildTasks(project, context, executionSettings);
-    if (buildTasks.length == 0) {
+    List<String> buildTasks = executionSettings.getGradleTasksToInvoke();
+    if (buildTasks.isEmpty()) {
       String format = "No build tasks found for project '%1$s'. Nothing done.";
       LOG.info(String.format(format, project.getName()));
       return;
     }
 
-    String msg = "Gradle build using tasks: " + Arrays.toString(buildTasks);
+    context.processMessage(AndroidGradleJps.createCompilerMessage(BuildMessage.Kind.INFO, "Executing tasks: " + buildTasks));
+
+    String msg = "Gradle build using tasks: " + buildTasks;
     context.processMessage(new ProgressMessage(msg));
     LOG.info(msg);
 
@@ -140,106 +134,6 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
                                                                             "Unfortunately you can't have non-Gradle Java module and Android-Gradle module in one project."));
       }
     }
-  }
-
-  @NotNull
-  private static String[] getBuildTasks(@NotNull JpsProject project,
-                                        @NotNull CompileContext context,
-                                        @NotNull BuilderExecutionSettings executionSettings) {
-    BuildMode buildMode = executionSettings.getBuildMode();
-
-    if (buildMode == BuildMode.ASSEMBLE_TRANSLATE) {
-      return new String[] { GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME };
-    }
-
-    boolean isCleanBuildMode = (buildMode == BuildMode.CLEAN);
-
-    List<String> tasks = Lists.newArrayList();
-
-    List<JpsModule> modulesToBuild = getModulesToBuild(project, executionSettings);
-    if (modulesToBuild.isEmpty()) {
-      tasks.add(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME);
-    }
-    else {
-      BuildMode tempBuildMode = buildMode;
-      if (isCleanBuildMode) {
-        // "Clean" also generates sources.
-        tempBuildMode = BuildMode.SOURCE_GEN;
-      }
-      for (JpsModule module : modulesToBuild) {
-        populateBuildTasks(module, tempBuildMode, tasks, context);
-      }
-    }
-
-    // Add 'clean' task first if build mode is 'clean' or 'rebuild'.
-    if (isCleanBuildMode || (!tasks.isEmpty() && JavaBuilderUtil.isForcedRecompilationAllJavaModules(context))) {
-      tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
-    }
-
-    return ArrayUtil.toStringArray(tasks);
-  }
-
-  @NotNull
-  private static List<JpsModule> getModulesToBuild(@NotNull JpsProject project, @NotNull BuilderExecutionSettings executionSettings) {
-    List<JpsModule> modules = project.getModules();
-    List<String> moduleNames = executionSettings.getModulesToBuildNames();
-    if (moduleNames.isEmpty()) {
-      if (isGradleProject(modules)) {
-        return Collections.emptyList();
-      }
-      return modules;
-    }
-    List<JpsModule> modulesToBuild = Lists.newArrayList();
-    for (JpsModule module : modules) {
-      if (GradleBuilds.BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
-        // "buildSrc" is a special case handled automatically by Gradle.
-        continue;
-      }
-      if (moduleNames.contains(module.getName())) {
-        modulesToBuild.add(module);
-      }
-    }
-    return modulesToBuild;
-  }
-
-  private static boolean isGradleProject(@NotNull List<JpsModule> modules) {
-    for (JpsModule module : modules) {
-      JpsAndroidModuleProperties properties = getAndroidModuleProperties(module);
-      if (properties != null && !properties.ALLOW_USER_CONFIGURATION) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Nullable
-  private static JpsAndroidModuleProperties getAndroidModuleProperties(@NotNull JpsModule module) {
-    JpsAndroidModuleExtensionImpl androidFacet = (JpsAndroidModuleExtensionImpl)AndroidJpsUtil.getExtension(module);
-    return androidFacet != null ? androidFacet.getProperties() : null;
-  }
-
-  private static void populateBuildTasks(@NotNull JpsModule module,
-                                         @NotNull BuildMode buildMode,
-                                         @NotNull List<String> tasks,
-                                         CompileContext context) {
-    JpsAndroidGradleModuleExtension androidGradleFacet = AndroidGradleJps.getExtension(module);
-    if (androidGradleFacet == null) {
-      return;
-    }
-    String gradleProjectPath = androidGradleFacet.getProperties().GRADLE_PROJECT_PATH;
-    JpsAndroidModuleProperties properties = getAndroidModuleProperties(module);
-
-    GradleBuilds.findAndAddBuildTask(module.getName(), buildMode, gradleProjectPath, properties, tasks, getTestCompileType(context));
-  }
-
-  private static TestCompileType getTestCompileType(CompileContext context) {
-    if (AndroidJpsUtil.isJunitTestContext(context)) {
-      return TestCompileType.JAVA_TESTS;
-    }
-    if (AndroidJpsUtil.isInstrumentationTestContext(context)) {
-      return TestCompileType.ANDROID_TESTS;
-    }
-    return TestCompileType.NONE;
   }
 
   private static void ensureTempDirExists() {
@@ -286,7 +180,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
   }
 
   private static void doBuild(@NotNull CompileContext context,
-                              @NotNull String[] buildTasks,
+                              @NotNull List<String> buildTasks,
                               @NotNull BuilderExecutionSettings executionSettings,
                               @Nullable String androidHome) throws ProjectBuildException {
     GradleConnector connector = getGradleConnector(executionSettings);
@@ -297,7 +191,7 @@ public class AndroidGradleTargetBuilder extends TargetBuilder<AndroidGradleBuild
 
     try {
       BuildLauncher launcher = connection.newBuild();
-      launcher.forTasks(buildTasks);
+      launcher.forTasks(ArrayUtil.toStringArray(buildTasks));
 
       List<String> jvmArgs = Lists.newArrayList();
       BuildMode buildMode = executionSettings.getBuildMode();

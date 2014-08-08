@@ -25,7 +25,9 @@ import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
+import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -223,35 +225,44 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public CompileContext invokeProjectMakeUsingJps() {
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(getProject());
+    final Project project = getProject();
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = false;
 
     final AtomicReference<CompileContext> contextRef = new AtomicReference<CompileContext>();
-    ProjectBuilder.getInstance(getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
+    CompilerManager compilerManager = CompilerManager.getInstance(project);
+
+    Disposable disposable = new NoOpDisposable();
+    compilerManager.addCompilationStatusListener(new CompilationStatusListener() {
       @Override
-      public void execute(@NotNull GradleInvocationResult result) {
+      public void compilationFinished(boolean aborted, int errors, int warnings, CompileContext compileContext) {
+        contextRef.set(compileContext);
       }
 
       @Override
-      public boolean execute(CompileContext context) {
-        contextRef.set(context);
-        return false;
+      public void fileGenerated(String outputRoot, String relativePath) {
       }
-    });
-    selectProjectMakeAction();
+    }, disposable);
 
-    pause(new Condition("Build (" + COMPILE_JAVA + ") for project " + quote(getProject().getName()) + " to finish'") {
-      @Override
-      public boolean test() {
-        CompileContext context = contextRef.get();
-        return context != null;
-      }
-    }, LONG_TIMEOUT);
+    try {
+      selectProjectMakeAction();
 
-    CompileContext context = contextRef.get();
-    assertNotNull(context);
+      pause(new Condition("Build (" + COMPILE_JAVA + ") for project " + quote(project.getName()) + " to finish'") {
+        @Override
+        public boolean test() {
+          CompileContext context = contextRef.get();
+          return context != null;
+        }
+      }, LONG_TIMEOUT);
 
-    return context;
+      CompileContext context = contextRef.get();
+      assertNotNull(context);
+
+      return context;
+    }
+    finally {
+      Disposer.dispose(disposable);
+    }
   }
 
   protected void selectProjectMakeAction() {

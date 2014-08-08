@@ -22,6 +22,7 @@ import com.intellij.compiler.impl.BuildTargetScopeProvider;
 import com.intellij.compiler.impl.CompositeScope;
 import com.intellij.compiler.impl.ModuleCompileScope;
 import com.intellij.compiler.impl.ProjectCompileScope;
+import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompilerFilter;
 import com.intellij.openapi.module.Module;
@@ -51,6 +52,10 @@ public class AndroidGradleBuildTargetScopeProvider extends BuildTargetScopeProvi
       return Collections.emptyList();
     }
     BuildSettings buildSettings = BuildSettings.getInstance(project);
+
+    String runConfigurationTypeId = baseScope.getUserData(CompileStepBeforeRun.RUN_CONFIGURATION_TYPE_ID);
+    buildSettings.setRunConfigurationTypeId(runConfigurationTypeId);
+
     if (baseScope instanceof ProjectCompileScope) {
       // Make or Rebuild project
       BuildMode buildMode = forceBuild ? BuildMode.REBUILD : BuildMode.ASSEMBLE;
