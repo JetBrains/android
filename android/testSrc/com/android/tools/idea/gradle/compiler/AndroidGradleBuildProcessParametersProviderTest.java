@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.compiler;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange;
@@ -79,7 +80,6 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.home.path=~" + File.separatorChar + "gradle-1.6"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.use.verbose.logging=true"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.service.dir.path=~." + File.separatorChar + "gradle"));
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.count=2"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.0=-Xmx2048m"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.daemon.jvm.option.1=-XX:MaxPermSize=512m"));
     String javaHomeDirPath = myJdk.getHomePath();
@@ -96,27 +96,17 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     List<String> jvmArgs = Lists.newArrayList();
     AndroidGradleBuildProcessParametersProvider.populateHttpProxyProperties(jvmArgs, properties);
 
-    assertEquals(3, jvmArgs.size());
-    assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.count=2"));
+    assertEquals(2, jvmArgs.size());
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.0=http.proxyHost:proxy.android.com"));
     assertTrue(jvmArgs.contains("-Dcom.android.studio.gradle.proxy.property.1=http.proxyPort:8080"));
   }
 
-  public void testPopulateModulesToBuildWithModuleNames() {
+  public void testPopulateGradleTasksToInvokeWithAssembleTranslate() {
     BuildSettings.getInstance(myProject).setModulesToBuild(new Module[] {myModule});
     List<String> jvmArgs = Lists.newArrayList();
-    myParametersProvider.populateModulesToBuild(BuildMode.CLEAN, jvmArgs);
-    assertEquals(2, jvmArgs.size());
-    assertEquals("-Dcom.android.studio.gradle.modules.count=1", jvmArgs.get(0));
-    assertEquals("-Dcom.android.studio.gradle.modules.0=" + myModule.getName(), jvmArgs.get(1));
-  }
-
-  public void testPopulateModulesToBuildWithAssembleTranslate() {
-    BuildSettings.getInstance(myProject).setModulesToBuild(new Module[] {myModule});
-    List<String> jvmArgs = Lists.newArrayList();
-    myParametersProvider.populateModulesToBuild(BuildMode.ASSEMBLE_TRANSLATE, jvmArgs);
+    myParametersProvider.populateGradleTasksToInvoke(BuildMode.ASSEMBLE_TRANSLATE, jvmArgs);
     assertEquals(1, jvmArgs.size());
-    assertEquals("-Dcom.android.studio.gradle.modules.count=0", jvmArgs.get(0));
+    assertEquals("-Dcom.android.studio.gradle.gradle.tasks.0=" + GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME, jvmArgs.get(0));
   }
 
   public void testPopulateJvmArgsWithBuildConfiguration() {
@@ -125,11 +115,10 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     GradleSettings.getInstance(myProject).setOfflineWork(true);
     List<String> jvmArgs = Lists.newArrayList();
     AndroidGradleBuildProcessParametersProvider.populateJvmArgs(configuration, jvmArgs, myProject);
-    assertEquals(5, jvmArgs.size());
+    assertEquals(4, jvmArgs.size());
     assertEquals("-Dcom.android.studio.gradle.offline.mode=true", jvmArgs.get(0));
     assertEquals("-Dcom.android.studio.gradle.configuration.on.demand=true", jvmArgs.get(1));
-    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.count=2", jvmArgs.get(2));
-    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.0=--stacktrace", jvmArgs.get(3));
-    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.1=--offline", jvmArgs.get(4));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.0=--stacktrace", jvmArgs.get(2));
+    assertEquals("-Dcom.android.studio.gradle.daemon.command.line.option.1=--offline", jvmArgs.get(3));
   }
 }
