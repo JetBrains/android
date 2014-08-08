@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LanguageQualifier;
@@ -35,8 +34,8 @@ public class StringResourceParser {
     final Set<String> untranslatableKeys = Sets.newHashSet();
     // Uses a tree set to sort the locales by language code
     final Set<Locale> locales = Sets.newTreeSet(Locale.LANGUAGE_CODE_COMPARATOR);
-    Map<String,String> defaultValues = Maps.newHashMapWithExpectedSize(keys.size());
-    Table<String, Locale, String> translations = HashBasedTable.create();
+    Map<String, ResourceItem> defaultValues = Maps.newHashMapWithExpectedSize(keys.size());
+    Table<String, Locale, ResourceItem> translations = HashBasedTable.create();
     for (String key : keys) {
       List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
       if (items == null) {
@@ -52,13 +51,11 @@ public class StringResourceParser {
         FolderConfiguration config = item.getConfiguration();
         LanguageQualifier languageQualifier = config.getLanguageQualifier();
         if (languageQualifier == null) {
-          ResourceValue value = item.getResourceValue(false);
-          defaultValues.put(key, value == null ? "" : value.getRawXmlValue());
+          defaultValues.put(key, item);
         } else {
           Locale locale = Locale.create(languageQualifier, config.getRegionQualifier());
           locales.add(locale);
-          ResourceValue value = item.getResourceValue(false);
-          translations.put(key, locale, value == null ? "" : value.getRawXmlValue());
+          translations.put(key, locale, item);
         }
       }
     }

@@ -24,6 +24,10 @@ enum ConstantColumn {
   public final String name;
   public final Object sampleData;
 
+  public static boolean indexMatchesColumn(int index, ConstantColumn column) {
+    return index < COUNT && values()[index] == column;
+  }
+
   ConstantColumn(String name, Object sampleData) {
     this.name = name;
     this.sampleData = sampleData;

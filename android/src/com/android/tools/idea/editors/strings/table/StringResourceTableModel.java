@@ -16,66 +16,97 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.rendering.StringResourceData;
+import com.android.tools.idea.editors.strings.StringResourceDataController;
 import com.android.tools.idea.rendering.Locale;
-import com.google.common.collect.Table;
+import com.android.tools.idea.rendering.StringResourceData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.List;
-import java.util.Map;
 
 public class StringResourceTableModel extends AbstractTableModel {
-  private final List<String> myKeys;
-  private final List<String> myUntranslatableKeys;
-  private final List<Locale> myLocales;
-  private final Map<String, String> myDefaultValues;
-  private final Table<String, Locale, String> myTranslations;
+  private final StringResourceDataController myController;
 
-  public StringResourceTableModel(@NotNull StringResourceData data) {
-    myKeys = data.getKeys();
-    myUntranslatableKeys = data.getUntranslatableKeys();
-    myLocales = data.getLocales();
-    myDefaultValues = data.getDefaultValues();
-    myTranslations = data.getTranslations();
+  public StringResourceTableModel(@NotNull StringResourceDataController controller) {
+    myController = controller;
+  }
+
+  @NotNull
+  public StringResourceDataController getController() {
+    return myController;
+  }
+
+  @NotNull
+  public String keyOfRow(int row) {
+    return myController.getData().getKeys().get(row);
+  }
+
+  public int rowOfKey(@NotNull String key) {
+    return myController.getData().getKeys().indexOf(key);
+  }
+
+  @Nullable
+  public Locale localeOfColumn(int column) {
+    return column < ConstantColumn.COUNT ? null : myController.getData().getLocales().get(column - ConstantColumn.COUNT);
+  }
+
+  public int columnOfLocale(@NotNull Locale locale) {
+    int index = myController.getData().getLocales().indexOf(locale);
+    return index >= 0 ? index + ConstantColumn.COUNT : index;
   }
 
   @Override
   public int getRowCount() {
-    return myKeys.size();
+    return myController.getData().getKeys().size();
   }
 
   @Override
   public int getColumnCount() {
-    return myLocales.size() + ConstantColumn.COUNT;
+    return myController.getData().getLocales().size() + ConstantColumn.COUNT;
   }
 
+  @Override
+  public void setValueAt(Object value, int row, int column) {
+    String key = keyOfRow(row);
+    myController.selectData(key, null);
+    myController.saveCell(key, column);
+    myController.setUntranslatable((Boolean) value);
+  }
+
+  /**
+   * Gets a clipped version of the value at (row, column), appropriate for displaying in a single-line JTable cell.
+   * @param row The row index
+   * @param column The column index
+   * @return The clipped value
+   */
   @NotNull
   @Override
-  public Object getValueAt(int rowIndex, int columnIndex) {
-    return getClippedValue(rowIndex, columnIndex);
-  }
-
-  @NotNull
-  public Object getClippedValue(int rowIndex, int columnIndex) {
-    Object value = getValue(rowIndex, columnIndex);
+  public Object getValueAt(int row, int column) {
+    Object value = getValue(row, column);
     return value instanceof String ? clip(String.valueOf(value)) : value;
   }
 
+  /**
+   * Gets the value at (row, column), which may span multiple lines.
+   * @param row The row index
+   * @param column The column index
+   * @return The value
+   */
   @NotNull
-  public Object getValue(int rowIndex, int columnIndex) {
-    if (columnIndex >= ConstantColumn.COUNT) {
-        Locale locale = myLocales.get(columnIndex - ConstantColumn.COUNT);
-        return myTranslations.contains(myKeys.get(rowIndex), locale) ? myTranslations.get(myKeys.get(rowIndex), locale).trim() : "";
+  public Object getValue(int row, int column) {
+    if (column >= ConstantColumn.COUNT) {
+        Locale locale = localeOfColumn(column);
+        return myController.getData().getTranslations().contains(keyOfRow(row), locale)
+               ? StringResourceData.resourceToString(myController.getData().getTranslations().get(keyOfRow(row), locale)) : "";
     }
-    switch (ConstantColumn.values()[columnIndex]) {
+    switch (ConstantColumn.values()[column]) {
       case KEY:
-        return myKeys.get(rowIndex);
+        return keyOfRow(row);
       case DEFAULT_VALUE:
-        return myDefaultValues.containsKey(myKeys.get(rowIndex)) ? myDefaultValues.get(myKeys.get(rowIndex)).trim() : "";
+        return myController.getData().getDefaultValues().containsKey(keyOfRow(row))
+               ? StringResourceData.resourceToString(myController.getData().getDefaultValues().get(keyOfRow(row))) : "";
       case UNTRANSLATABLE:
-        return myUntranslatableKeys.contains(myKeys.get(rowIndex));
+        return myController.getData().getUntranslatableKeys().contains(keyOfRow(row));
       default:
         return "";
     }
@@ -83,7 +114,6 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   /**
    * Clips a value to a single line to fit in a default JTable cell
-   * TODO Take this out when we can handle multi-line values correctly
    */
   private static String clip(String str) {
     int end = str.indexOf('\n');
@@ -95,7 +125,7 @@ public class StringResourceTableModel extends AbstractTableModel {
     if (column >= ConstantColumn.COUNT) {
       // The names of the translation columns are set by TranslationHeaderCellRenderer.
       // The value returned here will be shown only if the renderer somehow cannot set the names.
-      return LocaleMenuAction.getLocaleLabel(myLocales.get(column - ConstantColumn.COUNT), false);
+      return LocaleMenuAction.getLocaleLabel(localeOfColumn(column), false);
     }
     return ConstantColumn.values()[column].name;
   }
@@ -109,16 +139,21 @@ public class StringResourceTableModel extends AbstractTableModel {
     }
   }
 
+  @Override
+  public boolean isCellEditable(int row, int column) {
+    return ConstantColumn.indexMatchesColumn(column, ConstantColumn.UNTRANSLATABLE);
+  }
+
   @Nullable
   public String getCellProblem(int row, int column) {
     if (String.valueOf(getValueAt(row, column)).isEmpty()) {
       if (column < ConstantColumn.COUNT) {
         return ConstantColumn.values()[column].name + " should not be empty";
-      } else if (!myUntranslatableKeys.contains(myKeys.get(row))) {
-        return "Translation for " + myKeys.get(row) + " should not be empty";
+      } else if (!myController.getData().getUntranslatableKeys().contains(keyOfRow(row))) {
+        return "Translation for " + keyOfRow(row) + " should not be empty";
       }
-    } else if (myUntranslatableKeys.contains(myKeys.get(row)) && column >= ConstantColumn.COUNT) {
-      return "Key " + myKeys.get(row) + " should not be translated";
+    } else if (myController.getData().getUntranslatableKeys().contains(keyOfRow(row)) && column >= ConstantColumn.COUNT) {
+      return "Key " + keyOfRow(row) + " should not be translated";
     }
     return null;
   }
@@ -129,7 +164,7 @@ public class StringResourceTableModel extends AbstractTableModel {
       if (getCellProblem(row, column) != null) {
         if (column < ConstantColumn.COUNT) {
           return ConstantColumn.values()[column].name + " is missing";
-        } else if (myUntranslatableKeys.contains(myKeys.get(row))) {
+        } else if (myController.getData().getUntranslatableKeys().contains(keyOfRow(row))) {
           return "Key should not be translated into " + getColumnName(column);
         } else {
           return "Translation for " + getColumnName(column) + " is missing";

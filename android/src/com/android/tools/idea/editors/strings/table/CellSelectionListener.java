@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.tools.idea.editors.strings.TextComponentUtil;
+import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -38,31 +40,46 @@ public class CellSelectionListener implements ListSelectionListener {
 
   @Override
   public void valueChanged(ListSelectionEvent e) {
+    if (myTable.getSelectedRowCount() == 1 && myTable.getSelectedColumnCount() == 1) {
+      StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
+      String key = model.keyOfRow(myTable.getSelectedRow());
+      int column = myTable.getSelectedColumn();
+      Locale locale = model.localeOfColumn(column);
+      model.getController().saveCell(key, locale == null ? column : locale);
+    }
     if (e.getValueIsAdjusting()) {
       return;
     }
-    if (myTable.getSelectedRowCount() != 1 || myTable.getSelectedColumnCount() != 1) {
-      return;
-    }
-    showCellDetail(myTable.getSelectedRow(), myTable.getSelectedColumn());
-  }
 
-  private void showCellDetail(int row, int column) {
-    if (row < 0 || column < 0) {
-      return;
-    }
+    String key = "";
+    String defaultValue = "";
+    String translation = "";
+
+    boolean keyEditable = false;
+    boolean defaultValueEditable = false;
+    boolean translationEditable = false;
+
     StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
-    setText(myKeyPane, String.valueOf(model.getValue(row, ConstantColumn.KEY.ordinal())));
-    setText(myDefaultValuePane, String.valueOf(model.getValue(row, ConstantColumn.DEFAULT_VALUE.ordinal())));
-    String rawText = "";
-    if (column >= ConstantColumn.COUNT) {
-      rawText = String.valueOf(model.getValue(row, column));
-    }
-    setText(myTranslationPane, rawText);
-  }
+    if (myTable.getSelectedRowCount() == 1 && myTable.getSelectedColumnCount() == 1) {
+      int row = myTable.getSelectedRow();
+      int column = myTable.getSelectedColumn();
+      model.getController().selectData(model.keyOfRow(row), model.localeOfColumn(column));
 
-  private static void setText(@NotNull JTextComponent component, @NotNull String text) {
-    component.setText(text);
-    component.setCaretPosition(0);
+      key = String.valueOf(model.getValue(row, ConstantColumn.KEY.ordinal()));
+      defaultValue = String.valueOf(model.getValue(row, ConstantColumn.DEFAULT_VALUE.ordinal()));
+      keyEditable = true;
+      defaultValueEditable = true;
+
+      if (column >= ConstantColumn.COUNT) {
+        translation = String.valueOf(model.getValue(row, column));
+        translationEditable = true;
+      }
+    } else {
+      model.getController().selectData(null, null);
+    }
+
+    TextComponentUtil.setTextAndEditable(myKeyPane, key, keyEditable);
+    TextComponentUtil.setTextAndEditable(myDefaultValuePane, defaultValue, defaultValueEditable);
+    TextComponentUtil.setTextAndEditable(myTranslationPane, translation, translationEditable);
   }
 }

@@ -29,7 +29,7 @@ public class CellRenderer implements TableCellRenderer {
     Component component = defaultRenderer.getTableCellRendererComponent(table, value, selected, focused, row, column);
 
     String tooltip;
-    if (isKeyColumn(column)) {
+    if (ConstantColumn.indexMatchesColumn(column, ConstantColumn.KEY)) {
       tooltip = ((StringResourceTableModel) table.getModel()).getKeyProblem(row);
     } else {
       tooltip = ((StringResourceTableModel) table.getModel()).getCellProblem(row, column);
@@ -41,7 +41,7 @@ public class CellRenderer implements TableCellRenderer {
     Color foreground = UIUtil.getTableForeground(selected);
     Color background = UIUtil.getTableBackground(selected);
     if (!selected && tooltip != null) {
-      if (isKeyColumn(column)) {
+      if (ConstantColumn.indexMatchesColumn(column, ConstantColumn.KEY)) {
         // If a cell in the Key column is problematic, color the text red
         foreground = JBColor.RED;
       } else {
@@ -54,9 +54,5 @@ public class CellRenderer implements TableCellRenderer {
     component.setBackground(background);
 
     return component;
-  }
-
-  private static boolean isKeyColumn(int column) {
-    return column < ConstantColumn.COUNT && ConstantColumn.values()[column] == ConstantColumn.KEY;
   }
 }

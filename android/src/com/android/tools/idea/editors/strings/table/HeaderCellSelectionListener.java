@@ -34,7 +34,7 @@ public class HeaderCellSelectionListener extends MouseAdapter {
   @Override
   public void mouseReleased(MouseEvent e) {
     // Column widths may have changed, so resize the table
-    StringResourceTableUtil.expandToViewportWidthIfNecessary(myTable, myUserResizeIndex);
+    ColumnUtil.expandToViewportWidthIfNecessary(myTable, myUserResizeIndex);
     myUserResizeIndex = -1;
   }
 
@@ -46,10 +46,10 @@ public class HeaderCellSelectionListener extends MouseAdapter {
 
     // Collapse or expand the column depending on whether it is at least at its minimum expanded width
     boolean useCollapsedWidth = column.getWidth() >= renderer.getMinimumExpandedWidth();
-    StringResourceTableUtil.setPreferredWidth(column, useCollapsedWidth ? renderer.getCollapsedWidth() : renderer.getFullExpandedWidth());
+    ColumnUtil.setPreferredWidth(column, useCollapsedWidth ? renderer.getCollapsedWidth() : renderer.getFullExpandedWidth());
 
     // Collapsing a column may have made the table not wide enough
-    StringResourceTableUtil.expandToViewportWidthIfNecessary(myTable, index);
+    ColumnUtil.expandToViewportWidthIfNecessary(myTable, index);
   }
 
   @Override
@@ -57,7 +57,7 @@ public class HeaderCellSelectionListener extends MouseAdapter {
     TableColumn column = myTable.getTableHeader().getResizingColumn();
     if (column != null) {
       myUserResizeIndex = column.getModelIndex();
-      StringResourceTableUtil.setPreferredWidth(column, column.getWidth());
+      ColumnUtil.setPreferredWidth(column, column.getWidth());
     }
   }
 }
