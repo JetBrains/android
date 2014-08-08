@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
@@ -41,7 +42,6 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,8 +49,6 @@ import javax.swing.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
-import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 
 /**
  * Provides the "Gradle-aware Make" task for Run Configurations, which
@@ -246,15 +244,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   private static TestCompileType getTestCompileType(@Nullable RunConfiguration runConfiguration) {
-    if (runConfiguration != null) {
-      String id = runConfiguration.getType().getId();
-      if (AndroidCommonUtils.isTestConfiguration(id)) {
-        return TestCompileType.JAVA_TESTS;
-      }
-      if (AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
-        return TestCompileType.ANDROID_TESTS;
-      }
-    }
-    return TestCompileType.NONE;
+    String id = runConfiguration != null ? runConfiguration.getType().getId() : null;
+    return GradleInvoker.getTestCompileType(id);
   }
 }
