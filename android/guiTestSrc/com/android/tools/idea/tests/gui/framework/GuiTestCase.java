@@ -25,6 +25,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
@@ -35,6 +36,10 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.input.SAXBuilder;
+import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -45,6 +50,7 @@ import org.junit.runner.RunWith;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.tools.idea.templates.AndroidGradleTestCase.createGradleWrapper;
 import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
@@ -187,7 +193,7 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  private static File setUpProject(@NotNull String projectDirName, boolean createIdeaProjectFolder) throws IOException {
+  private static File setUpProject(@NotNull String projectDirName, boolean forOpen) throws IOException {
     final File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
     createGradleWrapper(projectPath);
     updateGradleVersions(projectPath);
@@ -199,7 +205,7 @@ public abstract class GuiTestCase {
     localProperties.setAndroidSdkPath(androidHomePath);
     localProperties.save();
 
-    if (createIdeaProjectFolder) {
+    if (forOpen) {
       File toDotIdea = new File(projectPath, FN_DOT_IDEA);
       ensureExists(toDotIdea);
 
@@ -220,8 +226,42 @@ public abstract class GuiTestCase {
         }
       }
     }
+    else {
+      removeIdeaFiles(projectPath);
+    }
 
     return projectPath;
+  }
+
+  private static void removeIdeaFiles(@NotNull File projectPath) {
+    File dotIdeaFolderPath = new File(projectPath, FN_DOT_IDEA);
+    if (dotIdeaFolderPath.isDirectory()) {
+      File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
+      if (modulesXmlFilePath.isFile()) {
+        SAXBuilder saxBuilder = new SAXBuilder();
+        try {
+          Document document = saxBuilder.build(modulesXmlFilePath);
+          XPath xpath = XPath.newInstance("//*[@fileurl]");
+          //noinspection unchecked
+          List<Element> modules = xpath.selectNodes(document);
+          int urlPrefixSize = "file://$PROJECT_DIR$/".length();
+          for (Element module : modules) {
+            String fileUrl = module.getAttributeValue("fileurl");
+            if (!StringUtil.isEmpty(fileUrl)) {
+              String relativePath = toSystemDependentName(fileUrl.substring(urlPrefixSize));
+              File imlFilePath = new File(projectPath, relativePath);
+              if (imlFilePath.isFile()) {
+                delete(imlFilePath);
+              }
+            }
+          }
+        }
+        catch (Throwable ignored) {
+          // if something goes wrong, just ignore. Most likely it won't affect project import in any way.
+        }
+      }
+      delete(dotIdeaFolderPath);
+    }
   }
 
   @NotNull
