@@ -36,7 +36,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import java.util.Collection;
@@ -118,13 +120,8 @@ public class GradleInvoker {
   public void rebuild() {
     BuildMode buildMode = BuildMode.REBUILD;
     setProjectBuildMode(buildMode);
-
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> tasks = findTasksToExecute(moduleManager.getModules(), buildMode, TestCompileType.NONE);
-    if (!tasks.isEmpty()) {
-      tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
-    }
-
     executeTasks(tasks);
   }
 
@@ -132,9 +129,10 @@ public class GradleInvoker {
     BuildSettings.getInstance(myProject).setBuildMode(buildMode);
   }
 
-  private List<String> findTasksToExecute(@NotNull Module[] modules,
-                                          @NotNull BuildMode buildMode,
-                                          @NotNull TestCompileType testCompileType) {
+  @NotNull
+  public static List<String> findTasksToExecute(@NotNull Module[] modules,
+                                                @NotNull BuildMode buildMode,
+                                                @NotNull TestCompileType testCompileType) {
     List<String> tasks = Lists.newArrayList();
 
     if (BuildMode.ASSEMBLE == buildMode) {
@@ -152,11 +150,14 @@ public class GradleInvoker {
       }
       findAndAddGradleBuildTasks(module, buildMode, tasks, testCompileType);
     }
+    if (buildMode == BuildMode.REBUILD && !tasks.isEmpty()) {
+      tasks.add(0, GradleBuilds.CLEAN_TASK_NAME);
+    }
 
     if (tasks.isEmpty()) {
       // Unlikely to happen.
       String format = "Unable to find Gradle tasks for project '%1$s' using BuildMode %2$s";
-      LOG.info(String.format(format, myProject.getName(), buildMode.name()));
+      LOG.info(String.format(format, modules[0].getProject().getName(), buildMode.name()));
     }
     return tasks;
   }
@@ -193,10 +194,10 @@ public class GradleInvoker {
     GradleTasksExecutor.clearMessageView(myProject);
   }
 
-  public static void findAndAddGradleBuildTasks(@NotNull Module module,
-                                                @NotNull BuildMode buildMode,
-                                                @NotNull List<String> tasks,
-                                                @NotNull TestCompileType testCompileType) {
+  private static void findAndAddGradleBuildTasks(@NotNull Module module,
+                                                 @NotNull BuildMode buildMode,
+                                                 @NotNull List<String> tasks,
+                                                 @NotNull TestCompileType testCompileType) {
     AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
     if (gradleFacet == null) {
       return;
@@ -257,6 +258,20 @@ public class GradleInvoker {
     }
     return gradleProjectPath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
   }
+
+  @NotNull
+  public static TestCompileType getTestCompileType(@Nullable String runConfigurationId) {
+    if (runConfigurationId != null) {
+      if (AndroidCommonUtils.isInstrumentationTestConfiguration(runConfigurationId)) {
+        return TestCompileType.ANDROID_TESTS;
+      }
+      if (AndroidCommonUtils.isTestConfiguration(runConfigurationId)) {
+        return TestCompileType.JAVA_TESTS;
+      }
+    }
+    return TestCompileType.NONE;
+  }
+
 
   public enum TestCompileType {
     NONE,            // don't compile any tests
