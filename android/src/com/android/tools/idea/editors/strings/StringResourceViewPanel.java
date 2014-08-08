@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.editors.strings.table.CellSelectionListener;
-import com.android.tools.idea.editors.strings.table.HeaderCellSelectionListener;
-import com.android.tools.idea.editors.strings.table.TableResizeListener;
-import com.android.tools.idea.rendering.StringResourceData;
-import com.android.tools.idea.editors.strings.table.StringResourceTableUtil;
+import com.android.tools.idea.editors.strings.table.*;
+import com.android.tools.idea.editors.strings.table.ColumnUtil;
+import com.android.tools.idea.rendering.Locale;
+import com.intellij.openapi.util.Pair;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TableSpeedSearch;
@@ -29,14 +28,13 @@ import com.intellij.ui.table.JBTable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 
 public class StringResourceViewPanel {
   private JBSplitter myContainer;
 
-  private JPanel myCellDetailPanel;
+  private JPanel myEditPanel;
   private JBTextField myKey;
   private JTextArea myDefaultValue;
   private JTextArea myTranslation;
@@ -45,30 +43,28 @@ public class StringResourceViewPanel {
   private JBTable myTable;
 
   public StringResourceViewPanel() {
-    initCellDetailPanel();
-    myContainer.setFirstComponent(myCellDetailPanel);
+    initEditPanel();
+    myContainer.setFirstComponent(myEditPanel);
     initTable();
     myContainer.setSecondComponent(myTablePane);
     myContainer.setProportion(0f);
   }
 
-  private void initCellDetailPanel() {
-    myCellDetailPanel.setBorder(IdeBorderFactory.createEmptyBorder(5));
+  private void initEditPanel() {
+    myEditPanel.setBorder(IdeBorderFactory.createEmptyBorder(5));
+    TextComponentUtil.formatTextComponent(myKey);
+    TextComponentUtil.formatTextComponent(myDefaultValue);
+    TextComponentUtil.formatTextComponent(myTranslation);
 
-    Font font = myKey.getFont();
-    formatTextComponent(myDefaultValue, font);
-    formatTextComponent(myTranslation, font);
-  }
-
-  private static void formatTextComponent(@NotNull JTextComponent component, @NotNull Font font) {
-    component.setFont(font);
-    if (component.getParent() instanceof JViewport) {
-      component.getParent().setMinimumSize(new Dimension(0, 2 * component.getFontMetrics(font).getHeight()));
-    }
+    FocusListener editFocusListener = new EditFocusListener(myTable, myKey, myDefaultValue, myTranslation);
+    myKey.addFocusListener(editFocusListener);
+    myDefaultValue.addFocusListener(editFocusListener);
+    myTranslation.addFocusListener(editFocusListener);
   }
 
   private void initTable() {
     myTable.setCellSelectionEnabled(true);
+    myTable.getTableHeader().setReorderingAllowed(false);
 
     MouseAdapter headerListener = new HeaderCellSelectionListener(myTable);
     myTable.getTableHeader().addMouseListener(headerListener);
@@ -78,7 +74,7 @@ public class StringResourceViewPanel {
     myTable.getSelectionModel().addListSelectionListener(selectionListener);
     myTable.getColumnModel().getSelectionModel().addListSelectionListener(selectionListener);
 
-    myTable.getParent().addComponentListener(new TableResizeListener(myTable));
+    myTable.getParent().addComponentListener(new ResizeListener(myTable));
 
     new TableSpeedSearch(myTable) {
       @Override
@@ -89,8 +85,26 @@ public class StringResourceViewPanel {
     };
   }
 
-  public void setStringResourceData(@NotNull StringResourceData data) {
-    StringResourceTableUtil.initData(myTable, data);
+  public void initDataController(@NotNull StringResourceDataController controller) {
+    myTable.setModel(new StringResourceTableModel(controller));
+    ColumnUtil.setColumns(myTable);
+  }
+
+  public void onDataUpdated() {
+    StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
+    model.fireTableStructureChanged();
+    ColumnUtil.setColumns(myTable);
+
+    Pair<String, Object> savedCell = model.getController().getSavedCell();
+    String key = savedCell.first;
+    Object column = savedCell.second;
+    if (key != null && column != null) {
+      int row = model.rowOfKey(key);
+      int col = column instanceof Integer ? (Integer) column : model.columnOfLocale((Locale) column);
+      if (row >= 0 && col >= 0) {
+        myTable.changeSelection(row, col, false, false);
+      }
+    }
   }
 
   @NotNull
