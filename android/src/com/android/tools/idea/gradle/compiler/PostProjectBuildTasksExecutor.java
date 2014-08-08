@@ -243,7 +243,7 @@ public class PostProjectBuildTasksExecutor {
 
     try {
       ContentEntry[] contentEntries = rootModel.getContentEntries();
-      ContentEntry parent = findParentContentEntry(buildFolderPath, contentEntries);
+      ContentEntry parent = FilePaths.findParentContentEntry(buildFolderPath, contentEntries);
       if (parent == null) {
         rootModel.dispose();
         return;
@@ -276,16 +276,6 @@ public class PostProjectBuildTasksExecutor {
         rootModel.commit();
       }
     }
-  }
-
-  @Nullable
-  private static ContentEntry findParentContentEntry(@NotNull File path, @NotNull ContentEntry[] contentEntries) {
-    for (ContentEntry contentEntry : contentEntries) {
-      if (FilePaths.isPathInContentEntry(path, contentEntry)) {
-        return contentEntry;
-      }
-    }
-    return null;
   }
 
   private static boolean unresolvedDependenciesFound(@NotNull String errorMessage) {
