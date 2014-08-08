@@ -43,7 +43,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull final VirtualFile file, FileEditor fileEditor) {
-    if (!myShow || !StringResourceEditorProvider.canViewTranslations(myProject, file)) {
+    if (!myShow || !StringResourceEditorProvider.canViewTranslations(file)) {
       return null;
     }
 
