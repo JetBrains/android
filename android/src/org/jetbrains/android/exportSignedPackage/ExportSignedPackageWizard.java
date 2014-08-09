@@ -191,8 +191,22 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           @Override
           public void execute(@NotNull GradleInvocationResult result) {
             if (result.isBuildSuccessful()) {
-              Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APK's are in: " + myApkPath,
-                                                        NotificationType.INFORMATION));
+              if (ShowFilePathAction.isSupported()) {
+                ApplicationManager.getApplication().invokeLater(new Runnable() {
+                  @Override
+                  public void run() {
+                    if (Messages.showOkCancelDialog(myProject, "Signed APK's generated successfully.", NOTIFICATION_TITLE,
+                                                    RevealFileAction.getActionName(), IdeBundle.message("action.close"),
+                                                    Messages.getInformationIcon()) == Messages.OK) {
+                      ShowFilePathAction.openDirectory(new File(myApkPath));
+                    }
+                  }
+                });
+              }
+              else {
+                Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE, "Signed APK's are in: " + myApkPath,
+                                                          NotificationType.INFORMATION));
+              }
             }
             else {
               Notifications.Bus.notify(new Notification(NOTIFICATION_GROUPID, NOTIFICATION_TITLE,
