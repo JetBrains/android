@@ -20,19 +20,45 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 
 public final class FilePaths {
   private FilePaths() {
   }
 
+  @Nullable
+  public static ContentEntry findParentContentEntry(@NotNull File path, @NotNull ContentEntry[] contentEntries) {
+    for (ContentEntry contentEntry : contentEntries) {
+      if (isPathInContentEntry(path, contentEntry)) {
+        return contentEntry;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static ContentEntry findParentContentEntry(@NotNull File path, @NotNull Collection<ContentEntry> contentEntries) {
+    for (ContentEntry contentEntry : contentEntries) {
+      if (isPathInContentEntry(path, contentEntry)) {
+        return contentEntry;
+      }
+    }
+    return null;
+  }
+
   public static boolean isPathInContentEntry(@NotNull File path, @NotNull ContentEntry contentEntry) {
     VirtualFile rootFile = contentEntry.getFile();
+    File rootFilePath;
     if (rootFile == null) {
-      return false;
+      String s = VfsUtilCore.urlToPath(contentEntry.getUrl());
+      rootFilePath = new File(s);
     }
-    File rootFilePath = VfsUtilCore.virtualToIoFile(rootFile);
+    else {
+      rootFilePath = VfsUtilCore.virtualToIoFile(rootFile);
+    }
     return FileUtil.isAncestor(rootFilePath, path, false);
   }
 
