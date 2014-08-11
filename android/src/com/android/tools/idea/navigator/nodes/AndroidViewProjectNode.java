@@ -33,6 +33,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.util.PlatformIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +64,13 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(modules.size());
     for (Module module : modules) {
       if (ModuleRootManager.getInstance(module).getSourceRoots().length > 0) {
-        children.add(new AndroidModuleNode(project, module, settings, myProjectViewPane));
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet != null && facet.getIdeaAndroidProject() != null) {
+          children.add(new AndroidModuleNode(project, module, settings, myProjectViewPane));
+        }
+        else {
+          children.add(new NonAndroidModuleNode(project, module, settings));
+        }
       }
     }
 
