@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.customizer;
 
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
@@ -36,8 +35,6 @@ import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCustomizer<T> {
-  private static final Logger LOG = Logger.getInstance(AbstractContentRootModuleCustomizer.class);
-
   @Override
   public void customizeModule(@NotNull Module module, @NotNull Project project, @Nullable T model) {
     if (model == null) {
@@ -79,7 +76,7 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
                                  @NotNull JpsModuleSourceRootType type,
                                  boolean generated,
                                  @NotNull List<RootSourceFolder> orphans) {
-    ContentEntry parent = findParentContentEntry(contentEntries, folderPath);
+    ContentEntry parent = FilePaths.findParentContentEntry(folderPath, contentEntries);
     if (parent == null) {
       orphans.add(new RootSourceFolder(folderPath, type, generated));
       return;
@@ -111,17 +108,6 @@ public abstract class AbstractContentRootModuleCustomizer<T> implements ModuleCu
     }
     contentEntry.addExcludeFolder(FilePaths.pathToIdeaUrl(dirPath));
     return true;
-  }
-
-  @Nullable
-  protected ContentEntry findParentContentEntry(@NotNull Collection<ContentEntry> contentEntries, @NotNull File dirPath) {
-    for (ContentEntry contentEntry : contentEntries) {
-      if (FilePaths.isPathInContentEntry(dirPath, contentEntry)) {
-        return contentEntry;
-      }
-    }
-    LOG.info(String.format("Failed to find content entry for file '%1$s'", dirPath.getPath()));
-    return null;
   }
 
   protected static class RootSourceFolder {

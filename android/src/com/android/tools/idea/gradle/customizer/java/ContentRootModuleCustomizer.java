@@ -76,7 +76,7 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
       for (File excluded : contentRoot.getExcludeDirectories()) {
         if (excluded != null) {
-          ContentEntry contentEntry = findParentContentEntry(contentEntries, excluded);
+          ContentEntry contentEntry = FilePaths.findParentContentEntry(excluded, contentEntries);
           if (contentEntry != null) {
             if (isTopLevelJavaModule && !buildFolderUnexcluded) {
               // We need to "undo" the implicit exclusion of "build" folder for top-level module.
