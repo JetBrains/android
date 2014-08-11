@@ -162,10 +162,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     JpsModuleSourceRootType sourceType = getResourceSourceType(isTest);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getResourcesDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidProject, contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
 
     sourceType = getSourceType(isTest);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getAidlDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getJavaDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getJniDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
