@@ -1290,6 +1290,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
           retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.different.signature")) &&
                   uninstallPackage(device, packageName);
           break;
+        case INSTALL_FAILED_DEXOPT:
+          retry = promptUninstallExistingApp(AndroidBundle.message("deployment.failed.reason.dexopt")) &&
+                  uninstallPackage(device, packageName);
+          break;
         case NO_CERTIFICATE:
           message(AndroidBundle.message("deployment.failed.no.certificates.explanation"), STDERR);
           showMessageDialog(AndroidBundle.message("deployment.failed.no.certificates.explanation"));
@@ -1351,6 +1355,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     DEVICE_NOT_RESPONDING,
     INCONSISTENT_CERTIFICATES,
     INSTALL_FAILED_VERSION_DOWNGRADE,
+    INSTALL_FAILED_DEXOPT,
     NO_CERTIFICATE,
     UNTYPED_ERROR
   }
@@ -1395,6 +1400,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       return InstallFailureCode.NO_CERTIFICATE;
     } else if ("INSTALL_FAILED_VERSION_DOWNGRADE".equals(receiver.failureMessage)) {
       return InstallFailureCode.INSTALL_FAILED_VERSION_DOWNGRADE;
+    } else if ("INSTALL_FAILED_DEXOPT".equals(receiver.failureMessage)) {
+      return InstallFailureCode.INSTALL_FAILED_DEXOPT;
     }
 
     return InstallFailureCode.UNTYPED_ERROR;
