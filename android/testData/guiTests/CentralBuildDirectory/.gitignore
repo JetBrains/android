@@ -8,3 +8,4 @@ gradlew
 gradlew.bat
 *.iml
 /central
+gradle.properties
