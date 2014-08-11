@@ -60,6 +60,10 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
     HashMultimap<ResourceFolderType, PsiDirectory> foldersByResourceType = HashMultimap.create();
     for (PsiDirectory resFolder : resFolders) {
       ResourceFolderType type = ResourceFolderType.getFolderType(resFolder.getName());
+      if (type == null) {
+        // skip unknown folder types inside res
+        continue;
+      }
       foldersByResourceType.put(type, resFolder);
     }
 
