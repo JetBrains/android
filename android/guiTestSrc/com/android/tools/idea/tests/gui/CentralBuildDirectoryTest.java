@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui;
 
-import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -24,7 +23,6 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -33,8 +31,10 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
+import static com.android.tools.idea.gradle.util.FilePaths.findParentContentEntry;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getTestProjectsRootDirPath;
 import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
@@ -53,7 +53,8 @@ public class CentralBuildDirectoryTest extends GuiTestCase {
     File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
 
     // The bug appears only when the central build folder does not exist.
-    final File centralBuildParentDirPath = new File(projectPath, FileUtil.join("central"));
+    final File centralBuildDirPath = new File(projectPath, FileUtil.join("central", "build"));
+    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
     delete(centralBuildParentDirPath);
 
     IdeFrameFixture ideFrame = importProject(projectDirName);
@@ -64,12 +65,11 @@ public class CentralBuildDirectoryTest extends GuiTestCase {
     VirtualFile[] excludeFolders = GuiActionRunner.execute(new GuiQuery<VirtualFile[]>() {
       @Override
       protected VirtualFile[] executeInEDT() throws Throwable {
-        File centralBuildDirPath = new File(centralBuildParentDirPath, "build");
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
         try {
           ContentEntry[] contentEntries = rootModel.getContentEntries();
-          ContentEntry parent = FilePaths.findParentContentEntry(centralBuildDirPath, contentEntries);
+          ContentEntry parent = findParentContentEntry(centralBuildDirPath, contentEntries);
           assertNotNull(parent);
           return parent.getExcludeFolderFiles();
         }
@@ -81,7 +81,7 @@ public class CentralBuildDirectoryTest extends GuiTestCase {
 
     assertThat(excludeFolders).isNotEmpty();
 
-    VirtualFile centralBuildDir = VfsUtil.findFileByIoFile(centralBuildParentDirPath, true);
+    VirtualFile centralBuildDir = findFileByIoFile(centralBuildParentDirPath, true);
     assertNotNull(centralBuildDir);
     boolean isExcluded = false;
     for (VirtualFile folder : excludeFolders) {

@@ -227,13 +227,13 @@ public abstract class GuiTestCase {
       }
     }
     else {
-      removeIdeaFiles(projectPath);
+      cleanUpProjectForImport(projectPath);
     }
 
     return projectPath;
   }
 
-  private static void removeIdeaFiles(@NotNull File projectPath) {
+  private static void cleanUpProjectForImport(@NotNull File projectPath) {
     File dotIdeaFolderPath = new File(projectPath, FN_DOT_IDEA);
     if (dotIdeaFolderPath.isDirectory()) {
       File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
@@ -252,6 +252,11 @@ public abstract class GuiTestCase {
               File imlFilePath = new File(projectPath, relativePath);
               if (imlFilePath.isFile()) {
                 delete(imlFilePath);
+              }
+              // It is likely that each module has a "build" folder. Delete it as well.
+              File buildFilePath = new File(imlFilePath.getParentFile(), "build");
+              if (buildFilePath.isDirectory()) {
+                delete(buildFilePath);
               }
             }
           }
