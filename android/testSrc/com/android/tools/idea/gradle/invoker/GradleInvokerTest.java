@@ -142,7 +142,7 @@ public class GradleInvokerTest extends IdeaTestCase {
 
   public void testRebuild() throws Exception {
     final String taskName = "assemble";
-    myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = taskName;
+    myAndroidFacet.getProperties().COMPILE_JAVA_TASK_NAME = taskName;
 
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
