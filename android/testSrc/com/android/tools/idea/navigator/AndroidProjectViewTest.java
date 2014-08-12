@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 
-  public void testSimple() throws Exception {
+  public void testProjectView() throws Exception {
     loadProject("projects/navigator/packageview/simple");
 
     myPane = createPane();
@@ -60,6 +60,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       projectName + "\n" +
       " Gradle Scripts\n" +
       "  build.gradle (app)\n" +
+      "  build.gradle (javamodule)\n" +
       "  build.gradle (lib)\n" +
       "  build.gradle (" + rootModuleName + ")\n" +
       "  gradle-wrapper.properties\n" +
@@ -96,6 +97,17 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "    styles.xml\n" +
       "  rs\n" +
       "   test.rs\n" +
+      " javamodule (non-Android)\n" +
+      "  java\n" +
+      "   foo\n" +
+      "    Foo.java\n" +
+      "  resources\n" +
+      "   res2.txt\n" +
+      "  test-resources\n" +
+      "   test-res.txt\n" +
+      "  tests\n" +
+      "   foo\n" +
+      "    FooTest.java\n" +
       " lib (Android)\n" +
       "  jni\n" +
       "   hello.c\n" +
