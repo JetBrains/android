@@ -172,7 +172,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    final File projectPath = setUpProject(projectDirName, false);
+    File projectPath = setUpProject(projectDirName, false, true);
 
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
     welcomeFrame.importProjectButton().click();
@@ -183,7 +183,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
-    final File projectPath = setUpProject(projectDirName, true);
+    final File projectPath = setUpProject(projectDirName, true, true);
 
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
     welcomeFrame.openProjectButton().click();
@@ -193,10 +193,13 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  private static File setUpProject(@NotNull String projectDirName, boolean forOpen) throws IOException {
+  protected File setUpProject(@NotNull String projectDirName, boolean forOpen, boolean updateGradleVersions) throws IOException {
     final File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
     createGradleWrapper(projectPath);
-    updateGradleVersions(projectPath);
+
+    if (updateGradleVersions) {
+      updateGradleVersions(projectPath);
+    }
 
     File androidHomePath = DefaultSdks.getDefaultAndroidHome();
     assertNotNull(androidHomePath);
@@ -270,7 +273,7 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  private IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull File projectPath, @NotNull FileChooserDialogFixture fileChooserDialog) {
+  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull File projectPath, @NotNull FileChooserDialogFixture fileChooserDialog) {
     fileChooserDialog.select(projectPath).clickOK();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
