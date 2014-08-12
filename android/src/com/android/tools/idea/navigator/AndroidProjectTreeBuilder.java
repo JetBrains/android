@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.android.tools.idea.navigator.nodes.AndroidProjectViewNode;
+import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
 import com.google.common.collect.Maps;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectTreeBuilder;
@@ -28,9 +28,6 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
-import com.intellij.openapi.vfs.pointers.VirtualFilePointer;
-import com.intellij.openapi.vfs.pointers.VirtualFilePointerListener;
-import com.intellij.openapi.vfs.pointers.VirtualFilePointerManager;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.messages.MessageBusConnection;
@@ -134,8 +131,8 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
     while (children.hasMoreElements()) {
       DefaultMutableTreeNode child = (DefaultMutableTreeNode)children.nextElement();
 
-      if (child.getUserObject() instanceof AndroidProjectViewNode) {
-        for (PsiDirectory folder : ((AndroidProjectViewNode)child.getUserObject()).getDirectories()) {
+      if (child.getUserObject() instanceof DirectoryGroupNode) {
+        for (PsiDirectory folder : ((DirectoryGroupNode)child.getUserObject()).getDirectories()) {
           if (folder.getVirtualFile().equals(virtualFile)) {
             return child;
           }
