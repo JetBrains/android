@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -109,6 +111,47 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   @NotNull
   public String getResName() {
     return myResName;
+  }
+
+  @Override
+  public boolean expandOnDoubleClick() {
+    return false;
+  }
+
+  @Override
+  public boolean canNavigate() {
+    return true;
+  }
+
+  @Override
+  public void navigate(boolean requestFocus) {
+    if (myFiles.isEmpty()) {
+      return;
+    }
+
+    new OpenFileDescriptor(myProject, findFileToOpen(myFiles).getVirtualFile()).navigate(requestFocus);
+  }
+
+  /** Returns the best configuration of a particular resource given a set of multiple configurations of the same resource. */
+  @NotNull
+  private static PsiFile findFileToOpen(@NotNull List<PsiFile> files) {
+    PsiFile bestFile = null;
+    FolderConfiguration bestConfig = null;
+
+    for (PsiFile file : files) {
+      PsiDirectory qualifiedDirectory = file.getParent();
+      assert qualifiedDirectory != null : "Resource file's parent directory cannot be null";
+      FolderConfiguration config = FolderConfiguration.getConfigForFolder(qualifiedDirectory.getName());
+
+      if (bestConfig == null // first time through the loop
+          || config == null  // FolderConfiguration is null for default configurations
+          || config.compareTo(bestConfig) < 0) { // lower FolderConfiguration value than current best
+        bestConfig = config;
+        bestFile = file;
+      }
+    }
+
+    return bestFile;
   }
 
   @Override
