@@ -46,7 +46,7 @@ import java.util.Set;
  * {@link AndroidSourceTypeNode} is a virtual node in the package view of an Android module under which all sources
  * corresponding to a particular {@link org.jetbrains.android.facet.AndroidSourceType} are grouped together.
  */
-public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
+public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> implements DirectoryGroupNode {
   @NotNull private final AndroidSourceType mySourceType;
   @NotNull private final Set<VirtualFile> mySourceRoots;
   @NotNull protected final AndroidProjectViewPane myProjectViewPane;
@@ -182,12 +182,6 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
       result = 31 * result + root.hashCode();
     }
     return result;
-  }
-
-  @NotNull
-  @Override
-  public AndroidFacet getAndroidFacet() {
-    return getValue();
   }
 
   @NotNull

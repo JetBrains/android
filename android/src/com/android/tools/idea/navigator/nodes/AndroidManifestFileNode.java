@@ -18,10 +18,8 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.SdkConstants;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
@@ -32,7 +30,7 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidManifestFileNode extends PsiFileNode implements AndroidProjectViewNode {
+public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGroupNode {
   @NotNull private final AndroidFacet myFacet;
 
   public AndroidManifestFileNode(@NotNull Project project,
@@ -65,12 +63,6 @@ public class AndroidManifestFileNode extends PsiFileNode implements AndroidProje
       }
     }
     return null;
-  }
-
-  @NotNull
-  @Override
-  public AndroidFacet getAndroidFacet() {
-    return myFacet;
   }
 
   @NotNull
