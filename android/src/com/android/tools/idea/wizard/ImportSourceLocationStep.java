@@ -19,8 +19,10 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,12 +39,14 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.Timer;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -51,8 +55,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 import static com.intellij.openapi.ui.MessageType.ERROR;
 import static com.intellij.openapi.ui.MessageType.WARNING;
@@ -70,10 +76,14 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
   private JPanel myPanel;
   private TextFieldWithBrowseButton mySourceLocation;
   private JBLabel myErrorWarning;
-  private ModulesTable myModulesList;
-  private JBLabel myModuleImportLabel;
   private AsyncProcessIcon myValidationProgress;
   private JBLabel myLocationLabel;
+  private JBScrollPane myModulesScroller;
+  private ModulesTable myModulesPanel;
+  private JLabel myRequiredModulesLabel;
+  private JLabel myModuleNameLabel;
+  private JTextField myModuleNameField;
+  private JLabel myPrimaryModuleState;
   private AsyncValidator<?> validator;
   private PathValidationResult myPageValidationResult;
   private boolean myValidating = false;
@@ -85,6 +95,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
                                   @NotNull NewModuleWizardState state,
                                   @Nullable Icon sidePanelIcon,
                                   @Nullable TemplateWizardStep.UpdateListener listener) {
+    myErrorWarning.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
     myContext = context;
     mySidePanelIcon = sidePanelIcon;
     myUpdateListener = listener == null ? new TemplateWizardStep.UpdateListener() {
@@ -94,6 +105,9 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       }
     } : listener;
     myState = state;
+    myPanel.setBorder(new EmptyBorder(UIUtil.PANEL_REGULAR_INSETS));
+    myModulesScroller.setVisible(false);
+    myModulesPanel.bindPrimaryModuleEntryComponents(new PrimaryModuleImportSettings(), myRequiredModulesLabel);
     PropertyChangeListener modulesListener = new PropertyChangeListener() {
       @SuppressWarnings("unchecked")
       @Override
@@ -103,7 +117,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
         }
       }
     };
-    myModulesList.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, modulesListener);
+    myModulesPanel.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, modulesListener);
 
     validator = new AsyncValidator<PathValidationResult>(ApplicationManager.getApplication()) {
       @Override
@@ -161,13 +175,14 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       mySourceLocation.setText(importSource.getPath());
     }
     applyBackgroundOperationResult(checkPath(mySourceLocation.getText()));
+    myErrorWarning.setIcon(null);
+    myErrorWarning.setText(null);
   }
 
   private void updateStatusDisplay(@NotNull PageStatus status, @Nullable Object details) {
     myValidationProgress.setVisible(status.isSpinnerVisible());
     myErrorWarning.setText(status.getMessage(details));
     myErrorWarning.setIcon(status.getIcon());
-    myModulesList.setEnabled(!status.isSpinnerVisible()); // Grayed out for background op
     myUpdateListener.update();
   }
 
@@ -181,12 +196,14 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
 
   private void applyBackgroundOperationResult(@NotNull PathValidationResult result) {
     assert EventQueue.isDispatchThread();
-    Iterable<ModuleToImport> modules = null;
+    Collection<ModuleToImport> modules = null;
+    Project project = myContext.getProject();
+    assert project != null;
     try {
       if (result.myStatus == PageStatus.OK) {
-        assert result.myVfile != null && myContext.getProject() != null && result.myImporter != null;
+        assert result.myVfile != null && result.myImporter != null;
         modules = result.myImporter.findModules(result.myVfile);
-        Set<String> missingSourceModuleNames = new TreeSet<String>();
+        Set<String> missingSourceModuleNames = Sets.newTreeSet();
         for (ModuleToImport module : modules) {
           if (module.location == null || !module.location.exists()) {
             missingSourceModuleNames.add(module.name);
@@ -203,7 +220,8 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
       result = PageStatus.INTERNAL_ERROR.result();
     }
     myValidating = false;
-    refreshModulesList(result.myVfile, modules);
+    myModulesPanel.setModules(project, result.myVfile, modules);
+    myModulesScroller.setVisible(myModulesPanel.getComponentCount() > 0);
     ModuleImporter.setImporter(myContext, result.myImporter);
     updateStepStatus(result);
   }
@@ -213,30 +231,23 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     PageStatus status = result.myStatus;
     Map<String, VirtualFile> selectedModules = Collections.emptyMap();
     if (!MessageType.ERROR.equals(status.severity)) {
-      final List<ModuleToImport> modules = myModulesList.getSelectedModules();
+      final Collection<ModuleToImport> modules = myModulesPanel.getSelectedModules();
       if (modules.isEmpty()) {
         status = PageStatus.NO_MODULES_SELECTED;
         validationDetails = null;
-      } else {
-        selectedModules = new HashMap<String, VirtualFile>(modules.size());
+      }
+      else {
+        selectedModules = Maps.newHashMap();
         for (ModuleToImport module : modules) {
-          selectedModules.put(module.name, module.location);
+          selectedModules.put(myModulesPanel.getModuleName(module), module.location);
         }
       }
     }
-    myState.setModulesToImport(selectedModules);
     myPageValidationResult = result;
+    myState.setModulesToImport(selectedModules);
     updateStatusDisplay(status, validationDetails);
     myStatus = status;
     myUpdateListener.update();
-  }
-
-  private void refreshModulesList(@Nullable VirtualFile vfile, @Nullable Iterable<ModuleToImport> modules) {
-    // No need to show table when importing a single module
-    boolean hasModules = modules != null && Iterables.size(modules) > 1;
-    myModulesList.setVisible(hasModules);
-    myModuleImportLabel.setVisible(hasModules);
-    myModulesList.setModules(myContext.getProject(), vfile, modules);
   }
 
   private void createUIComponents() {
@@ -246,7 +257,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
 
   @Override
   public boolean validate() {
-    return myStatus.severity != ERROR && !myValidating;
+    return myStatus.severity != ERROR && !myValidating && myModulesPanel.canImport();
   }
 
   @Override
@@ -282,6 +293,7 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
         return true;
       } else {
         for (Module module : ModuleManager.getInstance(project).getModules()) {
+          //noinspection SSBasedInspection
           VirtualFile moduleFile = module.getModuleFile();
           if (moduleFile != null && dir.equals(moduleFile.getParent())) {
             return true;
@@ -371,4 +383,65 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     }
   }
 
+  private final class PrimaryModuleImportSettings implements ModuleImportSettings {
+    @Override
+    public boolean isModuleSelected() {
+      return true;
+    }
+
+    @Override
+    public void setModuleSelected(boolean selected) {
+      // Do nothing - primary module
+    }
+
+    @Override
+    public String getModuleName() {
+      return myModuleNameField.getText();
+    }
+
+    @Override
+    public void setModuleName(String moduleName) {
+      if (!Objects.equal(moduleName, myModuleNameField.getText())) {
+        myModuleNameField.setText(moduleName);
+      }
+    }
+
+    @Override
+    public void setModuleSourcePath(String relativePath) {
+      // Nothing
+    }
+
+    @Override
+    public void setCanToggleModuleSelection(boolean b) {
+      // Nothing
+    }
+
+    @Override
+    public void setCanRenameModule(boolean canRenameModule) {
+      myModuleNameField.setEnabled(canRenameModule);
+    }
+
+    @Override
+    public void setValidationStatus(@Nullable MessageType statusSeverity, @Nullable String statusDescription) {
+      myPrimaryModuleState.setIcon(statusSeverity == null ? null : statusSeverity.getDefaultIcon());
+      myPrimaryModuleState.setText(Strings.nullToEmpty(statusDescription));
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+      myPrimaryModuleState.setVisible(visible);
+      myModuleNameField.setVisible(visible);
+      myModuleNameLabel.setVisible(visible);
+    }
+
+    @Override
+    public void addActionListener(final ActionListener actionListener) {
+      myModuleNameField.getDocument().addDocumentListener(new DocumentAdapter() {
+        @Override
+        protected void textChanged(DocumentEvent e) {
+          actionListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "changed"));
+        }
+      });
+    }
+  }
 }
