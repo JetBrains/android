@@ -15,49 +15,35 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.android.tools.idea.navigator.nodes.AndroidProjectViewNode;
-import com.android.tools.idea.navigator.nodes.AndroidSourceTypeNode;
+import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectPaneSelectInTarget;
 import com.intellij.ide.projectView.BaseProjectTreeBuilder;
-import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.*;
 import com.intellij.ide.projectView.impl.nodes.PackageElement;
-import com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode;
-import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.ide.util.treeView.AbstractTreeUpdater;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleFileIndex;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import java.util.Collection;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   public static final String ID = "AndroidView";
@@ -144,8 +130,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     }
 
     NodeDescriptor descriptor = getSelectedDescriptor();
-    if (descriptor instanceof AndroidProjectViewNode) {
-      return ((AndroidProjectViewNode)descriptor).getDirectories();
+    if (descriptor instanceof DirectoryGroupNode) {
+      return ((DirectoryGroupNode)descriptor).getDirectories();
     }
 
     return super.getSelectedDirectories();
@@ -185,8 +171,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
     if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
       NodeDescriptor selectedDescriptor = getSelectedDescriptor();
-      if (selectedDescriptor instanceof AndroidProjectViewNode) {
-        PsiDirectory[] directories = ((AndroidProjectViewNode)selectedDescriptor).getDirectories();
+      if (selectedDescriptor instanceof DirectoryGroupNode) {
+        PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
         if (directories.length > 0) {
           List<VirtualFile> virtualFiles = Lists.newArrayListWithExpectedSize(directories.length);
           for (PsiDirectory directory : directories) {
@@ -211,8 +197,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       }
 
       NodeDescriptor selectedDescriptor = getSelectedDescriptor();
-      if (selectedDescriptor instanceof AndroidProjectViewNode) {
-        PsiDirectory[] directories = ((AndroidProjectViewNode)selectedDescriptor).getDirectories();
+      if (selectedDescriptor instanceof DirectoryGroupNode) {
+        PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
         if (directories.length > 0) {
           return directories[0];
         }

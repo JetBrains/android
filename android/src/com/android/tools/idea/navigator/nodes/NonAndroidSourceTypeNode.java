@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> {
+public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements DirectoryGroupNode {
   private final NonAndroidSourceType mySourceType;
 
   public NonAndroidSourceTypeNode(@NotNull Project project,
@@ -128,5 +128,22 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> {
     int result = super.hashCode();
     result = 31 * result + mySourceType.hashCode();
     return result;
+  }
+
+  @NotNull
+  @Override
+  public PsiDirectory[] getDirectories() {
+    PsiManager psiManager = PsiManager.getInstance(myProject);
+    List<VirtualFile> sourceFolders = getSourceFolders();
+    List<PsiDirectory> psiDirectories = Lists.newArrayListWithExpectedSize(sourceFolders.size());
+
+    for (VirtualFile f : sourceFolders) {
+      PsiDirectory dir = psiManager.findDirectory(f);
+      if (dir != null) {
+        psiDirectories.add(dir);
+      }
+    }
+
+    return psiDirectories.toArray(new PsiDirectory[psiDirectories.size()]);
   }
 }
