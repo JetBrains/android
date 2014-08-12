@@ -30,6 +30,7 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
@@ -450,9 +451,11 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           try {
             synchronized (myDebugLock) {
               assert myRunDescriptor != null;
-              debugDescriptor = manager
-                .attachVirtualMachine(myExecutor, AndroidDebugRunner.this, myEnvironment, st, myRunDescriptor, st.getRemoteConnection(),
-                                      false);
+              debugDescriptor = manager.attachVirtualMachine(new ExecutionEnvironmentBuilder(myEnvironment)
+                                                               .executor(myExecutor)
+                                                               .runner(AndroidDebugRunner.this)
+                                                               .contentToReuse(myRunDescriptor)
+                                                               .build(), st, st.getRemoteConnection(), false);
             }
           }
           catch (ExecutionException e) {
