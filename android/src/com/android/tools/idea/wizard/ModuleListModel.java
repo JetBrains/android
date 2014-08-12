@@ -39,7 +39,7 @@ import java.util.Set;
  * Manages list of modules.
  */
 public final class ModuleListModel {
-  @NotNull private final Project myProject;
+  @Nullable private final Project myProject;
   private Map<ModuleToImport, ModuleValidationState> myModules;
   private Multimap<ModuleToImport, ModuleToImport> myRequiredModules;
   @Nullable private VirtualFile mySelectedDirectory;
@@ -47,7 +47,7 @@ public final class ModuleListModel {
   private ModuleToImport myPrimaryModule;
   private Map<ModuleToImport, Boolean> myExplicitSelection = Maps.newHashMap();
 
-  public ModuleListModel(@NotNull Project project) {
+  public ModuleListModel(@Nullable Project project) {
     myProject = project;
   }
 
