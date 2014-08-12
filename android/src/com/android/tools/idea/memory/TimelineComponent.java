@@ -20,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Path2D;
 
 /**
@@ -27,7 +29,7 @@ import java.awt.geom.Path2D;
  * rendered, but objects of this class should not be accessed from different threads.
  */
 @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
-class TimelineComponent extends JComponent {
+class TimelineComponent extends JComponent implements ActionListener {
 
   private static final Color TEXT_COLOR = Gray._128;
   private static final Font TIMELINE_FONT = new Font("Sans", Font.PLAIN, 10);
@@ -37,6 +39,7 @@ class TimelineComponent extends JComponent {
   private static final int RIGHT_MARGIN = 200;
   private static final int TOP_MARGIN = 40;
   private static final int BOTTOM_MARGIN = 30;
+  private static final int FPS = 40;
 
   /**
    * The number of pixels a second in the timeline takes on the screen.
@@ -48,6 +51,7 @@ class TimelineComponent extends JComponent {
   private final TimelineData myData;
   private final float myInitialMax;
   private final float myInitialMarkerSeparation;
+  private final Timer myTimer;
   private boolean myFirstFrame;
   private long myLastRenderTime;
   private Path2D.Float[] myPaths;
@@ -113,6 +117,8 @@ class TimelineComponent extends JComponent {
     myInitialMax = initialMax;
     myInitialMarkerSeparation = initialMarkerSeparation;
     myPaths = new Path2D.Float[myData.getStreamCount()];
+    myTimer = new Timer(0, this);
+    myTimer.setRepeats(false);
     for (int i = 0; i < myPaths.length; i++) {
       myPaths[i] = new Path2D.Float();
     }
@@ -175,6 +181,14 @@ class TimelineComponent extends JComponent {
     }
 
     myFirstFrame = false;
+
+    int delay = Math.max((int)((1000 / FPS) - (System.nanoTime() - now) / 1000000), 0);
+    myTimer.setInitialDelay(delay);
+    myTimer.restart();
+  }
+
+  @Override
+  public void actionPerformed(ActionEvent actionEvent) {
     repaint();
   }
 
