@@ -497,7 +497,7 @@ public final class GradleUtil {
    * <p/>
    * E.g. ":module" becomes "module" and ":directory:module" is converted to "directory/module"
    */
-  @NotNull @VisibleForTesting
+  @NotNull
   public static String getDefaultPhysicalPathFromGradlePath(@NotNull String name) {
     List<String> segments = getPathSegments(name);
     return FileUtil.join(segments.toArray(new String[segments.size()]));
