@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.parser;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.lint.checks.GradleDetector;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -217,7 +218,8 @@ public class GradleBuildFile extends GradleGroovyFile {
    */
   public boolean hasAndroidPlugin() {
     List<String> plugins = getPlugins();
-    return plugins.contains("android") || plugins.contains("android-library");
+    return plugins.contains(GradleDetector.APP_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_APP_PLUGIN_ID) ||
+           plugins.contains(GradleDetector.LIB_PLUGIN_ID) || plugins.contains(GradleDetector.OLD_LIB_PLUGIN_ID);
   }
 
   /**
