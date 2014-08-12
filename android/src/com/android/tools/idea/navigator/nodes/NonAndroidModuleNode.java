@@ -72,6 +72,18 @@ public class NonAndroidModuleNode extends ProjectViewModuleNode {
 
   @Nullable
   @Override
+  public Comparable getSortKey() {
+    return getValue().getName();
+  }
+
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return getSortKey();
+  }
+
+  @Nullable
+  @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return String.format("%1$s (non-Android)", getValue().getName());
   }
