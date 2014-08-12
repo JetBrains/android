@@ -198,7 +198,6 @@ public class ImportSourceLocationStep extends ModuleWizardStep implements Androi
     assert EventQueue.isDispatchThread();
     Collection<ModuleToImport> modules = null;
     Project project = myContext.getProject();
-    assert project != null;
     try {
       if (result.myStatus == PageStatus.OK) {
         assert result.myVfile != null && result.myImporter != null;
