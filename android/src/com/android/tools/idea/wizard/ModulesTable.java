@@ -202,7 +202,7 @@ public final class ModulesTable extends JBPanel implements Scrollable {
     return myListModel.getSelectedModules();
   }
 
-  public void setModules(@NotNull Project project, @Nullable VirtualFile currentPath, @Nullable Iterable<ModuleToImport> modules) {
+  public void setModules(@Nullable Project project, @Nullable VirtualFile currentPath, @Nullable Iterable<ModuleToImport> modules) {
     if (myListModel == null) {
       myListModel = new ModuleListModel(project);
     }
