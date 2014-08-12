@@ -39,7 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>> implements AndroidProjectViewNode {
+public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>> implements DirectoryGroupNode {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ResourceFolderType myFolderType;
   @NotNull private final AndroidProjectViewPane myProjectViewPane;
@@ -54,12 +54,6 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
     myFacet = facet;
     myFolderType = folderType;
     myProjectViewPane = projectViewPane;
-  }
-
-  @NotNull
-  @Override
-  public AndroidFacet getAndroidFacet() {
-    return myFacet;
   }
 
   @NotNull
