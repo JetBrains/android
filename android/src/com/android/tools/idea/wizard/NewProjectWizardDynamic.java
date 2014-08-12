@@ -136,7 +136,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     try {
-      projectImporter.importProject(projectName, rootLocation, new NewProjectImportGradleSyncListener() {
+      projectImporter.importNewlyCreatedProject(projectName, rootLocation, new NewProjectImportGradleSyncListener() {
         @Override
         public void syncSucceeded(@NotNull final Project project) {
           // Open files -- but wait until the Android facets are available, otherwise for example

@@ -273,7 +273,7 @@ public final class GradleUtil {
   }
 
   @NotNull
-  private static Properties loadGradleWrapperProperties(@NotNull File propertiesFile) throws IOException {
+  public static Properties loadGradleWrapperProperties(@NotNull File propertiesFile) throws IOException {
     Properties properties = new Properties();
     FileInputStream fileInputStream = null;
     try {

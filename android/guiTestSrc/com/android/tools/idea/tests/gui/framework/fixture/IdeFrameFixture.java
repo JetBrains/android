@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
@@ -35,6 +36,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
@@ -95,7 +97,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public IdeFrameFixture waitForGradleProjectToBeOpened() {
-    Project project = getProject();
+    final Project project = getProject();
 
     // ensure GradleInvoker (in-process build) is always enabled.
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
@@ -111,7 +113,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
         @Override
         public boolean test() {
-          return listener.mySyncFinished;
+          return listener.mySyncFinished || GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.YES;
         }
       }, LONG_TIMEOUT);
 
