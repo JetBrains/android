@@ -162,6 +162,12 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     return mySourceType;
   }
 
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return mySourceType;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

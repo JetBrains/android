@@ -36,7 +36,7 @@ import java.util.Collection;
 import java.util.List;
 
 /** {@link AndroidResGroupNode} groups together all the configuration specific alternatives of a single resource. */
-public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implements DirectoryGroupNode {
+public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implements DirectoryGroupNode, Comparable {
   @NotNull private final String myResName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final List<PsiFile> myFiles;
@@ -82,6 +82,33 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
       children.add(new AndroidResFileNode(myProject, file, getSettings(), myFacet));
     }
     return children;
+  }
+
+  @Override
+  public int getWeight() {
+    return 20; // same as PsiFileNode so that res group nodes are compared with resources only alphabetically
+  }
+
+  @Nullable
+  @Override
+  public Comparable getSortKey() {
+    return this;
+  }
+
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return this;
+  }
+
+  @Override
+  public int compareTo(@NotNull Object obj) {
+    return AndroidResComparator.INSTANCE.compare(this, obj);
+  }
+
+  @NotNull
+  public String getResName() {
+    return myResName;
   }
 
   @Override
