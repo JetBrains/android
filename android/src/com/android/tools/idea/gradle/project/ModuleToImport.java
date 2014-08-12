@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +30,7 @@ import java.util.Collections;
 public final class ModuleToImport {
   public final String name;
   public final VirtualFile location;
-  @NotNull private final Function<? super VirtualFile, ? extends Iterable<String>> myDependencyComputer;
+  @NotNull private final Supplier<? extends Iterable<String>> myDependencyComputer;
 
   /**
    * Creates a new module.
@@ -40,10 +41,10 @@ public final class ModuleToImport {
    */
   public ModuleToImport(@NotNull String name,
                         @Nullable VirtualFile location,
-                        @NotNull Function<? super VirtualFile, Iterable<String>> dependencyComputer) {
+                        @NotNull Supplier<? extends Iterable<String>> dependencyComputer) {
     this.name = name;
     this.location = location;
-    myDependencyComputer = dependencyComputer;
+    myDependencyComputer = Suppliers.memoize(dependencyComputer);
   }
 
   @Override
@@ -64,12 +65,7 @@ public final class ModuleToImport {
 
   @NotNull
   public Iterable<String> getDependencies() {
-    Iterable<String> deps = myDependencyComputer.apply(location);
-    if (deps == null) {
-      return Collections.emptySet();
-    }
-    else {
-      return deps;
-    }
+    Iterable<String> deps = myDependencyComputer.get();
+    return deps == null ? Collections.<String>emptySet() : deps;
   }
 }
