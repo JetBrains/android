@@ -144,20 +144,18 @@ public final class FormFactorApiComboBox extends JComboBox {
       }
       if (target == null) {
         AndroidVersion androidVersion = new AndroidVersion(targetItem.apiLevel, null);
-        if (!ourInstalledVersions.contains(androidVersion) && stateStore.get(getInclusionKey(myFormFactor))) {
+        // TODO(davidherman): If the user has no APIs installed, we then request to install whichever version the user has targeted here.
+        // Instead, we should choose to install the highest stable API possible. However, users having no SDK at all installed is pretty
+        // unlikely, so this logic can wait for a followup CL.
+        if (ourHighestInstalledApiTarget == null ||
+            (androidVersion.getApiLevel() > ourHighestInstalledApiTarget.getVersion().getApiLevel() &&
+             !ourInstalledVersions.contains(androidVersion) &&
+             stateStore.get(myInclusionKey))) {
           IPkgDesc platformDescription =
             PkgDesc.Builder.newPlatform(androidVersion, new MajorRevision(1), FullRevision.NOT_SPECIFIED).create();
           stateStore.listPush(INSTALL_REQUESTS_KEY, platformDescription);
           myInstallRequest = platformDescription;
           populateApiLevels(androidVersion.getApiLevel(), ourHighestInstalledApiTarget, stateStore);
-        }
-      }
-      else { // target != null
-        if (!ourInstalledVersions.contains(target.getVersion())) {
-          IPkgDesc platformDescription = PkgDesc.Builder
-            .newPlatform(target.getVersion(), new MajorRevision(target.getRevision()), target.getBuildToolInfo().getRevision()).create();
-          stateStore.listPush(INSTALL_REQUESTS_KEY, platformDescription);
-          myInstallRequest = platformDescription;
         }
       }
       PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), targetItem.id.toString());
