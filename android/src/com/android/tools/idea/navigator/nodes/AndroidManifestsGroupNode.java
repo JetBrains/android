@@ -37,7 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
+public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> implements DirectoryGroupNode {
   private static final String MANIFESTS_NODE = "manifests";
   @NotNull private final Set<VirtualFile> mySources;
 
@@ -77,12 +77,6 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
       presentation.setIcon(icon);
     }
     presentation.setPresentableText(MANIFESTS_NODE);
-  }
-
-  @NotNull
-  @Override
-  public AndroidFacet getAndroidFacet() {
-    return getValue();
   }
 
   @NotNull

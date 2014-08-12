@@ -41,7 +41,7 @@ import java.util.Collections;
  * issues in the UI when it comes to identifying the tree node from source. In the future, this will
  * be made an optional setting.
  */
-public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements AndroidProjectViewNode {
+public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements DirectoryGroupNode {
   private static final String ANDROID_TESTS = "androidTests";
   private final AndroidProjectViewPane myProjectViewPane;
 
@@ -99,12 +99,6 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements A
   @Override
   public boolean equals(Object object) {
     return object instanceof AndroidTestsNode && super.equals(object);
-  }
-
-  @NotNull
-  @Override
-  public AndroidFacet getAndroidFacet() {
-    return getValue();
   }
 
   @NotNull
