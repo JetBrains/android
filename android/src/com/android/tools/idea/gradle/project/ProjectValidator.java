@@ -17,18 +17,25 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.*;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -37,23 +44,38 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.Processor;
+import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.android.inspections.lint.IntellijLintClient;
 import org.jetbrains.android.inspections.lint.IntellijLintIssueRegistry;
 import org.jetbrains.android.inspections.lint.IntellijLintRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ProjectValidator {
-  public static final Key<List<Message>> VALIDATION_MESSAGES = Key.create("gradle.validation.messages");
-  private static final Set<String> FILES_TO_PROCESS =
-    ImmutableSet.of(SdkConstants.FN_SETTINGS_GRADLE, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_LOCAL_PROPERTIES,
-                    SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
+  private static final Pattern ANDROID_GRADLE_PLUGIN_DEPENDENCY_PATTERN = Pattern.compile("['\"]com.android.tools.build:gradle:(.+)['\"]");
+  private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN =
+    Pattern.compile("http://services\\.gradle\\.org/distributions/gradle-(.+)-(.+)\\.zip");
 
-  private ProjectValidator() { }
+  private static final Logger LOG = Logger.getInstance(ProjectValidator.class);
+
+  public static final Key<List<Message>> VALIDATION_MESSAGES = Key.create("gradle.validation.messages");
+
+  private static final Set<String> FILES_TO_PROCESS = ImmutableSet
+    .of(SdkConstants.FN_SETTINGS_GRADLE, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_LOCAL_PROPERTIES,
+        SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
+
+  private ProjectValidator() {
+  }
 
   /**
    * Runs lint checks on all the Gradle files found underneath the given root directory and reports messages to the
@@ -68,29 +90,121 @@ public class ProjectValidator {
     }
     VirtualFile rootDirectory = file.isDirectory() ? file : file.getParent();
 
-    final List<File> files = Lists.newArrayList();
+    final List<File> filesToProcess = Lists.newArrayList();
     VfsUtil.processFileRecursivelyWithoutIgnored(rootDirectory, new Processor<VirtualFile>() {
       @Override
       public boolean process(VirtualFile virtualFile) {
         if (FILES_TO_PROCESS.contains(virtualFile.getName().toLowerCase())) {
-          files.add(VfsUtilCore.virtualToIoFile(virtualFile));
+          filesToProcess.add(VfsUtilCore.virtualToIoFile(virtualFile));
         }
         return true;
       }
     });
 
-    MyLintClient lintClient = new MyLintClient(project);
-    ImmutableList<Module> modules = ImmutableList.of();
-    LintRequest request = new IntellijLintRequest(lintClient, project, null, modules, false) {
-      @NonNull
-      @Override
-      public List<File> getFiles() {
-        return files;
+    attemptToUpdateGradleVersionIfApplicable(project, filesToProcess);
+
+    if (project.isInitialized()) {
+      // Lint requires the project to be initialized.
+      MyLintClient lintClient = new MyLintClient(project);
+      ImmutableList<Module> modules = ImmutableList.of();
+      LintRequest request = new IntellijLintRequest(lintClient, project, null, modules, false) {
+        @NonNull
+        @Override
+        public List<File> getFiles() {
+          return filesToProcess;
+        }
+      };
+      LintDriver lintDriver = new LintDriver(new IntellijLintIssueRegistry(), lintClient);
+      lintDriver.analyze(request);
+      return !lintClient.hasFatalError();
+    }
+
+    return true;
+  }
+
+  private static void attemptToUpdateGradleVersionIfApplicable(@NotNull Project project, @NotNull List<File> gradleFiles) {
+    // TODO Remove this check once the minimum supported version of the Android Gradle plug-in supports Gradle 2.0.
+    String originalPluginVersion = null;
+    for (File fileToCheck : gradleFiles) {
+      if (SdkConstants.FN_BUILD_GRADLE.equals(fileToCheck.getName())) {
+        try {
+          String contents = Files.toString(fileToCheck, Charsets.UTF_8);
+          Matcher matcher = ANDROID_GRADLE_PLUGIN_DEPENDENCY_PATTERN.matcher(contents);
+          if (matcher.find()) {
+            originalPluginVersion = matcher.group(1);
+            if (!StringUtil.isEmpty(originalPluginVersion)) {
+              break;
+            }
+          }
+        }
+        catch (IOException e) {
+          LOG.warn("Failed to read contents of " + fileToCheck.getPath());
+        }
       }
-    };
-    LintDriver lintDriver = new LintDriver(new IntellijLintIssueRegistry(), lintClient);
-    lintDriver.analyze(request);
-    return !lintClient.hasFatalError();
+    }
+    if (StringUtil.isEmpty(originalPluginVersion)) {
+      // Could not obtain plug-in version. Continue with sync.
+      return;
+    }
+    String pluginVersion = originalPluginVersion.replace('+', '0');
+    FullRevision pluginRevision = null;
+    try {
+      pluginRevision = FullRevision.parseRevision(pluginVersion);
+    }
+    catch (NumberFormatException e) {
+      LOG.warn("Failed to parse '" + pluginVersion + "'");
+    }
+    if (pluginRevision == null || (pluginRevision.getMajor() == 0 && pluginRevision.getMinor() <= 12)) {
+      // Unable to parse the plug-in version, or the plug-in is version 0.12 or older. Continue with sync.
+      return;
+    }
+
+    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+
+    DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
+
+    boolean usingWrapper = distributionType == DistributionType.DEFAULT_WRAPPED && wrapperPropertiesFile != null;
+    if (usingWrapper) {
+      attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, originalPluginVersion, project);
+    }
+  }
+
+  private static void attemptToUpdateGradleVersionInWrapper(@NotNull final File wrapperPropertiesFile,
+                                                            @NotNull String pluginVersion,
+                                                            @NotNull Project project) {
+    Properties wrapperProperties = null;
+    try {
+      wrapperProperties = GradleUtil.loadGradleWrapperProperties(wrapperPropertiesFile);
+    }
+    catch (IOException e) {
+      LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());
+    }
+
+    if (wrapperProperties == null) {
+      // There is a wrapper, but the Gradle version could not be read. Continue with sync.
+      return;
+    }
+    String url = wrapperProperties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY);
+    Matcher matcher = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
+    if (!matcher.matches()) {
+      // Could not get URL of Gradle distribution. Continue with sync.
+      return;
+    }
+    String gradleVersion = matcher.group(1);
+    FullRevision gradleRevision = FullRevision.parseRevision(gradleVersion);
+    // Plug-in v0.13.+ supports Gradle 2.0+ only.
+    if (gradleRevision.getMajor() < 2) {
+      String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle 2.0 or newer.\n\n" +
+                   "Click 'OK' to automatically update the Gradle version in the Gradle wrapper and continue.";
+      Messages.showMessageDialog(project, msg, "Gradle Sync", Messages.getQuestionIcon());
+      try {
+        GradleUtil.updateGradleDistributionUrl("2.0", wrapperPropertiesFile);
+      }
+      catch (IOException e) {
+        LOG.warn("Failed to update Gradle wrapper file to Gradle version 2.0");
+      }
+    }
   }
 
   /**
@@ -149,13 +263,15 @@ public class ProjectValidator {
             }
           }
           myMessages.add(new Message(myProject, GROUP_NAME, type, virtualFile, line, column, message));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           // There are cases where the offset lookup is wrong; e.g.
           //   java.lang.IndexOutOfBoundsException: Wrong offset: 312. Should be in range: [0, 16]
           // in this case, just report the message without a location
           myMessages.add(new Message(GROUP_NAME, type, message));
         }
-      } else {
+      }
+      else {
         myMessages.add(new Message(GROUP_NAME, type, message));
       }
     }
@@ -170,7 +286,7 @@ public class ProjectValidator {
 
     @NonNull
     private static Message.Type convertSeverity(@NonNull Severity severity) {
-      switch(severity) {
+      switch (severity) {
         case ERROR:
         case FATAL:
           return Message.Type.ERROR;
