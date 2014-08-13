@@ -30,7 +30,7 @@ public class MemoryProfilingToolWindowFactory implements ToolWindowFactory, Dumb
     MemoryProfilingView view = new MemoryProfilingView(project, toolWindow);
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-    Content content = contentFactory.createContent(view.getContentPane(), "", false);
+    Content content = contentFactory.createContent(view.getComponent(), "", false);
     toolWindow.getContentManager().addContent(content);
   }
 }
