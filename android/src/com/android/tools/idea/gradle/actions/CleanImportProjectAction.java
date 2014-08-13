@@ -76,7 +76,7 @@ public class CleanImportProjectAction extends AnAction {
         delete(filesToDelete, projectName);
         try {
           LOG.info(String.format("About to import project '%1$s'.", projectName));
-          GradleProjectImporter.getInstance().importProject(projectName, projectDir, null);
+          GradleProjectImporter.getInstance().importNewlyCreatedProject(projectName, projectDir, null);
           LOG.info(String.format("Done importing project '%1$s'.", projectName));
         }
         catch (Exception error) {
