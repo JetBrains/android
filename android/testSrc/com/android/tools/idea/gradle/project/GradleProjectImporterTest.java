@@ -85,9 +85,9 @@ public class GradleProjectImporterTest extends IdeaTestCase {
     super.tearDown();
   }
 
-  public void testImportProject() throws Exception {
+  public void testImportNewlyCreatedProject() throws Exception {
     MyGradleSyncListener callback = new MyGradleSyncListener();
-    myImporter.importProject(myProjectName, myProjectRootDir, callback);
+    myImporter.importNewlyCreatedProject(myProjectName, myProjectRootDir, callback);
   }
 
   private class MyGradleSyncListener extends GradleSyncListener.Adapter {
