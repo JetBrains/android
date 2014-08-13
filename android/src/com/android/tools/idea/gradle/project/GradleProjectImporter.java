@@ -183,8 +183,7 @@ public class GradleProjectImporter {
    */
   public void importModules(@NotNull final Map<String, VirtualFile> modules,
                             @Nullable final Project project,
-                            @Nullable final GradleSyncListener listener)
-    throws IOException, ConfigurationException {
+                            @Nullable final GradleSyncListener listener) throws IOException, ConfigurationException {
     String error = validateProjectsForImport(modules);
     if (error != null) {
       if (listener != null && project != null) {
@@ -251,8 +250,7 @@ public class GradleProjectImporter {
    */
   private void copyAndRegisterModule(@NotNull Map<String, VirtualFile> modules,
                                      @NotNull Project project,
-                                     @Nullable GradleSyncListener listener)
-    throws IOException, ConfigurationException {
+                                     @Nullable GradleSyncListener listener) throws IOException, ConfigurationException {
     VirtualFile projectRoot = project.getBaseDir();
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
       projectRoot.createChildData(this, SdkConstants.FN_SETTINGS_GRADLE);
@@ -362,13 +360,12 @@ public class GradleProjectImporter {
   private void doRequestSync(@NotNull final Project project,
                              @NotNull ProgressExecutionMode progressExecutionMode,
                              boolean generateSourcesOnSuccess,
-                             @Nullable final GradleSyncListener listener)
-    throws ConfigurationException {
+                             @Nullable final GradleSyncListener listener) throws ConfigurationException {
     if (Projects.isGradleProject(project) || hasTopLevelGradleBuildFile(project)) {
       FileDocumentManager.getInstance().saveAllDocuments();
       setUpGradleSettings(project);
       resetProject(project);
-      doImport(project, false /* existing project */, progressExecutionMode, generateSourcesOnSuccess, listener);
+      doImport(project, true /* validate */, false /* existing project */, progressExecutionMode, generateSourcesOnSuccess, listener);
     }
     else {
       Runnable notificationTask = new Runnable() {
@@ -428,11 +425,27 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Imports and opens the newly created Android project.
+   * Imports and opens an Android project that has been created with the "New Project" wizard. This method does not perform any project
+   * validation before importing the project (assuming that the wizard properly created the new project.)
    *
    * @param projectName    name of the project.
    * @param projectRootDir root directory of the project.
    * @param listener       called after the project has been imported.
+   * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
+   * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
+   */
+  public void importNewlyCreatedProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException {
+    doImport(projectName, projectRootDir, false /* do not validate */, true, listener, null, null);
+  }
+
+  /**
+   * Imports and opens an Android project.
+   *
+   * @param projectName    name of the project.
+   * @param projectRootDir root directory of the project.
+   * @param listener       called after the project has been imported.
+   * @param project        the given project. This method does nothing if the project is not an Android-Gradle project.
    * @throws IOException            if any file I/O operation fails (e.g. creating the '.idea' directory.)
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
@@ -444,12 +457,13 @@ public class GradleProjectImporter {
   }
 
   /**
-   * Imports and opens the newly created Android project.
+   * Imports and opens an Android project.
    *
    * @param projectName              name of the project.
    * @param projectRootDir           root directory of the project.
    * @param generateSourcesOnSuccess whether to generate sources after sync.
    * @param listener                 called after the project has been imported.
+   * @param project                  the given project. This method does nothing if the project is not an Android-Gradle project.
    * @param initialLanguageLevel     when creating a new project, sets the language level to the given version early on (this is because you
    *                                 cannot set a language level later on in the process without telling the user that the language level
    *                                 has changed and to re-open the project)
@@ -457,9 +471,21 @@ public class GradleProjectImporter {
    * @throws ConfigurationException if any required configuration option is missing (e.g. Gradle home directory path.)
    */
   public void importProject(@NotNull String projectName,
-                            @NotNull File projectRootDir, boolean generateSourcesOnSuccess, @Nullable GradleSyncListener listener,
+                            @NotNull File projectRootDir,
+                            boolean generateSourcesOnSuccess,
+                            @Nullable GradleSyncListener listener,
                             @Nullable Project project,
                             @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
+    doImport(projectName, projectRootDir, true, generateSourcesOnSuccess, listener, project, initialLanguageLevel);
+  }
+
+  private void doImport(@NotNull String projectName,
+                        @NotNull File projectRootDir,
+                        boolean validateBeforeImporting,
+                        boolean generateSourcesOnSuccess,
+                        @Nullable GradleSyncListener listener,
+                        @Nullable Project project,
+                        @Nullable LanguageLevel initialLanguageLevel) throws IOException, ConfigurationException {
     createTopLevelBuildFileIfNotExisting(projectRootDir);
     createIdeaProjectDir(projectRootDir);
 
@@ -470,26 +496,8 @@ public class GradleProjectImporter {
       newProject.save();
     }
 
-    // temporarily disable to check whether this is the cause for broken tests
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      if (!newProject.isOpen()) {
-        Projects.open(newProject);
-      }
-      if (!ProjectValidator.validate(newProject, projectRootDir)) {
-        // The project failed validation. Bail out on Gradle import, but create a top-level module so that the entire project directory
-        // contents will show up in the project window and the user can edit files to fix the validation problems.
-        NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen(newProject);
-        return;
-      }
-    }
-
-    assert newProject != null;
-    doImport(newProject, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */, generateSourcesOnSuccess, listener);
-  }
-
-  public void importProject(@NotNull String projectName, @NotNull File projectRootDir, @Nullable GradleSyncListener listener)
-    throws IOException, ConfigurationException {
-    importProject(projectName, projectRootDir, listener, null);
+    doImport(newProject, validateBeforeImporting, true /* new project */, ProgressExecutionMode.MODAL_SYNC /* synchronous import */,
+             generateSourcesOnSuccess, listener);
   }
 
   private static void createTopLevelBuildFileIfNotExisting(@NotNull File projectRootDir) throws IOException {
@@ -591,10 +599,21 @@ public class GradleProjectImporter {
   }
 
   private void doImport(@NotNull final Project project,
+                        boolean validateBeforeImporting,
                         final boolean newProject,
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
+    // temporarily disable to check whether this is the cause for broken tests
+    if (validateBeforeImporting && !ApplicationManager.getApplication().isUnitTestMode()) {
+      if (!ProjectValidator.validate(project, new File(project.getBasePath()))) {
+        // The project failed validation. Bail out on Gradle import, but create a top-level module so that the entire project directory
+        // contents will show up in the project window and the user can edit files to fix the validation problems.
+        NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen(project);
+        return;
+      }
+    }
+
     if (AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isDirectGradleInvocationEnabled(project)) {
       // We cannot do the same when using JPS. We don't have access to the contents of the Message view used by JPS.
       // For now, we can only improve the user experience in Android Studio.
@@ -741,8 +760,7 @@ public class GradleProjectImporter {
     return buildModulesSet(modules, parser);
   }
 
-  private static Set<ModuleToImport> buildModulesSet(Map<String, VirtualFile> modules,
-                                                     Function<VirtualFile, Iterable<String>> parser) {
+  private static Set<ModuleToImport> buildModulesSet(Map<String, VirtualFile> modules, Function<VirtualFile, Iterable<String>> parser) {
     Set<ModuleToImport> modulesSet = new HashSet<ModuleToImport>(modules.size());
     for (Map.Entry<String, VirtualFile> entry : modules.entrySet()) {
       modulesSet.add(new ModuleToImport(entry.getKey(), entry.getValue(), Suppliers.compose(parser, Suppliers.ofInstance(entry.getValue()))));
