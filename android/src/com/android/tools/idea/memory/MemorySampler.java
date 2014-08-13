@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,15 +45,22 @@ class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListene
   @NotNull
   private final CountDownLatch myStopLatch;
   private final int mySampleFrequencyMs;
+  @NotNull
+  private final DeviceContext myDeviceContext;
   @Nullable
   private Client myClient;
   private volatile boolean myRunning;
 
-  MemorySampler(@NotNull String applicationName, @NotNull TimelineData data, @NotNull AndroidDebugBridge bridge, int sampleFrequencyMs) {
+  MemorySampler(@NotNull String applicationName,
+                @NotNull TimelineData data,
+                @NotNull AndroidDebugBridge bridge,
+                @NotNull DeviceContext deviceContext,
+                int sampleFrequencyMs) {
     myApplicationName = applicationName;
     mySampleFrequencyMs = sampleFrequencyMs;
     myData = data;
     myBridge = bridge;
+    myDeviceContext = deviceContext;
     refreshClient();
     myRunning = true;
     myStopLatch = new CountDownLatch(1);
@@ -81,10 +89,12 @@ class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListene
         myClient.setHeapInfoUpdateEnabled(false);
       }
       myClient = client;
+      myDeviceContext.fireClientSelected(myClient);
       if (myClient != null) {
         myClient.setHeapInfoUpdateEnabled(true);
         myData.setTitle(myClient.getDevice().getName() + ": " + myClient.getClientData().getClientDescription());
-      } else {
+      }
+      else {
         myData.setTitle("<" + myApplicationName + "> not found.");
       }
     }
