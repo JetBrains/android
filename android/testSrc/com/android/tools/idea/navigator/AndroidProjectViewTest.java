@@ -64,7 +64,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "  build.gradle (lib)\n" +
       "  build.gradle (" + rootModuleName + ")\n" +
       "  gradle-wrapper.properties\n" +
+      "  local.properties\n" +
       "  settings.gradle (Project Settings)\n" +
+      "  sonar.gradle (app)\n" +
       " app (Android)\n" +
       "  assets\n" +
       "   raw.asset.txt\n" +
