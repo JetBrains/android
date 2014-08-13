@@ -28,10 +28,7 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.DefaultProgramRunner;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.runners.*;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentManager;
@@ -166,9 +163,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     }
     tryToCloseOldSessions(environment.getExecutor(), project);
     final ProcessHandler handler = state.getProcessHandler();
-    handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(
-      runDescriptor, state, environment.getExecutor().getId()));
-    state.setRestarter(runDescriptor.getRestarter());
+    handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(runDescriptor, state, environment.getExecutor().getId()));
     setActivateToolWindowWhenAddedProperty(project, environment.getExecutor(), runDescriptor, "running");
     return runDescriptor;
   }
