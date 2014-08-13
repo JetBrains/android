@@ -55,6 +55,7 @@ class TimelineComponent extends JComponent implements ActionListener {
   private boolean myFirstFrame;
   private long myLastRenderTime;
   private Path2D.Float[] myPaths;
+  private final boolean myDrawDebugInfo;
 
   /**
    * The current maximum range in y-axis units.
@@ -119,6 +120,7 @@ class TimelineComponent extends JComponent implements ActionListener {
     myPaths = new Path2D.Float[myData.getStreamCount()];
     myTimer = new Timer(0, this);
     myTimer.setRepeats(false);
+    myDrawDebugInfo = Boolean.getBoolean("studio.profiling.debug");
     for (int i = 0; i < myPaths.length; i++) {
       myPaths[i] = new Path2D.Float();
     }
@@ -178,6 +180,9 @@ class TimelineComponent extends JComponent implements ActionListener {
       drawMarkers(g2d);
       drawGuides(g2d);
       drawTitle(g2d);
+      if (myDrawDebugInfo) {
+        drawDebugInfo(g2d);
+      }
     }
 
     myFirstFrame = false;
@@ -185,6 +190,32 @@ class TimelineComponent extends JComponent implements ActionListener {
     int delay = Math.max((int)((1000 / FPS) - (System.nanoTime() - now) / 1000000), 0);
     myTimer.setInitialDelay(delay);
     myTimer.restart();
+  }
+
+  private void drawDebugInfo(Graphics2D g2d) {
+    g2d.setFont(TIMELINE_FONT);
+
+    int size = myData.size();
+    int drawn = 0;
+    for (int i = 0; i < size; ++i) {
+      TimelineData.Sample sample = myData.get(i);
+      if (sample.time > myBeginTime && sample.time < myEndTime) {
+        float v = 0.0f;
+        for (float f : sample.values) {
+          v += f;
+          int x = (int)timeToX(sample.time);
+          int y = (int)valueToY(v);
+          g2d.drawLine(x, y - 2, x, y + 2);
+          g2d.drawLine(x - 2, y, x + 2, y);
+        }
+        drawn++;
+      }
+    }
+
+    g2d.drawString(String.format("FPS: %.2f",(1.0f / myFrameLength)), myRight + 20, myBottom - 40);
+    g2d.drawString(String.format("Total samples: %d", size), myRight + 20, myBottom - 30);
+    g2d.drawString(String.format("Drawn samples: %d", drawn), myRight + 20, myBottom - 20);
+    g2d.drawString(String.format("Render time: %.2fms", (System.nanoTime() - myLastRenderTime) / 1000000.f), myRight + 20, myBottom - 10);
   }
 
   @Override
@@ -220,28 +251,34 @@ class TimelineComponent extends JComponent implements ActionListener {
         if (prev.time >= myBeginTime) {
           if (!hasData) {
             for (Path2D.Float shape : myPaths) {
-              shape.moveTo(LEFT_MARGIN + (prev.time - myBeginTime) * X_SCALE, myBottom);
+              shape.moveTo(timeToX(prev.time), valueToY(0.0f));
             }
             hasData = true;
           }
-          float stack = 0.0f;
+          float val = 0.0f;
           for (int j = 0; j < prev.values.length; j++) {
-            float val = stack + prev.values[j];
-            val *= myYScale;
-            myPaths[j].lineTo(LEFT_MARGIN + (prev.time - myBeginTime) * X_SCALE, myBottom - val);
-            stack += prev.values[j];
+            val += prev.values[j];
+            myPaths[j].lineTo(timeToX(prev.time), valueToY(val));
           }
         }
       }
       if (hasData) {
         for (int j = myPaths.length - 1; j >= 0; j--) {
-          myPaths[j].lineTo(LEFT_MARGIN + (prev.time - myBeginTime) * X_SCALE, myBottom);
+          myPaths[j].lineTo(timeToX(prev.time), valueToY(0.0f));
           g2d.setColor(myData.getStream(j).color);
           g2d.fill(myPaths[j]);
         }
         drawLabels(g2d, prev);
       }
     }
+  }
+
+  private float valueToY(float val) {
+    return myBottom - val * myYScale;
+  }
+
+  private float timeToX(float time) {
+    return LEFT_MARGIN + (time - myBeginTime) * X_SCALE;
   }
 
   private void drawLabels(Graphics2D g2d, TimelineData.Sample value) {
@@ -263,7 +300,7 @@ class TimelineComponent extends JComponent implements ActionListener {
     FontMetrics metrics = g2d.getFontMetrics();
     float offset = metrics.charWidth('0') * 0.5f;
     for (int sec = Math.max((int)Math.ceil(myBeginTime), 0); sec < myEndTime; sec++) {
-      float x = LEFT_MARGIN + (sec - myBeginTime) * X_SCALE;
+      float x = timeToX(sec);
       boolean big = sec % 5 == 0;
       if (big) {
         g2d.drawString(sec + "s", x - offset, myBottom + metrics.getAscent() + 5);
@@ -300,7 +337,7 @@ class TimelineComponent extends JComponent implements ActionListener {
     float markerPosition = LEFT_MARGIN - 10;
     for (int i = 0; i < markers + 1; i++) {
       float markerValue = (i + 1) * myMarkerSeparation;
-      int y = (int)(myBottom - (markerValue * myYScale));
+      int y = (int)valueToY(markerValue);
       // Too close to the top
       if (myCurrentMax - markerValue < myMarkerSeparation * 0.5f) {
         markerValue = myCurrentMax;
