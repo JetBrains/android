@@ -18,10 +18,9 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectData;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.gradle.util.Projects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -38,21 +37,13 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import icons.GradleIcons;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirectory>> {
-  private static final Set<String> ourBuildFileNames =
-    ImmutableSet.of(SdkConstants.FN_SETTINGS_GRADLE, SdkConstants.FN_GRADLE_PROPERTIES, SdkConstants.FN_BUILD_GRADLE,
-                    SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
-
   public AndroidBuildScriptsGroupNode(@NotNull Project project, @NotNull ViewSettings viewSettings) {
     // TODO: Should this class really be parametrized on List<PsiDirectory>?
     super(project, Collections.<PsiDirectory>emptyList(), viewSettings);
@@ -60,37 +51,75 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    // TODO: this is not an entirely accurate contains() check when compared to the getChildren() implementation below.
-    // As a result, the "Scroll to/from source" actions may not be entirely accurate for these files.
-    if (!ourBuildFileNames.contains(file.getName())) {
-      return false;
-    }
-
-    return true;
+    return getBuildScriptsWithQualifiers().containsKey(file);
   }
 
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode> getChildren() {
-    List<PsiFileNode> children = Lists.newArrayList();
+    Map<VirtualFile, String> scripts = getBuildScriptsWithQualifiers();
+    List<PsiFileNode> children = Lists.newArrayListWithExpectedSize(scripts.size());
 
-    VirtualFile baseDir = myProject.getBaseDir();
-
-    addPsiFile(children, baseDir.findChild(SdkConstants.FN_SETTINGS_GRADLE), "Project Settings");
-    addPsiFile(children, baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
-    addPsiFile(children, baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), null);
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      File userSettingsFile = AndroidGradleProjectData.getGradleUserSettingsFile();
-      if (userSettingsFile != null) {
-        addPsiFile(children, VfsUtil.findFileByIoFile(userSettingsFile, false), "Global Properties");
-      }
-    }
-
-    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
-      addPsiFile(children, GradleUtil.getGradleBuildFile(m), m.getName());
+    for (Map.Entry<VirtualFile, String> scriptWithQualifier : scripts.entrySet()) {
+      addPsiFile(children, scriptWithQualifier.getKey(), scriptWithQualifier.getValue());
     }
 
     return children;
+  }
+
+  private Map<VirtualFile, String> getBuildScriptsWithQualifiers() {
+    Map<VirtualFile, String> buildScripts = Maps.newHashMap();
+
+    for (Module m : ModuleManager.getInstance(myProject).getModules()) {
+      String moduleName = m.getName();
+      buildScripts.put(GradleUtil.getGradleBuildFile(m), moduleName);
+
+      // include all .gradle files from each module
+      for (VirtualFile f : findAllGradleScriptsInModule(m)) {
+        buildScripts.put(f, moduleName);
+      }
+    }
+
+    VirtualFile baseDir = myProject.getBaseDir();
+    buildScripts.put(baseDir.findChild(SdkConstants.FN_SETTINGS_GRADLE), "Project Settings");
+    buildScripts.put(baseDir.findChild(SdkConstants.FN_GRADLE_PROPERTIES), "Project Properties");
+    buildScripts.put(baseDir.findChild(SdkConstants.FN_LOCAL_PROPERTIES), null);
+    buildScripts.put(baseDir.findFileByRelativePath(GradleUtil.GRADLEW_PROPERTIES_PATH), null);
+
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      File userSettingsFile = AndroidGradleProjectData.getGradleUserSettingsFile();
+      if (userSettingsFile != null) {
+        buildScripts.put(VfsUtil.findFileByIoFile(userSettingsFile, false), "Global Properties");
+      }
+    }
+
+    buildScripts.remove(null); // any of the above virtual files could have been null
+    return buildScripts;
+  }
+
+  @NotNull
+  private static List<VirtualFile> findAllGradleScriptsInModule(@NotNull Module m) {
+    File moduleDir = new File(m.getModuleFilePath()).getParentFile();
+    VirtualFile dir = VfsUtil.findFileByIoFile(moduleDir, false);
+    if (dir == null || dir.getChildren() == null) {
+      return Collections.emptyList();
+    }
+
+    List<VirtualFile> files = Lists.newArrayList();
+    for (VirtualFile child : dir.getChildren()) {
+      if (!child.isValid() || child.isDirectory() || !child.getName().endsWith(SdkConstants.EXT_GRADLE)) {
+        continue;
+      }
+
+      // TODO: When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
+      if (ApplicationManager.getApplication().isUnitTestMode() && child.getName().startsWith("ijinit")) {
+        continue;
+      }
+
+      files.add(child);
+    }
+
+    return files;
   }
 
   private void addPsiFile(@NotNull List<PsiFileNode> psiFileNodes, @Nullable VirtualFile file, @Nullable String qualifier) {
