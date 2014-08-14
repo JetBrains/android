@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.sdklib.repository.FullRevision;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Closeables;
@@ -176,5 +177,24 @@ public class GradleUtilTest extends TestCase {
     myTempDir = Files.createTempDir();
     File buildFilePath = GradleUtil.getGradleBuildFilePath(myTempDir);
     assertEquals(new File(myTempDir, FN_BUILD_GRADLE), buildFilePath);
+  }
+
+  public void testGetGradleVersionFromJarUsingGradleLibraryJar() {
+    File jarFile = new File("gradle-core-2.0.jar");
+    FullRevision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    assertNotNull(gradleVersion);
+    assertEquals(FullRevision.parseRevision("2.0"), gradleVersion);
+  }
+
+  public void testGetGradleVersionFromJarUsingGradleLibraryJarWithoutVersion() {
+    File jarFile = new File("gradle-core-two.jar");
+    FullRevision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    assertNull(gradleVersion);
+  }
+
+  public void testGetGradleVersionFromJarUsingNonGradleLibraryJar() {
+    File jarFile = new File("ant-1.9.3.jar");
+    FullRevision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
+    assertNull(gradleVersion);
   }
 }
