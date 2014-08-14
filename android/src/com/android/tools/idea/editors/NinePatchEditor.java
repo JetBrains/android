@@ -109,7 +109,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return null;
+    return myImageEditorPanel;
   }
 
   @NotNull
