@@ -17,6 +17,7 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.resources.ScreenOrientation;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -33,8 +34,8 @@ public class DeviceArtDescriptorTest extends TestCase {
     // Currently there are 9 devices for which we have device art, plus 2 generic/stretchable
     assertEquals(15, specs.size());
 
-    DeviceArtDescriptor nexus4 = specs.get(5);
-    assertEquals("nexus_4", nexus4.getId());
+    DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
+    assertNotNull(nexus4);
 
     Point offsets = nexus4.getScreenPos(ScreenOrientation.PORTRAIT);
     assertEquals(213, offsets.x);
@@ -76,6 +77,9 @@ public class DeviceArtDescriptorTest extends TestCase {
         }
       }
     }
+
+    DeviceArtDescriptor generic_phone = getDescriptorFor("phone", specs);
+    assertNull(generic_phone.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
   }
 
   public void testCanFrameImage() {
@@ -109,5 +113,14 @@ public class DeviceArtDescriptorTest extends TestCase {
   private static void verifyFileExists(@Nullable File f) {
     assertNotNull(f);
     assertTrue(f.exists());
+  }
+
+  private static DeviceArtDescriptor getDescriptorFor(@NotNull String id, List<DeviceArtDescriptor> descriptors) {
+    for (DeviceArtDescriptor descriptor : descriptors) {
+      if (id.equals(descriptor.getId())) {
+        return descriptor;
+      }
+    }
+    return null;
   }
 }
