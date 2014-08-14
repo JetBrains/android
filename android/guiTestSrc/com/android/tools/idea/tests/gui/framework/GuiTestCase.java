@@ -277,7 +277,7 @@ public abstract class GuiTestCase {
     fileChooserDialog.select(projectPath).clickOK();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectToBeOpened();
+    projectFrame.waitForGradleProjectSyncToFinish();
 
     return projectFrame;
   }
