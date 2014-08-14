@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
 import com.android.builder.model.*;
+import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
@@ -91,6 +92,7 @@ public final class GradleUtil {
     FileUtil.join(SdkConstants.FD_GRADLE_WRAPPER, SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
 
   private static final Logger LOG = Logger.getInstance(GradleUtil.class);
+  private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-(.*)-(.*)\\.jar");
   private static final ProjectSystemId SYSTEM_ID = GradleConstants.SYSTEM_ID;
 
   /**
@@ -589,5 +591,43 @@ public final class GradleUtil {
     for (ConfigurableEP<Configurable> toRemove : nonStudioExtensions) {
       preferences.unregisterExtension(toRemove);
     }
+  }
+
+  /**
+   * Attempts to figure out the Gradle version of the given distribution.
+   *
+   * @param gradleHomePath the path of the directory containing the Gradle distribution.
+   * @return the Gradle version of the given distribution, or {@code null} if it was not possible to obtain the version.
+   */
+  @Nullable
+  public static FullRevision getGradleVersion(@NotNull File gradleHomePath) {
+    File libDirPath = new File(gradleHomePath, "lib");
+
+    for (File child : FileUtil.notNullize(libDirPath.listFiles())) {
+      FullRevision version = getGradleVersionFromJar(child);
+      if (version != null) {
+        return version;
+      }
+    }
+
+    return null;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static FullRevision getGradleVersionFromJar(@NotNull File libraryJarFile) {
+    String fileName = libraryJarFile.getName();
+    Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
+    if (matcher.matches()) {
+      // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
+      String version = matcher.group(2);
+      try {
+        return FullRevision.parseRevision(version);
+      }
+      catch (NumberFormatException e) {
+        LOG.warn(String.format("Unable to parse version '%1$s' (obtained from file '%2$s')", version, fileName));
+      }
+    }
+    return null;
   }
 }

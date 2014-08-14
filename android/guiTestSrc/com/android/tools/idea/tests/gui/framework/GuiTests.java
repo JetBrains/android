@@ -52,6 +52,7 @@ public final class GuiTests {
   public static Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
   public static String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
+  public static String GRADLE_HOME_PATH_PROPERTY = "gradle.home.path";
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
