@@ -69,7 +69,7 @@ public class Repository extends BuildFileStatement {
       return new Repository(Type.URL, s);
     } else if (s.startsWith("'") && s.endsWith("'")) {
       return new Repository(Type.URL, s.substring(1, s.length() - 1));
-    } else if (s.indexOf('.') >= 0) {
+    } else if (s.indexOf('.') >= 0 && s.indexOf('{') == -1) {
       return new Repository(Type.URL, s);
     } else {
       return new UnparseableStatement(s, project);
@@ -169,7 +169,21 @@ public class Repository extends BuildFileStatement {
           // }
           GrClosableBlock cc = GradleGroovyFile.getMethodClosureArgument(methodCall);
           if (cc != null) {
-            Iterable<GrMethodCall> methodCalls = GradleGroovyFile.getMethodCalls(cc, "url");
+            Iterable<GrMethodCall> methodCalls = GradleGroovyFile.getMethodCalls(cc);
+            Iterable<GrMethodCall> urlMethodCalls = GradleGroovyFile.getMethodCalls(cc, "url");
+            if (Iterables.size(methodCalls) != Iterables.size(urlMethodCalls)) {
+              // If there's something other than a "url" in there, that can mean something like credentials:
+              // maven {
+              //   url 'www.foo.com'
+              //   credentials {
+              //     username 'user'
+              //     password 'password'
+              //   }
+              // }
+              // Just punt and treat the statement as unparseable.
+              return getUnparseableStatements(statement);
+            }
+
             for (GrMethodCall call : methodCalls) {
               Iterable<Object> values = GradleGroovyFile.getLiteralArgumentValues(call);
               for (Object value : values) {
