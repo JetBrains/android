@@ -68,7 +68,7 @@ public class FileChooserDialogFixture extends ComponentFixture<JDialog> {
   }
 
   @NotNull
-  private static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull GenericTypeMatcher<JDialog> matcher) {
+  public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull GenericTypeMatcher<JDialog> matcher) {
     JDialog dialog = robot.finder().find(matcher);
     return new FileChooserDialogFixture(robot, dialog);
   }
