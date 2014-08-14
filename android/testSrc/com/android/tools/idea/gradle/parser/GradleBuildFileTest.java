@@ -1250,6 +1250,73 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertContents(file, expected);
   }
 
+  public void testRepositoryCredentials() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "repositories {\n" +
+      "    maven {\n" +
+      "        url 'www.foo.com'\n" +
+      "        credentials {\n" +
+      "            username 'user'\n" +
+      "            password 'password'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n");
+
+    final List<Repository> repositories = (List<Repository>)file.getValue(BuildFileKey.LIBRARY_REPOSITORY);
+    assertEquals(1, repositories.size());
+    Repository newRepository = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    repositories.add(newRepository);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.LIBRARY_REPOSITORY, repositories);
+      }
+    });
+
+    String expected =
+      "repositories {\n" +
+      "    maven {\n" +
+      "        url 'www.foo.com'\n" +
+      "        credentials {\n" +
+      "            username 'user'\n" +
+      "            password 'password'\n" +
+      "        }\n" +
+      "    }\n" +
+      "    mavenCentral()\n" +
+      "}\n";
+    assertContents(file, expected);
+  }
+
+  public void testShouldWriteValue() {
+    List emptyList = ImmutableList.of();
+    Repository mc1 = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    Repository mc2 = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    Repository mc3 = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    Repository ml = new Repository(Repository.Type.MAVEN_LOCAL, null);
+    BuildFileStatement up1 = new UnparseableStatement("I'm a little teapot", myProject);
+    BuildFileStatement up2 = new UnparseableStatement("Here is my spout", myProject);
+    List<Repository> listOne = ImmutableList.of(mc1, mc2);
+    List<Repository> otherListOne = ImmutableList.of(mc2, mc1);
+    List<Repository> listTwo = ImmutableList.of(mc1, ml);
+    List<Repository> longList = ImmutableList.of(mc1, mc2, mc3);
+    List<BuildFileStatement> unparseableOne = ImmutableList.of(mc1, up1);
+    List<BuildFileStatement> unparseableTwo = ImmutableList.of(mc2, up2);
+
+    assertFalse(GradleBuildFile.shouldWriteValue(null, null));
+    assertTrue(GradleBuildFile.shouldWriteValue(emptyList, null));
+    assertTrue(GradleBuildFile.shouldWriteValue(null, emptyList));
+    assertTrue(GradleBuildFile.shouldWriteValue(mc1, ml));
+    assertFalse(GradleBuildFile.shouldWriteValue(mc1, mc2));
+    assertFalse(GradleBuildFile.shouldWriteValue(listOne, otherListOne));
+    assertTrue(GradleBuildFile.shouldWriteValue(listOne, listTwo));
+    assertTrue(GradleBuildFile.shouldWriteValue(listOne, longList));
+
+    // Even though the unparseables are different, we ignore them for the purposes of deciding
+    // whether to write them out.
+    assertFalse(unparseableOne.equals(unparseableTwo));
+    assertFalse(GradleBuildFile.shouldWriteValue(unparseableOne, unparseableTwo));
+  }
+
   private static String getSimpleTestFile() throws IOException {
     return
       "buildscript {\n" +
