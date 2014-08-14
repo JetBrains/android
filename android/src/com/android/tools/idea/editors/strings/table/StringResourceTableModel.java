@@ -69,7 +69,6 @@ public class StringResourceTableModel extends AbstractTableModel {
   public void setValueAt(Object value, int row, int column) {
     String key = keyOfRow(row);
     myController.selectData(key, null);
-    myController.saveCell(key, column);
     myController.setUntranslatable((Boolean) value);
   }
 
