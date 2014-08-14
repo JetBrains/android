@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -386,22 +387,22 @@ public class DeviceArtDescriptor {
 
     @Nullable
     public File getBackgroundFile() {
-      return myBackgroundName != null ? new File(myDevice.getBaseFolder(), myBackgroundName) : null;
+      return !StringUtil.isEmpty(myBackgroundName) ? new File(myDevice.getBaseFolder(), myBackgroundName) : null;
     }
 
     @Nullable
     public File getShadowFile() {
-      return myShadowName != null ? new File(myDevice.getBaseFolder(), myShadowName) : null;
+      return !StringUtil.isEmpty(myShadowName) ? new File(myDevice.getBaseFolder(), myShadowName) : null;
     }
 
     @Nullable
     public File getReflectionFile() {
-      return myReflectionName != null ? new File(myDevice.getBaseFolder(), myReflectionName) : null;
+      return !StringUtil.isEmpty(myReflectionName) ? new File(myDevice.getBaseFolder(), myReflectionName) : null;
     }
 
     @Nullable
     public File getMaskFile() {
-      return myMaskName != null ? new File(myDevice.getBaseFolder(), myMaskName) : null;
+      return !StringUtil.isEmpty(myMaskName) ? new File(myDevice.getBaseFolder(), myMaskName) : null;
     }
 
     public double getAspectRatio() {
