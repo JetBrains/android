@@ -24,8 +24,6 @@ import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.impl.ActionMenu;
-import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -47,6 +45,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
@@ -96,7 +95,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
-  public IdeFrameFixture waitForGradleProjectToBeOpened() {
+  public IdeFrameFixture waitForGradleProjectSyncToFinish() {
     final Project project = getProject();
 
     // ensure GradleInvoker (in-process build) is always enabled.
@@ -268,34 +267,21 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   protected void selectProjectMakeAction() {
-    ActionMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
+    JMenuItem makeProjectMenuItem = findActionMenuItem("Build", "Make Project");
     robot.click(makeProjectMenuItem);
   }
 
   @NotNull
-  private ActionMenuItem findActionMenuItem(@NotNull String...path) {
+  private JMenuItem findActionMenuItem(@NotNull String...path) {
+    assertThat(path).isNotEmpty();
     int segmentCount = path.length;
-    assertThat(segmentCount).as("ActionMenuItems appear only in pop-up menus. To find one a path with more than one segment is required " +
-                                "(e.g. \"Build\", \"Make Project\")")
-                            .isGreaterThan(1);
     Container root = target;
     for (int i = 0; i < segmentCount; i++) {
       final String segment = path[i];
-      if (i == 0) {
-        ActionMenu found = robot.finder().find(root, new GenericTypeMatcher<ActionMenu>(ActionMenu.class) {
-          @Override
-          protected boolean isMatching(ActionMenu actionMenu) {
-            return segment.equals(actionMenu.getText());
-          }
-        });
-        robot.click(found);
-        root = robot.findActivePopupMenu();
-        continue;
-      }
-      ActionMenuItem found = robot.finder().find(root, new GenericTypeMatcher<ActionMenuItem>(ActionMenuItem.class) {
+      JMenuItem found = robot.finder().find(root, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
-        protected boolean isMatching(ActionMenuItem actionMenuItem) {
-          return segment.equals(actionMenuItem.getText());
+        protected boolean isMatching(JMenuItem menuItem) {
+          return segment.equals(menuItem.getText());
         }
       });
       if (i < segmentCount - 1) {
@@ -305,7 +291,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       }
       return found;
     }
-    throw new AssertionError("ActionMenuItem with path " + Arrays.toString(path) + " should have been found already");
+    throw new AssertionError("Menu item with path " + Arrays.toString(path) + " should have been found already");
   }
 
   private void waitForBuildToFinish(@NotNull BuildMode buildMode) {
@@ -344,6 +330,18 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       assertNotNull("Unable to find file with relative path " + quote(relativePath), file);
     }
     return file;
+  }
+
+  @NotNull
+  public IdeFrameFixture requestProjectSync() {
+    JMenuItem menuItem = findActionMenuItem("Tools", "Android", "Sync Project with Gradle Files");
+    robot.click(menuItem);
+    return this;
+  }
+
+  @NotNull
+  private ActionButtonFixture findActionButtonByActionId(String actionId) {
+    return ActionButtonFixture.findByActionId(actionId, robot, target);
   }
 
   private static class ProjectSyncListener extends GradleSyncListener.Adapter {
