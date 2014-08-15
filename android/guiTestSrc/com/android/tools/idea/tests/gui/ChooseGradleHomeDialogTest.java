@@ -27,7 +27,8 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_HOME_PATH_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.fail;
 import static org.fest.util.Strings.quote;
@@ -36,14 +37,13 @@ import static org.fest.util.Strings.quote;
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
  */
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
-  private static final String OLD_GRADLE_HOME_PATH_PROPERTY = "old.gradle.home.path";
   private static final String MINIMUM_GRADLE_VERSION = "2.0";
 
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
-    String oldGradleHome = System.getProperty(OLD_GRADLE_HOME_PATH_PROPERTY);
+    String oldGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
     if (isEmpty(oldGradleHome)) {
-      fail("Please specify, in the system property " + quote(OLD_GRADLE_HOME_PATH_PROPERTY) +
+      fail("Please specify, in the system property " + quote(GRADLE_1_12_HOME_PROPERTY) +
            ", the path of an old, unsupported version of Gradle (e.g. 1.12)");
     }
 
@@ -57,9 +57,9 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
 
   @Test
   public void testValidateWithValidMinimumGradleVersion() {
-    String gradleHome = System.getProperty(GRADLE_HOME_PATH_PROPERTY);
+    String gradleHome = System.getProperty(GRADLE_2_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
-      fail("Please specify, in the system property " + quote(GRADLE_HOME_PATH_PROPERTY) +
+      fail("Please specify, in the system property " + quote(GRADLE_2_HOME_PROPERTY) +
            ", the path of a supported version of Gradle (e.g. 2.0)");
     }
 

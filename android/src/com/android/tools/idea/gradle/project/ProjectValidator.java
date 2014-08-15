@@ -70,9 +70,13 @@ public class ProjectValidator {
 
   public static final Key<List<Message>> VALIDATION_MESSAGES = Key.create("gradle.validation.messages");
 
-  private static final Set<String> FILES_TO_PROCESS = ImmutableSet
-    .of(SdkConstants.FN_SETTINGS_GRADLE, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_LOCAL_PROPERTIES,
-        SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
+  private static final Set<String> FILES_TO_PROCESS =
+    ImmutableSet.of(SdkConstants.FN_SETTINGS_GRADLE, SdkConstants.FN_BUILD_GRADLE, SdkConstants.FN_LOCAL_PROPERTIES,
+                    SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES);
+
+  private static final String MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13 = "2.0";
+  private static final FullRevision MINIMUM_SUPPORTED_GRADLE_REVISION_FOR_PLUGIN_0_13 =
+    FullRevision.parseRevision(MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13);
 
   private ProjectValidator() {
   }
@@ -123,7 +127,6 @@ public class ProjectValidator {
   }
 
   private static void attemptToUpdateGradleVersionIfApplicable(@NotNull Project project, @NotNull List<File> gradleFiles) {
-    // TODO Remove this check once the minimum supported version of the Android Gradle plug-in supports Gradle 2.0.
     String originalPluginVersion = null;
     for (File fileToCheck : gradleFiles) {
       if (SdkConstants.FN_BUILD_GRADLE.equals(fileToCheck.getName())) {
@@ -168,6 +171,9 @@ public class ProjectValidator {
     if (usingWrapper) {
       attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, originalPluginVersion, project);
     }
+    else if (distributionType == DistributionType.LOCAL) {
+      attemptToUseSupportedLocalGradle(gradleSettings);
+    }
   }
 
   private static void attemptToUpdateGradleVersionInWrapper(@NotNull final File wrapperPropertiesFile,
@@ -193,18 +199,49 @@ public class ProjectValidator {
     }
     String gradleVersion = matcher.group(1);
     FullRevision gradleRevision = FullRevision.parseRevision(gradleVersion);
-    // Plug-in v0.13.+ supports Gradle 2.0+ only.
-    if (gradleRevision.getMajor() < 2) {
-      String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle 2.0 or newer.\n\n" +
+
+    if (!isSupportedGradleVersion(gradleRevision)) {
+      String newGradleVersion = MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13;
+      String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle " + newGradleVersion + " or newer.\n\n" +
                    "Click 'OK' to automatically update the Gradle version in the Gradle wrapper and continue.";
       Messages.showMessageDialog(project, msg, "Gradle Sync", Messages.getQuestionIcon());
       try {
-        GradleUtil.updateGradleDistributionUrl("2.0", wrapperPropertiesFile);
+        GradleUtil.updateGradleDistributionUrl(newGradleVersion, wrapperPropertiesFile);
       }
       catch (IOException e) {
-        LOG.warn("Failed to update Gradle wrapper file to Gradle version 2.0");
+        LOG.warn("Failed to update Gradle wrapper file to Gradle version " + newGradleVersion);
       }
     }
+  }
+
+  private static void attemptToUseSupportedLocalGradle(@NotNull GradleProjectSettings gradleSettings) {
+    String gradleHome = gradleSettings.getGradleHome();
+    if (StringUtil.isEmpty(gradleHome)) {
+      // Unable to obtain the path of the Gradle local installation. Continue with sync.
+      return;
+    }
+    File gradleHomePath = new File(gradleHome);
+    FullRevision gradleVersion = GradleUtil.getGradleVersion(gradleHomePath);
+
+    if (gradleVersion == null) {
+      // Unable to obtain the path of the Gradle local installation. Continue with sync.
+      return;
+    }
+
+    if (!isSupportedGradleVersion(gradleVersion)) {
+      String newGradleVersion = MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13;
+      ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog(newGradleVersion);
+      dialog.setTitle(String.format("Please select the location of a Gradle distribution version %1$s or newer", newGradleVersion));
+      if (dialog.showAndGet()) {
+        String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
+        gradleSettings.setGradleHome(enteredGradleHomePath);
+      }
+    }
+  }
+
+  private static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
+    // Plug-in v0.13.+ supports Gradle 2.0+ only.
+    return gradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_REVISION_FOR_PLUGIN_0_13) >= 0;
   }
 
   /**

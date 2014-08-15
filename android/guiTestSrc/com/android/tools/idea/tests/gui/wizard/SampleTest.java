@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Test;
 
 import java.io.File;
@@ -69,7 +68,7 @@ public class SampleTest extends GuiTestCase {
     newProjectWizard.clickFinish();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectName, projectPath);
-    projectFrame.waitForGradleProjectToBeOpened();
+    projectFrame.waitForGradleProjectSyncToFinish();
 
     FileFixture layoutFile = projectFrame.findExistingFileByRelativePath("app/src/main/res/layout/" + layoutName + DOT_XML);
     layoutFile.requireOpenAndSelected();
