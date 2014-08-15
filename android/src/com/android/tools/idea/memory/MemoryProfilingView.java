@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.GcAction;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -77,12 +78,15 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
     myContentPane = new JPanel(new BorderLayout());
 
     myTimelineComponent = new TimelineComponent(myData, bufferTimeInSeconds, initialMax, initialMarker);
+    boolean debug = Boolean.getBoolean("studio.profiling.debug");
+    myTimelineComponent.setDrawDebugInfo(debug);
+
     myContentPane.add(myTimelineComponent, BorderLayout.CENTER);
     myBridge = AndroidSdkUtils.getDebugBridge(project);
     myToolWindowManager.addToolWindowManagerListener(this);
 
     JPanel panel = new JPanel(new GridLayout());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(debug), false);
     panel.add(toolbar.getComponent());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
 
@@ -94,10 +98,13 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
   }
 
   @NotNull
-  public ActionGroup getToolbarActions() {
+  public ActionGroup getToolbarActions(boolean debug) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new GcAction(myDeviceContext));
+    if (debug) {
+      group.add(new ToggleDebugRender());
+    }
 
     return group;
   }
@@ -144,5 +151,21 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
 
   public JPanel getComponent() {
     return myContentPane;
+  }
+
+  private class ToggleDebugRender extends ToggleAction {
+    public ToggleDebugRender() {
+      super("Enable debug renderer", "Enables debug rendering", AllIcons.General.Debug);
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return myTimelineComponent.isDrawDebugInfo();
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myTimelineComponent.setDrawDebugInfo(state);
+    }
   }
 }
