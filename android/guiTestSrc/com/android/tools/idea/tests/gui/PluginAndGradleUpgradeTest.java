@@ -18,10 +18,10 @@ package com.android.tools.idea.tests.gui;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import org.fest.swing.finder.WindowFinder;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.junit.Test;
@@ -31,6 +31,8 @@ import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleWrapperPropertiesFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
@@ -44,9 +46,8 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
  * Tests upgrade of Android Gradle plug-in and Gradle itself.
  */
 public class PluginAndGradleUpgradeTest extends GuiTestCase {
-  private static final String GRADLE_HOME_PROPERTY = "gradle.home.path";
-
-  @Test @IdeGuiTest
+  @Test
+  @IdeGuiTest
   public void testUpdateGradleVersion() throws IOException {
     // For now we need a custom repository, since 0.13.0 is not released yet.
     String customRepositoryUrl = System.getenv("MAVEN_URL");
@@ -69,23 +70,34 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
     // Expect a dialog explaining that the version of Gradle in the project's wrapper needs to be updated to version 2.0, and click the
     // "OK" button.
-    DialogFixture gradleVersionUpdateDialog = findDialog(withTitle("Gradle Sync")).using(myRobot);
+    DialogFixture gradleVersionUpdateDialog = findDialog(withTitle("Gradle Sync").andShowing()).using(myRobot);
     gradleVersionUpdateDialog.button(withText("OK")).click();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
-    projectFrame.waitForGradleProjectToBeOpened();
+    projectFrame.waitForGradleProjectSyncToFinish();
 
     // Now we are going to force the project to use a local Gradle distribution.
     // Ensure that the project is using the wrapper.
-    //String gradleHome = System.getProperty(GRADLE_LOCAL_HOME_PATH_PROPERTY);
-    //if (isEmpty(gradleHome)) {
-    //  fail("Please specify the path of a local Gradle distribution (v1.12) using the system property " +
-    //       quote(GRADLE_LOCAL_HOME_PATH_PROPERTY));
-    //}
-    //
-    //GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(projectFrame.getProject());
-    //assertNotNull(gradleSettings);
-    //gradleSettings.setDistributionType(LOCAL);
-    //gradleSettings.setGradleHome(gradleHome);
+    String unsupportedGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
+    if (isEmpty(unsupportedGradleHome)) {
+      fail("Please specify the path of a local, Gradle 1.12 distribution using the system property " + quote(GRADLE_1_12_HOME_PROPERTY));
+    }
+
+    String gradleHome = System.getProperty(GRADLE_2_HOME_PROPERTY);
+    if (isEmpty(unsupportedGradleHome)) {
+      fail("Please specify the path of a local, Gradle 2.0 distribution using the system property " + quote(GRADLE_2_HOME_PROPERTY));
+    }
+
+    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(projectFrame.getProject());
+    assertNotNull(gradleSettings);
+    gradleSettings.setDistributionType(LOCAL);
+    gradleSettings.setGradleHome(unsupportedGradleHome);
+
+    projectFrame.requestProjectSync();
+
+    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
+    chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome)).clickOK();
+
+    projectFrame.waitForGradleProjectSyncToFinish();
   }
 }

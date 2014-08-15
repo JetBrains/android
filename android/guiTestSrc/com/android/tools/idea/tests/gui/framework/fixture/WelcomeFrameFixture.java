@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.impl.ActionButtonWithText;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.ComponentFixture;
@@ -43,35 +39,23 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
   }
 
   @NotNull
-  public ActionButtonWithTextFixture newProjectButton() {
-    ActionButtonWithText button = getActionButtonWithId("WelcomeScreen.CreateNewProject");
-    return new ActionButtonWithTextFixture(robot, button);
+  public ActionButtonFixture newProjectButton() {
+    return findActionButtonByActionId("WelcomeScreen.ImportProject");
   }
 
   @NotNull
-  public ActionButtonWithTextFixture importProjectButton() {
-    ActionButtonWithText button = getActionButtonWithId("WelcomeScreen.ImportProject");
-    return new ActionButtonWithTextFixture(robot, button);
+  public ActionButtonFixture importProjectButton() {
+    return findActionButtonByActionId("WelcomeScreen.ImportProject");
   }
 
   @NotNull
-  public ActionButtonWithTextFixture openProjectButton() {
-    ActionButtonWithText button = getActionButtonWithId("WelcomeScreen.OpenProject");
-    return new ActionButtonWithTextFixture(robot, button);
+  public ActionButtonFixture openProjectButton() {
+    String actionId = "WelcomeScreen.OpenProject";
+    return findActionButtonByActionId(actionId);
   }
 
   @NotNull
-  private ActionButtonWithText getActionButtonWithId(@NotNull final String buttonActionId) {
-    return robot.finder().find(target, new GenericTypeMatcher<ActionButtonWithText>(ActionButtonWithText.class) {
-        @Override
-        protected boolean isMatching(ActionButtonWithText buttonWithText) {
-          AnAction action = buttonWithText.getAction();
-          if (action != null) {
-            String id = ActionManager.getInstance().getId(action);
-            return buttonActionId.equals(id);
-          }
-          return false;
-        }
-      });
+  private ActionButtonFixture findActionButtonByActionId(String actionId) {
+    return ActionButtonFixture.findByActionId(actionId, robot, target);
   }
 }
