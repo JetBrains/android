@@ -22,9 +22,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialog
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.intellij.openapi.project.Project;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
@@ -81,10 +83,44 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
   }
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
-  public void test2UpdateGradleVersionWithLocalDistribution() throws IOException {
+  public void test2UpdateGradleVersionWithLocalDistribution() {
     File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
+    useLocalUnsupportedGradle(projectFrame.getProject());
+    projectFrame.requestProjectSync();
+
+    String gradleHome = System.getProperty(GRADLE_2_HOME_PROPERTY);
+    if (isEmpty(gradleHome)) {
+      fail("Please specify the path of a local, Gradle 2.0 distribution using the system property " + quote(GRADLE_2_HOME_PROPERTY));
+    }
+
+    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
+    chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome)).clickOK();
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+  }
+
+  @Test @IdeGuiTest(closeProjectBeforeExecution = false) @Ignore
+  public void test3ShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() {
+    File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+
+    useLocalUnsupportedGradle(projectFrame.getProject());
+    projectFrame.requestProjectSync();
+
+    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
+    chooseGradleHomeDialog.clickCancel();
+
+    try {
+      projectFrame.waitForGradleProjectSyncToFinish();
+    }
+    catch (AssertionError e) {
+      e.printStackTrace();
+    }
+  }
+
+  protected void useLocalUnsupportedGradle(Project project) {
     // Now we are going to force the project to use a local Gradle distribution.
     // Ensure that the project is using the wrapper.
     String unsupportedGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
@@ -92,21 +128,9 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
       fail("Please specify the path of a local, Gradle 1.12 distribution using the system property " + quote(GRADLE_1_12_HOME_PROPERTY));
     }
 
-    String gradleHome = System.getProperty(GRADLE_2_HOME_PROPERTY);
-    if (isEmpty(unsupportedGradleHome)) {
-      fail("Please specify the path of a local, Gradle 2.0 distribution using the system property " + quote(GRADLE_2_HOME_PROPERTY));
-    }
-
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(projectFrame.getProject());
+    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
     assertNotNull(gradleSettings);
     gradleSettings.setDistributionType(LOCAL);
     gradleSettings.setGradleHome(unsupportedGradleHome);
-
-    projectFrame.requestProjectSync();
-
-    ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
-    chooseGradleHomeDialog.chooseGradleHome(new File(gradleHome)).clickOK();
-
-    projectFrame.waitForGradleProjectSyncToFinish();
   }
 }
