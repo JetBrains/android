@@ -48,11 +48,12 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
 
 public final class GuiTests {
-  public static Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
-  public static Timeout LONG_TIMEOUT = timeout(5, MINUTES);
+  public static final Timeout SHORT_TIMEOUT = timeout(2, MINUTES);
+  public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
-  public static String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
-  public static String GRADLE_HOME_PATH_PROPERTY = "gradle.home.path";
+  public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
+  public static final String GRADLE_1_12_HOME_PROPERTY = "gradle.1.12.home.path";
+  public static final String GRADLE_2_HOME_PROPERTY = "gradle.2.0.home.path";
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
