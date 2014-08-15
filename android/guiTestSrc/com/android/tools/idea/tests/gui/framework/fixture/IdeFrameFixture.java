@@ -65,6 +65,8 @@ import static org.fest.util.Strings.quote;
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   private EditorFixture myEditor;
 
+  @NotNull private final ProjectSyncListener myProjectSyncListener;
+
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
     final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
@@ -92,6 +94,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
     super(robot, target);
+    final Project project = getProject();
+
+    Disposable disposable = new NoOpDisposable();
+    Disposer.register(project, disposable);
+
+    myProjectSyncListener = new ProjectSyncListener();
+    MessageBusConnection connection = project.getMessageBus().connect(disposable);
+    connection.subscribe(GRADLE_SYNC_TOPIC, myProjectSyncListener);
   }
 
   @NotNull
@@ -102,29 +112,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    Disposable disposable = new NoOpDisposable();
+    myProjectSyncListener.reset();
 
-    final ProjectSyncListener listener = new ProjectSyncListener();
-    try {
-      MessageBusConnection connection = project.getMessageBus().connect(disposable);
-      connection.subscribe(GRADLE_SYNC_TOPIC, listener);
-
-      pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
-        @Override
-        public boolean test() {
-          return listener.mySyncFinished || GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.YES;
+    pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
+      @Override
+      public boolean test() {
+        if (myProjectSyncListener.mySyncFinished && myProjectSyncListener.mySyncError != null) {
+          return true;
         }
-      }, LONG_TIMEOUT);
-
-      if (listener.mySyncError != null) {
-        throw listener.mySyncError;
+        GradleSyncState syncState = GradleSyncState.getInstance(project);
+        return (myProjectSyncListener.mySyncFinished || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
       }
-    }
-    finally {
-      Disposer.dispose(disposable);
+    }, LONG_TIMEOUT);
+
+    if (myProjectSyncListener.mySyncError != null) {
+      throw myProjectSyncListener.mySyncError;
     }
 
-    if (!listener.mySyncWasSkipped) {
+    if (!myProjectSyncListener.mySyncWasSkipped) {
       waitForSourceGenerationToFinish();
     }
 
@@ -356,14 +361,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      mySyncError = new AssertionError("Project sync for \"" + project.getName() + "\" failed: " + errorMessage);
       mySyncFinished = true;
+      mySyncError = new AssertionError("Project sync for \"" + project.getName() + "\" failed: " + errorMessage);
     }
 
     @Override
     public void syncSkipped(@NotNull Project project) {
       mySyncFinished = true;
       mySyncWasSkipped = true;
+    }
+
+    void reset() {
+      mySyncError = null;
+      mySyncWasSkipped = mySyncFinished = false;
     }
   }
 

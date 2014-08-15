@@ -95,9 +95,17 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
 
   @NotNull
   public ChooseGradleHomeDialogFixture clickOK() {
-    JButton button = robot.finder().find(target, JButtonMatcher.withText("OK").andShowing());
-    robot.click(button);
+    clickButtonWithText("OK");
     return this;
+  }
+
+  public void clickCancel() {
+    clickButtonWithText("Cancel");
+  }
+
+  private void clickButtonWithText(@NotNull String text) {
+    JButton button = robot.finder().find(target, JButtonMatcher.withText(text).andShowing());
+    robot.click(button);
   }
 
   @NotNull
