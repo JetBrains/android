@@ -39,13 +39,15 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
   }
 
   @NotNull
-  public ActionButtonFixture newProjectButton() {
-    return findActionButtonByActionId("WelcomeScreen.ImportProject");
+  public WelcomeFrameFixture clickNewProjectButton() {
+    findActionButtonByActionId("WelcomeScreen.ImportProject").click();
+    return this;
   }
 
   @NotNull
-  public ActionButtonFixture importProjectButton() {
-    return findActionButtonByActionId("WelcomeScreen.ImportProject");
+  public WelcomeFrameFixture clickImportProjectButton() {
+    findActionButtonByActionId("WelcomeScreen.ImportProject").click();
+    return this;
   }
 
   @NotNull
