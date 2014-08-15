@@ -25,7 +25,6 @@ import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
