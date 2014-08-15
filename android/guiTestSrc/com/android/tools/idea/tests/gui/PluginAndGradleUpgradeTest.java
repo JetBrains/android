@@ -67,7 +67,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
     // Import the project
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.importProjectButton().click();
+    welcomeFrame.clickImportProjectButton();
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
     importProjectDialog.select(projectPath).clickOK();
 
