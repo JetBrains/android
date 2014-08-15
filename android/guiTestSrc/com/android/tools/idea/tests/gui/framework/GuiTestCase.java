@@ -194,7 +194,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected File setUpProject(@NotNull String projectDirName, boolean forOpen, boolean updateGradleVersions) throws IOException {
-    final File projectPath = new File(getTestProjectsRootDirPath(), projectDirName);
+    final File projectPath = getProjectDirPath(projectDirName);
     createGradleWrapper(projectPath);
 
     if (updateGradleVersions) {
@@ -234,6 +234,11 @@ public abstract class GuiTestCase {
     }
 
     return projectPath;
+  }
+
+  @NotNull
+  protected File getProjectDirPath(@NotNull String projectDirName) {
+    return new File(getTestProjectsRootDirPath(), projectDirName);
   }
 
   private static void cleanUpProjectForImport(@NotNull File projectPath) {
