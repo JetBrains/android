@@ -44,7 +44,7 @@ public class SampleTest extends GuiTestCase {
     final String projectName = "Test Application";
 
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.newProjectButton().click();
+    welcomeFrame.clickNewProjectButton();
 
     NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
 
@@ -83,11 +83,6 @@ public class SampleTest extends GuiTestCase {
     ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
     assertNotNull("minSdkVersion", minSdkVersion);
     assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo(minSdkApi);
-  }
-
-  @Test @IdeGuiTest
-  public void testOpenProject() throws IOException {
-    openProject("SimpleApplication");
   }
 
   @Test @IdeGuiTest
