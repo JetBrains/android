@@ -175,7 +175,7 @@ public abstract class GuiTestCase {
     File projectPath = setUpProject(projectDirName, false, true);
 
     WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.importProjectButton().click();
+    welcomeFrame.clickImportProjectButton();
 
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
     return openProjectAndWaitUntilOpened(projectPath, importProjectDialog);
