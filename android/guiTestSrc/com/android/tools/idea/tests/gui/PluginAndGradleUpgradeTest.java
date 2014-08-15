@@ -24,15 +24,17 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleWrapperPropertiesFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_HOME_PROPERTY;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
@@ -45,18 +47,19 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 /**
  * Tests upgrade of Android Gradle plug-in and Gradle itself.
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PluginAndGradleUpgradeTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
-  public void testUpdateGradleVersion() throws IOException {
+  private static final String PROJECT_DIR_NAME = "PluginAndGradleUpgrade";
+
+  @Test @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void test1UpdateGradleVersionInWrapper() throws IOException {
     // For now we need a custom repository, since 0.13.0 is not released yet.
     String customRepositoryUrl = System.getenv("MAVEN_URL");
     if (isEmpty(customRepositoryUrl)) {
       fail("Please specify, in the environment variable 'MAVEN_URL', the path of the custom Maven repo to use");
     }
 
-    String projectDirName = "PluginAndGradleUpgrade";
-    File projectPath = setUpProject(projectDirName, false, false);
+    File projectPath = setUpProject(PROJECT_DIR_NAME, false, false);
 
     // Ensure we have a pre-2.0 Gradle in the wrapper.
     File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectPath);
@@ -75,6 +78,12 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
+  }
+
+  @Test @IdeGuiTest(closeProjectBeforeExecution = false)
+  public void test2UpdateGradleVersionWithLocalDistribution() throws IOException {
+    File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
     // Now we are going to force the project to use a local Gradle distribution.
     // Ensure that the project is using the wrapper.
