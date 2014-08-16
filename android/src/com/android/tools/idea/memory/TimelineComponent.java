@@ -55,7 +55,7 @@ class TimelineComponent extends JComponent implements ActionListener {
   private boolean myFirstFrame;
   private long myLastRenderTime;
   private Path2D.Float[] myPaths;
-  private final boolean myDrawDebugInfo;
+  private boolean myDrawDebugInfo;
 
   /**
    * The current maximum range in y-axis units.
@@ -120,7 +120,6 @@ class TimelineComponent extends JComponent implements ActionListener {
     myPaths = new Path2D.Float[myData.getStreamCount()];
     myTimer = new Timer(0, this);
     myTimer.setRepeats(false);
-    myDrawDebugInfo = Boolean.getBoolean("studio.profiling.debug");
     for (int i = 0; i < myPaths.length; i++) {
       myPaths[i] = new Path2D.Float();
     }
@@ -149,9 +148,18 @@ class TimelineComponent extends JComponent implements ActionListener {
     myFirstFrame = true;
   }
 
+  public void setDrawDebugInfo(boolean drawDebugInfo) {
+    myDrawDebugInfo = drawDebugInfo;
+  }
+
+  public boolean isDrawDebugInfo() {
+    return myDrawDebugInfo;
+  }
+
   @Override
   public void paintComponent(Graphics g) {
     Graphics2D g2d = (Graphics2D)g;
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     g2d.setFont(TIMELINE_FONT);
 
@@ -297,16 +305,20 @@ class TimelineComponent extends JComponent implements ActionListener {
 
   private void drawTimeMarkers(Graphics2D g2d) {
     g2d.setFont(TIMELINE_FONT);
+    g2d.setColor(TEXT_COLOR);
     FontMetrics metrics = g2d.getFontMetrics();
     float offset = metrics.charWidth('0') * 0.5f;
+    Path2D.Float lines = new Path2D.Float();
     for (int sec = Math.max((int)Math.ceil(myBeginTime), 0); sec < myEndTime; sec++) {
       float x = timeToX(sec);
       boolean big = sec % 5 == 0;
       if (big) {
         g2d.drawString(sec + "s", x - offset, myBottom + metrics.getAscent() + 5);
       }
-      g2d.drawLine((int)x, myBottom, (int)x, myBottom + (big ? 5 : 2));
+      lines.moveTo(x, myBottom);
+      lines.lineTo(x, myBottom + (big ? 5 : 2));
     }
+    g2d.draw(lines);
   }
 
   private void drawMarkers(Graphics2D g2d) {
