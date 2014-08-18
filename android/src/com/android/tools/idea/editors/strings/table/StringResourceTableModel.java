@@ -67,9 +67,16 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Override
   public void setValueAt(Object value, int row, int column) {
-    String key = keyOfRow(row);
-    myController.selectData(key, null);
-    myController.setUntranslatable((Boolean) value);
+    myController.selectData(keyOfRow(row), localeOfColumn(column));
+    if (ConstantColumn.indexMatchesColumn(column, ConstantColumn.KEY)) {
+      myController.setKey(String.valueOf(value));
+    } else if (ConstantColumn.indexMatchesColumn(column, ConstantColumn.DEFAULT_VALUE)) {
+      myController.setDefaultValue(String.valueOf(value));
+    } else if (ConstantColumn.indexMatchesColumn(column, ConstantColumn.UNTRANSLATABLE)) {
+      myController.setUntranslatable((Boolean)value);
+    } else {
+      myController.setTranslation(String.valueOf(value));
+    }
   }
 
   /**
@@ -140,7 +147,7 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(int row, int column) {
-    return ConstantColumn.indexMatchesColumn(column, ConstantColumn.UNTRANSLATABLE);
+    return true;
   }
 
   @Nullable
