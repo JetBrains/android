@@ -47,6 +47,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.net.HttpConfigurable;
@@ -116,7 +117,13 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                                          @NotNull Project project,
                                          @NotNull ExternalSystemException error) {
     String msg = error.getMessage();
-    if (msg != null && !msg.isEmpty()) {
+    if (!StringUtil.isEmpty(msg)) {
+      if (msg.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) {
+        // Gradle 2.x is required.
+        String newMsg = "Gradle 2.0 is required.";
+        updateNotification(notification, project, newMsg);
+      }
+
       if (msg.startsWith(AndroidGradleProjectResolver.UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX)) {
         updateNotification(notification, project, msg,
                            new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=70490", "Open bug report"));
