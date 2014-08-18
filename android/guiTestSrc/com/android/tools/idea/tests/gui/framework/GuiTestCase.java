@@ -174,8 +174,7 @@ public abstract class GuiTestCase {
   protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true);
 
-    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.clickImportProjectButton();
+    findWelcomeFrame().clickImportProjectButton();
 
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
     return openProjectAndWaitUntilOpened(projectPath, importProjectDialog);
@@ -185,8 +184,7 @@ public abstract class GuiTestCase {
   protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
     final File projectPath = setUpProject(projectDirName, true, true);
 
-    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.openProjectButton().click();
+    findWelcomeFrame().clickOpenProjectButton();
 
     FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
     return openProjectAndWaitUntilOpened(projectPath, openProjectDialog);

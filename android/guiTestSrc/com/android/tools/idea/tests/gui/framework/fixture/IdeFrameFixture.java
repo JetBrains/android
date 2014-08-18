@@ -349,10 +349,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     return ActionButtonFixture.findByActionId(actionId, robot, target);
   }
 
+  @NotNull
+  public MessagesToolWindowFixture getMessagesToolWindow() {
+    return new MessagesToolWindowFixture(getProject(), robot);
+  }
+
   private static class ProjectSyncListener extends GradleSyncListener.Adapter {
-    AssertionError mySyncError;
-    boolean mySyncFinished;
-    boolean mySyncWasSkipped;
+    volatile RuntimeException mySyncError;
+    volatile boolean mySyncFinished;
+    volatile boolean mySyncWasSkipped;
 
     @Override
     public void syncSucceeded(@NotNull Project project) {
@@ -362,7 +367,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     @Override
     public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
       mySyncFinished = true;
-      mySyncError = new AssertionError("Project sync for \"" + project.getName() + "\" failed: " + errorMessage);
+      mySyncError = new RuntimeException(errorMessage);
     }
 
     @Override
@@ -380,7 +385,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   private static class ProjectBuildListener implements GradleBuildListener {
     @NotNull private final BuildMode myExpectedBuildMode;
 
-    boolean myBuildFinished;
+    volatile boolean myBuildFinished;
 
     ProjectBuildListener(@NotNull BuildMode expectedBuildMode) {
       myExpectedBuildMode = expectedBuildMode;

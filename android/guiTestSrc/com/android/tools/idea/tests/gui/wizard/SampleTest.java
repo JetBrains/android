@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
@@ -43,8 +42,7 @@ public class SampleTest extends GuiTestCase {
   public void testCreateNewMobileProject() {
     final String projectName = "Test Application";
 
-    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.clickNewProjectButton();
+    findWelcomeFrame().clickNewProjectButton();
 
     NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
 
