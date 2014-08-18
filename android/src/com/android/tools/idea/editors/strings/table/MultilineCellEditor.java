@@ -20,6 +20,8 @@ import com.intellij.util.ui.AbstractTableCellEditor;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.util.EventObject;
 
 public class MultilineCellEditor extends AbstractTableCellEditor {
   private static final Dimension ZERO = new Dimension(0, 0);
@@ -31,6 +33,12 @@ public class MultilineCellEditor extends AbstractTableCellEditor {
     myScrollPane = new JBScrollPane(myArea);
     myScrollPane.getVerticalScrollBar().setPreferredSize(ZERO);
     myScrollPane.getHorizontalScrollBar().setPreferredSize(ZERO);
+  }
+
+  @Override
+  public boolean isCellEditable(EventObject e) {
+    // edit only on double click
+    return e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
   }
 
   @Override
