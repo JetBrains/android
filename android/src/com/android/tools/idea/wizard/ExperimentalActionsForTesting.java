@@ -18,11 +18,7 @@ package com.android.tools.idea.wizard;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -52,13 +48,12 @@ public class ExperimentalActionsForTesting {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-      NewModuleWizardDynamic wizard = new NewModuleWizardDynamic(project, null);
+      Project eventProject = getEventProject(e);
+      assert eventProject != null;
+      NewModuleWizardDynamic wizard = new NewModuleWizardDynamic(eventProject, null);
       wizard.init();
       wizard.show();
     }
-
-
   }
 }
 
