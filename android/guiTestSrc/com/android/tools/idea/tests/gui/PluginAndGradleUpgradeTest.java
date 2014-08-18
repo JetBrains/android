@@ -21,7 +21,7 @@ import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
@@ -37,6 +37,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleWrapperProp
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_HOME_PROPERTY;
+import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
@@ -68,8 +69,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     updateGradleDistributionUrl("1.12", wrapperPropertiesFile);
 
     // Import the project
-    WelcomeFrameFixture welcomeFrame = findWelcomeFrame();
-    welcomeFrame.clickImportProjectButton();
+    findWelcomeFrame().clickImportProjectButton();
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
     importProjectDialog.select(projectPath).clickOK();
 
@@ -82,7 +82,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest(closeProjectBeforeExecution = false)
+  @Test @IdeGuiTest(closeProjectBeforeExecution = false) @Ignore
   public void test2UpdateGradleVersionWithLocalDistribution() {
     File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
@@ -101,7 +101,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest(closeProjectBeforeExecution = false) @Ignore
+  @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test3ShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() {
     File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
@@ -114,10 +114,14 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
     try {
       projectFrame.waitForGradleProjectSyncToFinish();
+      fail("Expecting project sync to fail");
     }
-    catch (AssertionError e) {
-      e.printStackTrace();
+    catch (RuntimeException expected) {
+      // This exception has the original error message, not the user-friendly one. Ignoring it.
     }
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    messages.getGradleSyncContent().requireMessage(ERROR, "Gradle 2.0 is required.");
   }
 
   protected void useLocalUnsupportedGradle(Project project) {
