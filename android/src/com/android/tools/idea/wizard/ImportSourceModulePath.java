@@ -104,13 +104,15 @@ public class ImportSourceModulePath implements WizardPath {
     ModuleImporter.getImporter(myContext).importProjects(modulesToImport);
   }
 
-
-
   @Override
   public boolean isStepVisible(@NotNull ModuleWizardStep step) {
-    return mySteps.contains(step) &&
-           (step instanceof ImportSourceLocationStep || ModuleImporter.getImporter(myContext).isStepVisible(step)) &&
-           step.isStepVisible();
+    if (!mySteps.contains(step)) {
+      return false;
+    }
+    if (step instanceof ImportSourceLocationStep || ModuleImporter.getImporter(myContext).isStepVisible(step)) {
+      return step.isStepVisible();
+    }
+    return false;
   }
 
   @Override
