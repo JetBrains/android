@@ -15,125 +15,134 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateManager;
-import com.android.tools.idea.templates.TemplateMetadata;
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.ui.HideableDecorator;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.io.File;
-import java.util.Collection;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.Set;
 
-import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor;
-import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 
 /**
  * This step allows the user to select which type of module they want to create.
  */
 public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescription {
+  private final Iterable<ModuleTemplateProvider> myModuleTypesProviders;
   private JPanel myPanel;
   private JBList myModuleTypeList;
+  private ASGallery<ModuleTemplate> myFormFactorGallery;
+  private JPanel myTypeListPlaceholder;
+  private JPanel myModulesPanel;
+  private boolean myIsSynchronizingSelection = false;
 
-  public ChooseModuleTypeStep(@Nullable Disposable parentDisposable) {
+  public ChooseModuleTypeStep(Iterable<ModuleTemplateProvider> moduleTypesProviders, @Nullable Disposable parentDisposable) {
     super("Choose Module Type", "Select an option below to create your new module", null, parentDisposable);
+    HideableDecorator decorator = new HideableDecorator(myTypeListPlaceholder, "More Modules", false);
+    decorator.setContentComponent(myModulesPanel);
+    decorator.setOn(false);
+    myModuleTypeList.setCellRenderer(new TemplateListCellRenderer());
+    myModuleTypesProviders = moduleTypesProviders;
+    myModuleTypeList.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
+    myFormFactorGallery.setBorder(BorderFactory.createLineBorder(UIUtil.getBorderColor()));
     setBodyComponent(myPanel);
+  }
+
+  @Nullable
+  @Contract("null->null")
+  private static Image iconToImage(@Nullable Icon icon) {
+    if (icon == null) {
+      return null;
+    }
+    else {
+      BufferedImage image = UIUtil.createImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+
+      Graphics2D graphics = image.createGraphics();
+      graphics.setBackground(JBColor.background());
+      graphics.setColor(JBColor.background());
+      icon.paintIcon(null, graphics, 0, 0);
+      return image;
+    }
   }
 
   @Override
   public void init() {
     super.init();
-    populateModuleTypesList();
-  }
-
-  private void populateModuleTypesList() {
-    TemplateManager manager = TemplateManager.getInstance();
-    List<File> applicationTemplates = manager.getTemplatesInCategory(Template.CATEGORY_APPLICATION);
-    List<ModuleType> moduleTypes = Lists.newArrayList();
-    for (File templateFile : applicationTemplates) {
-      TemplateMetadata metadata = manager.getTemplate(templateFile);
-      if (metadata == null) {
-        continue;
-      }
-      if (metadata.getFormFactor() != null) {
-        final FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
-        if (formFactor == null) {
-          continue;
+    ImmutableList.Builder<ModuleTemplate> galleryTemplates = ImmutableList.builder();
+    ImmutableList.Builder<ModuleTemplate> extrasTemplates = ImmutableList.builder();
+    Set<FormFactorUtils.FormFactor> formFactorSet = Sets.newHashSet();
+    for (ModuleTemplateProvider provider : myModuleTypesProviders) {
+      for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
+        if (moduleTemplate.isGalleryModuleType()) {
+          galleryTemplates.add(moduleTemplate);
         }
-        register(FormFactorUtils.getInclusionKey(formFactor), myModuleTypeList, new ComponentBinding<Boolean, JBList>() {
-          private final FormFactor myFormFactor = formFactor;
-          @Nullable
-          @Override
-          public Boolean getValue(@NotNull JBList component) {
-            ModuleType type = (ModuleType)component.getSelectedValue();
-            return type != null && type.formFactor != null && type.formFactor.equals(myFormFactor);
-          }
-        });
-        moduleTypes.addAll(getModuleTypes(metadata, formFactor));
-      } else {
-        // TODO: add import paths here
-        // moduleTypes.add(new ModuleType("Import Name", false));
+        else {
+          extrasTemplates.add(moduleTemplate);
+        }
+        FormFactorUtils.FormFactor formFactor = moduleTemplate.getFormFactor();
+        if (formFactor != null) {
+          formFactorSet.add(formFactor);
+        }
       }
     }
+
+    for (final FormFactorUtils.FormFactor formFactor : formFactorSet) {
+      registerValueDeriver(FormFactorUtils.getInclusionKey(formFactor), new ValueDeriver<Boolean>() {
+        @Nullable
+        @Override
+        public Boolean deriveValue(@NotNull ScopedStateStore state,
+                                   @Nullable ScopedStateStore.Key changedKey,
+                                   @Nullable Boolean currentValue) {
+          ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
+          return moduleTemplate != null && Objects.equal(formFactor, moduleTemplate.getFormFactor());
+        }
+      });
+    }
+
+    List<ModuleTemplate> galleryTemplatesList = galleryTemplates.build();
+    List<ModuleTemplate> extrasTemplatesList = extrasTemplates.build();
+
     myModuleTypeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myModuleTypeList.setModel(JBList.createDefaultListModel(ArrayUtil.toObjectArray(moduleTypes)));
+    myModuleTypeList.setModel(JBList.createDefaultListModel(ArrayUtil.toObjectArray(extrasTemplatesList)));
+    myFormFactorGallery.setModel(JBList.createDefaultListModel(ArrayUtil.toObjectArray(galleryTemplatesList)));
+    ModuleTypeBinding binding = new ModuleTypeBinding();
+    register(SELECTED_MODULE_TYPE_KEY, myPanel, binding);
 
-    register(SELECTED_MODULE_TYPE_KEY, myModuleTypeList, new ComponentBinding<ModuleType, JBList>() {
-      @Override
-      public void setValue(@Nullable ModuleType newValue, @NotNull JBList component) {
-        component.setSelectedValue(newValue, true);
-      }
+    myModuleTypeList.addListSelectionListener(new ModuleTypeSelectionListener(true));
+    myFormFactorGallery.addListSelectionListener(new ModuleTypeSelectionListener(false));
 
-      @Nullable
-      @Override
-      public ModuleType getValue(@NotNull JBList component) {
-        return (ModuleType)component.getSelectedValue();
-      }
-    });
-
-    myModuleTypeList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        saveState(myModuleTypeList);
-      }
-    });
-
-    if (!myModuleTypeList.isEmpty()) {
-      myModuleTypeList.setSelectedIndex(0);
+    if (!galleryTemplatesList.isEmpty()) {
+      myState.put(SELECTED_MODULE_TYPE_KEY, galleryTemplatesList.get(0));
     }
   }
 
   @Override
   public boolean commitStep() {
-    ModuleType selected = myState.get(SELECTED_MODULE_TYPE_KEY);
+    ModuleTemplate selected = myState.get(SELECTED_MODULE_TYPE_KEY);
     if (selected != null) {
-      for (Key<?> k : selected.customValues.keySet()) {
-        myState.unsafePut(k, selected.customValues.get(k));
-      }
+      selected.updateWizardStateOnSelection(myState);
     }
     return true;
-  }
-
-  @NotNull
-  private static Collection<ModuleType> getModuleTypes(@NotNull TemplateMetadata metadata, @NotNull FormFactor formFactor) {
-    if (formFactor.equals(FormFactor.MOBILE)) {
-      ModuleType androidApplication = new ModuleType(metadata, formFactor, formFactor.toString() + " Application", true);
-      androidApplication.customValues.put(WizardConstants.IS_LIBRARY_KEY, false);
-      ModuleType androidLibrary = new ModuleType(metadata, formFactor, "Android Library", true);
-      androidLibrary.customValues.put(WizardConstants.IS_LIBRARY_KEY, true);
-      return ImmutableSet.of(androidApplication, androidLibrary);
-    } else {
-      return ImmutableSet.of(new ModuleType(metadata, formFactor, metadata.getTitle(), true));
-    }
   }
 
   @NotNull
@@ -144,6 +153,115 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myModuleTypeList;
+    ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
+    return moduleTemplate == null || moduleTemplate.isGalleryModuleType() ? myFormFactorGallery : myModuleTypeList;
+  }
+
+  private void createUIComponents() {
+    myFormFactorGallery = new ASGallery<ModuleTemplate>(JBList.createDefaultListModel(), new Function<ModuleTemplate, Image>() {
+      @Override
+      public Image apply(ModuleTemplate input) {
+        return iconToImage(input.getIcon());
+      }
+    }, Functions.toStringFunction(), new Dimension(150, 150));
+  }
+
+  private static class TemplateListCellRenderer implements ListCellRenderer {
+    private final JPanel myPanel = new JPanel(new BorderLayout(32, 0));
+    private final JLabel myDescriptionLabel = new JLabel();
+    private JLabel myLabel = new JLabel();
+
+    public TemplateListCellRenderer() {
+      myLabel.setFont(UIUtil.getListFont());
+      myDescriptionLabel.setFont(UIUtil.getToolTipFont());
+      myPanel.add(myLabel, BorderLayout.CENTER);
+      myPanel.add(myDescriptionLabel, BorderLayout.SOUTH);
+    }
+
+    private static Font smaller(Font font) {
+      return font.deriveFont(font.getStyle(), font.getSize() - 2);
+    }
+
+    @Override
+    public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+      Color bg = UIUtil.getListBackground();
+      Color fg = UIUtil.getListForeground();
+      Color descriptionFg = UIUtil.getInactiveTextColor();
+
+      Border border = BorderFactory.createCompoundBorder(UIUtil.getTableFocusCellHighlightBorder(),
+                                                         IdeBorderFactory.createEmptyBorder(5));
+
+      if (isSelected) {
+        bg = UIUtil.getListSelectionBackground();
+        fg = UIUtil.getListSelectionForeground();
+        descriptionFg = fg;
+      }
+      if (!cellHasFocus) {
+        border = IdeBorderFactory.createEmptyBorder(border.getBorderInsets(myLabel));
+      }
+
+      if (value instanceof ModuleTemplate) {
+        myLabel.setText(((ModuleTemplate)value).getName());
+        myDescriptionLabel.setText(((ModuleTemplate)value).getDescription());
+      }
+      myLabel.setForeground(fg);
+      myDescriptionLabel.setForeground(descriptionFg);
+      myPanel.setBackground(bg);
+      myPanel.setBorder(border);
+      return myPanel;
+    }
+  }
+
+  private class ModuleTypeBinding extends ComponentBinding<ModuleTemplate, JPanel> {
+    @Override
+    public void setValue(@Nullable ModuleTemplate newValue, @NotNull JPanel component) {
+      if (newValue == null) {
+        myModuleTypeList.clearSelection();
+        myFormFactorGallery.setSelectedElement(null);
+      }
+      else if (!newValue.isGalleryModuleType()) {
+        myModuleTypeList.setSelectedValue(newValue, true);
+        myFormFactorGallery.setSelectedElement(null);
+      }
+      else {
+        myModuleTypeList.clearSelection();
+        myFormFactorGallery.setSelectedElement(newValue);
+      }
+    }
+
+    @Nullable
+    @Override
+    public ModuleTemplate getValue(@NotNull JPanel component) {
+      ModuleTemplate moduleTemplate = myFormFactorGallery.getSelectedElement();
+      if (moduleTemplate == null) {
+        moduleTemplate = (ModuleTemplate)myModuleTypeList.getSelectedValue();
+      }
+      return moduleTemplate;
+    }
+  }
+
+  private class ModuleTypeSelectionListener implements ListSelectionListener {
+    private final boolean myGallery;
+
+    public ModuleTypeSelectionListener(boolean gallery) {
+      myGallery = gallery;
+    }
+
+
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+      if (myIsSynchronizingSelection) {
+        return;
+      }
+      myIsSynchronizingSelection = true;
+      if (myGallery) {
+        myFormFactorGallery.setSelectedElement(null);
+      }
+      else {
+        myModuleTypeList.clearSelection();
+      }
+      myIsSynchronizingSelection = false;
+      saveState(myPanel);
+    }
   }
 }
