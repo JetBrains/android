@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.TextComponentUtil;
-import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -40,13 +39,6 @@ public class CellSelectionListener implements ListSelectionListener {
 
   @Override
   public void valueChanged(ListSelectionEvent e) {
-    if (myTable.getSelectedRowCount() == 1 && myTable.getSelectedColumnCount() == 1) {
-      StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
-      String key = model.keyOfRow(myTable.getSelectedRow());
-      int column = myTable.getSelectedColumn();
-      Locale locale = model.localeOfColumn(column);
-      model.getController().saveCell(key, locale == null ? column : locale);
-    }
     if (e.getValueIsAdjusting()) {
       return;
     }
