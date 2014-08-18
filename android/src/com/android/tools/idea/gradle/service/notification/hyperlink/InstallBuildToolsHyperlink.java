@@ -13,39 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.FullRevision;
-import com.android.sdklib.repository.MajorRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class InstallPlatformHyperlink extends NotificationHyperlink {
-  @NotNull private final AndroidVersion[] myAndroidVersions;
+public class InstallBuildToolsHyperlink extends NotificationHyperlink {
+  @NotNull private final String myVersion;
+  @Nullable private final VirtualFile myBuildFile;
 
-  public InstallPlatformHyperlink(@NotNull AndroidVersion... androidVersions) {
-    super("install.android.platform", "Install missing platform(s) and sync project");
-    myAndroidVersions = androidVersions;
+  public InstallBuildToolsHyperlink(@NotNull String version, @Nullable VirtualFile buildFile) {
+    super("install.build.tools", getText(version, buildFile));
+    myBuildFile = buildFile;
+    myVersion = version;
+  }
+
+  @NotNull
+  private static String getText(@NotNull String version, @Nullable VirtualFile buildFile) {
+    String msg = String.format("Install Build Tools %1$s", version);
+    if (buildFile != null) {
+      msg += ", update version in build file and sync project";
+    }
+    else {
+      msg += " and sync project";
+    }
+    return msg;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
     List<IPkgDesc> requested = Lists.newArrayList();
-    for (AndroidVersion version : myAndroidVersions) {
-      requested.add(PkgDesc.Builder.newPlatform(version, new MajorRevision(1), FullRevision.NOT_SPECIFIED).create());
-    }
+    FullRevision minBuildToolsRev = FullRevision.parseRevision(myVersion);
+    requested.add(PkgDesc.Builder.newBuildTool(minBuildToolsRev).create());
     SdkQuickfixWizard wizard = new SdkQuickfixWizard(project, null, requested);
     wizard.init();
     if (wizard.showAndGet()) {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      if (myBuildFile != null) {
+        FixBuildToolsVersionHyperlink.fixBuildToolsVersionAndSync(project, myBuildFile, myVersion);
+      }
+      else {
+        GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      }
     }
   }
 }
