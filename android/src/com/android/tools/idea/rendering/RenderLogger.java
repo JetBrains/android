@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -172,7 +173,13 @@ public class RenderLogger extends LayoutLog {
   public void error(@Nullable String tag, @Nullable String message, @Nullable Throwable throwable, @Nullable Object data) {
     String description = describe(message);
     if (LOG_ALL) {
-      LOG.error(String.format("%1$s: %2$s", myName, description), throwable);
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        LOG.error(String.format("%1$s: %2$s", myName, description), throwable);
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
     }
     if (throwable != null) {
       if (throwable instanceof ClassNotFoundException) {
