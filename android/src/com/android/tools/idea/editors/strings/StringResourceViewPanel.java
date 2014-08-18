@@ -72,8 +72,8 @@ public class StringResourceViewPanel {
     myTable.getSelectionModel().addListSelectionListener(selectionListener);
     myTable.getColumnModel().getSelectionModel().addListSelectionListener(selectionListener);
 
+    myTable.setDefaultEditor(String.class, new MultilineCellEditor());
     myTable.getParent().addComponentListener(new ResizeListener(myTable));
-
     new TableSpeedSearch(myTable) {
       @Override
       public int getElementCount() {
