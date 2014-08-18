@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.*;
-import com.android.tools.idea.editors.strings.table.ColumnUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TableSpeedSearch;
