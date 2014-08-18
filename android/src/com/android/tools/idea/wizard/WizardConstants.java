@@ -57,7 +57,7 @@ public class WizardConstants {
   public static final Key<String> MAVEN_URL_KEY = createKey(ATTR_MAVEN_URL, WIZARD, String.class);
   public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
   public static final Key<String> APPLICATION_NAME_KEY = createKey(ATTR_APP_TITLE, WIZARD, String.class);
-  public static final Key<ModuleType> SELECTED_MODULE_TYPE_KEY = createKey("selectedModuleType", ScopedStateStore.Scope.WIZARD, ModuleType.class);
+  public static final Key<ModuleTemplate> SELECTED_MODULE_TYPE_KEY = createKey("selectedModuleType", ScopedStateStore.Scope.WIZARD, ModuleTemplate.class);
   public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
   public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);

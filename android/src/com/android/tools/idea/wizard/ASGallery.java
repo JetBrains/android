@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ui.GeometryUtil;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -181,6 +182,14 @@ public class ASGallery<E> extends JComponent implements Accessible, Scrollable {
       inputMap.put(KeyStroke.getKeyStroke(entry.getKey(), 0), key);
       actionMap.put(key, entry.getValue());
     }
+  }
+
+  @Override
+  public Dimension getMinimumSize() {
+    Dimension size = new Dimension(computeCellSize());
+    Insets insets = getInsets();
+    size.setSize(size.getWidth() + insets.left + insets.right, size.getHeight() + insets.top + insets.bottom);
+    return computeCellSize();
   }
 
   private static int intDivideRoundUp(int divident, int divisor) {
