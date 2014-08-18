@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +38,6 @@ public class StringResourceDataController {
   private StringResourceData myData;
   private String mySelectedKey;
   private Locale mySelectedLocale;
-
-  private String mySavedKey;
-  private Object mySavedColumn;
 
   private enum ParseTaskType {
     INIT_DATA("Loading string resource data"),
@@ -125,16 +121,6 @@ public class StringResourceDataController {
     mySelectedLocale = locale;
   }
 
-  public void saveCell(@NotNull String key, @NotNull Object column) {
-    mySavedKey = key;
-    mySavedColumn = column;
-  }
-
-  @NotNull
-  public Pair<String, Object> getSavedCell() {
-    return Pair.create(mySavedKey, mySavedColumn);
-  }
-
   public void setKey(@NotNull String key) {
     doEdit(EditType.KEY, key);
   }
@@ -161,9 +147,6 @@ public class StringResourceDataController {
         case KEY:
           String key = String.valueOf(newData);
           dataChanged = !mySelectedKey.equals(key) && setAttribute(SdkConstants.ATTR_NAME, key);
-          if (dataChanged && mySelectedKey.equals(mySavedKey)) {
-            mySavedKey = key;
-          }
           break;
         case DEFAULT_VALUE:
           dataChanged = setText(true, String.valueOf(newData));

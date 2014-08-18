@@ -17,8 +17,6 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.editors.strings.table.ColumnUtil;
-import com.android.tools.idea.rendering.Locale;
-import com.intellij.openapi.util.Pair;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.TableSpeedSearch;
@@ -94,17 +92,6 @@ public class StringResourceViewPanel {
     StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
     model.fireTableStructureChanged();
     ColumnUtil.setColumns(myTable);
-
-    Pair<String, Object> savedCell = model.getController().getSavedCell();
-    String key = savedCell.first;
-    Object column = savedCell.second;
-    if (key != null && column != null) {
-      int row = model.rowOfKey(key);
-      int col = column instanceof Integer ? (Integer) column : model.columnOfLocale((Locale) column);
-      if (row >= 0 && col >= 0) {
-        myTable.changeSelection(row, col, false, false);
-      }
-    }
   }
 
   @NotNull
