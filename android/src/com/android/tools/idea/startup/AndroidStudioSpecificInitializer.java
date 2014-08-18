@@ -105,7 +105,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
   @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
-  @NonNls private static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
+  @NonNls public static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
