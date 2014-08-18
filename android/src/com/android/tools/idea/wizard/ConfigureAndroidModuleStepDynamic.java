@@ -40,7 +40,7 @@ import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE
 public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectStep {
   private static final Logger LOG = Logger.getInstance(ConfigureAndroidModuleStepDynamic.class);
 
-  private ModuleType myModuleType;
+  private CreateModuleTemplate myModuleType;
   private FormFactorApiComboBox mySdkControls;
   private Project myProject;
 
@@ -64,7 +64,7 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
   @Override
   public void onEnterStep() {
     super.onEnterStep();
-    ModuleType moduleType = myState.get(SELECTED_MODULE_TYPE_KEY);
+    CreateModuleTemplate moduleType = getModuleType();
     if (moduleType != null && moduleType.formFactor != null && moduleType.templateMetadata != null) {
       myModuleType = moduleType;
       registerValueDeriver(FormFactorUtils.getModuleNameKey(moduleType.formFactor), ourModuleNameDeriver);
@@ -90,6 +90,18 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
       mySdkControls.loadSavedApi();
     }
     invokeUpdate(null);
+  }
+
+  @Nullable
+  private CreateModuleTemplate getModuleType() {
+    ModuleTemplate moduleTemplate = myState.get(SELECTED_MODULE_TYPE_KEY);
+    if (moduleTemplate instanceof CreateModuleTemplate) {
+      CreateModuleTemplate type = (CreateModuleTemplate)moduleTemplate;
+      if (type.formFactor != null && type.templateMetadata != null) {
+        return type;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -177,8 +189,7 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
 
   @Override
   public boolean isStepVisible() {
-    ModuleType moduleType = myState.get(SELECTED_MODULE_TYPE_KEY);
-    return moduleType != null && moduleType.templateMetadata != null && moduleType.formFactor != null;
+    return getModuleType() != null;
   }
 
   @NotNull
