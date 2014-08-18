@@ -118,6 +118,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     myCompilerConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = isExperimentalBuildEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
+    myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND = isConfigurationOnDemandEnabled();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -159,6 +160,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
                                ")");
     String commandLineOptions = Strings.nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myCommandLineOptionsEditor.setText(commandLineOptions);
+    myConfigureOnDemandCheckBox.setSelected(myBuildConfiguration.USE_CONFIGURATION_ON_DEMAND);
   }
 
   @Override
