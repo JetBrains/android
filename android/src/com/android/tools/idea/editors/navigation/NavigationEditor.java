@@ -75,6 +75,7 @@ public class NavigationEditor implements FileEditor {
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
   private static final int SCROLL_UNIT_INCREMENT = 20;
   private static final NavigationModel.Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
+  public static final com.android.navigation.Dimension UNATTACHED_STRIDE = new com.android.navigation.Dimension(50, 50);
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   @Nullable
@@ -402,7 +403,11 @@ public class NavigationEditor implements FileEditor {
     final Point location = new Point(GAP.width, GAP.height);
     final int gridWidth = gridSize.width;
     final int gridHeight = gridSize.height;
-    for (State state : states) {
+    // Gather childless roots and deal with them differently, there could be many of them
+    Set<State> transitionStates = getTransitionStates();
+    Collection<State> unattached = getNonTransitionStates(states, transitionStates);
+    visited.addAll(unattached);
+    for (final State state : states) {
       if (visited.contains(state)) {
         continue;
       }
@@ -426,6 +431,28 @@ public class NavigationEditor implements FileEditor {
         }
       }.addChildrenFor(state);
     }
+    for (final State root : unattached) {
+        stateToLocation.put(root, new com.android.navigation.Point(location.x, location.y));
+        location.x += UNATTACHED_STRIDE.width;
+        location.y += UNATTACHED_STRIDE.height;
+    }
+  }
+
+  private Set<State> getTransitionStates() {
+    Set<State> result = new HashSet<State>();
+    for (Transition transition : myNavigationModel.getTransitions()) {
+      State source = transition.getSource().getState();
+      State destination = transition.getDestination().getState();
+      result.add(source);
+      result.add(destination);
+    }
+    return result;
+  }
+
+  private Collection<State> getNonTransitionStates(Collection<State> states, Set<State> transitionStates) {
+    Collection<State> unattached = new ArrayList<State>(states);
+    unattached.removeAll(transitionStates);
+    return unattached;
   }
 
   private List<State> findDestinationsFor(State source, Set<State> visited) {
