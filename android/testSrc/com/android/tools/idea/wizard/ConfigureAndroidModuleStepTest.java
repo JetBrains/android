@@ -24,6 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 import javax.swing.*;
 import java.io.File;
@@ -93,7 +94,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
 
     Set<String> expectedCompileTargets = Sets.newHashSet();
     for (IAndroidTarget target : myStep.getCompilationTargets()) {
-      expectedCompileTargets.add(ConfigureAndroidModuleStep.AndroidTargetComboBoxItem.getLabel(target));
+      expectedCompileTargets.add(AndroidSdkUtils.getTargetLabel(target));
     }
 
     assertContainsElements(compileTargets, expectedCompileTargets);
