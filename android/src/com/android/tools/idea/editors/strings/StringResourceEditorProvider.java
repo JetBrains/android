@@ -17,45 +17,41 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.LocalResourceRepositoryAsVirtualFile;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class StringResourceEditorProvider implements FileEditorProvider, DumbAware {
   public static final String ID = "string-resource-editor";
 
-  public static boolean canViewTranslations(@NotNull VirtualFile file) {
+  public static boolean canViewTranslations(@NotNull Project project, @NotNull VirtualFile file) {
     if (Boolean.getBoolean("STRINGS_EDITOR")) {
-      return file.getName().equals(AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING)) &&
-             ResourceHelper.getFolderType(file) == ResourceFolderType.VALUES;
+      if (!file.getName().equals(AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STRING))) {
+        return false;
+      }
+
+      if (ResourceHelper.getFolderType(file) != ResourceFolderType.VALUES) {
+        return false;
+      }
+
+      Module m = ProjectFileIndex.SERVICE.getInstance(project).getModuleForFile(file);
+      return AndroidFacet.getInstance(m) != null;
     }
     return false;
   }
 
   public static void openEditor(@NotNull final Project project, @NotNull VirtualFile file) {
-    final LocalResourceRepositoryAsVirtualFile vf = LocalResourceRepositoryAsVirtualFile.getInstance(project, file);
-    if (vf == null) {
-      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-        @Override
-        public void run() {
-          Messages.showErrorDialog(project, "Cannot read project resources", StringResourceEditor.NAME);
-        }
-      }, ModalityState.defaultModalityState());
-      return;
-    }
-    vf.setIcon(StringResourceEditor.ICON);
-    vf.setProject(project);
-    vf.setName(StringResourceEditor.NAME);
+    final VirtualFile vf = StringsVirtualFile.getInstance(project, file);
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -67,7 +63,7 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
 
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
-    return file instanceof LocalResourceRepositoryAsVirtualFile;
+    return file instanceof StringsVirtualFile;
   }
 
   @NotNull
