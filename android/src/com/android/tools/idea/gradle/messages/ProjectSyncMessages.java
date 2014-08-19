@@ -24,8 +24,9 @@ import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.service.notification.GradleNotificationExtension;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
-import com.android.tools.idea.gradle.service.notification.OpenFileHyperlink;
+import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -102,7 +103,7 @@ public class ProjectSyncMessages {
     notification.setNavigatable(navigatable);
 
     if (hyperlinks.length > 0) {
-      GradleNotificationExtension.updateNotification(notification, myProject, title, errorMsg, hyperlinks);
+      AbstractSyncErrorHandler.updateNotification(notification, myProject, title, errorMsg, hyperlinks);
     }
 
     myNotificationManager.showNotification(GradleConstants.SYSTEM_ID, notification);

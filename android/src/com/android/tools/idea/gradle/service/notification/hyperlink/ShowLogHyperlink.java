@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
-import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.ide.actions.ShowFilePathAction;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HTTPProxySettingsPanel;
-import com.intellij.util.net.HttpConfigurable;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-class OpenHttpSettingsHyperlink extends NotificationHyperlink {
-  OpenHttpSettingsHyperlink() {
-    super("openHttpSettings", "Open HTTP proxy settings");
+import java.io.File;
+
+public class ShowLogHyperlink extends NotificationHyperlink {
+  @NonNls private static final String IDEA_LOG_FILE_NAME = "idea.log";
+
+  public ShowLogHyperlink() {
+    super("showLogFile", "Show log file");
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    ShowSettingsUtil.getInstance().editConfigurable(project, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
+    File logFile = new File(PathManager.getLogPath(), IDEA_LOG_FILE_NAME);
+    ShowFilePathAction.openFile(logFile);
   }
 }
