@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +26,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.classextension.EasyMock.*;
 
 /**
- * Tests for {@link NotificationHyperlink}.
+ * Tests for {@link com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink}.
  */
 public class NotificationHyperlinkTest extends TestCase {
   private boolean myExecuted;

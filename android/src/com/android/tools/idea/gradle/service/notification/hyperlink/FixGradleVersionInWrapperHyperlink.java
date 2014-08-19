@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
@@ -31,12 +31,12 @@ import java.io.IOException;
 /**
  * Fixes the Gradle version in a project's Gradle wrapper.
  */
-class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
+public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @NotNull private final File myWrapperPropertiesFile;
   @NotNull private final String myGradleVersion;
 
   @Nullable
-  static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @NotNull String supportedGradleVersion) {
+  public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @NotNull String supportedGradleVersion) {
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
       return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, supportedGradleVersion);

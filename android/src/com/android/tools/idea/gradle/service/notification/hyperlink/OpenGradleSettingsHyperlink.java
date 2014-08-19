@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -24,8 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.GradleManager;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
-class OpenGradleSettingsHyperlink extends NotificationHyperlink {
-  OpenGradleSettingsHyperlink() {
+public class OpenGradleSettingsHyperlink extends NotificationHyperlink {
+  public OpenGradleSettingsHyperlink() {
     super("openGradleSettings", "Gradle settings");
   }
 

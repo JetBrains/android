@@ -17,8 +17,8 @@ package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;

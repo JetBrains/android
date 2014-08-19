@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
+import com.intellij.ide.actions.SendFeedbackAction;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.annotations.NotNull;
 
-public class OpenAndroidSdkManagerHyperlink extends NotificationHyperlink {
-  public OpenAndroidSdkManagerHyperlink() {
-    super("openAndroidSdkManager", "Open Android SDK Manager");
+public class FileBugHyperlink extends NotificationHyperlink {
+  public FileBugHyperlink() {
+    super("fileBug", "File a bug");
   }
 
   @Override
   protected void execute(@NotNull Project project) {
-    RunAndroidSdkManagerAction action = new RunAndroidSdkManagerAction();
-    action.doAction(project);
+    SendFeedbackAction.launchBrowser();
   }
 }
