@@ -23,6 +23,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -883,4 +884,27 @@ public final class AndroidSdkUtils {
     return new File(androidHome, FileUtil.join(FD_EXTRAS, extrasName, FD_M2_REPOSITORY));
   }
 
+  /**
+   * For a given target, returns a brief user-facing string that describes the platform, including the API level,
+   * platform version number, and codename. Does the right thing with prerelease platforms.
+   */
+  @NotNull
+  public static String getTargetLabel(@NotNull IAndroidTarget target) {
+    if (!target.isPlatform()) {
+      return String.format("%1$s (API %2$s)", target.getFullName(), target.getVersion().getApiString());
+    }
+    AndroidVersion version = target.getVersion();
+    if (version.isPreview()) {
+      return String.format("API %d+: %s", target.getVersion().getApiLevel(), target.getName());
+    }
+    String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
+    if (name != null) {
+      return name;
+    }
+    String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$
+    if (release != null) {
+      return String.format("API %1$d: Android %2$s", version.getApiLevel(), release);
+    }
+    return String.format("API %1$d", version.getApiLevel());
+  }
 }
