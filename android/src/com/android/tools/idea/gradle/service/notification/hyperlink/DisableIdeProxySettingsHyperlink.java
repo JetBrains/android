@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.google.common.annotations.VisibleForTesting;
@@ -24,8 +24,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Configures the IDE's proxy settings to "No Proxy."
  */
-class DisableIdeProxySettingsHyperlink extends NotificationHyperlink {
-  DisableIdeProxySettingsHyperlink() {
+public class DisableIdeProxySettingsHyperlink extends NotificationHyperlink {
+  public DisableIdeProxySettingsHyperlink() {
     super("disable.proxy.settings", "Disable the IDE's proxy settings and sync project");
   }
 

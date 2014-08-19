@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk;
 import com.android.sdklib.repository.local.UpdateResult;
 import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
