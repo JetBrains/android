@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.editors.strings.StringResourceData;
+import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
@@ -43,42 +45,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
-  private final LocalResourceRepository myRepository;
-  private VirtualFile myResourceRoot;
-  private Project myProject;
-  private String myName;
-
-  @Nullable
-  public static LocalResourceRepositoryAsVirtualFile getInstance(@NotNull Project project, @NotNull VirtualFile file) {
-    Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module == null) {
-      return null;
-    }
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-    LocalResourceRepositoryAsVirtualFile repositoryFile = ProjectResourceRepository.getProjectResources(facet, true).asVirtualFile();
-    // AndroidFacet.getPrimaryResourceDir() is what AndroidResourceUtil uses
-    //noinspection deprecation
-    VirtualFile resourceRoot = facet.getPrimaryResourceDir();
-    if (resourceRoot == null) {
-      return null;
-    }
-    repositoryFile.setResourceRoot(resourceRoot);
-    return repositoryFile;
-  }
-
-  LocalResourceRepositoryAsVirtualFile(@NotNull LocalResourceRepository repository) {
-    super("", new LocalResourceRepositoryFileType(), "");
-    myRepository = repository;
-    myName = myRepository.getDisplayName();
-  }
-
+public class StringsWriteUtils {
   /**
    * Sets the value of an attribute for resource items.  If SdkConstants.ATTR_NAME is set to null or "", the items are deleted.
    * @param attribute The attribute whose value we wish to change
@@ -86,12 +57,15 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
    * @param items The resource items
    * @return True if the value was successfully set, false otherwise
    */
-  public boolean setAttributeForItems(@NotNull final String attribute, @Nullable final String value, @NotNull ResourceItem... items) {
-    if (items.length <= 0) {
+  public static boolean setAttributeForItems(@NotNull Project project,
+                                             @NotNull final String attribute,
+                                             @Nullable final String value,
+                                             @NotNull List<ResourceItem> items) {
+    if (items.isEmpty()) {
       return false;
     }
-    final List<XmlTag> tags = Lists.newArrayListWithExpectedSize(items.length);
-    final Set<PsiFile> files = Sets.newHashSetWithExpectedSize(items.length);
+    final List<XmlTag> tags = Lists.newArrayListWithExpectedSize(items.size());
+    final Set<PsiFile> files = Sets.newHashSetWithExpectedSize(items.size());
     for (ResourceItem item : items) {
       XmlTag tag = StringResourceData.resourceToXmlTag(item);
       if (tag == null) {
@@ -101,7 +75,7 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
       files.add(tag.getContainingFile());
     }
     final boolean deleteTag = attribute.equals(SdkConstants.ATTR_NAME) && (value == null || value.isEmpty());
-    new WriteCommandAction.Simple(myProject, "Setting attribute " + attribute, files.toArray(new PsiFile[files.size()])) {
+    new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(new PsiFile[files.size()])) {
       @Override
       public void run() {
         for (XmlTag tag : tags) {
@@ -124,14 +98,14 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
    * @param value The desired text
    * @return True if the text was successfully set, false otherwise
    */
-  public boolean setItemText(@NotNull ResourceItem item, @NotNull final String value) {
+  public static boolean setItemText(@NotNull Project project, @NotNull ResourceItem item, @NotNull final String value) {
     if (value.isEmpty()) {
       // Deletes the tag
-      return setAttributeForItems(SdkConstants.ATTR_NAME, null, item);
+      return setAttributeForItems(project, SdkConstants.ATTR_NAME, null, Collections.singletonList(item));
     }
     final XmlTag tag = StringResourceData.resourceToXmlTag(item);
     if (tag != null) {
-      new WriteCommandAction.Simple(myProject, "Setting value of " + item.getName(), tag.getContainingFile()) {
+      new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
         @Override
         public void run() {
           tag.getValue().setText(value);
@@ -150,8 +124,13 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
    * @param translatable Whether the resource is translatable
    * @return True if the resource was successfully created, false otherwise
    */
-  public boolean createItem(@Nullable Locale locale, @NotNull final String name, @NotNull final String value, final boolean translatable) {
-    XmlFile resourceFile = getStringResourceFile(locale);
+  public static boolean createItem(@NotNull Project project,
+                                   @NotNull VirtualFile resFolder,
+                                   @Nullable Locale locale,
+                                   @NotNull final String name,
+                                   @NotNull final String value,
+                                   final boolean translatable) {
+    XmlFile resourceFile = getStringResourceFile(project, resFolder, locale);
     if (resourceFile == null) {
       return false;
     }
@@ -159,7 +138,7 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
     if (root == null) {
       return false;
     }
-    new WriteCommandAction.Simple(myProject, "Creating string " + name, resourceFile) {
+    new WriteCommandAction.Simple(project, "Creating string " + name, resourceFile) {
       @Override
       public void run() {
         // AndroidResourceUtil.createValueResource tries to format the value it is passed (e.g., by escaping quotation marks)
@@ -176,7 +155,7 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
   }
 
   @Nullable
-  private XmlFile getStringResourceFile(@Nullable Locale locale) {
+  private static XmlFile getStringResourceFile(@NotNull Project project, @NotNull final VirtualFile resFolder, @Nullable Locale locale) {
     FolderConfiguration configuration = new FolderConfiguration();
     if (locale != null) {
       configuration.setLanguageQualifier(locale.language);
@@ -184,16 +163,16 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
         configuration.setRegionQualifier(locale.region);
       }
     }
-    PsiManager manager = PsiManager.getInstance(myProject);
+    PsiManager manager = PsiManager.getInstance(project);
     final String valuesFolderName = configuration.getFolderName(ResourceFolderType.VALUES);
-    VirtualFile valuesFolder = myResourceRoot.findChild(valuesFolderName);
+    VirtualFile valuesFolder = resFolder.findChild(valuesFolderName);
     if (valuesFolder == null) {
       valuesFolder =
-        new WriteCommandAction<VirtualFile>(myProject, "Creating directory " + valuesFolderName, manager.findFile(myResourceRoot)) {
+        new WriteCommandAction<VirtualFile>(project, "Creating directory " + valuesFolderName, manager.findFile(resFolder)) {
           @Override
           public void run(@NotNull Result<VirtualFile> result) {
             try {
-              result.setResult(myResourceRoot.createChildDirectory(this, valuesFolderName));
+              result.setResult(resFolder.createChildDirectory(this, valuesFolderName));
             }
             catch (IOException ex) {
               // Immediately after this, we handle the case where the result is null
@@ -231,74 +210,5 @@ public class LocalResourceRepositoryAsVirtualFile extends LightVirtualFile {
     }
 
     return resourceFile;
-  }
-
-  public void setIcon(Icon icon) {
-    if (getAssignedFileType() != null) {
-      ((LocalResourceRepositoryFileType)getAssignedFileType()).setIcon(icon);
-    }
-  }
-
-  @NotNull
-  public LocalResourceRepository getRepository() {
-    return myRepository;
-  }
-
-  public void setResourceRoot(@NotNull VirtualFile resourceRoot) {
-    myResourceRoot = resourceRoot;
-  }
-
-  public void setProject(@NotNull Project project) {
-    myProject = project;
-  }
-
-  public void setName(@NotNull String name) {
-    myName = name;
-  }
-
-  @NotNull
-  @Override
-  public String getName() {
-    return myName;
-  }
-
-  @Override
-  public long getTimeStamp() {
-    return myRepository.getModificationCount();
-  }
-
-  private static class LocalResourceRepositoryFileType extends FakeFileType {
-    private Icon myIcon;
-
-    public LocalResourceRepositoryFileType() {
-      myIcon = AndroidIcons.Android;
-    }
-
-    @NotNull
-    @Override
-    public String getName() {
-      return "Android Local Resource Repository";
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-      return "Android Local Resource Repository Files";
-    }
-
-    public void setIcon(@NotNull Icon icon) {
-      myIcon = icon;
-    }
-
-    @Nullable
-    @Override
-    public Icon getIcon() {
-      return myIcon;
-    }
-
-    @Override
-    public boolean isMyFileType(VirtualFile file) {
-      return file instanceof LocalResourceRepositoryAsVirtualFile;
-    }
   }
 }

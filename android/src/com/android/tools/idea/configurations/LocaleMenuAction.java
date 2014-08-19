@@ -164,7 +164,7 @@ public class LocaleMenuAction extends FlatComboAction {
   }
 
   @NotNull
-  private static List<Locale> getAllLocales() {
+  public static List<Locale> getAllLocales() {
     Set<String> languageCodes = LocaleManager.getLanguageCodes();
     List<String> sorted = new ArrayList<String>(languageCodes);
     Collections.sort(sorted);
