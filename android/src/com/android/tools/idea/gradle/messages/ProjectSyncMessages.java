@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.messages;
 
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.sdklib.repository.NoPreviewRevision;
 import com.android.sdklib.repository.descriptors.IPkgDesc;
 import com.android.sdklib.repository.descriptors.IdDisplay;
@@ -128,20 +129,16 @@ public class ProjectSyncMessages {
       String group;
       if (dep.startsWith("com.android.support")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        if (androidHome != null) {
-          File repository = AndroidSdkUtils.getAndroidSupportRepositoryLocation(androidHome);
-          if (!repository.isDirectory()) {
-            hyperlinks.add(InstallRepositoryHyperlink.installAndroidRepository());
-          }
+        File repository = SdkMavenRepository.ANDROID.getRepositoryLocation(androidHome, true);
+        if (repository != null) {
+          hyperlinks.add(InstallRepositoryHyperlink.installAndroidRepository());
         }
       }
       else if (dep.startsWith("com.google.android.gms")) {
         group = UNRESOLVED_ANDROID_DEPENDENCIES;
-        if (androidHome != null) {
-          File repository = AndroidSdkUtils.getGoogleRepositoryLocation(androidHome);
-          if (!repository.isDirectory()) {
-            hyperlinks.add(InstallRepositoryHyperlink.installGoogleRepository());
-          }
+        File repository = SdkMavenRepository.GOOGLE.getRepositoryLocation(androidHome, true);
+        if (repository != null) {
+          hyperlinks.add(InstallRepositoryHyperlink.installGoogleRepository());
         }
       }
       else {
