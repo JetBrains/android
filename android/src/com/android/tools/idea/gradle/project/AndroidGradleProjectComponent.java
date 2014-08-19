@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.service.notification.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;

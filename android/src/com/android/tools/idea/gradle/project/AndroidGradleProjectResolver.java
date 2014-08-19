@@ -75,7 +75,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
    */
   @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
     "The project is using an unsupported version of the Android Gradle plug-in";
-  @NotNull public static final String UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX = "Unable to find 'build folder for project";
   @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;

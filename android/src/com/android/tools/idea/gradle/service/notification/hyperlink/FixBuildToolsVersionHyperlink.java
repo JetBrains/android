@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
@@ -24,11 +24,11 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.parser.BuildFileKey.BUILD_TOOLS_VERSION;
 
-class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
+public class FixBuildToolsVersionHyperlink extends NotificationHyperlink {
   @NotNull private final VirtualFile myBuildFile;
   @NotNull private final String myVersion;
 
-  FixBuildToolsVersionHyperlink(@NotNull VirtualFile buildFile, @NotNull String version) {
+  public FixBuildToolsVersionHyperlink(@NotNull VirtualFile buildFile, @NotNull String version) {
     super("fix.build.tools.version", "Update Build Tools version and sync project");
     myBuildFile = buildFile;
     myVersion = version;

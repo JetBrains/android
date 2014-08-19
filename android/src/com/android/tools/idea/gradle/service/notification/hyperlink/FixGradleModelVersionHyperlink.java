@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification;
+package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
@@ -32,17 +32,16 @@ import java.io.File;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.gradle.parser.BuildFileKey.PLUGIN_VERSION;
-import static com.android.tools.idea.gradle.service.notification.FixGradleVersionInWrapperHyperlink.updateGradleVersion;
 import static com.intellij.notification.NotificationType.ERROR;
 
-class FixGradleModelVersionHyperlink extends NotificationHyperlink {
+public class FixGradleModelVersionHyperlink extends NotificationHyperlink {
   private final boolean myOpenMigrationGuide;
 
-  FixGradleModelVersionHyperlink() {
+  public FixGradleModelVersionHyperlink() {
     this("Open migration guide, fix plug-in version and sync project", true);
   }
 
-  FixGradleModelVersionHyperlink(@NotNull String text, boolean openMigrationGuide) {
+  public FixGradleModelVersionHyperlink(@NotNull String text, boolean openMigrationGuide) {
     super("fixGradleElements", text);
     myOpenMigrationGuide = openMigrationGuide;
   }
@@ -80,7 +79,7 @@ class FixGradleModelVersionHyperlink extends NotificationHyperlink {
     }
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
-      updateGradleVersion(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
+      FixGradleVersionInWrapperHyperlink.updateGradleVersion(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
     }
     GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }

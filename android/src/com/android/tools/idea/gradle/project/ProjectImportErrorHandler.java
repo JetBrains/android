@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler;
+import com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -36,10 +38,8 @@ import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
  * Provides better error messages for android projects import failures.
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
-  public static final String FAILED_TO_PARSE_SDK_ERROR = "failed to parse SDK";
 
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-  public static final String FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file.";
 
   private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
 
@@ -98,7 +98,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
         return createUserFriendlyError(newMsg, null);
       }
 
-      if (msg != null && msg.contains(FAILED_TO_PARSE_SDK_ERROR)) {
+      if (msg != null && msg.contains(FailedToParseSdkErrorHandler.FAILED_TO_PARSE_SDK_ERROR)) {
         String newMsg = msg + EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
@@ -108,7 +108,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
         String newMsg = msg;
         File buildProperties = new File(projectPath, SdkConstants.FN_LOCAL_PROPERTIES);
         if (buildProperties.isFile()) {
-          newMsg += EMPTY_LINE + FIX_SDK_DIR_PROPERTY;
+          newMsg += EMPTY_LINE + MissingAndroidSdkErrorHandler.FIX_SDK_DIR_PROPERTY;
         }
         return createUserFriendlyError(newMsg, null);
       }
