@@ -18,7 +18,6 @@ package com.android.tools.idea.navigator.nodes;
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectData;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.projectView.PresentationData;
@@ -41,7 +40,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirectory>> {
   public AndroidBuildScriptsGroupNode(@NotNull Project project, @NotNull ViewSettings viewSettings) {
@@ -131,6 +133,11 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     if (psiFile != null) {
       psiFileNodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), qualifier));
     }
+  }
+
+  @Override
+  public int getWeight() {
+    return 100; // Gradle scripts node should be at the end after all the modules
   }
 
   @Override
