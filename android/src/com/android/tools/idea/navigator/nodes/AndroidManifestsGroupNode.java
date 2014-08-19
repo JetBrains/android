@@ -87,6 +87,18 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
 
   @Nullable
   @Override
+  public Comparable getSortKey() {
+    return AndroidSourceType.MANIFEST;
+  }
+
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return AndroidSourceType.MANIFEST;
+  }
+
+  @Nullable
+  @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return MANIFESTS_NODE;
   }
