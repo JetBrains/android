@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.structure;
 
+import com.android.sdklib.AndroidTargetHash;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.sdklib.repository.local.LocalBuildToolPkgInfo;
 import com.android.sdklib.repository.local.LocalPkgInfo;
@@ -27,7 +29,10 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
-import com.google.common.collect.*;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -51,8 +56,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class KeyValuePane extends JPanel implements DocumentListener, ItemListener {
   /**
@@ -70,20 +77,16 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
   private final Project myProject;
   private final ModificationListener myListener;
 
-  private final Set<String> myInstalledApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
-  private final Set<String> myInstalledCompileApis = Sets.newLinkedHashSetWithExpectedSize(SdkVersionInfo.HIGHEST_KNOWN_API);
-  private final Set<String> myInstalledBuildTools = new LinkedHashSet<String>();
-  private final List<String> myJavaCompatibility = ImmutableList.of("JavaVersion.VERSION_1_6", "JavaVersion.VERSION_1_7");
-
-  private final Map<BuildFileKey, Iterable<String>> myKeysWithKnownValues =
-    ImmutableMap.<BuildFileKey, Iterable<String>>builder()
-      .put(BuildFileKey.MIN_SDK_VERSION, myInstalledApis)
-      .put(BuildFileKey.TARGET_SDK_VERSION, myInstalledApis)
-      .put(BuildFileKey.COMPILE_SDK_VERSION, myInstalledCompileApis)
-      .put(BuildFileKey.BUILD_TOOLS_VERSION, myInstalledBuildTools)
-      .put(BuildFileKey.SOURCE_COMPATIBILITY, myJavaCompatibility)
-      .put(BuildFileKey.TARGET_COMPATIBILITY, myJavaCompatibility)
-      .build();
+  /**
+   * This structure lets us define known values to populate combo boxes for some keys. The user can choose one of those known values from
+   * the combo box, or enter a custom value. This structure is a map, where the key to the map is the BuildFileKey and the value is a
+   * sub-map. This sub-map lets us show different strings in the combo box in the UI than what we actually read and write to the underlying
+   * build file. For example, you can have a targetSdkVersion of 20 in the build file, but it will show that in the UI as
+   * "API 20: Android 4.4 (KitKat Wear)". This sub-map is bi-directional, and has keys of the values that appear in the build file, and
+   * values as what appears in the UI. For simple cases where the UI shows the same thing that appears in the build file, this can be
+   * an identity mapping.
+   */
+  private final Map<BuildFileKey, BiMap<String, String>> myKeysWithKnownValues;
 
   public KeyValuePane(@NotNull Project project, @NotNull ModificationListener listener) {
     myProject = project;
@@ -93,6 +96,12 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     if (androidSdkData != null) {
       sdk = androidSdkData.getLocalSdk();
     }
+    // Use immutable maps with builders for our built-in value maps because ImmutableBiMap ensures that iteration order is the same as
+    // insertion order.
+    ImmutableBiMap.Builder<String, String> buildToolsMapBuilder = ImmutableBiMap.builder();
+    ImmutableBiMap.Builder<String, String> apisMapBuilder = ImmutableBiMap.builder();
+    ImmutableBiMap.Builder<String, String> compiledApisMapBuilder = ImmutableBiMap.builder();
+
     if (sdk != null) {
       LocalPkgInfo[] buildToolsPackages = sdk.getPkgsInfos(PkgType.PKG_BUILD_TOOLS);
       for (LocalPkgInfo buildToolsPackage : buildToolsPackages) {
@@ -103,9 +112,41 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         if (buildToolInfo == null) {
           continue;
         }
-        myInstalledBuildTools.add(buildToolInfo.getRevision().toString());
+        String buildToolVersion = buildToolInfo.getRevision().toString();
+        buildToolsMapBuilder.put(buildToolVersion, buildToolVersion);
+      }
+      for (IAndroidTarget target : sdk.getTargets()) {
+        if (target.isPlatform()) {
+          AndroidVersion version = target.getVersion();
+          String codename = version.getCodename();
+          String apiString, platformString;
+          if (codename != null) {
+            apiString = codename;
+            platformString = AndroidTargetHash.getPlatformHashString(version);
+          }
+          else {
+            platformString = apiString = Integer.toString(version.getApiLevel());
+          }
+          String label = AndroidSdkUtils.getTargetLabel(target);
+          apisMapBuilder.put(apiString, label);
+          compiledApisMapBuilder.put(platformString, label);
+        }
       }
     }
+
+    BiMap<String, String> installedBuildTools = buildToolsMapBuilder.build();
+    BiMap<String, String> installedApis = apisMapBuilder.build();
+    BiMap<String, String> installedCompileApis = compiledApisMapBuilder.build();
+    BiMap<String, String> javaCompatibility = ImmutableBiMap.of("JavaVersion.VERSION_1_6", "1.6", "JavaVersion.VERSION_1_7", "1.7");
+
+    myKeysWithKnownValues = ImmutableMap.<BuildFileKey, BiMap<String, String>>builder()
+        .put(BuildFileKey.MIN_SDK_VERSION, installedApis)
+        .put(BuildFileKey.TARGET_SDK_VERSION, installedApis)
+        .put(BuildFileKey.COMPILE_SDK_VERSION, installedCompileApis)
+        .put(BuildFileKey.BUILD_TOOLS_VERSION, installedBuildTools)
+        .put(BuildFileKey.SOURCE_COMPATIBILITY, javaCompatibility)
+        .put(BuildFileKey.TARGET_COMPATIBILITY, javaCompatibility)
+        .build();
   }
 
   /**
@@ -163,9 +204,15 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         }
         case REFERENCE: {
           constraints.setFill(GridConstraints.FILL_NONE);
-          // The combo box's values will get populated later when the panel for the container reference type wakes up and notifies
-          // us of its current values.
-          component = getComboBox(true);
+          ComboBox comboBox = getComboBox(true);
+          if (hasKnownValues(property)) {
+            for (String s : myKeysWithKnownValues.get(property).values()) {
+              comboBox.addItem(s);
+            }
+          }
+          // If there are no hardcoded values, the combo box's values will get populated later when the panel for the container reference
+          // type wakes up and notifies us of its current values.
+          component = comboBox;
           break;
         }
         case CLOSURE:
@@ -175,7 +222,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           if (hasKnownValues(property)) {
             constraints.setFill(GridConstraints.FILL_NONE);
             ComboBox comboBox = getComboBox(true);
-            for (String s : myKeysWithKnownValues.get(property)) {
+            for (String s : myKeysWithKnownValues.get(property).values()) {
               comboBox.addItem(s);
             }
             component = comboBox;
@@ -278,23 +325,26 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       Object newValue;
       BuildFileKeyType type = key.getType();
       switch(type) {
-        case BOOLEAN:
+        case BOOLEAN: {
           ComboBox comboBox = (ComboBox)component;
           JBTextField editorComponent = (JBTextField)comboBox.getEditor().getEditorComponent();
           int index = comboBox.getSelectedIndex();
           if (index == 2) {
             newValue = Boolean.FALSE;
             editorComponent.setForeground(JBColor.BLACK);
-          } else if (index == 1) {
+          }
+          else if (index == 1) {
             newValue = Boolean.TRUE;
             editorComponent.setForeground(JBColor.BLACK);
-          } else {
+          }
+          else {
             newValue = null;
             editorComponent.setForeground(JBColor.GRAY);
           }
           break;
+        }
         case FILE:
-        case FILE_AS_STRING:
+        case FILE_AS_STRING: {
           newValue = ((TextFieldWithBrowseButton)component).getText();
           if ("".equals(newValue)) {
             newValue = null;
@@ -303,20 +353,29 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
             newValue = new File(newValue.toString());
           }
           break;
-        case INTEGER:
+        }
+        case INTEGER: {
           try {
             if (hasKnownValues(key)) {
-              newValue = Integer.valueOf(((ComboBox)component).getEditor().getItem().toString());
-            } else {
+              String newStringValue = ((ComboBox)component).getEditor().getItem().toString();
+              newStringValue = getMappedValue(myKeysWithKnownValues.get(key).inverse(), newStringValue);
+              newValue = Integer.valueOf(newStringValue);
+            }
+            else {
               newValue = Integer.valueOf(((JBTextField)component).getText());
             }
-          } catch (Exception e) {
+          }
+          catch (Exception e) {
             newValue = null;
           }
           break;
-        case REFERENCE:
+        }
+        case REFERENCE: {
           newValue = ((ComboBox)component).getEditor().getItem();
           String newStringValue = (String)newValue;
+          if (hasKnownValues(key)) {
+            newStringValue = getMappedValue(myKeysWithKnownValues.get(key).inverse(), newStringValue);
+          }
           if (newStringValue != null && newStringValue.isEmpty()) {
             newStringValue = null;
           }
@@ -326,15 +385,19 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
           }
           newValue = newStringValue;
           break;
+        }
         case CLOSURE:
         case STRING:
-        default:
+        default: {
           if (hasKnownValues(key)) {
-            newValue = ((ComboBox)component).getEditor().getItem();
-            if ("".equals(newValue)) {
-              newValue = null;
+            String newStringValue = ((ComboBox)component).getEditor().getItem().toString();
+            newStringValue = getMappedValue(myKeysWithKnownValues.get(key).inverse(), newStringValue);
+            if (newStringValue.isEmpty()) {
+              newStringValue = null;
             }
-          } else {
+            newValue = newStringValue;
+          }
+          else {
             newValue = ((JBTextField)component).getText();
             if ("".equals(newValue)) {
               newValue = null;
@@ -343,12 +406,13 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
 
           if (type == BuildFileKeyType.CLOSURE && newValue != null) {
             List newListValue = new ArrayList();
-            for (String o : Splitter.on(',').omitEmptyStrings().trimResults().split((String)newValue)) {
-              newListValue.add(key.getValueFactory().parse(o, myProject));
+            for (String s : Splitter.on(',').omitEmptyStrings().trimResults().split((String)newValue)) {
+              newListValue.add(key.getValueFactory().parse(s, myProject));
             }
             newValue = newListValue;
           }
           break;
+        }
       }
       if (!Objects.equal(currentValue, newValue)) {
         if (newValue == null) {
@@ -403,6 +467,9 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         }
         case REFERENCE: {
           String stringValue = (String)value;
+          if (hasKnownValues(key) && stringValue != null) {
+            stringValue = getMappedValue(myKeysWithKnownValues.get(key), stringValue);
+          }
           String prefix = getReferencePrefix(key);
           if (stringValue == null) {
             stringValue = "";
@@ -425,6 +492,9 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         case STRING:
         default: {
           if (hasKnownValues(key)) {
+            if (value != null) {
+              value = getMappedValue(myKeysWithKnownValues.get(key), value.toString());
+            }
             ComboBox comboBox = (ComboBox)component;
             comboBox.setSelectedItem(value != null ? value.toString() : "");
             JBTextField textField = (JBTextField)comboBox.getEditor().getEditorComponent();
@@ -450,6 +520,14 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     }
     String s = modelValue.toString();
     return !s.isEmpty() ? "(" + s + ")" : "";
+  }
+
+  @NotNull
+  private static String getMappedValue(@NotNull BiMap<String, String> map, @NotNull String value) {
+    if (map.containsKey(value)) {
+      value = map.get(value);
+    }
+    return value;
   }
 
   private boolean hasKnownValues(BuildFileKey key) {
