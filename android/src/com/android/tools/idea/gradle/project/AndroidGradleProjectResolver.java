@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
 import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -32,6 +33,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -49,6 +51,7 @@ import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.util.GradleVersion;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
@@ -68,14 +71,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-  /**
-   * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
-   * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
-   * loose, please do not use these constants, to prevent any unexpected side effects during project sync.
-   */
-  @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
-    "The project is using an unsupported version of the Android Gradle plug-in";
-  @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
 
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
@@ -194,9 +189,15 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return Sets.<Class>newHashSet(AndroidProject.class);
   }
 
-
   @Override
   public void preImportCheck() {
+    if (AndroidPlugin.isGuiTestingMode()) {
+      // We use this task in GUI tests to simulate errors coming from Gradle project sync.
+      Runnable task = ApplicationManager.getApplication().getUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY);
+      if (task != null) {
+        task.run();
+      }
+    }
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       LocalProperties localProperties = getLocalProperties();
       // Ensure that Android Studio and the project (local.properties) point to the same Android SDK home. If they are not the same, we'll
@@ -254,7 +255,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
     String msg = error.getMessage();
-    if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+    if (msg != null && !msg.contains(UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
       Throwable rootCause = ExceptionUtil.getRootCause(error);
       if (rootCause instanceof ClassNotFoundException) {
         msg = rootCause.getMessage();
@@ -278,12 +279,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull
   private static String getUnsupportedModelVersionErrorMsg(@Nullable FullRevision modelVersion) {
     StringBuilder builder = new StringBuilder();
-    builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
+    builder.append(UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
     if (modelVersion != null) {
       builder.append(String.format(" (%1$s)", modelVersion.toString()));
       if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {
         builder.append(".\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
-               .append(READ_MIGRATION_GUIDE_MSG)
+               .append(UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG)
                .append(" to learn how to update your project.");
       }
     }
