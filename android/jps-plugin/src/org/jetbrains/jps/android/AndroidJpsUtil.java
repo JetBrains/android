@@ -38,9 +38,7 @@ import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.artifact.JpsArtifact;
 import org.jetbrains.jps.model.artifact.JpsArtifactService;
 import org.jetbrains.jps.model.artifact.elements.JpsPackagingElement;
-import org.jetbrains.jps.model.java.JavaSourceRootType;
-import org.jetbrains.jps.model.java.JpsJavaClasspathKind;
-import org.jetbrains.jps.model.java.JpsJavaExtensionService;
+import org.jetbrains.jps.model.java.*;
 import org.jetbrains.jps.model.java.impl.JpsJavaDependenciesEnumerationHandler;
 import org.jetbrains.jps.model.library.JpsLibrary;
 import org.jetbrains.jps.model.library.JpsLibraryRoot;
@@ -245,6 +243,24 @@ public class AndroidJpsUtil {
     return result;
   }
 
+  @NotNull
+  public static Set<String> getProvidedLibraries(@NotNull BuildDataPaths paths,
+                                                 @NotNull JpsModule module) {
+    final Set<String> result = new HashSet<String>();
+    processClasspath(paths, module, new AndroidDependencyProcessor() {
+      @Override
+      public void processProvidedLibrary(@NotNull File file) {
+        result.add(file.getPath());
+      }
+
+      @Override
+      public boolean isToProcess(@NotNull AndroidDependencyType type) {
+        return type == AndroidDependencyType.PROVIDED_LIBRARY;
+      }
+    }, false, false);
+    return result;
+  }
+
   private static void addAnnotationsJarIfNecessary(@NotNull AndroidPlatform platform, @NotNull Set<String> libs) {
     if (platform.needToAddAnnotationsJarToClasspath()) {
       final String sdkHomePath = platform.getSdk().getHomePath();
@@ -296,6 +312,20 @@ public class AndroidJpsUtil {
               else {
                 processor.processExternalLibrary(file);
               }
+            }
+          }
+        }
+      }
+    }
+    if (processor.isToProcess(AndroidDependencyType.PROVIDED_LIBRARY)) {
+      for (JpsDependencyElement item : module.getDependenciesList().getDependencies()) {
+        if (item instanceof JpsLibraryDependency) {
+          final JpsLibrary library = ((JpsLibraryDependency)item).getLibrary();
+          final JpsJavaDependencyExtension extension = JpsJavaExtensionService.getInstance().getDependencyExtension(item);
+
+          if (library != null && extension != null && extension.getScope() == JpsJavaDependencyScope.PROVIDED) {
+            for (JpsLibraryRoot root : library.getRoots(JpsOrderRootType.COMPILED)) {
+              processor.processProvidedLibrary(JpsPathUtil.urlToFile(root.getUrl()));
             }
           }
         }
