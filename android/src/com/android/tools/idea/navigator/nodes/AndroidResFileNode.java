@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes;
 
 import com.android.SdkConstants;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.base.Joiner;
@@ -24,17 +25,19 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.SimpleTextAttributes;
+import com.siyeh.ig.internationalization.CharacterComparisonInspection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Comparator;
 
-public class AndroidResFileNode extends PsiFileNode {
+public class AndroidResFileNode extends PsiFileNode implements Comparable {
   private final AndroidFacet myFacet;
 
   public AndroidResFileNode(@NotNull Project project,
@@ -53,7 +56,7 @@ public class AndroidResFileNode extends PsiFileNode {
     data.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     data.setPresentableText(text);
 
-    String qualifier = getQualifier(getValue());
+    String qualifier = getQualifier();
     if (qualifier != null) {
       data.addText(qualifier, SimpleTextAttributes.GRAY_ATTRIBUTES);
     }
@@ -63,12 +66,13 @@ public class AndroidResFileNode extends PsiFileNode {
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     PsiFile psiFile = getValue();
-    String qualifier = getQualifier(psiFile);
+    String qualifier = getQualifier();
     return psiFile.getName() + (qualifier == null ? "" : qualifier);
   }
 
   @Nullable
-  private String getQualifier(@Nullable PsiFile resFile) {
+  String getQualifier() {
+    PsiFile resFile = getValue();
     if (resFile == null) { // happens if psiFile becomes invalid
       return null;
     }
@@ -103,6 +107,39 @@ public class AndroidResFileNode extends PsiFileNode {
     sb.append(Joiner.on(", ").skipNulls().join(qualifier, providerName));
     sb.append(')');
     return sb.toString();
+  }
+
+  @Nullable
+  public FolderConfiguration getFolderConfiguration() {
+    PsiFile psiFile = getValue();
+    if (psiFile == null) { // happens if psiFile becomes invalid
+      return null;
+    }
+
+    PsiDirectory folder = psiFile.getParent();
+    return folder == null ? null : FolderConfiguration.getConfigForFolder(folder.getName());
+  }
+
+  @Nullable
+  @Override
+  public Comparable getSortKey() {
+    return this;
+  }
+
+  @Override
+  public Comparable getTypeSortKey() {
+    return this;
+  }
+
+  @Override
+  public int compareTo(@NotNull Object obj) {
+    return AndroidResComparator.INSTANCE.compare(this, obj);
+  }
+
+  @Nullable
+  public String getResName() {
+    PsiFile f = getValue();
+    return (f == null || !f.isValid()) ? null : f.getName();
   }
 
   @Nullable
