@@ -64,6 +64,9 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     final Map<Issue, Map<File, List<ProblemData>>> problemMap = new HashMap<Issue, Map<File, List<ProblemData>>>();
     final AnalysisScope scope = context.getRefManager().getScope();
+    if (scope == null) {
+      return;
+    }
 
     final IntellijLintClient client = IntellijLintClient.forBatch(project, problemMap, scope, issues);
     final LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
