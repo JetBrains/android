@@ -54,6 +54,21 @@ public class AndroidBuildScriptNode extends PsiFileNode {
 
   @Nullable
   @Override
+  public Comparable getSortKey() {
+    // returns qualifer + name
+    // we want to compare by the qualifier first so that build scripts from same module are grouped together
+    PsiFile f = getValue();
+    String name = myQualifier == null ? " (0)" : myQualifier;
+    return f == null ? name : name + f.getName();
+  }
+
+  @Override
+  public Comparable getTypeSortKey() {
+    return getSortKey();
+  }
+
+  @Nullable
+  @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     String fileName = getValue().getName();
     return fileName + (myQualifier == null ? "" : " (" + myQualifier + ")");

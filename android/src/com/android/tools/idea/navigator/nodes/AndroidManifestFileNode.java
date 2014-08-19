@@ -65,6 +65,22 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
     return null;
   }
 
+  @Nullable
+  @Override
+  public Comparable getSortKey() {
+    IdeaSourceProvider sourceProvider = getSourceProvider(getValue());
+    if (sourceProvider == null || SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
+      return  "";
+    } else {
+      return sourceProvider.getName();
+    }
+  }
+
+  @Override
+  public Comparable getTypeSortKey() {
+    return getSortKey();
+  }
+
   @NotNull
   @Override
   public PsiDirectory[] getDirectories() {

@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode;
+import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -42,7 +42,7 @@ import java.util.Set;
  * roots contain Java packages. This class overrides that behavior to provide a per source type node ({@link AndroidSourceTypeNode}) inside
  * a module.
  */
-public class AndroidModuleNode extends PackageViewModuleNode {
+public class AndroidModuleNode extends ProjectViewModuleNode {
   private final AndroidProjectViewPane myProjectViewPane;
 
   public AndroidModuleNode(@NotNull Project project,
@@ -130,6 +130,18 @@ public class AndroidModuleNode extends PackageViewModuleNode {
     }
 
     return sources;
+  }
+
+  @Nullable
+  @Override
+  public Comparable getSortKey() {
+    return getValue().getName();
+  }
+
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return getSortKey();
   }
 
   @Nullable

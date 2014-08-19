@@ -106,6 +106,18 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
 
   @Nullable
   @Override
+  public Comparable getSortKey() {
+    return mySourceType;
+  }
+
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return mySourceType;
+  }
+
+  @Nullable
+  @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return mySourceType.presentableName;
   }
