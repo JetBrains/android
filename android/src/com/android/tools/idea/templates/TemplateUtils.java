@@ -18,7 +18,6 @@ package com.android.tools.idea.templates;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.repository.PkgProps;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -187,32 +186,6 @@ public class TemplateUtils {
   }
 
   /**
-  * Returns a string label for the given target, of the form
-  * "API 16: Android 4.1 (Jelly Bean)".
-  *
-  * @param target the target to generate a string from
-  * @return a suitable display string
-  */
-  @NotNull
-  public static String getTargetLabel(@NotNull IAndroidTarget target) {
-    if (target.isPlatform()) {
-      AndroidVersion version = target.getVersion();
-      String codename = target.getProperty(PkgProps.PLATFORM_CODENAME);
-      String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$
-      if (codename != null) {
-        return String.format("API %1$d: Android %2$s (%3$s)",
-                             version.getApiLevel(),
-                             release,
-                             codename);
-      }
-      return String.format("API %1$d: Android %2$s", version.getApiLevel(),
-                           release);
-    }
-
-    return String.format("%1$s (API %2$s)", target.getFullName(), target.getVersion().getApiString());
-  }
-
-  /**
   * Returns a list of known API names
   *
   * @return a list of string API names, starting from 1 and up through the
@@ -247,7 +220,7 @@ public class TemplateUtils {
         if (apiTargets != null) {
           IAndroidTarget target = apiTargets.get(api);
           if (target != null) {
-            name = getTargetLabel(target);
+            name = AndroidSdkUtils.getTargetLabel(target);
           }
         }
         if (name == null) {
