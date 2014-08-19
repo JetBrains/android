@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.project.AndroidGradleProjectResolver;
 import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -26,15 +25,24 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class UnsupportedModelVersionErrorHandler extends AbstractSyncErrorHandler {
+  /**
+   * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
+   * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
+   * loose, please do not use these constants, to prevent any unexpected side effects during project sync.
+   */
+  @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
+    "The project is using an unsupported version of the Android Gradle plug-in";
+  @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
+
   @Override
   public boolean handleError(@NotNull List<String> message,
                              @NotNull ExternalSystemException error,
                              @NotNull NotificationData notification,
                              @NotNull Project project) {
     String msg = error.getMessage();
-    if (msg.startsWith(AndroidGradleProjectResolver.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+    if (msg.startsWith(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
       NotificationHyperlink fixGradleModelHyperlink;
-      if (msg.contains(AndroidGradleProjectResolver.READ_MIGRATION_GUIDE_MSG)) {
+      if (msg.contains(READ_MIGRATION_GUIDE_MSG)) {
         fixGradleModelHyperlink = new FixGradleModelVersionHyperlink();
       }
       else {

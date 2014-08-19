@@ -32,6 +32,7 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,6 +59,8 @@ public final class GuiTests {
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
   public static void setUpDefaultGeneralSettings() {
+    AndroidPlugin.setGuiTestingMode(true);
+
     GeneralSettings.getInstance().setShowTipsOnStartup(false);
     setUpDefaultProjectCreationLocationPath();
 

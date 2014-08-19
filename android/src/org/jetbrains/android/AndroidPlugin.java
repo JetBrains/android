@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.intellij.openapi.components.ApplicationComponent;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +24,9 @@ import org.jetbrains.annotations.NotNull;
  * @author coyote
  */
 public class AndroidPlugin implements ApplicationComponent {
+  public static Key<Runnable> EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.sync.task");
+
+  private static boolean ourGuiTestingMode;
 
   @Override
   @NotNull
@@ -37,5 +41,13 @@ public class AndroidPlugin implements ApplicationComponent {
   @Override
   public void disposeComponent() {
     AndroidSdkData.terminateDdmlib();
+  }
+
+  public static boolean isGuiTestingMode() {
+    return ourGuiTestingMode;
+  }
+
+  public static void setGuiTestingMode(boolean guiTestingMode) {
+    ourGuiTestingMode = guiTestingMode;
   }
 }
