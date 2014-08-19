@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -58,32 +59,22 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     String projectName = getProject().getName();
     String expected =
       projectName + "\n" +
-      " Gradle Scripts\n" +
-      "  build.gradle (app)\n" +
-      "  build.gradle (javamodule)\n" +
-      "  build.gradle (lib)\n" +
-      "  build.gradle (" + rootModuleName + ")\n" +
-      "  gradle-wrapper.properties\n" +
-      "  local.properties\n" +
-      "  settings.gradle (Project Settings)\n" +
-      "  sonar.gradle (app)\n" +
       " app (Android)\n" +
-      "  assets\n" +
-      "   raw.asset.txt\n" +
+      "  manifests\n" +
+      "   AndroidManifest.xml (main)\n" +
+      "   AndroidManifest.xml (debug)\n" +
       "  java\n" +
-      "   Debug.java\n" +
-      "   app (androidTest)\n" +
-      "    MainActivityTest.java\n" +
       "   app (main)\n" +
       "    MainActivity\n" +
-      "  manifests\n" +
-      "   AndroidManifest.xml (debug)\n" +
-      "   AndroidManifest.xml (main)\n" +
+      "   app (androidTest)\n" +
+      "    MainActivityTest.java\n" +
+      "   Debug.java\n" +
       "  res\n" +
       "   drawable\n" +
       "    ic_launcher.png (2)\n" +
       "     ic_launcher.png (hdpi, debug)\n" +
       "     ic_launcher.png (mdpi)\n" +
+      "    j.png (mdpi)\n" +
       "   layout\n" +
       "    activity_main.xml\n" +
       "   menu\n" +
@@ -97,34 +88,45 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "     strings.xml\n" +
       "     strings.xml (debug)\n" +
       "    styles.xml\n" +
+      "  assets\n" +
+      "   raw.asset.txt\n" +
       "  rs\n" +
       "   test.rs\n" +
       " javamodule (non-Android)\n" +
       "  java\n" +
       "   foo\n" +
       "    Foo.java\n" +
+      "  tests\n" +
+      "   foo\n" +
+      "    FooTest.java\n" +
       "  resources\n" +
       "   res2.txt\n" +
       "  test-resources\n" +
       "   test-res.txt\n" +
-      "  tests\n" +
-      "   foo\n" +
-      "    FooTest.java\n" +
       " lib (Android)\n" +
-      "  jni\n" +
-      "   hello.c\n" +
-      "  jniLibs\n" +
-      "   libc.so\n" +
       "  manifests\n" +
       "   AndroidManifest.xml (main)\n" +
       "  res\n" +
       "   drawable\n" +
       "    ic_launcher.png (mdpi)\n" +
       "   values\n" +
-      "    strings.xml\n";
+      "    strings.xml\n" +
+      "  jni\n" +
+      "   hello.c\n" +
+      "  jniLibs\n" +
+      "   libc.so\n" +
+      " Gradle Scripts\n" +
+      "  gradle-wrapper.properties\n" +
+      "  local.properties\n" +
+      "  settings.gradle (Project Settings)\n" +
+      "  build.gradle (app)\n" +
+      "  sonar.gradle (app)\n" +
+      "  build.gradle (javamodule)\n" +
+      "  build.gradle (lib)\n" +
+      "  build.gradle (" + rootModuleName + ")\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil
-      .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
+      .assertStructureEqual(structure, expected, numLines, new GroupByTypeComparator(null, "android"), structure.getRootElement(),
                             printInfo);
   }
 

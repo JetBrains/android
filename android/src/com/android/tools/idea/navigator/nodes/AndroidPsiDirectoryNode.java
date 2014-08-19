@@ -48,6 +48,18 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
     }
   }
 
+  @Override
+  public Comparable getSortKey() {
+    String sourceProviderName = mySourceProvider == null ? "" : mySourceProvider.getName();
+    return getQualifiedNameSortKey() + "-" + (SdkConstants.FD_MAIN.equals(sourceProviderName) ? "" : sourceProviderName);
+  }
+
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return getSortKey();
+  }
+
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {

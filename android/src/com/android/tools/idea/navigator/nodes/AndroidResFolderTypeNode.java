@@ -110,6 +110,18 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
 
   @Nullable
   @Override
+  public Comparable getSortKey() {
+    return myFolderType;
+  }
+
+  @Nullable
+  @Override
+  public Comparable getTypeSortKey() {
+    return myFolderType;
+  }
+
+  @Nullable
+  @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return myFolderType.getName();
   }
