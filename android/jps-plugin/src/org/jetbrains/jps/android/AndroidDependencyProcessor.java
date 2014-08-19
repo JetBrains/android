@@ -12,6 +12,9 @@ public abstract class AndroidDependencyProcessor {
   public void processExternalLibrary(@NotNull File file) {
   }
 
+  public void processProvidedLibrary(@NotNull File file) {
+  }
+
   public void processAndroidLibraryPackage(@NotNull File file, @NotNull JpsModule depModule) {
   }
 
