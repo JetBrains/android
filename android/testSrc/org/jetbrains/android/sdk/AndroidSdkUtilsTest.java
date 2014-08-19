@@ -15,7 +15,10 @@
  */
 package org.jetbrains.android.sdk;
 
+import com.android.annotations.NonNull;
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.internal.repository.MockPlatformTarget;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -86,6 +89,26 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
     assertNotNull(sdk);
     assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
+  }
+
+  public void testGetTargetLabel() throws Exception {
+    IAndroidTarget platformTarget = new MockPlatformTarget(18, 2);
+    assertEquals("API 18: Android 4.3 (Jelly Bean)", AndroidSdkUtils.getTargetLabel(platformTarget));
+
+    IAndroidTarget unknownTarget = new MockPlatformTarget(-1, 1);
+    assertEquals("API -1", AndroidSdkUtils.getTargetLabel(unknownTarget));
+
+    IAndroidTarget anotherUnknownTarget = new MockPlatformTarget(100, 1);
+    assertEquals("API 100", AndroidSdkUtils.getTargetLabel(anotherUnknownTarget));
+
+    IAndroidTarget platformPreviewTarget = new MockPlatformTarget(100, 1) {
+      @NonNull
+      @Override
+      public AndroidVersion getVersion() {
+        return new AndroidVersion(100, "Z");
+      }
+    };
+    assertEquals("API 100+: platform r100", AndroidSdkUtils.getTargetLabel(platformPreviewTarget));
   }
 
   private static void createAndroidSdk(@NotNull String androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
