@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.gradle.eclipse.GradleImport;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
