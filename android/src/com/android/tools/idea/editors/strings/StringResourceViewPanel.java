@@ -15,44 +15,158 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.ide.common.res2.ResourceItem;
+import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.JBSplitter;
-import com.intellij.ui.TableSpeedSearch;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTextField;
+import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.ui.*;
+import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
+import java.util.*;
+import java.util.List;
 
 public class StringResourceViewPanel {
-  private JBSplitter myContainer;
-
-  private JPanel myEditPanel;
-  private JBTextField myKey;
-  private JTextArea myDefaultValue;
-  private JTextArea myTranslation;
-
-  private JBScrollPane myTablePane;
+  private final AndroidFacet myFacet;
+  private JPanel myContainer;
   private JBTable myTable;
 
-  public StringResourceViewPanel() {
+  private JTextField myKey;
+  private TextFieldWithBrowseButton myDefaultValueWithBrowseBtn;
+  private final JTextField myDefaultValue;
+  private TextFieldWithBrowseButton myTranslationWithBrowseBtn;
+  private JPanel myToolbarPanel;
+  private JPanel myWarningPanel;
+  private JBLabel myWarningLabel;
+  private final JTextField myTranslation;
+  private StringResourceDataController myController;
+
+  public StringResourceViewPanel(AndroidFacet facet) {
+    myFacet = facet;
+
+    Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
+    if (color == null) {
+      color = UIUtil.getToolTipBackground();
+    }
+    myWarningLabel.setOpaque(false);
+    myWarningPanel.setBackground(color);
+
+    ActionToolbar toolbar = createToolbar();
+    myToolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
+    myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+
+    myDefaultValueWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
+    myTranslationWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
+
+    myDefaultValue = myDefaultValueWithBrowseBtn.getTextField();
+    myTranslation = myTranslationWithBrowseBtn.getTextField();
+
+    myDefaultValueWithBrowseBtn.getButton().setVisible(false);
+    myTranslationWithBrowseBtn.getButton().setVisible(false);
+
     initEditPanel();
-    myContainer.setFirstComponent(myEditPanel);
     initTable();
-    myContainer.setSecondComponent(myTablePane);
-    myContainer.setProportion(0f);
+  }
+
+  private ActionToolbar createToolbar() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, group, true);
+
+    final AnAction addKeyAction = new AnAction("Add Key", "", AllIcons.ToolbarDecorator.Add) {
+      @Override
+      public void update(AnActionEvent e) {
+        e.getPresentation().setEnabled(myController != null);
+      }
+
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        NewStringKeyDialog dialog = new NewStringKeyDialog(myFacet);
+        if (dialog.showAndGet()) {
+          StringsWriteUtils
+            .createItem(myFacet.getModule().getProject(), dialog.getResFolder(), null, dialog.getKey(), dialog.getDefaultValue(), true);
+          ((StringResourceTableModel)myTable.getModel()).getController().updateData();
+        }
+      }
+    };
+    group.add(addKeyAction);
+
+    final AnAction addLocaleAction = new AnAction("Add Locale", "", AndroidIcons.Globe) {
+      @Override
+      public void update(AnActionEvent e) {
+        e.getPresentation().setEnabled(myController != null);
+      }
+
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        List<Locale> currentLocales = myController.getData().getLocales();
+        List<Locale> missingLocales = LocaleMenuAction.getAllLocales();
+        missingLocales.removeAll(currentLocales);
+        Collections.sort(missingLocales, Locale.LANGUAGE_NAME_COMPARATOR);
+
+        final JBList list = new JBList(missingLocales);
+        list.setFixedCellHeight(20);
+        list.setCellRenderer(new ColoredListCellRenderer<Locale>() {
+          @Override
+          protected void customizeCellRenderer(JList list, Locale value, int index, boolean selected, boolean hasFocus) {
+            append(LocaleMenuAction.getLocaleLabel(value, false));
+            setIcon(value.getFlagImage());
+          }
+        });
+        new ListSpeedSearch(list) {
+          @Override
+          protected String getElementText(Object element) {
+            if (element instanceof Locale) {
+              return LocaleMenuAction.getLocaleLabel((Locale)element, false);
+            }
+            return super.getElementText(element);
+          }
+        };
+
+        JBPopupFactory.getInstance().createListPopupBuilder(list).setItemChoosenCallback(new Runnable() {
+          @Override
+          public void run() {
+            // pick some value to add to this locale
+            Map<String, ResourceItem> defaultValues = myController.getData().getDefaultValues();
+            String key = "app_name";
+            ResourceItem defaultValue = defaultValues.get(key);
+
+            if (defaultValue == null) {
+              Map.Entry<String, ResourceItem> firstEntry = defaultValues.entrySet().iterator().next();
+              key = firstEntry.getKey();
+              defaultValue = firstEntry.getValue();
+            }
+
+            Locale l = (Locale)list.getSelectedValue();
+            StringsWriteUtils.createItem(myFacet.getModule().getProject(), myFacet.getPrimaryResourceDir(), l, key,
+                                         StringResourceData.resourceToString(defaultValue), true);
+            ((StringResourceTableModel)myTable.getModel()).getController().updateData();
+          }
+        }).createPopup().show(JBPopupFactory.getInstance().guessBestPopupLocation(toolbar.getToolbarDataContext()));
+      }
+    };
+    group.addAction(addLocaleAction);
+
+    return toolbar;
   }
 
   private void initEditPanel() {
-    myEditPanel.setBorder(IdeBorderFactory.createEmptyBorder(5));
-    TextComponentUtil.formatTextComponent(myKey);
-    TextComponentUtil.formatTextComponent(myDefaultValue);
-    TextComponentUtil.formatTextComponent(myTranslation);
-
     FocusListener editFocusListener = new EditFocusListener(myTable, myKey, myDefaultValue, myTranslation);
     myKey.addFocusListener(editFocusListener);
     myDefaultValue.addFocusListener(editFocusListener);
@@ -83,6 +197,7 @@ public class StringResourceViewPanel {
   }
 
   public void initDataController(@NotNull StringResourceDataController controller) {
+    myController = controller;
     myTable.setModel(new StringResourceTableModel(controller));
     ColumnUtil.setColumns(myTable);
   }
