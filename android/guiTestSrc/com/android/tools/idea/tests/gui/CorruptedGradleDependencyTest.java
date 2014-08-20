@@ -20,11 +20,13 @@ import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.intellij.openapi.application.ApplicationManager;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
 
 public class CorruptedGradleDependencyTest extends GuiTestCase {
@@ -42,9 +44,21 @@ public class CorruptedGradleDependencyTest extends GuiTestCase {
     };
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, failTask);
 
-    projectFrame.requestProjectSync();
+    projectFrame.requestProjectSyncAndExpectFailure();
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    messages.getGradleSyncContent().requireMessage(ERROR, failure);
+
+    final String prefix = "Gradle's artifact cache seems to be corrupted";
+    messages.getGradleSyncContent().requireMessage(ERROR, new MessagesToolWindowFixture.TextMatcher() {
+      @Override
+      public boolean matches(@NotNull String[] text) {
+        return text[0].startsWith(prefix);
+      }
+
+      @Override
+      public String toString() {
+        return "starting with " + quote(prefix);
+      }
+    });
   }
 }
