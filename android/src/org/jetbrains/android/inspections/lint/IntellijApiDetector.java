@@ -395,6 +395,50 @@ public class IntellijApiDetector extends ApiDetector {
         String message = String.format("Try-with-resources requires API level %1$d (current min is %2$d)", api, minSdk);
         myContext.report(UNSUPPORTED, location, message, null);
       }
+
+      for (PsiParameter parameter : statement.getCatchBlockParameters()) {
+        PsiTypeElement typeElement = parameter.getTypeElement();
+        if (typeElement != null) {
+          PsiType type = typeElement.getType();
+          if (type instanceof PsiClassReferenceType) {
+            PsiClassReferenceType referenceType = (PsiClassReferenceType)type;
+            PsiClass resolved = referenceType.resolve();
+            if (resolved != null) {
+              String signature = IntellijLintUtils.getInternalName(resolved);
+              if (signature == null) {
+                continue;
+              }
+
+              int api = mApiDatabase.getClassVersion(signature);
+              if (api == -1) {
+                continue;
+              }
+              int minSdk = getMinSdk(myContext);
+              if (api <= minSdk) {
+                continue;
+              }
+              if (mySeenTargetApi) {
+                int target = getTargetApi(statement, myFile);
+                if (target != -1) {
+                  if (api <= target) {
+                    continue;
+                  }
+                }
+              }
+              if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+                continue;
+              }
+
+              Location location;
+              PsiReference reference = referenceType.getReference();
+              location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
+              String fqcn = referenceType.getClassName();
+              String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
+              myContext.report(UNSUPPORTED, location, message, null);
+            }
+          }
+        }
+      }
     }
 
     private boolean isSuppressed(int api, PsiElement element, int minSdk) {
