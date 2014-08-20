@@ -41,6 +41,12 @@ abstract class ImportModule implements Comparable<ImportModule> {
   private static final String PLAY_SERVICES_DEP = "com.google.android.gms:play-services:+";
   private static final String SUPPORT_GROUP_ID = "com.android.support";
 
+  public static final String APPCOMPAT_ARTIFACT = "appcompat-v7";
+  public static final String SUPPORT_ARTIFACT = "support-v4";
+  public static final String GRIDLAYOUT_ARTIFACT = "gridlayout-v7";
+  @SuppressWarnings("SpellCheckingInspection")
+  public static final String MEDIA_ROUTER_ARTIFACT = "mediarouter-v7";
+
   protected final GradleImport myImporter;
   protected final List<GradleCoordinate> myDependencies = Lists.newArrayList();
   protected final List<GradleCoordinate> myTestDependencies = Lists.newArrayList();
@@ -188,23 +194,23 @@ abstract class ImportModule implements Comparable<ImportModule> {
   }
 
   @Nullable
-  private GradleCoordinate getAppCompatDependency() {
-    return getLatestVersion("appcompat-v7");
+  protected GradleCoordinate getAppCompatDependency() {
+    return getLatestVersion(APPCOMPAT_ARTIFACT);
   }
 
   @Nullable
-  private GradleCoordinate getSupportLibDependency() {
-    return getLatestVersion("support-v4");
+  protected GradleCoordinate getSupportLibDependency() {
+    return getLatestVersion(SUPPORT_ARTIFACT);
   }
 
   @Nullable
-  private GradleCoordinate getGridLayoutDependency() {
-    return getLatestVersion("gridlayout-v7");
+  protected GradleCoordinate getGridLayoutDependency() {
+    return getLatestVersion(GRIDLAYOUT_ARTIFACT);
   }
 
   @Nullable
-  private GradleCoordinate getMediaRouterDependency() {
-    return getLatestVersion("mediarouter-v7");
+  protected GradleCoordinate getMediaRouterDependency() {
+    return getLatestVersion(MEDIA_ROUTER_ARTIFACT);
   }
 
   @SuppressWarnings("SpellCheckingInspection")
@@ -235,7 +241,7 @@ abstract class ImportModule implements Comparable<ImportModule> {
     }
     else if (name.equals("guava.jar") || name.startsWith("guava-")) {
       myImporter.markJarHandled(jar);
-      String version = getVersion(jar, "guava-", name, "15.0");
+      String version = getVersion(jar, "guava-", name, "17.0");
       if (version.startsWith("r")) { // really old versions
         version = "15.0";
       }
@@ -244,12 +250,12 @@ abstract class ImportModule implements Comparable<ImportModule> {
     else if (name.startsWith("joda-time")) {
       myImporter.markJarHandled(jar);
       // Convert joda-time-2.1 jar into joda-time:joda-time:2.1 etc
-      String version = getVersion(jar, "joda-time-", name, "2.3");
+      String version = getVersion(jar, "joda-time-", name, "2.4");
       return GradleCoordinate.parseCoordinateString("joda-time:joda-time:" + version);
     }
     else if (name.startsWith("robotium-solo-")) {
       myImporter.markJarHandled(jar);
-      String version = getVersion(jar, "robotium-solo-", name, "4.3.1");
+      String version = getVersion(jar, "robotium-solo-", name, "5.2.1");
       return GradleCoordinate.parseCoordinateString("com.jayway.android.robotium:robotium-solo:" + version);
     }
     else if (name.startsWith("protobuf-java-")) {
@@ -259,12 +265,12 @@ abstract class ImportModule implements Comparable<ImportModule> {
     }
     else if (name.startsWith("gson-")) {
       myImporter.markJarHandled(jar);
-      String version = getVersion(jar, "gson-", name, "2.2.4");
+      String version = getVersion(jar, "gson-", name, "2.3");
       return GradleCoordinate.parseCoordinateString("com.google.code.gson:gson:" + version);
     }
     else if (name.startsWith("google-http-client-gson-")) {
       myImporter.markJarHandled(jar);
-      return GradleCoordinate.parseCoordinateString("com.google.http-client:google-http-client-gson:1.17.0-rc");
+      return GradleCoordinate.parseCoordinateString("com.google.http-client:google-http-client-gson:1.19.0");
     }
     else if (name.startsWith("svg-android")) {
       myImporter.markJarHandled(jar);

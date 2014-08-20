@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,6 +63,35 @@ class EclipseImportModule extends ImportModule {
   @Override
   protected void initDependencies() {
     super.initDependencies();
+
+    for (String reference : myProject.getInferredLibraries()) {
+      if (reference.equals(APPCOMPAT_ARTIFACT)) {
+        GradleCoordinate dependency = getAppCompatDependency();
+        if (dependency != null) {
+          myDependencies.add(dependency);
+          myImporter.getSummary().reportReplacedLib(reference, Collections.singletonList(dependency));
+        }
+      } else if (reference.equals(SUPPORT_ARTIFACT)) {
+        GradleCoordinate dependency = getSupportLibDependency();
+        if (dependency != null) {
+          myDependencies.add(dependency);
+          myImporter.getSummary().reportReplacedLib(reference, Collections.singletonList(dependency));
+        }
+      } else if (reference.equals(GRIDLAYOUT_ARTIFACT)) {
+        GradleCoordinate dependency = getGridLayoutDependency();
+        if (dependency != null) {
+          myDependencies.add(dependency);
+          myImporter.getSummary().reportReplacedLib(reference, Collections.singletonList(dependency));
+        }
+      } else if (reference.equals(MEDIA_ROUTER_ARTIFACT)) {
+        GradleCoordinate dependency = getMediaRouterDependency();
+        if (dependency != null) {
+          myDependencies.add(dependency);
+          myImporter.getSummary().reportReplacedLib(reference, Collections.singletonList(dependency));
+        }
+      }
+    }
+
     for (File jar : myProject.getJarPaths()) {
       if (myImporter.isReplaceJars()) {
         GradleCoordinate dependency = guessDependency(jar);

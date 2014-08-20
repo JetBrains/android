@@ -75,6 +75,7 @@ class EclipseProject implements Comparable<EclipseProject> {
   private List<File> myJarPaths;
   private List<File> myInstrumentationJarPaths;
   private List<File> myNativeLibs;
+  private List<String> myInferredLibraries;
   private File myNativeSources;
   private String myNativeModuleName;
   private File myOutputDir;
@@ -290,6 +291,21 @@ class EclipseProject implements Comparable<EclipseProject> {
       File joined = path.isAbsolute() ? path : new File(myDir, library);
       File libraryDir = joined.getCanonicalFile();
       if (!libraryDir.exists()) {
+        if (myImporter.isReplaceLibs()) {
+          // Look for some common libraries that we can probably just guess as a dependency replacement
+          String libraryDirName = libraryDir.getName().replace('_', '-');
+          if (ImportModule.APPCOMPAT_ARTIFACT.equals(libraryDirName)
+               || ImportModule.SUPPORT_ARTIFACT.equals(libraryDirName)
+               || ImportModule.GRIDLAYOUT_ARTIFACT.equals(libraryDirName)
+               || ImportModule.MEDIA_ROUTER_ARTIFACT.equals(libraryDirName)) {
+            if (myInferredLibraries == null) {
+              myInferredLibraries = Lists.newArrayList();
+            }
+            myInferredLibraries.add(libraryDirName);
+            continue;
+          }
+        }
+
         String message = "Library reference " + library + " could not be found";
         if (!path.isAbsolute()) {
           message += "\nPath is " + joined + " which resolves to " + libraryDir.getPath();
@@ -1096,6 +1112,11 @@ class EclipseProject implements Comparable<EclipseProject> {
   @NonNull
   public List<File> getSourcePaths() {
     return mySourcePaths;
+  }
+
+  @NonNull
+  public List<String> getInferredLibraries() {
+    return myInferredLibraries == null ? Collections.<String>emptyList() : myInferredLibraries;
   }
 
   @NonNull
