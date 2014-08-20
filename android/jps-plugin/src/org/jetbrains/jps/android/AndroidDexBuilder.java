@@ -428,6 +428,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     final List<String> classesDirs = new ArrayList<String>();
     final List<String> libClassesDirs = new ArrayList<String>();
     final List<String> externalJars = new ArrayList<String>();
+    final List<String> providedJars = new ArrayList<String>();
 
     final List<BuildRootDescriptor> roots = context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context);
 
@@ -457,10 +458,14 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
           externalJars.add(rootFile.getPath());
         }
       }
+      else if (root instanceof AndroidDexBuildTarget.MyProvidedJarBuildRootDescriptor) {
+        providedJars.add(rootFile.getPath());
+      }
     }
     final String[] classFilesDirOsPaths = ArrayUtil.toStringArray(classesDirs);
     final String[] libClassFilesDirOsPaths = ArrayUtil.toStringArray(libClassesDirs);
     final String[] externalJarOsPaths = ArrayUtil.toStringArray(externalJars);
+    final String[] providedJarOsPaths = ArrayUtil.toStringArray(providedJars);
     final String inputJarOsPath = AndroidCommonUtils.buildTempInputJar(classFilesDirOsPaths, libClassFilesDirOsPaths);
 
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
@@ -487,7 +492,7 @@ public class AndroidDexBuilder extends AndroidTargetBuilder<BuildRootDescriptor,
     final Map<AndroidCompilerMessageKind, List<String>> messages =
       AndroidCommonUtils.launchProguard(platform.getTarget(), platform.getSdkToolsRevision(), platform.getSdk().getHomePath(),
                                         javaExecutable, proguardVmOptions, proguardCfgPaths, inputJarOsPath, externalJarOsPaths,
-                                        outputJarPath, logsDir.getPath());
+                                        providedJarOsPaths, outputJarPath, logsDir.getPath());
     AndroidJpsUtil.addMessages(context, messages, PRO_GUARD_BUILDER_NAME, module.getName());
     return messages.get(AndroidCompilerMessageKind.ERROR).isEmpty()
            ? Pair.create(true, newState) : null;
