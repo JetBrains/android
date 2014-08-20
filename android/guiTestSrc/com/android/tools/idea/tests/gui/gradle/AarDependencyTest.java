@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui;
+package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests fix for issue <a href="https://code.google.com/p/android/issues/detail?id=74341">74341</a>.
