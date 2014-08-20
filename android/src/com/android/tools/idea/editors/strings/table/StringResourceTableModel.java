@@ -18,7 +18,7 @@ package com.android.tools.idea.editors.strings.table;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResourceDataController;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.StringResourceData;
+import com.android.tools.idea.editors.strings.StringResourceData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

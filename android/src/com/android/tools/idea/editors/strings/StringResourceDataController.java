@@ -17,14 +17,14 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.tools.idea.rendering.LocalResourceRepositoryAsVirtualFile;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.rendering.StringResourceData;
-import com.android.tools.idea.rendering.StringResourceParser;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +32,8 @@ import java.util.List;
 
 public class StringResourceDataController {
   private final StringResourceEditor myEditor;
-  private final LocalResourceRepositoryAsVirtualFile myRepositoryFile;
+  private final AndroidFacet myAndroidFacet;
+  private LocalResourceRepository myResourceRepository;
 
   private long myModificationCount;
   private StringResourceData myData;
@@ -44,6 +45,7 @@ public class StringResourceDataController {
     UPDATE_DATA("Updating string resource data");
 
     public final String description;
+
     ParseTaskType(@NotNull String description) {
       this.description = description;
     }
@@ -54,9 +56,9 @@ public class StringResourceDataController {
   }
 
   public StringResourceDataController(StringResourceEditor editor,
-                                      LocalResourceRepositoryAsVirtualFile repositoryFile) {
+                                      AndroidFacet androidFacet) {
     myEditor = editor;
-    myRepositoryFile = repositoryFile;
+    myAndroidFacet = androidFacet;
     startParseTask(ParseTaskType.INIT_DATA);
   }
 
@@ -66,7 +68,7 @@ public class StringResourceDataController {
   }
 
   boolean dataIsCurrent() {
-    return myModificationCount == myRepositoryFile.getModificationCount();
+    return myResourceRepository != null && myModificationCount == myResourceRepository.getModificationCount();
   }
 
   void updateData() {
@@ -100,8 +102,9 @@ public class StringResourceDataController {
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
       indicator.setIndeterminate(true);
-      myModificationCount = myRepositoryFile.getModificationCount();
-      myData = StringResourceParser.parse(myRepositoryFile.getRepository());
+      myResourceRepository = myAndroidFacet.getModuleResources(true);
+      myModificationCount = myResourceRepository.getModificationCount();
+      myData = StringResourceParser.parse(myResourceRepository);
     }
 
     @Override
@@ -170,7 +173,7 @@ public class StringResourceDataController {
       items.add(myData.getDefaultValues().get(mySelectedKey));
     }
     items.addAll(myData.getTranslations().row(mySelectedKey).values());
-    return myRepositoryFile.setAttributeForItems(attributeName, attributeValue, items.toArray(new ResourceItem[items.size()]));
+    return StringsWriteUtils.setAttributeForItems(myAndroidFacet.getModule().getProject(), attributeName, attributeValue, items);
   }
 
   private boolean setText(boolean isDefaultValue, @NotNull String text) {
@@ -178,18 +181,19 @@ public class StringResourceDataController {
     boolean itemExists = isDefaultValue
                          ? myData.getDefaultValues().containsKey(mySelectedKey)
                          : myData.getTranslations().contains(mySelectedKey, mySelectedLocale);
+    final Project project = myAndroidFacet.getModule().getProject();
     if (itemExists) {
       ResourceItem item = isDefaultValue
                           ? myData.getDefaultValues().get(mySelectedKey) : myData.getTranslations().get(mySelectedKey, mySelectedLocale);
       String oldText = StringResourceData.resourceToString(item);
       if (!oldText.equals(text)) {
-        dataChanged = myRepositoryFile.setItemText(item, text);
+        dataChanged = StringsWriteUtils.setItemText(project, item, text);
       }
     }
     else if (!text.isEmpty()) {
-      dataChanged =
-        myRepositoryFile.createItem(isDefaultValue ? null : mySelectedLocale,
-                                    mySelectedKey, text, !myData.getUntranslatableKeys().contains(mySelectedKey));
+      dataChanged = StringsWriteUtils
+        .createItem(project, myAndroidFacet.getPrimaryResourceDir(), isDefaultValue ? null : mySelectedLocale, mySelectedKey, text,
+                    !myData.getUntranslatableKeys().contains(mySelectedKey));
     }
     return dataChanged;
   }

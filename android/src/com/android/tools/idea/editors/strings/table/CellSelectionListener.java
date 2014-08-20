@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.tools.idea.editors.strings.TextComponentUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -70,8 +69,17 @@ public class CellSelectionListener implements ListSelectionListener {
       model.getController().selectData(null, null);
     }
 
-    TextComponentUtil.setTextAndEditable(myKeyPane, key, keyEditable);
-    TextComponentUtil.setTextAndEditable(myDefaultValuePane, defaultValue, defaultValueEditable);
-    TextComponentUtil.setTextAndEditable(myTranslationPane, translation, translationEditable);
+    setTextAndEditable(myKeyPane, key, keyEditable);
+    setTextAndEditable(myDefaultValuePane, defaultValue, defaultValueEditable);
+    setTextAndEditable(myTranslationPane, translation, translationEditable);
+  }
+
+  private static void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
+    component.setText(text);
+    component.setCaretPosition(0);
+    component.setEditable(editable);
+    // If a text component is not editable when it gains focus and becomes editable while still focused,
+    // the caret does not appear, so we need to set the caret visibility manually
+    component.getCaret().setVisible(editable && component.hasFocus());
   }
 }
