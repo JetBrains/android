@@ -166,7 +166,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    */
   @VisibleForTesting
   @NotNull
-  static ModuleResourceRepository createForTest(@NotNull final AndroidFacet facet, @NotNull List<VirtualFile> resourceDirectories) {
+  public static ModuleResourceRepository createForTest(@NotNull final AndroidFacet facet, @NotNull List<VirtualFile> resourceDirectories) {
     assert ApplicationManager.getApplication().isUnitTestMode();
     List<ResourceFolderRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
     for (VirtualFile resourceDirectory : resourceDirectories) {

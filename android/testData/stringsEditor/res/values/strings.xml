@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="key1" msgid="5366730170169617880">Key 1 default</string>
+    <string name="key2" msgid="3848896434457119656">Key 2 default</string>
+    <string name="key3" msgid="3848896434457119656">Key 3 default</string>
+    <!-- <string name="key4" msgid="3848896434457119656">Key 4 default</string> -->
+    <string name="key5" msgid="3848896434457119656" translatable="false">Key 5 default</string>
+</resources>
