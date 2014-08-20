@@ -105,7 +105,7 @@ public class AndroidArtifactBuildTaskProvider extends ArtifactBuildTaskProvider 
                                       ? Base64Converter.decode(keyPassword) : null;
       try {
         final Map<AndroidCompilerMessageKind,List<String>> messages =
-          AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, artifactFilePath,
+          AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
                                            keyStorePath, myProps.getKeyAlias(), plainKeyStorePassword, plainKeyPassword);
         AndroidJpsUtil.addMessages(context, messages, BUILDER_NAME, entryName);
       }

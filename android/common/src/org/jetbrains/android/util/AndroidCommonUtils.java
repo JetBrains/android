@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.jarutils.SignedJarBuilder;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.google.common.base.Charsets;
@@ -647,6 +648,7 @@ public class AndroidCommonUtils {
   public static Map<AndroidCompilerMessageKind, List<String>> buildArtifact(@NotNull String artifactName,
                                                                             @NotNull String messagePrefix,
                                                                             @NotNull String sdkLocation,
+                                                                            @NotNull IAndroidTarget target,
                                                                             @Nullable String artifactFilePath,
                                                                             @NotNull String keyStorePath,
                                                                             @Nullable String keyAlias,
@@ -675,8 +677,7 @@ public class AndroidCommonUtils {
       messages.get(AndroidCompilerMessageKind.ERROR).add(prefix + "file " + artifactFilePath + " hasn't been generated");
       return messages;
     }
-    final String zipAlignPath =
-      FileUtil.toSystemDependentName(sdkLocation + '/' + toolPath(SdkConstants.FN_ZIPALIGN));
+    final String zipAlignPath = getZipAlign(sdkLocation, target);
     final boolean runZipAlign = new File(zipAlignPath).isFile();
 
     File tmpDir = null;
@@ -776,5 +777,19 @@ public class AndroidCommonUtils {
         }
       }
     }
+  }
+
+  @NotNull
+  public static String getZipAlign(@NotNull String sdkPath, @NotNull IAndroidTarget target) {
+    final BuildToolInfo buildToolInfo = target.getBuildToolInfo();
+
+    if (buildToolInfo != null) {
+      final String path = buildToolInfo.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
+
+      if (path != null && new File(path).exists()) {
+        return path;
+      }
+    }
+    return sdkPath + File.separatorChar + toolPath(SdkConstants.FN_ZIPALIGN);
   }
 }
