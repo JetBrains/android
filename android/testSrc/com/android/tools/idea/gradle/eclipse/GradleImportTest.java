@@ -458,6 +458,20 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     File projectDir = null;
     for (File platform : platforms) {
       if (platform.isDirectory()) {
+        String name = platform.getName();
+        if (name.startsWith("android-")) {
+          try {
+            int version = Integer.parseInt(name.substring("android-".length()));
+            if (version > GradleImport.CURRENT_COMPILE_VERSION) {
+              // skip versions higher than the default compileSdkVersion since it's not specified in the ApiDemos
+              // project and we'll pick up the default
+              continue;
+            }
+          } catch (NumberFormatException e) {
+            // e.g. android-L
+            continue;
+          }
+        }
         File apiDemos = new File(platform, "legacy" + separator + "ApiDemos");
         if (apiDemos.isDirectory()) {
           projectDir = apiDemos;
