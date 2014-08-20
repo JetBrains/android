@@ -30,10 +30,7 @@ import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
@@ -44,7 +41,6 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
@@ -141,18 +137,23 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   }
 
   private static JComponent createEnumCombo(Parameter parameter) {
-    JComboBox combo = new ComboBox();
     List<Element> options = parameter.getOptions();
+    ComboBoxItem[] items = new ComboBoxItem[options.size()];
+    int initialSelection = -1;
+    int i = 0;
     assert !options.isEmpty();
     for (Element option : options) {
       //noinspection unchecked
-      combo.addItem(createItemForOption(parameter, option));
+      items[i++] = createItemForOption(parameter, option);
       String isDefault = option.getAttribute(Template.ATTR_DEFAULT);
       if (isDefault != null && !isDefault.isEmpty() && Boolean.valueOf(isDefault)) {
-        combo.setSelectedIndex(combo.getItemCount() - 1);
+        initialSelection = i - 1;
       }
     }
-    return combo;
+    @SuppressWarnings("UndesirableClassUsage")
+    JComboBox comboBox = new JComboBox(items);
+    comboBox.setSelectedIndex(initialSelection);
+    return comboBox;
   }
 
   public static ComboBoxItem createItemForOption(Parameter parameter, Element option) {
@@ -605,7 +606,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     if (mySourceProviders.length > 1) {
       if (mySourceSetLabel == null) {
         mySourceSetLabel = new JLabel("Target Source Set:");
-        mySourceSet = new ComboBox();
+        //noinspection UndesirableClassUsage
+        mySourceSet = new JComboBox();
         register(AddAndroidActivityPath.KEY_SOURCE_PROVIDER, mySourceSet);
         setControlDescription(mySourceSet, "The selected folder contains multiple source sets, " +
                                            "this can include source sets that do not yet exist on disk. " +
