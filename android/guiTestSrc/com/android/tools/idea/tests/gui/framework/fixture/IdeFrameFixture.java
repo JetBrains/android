@@ -61,6 +61,7 @@ import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
+import static org.junit.Assert.fail;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   private EditorFixture myEditor;
@@ -139,20 +140,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   private void waitForSourceGenerationToFinish() {
     BuildMode buildMode = SOURCE_GEN;
     waitForBuildToFinish(buildMode);
-  }
-
-  @NotNull
-  public IdeFrameFixture waitForBackgroundTasksToFinish() {
-    pause(new Condition("Background tasks to finish") {
-      @Override
-      public boolean test() {
-        ProgressManager progressManager = ProgressManager.getInstance();
-        return !progressManager.hasModalProgressIndicator() &&
-               !progressManager.hasProgressIndicator() &&
-               !progressManager.hasUnsafeProgressIndicator();
-      }
-    }, LONG_TIMEOUT);
-    return this;
   }
 
   @NotNull
@@ -318,6 +305,9 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     finally {
       Disposer.dispose(disposable);
     }
+
+    waitForBackgroundTasksToFinish();
+    robot.waitForIdle();
   }
 
   @NotNull
@@ -338,9 +328,41 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public IdeFrameFixture requestProjectSyncAndExpectFailure() {
+    requestProjectSync();
+    return waitForGradleProjectSyncToFail();
+  }
+
+  @NotNull
   public IdeFrameFixture requestProjectSync() {
-    JMenuItem menuItem = findActionMenuItem("Tools", "Android", "Sync Project with Gradle Files");
-    robot.click(menuItem);
+    findActionButtonByActionId("Android.SyncProject").click();
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForGradleProjectSyncToFail() {
+    try {
+      waitForGradleProjectSyncToFinish();
+      fail("Expecting project sync to fail");
+    }
+    catch (RuntimeException expected) {
+      // expected failure.
+    }
+    return waitForBackgroundTasksToFinish();
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForBackgroundTasksToFinish() {
+    pause(new Condition("Background tasks to finish") {
+      @Override
+      public boolean test() {
+        ProgressManager progressManager = ProgressManager.getInstance();
+        return !progressManager.hasModalProgressIndicator() &&
+               !progressManager.hasProgressIndicator() &&
+               !progressManager.hasUnsafeProgressIndicator();
+      }
+    }, LONG_TIMEOUT);
+    robot.waitForIdle();
     return this;
   }
 
