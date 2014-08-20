@@ -44,19 +44,19 @@ public class NewProjectWizardFixture extends ComponentFixture<JDialog> {
   }
 
   @NotNull
-  public ConfigureAndroidProjectStepFixture configureAndroidProjectStep() {
+  public ConfigureAndroidProjectStepFixture getConfigureAndroidProjectStep() {
     JRootPane rootPane = findStepWithTitle("Configure your new project");
     return new ConfigureAndroidProjectStepFixture(robot, rootPane);
   }
 
   @NotNull
-  public ConfigureFormFactorStepFixture configureFormFactorStep() {
+  public ConfigureFormFactorStepFixture getConfigureFormFactorStep() {
     JRootPane rootPane = findStepWithTitle("Select the form factors your app will run on");
     return new ConfigureFormFactorStepFixture(robot, rootPane);
   }
 
   @NotNull
-  public ChooseOptionsForNewFileStepFixture chooseOptionsForNewFileStep() {
+  public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
     JRootPane rootPane = findStepWithTitle("Choose options for your new file");
     return new ChooseOptionsForNewFileStepFixture(robot, rootPane);
   }
