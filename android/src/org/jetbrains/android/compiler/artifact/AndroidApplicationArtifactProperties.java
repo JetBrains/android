@@ -78,7 +78,7 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
                                ? getPlainKeyPassword() : null;
     try {
       final Map<AndroidCompilerMessageKind,List<String>> messages =
-        AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, artifactFilePath,
+        AndroidCommonUtils.buildArtifact(artifactName, messagePrefix, sdkLocation, platform.getTarget(), artifactFilePath,
                                          keyStorePath, myKeyAlias, keyStorePassword, keyPassword);
       AndroidCompileUtil.addMessages(context, AndroidCompileUtil.toCompilerMessageCategoryKeys(messages), null);
     }
