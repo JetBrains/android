@@ -3357,6 +3357,38 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     deleteDir(imported);
   }
 
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  public void testUnresolvedLibrary() throws Exception {
+    // Test that we recognize and handle unresolved support libraries
+    File projectDir = createProject("test1", "test.pkg");
+
+    createProjectProperties(projectDir, "android-19", null, null, null,
+                            Collections.<File>emptyList());
+    // Append unresolved library project references
+    String s = Files.toString(new File(projectDir, FN_PROJECT_PROPERTIES), Charsets.UTF_8);
+    s += "\n";
+    s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 1) + "=../appcompat_v7\n";
+    s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 2) + "=../support_v4\n";
+    s += String.format(ANDROID_LIBRARY_REFERENCE_FORMAT, 3) + "=../gridlayout-v7\n";
+    Files.write(s, new File(projectDir, FN_PROJECT_PROPERTIES), Charsets.UTF_8);
+
+    File imported = checkProject(projectDir,
+                                 ""
+                                 + MSG_HEADER
+                                 + MSG_REPLACED_LIBS
+                                 + "appcompat-v7 => [com.android.support:appcompat-v7:19.1.0]\n"
+                                 + "gridlayout-v7 => [com.android.support:gridlayout-v7:19.1.0]\n"
+                                 + "support-v4 => [com.android.support:support-v4:19.1.0]\n"
+                                 + MSG_FOLDER_STRUCTURE
+                                 + DEFAULT_MOVED
+                                 + (getTestSdkPathLocal() == null ? MSG_MISSING_REPO_1 + "null\n" + MSG_MISSING_REPO_2 : "")
+                                 + MSG_FOOTER,
+                                 false /* checkBuild */);
+
+    deleteDir(projectDir);
+    deleteDir(imported);
+  }
+
   // --- Unit test infrastructure from this point on ----
 
   @SuppressWarnings({"ResultOfMethodCallIgnored", "SpellCheckingInspection"})
