@@ -82,7 +82,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
   }
 
-  @Test @IdeGuiTest(closeProjectBeforeExecution = false) @Ignore
+  @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test2UpdateGradleVersionWithLocalDistribution() {
     File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
@@ -112,13 +112,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.clickCancel();
 
-    try {
-      projectFrame.waitForGradleProjectSyncToFinish();
-      fail("Expecting project sync to fail");
-    }
-    catch (RuntimeException expected) {
-      // This exception has the original error message, not the user-friendly one. Ignoring it.
-    }
+    projectFrame.waitForGradleProjectSyncToFail();
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     messages.getGradleSyncContent().requireMessage(ERROR, "Gradle 2.0 is required.");
