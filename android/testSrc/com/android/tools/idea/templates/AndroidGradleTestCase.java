@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;

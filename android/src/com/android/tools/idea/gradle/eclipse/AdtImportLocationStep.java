@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.gradle.eclipse.GradleImport;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.ide.highlighter.ProjectFileType;
 import com.intellij.ide.util.projectWizard.ProjectWizardUtil;

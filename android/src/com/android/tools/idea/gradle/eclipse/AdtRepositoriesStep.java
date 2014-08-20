@@ -1,6 +1,5 @@
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.gradle.eclipse.GradleImport;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.projectImport.ProjectImportWizardStep;
 import com.intellij.ui.components.JBLabel;
