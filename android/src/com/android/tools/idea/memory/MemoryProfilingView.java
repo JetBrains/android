@@ -31,6 +31,7 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
+import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,36 +41,42 @@ import java.awt.*;
 
 public class MemoryProfilingView extends ToolWindowManagerAdapter {
 
-  private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
-
-  private static final int SAMPLE_FREQUENCY_MS = 500;
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
    */
   public static final int SAMPLES = 1024;
-
+  private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
+  private static final int SAMPLE_FREQUENCY_MS = 500;
+  @NotNull
   private final ToolWindowManagerEx myToolWindowManager;
+  @NotNull
   private final Project myProject;
+  @NotNull
   private final AndroidDebugBridge myBridge;
+  @NotNull
   private final DeviceContext myDeviceContext;
+  @NotNull
   private final JPanel myContentPane;
+  @NotNull
+  private final TimelineComponent myTimelineComponent;
+  @NotNull
+  private final TimelineData myData;
   private boolean myVisible;
+  @NotNull
   private ToolWindow myToolWindow;
+  @Nullable
   private MemorySampler myMemorySampler;
-  private TimelineComponent myTimelineComponent;
-  private TimelineData myData;
+  @Nullable
   private String myApplicationName;
 
-  public MemoryProfilingView(Project project, ToolWindow toolWindow) {
+  public MemoryProfilingView(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     myProject = project;
     myToolWindowManager = ToolWindowManagerEx.getInstanceEx(project);
     myToolWindow = toolWindow;
     myDeviceContext = new DeviceContext();
 
-    myData = new TimelineData(
-      new TimelineData.Stream[]{new TimelineData.Stream("Allocated", new JBColor(new Color(0x78abd9), new Color(0x78abd9))),
-        new TimelineData.Stream("Free", new JBColor(new Color(0xbaccdc), new Color(0x51585c)))}, SAMPLES, "MB");
+    myData = new TimelineData(2, SAMPLES);
     // Buffer at one and a half times the sample frequency.
     float bufferTimeInSeconds = SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
     float initialMax = 5.0f;
@@ -78,15 +85,23 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
     myContentPane = new JPanel(new BorderLayout());
 
     myTimelineComponent = new TimelineComponent(myData, bufferTimeInSeconds, initialMax, initialMarker);
-    boolean debug = Boolean.getBoolean("studio.profiling.debug");
-    myTimelineComponent.setDrawDebugInfo(debug);
+
+    myTimelineComponent.configureUnits("MB");
+
+    myTimelineComponent.configureStream(0, "Allocated", new JBColor(0x78abd9, 0x78abd9));
+    myTimelineComponent.configureStream(1, "Free", new JBColor(0xbaccdc, 0x51585c));
+
+    myTimelineComponent
+      .configureEvent(MemorySampler.TYPE_HPROF_REQUEST, MemorySampler.TYPE_HPROF_RESULT, 0, AndroidIcons.Ddms.ScreenCapture,
+                      new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF));
 
     myContentPane.add(myTimelineComponent, BorderLayout.CENTER);
+    // TODO: Handle case where no bridge can be found.
     myBridge = AndroidSdkUtils.getDebugBridge(project);
     myToolWindowManager.addToolWindowManagerListener(this);
 
     JPanel panel = new JPanel(new GridLayout());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(debug), false);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false);
     panel.add(toolbar.getComponent());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
 
@@ -98,11 +113,12 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
   }
 
   @NotNull
-  public ActionGroup getToolbarActions(boolean debug) {
+  public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    group.add(new MemorySnapshotAction(this));
     group.add(new GcAction(myDeviceContext));
-    if (debug) {
+    if (Boolean.getBoolean("studio.profiling.debug")) {
       group.add(new ToggleDebugRender());
     }
 
@@ -122,7 +138,7 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
 
       if (visible) {
         reset();
-        myMemorySampler = new MemorySampler(myApplicationName, myData, myBridge, myDeviceContext, SAMPLE_FREQUENCY_MS);
+        myMemorySampler = new MemorySampler(myApplicationName, myData, myProject, myBridge, myDeviceContext, SAMPLE_FREQUENCY_MS);
       }
       myVisible = visible;
     }
@@ -151,6 +167,11 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
 
   public JPanel getComponent() {
     return myContentPane;
+  }
+
+  @Nullable
+  public MemorySampler getMemorySampler() {
+    return myMemorySampler;
   }
 
   private class ToggleDebugRender extends ToggleAction {
