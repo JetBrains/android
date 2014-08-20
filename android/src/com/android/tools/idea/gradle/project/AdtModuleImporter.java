@@ -16,17 +16,13 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.eclipse.AdtImportBuilder;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
