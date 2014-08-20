@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.templates.TemplateManager;
