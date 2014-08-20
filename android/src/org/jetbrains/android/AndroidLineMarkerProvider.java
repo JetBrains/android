@@ -4,8 +4,8 @@ import com.intellij.codeHighlighting.Pass;
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
+import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.GotoRelatedSymbolAction;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiClass;
@@ -130,7 +130,7 @@ public class AndroidLineMarkerProvider implements LineMarkerProvider {
         items.get(0).navigate();
       }
       else {
-        GotoRelatedSymbolAction.createPopup(items, "Go to Related Files").show(new RelativePoint(e));
+        NavigationUtil.getRelatedItemsPopup(items, "Go to Related Files").show(new RelativePoint(e));
       }
     }
 

@@ -24,6 +24,8 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
@@ -74,7 +76,7 @@ class AndroidSdkConfigurableForm {
           setText(AndroidSdkUtils.getTargetPresentableName((IAndroidTarget)value));
         }
         else if (value == null) {
-          setText("<html><font color='red'>[none]</font></html>");
+          setText("<html><font color='#" + ColorUtil.toHex(JBColor.RED)+ "'>[none]</font></html>");
         }
       }
     });
