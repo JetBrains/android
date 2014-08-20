@@ -650,6 +650,10 @@ class EclipseProject implements Comparable<EclipseProject> {
           }
         }
       }
+      Collections.sort(myJarPaths);
+      if (myNativeLibs != null) {
+        Collections.sort(myNativeLibs);
+      }
     }
   }
 
