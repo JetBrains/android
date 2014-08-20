@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
-import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.vfs.VirtualFile;
