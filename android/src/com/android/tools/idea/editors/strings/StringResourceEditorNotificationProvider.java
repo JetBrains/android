@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors;
+package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -43,7 +42,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull final VirtualFile file, FileEditor fileEditor) {
-    if (!myShow || !StringResourceEditorProvider.canViewTranslations(file)) {
+    if (!myShow || !StringResourceEditorProvider.canViewTranslations(myProject, file)) {
       return null;
     }
 

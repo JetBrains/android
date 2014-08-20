@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.rendering.LocalResourceRepositoryAsVirtualFile;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -40,10 +39,14 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   private final StringResourceViewPanel myViewPanel;
   private final StringResourceDataController myController;
 
-  public StringResourceEditor(@NotNull Project project, @NotNull VirtualFile repositoryFile) {
+  public StringResourceEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!(file instanceof StringsVirtualFile)) {
+      throw new IllegalArgumentException();
+    }
+
     myProject = project;
-    myViewPanel = new StringResourceViewPanel();
-    myController = new StringResourceDataController(this, (LocalResourceRepositoryAsVirtualFile)repositoryFile);
+    myViewPanel = new StringResourceViewPanel(((StringsVirtualFile)file).getFacet());
+    myController = new StringResourceDataController(this, ((StringsVirtualFile)file).getFacet());
   }
 
   @NotNull

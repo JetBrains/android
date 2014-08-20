@@ -37,8 +37,10 @@ public class MultilineCellEditor extends AbstractTableCellEditor {
 
   @Override
   public boolean isCellEditable(EventObject e) {
+    return false;
+    // TODO: enable inline editing..
     // edit only on double click
-    return e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
+    // return e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
   }
 
   @Override

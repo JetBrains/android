@@ -410,7 +410,7 @@ public class PsiResourceItem extends ResourceItem {
   }
 
   @Nullable
-  XmlTag getTag() {
+  public XmlTag getTag() {
     return myTag;
   }
 

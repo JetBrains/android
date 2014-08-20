@@ -21,15 +21,12 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 
 public class OpenStringResourceEditorAction extends AnAction {
   public OpenStringResourceEditorAction() {
-    super("Open translation editor", null, StringResourceEditor.ICON);
+    super("Open Translation Editor (Preview)", null, StringResourceEditor.ICON);
   }
 
   @Override
@@ -38,7 +35,7 @@ public class OpenStringResourceEditorAction extends AnAction {
     final Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
     final VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(e.getDataContext());
     if (project != null && file != null) {
-      show = StringResourceEditorProvider.canViewTranslations(file);
+      show = StringResourceEditorProvider.canViewTranslations(project, file);
     }
     e.getPresentation().setVisible(show);
     e.getPresentation().setEnabled(show);
