@@ -72,7 +72,10 @@ class AdtImportWarningsStep extends ProjectImportWizardStep {
   @Override
   public boolean validate() throws ConfigurationException {
     GradleImport importer = AdtImportProvider.getImporter(getWizardContext());
-    return importer != null && importer.getErrors().isEmpty();
+    if (importer != null && !importer.getErrors().isEmpty()) {
+      throw new ConfigurationException("There are unrecoverable errors which must be corrected first");
+    }
+    return super.validate();
   }
 
   @Override
