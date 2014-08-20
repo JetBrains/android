@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui;
+package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
@@ -26,7 +26,6 @@ import com.intellij.openapi.project.Project;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 

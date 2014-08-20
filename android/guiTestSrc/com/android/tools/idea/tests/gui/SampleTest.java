@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.wizard;
+package com.android.tools.idea.tests.gui;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.ApiVersion;
@@ -46,7 +46,7 @@ public class SampleTest extends GuiTestCase {
 
     NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
 
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.configureAndroidProjectStep();
+    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
     configureAndroidProjectStep.enterApplicationName(projectName)
                                .enterCompanyDomain("com.android")
                                .enterPackageName("com.android.test.app");
@@ -54,13 +54,13 @@ public class SampleTest extends GuiTestCase {
     newProjectWizard.clickNext();
 
     String minSdkApi = "19";
-    newProjectWizard.configureFormFactorStep().selectMinimumSdkApi(MOBILE, minSdkApi);
+    newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, minSdkApi);
     newProjectWizard.clickNext();
 
     // Skip "Add Activity" step
     newProjectWizard.clickNext();
 
-    ChooseOptionsForNewFileStepFixture chooseOptionsForNewFileStep = newProjectWizard.chooseOptionsForNewFileStep();
+    ChooseOptionsForNewFileStepFixture chooseOptionsForNewFileStep = newProjectWizard.getChooseOptionsForNewFileStep();
     chooseOptionsForNewFileStep.enterActivityName("MainActivity");
     String layoutName = chooseOptionsForNewFileStep.getLayoutName();
     newProjectWizard.clickFinish();
