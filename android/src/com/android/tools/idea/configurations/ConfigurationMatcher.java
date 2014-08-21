@@ -175,18 +175,22 @@ public class ConfigurationMatcher {
   }
 
   /**
-  * Returns the file {@link VirtualFile} which best matches the configuration
-  *
-  * @return the file which best matches the settings
-  */
-  @Nullable
-  public VirtualFile getBestFileMatch() {
+   * Returns a list of {@link VirtualFile} which best match the configuration.
+   */
+  @NotNull
+  public List<VirtualFile> getBestFileMatches() {
     if (myResources != null && myFile != null) {
       FolderConfiguration config = myConfiguration.getFullConfig();
-      return myResources.getMatchingFile(myFile, getResourceType(), config);
+      VersionQualifier prevQualifier = config.getVersionQualifier();
+      try {
+        config.setVersionQualifier(null);
+        return myResources.getMatchingFiles(myFile, getResourceType(), config);
+      }
+      finally {
+        config.setVersionQualifier(prevQualifier);
+      }
     }
-
-    return null;
+    return Collections.emptyList();
   }
 
   /** Like {@link ConfigurationManager#getLocales()}, but ensures that the currently selected locale is first in the list */
@@ -615,9 +619,9 @@ public class ConfigurationMatcher {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
             if (!types.isEmpty()) {
               ResourceType type = types.get(0);
-              VirtualFile match = resources.getMatchingFile(file, type, currentConfig);
-              if (match != null && !file.equals(match)) {
-                return match;
+              List<VirtualFile> matches = resources.getMatchingFiles(file, type, currentConfig);
+              if (!matches.contains(file) && !matches.isEmpty()) {
+                return matches.get(0);
               }
             }
           }
