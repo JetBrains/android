@@ -46,6 +46,7 @@ import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -55,6 +56,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -103,6 +105,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -173,7 +176,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private volatile boolean myApplicationDeployed = false;
 
   private ConsoleView myConsole;
-  private Runnable myRestarter;
   private TargetChooser myTargetChooser;
   private final boolean mySupportMultipleDevices;
   private final boolean myClearLogcatBeforeStart;
@@ -190,10 +192,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   public boolean isDebugMode() {
     return myDebugMode;
-  }
-
-  public void setRestarter(@NotNull Runnable restarter) {
-    myRestarter = restarter;
   }
 
   private static void runInDispatchedThread(@NotNull Runnable r, boolean blocking) {
@@ -481,7 +479,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
                              boolean supportMultipleDevices,
                              boolean clearLogcatBeforeStart,
                              @NotNull AndroidRunConfigurationBase configuration,
-                             boolean nonDebuggableOnDevice) throws ExecutionException {
+                             boolean nonDebuggableOnDevice) {
     myFacet = facet;
     myCommandLine = commandLine;
     myConfiguration = configuration;
@@ -492,7 +490,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     myAvdName = targetChooser instanceof EmulatorTargetChooser
                 ? ((EmulatorTargetChooser)targetChooser).getAvd()
                 : null;
-      
+
     myEnv = environment;
     myApplicationLauncher = applicationLauncher;
     myClearLogcatBeforeStart = clearLogcatBeforeStart;
@@ -1064,8 +1062,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
     if (myDebugMode && bridge != null && AndroidSdkUtils.canDdmsBeCorrupted(bridge)) {
       message(AndroidBundle.message("ddms.corrupted.error"), STDERR);
-      if (myConsole != null && myRestarter != null) {
-        final Runnable r = myRestarter;
+      JComponent component = myConsole == null ? null : myConsole.getComponent();
+      if (component != null) {
+        final ExecutionEnvironment environment = LangDataKeys.EXECUTION_ENVIRONMENT.getData(DataManager.getInstance().getDataContext(component));
+        if (environment == null) {
+          return false;
+        }
+
         myConsole.printHyperlink(AndroidBundle.message("restart.adb.fix.text"), new HyperlinkInfo() {
           @Override
           public void navigate(Project project) {
@@ -1075,7 +1078,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
             if (!processHandler.isProcessTerminated()) {
               processHandler.destroyProcess();
             }
-            r.run();
+            ExecutionUtil.restart(environment);
           }
         });
         myConsole.print("\n", ConsoleViewContentType.NORMAL_OUTPUT);

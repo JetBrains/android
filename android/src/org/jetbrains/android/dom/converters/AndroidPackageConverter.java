@@ -100,7 +100,7 @@ public class AndroidPackageConverter extends Converter<String> implements Custom
     @NotNull
     @Override
     public ResolveResult[] multiResolve(boolean incompleteCode) {
-      return PsiElementResolveResult.createResults(new PsiElement[]{myElement});
+      return PsiElementResolveResult.createResults(myElement);
     }
 
     @Override
