@@ -69,7 +69,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
-  public void createToolWindowContent(final Project project, final ToolWindow toolWindow) {
+  public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
     RunnerLayoutUi layoutUi = RunnerLayoutUi.Factory.getInstance(project).create(
       "ddms", "ddms", "ddms", project);
 
