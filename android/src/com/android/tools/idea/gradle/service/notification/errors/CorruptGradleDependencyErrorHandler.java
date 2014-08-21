@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class CorruptedGradleDependencyErrorHandler extends AbstractSyncErrorHandler {
+public class CorruptGradleDependencyErrorHandler extends AbstractSyncErrorHandler {
   @Override
   public boolean handleError(@NotNull List<String> message,
                              @NotNull ExternalSystemException error,
@@ -30,8 +32,11 @@ public class CorruptedGradleDependencyErrorHandler extends AbstractSyncErrorHand
                              @NotNull Project project) {
     String firstLine = message.get(0);
     if (firstLine.startsWith("Premature end of Content-Length delimited message body")) {
-      String newMsg = "Gradle's artifact cache seems to be corrupted. Please try the following:";
-      updateNotification(notification, project, newMsg);
+      String newMsg = "Gradle's dependency cache seems to be corrupt or out of sync.";
+      NotificationHyperlink syncProjectHyperlink =
+        new SyncProjectWithExtraCommandLineOptionsHyperlink("Re-download dependencies and sync project (requires network)",
+                                                            "--refresh-dependencies");
+      updateNotification(notification, project, newMsg, syncProjectHyperlink);
       return true;
     }
     return false;
