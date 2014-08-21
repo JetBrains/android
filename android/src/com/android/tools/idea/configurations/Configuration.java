@@ -449,8 +449,8 @@ public class Configuration implements Disposable {
               List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
               if (!types.isEmpty()) {
                 ResourceType type = types.get(0);
-                VirtualFile match = resources.getMatchingFile(myFile, type, currentConfig);
-                if (match != null && myFile.equals(match)) {
+                List<VirtualFile> matches = resources.getMatchingFiles(myFile, type, currentConfig);
+                if (matches.contains(myFile)) {
                   return device;
                 }
               }
