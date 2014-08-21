@@ -32,6 +32,7 @@ public class JpsAndroidModuleProperties {
   public String COMPILE_JAVA_TASK_NAME = "";
   public String ASSEMBLE_TEST_TASK_NAME = "";
   public String SOURCE_GEN_TASK_NAME = "";
+  public String TEST_SOURCE_GEN_TASK_NAME = "";
 
   // This value is false when the Android project is Gradle-based.
   public boolean ALLOW_USER_CONFIGURATION = true;

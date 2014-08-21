@@ -96,14 +96,30 @@ public class GradleInvokerTest extends IdeaTestCase {
   }
 
   public void testGenerateSources() throws Exception {
-    final String taskName = "sourceGen";
-    myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = taskName;
+    myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = "sourceGen";
+    myAndroidFacet.getProperties().TEST_SOURCE_GEN_TASK_NAME = "testSourceGen";
+
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertEquals(2, tasks.size());
+        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "sourceGen", tasks.get(0));
+        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "testSourceGen", tasks.get(1));
+        assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
+      }
+    });
+    myInvoker.generateSources();
+  }
+
+  public void testGenerateSourcesWithoutTestSourceGen() throws Exception {
+    myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = "sourceGen";
+    myAndroidFacet.getProperties().TEST_SOURCE_GEN_TASK_NAME = "";
 
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
-        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName, tasks.get(0));
+        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "sourceGen", tasks.get(0));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
