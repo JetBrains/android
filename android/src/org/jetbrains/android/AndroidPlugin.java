@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AndroidPlugin implements ApplicationComponent {
   public static Key<Runnable> EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.sync.task");
+  public static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
 
   private static boolean ourGuiTestingMode;
 

@@ -26,39 +26,42 @@ import org.junit.Test;
 import java.io.IOException;
 
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
+import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 
-public class CorruptedGradleDependencyTest extends GuiTestCase {
+public class CorruptGradleDependencyTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=74842
   @Test @IdeGuiTest
   public void testPrematureEndOfContentLength() throws IOException {
     IdeFrameFixture projectFrame = openProject("SimpleApplication");
 
+    // Simulate this Gradle error.
     final String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
-    Runnable failTask = new Runnable() {
-      @Override
-      public void run() {
-        throw new RuntimeException(failure);
-      }
-    };
-    ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, failTask);
+    projectFrame.requestProjectSyncAndSimulateFailure(failure);
 
-    projectFrame.requestProjectSyncAndExpectFailure();
-
+    final String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
 
-    final String prefix = "Gradle's artifact cache seems to be corrupted";
-    messages.getGradleSyncContent().requireMessage(ERROR, new MessagesToolWindowFixture.TextMatcher() {
-      @Override
-      public boolean matches(@NotNull String[] text) {
-        return text[0].startsWith(prefix);
-      }
+    MessagesToolWindowFixture.MessageFixture message =
+      messages.getGradleSyncContent().findMessage(ERROR, new MessagesToolWindowFixture.TextMatcher() {
+        @Override
+        public boolean matches(@NotNull String[] text) {
+          return text[0].startsWith(prefix);
+        }
 
-      @Override
-      public String toString() {
-        return "starting with " + quote(prefix);
-      }
-    });
+        @Override
+        public String toString() {
+          return "starting with " + quote(prefix);
+        }
+      });
+
+    message.clickHyperlink("Re-download dependencies and sync project (requires network)");
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // This is the only way we can at least know that we pass the right command-line option.
+    String[] commandLineOptions = ApplicationManager.getApplication().getUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY);
+    assertThat(commandLineOptions).contains("--refresh-dependencies");
   }
 }
