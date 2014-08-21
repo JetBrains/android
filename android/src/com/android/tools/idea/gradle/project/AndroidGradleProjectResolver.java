@@ -33,6 +33,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -41,8 +42,12 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
@@ -64,6 +69,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 
 /**
@@ -71,7 +77,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
   public AndroidGradleProjectResolver() {
@@ -193,8 +198,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void preImportCheck() {
     if (AndroidPlugin.isGuiTestingMode()) {
       // We use this task in GUI tests to simulate errors coming from Gradle project sync.
-      Runnable task = ApplicationManager.getApplication().getUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY);
+      Application application = ApplicationManager.getApplication();
+      Runnable task = application.getUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY);
       if (task != null) {
+        application.putUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, null);
         task.run();
       }
     }
@@ -231,9 +238,41 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public List<String> getExtraCommandLineArgs() {
     List<String> args = Lists.newArrayList();
+
+    Project project = findProject();
+    if (project != null) {
+      String[] commandLineOptions = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
+      if (commandLineOptions != null) {
+        project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
+        Collections.addAll(args, commandLineOptions);
+      }
+    }
+
     args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_BUILD_MODEL_ONLY, true));
     args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+
+    if (AndroidPlugin.isGuiTestingMode()) {
+      // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
+      ApplicationManager.getApplication().putUserData(AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtil.toStringArray(args));
+    }
+
     return args;
+  }
+
+  @Nullable
+  private Project findProject() {
+    String projectDir = resolverCtx.getProjectPath();
+    if (StringUtil.isNotEmpty(projectDir)) {
+      File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir));
+      Project[] projects = ProjectManager.getInstance().getOpenProjects();
+      for (Project project : projects) {
+        File currentPath = new File(project.getBasePath());
+        if (FileUtil.filesEqual(projectDirPath, currentPath)) {
+          return project;
+        }
+      }
+    }
+    return null;
   }
 
   @NotNull
