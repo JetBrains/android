@@ -30,6 +30,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.Messages;
@@ -47,7 +48,7 @@ import java.util.List;
 /**
  * Closes, removes all IDEA-related files (.idea folder and .iml files) and imports a project.
  */
-public class CleanImportProjectAction extends AnAction {
+public class CleanImportProjectAction extends DumbAwareAction {
   private static final String MESSAGE_FORMAT = "This action will:\n" +
                                                "1. Close project '%1$s'\n" +
                                                "2. Delete all project files (.idea folder and .iml files)\n" +
