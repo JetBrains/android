@@ -216,22 +216,23 @@ public class GradleInvoker {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
       JpsAndroidModuleProperties properties = androidFacet.getProperties();
-      String gradleTaskName;
       switch (buildMode) {
         case SOURCE_GEN:
-          gradleTaskName = properties.SOURCE_GEN_TASK_NAME;
+          tasks.add(createBuildTask(gradlePath, properties.SOURCE_GEN_TASK_NAME));
+          if (StringUtil.isNotEmpty(properties.TEST_SOURCE_GEN_TASK_NAME)) {
+            tasks.add(createBuildTask(gradlePath, properties.TEST_SOURCE_GEN_TASK_NAME));
+          }
           break;
         case ASSEMBLE:
-          gradleTaskName = properties.ASSEMBLE_TASK_NAME;
+          tasks.add(createBuildTask(gradlePath, properties.ASSEMBLE_TASK_NAME));
           break;
         default:
-          gradleTaskName = properties.COMPILE_JAVA_TASK_NAME;
+          tasks.add(createBuildTask(gradlePath, properties.COMPILE_JAVA_TASK_NAME));
       }
-      tasks.add(createBuildTask(gradlePath, gradleTaskName));
 
       if (testCompileType == TestCompileType.ANDROID_TESTS) {
-        gradleTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
-        if (gradleTaskName != null) {
+        String gradleTaskName = properties.ASSEMBLE_TEST_TASK_NAME;
+        if (StringUtil.isNotEmpty(gradleTaskName)) {
           tasks.add(createBuildTask(gradlePath, gradleTaskName));
         }
       }
