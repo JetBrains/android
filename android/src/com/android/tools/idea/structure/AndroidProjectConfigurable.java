@@ -28,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ActionRunner;
@@ -115,6 +116,14 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
 
   @Override
   public void apply() throws ConfigurationException {
+    if (myGradleBuildFile == null) {
+      return;
+    }
+    VirtualFile file = myGradleBuildFile.getFile();
+    if (!ReadonlyStatusHandler.ensureFilesWritable(myProject, file)) {
+      throw new ConfigurationException(String.format("Build file %1$s is not writable", file.getPath()));
+    }
+
     CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
       @Override
       public void run() {
@@ -122,9 +131,6 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
           ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
             @Override
             public void run() throws Exception {
-              if (myGradleBuildFile == null) {
-                return;
-              }
               for (BuildFileKey key : PROJECT_PROPERTIES) {
                 if (key == BuildFileKey.GRADLE_WRAPPER_VERSION || !myModifiedKeys.contains(key)) {
                   continue;
