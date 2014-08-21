@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.internal.project.ProjectProperties.PROPERTY_SDK;
+import static com.android.tools.idea.gradle.eclipse.ImportModule.*;
 import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 import static com.android.xml.AndroidManifest.*;
 import static java.io.File.separator;
@@ -294,10 +295,22 @@ class EclipseProject implements Comparable<EclipseProject> {
         if (myImporter.isReplaceLibs()) {
           // Look for some common libraries that we can probably just guess as a dependency replacement
           String libraryDirName = libraryDir.getName().replace('_', '-');
-          if (ImportModule.APPCOMPAT_ARTIFACT.equals(libraryDirName)
-               || ImportModule.SUPPORT_ARTIFACT.equals(libraryDirName)
-               || ImportModule.GRIDLAYOUT_ARTIFACT.equals(libraryDirName)
-               || ImportModule.MEDIA_ROUTER_ARTIFACT.equals(libraryDirName)) {
+          if (libraryDirName.indexOf('-') == -1) {
+            File parent = libraryDir.getParentFile();
+            if (parent != null) {
+              String parentName = parent.getName();
+              if (parentName.equals("v7")) {
+                // Recognize paths pointing into an SDK extras folder such as
+                // ../../../android-sdk-mac_86/extras/android/compatibility/v7/appcompat
+                // and turn them into appcompat-v7 such that they match the artifact check below
+                libraryDirName = libraryDirName + '-' + parentName;
+              }
+            }
+          }
+          if (APPCOMPAT_ARTIFACT.equals(libraryDirName)
+               || SUPPORT_ARTIFACT.equals(libraryDirName)
+               || GRIDLAYOUT_ARTIFACT.equals(libraryDirName)
+               || MEDIA_ROUTER_ARTIFACT.equals(libraryDirName)) {
             if (myInferredLibraries == null) {
               myInferredLibraries = Lists.newArrayList();
             }
