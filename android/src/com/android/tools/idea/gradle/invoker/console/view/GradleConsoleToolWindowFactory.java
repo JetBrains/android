@@ -19,6 +19,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created the "Gradle Console" tool window.
@@ -27,7 +28,7 @@ public class GradleConsoleToolWindowFactory implements ToolWindowFactory, DumbAw
   public static final String ID = "Gradle Console";
 
   @Override
-  public void createToolWindowContent(Project project, ToolWindow toolWindow) {
+  public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     GradleConsoleView.getInstance(project).createToolWindowContent(toolWindow);
   }
 }
