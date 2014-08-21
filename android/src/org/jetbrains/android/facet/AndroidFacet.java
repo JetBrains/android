@@ -37,6 +37,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.ILogger;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
@@ -1151,17 +1152,31 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (myIdeaAndroidProject != null) {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getProperties();
+      state.SELECTED_BUILD_VARIANT = variant.getName();
 
       AndroidArtifact mainArtifact = variant.getMainArtifact();
-      state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
-      state.COMPILE_JAVA_TASK_NAME = mainArtifact.getJavaCompileTaskName();
-
       AndroidArtifact testArtifact = myIdeaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifact != null ? testArtifact.getAssembleTaskName() : "";
-
-      state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
-      state.SELECTED_BUILD_VARIANT = variant.getName();
+      updateGradleTaskNames(state, mainArtifact, testArtifact);
     }
+  }
+
+  @VisibleForTesting
+  static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
+                                    @NotNull AndroidArtifact mainArtifact,
+                                    @Nullable AndroidArtifact testArtifact) {
+    state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
+    state.COMPILE_JAVA_TASK_NAME = mainArtifact.getJavaCompileTaskName();
+
+    if (testArtifact != null) {
+      state.TEST_SOURCE_GEN_TASK_NAME = testArtifact.getSourceGenTaskName();
+      state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
+    }
+    else {
+      state.TEST_SOURCE_GEN_TASK_NAME = "";
+      state.ASSEMBLE_TEST_TASK_NAME = "";
+    }
+
+    state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
   }
 
   @NotNull
