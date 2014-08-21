@@ -22,8 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 
@@ -32,7 +31,7 @@ import java.awt.geom.Path2D;
  * rendered, but objects of this class should not be accessed from different threads.
  */
 @SuppressWarnings({"FieldAccessedSynchronizedAndUnsynchronized", "UseJBColor"})
-class TimelineComponent extends JComponent implements ActionListener {
+class TimelineComponent extends JComponent implements ActionListener, HierarchyListener {
 
   private static final Color TEXT_COLOR = Gray._128;
   private static final Font TIMELINE_FONT = new Font("Sans", Font.PLAIN, 10);
@@ -126,8 +125,8 @@ class TimelineComponent extends JComponent implements ActionListener {
     myInitialMax = initialMax;
     myInitialMarkerSeparation = initialMarkerSeparation;
     int streams = myData.getStreamCount();
-    myTimer = new Timer(0, this);
-    myTimer.setRepeats(false);
+    myTimer = new Timer(1000 / FPS, this);
+    addHierarchyListener(this);
     myPaths = new Path2D.Float[streams];
     myStreamNames = new String[streams];
     myStreamColors = new Color[streams];
@@ -230,10 +229,6 @@ class TimelineComponent extends JComponent implements ActionListener {
     }
 
     myFirstFrame = false;
-
-    int delay = Math.max((int)((1000 / FPS) - (System.nanoTime() - now) / 1000000), 0);
-    myTimer.setInitialDelay(delay);
-    myTimer.restart();
   }
 
   private void drawDebugInfo(Graphics2D g2d) {
@@ -271,6 +266,15 @@ class TimelineComponent extends JComponent implements ActionListener {
   @Override
   public void actionPerformed(ActionEvent actionEvent) {
     repaint();
+  }
+
+  @Override
+  public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
+    if (myTimer.isRunning() && !isShowing()) {
+      myTimer.stop();
+    } else if (!myTimer.isRunning() && isShowing()) {
+      myTimer.start();
+    }
   }
 
   private void drawTimelineData(Graphics2D g2d) {
