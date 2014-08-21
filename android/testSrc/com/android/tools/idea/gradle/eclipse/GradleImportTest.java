@@ -14,7 +14,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import com.intellij.testFramework.UsefulTestCase;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
@@ -1174,7 +1173,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "    compile files('libs/android-support-v7-appcompat.jar')\n"
                  + "    compile files('libs/android-support-v7-gridlayout.jar')\n"
                  + "}\n",
-                 Files.toString(new File(imported, "test1" + separator + "build.gradle"), UTF_8)
+                 Files.toString(new File(imported, "Test1" + separator + "build.gradle"), UTF_8)
                    .replace(NL, "\n"));
 
     deleteDir(projectDir);
@@ -1302,7 +1301,7 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 17\n"
-                 + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
+                 + "    buildToolsVersion \"" + MIN_BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
                  + "    defaultConfig {\n"
                  + "        applicationId \"test.pkg\"\n"
