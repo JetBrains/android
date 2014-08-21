@@ -19,6 +19,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Creates the contents of the "Build Variants" tool window.
@@ -27,7 +28,7 @@ public class BuildVariantToolWindowFactory implements ToolWindowFactory, DumbAwa
   public static final String ID = "Build Variants";
 
   @Override
-  public void createToolWindowContent(Project project, ToolWindow toolWindow) {
+  public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     BuildVariantView.getInstance(project).createToolWindowContent(toolWindow);
   }
 }
