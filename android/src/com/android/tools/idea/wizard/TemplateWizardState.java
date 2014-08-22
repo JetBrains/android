@@ -167,13 +167,6 @@ public class TemplateWizardState implements Function<String, Object> {
       put(ATTR_MAVEN_URL, mavenUrl);
     }
 
-    if (!myParameters.containsKey(ATTR_RELATIVE_PACKAGE)) {
-      String pkg = (String)myParameters.get(ATTR_PACKAGE_NAME);
-      if (pkg != null){
-        myParameters.put(ATTR_PACKAGE_ROOT, pkg);
-      }
-    }
-
     populateRelativePackage(null);
   }
 
