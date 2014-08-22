@@ -784,8 +784,12 @@ public class AndroidCommonUtils {
     final BuildToolInfo buildToolInfo = target.getBuildToolInfo();
 
     if (buildToolInfo != null) {
-      final String path = buildToolInfo.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
-
+      String path = null;
+      try {
+        path = buildToolInfo.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
+      }
+      catch (Throwable ignored) {
+      }
       if (path != null && new File(path).exists()) {
         return path;
       }
