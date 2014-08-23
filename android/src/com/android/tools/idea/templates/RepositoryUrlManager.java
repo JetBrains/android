@@ -62,6 +62,9 @@ public class RepositoryUrlManager {
   /** The path ID of the Wearable Play Services library */
   public static final String PLAY_SERVICES_WEARABLE_ID = "play-services-wearable";
 
+  /** The path ID of the wearable support library */
+  public static final String SUPPORT_WEARABLE_ID = "wearable";
+
   /** The path ID of the cardview library*/
   public static final String CARDVIEW_ID_V7 = "cardview-v7";
 
@@ -86,10 +89,13 @@ public class RepositoryUrlManager {
 
   private static final String SUPPORT_BASE_COORDINATE = "com.android.support:%s:%s";
   private static final String GOOGLE_BASE_COORDINATE = "com.google.android.gms:%s:%s";
+  private static final String GOOGLE_SUPPORT_BASE_COORDINATE = "com.google.android.support:%s:%s";
 
   private static final String SUPPORT_REPOSITORY_BASE_PATH = "%s/extras/android/m2repository/com/android/support/%s/";
 
   private static final String GOOGLE_REPOSITORY_BASE_PATH = "%s/extras/google/m2repository/com/google/android/gms/%s/";
+
+  private static final String GOOGLE_SUPPORT_REPOSITORY_BASE_PATH = "%s/extras/google/m2repository/com/google/android/support/%s/";
 
   // e.g. 18.0.0/appcompat-v7-18.0.0
   private static final String MAVEN_REVISION_PATH = "%2$s/%1$s-%2$s";
@@ -107,8 +113,8 @@ public class RepositoryUrlManager {
     .build();
   public static final Map<String, RepositoryLibrary> EXTRAS_REPOSITORY = new ImmutableMap.Builder<String, RepositoryLibrary>()
     .put(SUPPORT_ANNOTATIONS, new RepositoryLibrary(SUPPORT_ANNOTATIONS, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_JAR))
-    .put(SUPPORT_ID_V4, new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE,
-                                              SUPPORT_LIBRARY_EXTENSIONS))
+    .put(SUPPORT_ID_V4,
+         new RepositoryLibrary(SUPPORT_ID_V4, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SUPPORT_LIBRARY_EXTENSIONS))
     .put(SUPPORT_ID_V13, new RepositoryLibrary(SUPPORT_ID_V13, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE,
                                                SUPPORT_LIBRARY_EXTENSIONS))
     .put(APP_COMPAT_ID_V7, new RepositoryLibrary(APP_COMPAT_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
@@ -120,6 +126,8 @@ public class RepositoryUrlManager {
     .put(PALETTE_ID_V7, new RepositoryLibrary(PALETTE_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(RECYCLER_VIEW_ID_V7, new RepositoryLibrary(RECYCLER_VIEW_ID_V7, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
     .put(LEANBACK_ID_V17, new RepositoryLibrary(LEANBACK_ID_V17, SUPPORT_REPOSITORY_BASE_PATH, SUPPORT_BASE_COORDINATE, SdkConstants.DOT_AAR))
+    .put(SUPPORT_WEARABLE_ID, new RepositoryLibrary(SUPPORT_WEARABLE_ID, GOOGLE_SUPPORT_REPOSITORY_BASE_PATH, GOOGLE_SUPPORT_BASE_COORDINATE,
+                                                    SdkConstants.DOT_AAR))
     .build();
 
 
