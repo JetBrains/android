@@ -107,9 +107,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       @Override
       public void run() {
         PsiManager manager = PsiManager.getInstance(myFacet.getModule().getProject());
-        PsiDirectory directory = manager.findDirectory(myResourceDir);
-        if (directory != null) {
-          scanResFolder(directory);
+        if (myResourceDir.isValid()) {
+          PsiDirectory directory = manager.findDirectory(myResourceDir);
+          if (directory != null) {
+            scanResFolder(directory);
+          }
         }
       }
     });
