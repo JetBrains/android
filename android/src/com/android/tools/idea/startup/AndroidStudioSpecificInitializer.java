@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.memory.MemoryProfilerAction;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -29,7 +30,6 @@ import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
@@ -75,7 +75,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -485,22 +484,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     if (!f.exists()) {
       return null;
     }
-    Properties properties = new Properties();
-    FileInputStream fis = null;
     try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fis = new FileInputStream(f);
-      properties.load(fis);
+      Properties properties = PropertiesUtil.getProperties(f);
+      return properties.getProperty("lastSdkPath");
     } catch (IOException e) {
       return null;
-    } finally {
-      try {
-        Closeables.close(fis, true /* swallowIOException */);
-      } catch (IOException e) {
-        // Cannot happen
-      }
     }
-    return properties.getProperty("lastSdkPath");
   }
 
   /**
