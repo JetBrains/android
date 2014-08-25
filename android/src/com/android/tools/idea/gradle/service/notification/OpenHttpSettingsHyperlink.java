@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.service.notification;
 
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HTTPProxySettingsPanel;
+import com.intellij.util.net.HttpProxySettingsUi;
 import com.intellij.util.net.HttpConfigurable;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +28,6 @@ class OpenHttpSettingsHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    ShowSettingsUtil.getInstance().editConfigurable(project, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
+    ShowSettingsUtil.getInstance().editConfigurable(project, new HttpProxySettingsUi(HttpConfigurable.getInstance()));
   }
 }
