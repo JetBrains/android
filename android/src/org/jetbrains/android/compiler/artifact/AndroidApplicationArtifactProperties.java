@@ -4,14 +4,15 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.ui.ArtifactEditorContext;
 import com.intellij.packaging.ui.ArtifactPropertiesEditor;
+import com.intellij.util.Base64;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.Transient;
-import org.apache.commons.codec.binary.Base64;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -148,23 +149,23 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
   @Transient
   @NotNull
   public String getPlainKeystorePassword() {
-    return new String(new Base64().decode(myKeyStorePassword.getBytes()));
+    return new String(Base64.decode(myKeyStorePassword));
   }
 
   @Transient
   public void setPlainKeystorePassword(@NotNull String password) {
-    myKeyStorePassword = new String(new Base64().encode(password.getBytes()));
+    myKeyStorePassword = Base64.encode(password.getBytes(CharsetToolkit.UTF8_CHARSET));
   }
 
   @Transient
   @NotNull
   public String getPlainKeyPassword() {
-    return new String(new Base64().decode(myKeyPassword.getBytes()));
+    return new String(Base64.decode(myKeyPassword), CharsetToolkit.UTF8_CHARSET);
   }
 
   @Transient
   public void setPlainKeyPassword(@NotNull String password) {
-    myKeyPassword = new String(new Base64().encode(password.getBytes()));
+    myKeyPassword = Base64.encode(password.getBytes(CharsetToolkit.UTF8_CHARSET));
   }
 
   public boolean isRunProGuard() {
