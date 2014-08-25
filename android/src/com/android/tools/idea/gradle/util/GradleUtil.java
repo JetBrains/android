@@ -26,7 +26,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -66,7 +65,9 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -236,33 +237,20 @@ public final class GradleUtil {
    * @throws IOException if something goes wrong when saving the file.
    */
   public static boolean updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
-    Properties properties = loadGradleWrapperProperties(propertiesFile);
+    Properties properties = PropertiesUtil.getProperties(propertiesFile);
     String gradleDistributionUrl = getGradleDistributionUrl(gradleVersion, false);
     String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (property != null && (property.equals(gradleDistributionUrl) || property.equals(getGradleDistributionUrl(gradleVersion, true)))) {
       return false;
     }
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, gradleDistributionUrl);
-    FileOutputStream out = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      out = new FileOutputStream(propertiesFile);
-      properties.store(out, null);
-      return true;
-    }
-    finally {
-      try {
-        Closeables.close(out, true);
-      }
-      catch (IOException unexpected) {
-        LOG.info(unexpected);
-      }
-    }
+    PropertiesUtil.savePropertiesToFile(properties, propertiesFile, null);
+    return true;
   }
 
   @Nullable
   public static String getGradleWrapperVersion(@NotNull File propertiesFile) throws IOException {
-    Properties properties = loadGradleWrapperProperties(propertiesFile);
+    Properties properties = PropertiesUtil.getProperties(propertiesFile);
     String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
     if (url == null) {
       return null;
@@ -272,26 +260,6 @@ public final class GradleUtil {
       return m.group(1);
     }
     return null;
-  }
-
-  @NotNull
-  public static Properties loadGradleWrapperProperties(@NotNull File propertiesFile) throws IOException {
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(propertiesFile);
-      properties.load(fileInputStream);
-      return properties;
-    }
-    finally {
-      try {
-        Closeables.close(fileInputStream, true);
-      }
-      catch (IOException unexpected) {
-        LOG.info(unexpected);
-      }
-    }
   }
 
   @NotNull
