@@ -17,10 +17,10 @@ package org.jetbrains.android.exportSignedPackage;
 
 import com.android.builder.model.Variant;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -114,8 +114,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       }
     }
     myApkPathField.setText(ourLastApkFolder.getAbsolutePath());
-    myApkPathField.addBrowseFolderListener("Select APK destination folder", null, myWizard.getProject(),
-                                           FileChooserDescriptorFactory.getDirectoryChooserDescriptor("destination folder"));
+    FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+    myApkPathField.addBrowseFolderListener("Select APK Destination Folder", null, myWizard.getProject(), descriptor);
   }
 
   @Override
