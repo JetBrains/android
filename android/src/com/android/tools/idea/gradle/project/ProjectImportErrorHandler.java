@@ -114,6 +114,17 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       }
     }
 
+    if (rootCause instanceof OutOfMemoryError) {
+      // The OutOfMemoryError happens in the Gradle daemon process.
+      String originalMessage = rootCause.getMessage();
+      String msg = "Out of memory";
+      if (originalMessage != null && !originalMessage.isEmpty()) {
+        msg = msg + ": " + originalMessage;
+      }
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
     // give others GradleProjectResolverExtensions a chance to handle this error
     return null;
   }
