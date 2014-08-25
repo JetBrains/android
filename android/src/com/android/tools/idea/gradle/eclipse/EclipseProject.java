@@ -22,6 +22,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -439,7 +440,7 @@ class EclipseProject implements Comparable<EclipseProject> {
     File propertyFile = new File(myDir, ".settings" + separator +
                                        "org.eclipse.core.resources.prefs");
     if (propertyFile.exists()) {
-      Properties properties = GradleImport.getProperties(propertyFile);
+      Properties properties = PropertiesUtil.getProperties(propertyFile);
       if (properties != null) {
         Enumeration<?> enumeration = properties.propertyNames();
         String prefix = "encoding/";
@@ -966,7 +967,7 @@ class EclipseProject implements Comparable<EclipseProject> {
       myLanguageLevel = DEFAULT_LANGUAGE_LEVEL; // default
       File file = new File(myDir, ".settings" + separator + "org.eclipse.jdt.core.prefs");
       if (file.exists()) {
-        Properties properties = GradleImport.getProperties(file);
+        Properties properties = PropertiesUtil.getProperties(file);
         if (properties != null) {
           String source = properties.getProperty("org.eclipse.jdt.core.compiler.source");
           if (source != null) {
@@ -1077,7 +1078,7 @@ class EclipseProject implements Comparable<EclipseProject> {
       assert isAndroidProject();
       File file = getProjectPropertiesFile();
       if (file.exists()) {
-        myProjectProperties = GradleImport.getProperties(file);
+        myProjectProperties = PropertiesUtil.getProperties(file);
       }
       else {
         myProjectProperties = new Properties();

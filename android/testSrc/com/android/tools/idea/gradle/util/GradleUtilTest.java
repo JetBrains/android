@@ -18,14 +18,12 @@ package com.android.tools.idea.gradle.util;
 import com.android.sdklib.repository.FullRevision;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import junit.framework.TestCase;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -60,18 +58,9 @@ public class GradleUtilTest extends TestCase {
     FileUtilRt.createIfNotExists(wrapper);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
 
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(wrapper);
-      properties.load(fileInputStream);
-      String distributionUrl = properties.getProperty("distributionUrl");
-      assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
-    }
-    finally {
-      Closeables.close(fileInputStream, true /* swallowIOException */);
-    }
+    Properties properties = PropertiesUtil.getProperties(wrapper);
+    String distributionUrl = properties.getProperty("distributionUrl");
+    assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneBin() throws IOException {
@@ -86,18 +75,9 @@ public class GradleUtilTest extends TestCase {
                 "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(wrapper);
-      properties.load(fileInputStream);
-      String distributionUrl = properties.getProperty("distributionUrl");
-      assertEquals("http://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
-    }
-    finally {
-      Closeables.close(fileInputStream, true /* swallowIOException */);
-    }
+    Properties properties = PropertiesUtil.getProperties(wrapper);
+    String distributionUrl = properties.getProperty("distributionUrl");
+    assertEquals("http://services.gradle.org/distributions/gradle-1.9-bin.zip", distributionUrl);
   }
 
   public void testLeaveGradleWrapperAloneAll() throws IOException {
@@ -112,18 +92,9 @@ public class GradleUtilTest extends TestCase {
                 "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-all.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.9", wrapper);
 
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(wrapper);
-      properties.load(fileInputStream);
-      String distributionUrl = properties.getProperty("distributionUrl");
-      assertEquals("http://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
-    }
-    finally {
-      Closeables.close(fileInputStream, true /* swallowIOException */);
-    }
+    Properties properties = PropertiesUtil.getProperties(wrapper);
+    String distributionUrl = properties.getProperty("distributionUrl");
+    assertEquals("http://services.gradle.org/distributions/gradle-1.9-all.zip", distributionUrl);
   }
 
   public void testReplaceGradleWrapper() throws IOException {
@@ -138,18 +109,9 @@ public class GradleUtilTest extends TestCase {
                 "distributionUrl=http\\://services.gradle.org/distributions/gradle-1.9-bin.zip", wrapper, Charsets.UTF_8);
     GradleUtil.updateGradleDistributionUrl("1.6", wrapper);
 
-    Properties properties = new Properties();
-    FileInputStream fileInputStream = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fileInputStream = new FileInputStream(wrapper);
-      properties.load(fileInputStream);
-      String distributionUrl = properties.getProperty("distributionUrl");
-      assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
-    }
-    finally {
-      Closeables.close(fileInputStream, true /* swallowIOException */);
-    }
+    Properties properties = PropertiesUtil.getProperties(wrapper);
+    String distributionUrl = properties.getProperty("distributionUrl");
+    assertEquals("http://services.gradle.org/distributions/gradle-1.6-all.zip", distributionUrl);
   }
 
   public void testUpdateGradleDistributionUrl() {

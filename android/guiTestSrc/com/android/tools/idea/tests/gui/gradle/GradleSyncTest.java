@@ -23,18 +23,21 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
 import org.fest.util.Strings;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
+import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
-  @Test
-  @IdeGuiTest
+  @Test @IdeGuiTest @Ignore
   public void testUnsupportedGradleVersion() throws IOException {
     IdeFrameFixture projectFrame = openProject("SimpleApplication");
 
@@ -64,5 +67,19 @@ public class GradleSyncTest extends GuiTestCase {
     message.clickHyperlink("Fix Gradle wrapper and re-import project");
 
     projectFrame.waitForGradleProjectSyncToFinish();
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=75060
+  @Test @IdeGuiTest
+  public void testUnableToStartDaemon() throws IOException {
+    IdeFrameFixture projectFrame = openProject("SimpleApplication");
+
+    // Force a sync failure by allocating not enough memory for the Gradle daemon.
+    Properties gradleProperties = new Properties();
+    gradleProperties.setProperty("org.gradle.jvmargs", "-Xms8m -Xmx24m -XX:MaxPermSize=8m");
+    File gradlePropertiesFilePath = new File(projectFrame.getProjectPath(), FN_GRADLE_PROPERTIES);
+    savePropertiesToFile(gradleProperties, gradlePropertiesFilePath, null);
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFail();
   }
 }
