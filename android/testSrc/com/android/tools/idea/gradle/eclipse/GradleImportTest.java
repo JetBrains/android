@@ -4,6 +4,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkManager;
+import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.utils.ILogger;
 import com.android.utils.Pair;
@@ -1324,10 +1325,10 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
                    .replace(NL, "\n"));
 
     assertEquals(sdkLocation.getPath(),
-                 GradleImport.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
+                 PropertiesUtil.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
                    getProperty("sdk.dir"));
     assertEquals(ndkLocation.getPath(),
-                 GradleImport.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
+                 PropertiesUtil.getProperties(new File(imported, FN_LOCAL_PROPERTIES)).
                    getProperty("ndk.dir"));
 
     deleteDir(root);
