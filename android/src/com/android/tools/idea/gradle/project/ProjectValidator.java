@@ -21,6 +21,7 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.messages.Message;
 import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.*;
@@ -181,7 +182,7 @@ public class ProjectValidator {
                                                             @NotNull Project project) {
     Properties wrapperProperties = null;
     try {
-      wrapperProperties = GradleUtil.loadGradleWrapperProperties(wrapperPropertiesFile);
+      wrapperProperties = PropertiesUtil.getProperties(wrapperPropertiesFile);
     }
     catch (IOException e) {
       LOG.warn("Failed to read file " + wrapperPropertiesFile.getPath());

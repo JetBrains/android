@@ -27,6 +27,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.SdkManager;
 import com.android.sdklib.repository.local.LocalSdk;
+import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.utils.*;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
@@ -184,7 +185,7 @@ public class GradleImport {
     File localProperties = new File(projectDir, FN_LOCAL_PROPERTIES);
     if (localProperties.exists()) {
       try {
-        Properties properties = getProperties(localProperties);
+        Properties properties = PropertiesUtil.getProperties(localProperties);
         if (properties != null) {
           String sdk = properties.getProperty(property);
           if (sdk != null) {
@@ -296,14 +297,6 @@ public class GradleImport {
     sb.append(message);
 
     return sb.toString();
-  }
-
-  static Properties getProperties(File file) throws IOException {
-    Properties properties = new Properties();
-    InputStreamReader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)), Charsets.UTF_8);
-    properties.load(reader);
-    Closeables.close(reader, true);
-    return properties;
   }
 
   /**
@@ -646,7 +639,7 @@ public class GradleImport {
       File settings = getEncodingSettingsFile();
       if (settings.exists()) {
         try {
-          Properties properties = getProperties(settings);
+          Properties properties = PropertiesUtil.getProperties(settings);
           if (properties != null) {
             String encodingName = properties.getProperty("encoding");
             if (encodingName != null) {
@@ -675,7 +668,7 @@ public class GradleImport {
     if (myWorkspaceLocation != null) {
       if (settings.exists()) {
         try {
-          Properties properties = getProperties(settings);
+          Properties properties = PropertiesUtil.getProperties(settings);
           if (properties != null) {
             String path = properties.getProperty(property);
             if (path == null) {
@@ -969,18 +962,12 @@ public class GradleImport {
         properties.setProperty(PROPERTY_NDK, myNdkLocation.getPath());
       }
 
-      FileOutputStream out = null;
-      try {
-        //noinspection IOResourceOpenedButNotSafelyClosed
-        out = new FileOutputStream(new File(destDir, FN_LOCAL_PROPERTIES));
-        properties.store(out, "# This file must *NOT* be checked into Version Control Systems,\n" +
-                              "# as it contains information specific to your local configuration.\n" +
-                              "\n" +
-                              "# Location of the SDK. This is only used by Gradle.\n");
-      }
-      finally {
-        Closeables.close(out, true);
-      }
+      File path = new File(destDir, FN_LOCAL_PROPERTIES);
+      String comments = "# This file must *NOT* be checked into Version Control Systems,\n" +
+                        "# as it contains information specific to your local configuration.\n" +
+                        "\n" +
+                        "# Location of the SDK. This is only used by Gradle.\n";
+      PropertiesUtil.savePropertiesToFile(properties, path, comments);
     }
   }
 
@@ -1383,7 +1370,7 @@ public class GradleImport {
       return null;
     }
 
-    return getProperties(settings);
+    return PropertiesUtil.getProperties(settings);
   }
 
   private File getRuntimeSettingsDir() {
@@ -1423,7 +1410,7 @@ public class GradleImport {
       return null;
     }
 
-    return getProperties(settings);
+    return PropertiesUtil.getProperties(settings);
   }
 
   private File getWorkspaceLocation() {

@@ -16,19 +16,17 @@
 package com.android.tools.idea.gradle.util;
 
 import com.android.SdkConstants;
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import com.google.common.io.Closeables;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -78,28 +76,7 @@ public final class LocalProperties {
    */
   public LocalProperties(@NotNull File projectDirPath) throws IOException {
     myFilePath = new File(projectDirPath, SdkConstants.FN_LOCAL_PROPERTIES);
-    myProperties = readFile(myFilePath);
-  }
-
-  @NotNull
-  private static Properties readFile(@NotNull File filePath) throws IOException {
-    if (filePath.isDirectory()) {
-      // There is a directory named "local.properties". Unlikely to happen, but worth checking.
-      throw new IllegalArgumentException(String.format("The path '%1$s' belongs to a directory!", filePath.getPath()));
-    }
-    if (!filePath.exists()) {
-      return new Properties();
-    }
-    Properties properties = new Properties();
-    Reader reader = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(filePath)), Charsets.UTF_8);
-      properties.load(reader);
-    } finally {
-      Closeables.close(reader, true);
-    }
-    return properties;
+    myProperties = PropertiesUtil.getProperties(myFilePath);
   }
 
   /**
@@ -138,20 +115,7 @@ public final class LocalProperties {
    * Saves any changes to the underlying local.properties file.
    */
   public void save() throws IOException {
-    FileUtilRt.createParentDirs(myFilePath);
-    FileOutputStream out = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      out = new FileOutputStream(myFilePath);
-      // Note that we don't write the properties files in UTF-8; this will *not* write the
-      // files with the default platform encoding; instead, it will write it using ISO-8859-1 and
-      // \\u escaping syntax for other characters. This will work with older versions of the Gradle
-      // plugin which does not read the .properties file with UTF-8 encoding. In the future when
-      // nobody is using older (0.7.x) versions of the Gradle plugin anymore we can upgrade this
-      myProperties.store(out, HEADER_COMMENT);
-    } finally {
-      Closeables.close(out, true);
-    }
+    PropertiesUtil.savePropertiesToFile(myProperties, myFilePath, HEADER_COMMENT);
   }
 
   @NotNull
