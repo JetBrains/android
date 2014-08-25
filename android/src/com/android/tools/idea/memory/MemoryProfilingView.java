@@ -94,6 +94,7 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
     myTimelineComponent
       .configureEvent(MemorySampler.TYPE_HPROF_REQUEST, MemorySampler.TYPE_HPROF_RESULT, 0, AndroidIcons.Ddms.ScreenCapture,
                       new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF));
+    myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
     myContentPane.add(myTimelineComponent, BorderLayout.CENTER);
     // TODO: Handle case where no bridge can be found.
@@ -106,7 +107,6 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
 
     myContentPane.add(panel, BorderLayout.WEST);
-    myContentPane.setBackground(BACKGROUND_COLOR);
 
     stateChanged();
     reset();
