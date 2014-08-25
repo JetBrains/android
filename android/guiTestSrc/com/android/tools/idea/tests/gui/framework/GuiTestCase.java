@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
@@ -193,6 +194,12 @@ public abstract class GuiTestCase {
   @NotNull
   protected File setUpProject(@NotNull String projectDirName, boolean forOpen, boolean updateGradleVersions) throws IOException {
     final File projectPath = getProjectDirPath(projectDirName);
+
+    File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);
+    if (gradlePropertiesFilePath.isFile()) {
+      delete(gradlePropertiesFilePath);
+    }
+
     createGradleWrapper(projectPath);
 
     if (updateGradleVersions) {

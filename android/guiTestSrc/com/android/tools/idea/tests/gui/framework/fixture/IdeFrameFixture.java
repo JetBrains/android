@@ -69,6 +69,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   private EditorFixture myEditor;
 
   @NotNull private final ProjectSyncListener myProjectSyncListener;
+  @NotNull private final File myProjectPath;
 
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
@@ -92,11 +93,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     }, LONG_TIMEOUT);
 
     IdeFrameImpl ideFrame = robot.finder().find(matcher);
-    return new IdeFrameFixture(robot, ideFrame);
+    return new IdeFrameFixture(robot, ideFrame, projectPath);
   }
 
-  public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target) {
+  public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
     super(robot, target);
+    myProjectPath = projectPath;
     final Project project = getProject();
 
     Disposable disposable = new NoOpDisposable();
@@ -105,6 +107,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     myProjectSyncListener = new ProjectSyncListener();
     MessageBusConnection connection = project.getMessageBus().connect(disposable);
     connection.subscribe(GRADLE_SYNC_TOPIC, myProjectSyncListener);
+  }
+
+  @NotNull
+  public File getProjectPath() {
+    return myProjectPath;
   }
 
   @NotNull
