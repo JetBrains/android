@@ -26,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
@@ -85,7 +86,7 @@ public class SampleTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   public void testEditor() throws IOException {
-    IdeFrameFixture projectFrame = openProject("SimpleApplication");
+    IdeFrameFixture projectFrame = openSimpleApplication();
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
 
@@ -116,4 +117,5 @@ public class SampleTest extends GuiTestCase {
     editor.enterText("    ");
     editor.invokeAction(EditorFixture.EditorAction.FORMAT);
   }
+
 }

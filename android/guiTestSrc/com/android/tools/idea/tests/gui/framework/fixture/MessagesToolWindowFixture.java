@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.assertions.Assertions.assertThat;
@@ -64,7 +65,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     @NotNull
     public ContentFixture requireMessage(@NotNull ErrorTreeElementKind kind, @NotNull final String... text) {
-      TextMatcher equalMatcher = new TextMatcher() {
+      MessageMatcher equalMatcher = new MessageMatcher() {
         @Override
         public boolean matches(@NotNull String[] actual) {
           return Arrays.equals(text, actual);
@@ -79,19 +80,19 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     }
 
     @NotNull
-    public ContentFixture requireMessage(@NotNull ErrorTreeElementKind kind, @NotNull TextMatcher matcher) {
+    public ContentFixture requireMessage(@NotNull ErrorTreeElementKind kind, @NotNull MessageMatcher matcher) {
       doFindMessage(kind, matcher);
       return this;
     }
 
     @NotNull
-    public MessageFixture findMessage(@NotNull ErrorTreeElementKind kind, @NotNull TextMatcher matcher) {
+    public MessageFixture findMessage(@NotNull ErrorTreeElementKind kind, @NotNull MessageMatcher matcher) {
       ErrorTreeElement found = doFindMessage(kind, matcher);
       return new MessageFixture(myRobot, found);
     }
 
     @NotNull
-    private ErrorTreeElement doFindMessage(@NotNull final ErrorTreeElementKind kind, @NotNull final TextMatcher matcher) {
+    private ErrorTreeElement doFindMessage(@NotNull final ErrorTreeElementKind kind, @NotNull final MessageMatcher matcher) {
       ErrorTreeElement found = GuiActionRunner.execute(new GuiQuery<ErrorTreeElement>() {
         @Override
         @Nullable
@@ -113,7 +114,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     @Nullable
     private static ErrorTreeElement findMessage(@NotNull ErrorViewStructure errorView,
                                                 @NotNull ErrorTreeElement[] children,
-                                                @NotNull TextMatcher matcher,
+                                                @NotNull MessageMatcher matcher,
                                                 @NotNull ErrorTreeElementKind kind) {
       for (ErrorTreeElement child : children) {
         if (child instanceof GroupingElement) {
@@ -131,8 +132,23 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
   }
 
-  public interface TextMatcher {
-    boolean matches(@NotNull String[] text);
+  public static abstract class MessageMatcher {
+    protected abstract boolean matches(@NotNull String[] text);
+
+    @NotNull
+    public static MessageMatcher firstLineStartingWith(@NotNull final String prefix) {
+      return new MessageMatcher() {
+        @Override
+        public boolean matches(@NotNull String[] text) {
+          return text[0].startsWith(prefix);
+        }
+
+        @Override
+        public String toString() {
+          return "first line starting with " + quote(prefix);
+        }
+      };
+    }
   }
 
   public static class MessageFixture {
@@ -153,8 +169,6 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       // HyperlinkEvent, simulating a click on the actual hyperlink.
 
       assertThat(myTarget).isInstanceOf(EditableNotificationMessageElement.class);
-      // We replace spaces with '[\s]+' to match any number of spaces and line breaks. The text of the hyperlink can be in multiple lines.
-      String hyperlinkTextPattern = hyperlinkText.replace(" ", "[\\s]+") + "[\\s]*";
 
       // Find the URL of the hyperlink.
       final EditableNotificationMessageElement message = (EditableNotificationMessageElement)myTarget;
@@ -162,7 +176,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       final JEditorPane editorComponent = GuiActionRunner.execute(new GuiQuery<JEditorPane>() {
         @Override
         protected JEditorPane executeInEDT() throws Throwable {
-          final TreeCellEditor cellEditor = message.getRightSelfEditor();
+          TreeCellEditor cellEditor = message.getRightSelfEditor();
           return field("editorComponent").ofType(JEditorPane.class).in(cellEditor).get();
         }
       });
@@ -178,9 +192,13 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       Matcher matcher = ANCHOR_TAG_PATTERN.matcher(text);
       while (matcher.find()) {
         String anchorText = matcher.group(2);
-        if (anchorText.matches(hyperlinkTextPattern)) {
-          url = matcher.group(1);
-          break;
+        // Text may be spread across multiple lines. Put everything in one line.
+        if (anchorText != null) {
+          anchorText = anchorText.replaceAll("[\\s]+", " ");
+          if (anchorText.equals(hyperlinkText)) {
+            url = matcher.group(1);
+            break;
+          }
         }
       }
       assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
@@ -192,7 +210,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
       GuiActionRunner.execute(new GuiTask() {
         @Override
         protected void executeInEDT() throws Throwable {
-          editorComponent.fireHyperlinkUpdate(new HyperlinkEvent(this, HyperlinkEvent.EventType.ACTIVATED, null, urlDescription));
+          editorComponent.fireHyperlinkUpdate(new HyperlinkEvent(this, ACTIVATED, null, urlDescription));
         }
       });
 
