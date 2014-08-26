@@ -60,4 +60,12 @@ public class ProjectImportErrorHandlerTest extends TestCase {
     assertNotNull(realCause);
     assertTrue(realCause.getMessage().contains("Please install the Android Support Repository"));
   }
+
+  public void testGetUserFriendlyErrorWithOutOfMemoryError() {
+    OutOfMemoryError rootCause = new OutOfMemoryError("Java heap space");
+    Throwable error = new Throwable(rootCause);
+    RuntimeException realCause = myErrorHandler.getUserFriendlyError(error, myProjectPath, null);
+    assertNotNull(realCause);
+    assertEquals("Out of memory: Java heap space", realCause.getMessage());
+  }
 }
