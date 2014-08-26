@@ -137,6 +137,7 @@ class TimelineComponent extends JComponent implements ActionListener, HierarchyL
     }
     myUnits = "";
     myEvents = new TIntObjectHashMap<Event>();
+    setOpaque(true);
     reset();
   }
 
@@ -185,12 +186,17 @@ class TimelineComponent extends JComponent implements ActionListener, HierarchyL
 
   @Override
   public void paintComponent(Graphics g) {
-    Graphics2D g2d = (Graphics2D)g;
+    Graphics2D g2d = (Graphics2D)g.create();
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     g2d.setFont(TIMELINE_FONT);
 
     Dimension dim = getSize();
+
+    g2d.setClip(null);
+    g2d.setColor(getBackground());
+    g2d.fillRect(0, 0, dim.width, dim.height);
+
     myBottom = dim.height - BOTTOM_MARGIN;
     myRight = dim.width - RIGHT_MARGIN;
 
@@ -210,13 +216,12 @@ class TimelineComponent extends JComponent implements ActionListener, HierarchyL
       }
       myYScale = (myBottom - TOP_MARGIN) / myCurrentMax;
 
-      Rectangle clipper = g2d.getClipBounds();
       g2d.setClip(LEFT_MARGIN, TOP_MARGIN, myRight - LEFT_MARGIN, myBottom - TOP_MARGIN);
 
       drawTimelineData(g2d);
       drawEvents(g2d);
 
-      g2d.setClip(clipper);
+      g2d.setClip(null);
 
       drawLabels(g2d);
       drawTimeMarkers(g2d);
@@ -226,6 +231,8 @@ class TimelineComponent extends JComponent implements ActionListener, HierarchyL
       if (myDrawDebugInfo) {
         drawDebugInfo(g2d);
       }
+
+      g2d.dispose();
     }
 
     myFirstFrame = false;
