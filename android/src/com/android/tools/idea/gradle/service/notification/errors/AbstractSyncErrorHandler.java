@@ -40,15 +40,15 @@ public abstract class AbstractSyncErrorHandler {
   private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
   private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
 
-  private static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
+  protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
   /**
    * Attempts to handle a project sync error.
    *
-   * @param message the error message (from the given {@link ExternalSystemException},) separated by lines.
-   * @param error the project sync error.
+   * @param message      the error message (from the given {@link ExternalSystemException},) separated by lines.
+   * @param error        the project sync error.
    * @param notification this is what will be displayed in the "Messages" tool window.
-   * @param project the given project.
+   * @param project      the given project.
    * @return {@code true} if the project sync error was successfully handled; {@code false} otherwise.
    */
   public abstract boolean handleError(@NotNull List<String> message,
@@ -96,7 +96,7 @@ public abstract class AbstractSyncErrorHandler {
   }
 
   public static void updateNotification(@NotNull NotificationData notification,
-                                        @NotNull final Project project,
+                                        @NotNull Project project,
                                         @NotNull String title,
                                         @NotNull String errorMsg,
                                         @NotNull NotificationHyperlink... hyperlinks) {
@@ -116,6 +116,12 @@ public abstract class AbstractSyncErrorHandler {
     notification.setTitle(title);
     notification.setMessage(text);
     notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
+    addNotificationListener(notification, project, hyperlinks);
+  }
+
+  protected static void addNotificationListener(@NotNull NotificationData notification,
+                                                @NotNull final Project project,
+                                                @NotNull NotificationHyperlink... hyperlinks) {
     for (final NotificationHyperlink hyperlink : hyperlinks) {
       notification.setListener(hyperlink.getUrl(), new NotificationListener.Adapter() {
         @Override
@@ -125,5 +131,4 @@ public abstract class AbstractSyncErrorHandler {
       });
     }
   }
-
 }
