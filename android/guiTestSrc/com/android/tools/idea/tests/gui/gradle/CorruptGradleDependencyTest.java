@@ -20,21 +20,20 @@ import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.IOException;
 
+import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY;
 
 public class CorruptGradleDependencyTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=74842
   @Test @IdeGuiTest
   public void testPrematureEndOfContentLength() throws IOException {
-    IdeFrameFixture projectFrame = openProject("SimpleApplication");
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
     // Simulate this Gradle error.
     final String failure = "Premature end of Content-Length delimited message body (expected: 171012; received: 50250.";
@@ -43,20 +42,8 @@ public class CorruptGradleDependencyTest extends GuiTestCase {
     final String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
 
-    MessagesToolWindowFixture.MessageFixture message =
-      messages.getGradleSyncContent().findMessage(ERROR, new MessagesToolWindowFixture.TextMatcher() {
-        @Override
-        public boolean matches(@NotNull String[] text) {
-          return text[0].startsWith(prefix);
-        }
-
-        @Override
-        public String toString() {
-          return "starting with " + quote(prefix);
-        }
-      });
-
-    message.clickHyperlink("Re-download dependencies and sync project (requires network)");
+    MessagesToolWindowFixture.MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
+   message.clickHyperlink("Re-download dependencies and sync project (requires network)");
 
     projectFrame.waitForGradleProjectSyncToFinish();
 
