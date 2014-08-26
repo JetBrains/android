@@ -19,6 +19,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.junit.Test;
 
@@ -42,8 +44,9 @@ public class CorruptGradleDependencyTest extends GuiTestCase {
     final String prefix = "Gradle's dependency cache seems to be corrupt or out of sync";
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
 
-    MessagesToolWindowFixture.MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
-   message.clickHyperlink("Re-download dependencies and sync project (requires network)");
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith(prefix));
+    HyperlinkFixture hyperlink = message.findHyperlink("Re-download dependencies and sync project (requires network)");
+    hyperlink.click();
 
     projectFrame.waitForGradleProjectSyncToFinish();
 
