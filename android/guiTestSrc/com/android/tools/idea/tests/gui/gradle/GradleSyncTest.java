@@ -19,8 +19,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -36,7 +36,7 @@ import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
-  @Test @IdeGuiTest @Ignore
+  @Test @IdeGuiTest
   public void testUnsupportedGradleVersion() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
@@ -49,22 +49,31 @@ public class GradleSyncTest extends GuiTestCase {
 
     MessagesToolWindowFixture.ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("You are using an unsupported version of Gradle"));
-    message.clickHyperlink("Fix Gradle wrapper and re-import project");
+
+    HyperlinkFixture hyperlink = message.findHyperlink("Fix Gradle wrapper and re-import project");
+    hyperlink.click();
 
     projectFrame.waitForGradleProjectSyncToFinish();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test @IdeGuiTest
-  public void testUnableToStartDaemon() throws IOException {
+  public void testOutOfMemoryError() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
     // Force a sync failure by allocating not enough memory for the Gradle daemon.
     Properties gradleProperties = new Properties();
-    gradleProperties.setProperty("org.gradle.jvmargs", "-Xms8m -Xmx24m -XX:MaxPermSize=8m");
+    gradleProperties.setProperty("org.gradle.jvmargs", "-XX:MaxHeapSize=8m");
     File gradlePropertiesFilePath = new File(projectFrame.getProjectPath(), FN_GRADLE_PROPERTIES);
     savePropertiesToFile(gradleProperties, gradlePropertiesFilePath, null);
 
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFail();
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Out of memory"));
+
+    // Verify that at least we offer some sort of hint.
+    HyperlinkFixture hyperlink = message.findHyperlink("Read Gradle's configuration guide");
+    hyperlink.requireUrl("http://www.gradle.org/docs/current/userguide/build_environment.html");
   }
 }
