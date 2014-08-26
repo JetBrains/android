@@ -408,7 +408,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
             rescanImmediately(psiFile, folderType);
