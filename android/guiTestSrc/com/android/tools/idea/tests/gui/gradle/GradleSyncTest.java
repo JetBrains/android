@@ -20,9 +20,6 @@ import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
-import com.intellij.ide.errorTreeView.ErrorTreeElementKind;
-import org.fest.util.Strings;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -34,12 +31,14 @@ import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest @Ignore
   public void testUnsupportedGradleVersion() throws IOException {
-    IdeFrameFixture projectFrame = openProject("SimpleApplication");
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
     // Ensure we have an old, unsupported Gradle in the wrapper.
     File wrapperPropertiesFile = findWrapperPropertiesFile(projectFrame.getProject());
@@ -48,22 +47,8 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSyncAndExpectFailure();
 
-    final String prefix = "You are using an unsupported version of Gradle";
-
     MessagesToolWindowFixture.ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message =
-      syncMessages.findMessage(ErrorTreeElementKind.ERROR, new MessagesToolWindowFixture.TextMatcher() {
-        @Override
-        public boolean matches(@NotNull String[] text) {
-          return text[0].startsWith(prefix);
-        }
-
-        @Override
-        public String toString() {
-          return "starting with " + Strings.quote(prefix);
-        }
-      });
-
+    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("You are using an unsupported version of Gradle"));
     message.clickHyperlink("Fix Gradle wrapper and re-import project");
 
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -72,7 +57,7 @@ public class GradleSyncTest extends GuiTestCase {
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test @IdeGuiTest
   public void testUnableToStartDaemon() throws IOException {
-    IdeFrameFixture projectFrame = openProject("SimpleApplication");
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
     // Force a sync failure by allocating not enough memory for the Gradle daemon.
     Properties gradleProperties = new Properties();
