@@ -17,7 +17,6 @@ package com.android.tools.idea.memory;
 
 import com.android.annotations.concurrency.GuardedBy;
 
-import java.awt.*;
 import java.util.List;
 
 /**
@@ -26,8 +25,7 @@ import java.util.List;
  * to be prevented.
  */
 class TimelineData {
-  private final Stream[] myStreams;
-  private final String myUnit;
+  private final int myStreams;
   @GuardedBy("this")
   private final List<Sample> mySamples;
   @GuardedBy("this")
@@ -37,15 +35,10 @@ class TimelineData {
   @GuardedBy("this")
   private String myTitle;
 
-  TimelineData(Stream[] streams, int capacity, String unit) {
+  TimelineData(int streams, int capacity) {
     myStreams = streams;
-    myUnit = unit;
     mySamples = new CircularArrayList<Sample>(capacity);
     myStart = System.currentTimeMillis();
-  }
-
-  public Stream getStream(int j) {
-    return myStreams[j];
   }
 
   synchronized public long getStartTime() {
@@ -53,21 +46,21 @@ class TimelineData {
   }
 
   public int getStreamCount() {
-    return myStreams.length;
+    return myStreams;
   }
 
   synchronized public float getMaxTotal() {
     return myMaxTotal;
   }
 
-  synchronized public void add(long time, float... values) {
-    assert values.length == myStreams.length;
+  synchronized public void add(long time, int type, int id, float... values) {
+    assert values.length == myStreams;
     float total = 0.0f;
     for (float value : values) {
       total += value;
     }
     myMaxTotal = Math.max(myMaxTotal, total);
-    mySamples.add(new Sample((time - myStart) / 1000.0f, values));
+    mySamples.add(new Sample((time - myStart) / 1000.0f, type, id, values));
   }
 
   synchronized public void clear() {
@@ -92,8 +85,8 @@ class TimelineData {
     myTitle = title;
   }
 
-  public String getUnit() {
-    return myUnit;
+  public boolean isEmpty() {
+    return size() == 0;
   }
 
   /**
@@ -106,39 +99,14 @@ class TimelineData {
      */
     public final float time;
     public final float[] values;
+    public final int type;
+    public final int id;
 
-    Sample(float time, float[] values) {
+    public Sample(float time, int type, int id, float[] values) {
       this.time = time;
       this.values = values;
-    }
-
-    /**
-     * Linearly interpolates the receiver with the given sample at the indicated moment in time.
-     *
-     * @param other the sample to interpolate with.
-     * @param time  the time at which to interpolate.
-     * @return the interpolated Sample.
-     */
-    Sample interpolate(Sample other, float time) {
-      if (this == other) {
-        return this;
-      }
-      float f = (time - this.time) / (other.time - this.time);
-      float[] values = new float[this.values.length];
-      for (int i = 0; i < this.values.length; i++) {
-        values[i] = this.values[i] + f * (other.values[i] - this.values[i]);
-      }
-      return new Sample(time, values);
-    }
-  }
-
-  public static class Stream {
-    public final String name;
-    public final Color color;
-
-    public Stream(String name, Color color) {
-      this.name = name;
-      this.color = color;
+      this.type = type;
+      this.id = id;
     }
   }
 }
