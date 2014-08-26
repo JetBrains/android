@@ -182,6 +182,11 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
+  protected IdeFrameFixture openSimpleApplication() throws IOException {
+    return openProject("SimpleApplication");
+  }
+
+  @NotNull
   protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
     final File projectPath = setUpProject(projectDirName, true, true);
 
