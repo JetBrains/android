@@ -163,7 +163,7 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
     }
 
     @NotNull
-    public MessageFixture clickHyperlink(@NotNull String hyperlinkText) {
+    public HyperlinkFixture findHyperlink(@NotNull String hyperlinkText) {
       // There is no specific UI component for a hyperlink in the "Messages" window. Instead we have a JEditorPane with HTML. This method
       // finds the anchor tags, and matches the text of each of them against the given text. If a matching hyperlink is found, we fire a
       // HyperlinkEvent, simulating a click on the actual hyperlink.
@@ -202,18 +202,38 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
         }
       }
       assertNotNull("Failed to find URL for hyperlink " + quote(hyperlinkText), url);
+      return new HyperlinkFixture(myRobot, editorComponent, url);
+    }
+  }
 
+  public static class HyperlinkFixture {
+    @NotNull private final Robot myRobot;
+    @NotNull private final JEditorPane myTarget;
+    @NotNull private final String myUrl;
+
+    HyperlinkFixture(@NotNull Robot robot, @NotNull JEditorPane target, @NotNull String url) {
+      myRobot = robot;
+      myTarget = target;
+      myUrl = url;
+    }
+
+    @NotNull
+    public HyperlinkFixture click() {
       // at least move the mouse where the message is, so we can know that something is happening.
-      myRobot.moveMouse(visibleCenterOf(editorComponent));
+      myRobot.moveMouse(visibleCenterOf(myTarget));
 
-      final String urlDescription = url;
       GuiActionRunner.execute(new GuiTask() {
         @Override
         protected void executeInEDT() throws Throwable {
-          editorComponent.fireHyperlinkUpdate(new HyperlinkEvent(this, ACTIVATED, null, urlDescription));
+          myTarget.fireHyperlinkUpdate(new HyperlinkEvent(this, ACTIVATED, null, myUrl));
         }
       });
+      return this;
+    }
 
+    @NotNull
+    public HyperlinkFixture requireUrl(@NotNull String expected) {
+      assertThat(myUrl).as("URL").isEqualTo(expected);
       return this;
     }
   }
