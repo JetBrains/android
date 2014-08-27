@@ -95,10 +95,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   @Override
-  protected RunContentDescriptor doExecute(@NotNull final Project project,
-                                           @NotNull final RunProfileState state,
-                                           final RunContentDescriptor contentToReuse,
-                                           @NotNull final ExecutionEnvironment environment) throws ExecutionException {
+  protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment environment) throws ExecutionException {
     assert state instanceof AndroidRunningState;
     final AndroidRunningState runningState = (AndroidRunningState)state;
     final RunContentDescriptor[] descriptor = {null};
@@ -110,25 +107,22 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           @Override
           public void run() {
             if (descriptor[0] != null) {
-              showNotification(project, environment.getExecutor(), descriptor[0], "error", false, NotificationType.ERROR);
+              showNotification(environment.getProject(), environment.getExecutor(), descriptor[0], "error", false, NotificationType.ERROR);
             }
           }
         });
       }
     });
-    descriptor[0] = doExec(project, runningState, contentToReuse, environment);
+    descriptor[0] = doExec(runningState, environment);
     return descriptor[0];
   }
 
-  private RunContentDescriptor doExec(Project project,
-                                      AndroidRunningState state,
-                                      RunContentDescriptor contentToReuse,
-                                      ExecutionEnvironment environment) throws ExecutionException {
+  private RunContentDescriptor doExec(AndroidRunningState state, ExecutionEnvironment environment) throws ExecutionException {
     if (DefaultRunExecutor.EXECUTOR_ID.equals(environment.getExecutor().getId())) {
-      final RunContentDescriptor descriptor = super.doExecute(project, state, contentToReuse, environment);
+      final RunContentDescriptor descriptor = super.doExecute(state, environment);
 
       if (descriptor != null) {
-        setActivateToolWindowWhenAddedProperty(project, environment.getExecutor(), descriptor, "running");
+        setActivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), descriptor, "running");
       }
       return descriptor;
     }
@@ -148,11 +142,11 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     state.setDebugMode(true);
     RunContentDescriptor runDescriptor;
     synchronized (myDebugLock) {
-      MyDebugLauncher launcher = new MyDebugLauncher(project, state, environment);
+      MyDebugLauncher launcher = new MyDebugLauncher(state, environment);
       state.setDebugLauncher(launcher);
 
-      final RunContentDescriptor descriptor = embedToExistingSession(project, environment.getExecutor(), state);
-      runDescriptor = descriptor != null ? descriptor : super.doExecute(project, state, contentToReuse, environment);
+      final RunContentDescriptor descriptor = embedToExistingSession(environment.getProject(), environment.getExecutor(), state);
+      runDescriptor = descriptor != null ? descriptor : super.doExecute(state, environment);
       launcher.setRunDescriptor(runDescriptor);
       if (descriptor != null) {
         return null;
@@ -161,10 +155,10 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     if (runDescriptor == null) {
       return null;
     }
-    tryToCloseOldSessions(environment.getExecutor(), project);
+    tryToCloseOldSessions(environment.getExecutor(), environment.getProject());
     final ProcessHandler handler = state.getProcessHandler();
     handler.putUserData(ANDROID_SESSION_INFO, new AndroidSessionInfo(runDescriptor, state, environment.getExecutor().getId()));
-    setActivateToolWindowWhenAddedProperty(project, environment.getExecutor(), runDescriptor, "running");
+    setActivateToolWindowWhenAddedProperty(environment.getProject(), environment.getExecutor(), runDescriptor, "running");
     return runDescriptor;
   }
 
@@ -203,9 +197,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   }
 
   @Nullable
-  private static RunContentDescriptor embedToExistingSession(final Project project,
-                                                             final Executor executor,
-                                                             final AndroidRunningState state) throws ExecutionException {
+  protected static RunContentDescriptor embedToExistingSession(final Project project,
+                                                               final Executor executor,
+                                                               final AndroidRunningState state) {
     final Pair<ProcessHandler, AndroidSessionInfo> pair = findOldSession(project, executor, state.getConfiguration());
     final AndroidSessionInfo oldSessionInfo = pair != null ? pair.getSecond() : null;
     final ProcessHandler oldProcessHandler = pair != null ? pair.getFirst() : null;
@@ -417,10 +411,9 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
     private final ExecutionEnvironment myEnvironment;
     private RunContentDescriptor myRunDescriptor;
 
-    public MyDebugLauncher(Project project,
-                           AndroidRunningState state,
+    public MyDebugLauncher(AndroidRunningState state,
                            ExecutionEnvironment environment) {
-      myProject = project;
+      myProject = environment.getProject();
       myRunningState = state;
       myEnvironment = environment;
       myExecutor = environment.getExecutor();
