@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResourceDataController;
 import com.android.tools.idea.rendering.Locale;
@@ -156,7 +157,17 @@ public class StringResourceTableModel extends AbstractTableModel {
       if (column < ConstantColumn.COUNT) {
         return ConstantColumn.values()[column].name + " should not be empty";
       } else if (!myController.getData().getUntranslatableKeys().contains(keyOfRow(row))) {
-        return "Translation for " + keyOfRow(row) + " should not be empty";
+        String key = keyOfRow(row);
+        Locale l = localeOfColumn(column);
+        if (l != null && l.hasRegion()) {
+          // if this has a region qualifier, then it is sufficient if the base language has a translation
+          Locale base = Locale.create(l.language, null);
+          ResourceItem baseResourceItem = myController.getData().getTranslations().get(key, base);
+          if (baseResourceItem != null && !StringResourceData.resourceToString(baseResourceItem).isEmpty()) {
+            return null;
+          }
+        }
+        return "Translation for " + key + " should not be empty";
       }
     } else if (myController.getData().getUntranslatableKeys().contains(keyOfRow(row)) && column >= ConstantColumn.COUNT) {
       return "Key " + keyOfRow(row) + " should not be translated";
