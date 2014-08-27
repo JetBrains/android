@@ -307,7 +307,7 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           notificationMessage = "Session <a href=''>'" + sessionName + "'</a>: " + status;
         }
 
-        NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId(), true)
+        NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId())
           .createNotification("", notificationMessage,
                               type, new NotificationListener() {
             @Override
