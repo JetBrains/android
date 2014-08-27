@@ -31,7 +31,7 @@ import java.awt.geom.Path2D;
  * rendered, but objects of this class should not be accessed from different threads.
  */
 @SuppressWarnings({"FieldAccessedSynchronizedAndUnsynchronized", "UseJBColor"})
-class TimelineComponent extends JComponent implements ActionListener, HierarchyListener {
+public class TimelineComponent extends JComponent implements ActionListener, HierarchyListener {
 
   private static final Color TEXT_COLOR = Gray._128;
   private static final Font TIMELINE_FONT = new Font("Sans", Font.PLAIN, 10);
@@ -207,7 +207,7 @@ class TimelineComponent extends JComponent implements ActionListener, HierarchyL
 
     synchronized (myData) {
       // Calculate begin and end times in seconds.
-      myEndTime = (now / 1000000 - myData.getStartTime()) / 1000.0f - myBufferTime;
+      myEndTime = myData.getEndTime() - myBufferTime;
       myBeginTime = myEndTime - (myRight - LEFT_MARGIN) / X_SCALE;
 
       // Animate the current maximum towards the real one.
