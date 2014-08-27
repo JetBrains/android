@@ -27,7 +27,7 @@ public class MemoryProfilingToolWindowFactory implements ToolWindowFactory, Dumb
 
   @Override
   public void createToolWindowContent(Project project, ToolWindow toolWindow) {
-    MemoryProfilingView view = new MemoryProfilingView(project, toolWindow);
+    MemoryProfilingView view = new MemoryProfilingView(project);
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);

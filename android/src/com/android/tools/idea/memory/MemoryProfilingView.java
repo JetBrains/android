@@ -16,17 +16,19 @@
 package com.android.tools.idea.memory;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.actions.GcAction;
+import com.android.tools.idea.memory.actions.CloseMemoryProfilingWindow;
+import com.android.tools.idea.memory.actions.RecordingAction;
+import com.android.tools.idea.memory.actions.ToggleDebugRender;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
@@ -39,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-public class MemoryProfilingView extends ToolWindowManagerAdapter {
+public class MemoryProfilingView implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IClientChangeListener {
 
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
@@ -49,11 +51,7 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final int SAMPLE_FREQUENCY_MS = 500;
   @NotNull
-  private final ToolWindowManagerEx myToolWindowManager;
-  @NotNull
   private final Project myProject;
-  @NotNull
-  private final AndroidDebugBridge myBridge;
   @NotNull
   private final DeviceContext myDeviceContext;
   @NotNull
@@ -61,22 +59,13 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
   @NotNull
   private final TimelineComponent myTimelineComponent;
   @NotNull
-  private final TimelineData myData;
-  private boolean myVisible;
-  @NotNull
-  private ToolWindow myToolWindow;
-  @Nullable
   private MemorySampler myMemorySampler;
-  @Nullable
-  private String myApplicationName;
 
-  public MemoryProfilingView(@NotNull Project project, @NotNull ToolWindow toolWindow) {
+  public MemoryProfilingView(@NotNull Project project) {
     myProject = project;
-    myToolWindowManager = ToolWindowManagerEx.getInstanceEx(project);
-    myToolWindow = toolWindow;
     myDeviceContext = new DeviceContext();
 
-    myData = new TimelineData(2, SAMPLES);
+    TimelineData data = new TimelineData(2, SAMPLES);
     // Buffer at one and a half times the sample frequency.
     float bufferTimeInSeconds = SAMPLE_FREQUENCY_MS * 1.5f / 1000.f;
     float initialMax = 5.0f;
@@ -84,7 +73,7 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
 
     myContentPane = new JPanel(new BorderLayout());
 
-    myTimelineComponent = new TimelineComponent(myData, bufferTimeInSeconds, initialMax, initialMarker);
+    myTimelineComponent = new TimelineComponent(data, bufferTimeInSeconds, initialMax, initialMarker);
 
     myTimelineComponent.configureUnits("MB");
 
@@ -96,10 +85,9 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
                       new JBColor(0x92ADC6, 0x718493), new JBColor(0x2B4E8C, 0xC7E5FF));
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
 
+    myMemorySampler = new MemorySampler(data, myProject, myDeviceContext, SAMPLE_FREQUENCY_MS);
+
     myContentPane.add(myTimelineComponent, BorderLayout.CENTER);
-    // TODO: Handle case where no bridge can be found.
-    myBridge = AndroidSdkUtils.getDebugBridge(project);
-    myToolWindowManager.addToolWindowManagerListener(this);
 
     JPanel panel = new JPanel(new GridLayout());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false);
@@ -108,46 +96,31 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
 
     myContentPane.add(panel, BorderLayout.WEST);
 
-    stateChanged();
-    reset();
+
+    // TODO: Handle case where no bridge can be found.
+    AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(project);
+    for (IDevice device : bridge.getDevices()) {
+      findClient(device);
+    }
+    AndroidDebugBridge.addDeviceChangeListener(this);
+    AndroidDebugBridge.addClientChangeListener(this);
   }
 
   @NotNull
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
 
+    group.add(new RecordingAction(myMemorySampler));
     group.add(new MemorySnapshotAction(this));
     group.add(new GcAction(myDeviceContext));
+    group.add(new CloseMemoryProfilingWindow(this));
+
     if (Boolean.getBoolean("studio.profiling.debug")) {
-      group.add(new ToggleDebugRender());
+      group.addSeparator();
+      group.add(new ToggleDebugRender(myTimelineComponent));
     }
 
     return group;
-  }
-
-  @Override
-  public void stateChanged() {
-    boolean isRegistered = myToolWindowManager.getToolWindow(MemoryProfilingToolWindowFactory.ID) != null;
-    boolean disposed = myToolWindow.isDisposed();
-    boolean visible = !disposed && isRegistered && myToolWindow.isVisible();
-    if (visible != myVisible || disposed) {
-      if (myMemorySampler != null) {
-        myMemorySampler.stop();
-        myMemorySampler = null;
-      }
-
-      if (visible) {
-        reset();
-        myMemorySampler = new MemorySampler(myApplicationName, myData, myProject, myBridge, myDeviceContext, SAMPLE_FREQUENCY_MS);
-      }
-      myVisible = visible;
-    }
-  }
-
-  private void reset() {
-    myApplicationName = getApplicationName();
-    myData.clear();
-    myTimelineComponent.reset();
   }
 
   @Nullable
@@ -169,24 +142,49 @@ public class MemoryProfilingView extends ToolWindowManagerAdapter {
     return myContentPane;
   }
 
-  @Nullable
+  @NotNull
   public MemorySampler getMemorySampler() {
     return myMemorySampler;
   }
 
-  private class ToggleDebugRender extends ToggleAction {
-    public ToggleDebugRender() {
-      super("Enable debug renderer", "Enables debug rendering", AllIcons.General.Debug);
-    }
+  @Override
+  public void deviceConnected(IDevice device) {
+    // Ignore.
+  }
 
-    @Override
-    public boolean isSelected(AnActionEvent e) {
-      return myTimelineComponent.isDrawDebugInfo();
-    }
+  @Override
+  public void deviceDisconnected(IDevice device) {
+    // Ignore.
+  }
 
-    @Override
-    public void setSelected(AnActionEvent e, boolean state) {
-      myTimelineComponent.setDrawDebugInfo(state);
+  @Override
+  public void deviceChanged(IDevice device, int changeMask) {
+    if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+      findClient(device);
+    }
+  }
+
+  private void findClient(IDevice device) {
+    String applicationName = getApplicationName();
+    Client client = device.getClient(applicationName);
+    myDeviceContext.fireClientSelected(client);
+  }
+
+  public void close() {
+    myMemorySampler.stop();
+    AndroidDebugBridge.removeClientChangeListener(this);
+    AndroidDebugBridge.removeDeviceChangeListener(this);
+    ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
+    toolWindowManager.unregisterToolWindow(MemoryProfilingToolWindowFactory.ID);
+  }
+
+  @Override
+  public void clientChanged(Client client, int changeMask) {
+    if ((changeMask & Client.CHANGE_NAME) != 0) {
+      String name = client.getClientData().getClientDescription();
+      if (name != null && name.equals(getApplicationName())) {
+        myDeviceContext.fireClientSelected(client);
+      }
     }
   }
 }
