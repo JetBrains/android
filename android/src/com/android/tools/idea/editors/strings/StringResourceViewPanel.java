@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.strings;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
-import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
@@ -27,7 +26,6 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.*;
-import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.table.JBTable;
@@ -40,8 +38,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
-import java.util.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class StringResourceViewPanel {
   private final AndroidFacet myFacet;
