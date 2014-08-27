@@ -108,7 +108,7 @@ public class StringsWriteUtils {
       new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
         @Override
         public void run() {
-          tag.getValue().setText(value);
+          tag.getValue().setEscapedText(value);
         }
       }.execute();
       return true;
