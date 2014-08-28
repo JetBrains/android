@@ -70,6 +70,6 @@ public class NotificationHyperlinkTest extends TestCase {
   }
 
   public void testToString() {
-    assertEquals("<a href=\"openFile\">Open File</a>", myHyperlink.toString());
+    assertEquals("<a href=\"openFile\">Open File</a>", myHyperlink.toHtml());
   }
 }

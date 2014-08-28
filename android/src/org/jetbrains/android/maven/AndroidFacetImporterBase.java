@@ -785,7 +785,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final OpenAndroidSdkManagerHyperlink hyperlink = new OpenAndroidSdkManagerHyperlink();
     AndroidUtils.reportImportErrorToEventLog(
       "Cannot find appropriate Android platform" + (apiLevel != null ? " for API level " + apiLevel : "") +
-      ". " + hyperlink.toString(),
+      ". " + hyperlink.toHtml(),
       moduleName, project, new CustomNotificationListener(project, hyperlink));
   }
 
