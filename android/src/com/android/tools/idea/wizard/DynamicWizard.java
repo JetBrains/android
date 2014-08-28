@@ -17,9 +17,8 @@ package com.android.tools.idea.wizard;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ide.IdeBundle;
-import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.Step;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -27,23 +26,15 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogEarthquakeShaker;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.components.panels.OpaquePanel;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +56,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
  *
  *
  */
-public abstract class DynamicWizard extends DialogWrapper implements ScopedStateStore.ScopedStoreListener {
+public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListener {
   Logger LOG = Logger.getInstance(DynamicWizard.class);
 
   // A queue of updates used to throttle the update() function.
@@ -76,6 +67,9 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   @Nullable private Project myProject;
   // A reference to the module context in which this wizard was invoked.
   @Nullable private Module myModule;
+
+  // Wizard "chrome"
+  @NotNull protected final DynamicWizardHost myHost;
   // The name of this wizard for display to the user
   protected String myName;
   // List of the paths that this wizard contains. Paths can be optional or required.
@@ -84,58 +78,30 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   protected AndroidStudioWizardPath myCurrentPath;
   // An iterator to keep track of the user's progress through the paths.
   protected PathIterator myPathListIterator = new PathIterator(myPaths);
-  // Action References. myCancelAction and myHelpAction are inherited
-  protected Action myPreviousAction = new PreviousAction();
-  protected Action myNextAction = new NextAction();
-  protected Action myFinishAction = new FinishAction();
-
-  protected TallImageComponent myIcon;
   private boolean myIsInitialized = false;
-
-  // UI references
-  private Map<Action, JButton> myActionToButtonMap = Maps.newHashMapWithExpectedSize(5);
-
-  //private Icon myIcon;
-  private JPanel myContentPanel;
-  private Map<JComponent, String> myComponentToIdMap = Maps.newHashMap();
   private ScopedStateStore myState;
-  private JPanel myCenterPanel;
-  private JPanel mySouthPanel;
+  private JPanel myContentPanel = new JPanel(new CardLayout());
+  private Map<JComponent, String> myComponentToIdMap = Maps.newHashMap();
 
   public DynamicWizard(@Nullable Project project, @Nullable Module module, @NotNull String name) {
-    super(project);
+    this(project, module, name, new DialogWrapperHost(project));
+  }
+
+  public DynamicWizard(@Nullable Project project, @Nullable Module module, @NotNull String name, @NotNull DynamicWizardHost host) {
+    myHost = host;
     myProject = project;
     myModule = module;
     myName = name;
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       myUpdateQueue = null;
     } else {
-      myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, null, getDisposable(), null, false);
+      myUpdateQueue = new MergingUpdateQueue("wizard", 100, true, null, myHost.getDisposable(), null, false);
     }
     myState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, this);
-    myIcon = new TallImageComponent(null);
-
-    Window window = getWindow();
-    if (window == null) {
-      assert ApplicationManager.getApplication().isUnitTestMode();
-    } else {
-      window.setPreferredSize(WizardConstants.DEFAULT_WIZARD_WINDOW_SIZE);
-    }
   }
 
-  @Override
   public void init() {
-    super.init();
-
-    // Clear out the large border
-    Container centerRootPanel = myCenterPanel.getParent();
-    if (centerRootPanel != null) {
-      Container rootPanel = centerRootPanel.getParent();
-      if (rootPanel instanceof JPanel) {
-        // Clear out default borders, we'll set our own later
-        ((JPanel)rootPanel).setBorder(new EmptyBorder(0, 0, 0, 0));
-      }
-    }
+    myHost.init(this);
 
     myIsInitialized = true;
 
@@ -144,32 +110,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       showStep(myCurrentPath.getCurrentStep());
       myCurrentPath.updateCurrentStep();
     }
-  }
-
-  /**
-   * Create the center panel that will serve as a container for the UI components of each step.
-   */
-  @Nullable
-  @Override
-  protected JComponent createCenterPanel() {
-    myCenterPanel = new JPanel(new BorderLayout());
-    myContentPanel = new JPanel(new CardLayout());
-    myCenterPanel.add(myContentPanel, BorderLayout.CENTER);
-    myCenterPanel.add(myIcon, BorderLayout.WEST);
-    return myCenterPanel;
-  }
-
-  /**
-   * Create the south panel that serves as the container for the wizard buttons.
-   * The base class does all the heavy lifting already, we just adjust the margins here.
-   */
-  @Nullable
-  @Override
-  protected JComponent createSouthPanel() {
-    mySouthPanel = (JPanel)super.createSouthPanel();
-    assert mySouthPanel != null;
-    mySouthPanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
-    return mySouthPanel;
   }
 
   /**
@@ -268,14 +208,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       // Buttons were not yet created
       return;
     }
-    getPreviousButton().setEnabled(canGoPrev && hasPrevious());
-    getNextButton().setEnabled(canGoNext && hasNext());
-
-    boolean canFinish = canFinishCurrentPath && canFinish();
-    getFinishButton().setEnabled(canFinish);
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      getRootPane().setDefaultButton(canFinish ? getFinishButton() : getNextButton());
-    }
+    myHost.updateButtons(canGoPrev && hasPrevious(), canGoNext && hasNext(), canFinishCurrentPath && canFinish());
   }
 
   /**
@@ -303,40 +236,10 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     return sum;
   }
 
-  @NotNull
-  protected final JButton getNextButton() {
-    return myActionToButtonMap.get(myNextAction);
-  }
-
-  @NotNull
-  protected final JButton getPreviousButton() {
-    return myActionToButtonMap.get(myPreviousAction);
-  }
-
-  @NotNull
-  protected final JButton getHelpButton() {
-    return myActionToButtonMap.get(myHelpAction);
-  }
-
-  @NotNull
-  protected final JButton getCancelButton() {
-    return myActionToButtonMap.get(myCancelAction);
-  }
-
-  @NotNull
-  protected final JButton getFinishButton() {
-    return myActionToButtonMap.get(myFinishAction);
-  }
-
   protected void showStep(@NotNull Step step) {
     JComponent component = step.getComponent();
     Icon icon = step.getIcon();
-
-    if (icon != null) {
-      myIcon.setIcon(icon);
-      myIcon.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
-    }
-
+    myHost.setIcon(icon);
     // Store a reference to this component.
     String id = myComponentToIdMap.get(component);
     if (id == null) {
@@ -418,46 +321,13 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   }
 
   /**
-   * ACTIONS
-   */
-
-  @NotNull
-  @Override
-  protected final Action[] createActions() {
-    if (getHelpId() == null) {
-      if (SystemInfo.isMac) {
-        return new Action[]{getCancelAction(), myPreviousAction, myNextAction, myFinishAction};
-      }
-
-      return new Action[]{myPreviousAction, myNextAction, getCancelAction(), myFinishAction};
-    }
-    else {
-      if (SystemInfo.isMac) {
-        return new Action[]{getHelpAction(), getCancelAction(), myPreviousAction, myNextAction, myFinishAction};
-      }
-      return new Action[]{myPreviousAction, myNextAction, getCancelAction(), myFinishAction, getHelpAction()};
-    }
-  }
-
-  @Override
-  protected final JButton createJButtonForAction(Action action) {
-    // Save a reference to the created button so that we can access them
-    // later to enable/disable
-    JButton button =  super.createJButtonForAction(action);
-    myActionToButtonMap.put(action, button);
-    return button;
-  }
-
-  /**
    * Commit the current step and move to the next step. Subclasses should rarely need to override
    * this method.
    */
-  protected void doNextAction() {
+  public final void doNextAction() {
     assert myCurrentPath != null;
     if (!myCurrentPath.canGoNext()) {
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        DialogEarthquakeShaker.shake((JDialog)getPeer().getWindow());
-      }
+      myHost.shakeWindow();
       return;
     }
 
@@ -481,12 +351,10 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
    * Find and go to the previous step. Subclasses should rarely need to override
    * this method.
    */
-  protected void doPreviousAction() {
+  public final void doPreviousAction() {
     assert myCurrentPath != null;
     if (!myCurrentPath.canGoPrevious()) {
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        DialogEarthquakeShaker.shake((JDialog)getPeer().getWindow());
-      }
+      myHost.shakeWindow();
       return;
     }
 
@@ -498,7 +366,7 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     } else if (myCurrentPath.hasPrevious()) {
       newStep = myCurrentPath.previous();
     } else {
-      doCancelAction();
+      myHost.close(true);
       return;
     }
     if (newStep != null) {
@@ -511,8 +379,8 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
    * inside a write action and a command. Subclasses should rarely need to override
    * this method.
    */
-  protected void doFinishAction() {
-    super.doOKAction();
+  public final void doFinishAction() {
+    myHost.close(false);
     new WriteCommandAction<Void>(getProject(), getWizardActionDescription(), (PsiFile[]) null) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
@@ -536,23 +404,17 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
   }
 
   @Nullable
-  @Override
-  public JComponent getPreferredFocusedComponent() {
+  public final JComponent getPreferredFocusedComponent() {
     Step currentStep = myCurrentPath.getCurrentStep();
     if (currentStep != null) {
       return currentStep.getPreferredFocusedComponent();
     }
     else {
-      return getNextButton();
+      return null;
     }
   }
 
   protected abstract String getWizardActionDescription();
-
-  @Override
-  protected void doHelpAction() {
-    // TODO: Implement
-  }
 
   /**
    * @return the scoped state store associate with this wizard as a whole
@@ -561,38 +423,30 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
     return myState;
   }
 
-  protected class NextAction extends DialogWrapperAction {
-    protected NextAction() {
-      super(IdeBundle.message("button.wizard.next"));
-      putValue(DEFAULT_ACTION, Boolean.TRUE);
-    }
-
-    @Override
-    protected void doAction(ActionEvent e) {
-      doNextAction();
-    }
+  public final void show() {
+    myHost.show();
   }
 
-  protected class PreviousAction extends DialogWrapperAction {
-    protected PreviousAction() {
-      super(IdeBundle.message("button.wizard.previous"));
-    }
-
-    @Override
-    protected void doAction(ActionEvent e) {
-      doPreviousAction();
-    }
+  @NotNull
+  public Disposable getDisposable() {
+    return myHost.getDisposable();
   }
 
-  protected class FinishAction extends DialogWrapperAction {
-    protected FinishAction() {
-      super(IdeBundle.message("button.finish"));
-    }
+  public boolean showAndGet() {
+    return myHost.showAndGet();
+  }
 
-    @Override
-    protected void doAction(ActionEvent e) {
-      doFinishAction();
-    }
+  public final Component getContentPane() {
+    return myContentPanel;
+  }
+
+  @Nullable
+  public String getHelpId() {
+    return null;
+  }
+
+  public void setTitle(String title) {
+    myHost.setTitle(title);
   }
 
   protected static class PathIterator {
@@ -674,62 +528,6 @@ public abstract class DynamicWizard extends DialogWrapper implements ScopedState
       } else {
         return null;
       }
-    }
-  }
-
-  /**
-   * Taken from {@link AbstractWizard}
-   */
-  public static class TallImageComponent extends OpaquePanel {
-    private Icon myIcon;
-
-    public TallImageComponent(Icon icon) {
-      myIcon = icon;
-    }
-
-    @Override
-    protected void paintChildren(Graphics g) {
-      if (myIcon == null) return;
-
-      paintIcon(g);
-    }
-
-    public void paintIcon(Graphics g) {
-      if (myIcon == null) {
-        return;
-      }
-      final BufferedImage image = UIUtil.createImage(myIcon.getIconWidth(), myIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-      final Graphics2D gg = image.createGraphics();
-      myIcon.paintIcon(this, gg, 0, 0);
-
-      final Rectangle bounds = g.getClipBounds();
-      int y = myIcon.getIconHeight()-1;
-      while (y < bounds.y + bounds.height) {
-        g.drawImage(image,
-                    bounds.x, y, bounds.x + bounds.width, y + 1,
-                    0, myIcon.getIconHeight() - 1, bounds.width, myIcon.getIconHeight(), this);
-
-        y++;
-      }
-
-
-      g.drawImage(image, 0, 0, this);
-    }
-
-    public void setIcon(Icon icon) {
-      myIcon = icon;
-      revalidate();
-      repaint();
-    }
-
-    @Override
-    public Dimension getPreferredSize() {
-      return new Dimension(myIcon != null ? myIcon.getIconWidth() : 0, 0);
-    }
-
-    @Override
-    public Dimension getMinimumSize() {
-      return new Dimension(myIcon != null ? myIcon.getIconWidth() : 0, 0);
     }
   }
 }
