@@ -18,13 +18,11 @@ package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -61,15 +59,12 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -736,9 +731,9 @@ public final class AndroidSdkUtils {
   public static boolean activateDdmsIfNecessary(@NotNull Project project, @NotNull Computable<AndroidDebugBridge> bridgeProvider) {
     if (AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
       AndroidDebugBridge bridge = bridgeProvider.compute();
-      if (bridge != null && isDdmsCorrupted(bridge)) {
+      if (bridge != null && AdbService.isDdmsCorrupted(bridge)) {
         LOG.info("DDMLIB is corrupted and will be restarted");
-        restartDdmlib(project);
+        AdbService.restartDdmlib(project);
       }
     }
     else {
@@ -775,50 +770,6 @@ public final class AndroidSdkUtils {
       AndroidEnableAdbServiceAction.setAdbServiceEnabled(project, true);
     }
     return true;
-  }
-
-  public static boolean canDdmsBeCorrupted(@NotNull AndroidDebugBridge bridge) {
-    return isDdmsCorrupted(bridge) || allDevicesAreEmpty(bridge);
-  }
-
-  private static boolean allDevicesAreEmpty(@NotNull AndroidDebugBridge bridge) {
-    for (IDevice device : bridge.getDevices()) {
-      if (device.getClients().length > 0) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public static boolean isDdmsCorrupted(@NotNull AndroidDebugBridge bridge) {
-    // TODO: find other way to check if debug service is available
-
-    IDevice[] devices = bridge.getDevices();
-    if (devices.length > 0) {
-      for (IDevice device : devices) {
-        Client[] clients = device.getClients();
-
-        if (clients.length > 0) {
-          ClientData clientData = clients[0].getClientData();
-          return clientData.getVmIdentifier() == null;
-        }
-      }
-    }
-    return false;
-  }
-
-  public static void restartDdmlib(@NotNull Project project) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(
-      AndroidToolWindowFactory.TOOL_WINDOW_ID);
-    boolean hidden = false;
-    if (toolWindow != null && toolWindow.isVisible()) {
-      hidden = true;
-      toolWindow.hide(null);
-    }
-    AndroidSdkData.terminateDdmlib();
-    if (hidden) {
-      toolWindow.show(null);
-    }
   }
 
   public static boolean isAndroidSdkAvailable() {
