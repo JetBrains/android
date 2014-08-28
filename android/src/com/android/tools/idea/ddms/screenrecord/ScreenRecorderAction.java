@@ -150,17 +150,15 @@ public class ScreenRecorderAction {
       FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
       VirtualFile baseDir = ourLastSavedFolder != null ? ourLastSavedFolder : VfsUtil.getUserHomeDir();
       VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName());
-      if (fileWrapper == null || fileWrapper.getFile() == null) {
+      if (fileWrapper == null) {
         return;
       }
 
-      VirtualFile virtualFile = fileWrapper.getVirtualFile();
-      if (virtualFile != null) {
-        //noinspection AssignmentToStaticFieldFromInstanceMethod
-        ourLastSavedFolder = virtualFile.getParent();
-      }
+      File f = fileWrapper.getFile();
+      //noinspection AssignmentToStaticFieldFromInstanceMethod
+      ourLastSavedFolder = VfsUtil.findFileByIoFile(f.getParentFile(), false);
 
-      new PullRecordingTask(myProject, myDevice, fileWrapper.getFile().getAbsolutePath()).queue();
+      new PullRecordingTask(myProject, myDevice, f.getAbsolutePath()).queue();
     }
 
     private static String getDefaultFileName() {
