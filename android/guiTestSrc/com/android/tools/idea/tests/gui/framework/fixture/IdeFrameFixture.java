@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.GradleBuildListener;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -68,8 +69,9 @@ import static org.junit.Assert.fail;
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   private EditorFixture myEditor;
 
-  @NotNull private final ProjectSyncListener myProjectSyncListener;
   @NotNull private final File myProjectPath;
+
+  @NotNull private final GradleProjectEventListener myGradleProjectEventListener;
 
   @NotNull
   public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
@@ -104,9 +106,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     Disposable disposable = new NoOpDisposable();
     Disposer.register(project, disposable);
 
-    myProjectSyncListener = new ProjectSyncListener();
+    myGradleProjectEventListener = new GradleProjectEventListener();
+
     MessageBusConnection connection = project.getMessageBus().connect(disposable);
-    connection.subscribe(GRADLE_SYNC_TOPIC, myProjectSyncListener);
+    connection.subscribe(GRADLE_SYNC_TOPIC, myGradleProjectEventListener);
+    connection.subscribe(GRADLE_BUILD_TOPIC, myGradleProjectEventListener);
   }
 
   @NotNull
@@ -122,33 +126,26 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
     buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
 
-    myProjectSyncListener.reset();
-
     pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
       @Override
       public boolean test() {
-        if (myProjectSyncListener.mySyncFinished && myProjectSyncListener.mySyncError != null) {
+        if (myGradleProjectEventListener.mySyncFinished && myGradleProjectEventListener.mySyncError != null) {
           return true;
         }
         GradleSyncState syncState = GradleSyncState.getInstance(project);
-        return (myProjectSyncListener.mySyncFinished || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
+        return (myGradleProjectEventListener.mySyncFinished || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
       }
     }, LONG_TIMEOUT);
 
-    if (myProjectSyncListener.mySyncError != null) {
-      throw myProjectSyncListener.mySyncError;
+    if (myGradleProjectEventListener.mySyncError != null) {
+      throw myGradleProjectEventListener.mySyncError;
     }
 
-    if (!myProjectSyncListener.mySyncWasSkipped) {
-      waitForSourceGenerationToFinish();
+    if (!myGradleProjectEventListener.mySyncWasSkipped) {
+      waitForBuildToFinish(SOURCE_GEN);
     }
 
     return waitForBackgroundTasksToFinish();
-  }
-
-  private void waitForSourceGenerationToFinish() {
-    BuildMode buildMode = SOURCE_GEN;
-    waitForBuildToFinish(buildMode);
   }
 
   @NotNull
@@ -204,6 +201,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public GradleInvocationResult invokeProjectMake() {
+    myGradleProjectEventListener.reset();
+
     final AtomicReference<GradleInvocationResult> resultRef = new AtomicReference<GradleInvocationResult>();
     ProjectBuilder.getInstance(getProject()).addAfterProjectBuildTask(new ProjectBuilder.AfterProjectBuildTask() {
       @Override
@@ -295,25 +294,22 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     throw new AssertionError("Menu item with path " + Arrays.toString(path) + " should have been found already");
   }
 
-  private void waitForBuildToFinish(@NotNull BuildMode buildMode) {
-    Project project = getProject();
-    Disposable disposable = new NoOpDisposable();
-
-    try {
-      MessageBusConnection connection = project.getMessageBus().connect(disposable);
-      final ProjectBuildListener listener = new ProjectBuildListener(buildMode);
-      connection.subscribe(GRADLE_BUILD_TOPIC, listener);
-
-      pause(new Condition("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'") {
-        @Override
-        public boolean test() {
-          return listener.myBuildFinished;
+  private void waitForBuildToFinish(@NotNull final BuildMode buildMode) {
+    final Project project = getProject();
+    pause(new Condition("Build (" + buildMode + ") for project " + quote(project.getName()) + " to finish'") {
+      @Override
+      public boolean test() {
+        if (buildMode == SOURCE_GEN) {
+          PostProjectBuildTasksExecutor tasksExecutor = PostProjectBuildTasksExecutor.getInstance(project);
+          if (tasksExecutor.getLastBuildTimestamp() > -1) {
+            // This will happen when creating a new project. Source generation happens before the IDE frame is found and build listeners
+            // are created. It is fairly safe to assume that source generation happened if we have a timestamp for a "last performed build".
+            return true;
+          }
         }
-      }, LONG_TIMEOUT);
-    }
-    finally {
-      Disposer.dispose(disposable);
-    }
+        return myGradleProjectEventListener.myBuildFinished && myGradleProjectEventListener.myBuildMode == buildMode;
+      }
+    }, LONG_TIMEOUT);
 
     waitForBackgroundTasksToFinish();
     robot.waitForIdle();
@@ -353,11 +349,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, failTask);
     // When simulating the error, we don't have to wait for sync to happen. Sync never happens because the error is thrown before it (sync)
     // is started.
-    return requestProjectSync();
+    requestProjectSync();
+    return waitForGradleProjectSyncToFail();
   }
 
   @NotNull
   public IdeFrameFixture requestProjectSync() {
+    myGradleProjectEventListener.reset();
     findActionButtonByActionId("Android.SyncProject").click();
     return this;
   }
@@ -399,10 +397,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     return new MessagesToolWindowFixture(getProject(), robot);
   }
 
-  private static class ProjectSyncListener extends GradleSyncListener.Adapter {
+  private static class GradleProjectEventListener extends GradleSyncListener.Adapter implements GradleBuildListener {
     volatile RuntimeException mySyncError;
     volatile boolean mySyncFinished;
     volatile boolean mySyncWasSkipped;
+
+    volatile BuildMode myBuildMode;
+    volatile boolean myBuildFinished;
 
     @Override
     public void syncSucceeded(@NotNull Project project) {
@@ -421,26 +422,17 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
       mySyncWasSkipped = true;
     }
 
+    @Override
+    public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
+      myBuildMode = mode;
+      myBuildFinished = true;
+    }
+
     void reset() {
       mySyncError = null;
       mySyncWasSkipped = mySyncFinished = false;
-    }
-  }
-
-  private static class ProjectBuildListener implements GradleBuildListener {
-    @NotNull private final BuildMode myExpectedBuildMode;
-
-    volatile boolean myBuildFinished;
-
-    ProjectBuildListener(@NotNull BuildMode expectedBuildMode) {
-      myExpectedBuildMode = expectedBuildMode;
-    }
-
-    @Override
-    public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
-      if (myExpectedBuildMode == mode) {
-        myBuildFinished = true;
-      }
+      myBuildMode = null;
+      myBuildFinished = false;
     }
   }
 
