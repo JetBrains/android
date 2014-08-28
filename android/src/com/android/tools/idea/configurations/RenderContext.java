@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.openapi.module.Module;
@@ -176,6 +177,12 @@ public interface RenderContext {
   /** Returns the most recent rendered image, if any */
   @Nullable
   BufferedImage getRenderedImage();
+
+  /**
+   * Returns the most recent rendered result, if any
+   */
+  @Nullable
+  RenderResult getLastResult();
 
   @Nullable
   RenderedViewHierarchy getViewHierarchy();

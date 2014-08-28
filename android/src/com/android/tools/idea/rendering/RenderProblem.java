@@ -172,11 +172,12 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
     return myThrowable;
   }
 
+  @Nullable
   public Object getClientData() {
     return myClientData;
   }
 
-  public void setClientData(Object clientData) {
+  public void setClientData(@Nullable Object clientData) {
     myClientData = clientData;
   }
 
