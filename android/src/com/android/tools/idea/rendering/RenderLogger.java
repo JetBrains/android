@@ -115,7 +115,16 @@ public class RenderLogger extends LayoutLog {
    * @return true if there were problems during the render
    */
   public boolean hasProblems() {
-    return myHaveExceptions || myFidelityWarnings != null || myMessages != null ||
+    return hasErrors() || myFidelityWarnings != null;
+  }
+
+  /**
+   * Are there any logged errors during the render? (warnings are ignored)
+   *
+   * @return true if there were errors during the render
+   */
+  public boolean hasErrors() {
+    return myHaveExceptions || myMessages != null ||
            myClassesWithIncorrectFormat != null || myBrokenClasses != null || myMissingClasses != null ||
            myMissingSize || myMissingFragments != null;
   }

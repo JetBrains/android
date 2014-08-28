@@ -691,6 +691,14 @@ public class DeviceArtPainter {
         catch (IOException e) {
           // pass
         }
+        catch (Throwable e) {
+          // pass: corrupt cached image, e.g. I've seen
+          //  java.lang.IndexOutOfBoundsException
+          //  at java.io.RandomAccessFile.readBytes(Native Method)
+          //  at java.io.RandomAccessFile.read(RandomAccessFile.java:338)
+          //  at javax.imageio.stream.FileImageInputStream.read(FileImageInputStream.java:101)
+          //  at com.sun.imageio.plugins.common.SubImageInputStream.read(SubImageInputStream.java:46)
+        }
       }
 
       return null;
