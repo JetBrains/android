@@ -26,14 +26,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class ClassNotFoundErrorHandler extends AbstractSyncErrorHandler {
+public class ClassLoadingErrorHandler extends AbstractSyncErrorHandler {
   @Override
   public boolean handleError(@NotNull List<String> message,
                              @NotNull ExternalSystemException error,
                              @NotNull NotificationData notification,
                              @NotNull final Project project) {
     String firstLine = message.get(0);
-    if (firstLine.startsWith("Unable to load class") || firstLine.startsWith("Unable to find method")) {
+    if (firstLine.startsWith("Unable to load class") ||
+        firstLine.startsWith("Unable to find method") ||
+        firstLine.contains("cannot be cast to")) {
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
       NotificationHyperlink stopDaemonsHyperlink = new StopGradleDaemonsAndSyncHyperlink();
       String newMsg = firstLine + "\nPossible causes for this unexpected error include:<ul>" +
