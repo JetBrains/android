@@ -43,7 +43,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
                        new UnsupportedGradleVersionErrorHandler(), new SdkBuildToolsTooLowErrorHandler(), new MissingPlatformErrorHandler(),
                        new MissingBuildToolsErrorHandler(), new InternetConnectionErrorHandler(), new MissingDependencyErrorHandler(),
                        new CachedDependencyNotFoundErrorHandler(), new UnexpectedErrorHandler(), new UnknownHostErrorHandler(),
-                       new CorruptGradleDependencyErrorHandler(), new JavaHeapSpaceErrorHandler(), new ClassNotFoundErrorHandler(),
+                       new CorruptGradleDependencyErrorHandler(), new JavaHeapSpaceErrorHandler(), new ClassLoadingErrorHandler(),
                        new GenericErrorHandler()));
   }
 
