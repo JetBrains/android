@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
@@ -250,6 +251,12 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
       }
       return myRenderingQueue;
     }
+  }
+
+  @VisibleForTesting
+  public boolean isRenderPending() {
+    MergingUpdateQueue queue = getRenderingQueue();
+    return !queue.isEmpty() && !queue.isFlushing() && !myToolWindowUpdateQueue.isEmpty() && !myToolWindowUpdateQueue.isFlushing();
   }
 
   private boolean isRelevant(PsiTreeChangeEvent event) {
@@ -685,6 +692,11 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
     if (renderImmediately) {
       myToolWindowUpdateQueue.sendFlush();
     }
+  }
+
+  @VisibleForTesting
+  public AndroidLayoutPreviewToolWindowForm getToolWindowForm() {
+    return myToolWindowForm;
   }
 
   private class MyAndroidPlatformListener extends ModuleRootAdapter {

@@ -1360,6 +1360,11 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
     mySessionQueue.sendFlush();
   }
 
+  @VisibleForTesting
+  public boolean isRenderPending() {
+    return !mySessionQueue.isEmpty() && !mySessionQueue.isFlushing();
+  }
+
   @Override
   @NotNull
   public UsageType getType() {
@@ -1438,6 +1443,12 @@ public final class AndroidDesignerEditorPanel extends DesignerEditorPanel implem
   @Override
   public BufferedImage getRenderedImage() {
     return myRootView != null ? myRootView.getImage() : null;
+  }
+
+  @Nullable
+  @Override
+  public RenderResult getLastResult() {
+    return myRenderResult;
   }
 
   @Override

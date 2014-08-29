@@ -17,6 +17,7 @@ package com.intellij.android.designer.model;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedViewHierarchy;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.intellij.designer.ModuleProvider;
@@ -154,6 +155,12 @@ public class TestRenderContext implements RenderContext, ModuleProvider {
   @Override
   public BufferedImage getRenderedImage() {
     throw new RuntimeException("getRenderedImage() is not supported by TestRenderContext");
+  }
+
+  @Nullable
+  @Override
+  public RenderResult getLastResult() {
+    throw new RuntimeException("getLastResult() is not supported by TestRenderContext");
   }
 
   @Nullable
