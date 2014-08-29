@@ -20,29 +20,30 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import org.jetbrains.annotations.NotNull;
 
 public class RecordingAction extends ToggleAction {
-  private MemorySampler myMemorySampler;
+  @NotNull
+  private final MemorySampler myMemorySampler;
 
-  public RecordingAction(MemorySampler memorySampler) {
+  public RecordingAction(@NotNull MemorySampler memorySampler) {
     super(null, null, AllIcons.Debugger.Db_set_breakpoint);
     myMemorySampler = memorySampler;
   }
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    return myMemorySampler != null && myMemorySampler.isRunning();
+    return myMemorySampler.isRunning();
   }
 
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
+    Presentation presentation = e.getPresentation();
     if (isSelected(e)) {
-      final Presentation presentation = e.getPresentation();
       presentation.setText("Stop");
       presentation.setDescription("Stops memory information recording.");
     } else {
-      final Presentation presentation = e.getPresentation();
       presentation.setText("Start");
       presentation.setDescription("Starts memory information recording.");
     }
@@ -50,13 +51,11 @@ public class RecordingAction extends ToggleAction {
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    if (myMemorySampler != null) {
-      if (state) {
-        myMemorySampler.start();
-      }
-      else {
-        myMemorySampler.stop();
-      }
+    if (state) {
+      myMemorySampler.start();
+    }
+    else {
+      myMemorySampler.stop();
     }
   }
 }
