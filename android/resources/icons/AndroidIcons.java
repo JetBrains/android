@@ -53,9 +53,9 @@ public class AndroidIcons {
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
   public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
-
   public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
   public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
+  public static final Icon MavenLogo = load("/icons/mavenLogo.png"); // 16x16
 
   public static final Icon Variant = load("/icons/variant.png");
 
