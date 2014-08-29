@@ -19,12 +19,7 @@ import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.actions.GcAction;
-import com.android.tools.idea.memory.actions.CloseMemoryProfilingWindow;
-import com.android.tools.idea.memory.actions.MemorySnapshotAction;
-import com.android.tools.idea.memory.actions.RecordingAction;
-import com.android.tools.idea.memory.actions.ToggleDebugRender;
+import com.android.tools.idea.memory.actions.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
@@ -71,8 +66,6 @@ public class MemoryProfilingView
   private static final int SAMPLE_FREQUENCY_MS = 500;
   @NotNull
   private final Project myProject;
-  @NotNull
-  private final DeviceContext myDeviceContext;
   private final AndroidDebugBridge myBridge;
   @NotNull
   private final Map<String, String> myPreferredClients;
@@ -99,8 +92,6 @@ public class MemoryProfilingView
     $$$setupUI$$$(); // See IDEA-67765
 
     myProject = project;
-    myDeviceContext = new DeviceContext();
-    myDeviceContext.addListener(new DeviceContextListener(), this);
     myPreferredClients = Maps.newHashMap();
     myCandidateClientName = getApplicationName();
 
@@ -139,7 +130,7 @@ public class MemoryProfilingView
         if (myUserInitiatedInput && client != null) {
           myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
         }
-        myDeviceContext.fireClientSelected(client);
+        myMemorySampler.setClient(client);
       }
     });
 
@@ -158,7 +149,7 @@ public class MemoryProfilingView
     myDeviceCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
-        myDeviceContext.fireDeviceSelected((IDevice)myDeviceCombo.getSelectedItem());
+        updateClientCombo();
       }
     });
 
@@ -192,7 +183,7 @@ public class MemoryProfilingView
 
     group.add(new RecordingAction(myMemorySampler));
     group.add(new MemorySnapshotAction(myMemorySampler));
-    group.add(new GcAction(myDeviceContext));
+    group.add(new GcAction(myMemorySampler));
     group.add(new CloseMemoryProfilingWindow(this));
 
     if (Boolean.getBoolean("studio.profiling.debug")) {
@@ -205,7 +196,6 @@ public class MemoryProfilingView
 
   @Nullable
   private String getApplicationName() {
-    //TODO: Allow users to select the client to profile.
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(module);
       if (moduleInfo != null) {
@@ -256,7 +246,9 @@ public class MemoryProfilingView
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        myDeviceContext.fireDeviceChanged(device, changeMask);
+        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+          updateClientCombo();
+        }
       }
     });
   }
@@ -288,7 +280,7 @@ public class MemoryProfilingView
     // Make sure selected events triggered by this method don't change the user preferences.
     myUserInitiatedInput = false;
 
-    IDevice device = myDeviceContext.getSelectedDevice();
+    IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
     Client selected = (Client)myClientCombo.getSelectedItem();
     myClientCombo.removeAllItems();
     if (device != null) {
@@ -351,24 +343,5 @@ public class MemoryProfilingView
     }
     OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
     FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
-  }
-
-  private class DeviceContextListener implements DeviceContext.DeviceSelectionListener {
-    @Override
-    public void deviceSelected(@Nullable IDevice device) {
-      updateClientCombo();
-    }
-
-    @Override
-    public void deviceChanged(@NotNull IDevice device, int changeMask) {
-      if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
-        updateClientCombo();
-      }
-    }
-
-    @Override
-    public void clientSelected(@Nullable Client client) {
-      myMemorySampler.setClient(client);
-    }
   }
 }
