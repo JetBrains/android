@@ -13,34 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.memory;
+package com.android.tools.idea.memory.actions;
 
+import com.android.tools.idea.memory.MemorySampler;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
-class MemorySnapshotAction extends AnAction {
+public class MemorySnapshotAction extends AnAction {
 
   @NotNull
-  private final MemoryProfilingView myView;
+  private final MemorySampler myMemorySampler;
 
-  public MemorySnapshotAction(@NotNull MemoryProfilingView view) {
+  public MemorySnapshotAction(@NotNull MemorySampler memorySampler) {
     super("Take a memory snapshot", "Takes a memory snapshot", AndroidIcons.Ddms.ScreenCapture);
-    myView = view;
+    myMemorySampler = memorySampler;
   }
 
   @Override
   public void update(AnActionEvent e) {
-    MemorySampler sampler = myView.getMemorySampler();
-    e.getPresentation().setEnabled(sampler != null && sampler.canRequestHeapDump());
+    e.getPresentation().setEnabled(myMemorySampler.canRequestHeapDump());
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    MemorySampler sampler = myView.getMemorySampler();
-    if (sampler != null) {
-      sampler.requestHeapDump();
-    }
+    myMemorySampler.requestHeapDump();
   }
 }

@@ -19,8 +19,6 @@ import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.ddms.DeviceContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -39,8 +37,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class MemorySampler
-  implements Runnable, AndroidDebugBridge.IClientChangeListener, ClientData.IHprofDumpHandler, DeviceContext.DeviceSelectionListener {
+public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListener, ClientData.IHprofDumpHandler {
 
   /**
    * Sample type when the device cannot be seen.
@@ -83,11 +80,10 @@ public class MemorySampler
   private volatile boolean myRunning;
   private int myPendingHprofId;
 
-  MemorySampler(@NotNull TimelineData data, @NotNull Project project, @NotNull DeviceContext deviceContext, int sampleFrequencyMs) {
+  MemorySampler(@NotNull TimelineData data, @NotNull Project project, int sampleFrequencyMs) {
     mySampleFrequencyMs = sampleFrequencyMs;
     myData = data;
     myProject = project;
-    deviceContext.addListener(this, project);
     myDataSemaphore = new Semaphore(0, true);
     myPendingHprofId = 0;
     myData.freeze();
@@ -261,24 +257,11 @@ public class MemorySampler
     }
   }
 
-  @Override
-  public void deviceSelected(@Nullable IDevice device) {
-    // Ignore.
-  }
-
-  @Override
-  public void deviceChanged(@NotNull IDevice device, int changeMask) {
-    // Ignore.
-  }
-
-  @Override
-  @SuppressWarnings("ConstantConditions")
-  public void clientSelected(@Nullable Client client) {
+  public void setClient(@Nullable Client client) {
     if (client != myClient) {
       stopClient();
       myClient = client;
       startClient();
-      myData.setTitle(myClient == null ? "" : myClient.getDevice().getName() + ": " + myClient.getClientData().getClientDescription());
     }
   }
 }
