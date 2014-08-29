@@ -288,6 +288,12 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
 
   @Nullable
   @Override
+  public RenderResult getLastResult() {
+    return myPreviewPanel.getRenderResult();
+  }
+
+  @Nullable
+  @Override
   public RenderedViewHierarchy getViewHierarchy() {
     RenderResult result = myPreviewPanel.getRenderResult();
     if (result != null) {

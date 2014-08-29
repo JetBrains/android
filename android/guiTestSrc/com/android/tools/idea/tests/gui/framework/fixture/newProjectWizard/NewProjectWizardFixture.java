@@ -33,7 +33,7 @@ public class NewProjectWizardFixture extends ComponentFixture<JDialog> {
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(JDialog dialog) {
-        return "Create New Project".equals(dialog.getTitle());
+        return "Create New Project".equals(dialog.getTitle()) && dialog.isShowing();
       }
     });
     return new NewProjectWizardFixture(robot, dialog);
