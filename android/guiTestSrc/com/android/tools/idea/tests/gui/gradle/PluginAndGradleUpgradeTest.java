@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.intellij.openapi.project.Project;
 import org.fest.swing.fixture.DialogFixture;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -53,14 +54,17 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 public class PluginAndGradleUpgradeTest extends GuiTestCase {
   private static final String PROJECT_DIR_NAME = "PluginAndGradleUpgrade";
 
-  @Test @IdeGuiTest(closeProjectBeforeExecution = true)
-  public void test1UpdateGradleVersionInWrapper() throws IOException {
+  @Before
+  public void checkMavenUrl() {
     // For now we need a custom repository, since 0.13.0 is not released yet.
     String customRepositoryUrl = System.getenv("MAVEN_URL");
     if (isEmpty(customRepositoryUrl)) {
       fail("Please specify, in the environment variable 'MAVEN_URL', the path of the custom Maven repo to use");
     }
+  }
 
+  @Test @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void test1UpdateGradleVersionInWrapper() throws IOException {
     File projectPath = setUpProject(PROJECT_DIR_NAME, false, false);
 
     // Ensure we have a pre-2.0 Gradle in the wrapper.
