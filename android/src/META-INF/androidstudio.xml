@@ -43,7 +43,14 @@
         icon="AndroidIcons.SdkManagerLarge" >
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
+
+    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.actions.AndroidShowStructureSettingsAction"
+            project-type="Android" icon="AllIcons.General.ProjectStructure"/>
   </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <defaultProjectTypeProvider type="Android"/>
+  </extensions>
 
   <application-components>
     <component>
