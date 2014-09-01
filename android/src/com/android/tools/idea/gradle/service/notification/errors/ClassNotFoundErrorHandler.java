@@ -16,27 +16,41 @@
 package com.android.tools.idea.gradle.service.notification.errors;
 
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.StopGradleDaemonsAndSyncHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class CorruptGradleDependencyErrorHandler extends AbstractSyncErrorHandler {
+public class ClassNotFoundErrorHandler extends AbstractSyncErrorHandler {
   @Override
   public boolean handleError(@NotNull List<String> message,
                              @NotNull ExternalSystemException error,
                              @NotNull NotificationData notification,
-                             @NotNull Project project) {
+                             @NotNull final Project project) {
     String firstLine = message.get(0);
-    if (firstLine.startsWith("Premature end of Content-Length delimited message body")) {
-      String newMsg = "Gradle's dependency cache seems to be corrupt or out of sync.";
+    if (firstLine.startsWith("Unable to load class") || firstLine.startsWith("Unable to find method")) {
       NotificationHyperlink syncProjectHyperlink = SyncProjectWithExtraCommandLineOptionsHyperlink.syncProjectRefreshingDependencies();
-      updateNotification(notification, project, newMsg, syncProjectHyperlink);
+      NotificationHyperlink stopDaemonsHyperlink = new StopGradleDaemonsAndSyncHyperlink();
+      String newMsg = firstLine + "\nPossible causes for this unexpected error include:<ul>" +
+                      "<li>Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)\n" +
+                      syncProjectHyperlink.toString() + "</li>" +
+                      "<li>The state of a Gradle build process may be corrupt.\n" +
+                      stopDaemonsHyperlink.toString() + "</li></ul>" +
+                      "In the case of corrupt Gradle processes, you can also try closing the IDE and then killing all Java processes.";
+
+      String title = String.format(FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT, project.getName());
+      notification.setTitle(title);
+      notification.setMessage(newMsg);
+      notification.setNotificationCategory(NotificationCategory.convert(DEFAULT_NOTIFICATION_TYPE));
+      addNotificationListener(notification, project, syncProjectHyperlink, stopDaemonsHyperlink);
       return true;
     }
+
     return false;
   }
 }

@@ -29,6 +29,7 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 
 import java.io.File;
 import java.net.UnknownHostException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
@@ -41,7 +42,8 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
 
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
 
-  private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
+  private static final Pattern SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.");
+  private static final Pattern CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.");
 
   private static final String EMPTY_LINE = "\n\n";
   private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GRADLE_MINIMUM_VERSION + " is required";
@@ -104,7 +106,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
         return createUserFriendlyError(newMsg, null);
       }
 
-      if (msg != null && (msg.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND.matcher(msg).matches())) {
+      if (msg != null && (msg.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND_PATTERN.matcher(msg).matches())) {
         String newMsg = msg;
         File buildProperties = new File(projectPath, SdkConstants.FN_LOCAL_PROPERTIES);
         if (buildProperties.isFile()) {
@@ -121,6 +123,24 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
       if (originalMessage != null && !originalMessage.isEmpty()) {
         msg = msg + ": " + originalMessage;
       }
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof NoSuchMethodError) {
+      String msg = String.format("Unable to find method '%1$s'.", rootCause.getMessage());
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof ClassNotFoundException) {
+      String className = rootCause.getMessage();
+      Matcher matcher = CLASS_NOT_FOUND_PATTERN.matcher(className);
+      if (matcher.matches()) {
+        className = matcher.group(1);
+      }
+
+      String msg = String.format("Unable to load class '%1$s'.", className);
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
