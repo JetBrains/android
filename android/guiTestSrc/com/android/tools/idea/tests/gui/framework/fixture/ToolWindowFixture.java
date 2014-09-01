@@ -24,10 +24,12 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static org.fest.swing.timing.Pause.pause;
@@ -45,16 +47,25 @@ public abstract class ToolWindowFixture {
   }
 
   @Nullable
-  protected Content getContent(@NotNull String displayName) {
+  protected Content getContent(@NotNull final String displayName) {
     activate();
     waitUntilIsVisible();
-    Content[] contents = myToolWindow.getContentManager().getContents();
-    for (Content content : contents) {
-      if (displayName.equals(content.getDisplayName())) {
-        return content;
+    final AtomicReference<Content> contentRef = new AtomicReference<Content>();
+
+    Pause.pause(new Condition("finding content '" + displayName + "'") {
+      @Override
+      public boolean test() {
+        Content[] contents = myToolWindow.getContentManager().getContents();
+        for (Content content : contents) {
+          if (displayName.equals(content.getDisplayName())) {
+            contentRef.set(content);
+            return true;
+          }
+        }
+        return false;
       }
-    }
-    return null;
+    }, SHORT_TIMEOUT);
+    return contentRef.get();
   }
 
   protected void activate() {

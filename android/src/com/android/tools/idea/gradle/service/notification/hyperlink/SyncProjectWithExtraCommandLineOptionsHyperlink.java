@@ -25,6 +25,12 @@ public class SyncProjectWithExtraCommandLineOptionsHyperlink extends Notificatio
 
   @NotNull private final String[] myExtraOptions;
 
+  @NotNull
+  public static NotificationHyperlink syncProjectRefreshingDependencies() {
+    return new SyncProjectWithExtraCommandLineOptionsHyperlink("Re-download dependencies and sync project (requires network)",
+                                                               "--refresh-dependencies");
+  }
+
   public SyncProjectWithExtraCommandLineOptionsHyperlink(@NotNull String text, @NotNull String... extraOptions) {
     super("syncProject", text);
     myExtraOptions = extraOptions;

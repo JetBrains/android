@@ -58,7 +58,7 @@ public class GradleSyncTest extends GuiTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=75060
   @Test @IdeGuiTest
-  public void testOutOfMemoryError() throws IOException {
+  public void testHandlingOfOutOfMemoryErrors() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
     // Force a sync failure by allocating not enough memory for the Gradle daemon.
@@ -75,5 +75,19 @@ public class GradleSyncTest extends GuiTestCase {
     // Verify that at least we offer some sort of hint.
     HyperlinkFixture hyperlink = message.findHyperlink("Read Gradle's configuration guide");
     hyperlink.requireUrl("http://www.gradle.org/docs/current/userguide/build_environment.html");
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=73872
+  @Test @IdeGuiTest
+  public void testHandlingOfClassLoadingErrors() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    projectFrame.requestProjectSyncAndSimulateFailure("Unable to load class 'com.android.utils.ILogger'");
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Unable to load class"));
+
+    message.findHyperlink("Re-download dependencies and sync project (requires network)");
+    message.findHyperlink("Stop Gradle daemons and sync project");
   }
 }
