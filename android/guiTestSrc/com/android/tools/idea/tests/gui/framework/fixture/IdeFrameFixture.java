@@ -119,36 +119,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
-  public IdeFrameFixture waitForGradleProjectSyncToFinish() {
-    final Project project = getProject();
-
-    // ensure GradleInvoker (in-process build) is always enabled.
-    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
-    buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
-
-    pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
-      @Override
-      public boolean test() {
-        if (myGradleProjectEventListener.mySyncFinished && myGradleProjectEventListener.mySyncError != null) {
-          return true;
-        }
-        GradleSyncState syncState = GradleSyncState.getInstance(project);
-        return (myGradleProjectEventListener.mySyncFinished || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
-      }
-    }, LONG_TIMEOUT);
-
-    if (myGradleProjectEventListener.mySyncError != null) {
-      throw myGradleProjectEventListener.mySyncError;
-    }
-
-    if (!myGradleProjectEventListener.mySyncWasSkipped) {
-      waitForBuildToFinish(SOURCE_GEN);
-    }
-
-    return waitForBackgroundTasksToFinish();
-  }
-
-  @NotNull
   public IdeFrameFixture requireModuleCount(int expected) {
     Module[] modules = getModuleManager().getModules();
     assertThat(modules).as("Module count in project " + quote(getProject().getName())).hasSize(expected);
@@ -349,8 +319,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, failTask);
     // When simulating the error, we don't have to wait for sync to happen. Sync never happens because the error is thrown before it (sync)
     // is started.
-    requestProjectSync();
-    return waitForGradleProjectSyncToFail();
+    return requestProjectSync();
   }
 
   @NotNull
@@ -369,6 +338,38 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     catch (RuntimeException expected) {
       // expected failure.
     }
+    return waitForBackgroundTasksToFinish();
+  }
+
+  @NotNull
+  public IdeFrameFixture waitForGradleProjectSyncToFinish() {
+    final Project project = getProject();
+
+    // ensure GradleInvoker (in-process build) is always enabled.
+    AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+    buildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
+
+    pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
+      @Override
+      public boolean test() {
+        if (myGradleProjectEventListener.mySyncFinished && myGradleProjectEventListener.mySyncError != null) {
+          return true;
+        }
+        GradleSyncState syncState = GradleSyncState.getInstance(project);
+        return (myGradleProjectEventListener.mySyncFinished || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
+      }
+    }, LONG_TIMEOUT);
+
+    if (myGradleProjectEventListener.mySyncError != null) {
+      RuntimeException syncError = myGradleProjectEventListener.mySyncError;
+      myGradleProjectEventListener.reset();
+      throw syncError;
+    }
+
+    if (!myGradleProjectEventListener.mySyncWasSkipped) {
+      waitForBuildToFinish(SOURCE_GEN);
+    }
+
     return waitForBackgroundTasksToFinish();
   }
 
@@ -404,6 +405,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
     volatile BuildMode myBuildMode;
     volatile boolean myBuildFinished;
+
+    @Override
+    public void syncStarted(@NotNull Project project) {
+      reset();
+    }
 
     @Override
     public void syncSucceeded(@NotNull Project project) {
