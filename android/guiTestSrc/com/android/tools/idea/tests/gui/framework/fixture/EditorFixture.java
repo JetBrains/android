@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.ResourceHelper;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.google.common.collect.Lists;
+import com.intellij.android.designer.AndroidDesignerEditor;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -37,6 +42,8 @@ import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
+import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -502,29 +509,57 @@ public class EditorFixture {
    * Selects the given tab in the current editor. Used to switch between
    * design mode and editor mode for example.
    *
-   * TODO: Add an overloaded method here which takes a {@link Tab}
-   *
-   * @param tabName the label in the editor
+   * @param tab the tab to switch to
    */
-  public EditorFixture selectEditorTab(@NotNull final String tabName) {
+  public EditorFixture selectEditorTab(@NotNull final Tab tab) {
+    switch (tab) {
+      case EDITOR:
+        selectEditorTab("Text");
+        break;
+      case DESIGN:
+        selectEditorTab("Design");
+        break;
+      case DEFAULT:
+        selectEditorTab((String)null);
+        break;
+      default:
+        fail("Unknown tab " + tab);
+    }
+    return this;
+  }
+
+  /**
+   * Selects the given tab in the current editor. Used to switch between
+   * design mode and editor mode for example.
+   *
+   * @param tabName the label in the editor, or null for the default (first) tab
+   */
+  public EditorFixture selectEditorTab(@Nullable final String tabName) {
     GuiActionRunner.execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
+        VirtualFile currentFile = getCurrentFile();
+        assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getSelectedEditors();
+        FileEditor[] editors = manager.getAllEditors(currentFile);
+        FileEditor target = null;
         for (FileEditor editor : editors) {
-          if (tabName.equals(editor.getName())) {
-            // Have to use reflection
-            //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
-            method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(editor);
-            return;
+          if (tabName == null || tabName.equals(editor.getName())) {
+            target = editor;
+            break;
           }
+        }
+        if (target != null) {
+          // Have to use reflection
+          //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
+          method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(target);
+          return;
         }
         List<String> tabNames = Lists.newArrayList();
         for (FileEditor editor : editors) {
           tabNames.add(editor.getName());
         }
-        fail("Could not find editor tab \"" + tabName + "\": Available tabs = " + tabNames);
+        fail("Could not find editor tab \"" + (tabName != null ? tabName : "<default>") + "\": Available tabs = " + tabNames);
       }
     });
     return this;
@@ -701,6 +736,76 @@ public class EditorFixture {
   }
 
   /**
+   * Returns a fixture around the layout editor, <b>if</b> the currently edited file
+   * is a layout file and it is currently showing the layout editor tab or the parameter
+   * requests that it be opened if necessary
+   *
+   * @param switchToTabIfNecessary if true, switch to the design tab if it is not already showing
+   * @return a layout editor fixture, or null if the current file is not a layout file or the
+   *     wrong tab is showing
+   */
+  @Nullable
+  public LayoutEditorFixture getLayoutEditor(boolean switchToTabIfNecessary) {
+    VirtualFile currentFile = getCurrentFile();
+    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
+      return null;
+    }
+
+    if (switchToTabIfNecessary) {
+      selectEditorTab(Tab.DESIGN);
+    }
+
+    return GuiActionRunner.execute(new GuiQuery<LayoutEditorFixture>() {
+      @Override
+      @Nullable
+      protected LayoutEditorFixture executeInEDT() throws Throwable {
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        FileEditor[] editors = manager.getSelectedEditors();
+        if (editors.length == 0) {
+          return null;
+        }
+        FileEditor selected = editors[0];
+        if (!(selected instanceof AndroidDesignerEditor)) {
+          return null;
+        }
+
+        return new LayoutEditorFixture(robot, (AndroidDesignerEditor)selected);
+      }
+    });
+  }
+
+  /**
+   * Returns a fixture around the layout preview window, <b>if</b> the currently edited file
+   * is a layout file and it the XML editor tab of the layout is currently showing.
+   *
+   * @param switchToTabIfNecessary if true, switch to the editor tab if it is not already showing
+   * @return a layout preview fixture, or null if the current file is not a layout file or the
+   *     wrong tab is showing
+   */
+  @Nullable
+  public LayoutPreviewFixture getLayoutPreview(boolean switchToTabIfNecessary) {
+    VirtualFile currentFile = getCurrentFile();
+    if (ResourceHelper.getFolderType(currentFile) != ResourceFolderType.LAYOUT) {
+      return null;
+    }
+
+    if (switchToTabIfNecessary) {
+      selectEditorTab(Tab.EDITOR);
+    }
+
+    Pause.pause(new Condition("Preview window is visible") {
+      @Override
+      public boolean test() {
+        AndroidLayoutPreviewToolWindowManager manager =
+          AndroidLayoutPreviewToolWindowManager.getInstance(myFrame.getProject());
+        return manager.getToolWindowForm() != null;
+      }
+    }, SHORT_TIMEOUT);
+
+    return new LayoutPreviewFixture(robot, myFrame.getProject());
+  }
+
+  /**
    * Common editor actions, invokable via {@link #invokeAction(EditorAction)}
    */
   public enum EditorAction {
@@ -714,5 +819,5 @@ public class EditorFixture {
    * The different tabs of an editor; used by for example {@link #open(VirtualFile, EditorFixture.Tab)} to indicate which
    * tab should be opened
    */
-  public enum Tab { EDITOR, DEFAULT };
+  public enum Tab { EDITOR, DESIGN, DEFAULT }
 }
