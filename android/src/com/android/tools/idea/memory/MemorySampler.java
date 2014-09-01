@@ -39,7 +39,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListener, ClientData.IHprofDumpHandler {
+public class MemorySampler
+  implements Runnable, AndroidDebugBridge.IClientChangeListener, ClientData.IHprofDumpHandler, DeviceContext.DeviceSelectionListener {
 
   /**
    * Sample type when the device cannot be seen.
@@ -64,85 +65,39 @@ class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListene
 
   private static final Logger LOG = Logger.getInstance(MemorySampler.class);
   private static int ourLastHprofRequestId = 0;
-  /**
-   * The future representing the task being executed, which will return null upon successful completion.
-   */
-  @NotNull
-  private final Future<?> myExecutingTask;
   @NotNull
   private final TimelineData myData;
   @NotNull
   private final Project myProject;
   @NotNull
-  private final String myApplicationName;
-  @NotNull
-  private final AndroidDebugBridge myBridge;
-  @NotNull
   private final Semaphore myDataSemaphore;
   private final int mySampleFrequencyMs;
-  @NotNull
-  private final DeviceContext myDeviceContext;
+  /**
+   * The future representing the task being executed, which will return null upon successful completion.
+   * If null, no current task is being executed.
+   */
   @Nullable
-  private Client myClient;
+  private Future<?> myExecutingTask;
+  @Nullable
+  private volatile Client myClient;
   private volatile boolean myRunning;
   private int myPendingHprofId;
 
-  MemorySampler(@NotNull String applicationName,
-                @NotNull TimelineData data,
-                @NotNull Project project,
-                @NotNull AndroidDebugBridge bridge,
-                @NotNull DeviceContext deviceContext,
-                int sampleFrequencyMs) {
-    myApplicationName = applicationName;
+  MemorySampler(@NotNull TimelineData data, @NotNull Project project, @NotNull DeviceContext deviceContext, int sampleFrequencyMs) {
     mySampleFrequencyMs = sampleFrequencyMs;
     myData = data;
     myProject = project;
-    myBridge = bridge;
-    myDeviceContext = deviceContext;
-    refreshClient();
-    myRunning = true;
+    deviceContext.addListener(this, project);
     myDataSemaphore = new Semaphore(0, true);
     myPendingHprofId = 0;
-    myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
+    myData.freeze();
   }
 
   private static int getNextHprofId() {
     return ++ourLastHprofRequestId;
   }
 
-  @Nullable
-  private Client findClient() {
-    for (IDevice device : myBridge.getDevices()) {
-      Client client = device.getClient(myApplicationName);
-      if (client != null) {
-        return client;
-      }
-    }
-    return null;
-  }
-
-  private void refreshClient() {
-    if (myClient != null && myClient.isValid()) {
-      return;
-    }
-
-    Client client = findClient();
-    if (client != myClient) {
-      if (myClient != null) {
-        myClient.setHeapInfoUpdateEnabled(false);
-      }
-      myClient = client;
-      myDeviceContext.fireClientSelected(myClient);
-      if (myClient != null) {
-        myClient.setHeapInfoUpdateEnabled(true);
-        myData.setTitle(myClient.getDevice().getName() + ": " + myClient.getClientData().getClientDescription());
-      }
-      else {
-        myData.setTitle("<" + myApplicationName + "> not found.");
-      }
-    }
-  }
-
+  @SuppressWarnings("ConstantConditions")
   private void sample(int type, int id) {
     float freeMb = 0.0f;
     float allocMb = 0.0f;
@@ -169,25 +124,60 @@ class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListene
     }
   }
 
-  void stop() {
-    myRunning = false;
-    myDataSemaphore.release();
-    try {
-      // Wait for the task to finish.
-      myExecutingTask.get();
+  public void start() {
+    if (myExecutingTask == null) {
+      myData.clear();
+      AndroidDebugBridge.addClientChangeListener(this);
+      myRunning = true;
+      myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
+      startClient();
     }
-    catch (InterruptedException e) {
-      // Ignore
+  }
+
+
+  public void stop() {
+    if (myExecutingTask != null) {
+      myRunning = false;
+      myDataSemaphore.release();
+      try {
+        // Wait for the task to finish.
+        myExecutingTask.get();
+      }
+      catch (InterruptedException e) {
+        // Ignore
+      }
+      catch (ExecutionException e) {
+        // Rethrow the original cause of the exception on this thread.
+        throw new RuntimeException(e.getCause());
+      }
+
+      myData.freeze();
+      AndroidDebugBridge.removeClientChangeListener(this);
+      stopClient();
+      myExecutingTask = null;
     }
-    catch (ExecutionException e) {
-      // Rethrow the original cause of the exception on this thread.
-      throw new RuntimeException(e.getCause());
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  private void startClient() {
+    if (myExecutingTask != null & myClient != null) {
+      myClient.setHeapInfoUpdateEnabled(true);
     }
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  private void stopClient() {
+    if (myExecutingTask != null && myClient != null) {
+      myClient.setHeapInfoUpdateEnabled(false);
+    }
+  }
+
+  public boolean isRunning() {
+    return myExecutingTask != null && myRunning;
   }
 
   @Override
   public void run() {
-    AndroidDebugBridge.addClientChangeListener(this);
     boolean pending = false;
     long wait = mySampleFrequencyMs;
     while (myRunning) {
@@ -201,9 +191,9 @@ class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListene
           if (pending) {
             sample(TYPE_TIMEOUT, 0);
           }
-          refreshClient();
-          if (myClient != null) {
-            myClient.updateHeapInfo();
+          Client client = myClient;
+          if (client != null) {
+            client.updateHeapInfo();
           }
           pending = true;
         }
@@ -216,10 +206,6 @@ class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListene
         myRunning = false;
       }
     }
-    if (myClient != null) {
-      myClient.setHeapInfoUpdateEnabled(false);
-    }
-    AndroidDebugBridge.removeClientChangeListener(this);
   }
 
   @Override
@@ -265,12 +251,34 @@ class MemorySampler implements Runnable, AndroidDebugBridge.IClientChangeListene
     return myPendingHprofId == 0;
   }
 
+  @SuppressWarnings("ConstantConditions")
   public void requestHeapDump() {
     if (myClient != null) {
       ClientData.setHprofDumpHandler(this);
       myClient.dumpHprof();
       myPendingHprofId = getNextHprofId();
       sample(TYPE_HPROF_REQUEST, myPendingHprofId);
+    }
+  }
+
+  @Override
+  public void deviceSelected(@Nullable IDevice device) {
+    // Ignore.
+  }
+
+  @Override
+  public void deviceChanged(@NotNull IDevice device, int changeMask) {
+    // Ignore.
+  }
+
+  @Override
+  @SuppressWarnings("ConstantConditions")
+  public void clientSelected(@Nullable Client client) {
+    if (client != myClient) {
+      stopClient();
+      myClient = client;
+      startClient();
+      myData.setTitle(myClient == null ? "" : myClient.getDevice().getName() + ": " + myClient.getClientData().getClientDescription());
     }
   }
 }
