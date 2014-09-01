@@ -84,6 +84,7 @@ public class PostProjectBuildTasksExecutor {
     new Topic<GradleBuildListener>("Gradle project build", GradleBuildListener.class);
 
   private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
+  private static final Key<Long> PROJECT_LAST_BUILD_TIMESTAMP_KEY = Key.create("android.gradle.project.last.build.timestamp");
 
   @NotNull private final Project myProject;
 
@@ -104,6 +105,11 @@ public class PostProjectBuildTasksExecutor {
     }
     //noinspection TestOnlyProblems
     onBuildCompletion(errors, errorMessages.length);
+  }
+
+  public long getLastBuildTimestamp() {
+    Long timestamp = myProject.getUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY);
+    return timestamp != null ? timestamp : -1L;
   }
 
   private static class CompilerMessageIterator extends AbstractIterator<String> {
@@ -184,7 +190,8 @@ public class PostProjectBuildTasksExecutor {
       BuildMode buildMode = buildSettings.getBuildMode();
       buildSettings.removeAll();
 
-      notifySourceGenerationFinished(buildMode);
+      myProject.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
+      notifyBuildFinished(buildMode);
 
       syncJavaLangLevel();
 
@@ -305,7 +312,7 @@ public class PostProjectBuildTasksExecutor {
     }
   }
 
-  private void notifySourceGenerationFinished(@Nullable final BuildMode buildMode) {
+  private void notifyBuildFinished(@Nullable final BuildMode buildMode) {
     syncPublisher(new Runnable() {
       @Override
       public void run() {
