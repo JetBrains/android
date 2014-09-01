@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.memory;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 
 import java.util.List;
@@ -34,13 +35,16 @@ class TimelineData {
   private float myMaxTotal;
   @GuardedBy("this")
   private String myTitle;
+  @GuardedBy("this")
+  private long myFrozen;
 
   TimelineData(int streams, int capacity) {
     myStreams = streams;
     mySamples = new CircularArrayList<Sample>(capacity);
-    myStart = System.currentTimeMillis();
+    clear();
   }
 
+  @VisibleForTesting
   synchronized public long getStartTime() {
     return myStart;
   }
@@ -66,6 +70,7 @@ class TimelineData {
   synchronized public void clear() {
     mySamples.clear();
     myMaxTotal = 0.0f;
+    myFrozen = -1;
     myStart = System.currentTimeMillis();
   }
 
@@ -87,6 +92,15 @@ class TimelineData {
 
   public boolean isEmpty() {
     return size() == 0;
+  }
+
+  public float getEndTime() {
+    long now = myFrozen == -1 ? System.currentTimeMillis() : myFrozen;
+    return (now - myStart) / 1000.f;
+  }
+
+  synchronized public void freeze() {
+    myFrozen = System.currentTimeMillis();
   }
 
   /**
