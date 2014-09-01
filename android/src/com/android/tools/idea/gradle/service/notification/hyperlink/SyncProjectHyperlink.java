@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
