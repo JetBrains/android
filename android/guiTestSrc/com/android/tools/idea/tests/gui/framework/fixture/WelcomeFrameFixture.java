@@ -40,7 +40,7 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrame> {
 
   @NotNull
   public WelcomeFrameFixture clickNewProjectButton() {
-    findActionButtonByActionId("WelcomeScreen.ImportProject").click();
+    findActionButtonByActionId("WelcomeScreen.CreateNewProject").click();
     return this;
   }
 
