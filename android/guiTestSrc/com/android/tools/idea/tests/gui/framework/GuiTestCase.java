@@ -21,6 +21,8 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ChooseOptionsForNewFileStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -57,6 +59,7 @@ import static com.android.tools.idea.templates.AndroidGradleTestCase.createGradl
 import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static junit.framework.Assert.assertNotNull;
@@ -196,8 +199,89 @@ public abstract class GuiTestCase {
     return openProjectAndWaitUntilOpened(projectPath, openProjectDialog);
   }
 
+  /**
+   * Descriptor which describes a new test project to be created
+   */
+  public class ProjectDescriptor {
+    private String myActivity = "MainActivity";
+    private String myPkg = "com.android.test.app";
+    private String myMinSdk = "19";
+    private String myName = "TestProject";
+    private String myDomain = "com.android";
+
+    public ProjectDescriptor() {
+    }
+
+    public ProjectDescriptor(String name) {
+      this();
+      name(name);
+    }
+
+    /** Set a custom package to use in the new project */
+    public ProjectDescriptor pkg(@NotNull String pkg) {
+      myPkg = pkg;
+      return this;
+    }
+
+    /** Set a new project name to use for the new project */
+    public ProjectDescriptor name(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    /** Set a custom activity name to use in the new project */
+    public ProjectDescriptor activity(@NotNull String activity) {
+      myActivity = activity;
+      return this;
+    }
+
+    /** Set a custom minimum SDK version to use in the new project */
+    public ProjectDescriptor minSdk(@NotNull String minSdk) {
+      myMinSdk = minSdk;
+      return this;
+    }
+
+    /** Set a custom company domain to enter in the new project wizard */
+    public ProjectDescriptor domain(@NotNull String domain) {
+      myDomain = domain;
+      return this;
+    }
+
+    /**
+     * Creates a project fixture for this description
+     */
+    @NotNull
+    public IdeFrameFixture create() {
+      findWelcomeFrame().clickNewProjectButton();
+
+      NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
+
+      ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
+      configureAndroidProjectStep.enterApplicationName(myName)
+        .enterCompanyDomain(myDomain)
+        .enterPackageName(myPkg);
+      File projectPath = configureAndroidProjectStep.getLocationInFileSystem();
+      newProjectWizard.clickNext();
+
+      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
+      newProjectWizard.clickNext();
+
+      // Skip "Add Activity" step
+      newProjectWizard.clickNext();
+
+      ChooseOptionsForNewFileStepFixture chooseOptionsForNewFileStep = newProjectWizard.getChooseOptionsForNewFileStep();
+      chooseOptionsForNewFileStep.enterActivityName(myActivity);
+      newProjectWizard.clickFinish();
+      IdeFrameFixture projectFrame = findIdeFrame(myName, projectPath);
+      projectFrame.waitForGradleProjectSyncToFinish();
+
+      return projectFrame;
+    }
+  }
+
   @NotNull
   protected File setUpProject(@NotNull String projectDirName, boolean forOpen, boolean updateGradleVersions) throws IOException {
+
     final File projectPath = getProjectDirPath(projectDirName);
 
     File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);
