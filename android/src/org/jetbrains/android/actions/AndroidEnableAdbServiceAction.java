@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
@@ -22,7 +23,6 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -32,7 +32,6 @@ import com.intellij.openapi.util.Pair;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.run.AndroidDebugRunner;
 import org.jetbrains.android.run.AndroidSessionInfo;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +91,7 @@ public class AndroidEnableAdbServiceAction extends ToggleAction {
     boolean oldState = isAdbServiceEnabled();
     PropertiesComponent.getInstance().setValue(ENABLE_ADB_SERVICE_PROPERTY_NAME, Boolean.toString(state));
     if (oldState != state) {
-      AndroidSdkUtils.restartDdmlib(project);
+      AdbService.restartDdmlib(project);
     }
   }
 
