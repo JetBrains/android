@@ -86,6 +86,17 @@ public class FlagManager {
       // Look up the region for a given language
       assert language != null;
 
+      // Special cases where we have a dedicated flag available:
+      if (language.equals("ca")) {        //$NON-NLS-1$
+        return getIcon("catalonia");      //$NON-NLS-1$
+      }
+      else if (language.equals("gd")) { //$NON-NLS-1$
+        return getIcon("scotland");     //$NON-NLS-1$
+      }
+      else if (language.equals("cy")) { //$NON-NLS-1$
+        return getIcon("wales");        //$NON-NLS-1$
+      }
+
       // Prefer the local registration of the current locale; even if
       // for example the default locale for English is the US, if the current
       // default locale is English, then use its associated country, which could
@@ -99,20 +110,8 @@ public class FlagManager {
         }
       }
 
-      // Special cases where we have a dedicated flag available:
-      if (language.equals("ca")) {        //$NON-NLS-1$
-        region = "catalonia";           //$NON-NLS-1$
-      }
-      else if (language.equals("gd")) { //$NON-NLS-1$
-        region = "scotland";            //$NON-NLS-1$
-      }
-      else if (language.equals("cy")) { //$NON-NLS-1$
-        region = "wales";               //$NON-NLS-1$
-      }
-      else {
-        // Attempt to look up the country from the language
-        region = LocaleManager.getLanguageRegion(language);
-      }
+      // Attempt to look up the country from the language
+      region = LocaleManager.getLanguageRegion(language);
     }
 
     if (region == null || region.isEmpty()) {
