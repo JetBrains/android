@@ -26,6 +26,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
@@ -96,7 +97,6 @@ import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidOutputReceiver;
@@ -1060,7 +1060,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   private boolean checkDdms() {
     AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
-    if (myDebugMode && bridge != null && AndroidSdkUtils.canDdmsBeCorrupted(bridge)) {
+    if (myDebugMode && bridge != null && AdbService.canDdmsBeCorrupted(bridge)) {
       message(AndroidBundle.message("ddms.corrupted.error"), STDERR);
       JComponent component = myConsole == null ? null : myConsole.getComponent();
       if (component != null) {
@@ -1072,7 +1072,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
         myConsole.printHyperlink(AndroidBundle.message("restart.adb.fix.text"), new HyperlinkInfo() {
           @Override
           public void navigate(Project project) {
-            AndroidSdkUtils.restartDdmlib(project);
+            AdbService.restartDdmlib(project);
 
             final ProcessHandler processHandler = getProcessHandler();
             if (!processHandler.isProcessTerminated()) {

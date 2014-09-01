@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -248,7 +249,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       @Override
       public void run() {
         final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myProject);
-        if (debugBridge != null && AndroidSdkUtils.isDdmsCorrupted(debugBridge)) {
+        if (debugBridge != null && AdbService.isDdmsCorrupted(debugBridge)) {
           ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
