@@ -24,6 +24,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.repository.updater.SettingsController;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemoteSdk;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.utils.NullLogger;
 import com.google.common.collect.Lists;
@@ -61,7 +62,6 @@ public class AndroidSdkData {
   private final Map<IAndroidTarget, SoftReference<AndroidTargetData>> myTargetDatas =
     new HashMap<IAndroidTarget, SoftReference<AndroidTargetData>>();
 
-  private static final Ddmlib myDdmlib = new Ddmlib();
   private final LocalSdk myLocalSdk;
   private final RemoteSdk myRemoteSdk;
   private final SettingsController mySettingsController;
@@ -226,72 +226,6 @@ public class AndroidSdkData {
     return FileUtil.fileHashCode(getLocation());
   }
 
-  @SuppressWarnings("AssignmentToStaticFieldFromInstanceMethod")
-  private boolean initializeDdmlib(@NotNull Project project) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    while (true) {
-      final MyInitializeDdmlibTask task = new MyInitializeDdmlibTask(project, myDdmlib);
-
-      AdbErrors.clear();
-
-      myDdmlib.initialize(getAdbPath());
-
-      boolean retryWas = false;
-      while (!task.isFinished()) {
-        ProgressManager.getInstance().run(task);
-        boolean finished = task.isFinished();
-
-        if (task.isCanceled()) {
-          myDdmlib.setAdbCrashed(!finished);
-          return false;
-        }
-
-        myDdmlib.setAdbCrashed(false);
-
-        if (!finished) {
-          final String adbErrorString = combine(AdbErrors.getErrors());
-          final int result = Messages.showDialog(project, "ADB not responding. You can wait more, or kill \"" +
-                                                          SdkConstants.FN_ADB +
-                                                          "\" process manually and click 'Restart'" +
-                                                          (adbErrorString.length() > 0 ? "\nErrors from ADB:\n" + adbErrorString : ""),
-                                                 CommonBundle.getErrorTitle(), new String[]{"&Wait more", "&Restart", "&Cancel"}, 0,
-                                                 Messages.getErrorIcon());
-          if (result == 2) {
-            // cancel
-            myDdmlib.setAdbCrashed(true);
-            return false;
-          }
-          else if (result == 1) {
-            // restart
-            myDdmlib.setAdbCrashed(true);
-            retryWas = true;
-          }
-        }
-      }
-
-      // task finished, but if we had problems, ddmlib can be still initialized incorrectly, so we invoke initialize once again
-      if (!retryWas) {
-        break;
-      }
-    }
-
-    return true;
-  }
-
-  @NotNull
-  private static String combine(@NotNull String[] strs) {
-    final StringBuilder builder = new StringBuilder();
-
-    for (String str : strs) {
-      if (builder.length() > 0) {
-        builder.append('\n');
-      }
-      builder.append(str);
-    }
-    return builder.toString();
-  }
-
   private String getAdbPath() {
     String path = getLocation() + File.separator + SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER + SdkConstants.FN_ADB;
     if (!new File(path).exists()) {
@@ -306,13 +240,11 @@ public class AndroidSdkData {
     }
   }
 
-  public static void terminateDdmlib() {
-    myDdmlib.terminate();
-  }
-
   @Nullable
   public AndroidDebugBridge getDebugBridge(@NotNull Project project) {
-    if (!initializeDdmlib(project)) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    if (!AdbService.initializeDdmlib(project, getAdbPath())) {
       return null;
     }
     return AndroidDebugBridge.getBridge();
@@ -347,59 +279,5 @@ public class AndroidSdkData {
       myTargetDatas.put(target, new SoftReference<AndroidTargetData>(targetData));
     }
     return targetData;
-  }
-
-  private static class MyInitializeDdmlibTask extends Task.Modal {
-    private final Object myLock = new Object();
-    private final Ddmlib myDdmlib;
-    private volatile boolean myCanceled;
-
-    public MyInitializeDdmlibTask(Project project, Ddmlib ddmlib) {
-      super(project, "Waiting for ADB", true);
-      myDdmlib = ddmlib;
-    }
-
-    public boolean isFinished() {
-      synchronized (myLock) {
-        return myDdmlib.isConnected();
-      }
-    }
-
-    public boolean isCanceled() {
-      synchronized (myLock) {
-        return myCanceled;
-      }
-    }
-
-    @Override
-    public void onCancel() {
-      synchronized (myLock) {
-        myCanceled = true;
-        myLock.notifyAll();
-      }
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      indicator.setIndeterminate(true);
-      synchronized (myLock) {
-        final long startTime = System.currentTimeMillis();
-
-        final long timeout = 10000;
-
-        while (myDdmlib.isConnectionInProgress() && !myCanceled && !indicator.isCanceled()) {
-          long wastedTime = System.currentTimeMillis() - startTime;
-          if (wastedTime >= timeout) {
-            break;
-          }
-          try {
-            myLock.wait(Math.min(timeout - wastedTime, 500));
-          }
-          catch (InterruptedException e) {
-            break;
-          }
-        }
-      }
-    }
   }
 }
