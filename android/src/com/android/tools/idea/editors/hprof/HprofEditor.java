@@ -64,7 +64,7 @@ public class HprofEditor extends UserDataHolderBase implements FileEditor {
           // Currently HprofParser takes too much memory and cripples the IDE.]
           // new HprofParser(new MemoryMappedFileBuffer(hprofFile)).parse();
           // TODO: Use HprofParser
-          mySnapshot = new Snapshot();
+          mySnapshot = new Snapshot(null);
         } catch(Throwable throwable){
           throwable.printStackTrace();
           //noinspection ThrowableResultOfMethodCallIgnored
