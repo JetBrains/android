@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.memory;
 
+import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -29,10 +30,15 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
@@ -48,9 +54,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
-public class MemoryProfilingView implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IClientChangeListener, Disposable {
+public class MemoryProfilingView
+  implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IClientChangeListener, MemorySampler.MemorySamplerListener,
+             Disposable {
 
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
@@ -103,7 +113,8 @@ public class MemoryProfilingView implements AndroidDebugBridge.IDeviceChangeList
     myTimelineComponent.setBackground(BACKGROUND_COLOR);
     myTopPanel.setBackground(BACKGROUND_COLOR);
 
-    myMemorySampler = new MemorySampler(myData, myProject, SAMPLE_FREQUENCY_MS);
+    myMemorySampler = new MemorySampler(myData, SAMPLE_FREQUENCY_MS);
+    myMemorySampler.addListener(this);
 
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getToolbarActions(), false);
     myToolbarPanel.add(toolbar.getComponent());
@@ -310,6 +321,36 @@ public class MemoryProfilingView implements AndroidDebugBridge.IDeviceChangeList
 
   @Override
   public void dispose() {
+  }
+
+  @Override
+  public void onStart() {
+    myDeviceCombo.setEnabled(false);
+    myClientCombo.setEnabled(false);
+  }
+
+  @Override
+  public void onStop() {
+    myDeviceCombo.setEnabled(true);
+    myClientCombo.setEnabled(true);
+  }
+
+  @Override
+  public void onHprofCompleted(@NotNull byte[] data, @NotNull Client client) {
+    File f;
+    try {
+      f = FileUtil.createTempFile("ddms", "." + SdkConstants.EXT_HPROF);
+      FileUtil.writeToFile(f, data);
+    }
+    catch (IOException e) {
+      return;
+    }
+    final VirtualFile vf = VfsUtil.findFileByIoFile(f, true);
+    if (vf == null) {
+      return;
+    }
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
+    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
   }
 
   private class DeviceContextListener implements DeviceContext.DeviceSelectionListener {
