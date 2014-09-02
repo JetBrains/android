@@ -163,7 +163,7 @@
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable instance="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurable" id="gradle.compiler"
-                         displayName="Compiler"/>
+                         displayName="Compiler (Gradle-based Android Projects)"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
