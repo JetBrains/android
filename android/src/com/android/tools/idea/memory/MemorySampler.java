@@ -257,6 +257,12 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
     myListeners.add(listener);
   }
 
+  public void requestGc() {
+    if (myClient != null) {
+      myClient.executeGarbageCollector();
+    }
+  }
+
   public interface MemorySamplerListener {
 
     void onStart();
