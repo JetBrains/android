@@ -347,6 +347,8 @@ public class StringResourceViewPanel {
       // If a text component is not editable when it gains focus and becomes editable while still focused,
       // the caret does not appear, so we need to set the caret visibility manually
       component.getCaret().setVisible(editable && component.hasFocus());
+
+      component.setFont(CellRenderer.getFontAbleToDisplay(text, component.getFont()));
     }
   }
 }
