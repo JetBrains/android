@@ -15,23 +15,16 @@
  */
 package com.android.tools.idea.memory;
 
-import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
@@ -63,9 +56,9 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
   private static final Logger LOG = Logger.getInstance(MemorySampler.class);
   private static int ourLastHprofRequestId = 0;
   @NotNull
-  private final TimelineData myData;
+  private final List<MemorySamplerListener> myListeners = Lists.newLinkedList();
   @NotNull
-  private final Project myProject;
+  private final TimelineData myData;
   @NotNull
   private final Semaphore myDataSemaphore;
   private final int mySampleFrequencyMs;
@@ -80,10 +73,9 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
   private volatile boolean myRunning;
   private int myPendingHprofId;
 
-  MemorySampler(@NotNull TimelineData data, @NotNull Project project, int sampleFrequencyMs) {
+  MemorySampler(@NotNull TimelineData data, int sampleFrequencyMs) {
     mySampleFrequencyMs = sampleFrequencyMs;
     myData = data;
-    myProject = project;
     myDataSemaphore = new Semaphore(0, true);
     myPendingHprofId = 0;
     myData.freeze();
@@ -127,6 +119,10 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
       myRunning = true;
       myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
       startClient();
+
+      for (MemorySamplerListener listener : myListeners) {
+        listener.onStart();
+      }
     }
   }
 
@@ -151,6 +147,9 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
       AndroidDebugBridge.removeClientChangeListener(this);
       stopClient();
       myExecutingTask = null;
+      for (MemorySamplerListener listener : myListeners) {
+        listener.onStop();
+      }
     }
   }
 
@@ -210,7 +209,7 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
   }
 
   @Override
-  public void onSuccess(final byte[] data, Client client) {
+  public void onSuccess(final byte[] data, final Client client) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -218,22 +217,11 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
           // We are not waiting for any dumps. We ignore it.
           return;
         }
-        File f;
-        try {
-          f = FileUtil.createTempFile("ddms", "." + SdkConstants.EXT_HPROF);
-          FileUtil.writeToFile(f, data);
-        }
-        catch (IOException e) {
-          return;
-        }
-        final VirtualFile vf = VfsUtil.findFileByIoFile(f, true);
-        if (vf == null) {
-          return;
-        }
         sample(TYPE_HPROF_RESULT, myPendingHprofId);
         myPendingHprofId = 0;
-        OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
-        FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+        for (MemorySamplerListener listener : myListeners) {
+          listener.onHprofCompleted(data, client);
+        }
       }
     });
   }
@@ -263,5 +251,18 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
       myClient = client;
       startClient();
     }
+  }
+
+  public void addListener(MemorySamplerListener listener) {
+    myListeners.add(listener);
+  }
+
+  public interface MemorySamplerListener {
+
+    void onStart();
+
+    void onStop();
+
+    void onHprofCompleted(@NotNull byte[] data, @NotNull Client client);
   }
 }
