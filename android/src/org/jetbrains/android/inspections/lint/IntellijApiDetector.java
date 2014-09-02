@@ -307,7 +307,11 @@ public class IntellijApiDetector extends ApiDetector {
         Location location;
         if (type instanceof PsiClassReferenceType) {
           PsiReference reference = ((PsiClassReferenceType)type).getReference();
-          location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
+          PsiElement element = reference.getElement();
+          if (isWithinVersionCheckConditional(element, api)) {
+            continue;
+          }
+          location = IntellijLintUtils.getLocation(myContext.file, element);
         } else {
           location = IntellijLintUtils.getLocation(myContext.file, aClass);
         }
@@ -650,19 +654,19 @@ public class IntellijApiDetector extends ApiDetector {
                   assert fromThen == !fromElse;
                   if (tokenType == JavaTokenType.GE) {
                     // if (SDK_INT >= ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return api >= level && fromThen;
+                    return api <= level && fromThen;
                   }
                   else if (tokenType == JavaTokenType.GT) {
                     // if (SDK_INT > ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return api > level && fromThen;
+                    return api < level && fromThen;
                   }
                   else if (tokenType == JavaTokenType.LE) {
                     // if (SDK_INT <= ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return api > level && fromElse;
+                    return api < level && fromElse;
                   }
                   else if (tokenType == JavaTokenType.LT) {
                     // if (SDK_INT < ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return api >= level && fromElse;
+                    return api <= level && fromElse;
                   } else {
                     assert false : tokenType;
                   }
