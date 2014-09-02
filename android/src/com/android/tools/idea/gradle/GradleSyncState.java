@@ -79,7 +79,18 @@ public class GradleSyncState {
     myMessageBus = messageBus;
   }
 
+  public void syncSkipped() {
+    cleanUpProjectPreferences();
+    syncPublisher(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject);
+      }
+    });
+  }
+
   public void syncStarted(boolean notifyUser) {
+    cleanUpProjectPreferences();
     StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     mySyncInProgress = true;
     if (notifyUser) {
@@ -125,7 +136,6 @@ public class GradleSyncState {
     setLastGradleSyncTimestamp(System.currentTimeMillis());
     StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     notifyUser();
-    cleanUpProjectPreferences();
   }
 
   private void syncPublisher(@NotNull Runnable publishingTask) {
