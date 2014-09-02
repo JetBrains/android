@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
@@ -200,26 +202,11 @@ public class StringResourceViewPanel {
   }
 
   private void initEditPanel() {
-    FocusListener editFocusListener = new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        ApplicationManager.getApplication().assertIsDispatchThread();
-        JTextComponent component = (JTextComponent) e.getComponent();
-        onTextFieldUpdate(component);
-      }
-    };
-    myKey.addFocusListener(editFocusListener);
-    myDefaultValue.addFocusListener(editFocusListener);
-    myTranslation.addFocusListener(editFocusListener);
-
     KeyListener keyListener = new KeyAdapter() {
       @Override
-      public void keyPressed(KeyEvent e) {
-        ApplicationManager.getApplication().assertIsDispatchThread();
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-          JTextComponent component = (JTextComponent) e.getComponent();
-          onTextFieldUpdate(component);
-        }
+      public void keyReleased(KeyEvent e) {
+        JTextComponent component = (JTextComponent)e.getComponent();
+        onTextFieldUpdate(component);
       }
     };
     myKey.addKeyListener(keyListener);
