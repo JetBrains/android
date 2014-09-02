@@ -19,6 +19,7 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
+import static org.fest.reflect.core.Reflection.field;
 
 public class MethodInvoker extends Statement {
   private final FrameworkMethod myTestMethod;
@@ -33,9 +34,14 @@ public class MethodInvoker extends Statement {
   public void evaluate() throws Throwable {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     Class<?> guiTestCaseType = Class.forName(GuiTestCase.class.getCanonicalName(), true, classLoader);
-    if (guiTestCaseType.isInstance(myTest) && !canRunGuiTests()) {
-      // We don't run tests in headless environment.
-      return;
+    String name = myTestMethod.getName();
+    System.out.println(String.format("Executing test '%1$s'", myTestMethod.getMethod().getDeclaringClass() + "#" + name));
+    if (guiTestCaseType.isInstance(myTest)) {
+      if (!canRunGuiTests()) {
+        // We don't run tests in headless environment.
+        return;
+      }
+      field("myTestName").ofType(String.class).in(myTest).set(name);
     }
     myTestMethod.invokeExplosively(myTest);
   }

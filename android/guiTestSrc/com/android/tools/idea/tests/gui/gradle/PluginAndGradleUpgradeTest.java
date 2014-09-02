@@ -24,8 +24,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.fixture.DialogFixture;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -52,19 +52,16 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PluginAndGradleUpgradeTest extends GuiTestCase {
-  private static final String PROJECT_DIR_NAME = "PluginAndGradleUpgrade";
+  private static final String MAVEN_URL = "MAVEN_URL";
 
-  @Before
-  public void checkMavenUrl() {
-    // For now we need a custom repository, since 0.13.0 is not released yet.
-    String customRepositoryUrl = System.getenv("MAVEN_URL");
-    if (isEmpty(customRepositoryUrl)) {
-      fail("Please specify, in the environment variable 'MAVEN_URL', the path of the custom Maven repo to use");
-    }
-  }
+  private static final String PROJECT_DIR_NAME = "PluginAndGradleUpgrade";
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = true)
   public void test1UpdateGradleVersionInWrapper() throws IOException {
+    if (skipTest()) {
+      return;
+    }
+
     File projectPath = setUpProject(PROJECT_DIR_NAME, false, false);
 
     // Ensure we have a pre-2.0 Gradle in the wrapper.
@@ -87,6 +84,10 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test2UpdateGradleVersionWithLocalDistribution() {
+    if (skipTest()) {
+      return;
+    }
+
     File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
@@ -106,6 +107,10 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test3ShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() {
+    if (skipTest()) {
+      return;
+    }
+
     File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
@@ -121,7 +126,18 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     messages.getGradleSyncContent().requireMessage(ERROR, "Gradle 2.0 is required.");
   }
 
-  protected void useLocalUnsupportedGradle(Project project) {
+  private boolean skipTest() {
+    boolean skip = false;
+    String customRepositoryUrl = System.getenv(MAVEN_URL);
+    if (isEmpty(customRepositoryUrl)) {
+      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(), MAVEN_URL);
+      System.out.println(msg);
+      skip = true;
+    }
+    return skip;
+  }
+
+  private static void useLocalUnsupportedGradle(@NotNull Project project) {
     // Now we are going to force the project to use a local Gradle distribution.
     // Ensure that the project is using the wrapper.
     String unsupportedGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
