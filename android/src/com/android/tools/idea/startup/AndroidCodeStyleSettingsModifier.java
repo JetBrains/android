@@ -42,7 +42,7 @@ public class AndroidCodeStyleSettingsModifier {
     settings.NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND = 99; // Name count to use static import with "*"
 
     // set margin to 100 columns
-    settings.RIGHT_MARGIN = 100;
+    settings.setDefaultRightMargin(100);
   }
 
   private static PackageEntryTable getAndroidImportOrder() {
