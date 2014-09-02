@@ -34,8 +34,6 @@ class TimelineData {
   @GuardedBy("this")
   private float myMaxTotal;
   @GuardedBy("this")
-  private String myTitle;
-  @GuardedBy("this")
   private long myFrozen;
 
   TimelineData(int streams, int capacity) {
@@ -80,14 +78,6 @@ class TimelineData {
 
   public Sample get(int index) {
     return mySamples.get(index);
-  }
-
-  public String getTitle() {
-    return myTitle;
-  }
-
-  public void setTitle(String title) {
-    myTitle = title;
   }
 
   public boolean isEmpty() {
