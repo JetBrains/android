@@ -23,13 +23,32 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.*;
+import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.Future;
 
 public class StringResourceParser {
-  public static StringResourceData parse(@NotNull LocalResourceRepository repository) {
+  public static StringResourceData parse(@NotNull final AndroidFacet facet, @NotNull final LocalResourceRepository repository) {
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return parseUnderReadLock(facet, repository);
+    } else {
+      return ApplicationManager.getApplication().runReadAction(new Computable<StringResourceData>() {
+        @Override
+        public StringResourceData compute() {
+          return parseUnderReadLock(facet, repository);
+        }
+      });
+    }
+  }
+
+  private static StringResourceData parseUnderReadLock(AndroidFacet facet, LocalResourceRepository repository) {
     List<String> keys = Lists.newArrayList(repository.getItemsOfType(ResourceType.STRING));
     Collections.sort(keys);
 
@@ -53,7 +72,7 @@ public class StringResourceParser {
         }
 
         FolderConfiguration config = item.getConfiguration();
-        LanguageQualifier languageQualifier = config.getLanguageQualifier();
+        LanguageQualifier languageQualifier = config == null ? null : config.getLanguageQualifier();
         if (languageQualifier == null) {
           defaultValues.put(key, item);
         }
@@ -65,6 +84,6 @@ public class StringResourceParser {
       }
     }
 
-    return new StringResourceData(keys, untranslatableKeys, locales, defaultValues, translations);
+    return new StringResourceData(facet, keys, untranslatableKeys, locales, defaultValues, translations);
   }
 }

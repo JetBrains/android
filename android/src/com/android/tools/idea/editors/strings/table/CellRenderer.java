@@ -37,12 +37,7 @@ public class CellRenderer implements TableCellRenderer {
     TableCellRenderer defaultRenderer = table.getDefaultRenderer(table.getModel().getColumnClass(column));
     Component component = defaultRenderer.getTableCellRendererComponent(table, value, selected, focused, row, column);
 
-    String tooltip;
-    if (ConstantColumn.indexMatchesColumn(column, ConstantColumn.KEY)) {
-      tooltip = ((StringResourceTableModel) table.getModel()).getKeyProblem(row);
-    } else {
-      tooltip = ((StringResourceTableModel) table.getModel()).getCellProblem(row, column);
-    }
+    String tooltip = ((StringResourceTableModel) table.getModel()).getCellProblem(row, column);
     if (component instanceof JComponent) {
       ((JComponent) component).setToolTipText(tooltip);
     }
