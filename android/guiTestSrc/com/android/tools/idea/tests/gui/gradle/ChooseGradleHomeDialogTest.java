@@ -27,11 +27,9 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_HOME_PROPERTY;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static junit.framework.Assert.fail;
-import static org.fest.util.Strings.quote;
 
 /**
  * UI Test for {@link com.android.tools.idea.gradle.project.ChooseGradleHomeDialog}.
@@ -39,12 +37,15 @@ import static org.fest.util.Strings.quote;
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
   private static final String MINIMUM_GRADLE_VERSION = "2.0";
 
+
+
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
     String oldGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
     if (isEmpty(oldGradleHome)) {
-      fail("Please specify, in the system property " + quote(GRADLE_1_12_HOME_PROPERTY) +
-           ", the path of an old, unsupported version of Gradle (e.g. 1.12)");
+      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(), GRADLE_1_12_HOME_PROPERTY);
+      System.out.println(msg);
+      return;
     }
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
@@ -52,15 +53,15 @@ public class ChooseGradleHomeDialogTest extends GuiTestCase {
           .clickOK()
           .requireValidationError("Gradle " + MINIMUM_GRADLE_VERSION + " or newer is required")
           .close();
-
   }
 
   @Test
   public void testValidateWithValidMinimumGradleVersion() {
     String gradleHome = System.getProperty(GRADLE_2_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
-      fail("Please specify, in the system property " + quote(GRADLE_2_HOME_PROPERTY) +
-           ", the path of a supported version of Gradle (e.g. 2.0)");
+      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(), GRADLE_2_HOME_PROPERTY);
+      System.out.println(msg);
+      return;
     }
 
     ChooseGradleHomeDialogFixture dialog = launchChooseGradleHomeDialog();
