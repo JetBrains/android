@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.android.tools.idea.memory.actions;
 
 import com.android.tools.idea.memory.MemorySampler;
@@ -21,23 +22,23 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 
-public class MemorySnapshotAction extends AnAction {
+public class GcAction extends AnAction {
 
   @NotNull
   private final MemorySampler myMemorySampler;
 
-  public MemorySnapshotAction(@NotNull MemorySampler memorySampler) {
-    super("Take a memory snapshot", "Takes a memory snapshot", AndroidIcons.Ddms.ScreenCapture);
+  public GcAction(@NotNull MemorySampler memorySampler) {
+    super("Initiate GC", "Triggers a garbage collection.", AndroidIcons.Ddms.Gc);
     myMemorySampler = memorySampler;
   }
 
   @Override
   public void update(AnActionEvent e) {
-    e.getPresentation().setEnabled(myMemorySampler.canRequestHeapDump() && myMemorySampler.isRunning());
+    e.getPresentation().setEnabled(myMemorySampler.isRunning());
   }
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    myMemorySampler.requestHeapDump();
+    myMemorySampler.requestGc();
   }
 }
