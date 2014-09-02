@@ -18,7 +18,6 @@ package com.android.tools.idea.templates;
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceFolder;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
@@ -47,6 +46,7 @@ import org.w3c.dom.Element;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -57,18 +57,30 @@ import static com.android.tools.idea.templates.Template.*;
  */
 public class Parameter {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Parameter");
+  private static final Set<String> typeValues = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
   public enum Type {
     STRING,
     BOOLEAN,
     ENUM,
     SEPARATOR,
-    EXTERNAL;
+    EXTERNAL,
+    CUSTOM;
     // TODO: Numbers?
 
     public static Type get(String name) {
       try {
-        return Type.valueOf(name.toUpperCase(Locale.US));
+        if (typeValues.isEmpty()) {
+          for(Type t : Type.values()) {
+            typeValues.add(t.name().toUpperCase(Locale.US));
+          }
+        }
+
+        String upperCaseName = name.toUpperCase(Locale.US);
+        if (!typeValues.contains(upperCaseName)) {
+          return Type.CUSTOM;
+        }
+        return Type.valueOf(upperCaseName);
       } catch (IllegalArgumentException e) {
         LOG.error("Unexpected template type '" + name + "'");
         LOG.error("Expected one of :");
@@ -215,6 +227,10 @@ public class Parameter {
   @NotNull
   public final EnumSet<Constraint> constraints;
 
+  /** The dsl name of the type that will be created in the ui for the user to enter this parameter.
+   *  This should correspond to a name registered by an ExternalWizardParameterFactory extension. */
+  public String externalTypeName;
+
   Parameter(@NotNull TemplateMetadata template, @NotNull Element parameter) {
     this.template = template;
     element = parameter;
@@ -230,6 +246,12 @@ public class Parameter {
     sourceUrl = type == Type.EXTERNAL ? parameter.getAttribute(ATTR_SOURCE_URL) : null;
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
+    if (type == Type.CUSTOM) {
+        externalTypeName = typeName;
+    }
+    else {
+      externalTypeName = null;
+    }
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
     if (constraintString != null && !constraintString.isEmpty()) {
       EnumSet<Constraint> constraintSet = null;
@@ -284,6 +306,7 @@ public class Parameter {
                          @Nullable String packageName, @Nullable Object value) {
     switch (type) {
       case EXTERNAL:
+      case CUSTOM:
       case STRING:
         return getErrorMessageForStringType(project, module, provider, packageName, value.toString());
       case BOOLEAN:
