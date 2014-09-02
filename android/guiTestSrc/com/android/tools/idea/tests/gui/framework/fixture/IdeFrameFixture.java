@@ -29,9 +29,13 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.options.ex.IdeConfigurablesGroup;
+import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.ThreeState;
@@ -57,6 +61,8 @@ import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecut
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
@@ -401,6 +407,40 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
     return new MessagesToolWindowFixture(getProject(), robot);
+  }
+
+  @NotNull
+  public IdeSettingsDialogFixture openIdeSettings() {
+    // Using invokeLater because we are going to show a *modal* dialog. If we use GuiActionRunner the test will hang until the modal dialog
+    // is closed.
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        Project project = getProject();
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, new ProjectConfigurablesGroup(project), new IdeConfigurablesGroup());
+      }
+    });
+    final AtomicReference<JDialog> preferencesDialogRef = new AtomicReference<JDialog>();
+    pause(new Condition("waiting for 'Preferences' window") {
+      @Override
+      public boolean test() {
+        Collection<JDialog> dialogs = robot.finder().findAll(new GenericTypeMatcher<JDialog>(JDialog.class) {
+          @Override
+          protected boolean isMatching(JDialog dialog) {
+            String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
+            return expectedTitle.equals(dialog.getTitle()) && dialog.isShowing();
+          }
+        });
+        boolean found = dialogs.size() == 1;
+        if (found) {
+          preferencesDialogRef.set(getFirstItem(dialogs));
+        }
+        return found;
+      }
+    }, SHORT_TIMEOUT);
+    JDialog preferencesDialog = preferencesDialogRef.get();
+    assertNotNull(preferencesDialog);
+    return new IdeSettingsDialogFixture(robot, preferencesDialog);
   }
 
   private static class NoOpDisposable implements Disposable {
