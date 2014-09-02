@@ -162,8 +162,8 @@
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
-    <projectConfigurable groupId="build" id="gradle.compiler" parentId="project.propCompiler"
-                         provider="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurableProvider"/>
+    <projectConfigurable instance="com.android.tools.idea.gradle.compiler.GradleCompilerSettingsConfigurable" id="gradle.compiler"
+                         displayName="Compiler (Gradle-based Android Projects)"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.compiler.HideCompilerOptions" />
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>

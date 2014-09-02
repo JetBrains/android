@@ -233,12 +233,7 @@ public class AndroidGradleProjectData implements Serializable {
     try {
       boolean loaded = doLoadFromDisk(project);
       if (loaded) {
-        AppUIUtil.invokeLaterIfProjectAlive(project, new Runnable() {
-          @Override
-          public void run() {
-            project.getMessageBus().syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(project);
-          }
-        });
+        GradleSyncState.getInstance(project).syncSkipped();
       }
       return loaded;
     }
