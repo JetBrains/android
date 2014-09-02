@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-enum ConstantColumn {
+public enum ConstantColumn {
   KEY("Key", "hello_strings_editor"),
   DEFAULT_VALUE("Default Value", "Hello, editor! This is a default value for a string key."),
   UNTRANSLATABLE("Untranslatable", true);

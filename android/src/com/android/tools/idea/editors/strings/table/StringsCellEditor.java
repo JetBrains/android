@@ -15,42 +15,49 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.AbstractTableCellEditor;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.EventObject;
 
-public class MultilineCellEditor extends AbstractTableCellEditor {
-  private static final Dimension ZERO = new Dimension(0, 0);
-  private final JTextArea myArea;
-  private final JBScrollPane myScrollPane;
+public class StringsCellEditor extends AbstractTableCellEditor {
+  private final JBTextField myTextField;
 
-  public MultilineCellEditor() {
-    myArea = new JTextArea();
-    myScrollPane = new JBScrollPane(myArea);
-    myScrollPane.getVerticalScrollBar().setPreferredSize(ZERO);
-    myScrollPane.getHorizontalScrollBar().setPreferredSize(ZERO);
+  public StringsCellEditor() {
+    myTextField = new JBTextField();
+    myTextField.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+          stopCellEditing();
+          e.consume();
+        }
+        else {
+          super.keyPressed(e);
+        }
+      }
+    });
   }
 
   @Override
   public boolean isCellEditable(EventObject e) {
-    return false;
-    // TODO: enable inline editing..
-    // edit only on double click
-    // return e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
+    return e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
   }
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    myArea.setText(String.valueOf(((StringResourceTableModel)table.getModel()).getValue(row, column)));
-    return myScrollPane;
+    assert value instanceof String;
+    myTextField.setText((String)value);
+    return myTextField;
   }
 
   @Override
   public Object getCellEditorValue() {
-    return myArea.getText();
+    return myTextField.getText();
   }
 }

@@ -36,8 +36,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   public static final String NAME = "String Resource Editor";
 
   private final Project myProject;
-  private final StringResourceViewPanel myViewPanel;
-  private final StringResourceDataController myController;
+  private final StringResourceViewPanel myPanel;
 
   public StringResourceEditor(@NotNull Project project, @NotNull VirtualFile file) {
     if (!(file instanceof StringsVirtualFile)) {
@@ -45,8 +44,7 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
     }
 
     myProject = project;
-    myViewPanel = new StringResourceViewPanel(((StringsVirtualFile)file).getFacet());
-    myController = new StringResourceDataController(this, ((StringsVirtualFile)file).getFacet());
+    myPanel = new StringResourceViewPanel(((StringsVirtualFile)file).getFacet(), this);
   }
 
   @NotNull
@@ -54,24 +52,16 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
     return myProject;
   }
 
-  void onDataInitialized() {
-    myViewPanel.initDataController(myController);
-  }
-
-  void onDataUpdated() {
-    myViewPanel.onDataUpdated();
-  }
-
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myViewPanel.getComponent();
+    return myPanel.getComponent();
   }
 
   @Nullable
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myViewPanel.getPreferredFocusedComponent();
+    return myPanel.getPreferredFocusedComponent();
   }
 
   @NotNull
@@ -103,8 +93,8 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @Override
   public void selectNotify() {
     // TODO Doesn't refresh if a strings.xml file is deleted while the editor is visible
-    if (!myController.dataIsCurrent()) {
-      myController.updateData();
+    if (!myPanel.dataIsCurrent()) {
+      myPanel.reloadData();
     }
   }
 
