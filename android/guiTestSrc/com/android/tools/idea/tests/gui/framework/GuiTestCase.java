@@ -74,6 +74,16 @@ public abstract class GuiTestCase {
 
   protected Robot myRobot;
 
+  @SuppressWarnings("UnusedDeclaration") // This field is set via reflection.
+  private String myTestName;
+
+  /**
+   * @return the name of the test method being executed.
+   */
+  protected String getTestName() {
+    return myTestName;
+  }
+
   @Before
   public void setUp() throws Exception {
     if (!canRunGuiTests()) {
