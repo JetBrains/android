@@ -67,7 +67,7 @@ public class GradleSyncTest extends GuiTestCase {
     File gradlePropertiesFilePath = new File(projectFrame.getProjectPath(), FN_GRADLE_PROPERTIES);
     savePropertiesToFile(gradleProperties, gradlePropertiesFilePath, null);
 
-    projectFrame.requestProjectSync().waitForGradleProjectSyncToFail();
+    projectFrame.requestProjectSyncAndExpectFailure();
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Out of memory"));
