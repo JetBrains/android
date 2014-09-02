@@ -35,11 +35,10 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
 
   private static final Color TEXT_COLOR = Gray._128;
   private static final Font TIMELINE_FONT = new Font("Sans", Font.PLAIN, 10);
-  private static final Font TITLE_FONT = TIMELINE_FONT.deriveFont(Font.BOLD, 12);
 
   private static final int LEFT_MARGIN = 120;
   private static final int RIGHT_MARGIN = 200;
-  private static final int TOP_MARGIN = 40;
+  private static final int TOP_MARGIN = 10;
   private static final int BOTTOM_MARGIN = 30;
   private static final int FPS = 40;
 
@@ -54,8 +53,8 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
   private final float myInitialMax;
   private final float myInitialMarkerSeparation;
   private final Timer myTimer;
-  String[] myStreamNames;
-  Color[] myStreamColors;
+  private String[] myStreamNames;
+  private Color[] myStreamColors;
   private boolean myFirstFrame;
   private long myLastRenderTime;
   private Path2D.Float[] myPaths;
@@ -227,7 +226,6 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
       drawTimeMarkers(g2d);
       drawMarkers(g2d);
       drawGuides(g2d);
-      drawTitle(g2d);
       if (myDrawDebugInfo) {
         drawDebugInfo(g2d);
       }
@@ -460,13 +458,6 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
     g2d.drawLine(LEFT_MARGIN - 10, myBottom, myRight + 10, myBottom);
     g2d.drawLine(LEFT_MARGIN, myBottom, LEFT_MARGIN, TOP_MARGIN);
     g2d.drawLine(myRight, myBottom, myRight, TOP_MARGIN);
-  }
-
-  private void drawTitle(Graphics2D g2d) {
-    if (myData.getTitle() != null) {
-      g2d.setFont(TITLE_FONT);
-      g2d.drawString(myData.getTitle(), LEFT_MARGIN, TOP_MARGIN - g2d.getFontMetrics().getAscent());
-    }
   }
 
   private void setPaths(int from, int to) {
