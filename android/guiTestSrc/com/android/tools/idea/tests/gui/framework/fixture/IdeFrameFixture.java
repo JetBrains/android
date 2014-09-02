@@ -20,8 +20,6 @@ import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.GradleBuildListener;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.intellij.openapi.Disposable;
@@ -242,7 +240,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
-  private JMenuItem findActionMenuItem(@NotNull String...path) {
+  private JMenuItem findActionMenuItem(@NotNull String... path) {
     assertThat(path).isNotEmpty();
     int segmentCount = path.length;
     Container root = target;
@@ -277,7 +275,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
             return true;
           }
         }
-        return myGradleProjectEventListener.myBuildFinished && myGradleProjectEventListener.myBuildMode == buildMode;
+        return myGradleProjectEventListener.isBuildFinished(buildMode);
       }
     }, LONG_TIMEOUT);
 
@@ -332,7 +330,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFail() {
     try {
-      waitForGradleProjectSyncToFinish();
+      waitForGradleProjectSyncToFinish(true);
       fail("Expecting project sync to fail");
     }
     catch (RuntimeException expected) {
@@ -343,6 +341,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public IdeFrameFixture waitForGradleProjectSyncToFinish() {
+    waitForGradleProjectSyncToFinish(false);
+    return this;
+  }
+
+  private void waitForGradleProjectSyncToFinish(final boolean expectSyncFailure) {
     final Project project = getProject();
 
     // ensure GradleInvoker (in-process build) is always enabled.
@@ -352,25 +355,27 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     pause(new Condition("Syncing project " + quote(project.getName()) + " to finish") {
       @Override
       public boolean test() {
-        if (myGradleProjectEventListener.mySyncFinished && myGradleProjectEventListener.mySyncError != null) {
-          return true;
-        }
         GradleSyncState syncState = GradleSyncState.getInstance(project);
-        return (myGradleProjectEventListener.mySyncFinished || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
+        boolean syncFinished =
+          (myGradleProjectEventListener.isSyncFinished() || syncState.isSyncNeeded() != ThreeState.YES) && !syncState.isSyncInProgress();
+        if (expectSyncFailure) {
+          syncFinished = syncFinished && myGradleProjectEventListener.hasSyncError();
+        }
+        return syncFinished;
       }
     }, LONG_TIMEOUT);
 
-    if (myGradleProjectEventListener.mySyncError != null) {
-      RuntimeException syncError = myGradleProjectEventListener.mySyncError;
+    if (myGradleProjectEventListener.hasSyncError()) {
+      RuntimeException syncError = myGradleProjectEventListener.getSyncError();
       myGradleProjectEventListener.reset();
       throw syncError;
     }
 
-    if (!myGradleProjectEventListener.mySyncWasSkipped) {
+    if (!myGradleProjectEventListener.isSyncSkipped()) {
       waitForBuildToFinish(SOURCE_GEN);
     }
 
-    return waitForBackgroundTasksToFinish();
+    waitForBackgroundTasksToFinish();
   }
 
   @NotNull
@@ -396,50 +401,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
     return new MessagesToolWindowFixture(getProject(), robot);
-  }
-
-  private static class GradleProjectEventListener extends GradleSyncListener.Adapter implements GradleBuildListener {
-    volatile RuntimeException mySyncError;
-    volatile boolean mySyncFinished;
-    volatile boolean mySyncWasSkipped;
-
-    volatile BuildMode myBuildMode;
-    volatile boolean myBuildFinished;
-
-    @Override
-    public void syncStarted(@NotNull Project project) {
-      reset();
-    }
-
-    @Override
-    public void syncSucceeded(@NotNull Project project) {
-      mySyncFinished = true;
-    }
-
-    @Override
-    public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-      mySyncFinished = true;
-      mySyncError = new RuntimeException(errorMessage);
-    }
-
-    @Override
-    public void syncSkipped(@NotNull Project project) {
-      mySyncFinished = true;
-      mySyncWasSkipped = true;
-    }
-
-    @Override
-    public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
-      myBuildMode = mode;
-      myBuildFinished = true;
-    }
-
-    void reset() {
-      mySyncError = null;
-      mySyncWasSkipped = mySyncFinished = false;
-      myBuildMode = null;
-      myBuildFinished = false;
-    }
   }
 
   private static class NoOpDisposable implements Disposable {
