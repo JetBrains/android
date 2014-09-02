@@ -114,6 +114,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
             myPreferredFocusComponent = comboBox;
           }
           break;
+        case CUSTOM:
         case STRING:
           myParamContainer.add(label, c);
           c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);
