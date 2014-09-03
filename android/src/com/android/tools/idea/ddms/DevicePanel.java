@@ -120,7 +120,7 @@ public class DevicePanel implements Disposable,
         myDeviceContext.fireClientSelected(null);
       }
     });
-    myDevicesComboBox.setRenderer(new DeviceComboBoxRenderer());
+    myDevicesComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer());
 
     IDevice[] devices = myBridge.getDevices();
     if (devices.length == 0) {
@@ -205,31 +205,6 @@ public class DevicePanel implements Disposable,
       }
       return components;
     }
-  }
-
-  public static List<Pair<String, SimpleTextAttributes>> renderDeviceName(IDevice d) {
-    List<Pair<String, SimpleTextAttributes>> components = new ArrayList<Pair<String, SimpleTextAttributes>>(3);
-    String name;
-    if (d.isEmulator()) {
-      String avdName = d.getAvdName();
-      if (avdName == null) {
-        avdName = "unknown";
-      }
-      name = String.format("%1$s %2$s ", AndroidBundle.message("android.emulator"), avdName);
-    } else {
-      name = String.format("%1$s %2$s ", DevicePropertyUtil.getManufacturer(d, ""), DevicePropertyUtil.getModel(d, ""));
-    }
-
-    components.add(Pair.of(name, SimpleTextAttributes.REGULAR_ATTRIBUTES));
-
-    if (d.getState() != IDevice.DeviceState.ONLINE) {
-      String state = String.format("%1$s [%2$s] ", d.getSerialNumber(), d.getState());
-      components.add(Pair.of(state, SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES));
-    }
-
-    components.add(Pair.of(DevicePropertyUtil.getBuild(d), SimpleTextAttributes.GRAY_ATTRIBUTES));
-
-    return components;
   }
 
   @Override
