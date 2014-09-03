@@ -63,7 +63,7 @@
             icon="AndroidIcons.NavigationEditor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
-    <action id="Android.MemoryProfiler" class="com.android.tools.idea.memory.MemoryProfilerAction" icon="AndroidIcons.MemoryMonitor">
+    <action id="Android.MemoryMonitor" class="com.android.tools.idea.memory.MemoryMonitorAction" icon="AndroidIcons.MemoryMonitor">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync">
@@ -514,7 +514,7 @@
                 anchor="bottom"
                 secondary="true"
                 icon="AndroidIcons.MemoryMonitorToolWindow"
-                factoryClass="com.android.tools.idea.memory.MemoryProfilingToolWindowFactory"/>
+                factoryClass="com.android.tools.idea.memory.MemoryMonitorToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.console.view.GradleConsoleView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.invoker.GradleInvoker"/>
