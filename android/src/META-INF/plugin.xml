@@ -6,6 +6,17 @@
   </description>
   <version>10.0</version>
   <vendor>JetBrains</vendor>
+
+  <depends>JUnit</depends>
+  <depends>com.intellij.properties</depends>
+  <depends>org.jetbrains.plugins.gradle</depends>
+
+  <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
+  <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
+  <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
+  <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
+  <depends optional="true"  config-file="database-support.xml">com.intellij.database</depends>
+
   <application-components>
     <component>
       <implementation-class>org.jetbrains.android.AndroidPlugin</implementation-class>
@@ -52,40 +63,31 @@
     <action id="Android.ConvertToNinePatch" class="com.android.tools.idea.actions.ConvertToNinePatchAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="last" />
     </action>
+
     <group id="AndroidToolsGroup" popup="true" text="Android" icon="AndroidIcons.Android"
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
+      <action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"
+              icon="AndroidIcons.NavigationEditor"/>
+      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
+      <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android"/>
+      <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
+          icon="AndroidIcons.AvdManager"/>
+      <action id="Android.RunAndroidSdkManager" class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
+          icon="AndroidIcons.SdkManager"/>
+      <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction"/>
+      <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <add-to-group group-id="ToolsMenu" anchor="last"/>
     </group>
-    <action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"
-            icon="AndroidIcons.NavigationEditor">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
+
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.CleanImportProject" class="com.android.tools.idea.gradle.actions.CleanImportProjectAction" />
       <add-to-group group-id="Internal"/>
     </group>
-    <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
     <!--<action id="Android.RunHierarchyViewer" class="org.jetbrains.android.actions.AndroidRunHierarchyViewerAction">
       <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>-->
     <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
       <add-to-group group-id="BuildMenu" anchor="last"/>
-    </action>
-    <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-        icon="AndroidIcons.AvdManager">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
-    <action id="Android.RunAndroidSdkManager" class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-        icon="AndroidIcons.SdkManager">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
-    <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
     </action>
     <action id="AndroidConnectDebuggerAction"
             class="org.jetbrains.android.actions.AndroidConnectDebuggerAction"
@@ -114,25 +116,12 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="Android.TraceViewSearch" class="com.android.tools.idea.editors.vmtrace.VmTraceEditorSearchAction" use-shortcut-of="Find" />
-    <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction">
-      <add-to-group group-id="AndroidToolsGroup" anchor="last"/>
-    </action>
   </actions>
-
-  <depends>JUnit</depends>
-  <depends>com.intellij.properties</depends>
-  <depends>org.jetbrains.plugins.gradle</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectResolver"/>
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
   </extensions>
-
-  <depends optional="true" config-file="maven-support.xml">org.jetbrains.idea.maven</depends>
-  <depends optional="true" config-file="test-ng.xml">TestNG-J</depends>
-  <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
-  <depends optional="true" config-file="eclipse.xml">org.jetbrains.idea.eclipse</depends>
-  <depends optional="true"  config-file="database-support.xml">com.intellij.database</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <externalSystemTaskNotificationListener implementation="com.android.tools.idea.gradle.AndroidGradleImportTaskNotificationListener"/>
