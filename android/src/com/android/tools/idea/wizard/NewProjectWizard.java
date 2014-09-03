@@ -186,7 +186,7 @@ public class NewProjectWizard extends TemplateWizard implements TemplateParamete
         if (version != null) {
           initialLanguageLevel = LanguageLevel.parse(version.toString());
         }
-        projectImporter.importProject(projectName, projectRoot, true, new NewProjectImportGradleSyncListener() {
+        projectImporter.importNewlyCreatedProject(projectName, projectRoot, new NewProjectImportGradleSyncListener() {
           @Override
           public void syncSucceeded(@NotNull final Project project) {
             // Open files -- but wait until the Android facets are available, otherwise for example

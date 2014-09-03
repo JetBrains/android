@@ -216,7 +216,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
    */
   public void testImportSimpleGradleProject() throws IOException, ConfigurationException {
     VirtualFile moduleRoot = createGradleProjectToImport(dir, MODULE_NAME);
-    GradleProjectImporter.getInstance().importModules(Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject(), null);
+    GradleModuleImporter.importModules(this, Collections.singletonMap(moduleRoot.getName(), moduleRoot), getProject(), null);
     assertModuleImported(getProject(), MODULE_NAME, moduleRoot);
   }
 
@@ -227,14 +227,13 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     String[] paths = {module(1), module(2), SAMPLE_PROJECT_PATH};
 
     VirtualFile projectRoot = createProjectWithSubprojects(projectsWithDefaultLocations(paths));
-    GradleProjectImporter importer = GradleProjectImporter.getInstance();
-    Map<String, VirtualFile> toImport = moduleListToMap(importer.getRelatedProjects(projectRoot, getProject()));
+    Map<String, VirtualFile> toImport = moduleListToMap(GradleModuleImporter.getRelatedProjects(projectRoot, getProject()));
     assertEquals(paths.length, toImport.size());
     for (String path : paths) {
       assertEquals(projectRoot.findFileByRelativePath(path), toImport.get(pathToGradleName(path)));
     }
 
-    importer.importModules(toImport, getProject(), null);
+    GradleModuleImporter.importModules(this, toImport, getProject(), null);
 
     for (String path : paths) {
       VirtualFile moduleRoot = projectRoot.findFileByRelativePath(path);
@@ -246,17 +245,16 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   }
 
   /**
-   * Missing submodule will be on the list but with a <code>null</code> path. It is up to client code to decide what to do with it.
+   * Missing sub-module will be on the list but with a <code>null</code> path. It is up to client code to decide what to do with it.
    */
-  public void testImportSubprojectsWithMissingSubmodule() throws IOException, ConfigurationException {
+  public void testImportSubProjectsWithMissingSubModule() throws IOException, ConfigurationException {
     VirtualFile projectRoot = createProjectWithSubprojects(projectsWithDefaultLocations(module(1)), module(2));
-    GradleProjectImporter importer = GradleProjectImporter.getInstance();
-    Map<String, VirtualFile> toImport = moduleListToMap(importer.getRelatedProjects(projectRoot, getProject()));
+    Map<String, VirtualFile> toImport = moduleListToMap(GradleModuleImporter.getRelatedProjects(projectRoot, getProject()));
     assertEquals(2, toImport.size());
     assertModuleRequiredButNotFound(module(2), toImport);
 
     try {
-      importer.importModules(toImport, getProject(), null);
+      GradleModuleImporter.importModules(this, toImport, getProject(), null);
       fail();
     }
     catch (IOException e) {
@@ -267,17 +265,16 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   /**
    * Verify discovery of projects with non-default locations
    */
-  public void testImportSubprojectWithCustomLocation() throws IOException, ConfigurationException {
+  public void testImportSubProjectWithCustomLocation() throws IOException, ConfigurationException {
     VirtualFile projectRoot =
       createProjectWithSubprojects(Collections.singletonMap(pathToGradleName(SAMPLE_PROJECT_NAME), SAMPLE_PROJECT_PATH));
-    GradleProjectImporter importer = GradleProjectImporter.getInstance();
-    Map<String, VirtualFile> subprojects = moduleListToMap(importer.getRelatedProjects(projectRoot, getProject()));
-    assertEquals(1, subprojects.size());
+    Map<String, VirtualFile> subProjects = moduleListToMap(GradleModuleImporter.getRelatedProjects(projectRoot, getProject()));
+    assertEquals(1, subProjects.size());
     VirtualFile moduleLocation = projectRoot.findFileByRelativePath(SAMPLE_PROJECT_PATH);
     assert moduleLocation != null;
-    assertEquals(moduleLocation, subprojects.get(pathToGradleName(SAMPLE_PROJECT_NAME)));
+    assertEquals(moduleLocation, subProjects.get(pathToGradleName(SAMPLE_PROJECT_NAME)));
 
-    importer.importModules(subprojects, getProject(), null);
+    GradleModuleImporter.importModules(this, subProjects, getProject(), null);
     assertModuleImported(getProject(), SAMPLE_PROJECT_NAME, moduleLocation);
   }
 
@@ -298,7 +295,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     assert project1 != null && project2 != null : "Something wrong with the setup";
     configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
 
-    Map<String, VirtualFile> projects = moduleListToMap(GradleProjectImporter.getInstance().getRelatedProjects(project2, getProject()));
+    Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
     assertEquals(project1, projects.get(pathToGradleName(module(1))));
     assertEquals(project2, projects.get(pathToGradleName(module(2))));
@@ -312,7 +309,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     assert project2 != null : "Something wrong with the setup";
     configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
 
-    Map<String, VirtualFile> projects = moduleListToMap(GradleProjectImporter.getInstance().getRelatedProjects(project2, getProject()));
+    Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
     assertModuleRequiredButNotFound(module(1), projects);
     assertEquals(project2, projects.get(pathToGradleName(module(2))));
@@ -325,7 +322,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile module = createGradleProjectToImport(dir, module(1), module(2));
     assert module != null;
 
-    Map<String, VirtualFile> projects = moduleListToMap(GradleProjectImporter.getInstance().getRelatedProjects(module, getProject()));
+    Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(module, getProject()));
     assertEquals(2, projects.size());
     assertModuleRequiredButNotFound(module(2), projects);
     assertEquals(module, projects.get(pathToGradleName(module(1))));
@@ -340,7 +337,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
     configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
 
-    Map<String, VirtualFile> projects = moduleListToMap(GradleProjectImporter.getInstance().getRelatedProjects(project3, getProject()));
+    Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
     assertEquals(project1, projects.get(pathToGradleName(module(1))));
     assertEquals(project2, projects.get(pathToGradleName(module(2))));
@@ -356,7 +353,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
     configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
 
-    Map<String, VirtualFile> projects = moduleListToMap(GradleProjectImporter.getInstance().getRelatedProjects(project3, getProject()));
+    Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
     assertEquals(project1, projects.get(pathToGradleName(module(1))));
     assertEquals(project2, projects.get(pathToGradleName(module(2))));
@@ -385,12 +382,11 @@ public final class GradleModuleImportTest extends AndroidTestBase {
         return moduleWithDependency;
       }
     });
-    GradleProjectImporter importer = GradleProjectImporter.getInstance();
-    Map<String, VirtualFile> importInput = moduleListToMap(importer.getRelatedProjects(module, getProject()));
+    Map<String, VirtualFile> importInput = moduleListToMap(GradleModuleImporter.getRelatedProjects(module, getProject()));
     assertEquals(2, importInput.size());
     assertEquals(module, importInput.get(pathToGradleName(module(2))));
 
-    importer.importModules(importInput, getProject(), null);
+    GradleModuleImporter.importModules(this, importInput, getProject(), null);
 
     GradleSettingsFile settingsFile = GradleSettingsFile.get(getProject());
     assertNotNull(settingsFile);

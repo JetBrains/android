@@ -16,22 +16,25 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.ModuleAdapter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -41,8 +44,6 @@ import java.util.List;
  * sees.
  */
 public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileListener {
-  private static final Logger LOG = Logger.getInstance(GradleBuildFileUpdater.class);
-
   private final Project myProject;
 
   public GradleBuildFileUpdater(@NotNull Project project) {
@@ -51,18 +52,40 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
 
   @Override
   public void moduleAdded(@NotNull final Project project, @NotNull final Module module) {
-    // The module has probably already been added to the settings file but let's call this to be safe.
-    GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
+    // Don't do anything if we are in the middle of a project sync.
+    if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+      return;
+    }
+    final GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
     if (settingsFile != null) {
-      settingsFile.addModule(module);
+      // if settings.gradle does not have a module, we are in the middle of setting up a project.
+      final PsiFile psiFile = settingsFile.getPsiFile();
+      Module found = ModuleUtilCore.findModuleForPsiElement(psiFile);
+      if (found != null) {
+        new WriteCommandAction<Void>(project, "Update settings.gradle", psiFile) {
+          @Override
+          protected void run(@NotNull Result<Void> result) throws Throwable {
+            settingsFile.addModule(module);
+          }
+        }.execute();
+      }
     }
   }
 
   @Override
   public void moduleRemoved(@NotNull Project project, @NotNull final Module module) {
-    GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
+    // Don't do anything if we are in the middle of a project sync.
+    if (GradleSyncState.getInstance(project).isSyncInProgress()) {
+      return;
+    }
+    final GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
     if (settingsFile != null) {
-      settingsFile.removeModule(module);
+      new WriteCommandAction<Void>(project, "Update settings.gradle", settingsFile.getPsiFile()) {
+        @Override
+        protected void run(@NotNull Result<Void> result) throws Throwable {
+          settingsFile.removeModule(module);
+        }
+      }.execute();
     }
   }
 
@@ -83,7 +106,7 @@ public class GradleBuildFileUpdater extends ModuleAdapter implements BulkFileLis
       if (!(event instanceof VFilePropertyChangeEvent)) {
         continue;
       }
-      VFilePropertyChangeEvent propChangeEvent = (VFilePropertyChangeEvent) event;
+      VFilePropertyChangeEvent propChangeEvent = (VFilePropertyChangeEvent)event;
       if (!(VirtualFile.PROP_NAME.equals(propChangeEvent.getPropertyName()))) {
         continue;
       }

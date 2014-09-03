@@ -158,7 +158,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         private boolean openTemplateFiles(Project project) {
           return TemplateUtils.openEditors(project, myFilesToOpen, true);
         }
-      });
+      }, null, null);
     }
     catch (IOException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
