@@ -77,7 +77,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
         delete(filesToDelete, projectName);
         try {
           LOG.info(String.format("About to import project '%1$s'.", projectName));
-          GradleProjectImporter.getInstance().importNewlyCreatedProject(projectName, projectDir, null);
+          GradleProjectImporter.getInstance().importNewlyCreatedProject(projectName, projectDir, null, null, null);
           LOG.info(String.format("Done importing project '%1$s'.", projectName));
         }
         catch (Exception error) {

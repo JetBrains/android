@@ -58,7 +58,7 @@ public class GradleSiblingLookup implements Function<String, VirtualFile> {
         return findSiblings(directory.getParent(), project, seen);
       }
       else {
-        return GradleProjectImporter.getSubprojects(settings, project);
+        return GradleModuleImporter.getSubProjects(settings, project);
       }
     }
   }
