@@ -21,6 +21,6 @@ public class MyActivity extends Activity {
                 <fold text='40dp' expand='false'>R.dimen.mydimen1</fold>,
                 <fold text='28sp' expand='false'>R.dimen.mydimen2</fold>
         };
-        final int maxButtons = <fold text='5' expand='false'>getResources().getInteger(R.integer.max_action_buttons)</fold>;
+        final int maxButtons = <fold text='max_action_buttons: 5' expand='false'>getResources().getInteger(R.integer.max_action_buttons)</fold>;
     }</fold>
 }
