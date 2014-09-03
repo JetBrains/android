@@ -221,7 +221,14 @@ public class StringResourceViewPanel {
     }
 
     int row = myTable.getSelectedRow();
-    int column = myTable.getSelectedColumn();
+    int column = myTable.getSelectedColumn();;
+
+    if (component == myKey) {
+      column = ConstantColumn.KEY.ordinal();
+    }
+    else if (component == myDefaultValue) {
+      column = ConstantColumn.DEFAULT_VALUE.ordinal();
+    }
 
     String value = component.getText();
     model.setValueAt(value, row, column);
