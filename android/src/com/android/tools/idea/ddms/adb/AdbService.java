@@ -29,6 +29,7 @@ import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,7 @@ public class AdbService {
   private static SettableFuture<AndroidDebugBridge> ourFuture;
   private static MonitorDebugBridgeConnectionTask ourMonitorTask;
 
-  public static synchronized ListenableFuture<AndroidDebugBridge> initializeAndGetBridge(String adbPath, boolean recreate) {
+  public static synchronized ListenableFuture<AndroidDebugBridge> initializeAndGetBridge(@NotNull File adb, boolean recreate) {
     if (recreate && ourFuture != null) {
       ourFuture = null;
       ourMonitorTask.cancel();
@@ -49,7 +50,7 @@ public class AdbService {
       ourFuture = SettableFuture.create();
 
       AdbErrors.clear();
-      ourDdmlib.initialize(adbPath);
+      ourDdmlib.initialize(adb);
 
       ourMonitorTask = new MonitorDebugBridgeConnectionTask(ourDdmlib, ourFuture);
       ApplicationManager.getApplication().executeOnPooledThread(ourMonitorTask);
@@ -161,7 +162,7 @@ public class AdbService {
     private boolean myDdmLibInitialized = false;
     private boolean ourDdmLibTerminated = false;
 
-    public synchronized void initialize(@NotNull String adbPath) {
+    public synchronized void initialize(@NotNull File adb) {
       boolean forceRestart = true;
       if (!myDdmLibInitialized) {
         myDdmLibInitialized = true;
@@ -178,7 +179,7 @@ public class AdbService {
           LOG.info("Force restarting bridge: currently not connected.");
         }
       }
-      myBridge = AndroidDebugBridge.createBridge(adbPath, forceRestart);
+      myBridge = AndroidDebugBridge.createBridge(adb.getPath(), forceRestart);
     }
 
     public synchronized boolean isConnectionInProgress() {

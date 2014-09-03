@@ -56,7 +56,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * @author Eugene.Kudelevsky
@@ -231,18 +230,10 @@ public class AndroidSdkData {
     return FileUtil.fileHashCode(getLocation());
   }
 
-  private String getAdbPath() {
-    String path = getLocation() + File.separator + SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER + SdkConstants.FN_ADB;
-    if (!new File(path).exists()) {
-      path = getLocation() + File.separator + AndroidCommonUtils.toolPath(SdkConstants.FN_ADB);
-    }
-    try {
-      return new File(path).getCanonicalPath();
-    }
-    catch (IOException e) {
-      LOG.info(e);
-      return path;
-    }
+  @Nullable
+  public File getAdb() {
+    File adb = new File(getLocation(), AndroidCommonUtils.platformToolPath(SdkConstants.FN_ADB));
+    return adb.exists() ? adb : null;
   }
 
   @Nullable
@@ -252,7 +243,13 @@ public class AndroidSdkData {
     AndroidDebugBridge bridge = null;
     boolean retry = false;
     do {
-      Future<AndroidDebugBridge> future = AdbService.initializeAndGetBridge(getAdbPath(), retry);
+      File adb = getAdb();
+      if (adb == null) {
+        LOG.error("Unable to locate adb within SDK: " + getLocation().getPath());
+        return null;
+      }
+
+      Future<AndroidDebugBridge> future = AdbService.initializeAndGetBridge(adb, retry);
       MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
       ProgressManager.getInstance().run(task);
 
