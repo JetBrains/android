@@ -23,6 +23,7 @@ import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -78,8 +79,9 @@ public class GradleSyncState {
     myMessageBus = messageBus;
   }
 
-  public void syncSkipped() {
+  public void syncSkipped(long lastSyncTimestamp) {
     cleanUpProjectPreferences();
+    setLastGradleSyncTimestamp(lastSyncTimestamp);
     syncPublisher(new Runnable() {
       @Override
       public void run() {
@@ -166,7 +168,7 @@ public class GradleSyncState {
     return mySyncInProgress;
   }
 
-  public void setLastGradleSyncTimestamp(long timestamp) {
+  private void setLastGradleSyncTimestamp(long timestamp) {
     myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, timestamp);
   }
 
@@ -238,4 +240,8 @@ public class GradleSyncState {
     }
   }
 
+  @VisibleForTesting
+  public void resetTimestamp() {
+    setLastGradleSyncTimestamp(-1L);
+  }
 }
