@@ -21,7 +21,6 @@ import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
-import com.android.tools.idea.memory.MemoryProfilerAction;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
