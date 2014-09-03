@@ -314,7 +314,6 @@ public class AndroidGradleProjectData implements Serializable {
         AndroidGradleProjectData data = (AndroidGradleProjectData)ois.readObject();
         if (data.validate(rootDirPath)) {
           if (data.applyTo(project)) {
-            GradleSyncState.getInstance(project).syncSkipped(data.myLastGradleSyncTimestamp);
             PostProjectSetupTasksExecutor.getInstance(project).onProjectRestoreFromDisk();
             return true;
           }
@@ -541,6 +540,7 @@ public class AndroidGradleProjectData implements Serializable {
         javaFacet.setJavaModel(data.myJavaModel);
       }
     }
+    GradleSyncState.getInstance(project).syncSkipped(myLastGradleSyncTimestamp);
     return true;
   }
 
