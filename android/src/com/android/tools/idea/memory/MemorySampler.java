@@ -112,13 +112,16 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
     }
   }
 
+  @SuppressWarnings("ConstantConditions")
   public void start() {
     if (myExecutingTask == null) {
       myData.clear();
       AndroidDebugBridge.addClientChangeListener(this);
       myRunning = true;
       myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
-      startClient();
+      if (myClient != null) {
+        myClient.setHeapInfoUpdateEnabled(true);
+      }
 
       for (MemorySamplerListener listener : myListeners) {
         listener.onStart();
@@ -126,7 +129,7 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
     }
   }
 
-
+  @SuppressWarnings("ConstantConditions")
   public void stop() {
     if (myExecutingTask != null) {
       myRunning = false;
@@ -145,25 +148,13 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
 
       myData.freeze();
       AndroidDebugBridge.removeClientChangeListener(this);
-      stopClient();
+      if (myClient != null) {
+        myClient.setHeapInfoUpdateEnabled(false);
+      }
       myExecutingTask = null;
       for (MemorySamplerListener listener : myListeners) {
         listener.onStop();
       }
-    }
-  }
-
-  @SuppressWarnings("ConstantConditions")
-  private void startClient() {
-    if (myExecutingTask != null & myClient != null) {
-      myClient.setHeapInfoUpdateEnabled(true);
-    }
-  }
-
-  @SuppressWarnings("ConstantConditions")
-  private void stopClient() {
-    if (myExecutingTask != null && myClient != null) {
-      myClient.setHeapInfoUpdateEnabled(false);
     }
   }
 
@@ -247,9 +238,12 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
 
   public void setClient(@Nullable Client client) {
     if (client != myClient) {
-      stopClient();
+      boolean running = isRunning();
+      stop();
       myClient = client;
-      startClient();
+      if (running) {
+        start();
+      }
     }
   }
 
@@ -257,6 +251,7 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
     myListeners.add(listener);
   }
 
+  @SuppressWarnings("ConstantConditions")
   public void requestGc() {
     if (myClient != null) {
       myClient.executeGarbageCollector();
