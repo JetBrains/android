@@ -57,7 +57,6 @@ public class SampleTest extends GuiTestCase {
     editor.open("app/src/main/res/values/strings.xml", EditorFixture.Tab.EDITOR);
 
     assertEquals("strings.xml", editor.getCurrentFileName());
-    assertEquals(0, editor.getCurrentLineNumber());
 
     editor.moveTo(editor.findOffset(null, "app_name", true));
 
