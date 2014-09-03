@@ -27,6 +27,7 @@ import com.android.sdklib.repository.remote.RemoteSdk;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.utils.NullLogger;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationManager;
@@ -52,6 +53,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Eugene.Kudelevsky
@@ -244,10 +249,74 @@ public class AndroidSdkData {
   public AndroidDebugBridge getDebugBridge(@NotNull Project project) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    if (!AdbService.initializeDdmlib(project, getAdbPath())) {
-      return null;
+    AndroidDebugBridge bridge = null;
+    boolean retry = false;
+    do {
+      Future<AndroidDebugBridge> future = AdbService.initializeAndGetBridge(getAdbPath(), retry);
+      MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
+      ProgressManager.getInstance().run(task);
+
+      if (task.wasCanceled()) { // if the user cancelled the dialog
+        return null;
+      }
+
+      retry = false;
+      try {
+        bridge = future.get();
+      }
+      catch (InterruptedException e) {
+        break;
+      }
+      catch (ExecutionException e) {
+        // timed out waiting for bridge, ask the user what to do
+        final String adbErrors = Joiner.on('\n').join(AdbErrors.getErrors());
+        String message =
+          "ADB not responding. If you'd like to retry, then please manually kill \"" + SdkConstants.FN_ADB + "\" and click 'Restart'";
+        if (!adbErrors.isEmpty()) {
+          message += "\nErrors from ADB:\n" + adbErrors;
+        }
+        retry = Messages.showYesNoDialog(project, message, CommonBundle.getErrorTitle(), "&Restart", "&Cancel", Messages.getErrorIcon()) ==
+                Messages.YES;
+      }
+    } while (retry);
+
+    return bridge;
+  }
+
+  private static class MyMonitorBridgeConnectionTask extends Task.Modal {
+    private final Future<AndroidDebugBridge> myFuture;
+    private boolean myCancelled; // set/read only on EDT
+
+    public MyMonitorBridgeConnectionTask(@Nullable Project project, Future<AndroidDebugBridge> future) {
+      super(project, "Waiting for adb", true);
+      myFuture = future;
     }
-    return AndroidDebugBridge.getBridge();
+
+    @Override
+    public void run(@NotNull ProgressIndicator indicator) {
+      indicator.setIndeterminate(true);
+      while (!myFuture.isDone()) {
+        try {
+          myFuture.get(200, TimeUnit.MILLISECONDS);
+        }
+        catch (Exception ignored) {
+          // all we need to know is whether the future completed or not..
+        }
+
+        if (indicator.isCanceled()) {
+          return;
+        }
+      }
+    }
+
+    @Override
+    public void onCancel() {
+      myCancelled = true;
+    }
+
+    public boolean wasCanceled() {
+      return myCancelled;
+    }
   }
 
   @NotNull
