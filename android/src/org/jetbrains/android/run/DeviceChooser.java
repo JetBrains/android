@@ -20,11 +20,10 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -41,7 +40,6 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import gnu.trove.TIntArrayList;
-import icons.AndroidIcons;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -141,7 +139,7 @@ public class DeviceChooser implements Disposable {
     }.installOn(myDeviceTable);
 
     myDeviceTable.setDefaultRenderer(LaunchCompatibility.class, new LaunchCompatibilityRenderer());
-    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceNameRenderer());
+    myDeviceTable.setDefaultRenderer(IDevice.class, new DeviceRenderer.DeviceNameRenderer());
     myDeviceTable.addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent e) {
@@ -425,27 +423,6 @@ public class DeviceChooser implements Disposable {
         return IDevice.class;
       } else {
         return String.class;
-      }
-    }
-  }
-
-  private static class DeviceNameRenderer extends ColoredTableCellRenderer {
-    @Override
-    protected void customizeCellRenderer(JTable table,
-                                         Object value,
-                                         boolean selected,
-                                         boolean hasFocus,
-                                         int row,
-                                         int column) {
-      if (!(value instanceof IDevice)) {
-        return;
-      }
-
-      IDevice device = (IDevice)value;
-      setIcon(device.isEmulator() ? AndroidIcons.Ddms.Emulator2 : AndroidIcons.Ddms.RealDevice);
-      List<Pair<String, SimpleTextAttributes>> l = DevicePanel.renderDeviceName(device);
-      for (Pair<String, SimpleTextAttributes> component : l) {
-        append(component.getFirst(), component.getSecond());
       }
     }
   }
