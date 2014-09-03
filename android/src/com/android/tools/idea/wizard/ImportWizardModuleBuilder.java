@@ -18,7 +18,6 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.Template;
-import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -36,6 +35,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.projectRoots.JavaSdkType;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -43,6 +43,7 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
+import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,16 +61,14 @@ import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LO
 import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
 public class ImportWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
-  @Nullable private final VirtualFile myImportSource;
   @NotNull protected final List<ModuleWizardStep> mySteps;
-  @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
-
-  @Nullable private Project myProject;
   @NotNull protected final Iterable<WizardPath> myPaths;
-
   protected final NewModuleWizardState myWizardState;
+  @Nullable private final VirtualFile myImportSource;
+  @NotNull private final Map<ModuleWizardStep, WizardPath> myStepsToPath = Maps.newHashMap();
   @VisibleForTesting
   protected boolean myInitializationComplete = false;
+  @Nullable private Project myProject;
   private ImportSourceModulePath myImportSourcesPath;
 
   public ImportWizardModuleBuilder(@Nullable File templateFile,
@@ -134,10 +133,10 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
 
     myWizardState.setDefaultWizardPath(getDefaultPath());
     if (project != null) {
-      myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+      myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
     }
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    myWizardState.put(ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
+    myWizardState.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
     update();
 
     myInitializationComplete = true;
@@ -232,7 +231,7 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
                 public void run() {
                   if (myProject == null) {
                     myWizardState.putSdkDependentParams();
-                    myWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
+                    myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
                     AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(myWizardState);
                     NewProjectWizard.createProject(myWizardState, project, assetGenerator);
                   }
@@ -252,6 +251,11 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
   @NotNull
   public ModuleType getModuleType() {
     return StdModuleTypes.JAVA;
+  }
+
+  @Override
+  protected ProjectType getProjectType() {
+    return AndroidModuleBuilder.ANDROID_PROJECT_TYPE;
   }
 
   @Override
