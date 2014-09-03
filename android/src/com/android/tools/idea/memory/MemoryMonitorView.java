@@ -28,6 +28,9 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -53,6 +56,8 @@ import java.awt.event.HierarchyListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
@@ -90,6 +95,8 @@ public class MemoryMonitorView
   private TimelineData myData;
   @Nullable
   private String myCandidateClientName;
+  @NotNull
+  private MemorySamplerTask myMemorySamplerTask;
 
   public MemoryMonitorView(@NotNull Project project) {
     $$$setupUI$$$(); // See IDEA-67765
@@ -115,6 +122,8 @@ public class MemoryMonitorView
     myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
 
     myContentPane.addHierarchyListener(this);
+
+    myMemorySamplerTask = new MemorySamplerTask(project, myMemorySampler);
 
     // TODO: Handle case where no bridge can be found.
     myBridge = AndroidSdkUtils.getDebugBridge(myProject);
@@ -364,8 +373,49 @@ public class MemoryMonitorView
   @Override
   public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
     if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+      myMemorySamplerTask.exit();
       if (myContentPane.isShowing()) {
         myMemorySampler.start();
+      }
+      else {
+        if (myMemorySampler.isRunning()) {
+          myMemorySamplerTask = new MemorySamplerTask(myProject, myMemorySampler);
+          ProgressManager.getInstance().run(myMemorySamplerTask);
+        }
+      }
+    }
+  }
+
+  private static class MemorySamplerTask extends Task.Backgroundable {
+
+    private final MemorySampler myMemorySampler;
+    private final CountDownLatch myLatch;
+
+    public MemorySamplerTask(@Nullable Project project, MemorySampler memorySampler) {
+      super(project, "Monitoring Memory ...", true);
+      myMemorySampler = memorySampler;
+      myLatch = new CountDownLatch(1);
+    }
+
+    public void exit() {
+      myLatch.countDown();
+    }
+
+    @Override
+    public void run(@NotNull ProgressIndicator indicator) {
+      indicator.setIndeterminate(true);
+      while (myMemorySampler.isRunning() && myLatch.getCount() > 0) {
+        try {
+          myLatch.await(200, TimeUnit.MILLISECONDS);
+        }
+        catch (InterruptedException e) {
+          break;
+        }
+
+        if (indicator.isCanceled()) {
+          myMemorySampler.stop();
+          break;
+        }
       }
     }
   }
