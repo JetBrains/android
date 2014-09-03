@@ -23,7 +23,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 
 public class MemoryProfilingToolWindowFactory implements ToolWindowFactory, DumbAware {
-  public static final String ID = "Memory Profiler";
+  public static final String ID = "Memory Monitor";
 
   @Override
   public void createToolWindowContent(Project project, ToolWindow toolWindow) {

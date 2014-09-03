@@ -22,7 +22,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.memory.actions.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -30,10 +29,10 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
@@ -49,13 +48,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
+
 public class MemoryProfilingView
   implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IClientChangeListener, MemorySampler.MemorySamplerListener,
-             Disposable {
+             HierarchyListener {
 
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
@@ -69,7 +72,7 @@ public class MemoryProfilingView
   private final AndroidDebugBridge myBridge;
   @NotNull
   private final Map<String, String> myPreferredClients;
-  public boolean myUserInitiatedInput;
+  public boolean myIgnoreActionEvents;
   @NotNull
   private JPanel myContentPane;
   @NotNull
@@ -111,6 +114,8 @@ public class MemoryProfilingView
     myToolbarPanel.add(toolbar.getComponent());
     myToolbarPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.RIGHT));
 
+    myContentPane.addHierarchyListener(this);
+
     // TODO: Handle case where no bridge can be found.
     myBridge = AndroidSdkUtils.getDebugBridge(myProject);
     AndroidDebugBridge.addDeviceChangeListener(this);
@@ -126,10 +131,10 @@ public class MemoryProfilingView
     myClientCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
+        if (myIgnoreActionEvents) return;
+
         Client client = (Client)myClientCombo.getSelectedItem();
-        if (myUserInitiatedInput && client != null) {
-          myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
-        }
+        myPreferredClients.put(client.getDevice().getName(), client.getClientData().getClientDescription());
         myMemorySampler.setClient(client);
       }
     });
@@ -149,6 +154,8 @@ public class MemoryProfilingView
     myDeviceCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
+        if (myIgnoreActionEvents) return;
+
         updateClientCombo();
       }
     });
@@ -181,8 +188,10 @@ public class MemoryProfilingView
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new RecordingAction(myMemorySampler));
-    group.add(new MemorySnapshotAction(myMemorySampler));
+    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
+      group.add(new RecordingAction(myMemorySampler));
+      group.add(new MemorySnapshotAction(myMemorySampler));
+    }
     group.add(new GcAction(myMemorySampler));
     group.add(new CloseMemoryProfilingWindow(this));
 
@@ -214,11 +223,10 @@ public class MemoryProfilingView
 
   public void close() {
     myMemorySampler.stop();
-    AndroidDebugBridge.removeClientChangeListener(this);
-    AndroidDebugBridge.removeDeviceChangeListener(this);
+
     ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    toolWindowManager.unregisterToolWindow(MemoryProfilingToolWindowFactory.ID);
-    Disposer.dispose(this);
+    ToolWindow toolWindow = toolWindowManager.getToolWindow(MemoryProfilingToolWindowFactory.ID);
+    toolWindow.hide(null);
   }
 
   @Override
@@ -266,43 +274,59 @@ public class MemoryProfilingView
   }
 
   private void updateDeviceCombo() {
+    myIgnoreActionEvents = true;
+
+    boolean update = true;
     IDevice selected = (IDevice)myDeviceCombo.getSelectedItem();
     myDeviceCombo.removeAllItems();
     for (IDevice device : myBridge.getDevices()) {
       myDeviceCombo.addItem(device);
       if (selected == device) {
         myDeviceCombo.setSelectedItem(device);
+        update = false;
       }
     }
+
+    if (update) {
+      updateClientCombo();
+    }
+
+    myIgnoreActionEvents = false;
   }
 
   private void updateClientCombo() {
-    // Make sure selected events triggered by this method don't change the user preferences.
-    myUserInitiatedInput = false;
+    myIgnoreActionEvents = true;
 
     IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
     Client selected = (Client)myClientCombo.getSelectedItem();
+    Client toSelect = selected;
+    boolean update = true;
     myClientCombo.removeAllItems();
     if (device != null) {
-
       // Change the currently selected client if the user has a preference.
       String preferred = getPreferredClientForDevice(device.getName());
       if (preferred != null) {
         Client preferredClient = device.getClient(preferred);
         if (preferredClient != null) {
-          selected = preferredClient;
+          toSelect = preferredClient;
         }
       }
 
       for (Client client : device.getClients()) {
         myClientCombo.addItem(client);
-        if (client == selected) {
-          myClientCombo.setSelectedItem(client);
+        if (client == toSelect) {
+          myClientCombo.setSelectedItem(toSelect);
+          update = toSelect != selected;
         }
       }
     }
 
-    myUserInitiatedInput = true;
+    myIgnoreActionEvents = false;
+
+    if (update) {
+      selected = (Client)myClientCombo.getSelectedItem();
+      myMemorySampler.setClient(selected);
+    }
   }
 
   @Nullable
@@ -312,19 +336,11 @@ public class MemoryProfilingView
   }
 
   @Override
-  public void dispose() {
-  }
-
-  @Override
   public void onStart() {
-    myDeviceCombo.setEnabled(false);
-    myClientCombo.setEnabled(false);
   }
 
   @Override
   public void onStop() {
-    myDeviceCombo.setEnabled(true);
-    myClientCombo.setEnabled(true);
   }
 
   @Override
@@ -343,5 +359,14 @@ public class MemoryProfilingView
     }
     OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, vf);
     FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+  }
+
+  @Override
+  public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
+    if ((hierarchyEvent.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+      if (myContentPane.isShowing()) {
+        myMemorySampler.start();
+      }
+    }
   }
 }
