@@ -15,22 +15,26 @@
  */
 package com.android.tools.idea.memory;
 
-import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
+import com.intellij.openapi.wm.ToolWindowManager;
 
-public class MemoryProfilingToolWindowFactory implements ToolWindowFactory, DumbAware {
-  public static final String ID = "Memory Monitor";
+public class MemoryMonitorAction extends AnAction {
+
+  public MemoryMonitorAction() {
+    super(MemoryMonitorToolWindowFactory.ID);
+  }
 
   @Override
-  public void createToolWindowContent(Project project, ToolWindow toolWindow) {
-    MemoryProfilingView view = new MemoryProfilingView(project);
-
-    ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-    Content content = contentFactory.createContent(view.getComponent(), "", false);
-    toolWindow.getContentManager().addContent(content);
+  public void actionPerformed(AnActionEvent e) {
+    Project project = e.getData(CommonDataKeys.PROJECT);
+    if (project != null) {
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+      ToolWindow toolWindow = toolWindowManager.getToolWindow(MemoryMonitorToolWindowFactory.ID);
+      toolWindow.show(null);
+    }
   }
 }

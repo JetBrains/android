@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.memory.actions;
 
-import com.android.tools.idea.memory.MemoryProfilingView;
+import com.android.tools.idea.memory.MemoryMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 
-public class CloseMemoryProfilingWindow extends AnAction {
-  private MemoryProfilingView myView;
+public class CloseMemoryMonitorWindow extends AnAction {
+  private MemoryMonitorView myView;
 
-  public CloseMemoryProfilingWindow(MemoryProfilingView view) {
+  public CloseMemoryMonitorWindow(MemoryMonitorView view) {
     super("Close session", "Closes the memory profiling session.", AllIcons.Actions.Cancel);
     myView = view;
   }
