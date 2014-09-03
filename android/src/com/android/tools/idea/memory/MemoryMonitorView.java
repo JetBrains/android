@@ -56,7 +56,7 @@ import java.util.Map;
 
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.ENABLE_EXPERIMENTAL_ACTIONS;
 
-public class MemoryProfilingView
+public class MemoryMonitorView
   implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IClientChangeListener, MemorySampler.MemorySamplerListener,
              HierarchyListener {
 
@@ -91,7 +91,7 @@ public class MemoryProfilingView
   @Nullable
   private String myCandidateClientName;
 
-  public MemoryProfilingView(@NotNull Project project) {
+  public MemoryMonitorView(@NotNull Project project) {
     $$$setupUI$$$(); // See IDEA-67765
 
     myProject = project;
@@ -193,7 +193,7 @@ public class MemoryProfilingView
       group.add(new MemorySnapshotAction(myMemorySampler));
     }
     group.add(new GcAction(myMemorySampler));
-    group.add(new CloseMemoryProfilingWindow(this));
+    group.add(new CloseMemoryMonitorWindow(this));
 
     if (Boolean.getBoolean("studio.profiling.debug")) {
       group.addSeparator();
@@ -225,7 +225,7 @@ public class MemoryProfilingView
     myMemorySampler.stop();
 
     ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(myProject);
-    ToolWindow toolWindow = toolWindowManager.getToolWindow(MemoryProfilingToolWindowFactory.ID);
+    ToolWindow toolWindow = toolWindowManager.getToolWindow(MemoryMonitorToolWindowFactory.ID);
     toolWindow.hide(null);
   }
 
