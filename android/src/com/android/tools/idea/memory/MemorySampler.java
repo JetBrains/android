@@ -67,7 +67,7 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
    * If null, no current task is being executed.
    */
   @Nullable
-  private Future<?> myExecutingTask;
+  private volatile Future<?> myExecutingTask;
   @Nullable
   private volatile Client myClient;
   private volatile boolean myRunning;
