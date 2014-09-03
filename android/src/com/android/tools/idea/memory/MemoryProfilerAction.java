@@ -20,9 +20,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import icons.AndroidIcons;
 
 public class MemoryProfilerAction extends AnAction {
 
@@ -33,14 +31,10 @@ public class MemoryProfilerAction extends AnAction {
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getData(CommonDataKeys.PROJECT);
-
-    ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-    ToolWindow toolWindow = toolWindowManager.getToolWindow(MemoryProfilingToolWindowFactory.ID);
-    if (toolWindow == null) {
-      toolWindow = toolWindowManager.registerToolWindow(MemoryProfilingToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM);
-      toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
-      new MemoryProfilingToolWindowFactory().createToolWindowContent(project, toolWindow);
+    if (project != null) {
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+      ToolWindow toolWindow = toolWindowManager.getToolWindow(MemoryProfilingToolWindowFactory.ID);
+      toolWindow.show(null);
     }
-    toolWindow.show(null);
   }
 }
