@@ -178,7 +178,7 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     ois.close();
 
     // Clear the sync state to make sure we set it correctly.
-    syncState.setLastGradleSyncTimestamp(-1L);
+    syncState.resetTimestamp();
     assertTrue(newData.applyTo(project));
 
     assertEquals(previousSyncTime, syncState.getLastGradleSyncTimestamp());
