@@ -68,15 +68,26 @@
            class="org.jetbrains.android.actions.AndroidToolsActionGroup">
       <action id="Android.ShowNavigationEditor" class="com.android.tools.idea.actions.AndroidShowNavigationEditor"
               icon="AndroidIcons.NavigationEditor"/>
-      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync"/>
-      <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android"/>
+      <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="AndroidIcons.GradleSync" project-type="Android"/>
+      <action id="Android.RunDdms" class="org.jetbrains.android.actions.AndroidRunDdmsAction" icon="AndroidIcons.Android" project-type="Android"/>
       <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-          icon="AndroidIcons.AvdManager"/>
+          icon="AndroidIcons.AvdManager" project-type="Android"/>
       <action id="Android.RunAndroidSdkManager" class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-          icon="AndroidIcons.SdkManager"/>
+          icon="AndroidIcons.SdkManager" project-type="Android"/>
       <action id="Android.EnableDdms" class="org.jetbrains.android.actions.AndroidEnableAdbServiceAction"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </group>
+
+    <group id="Android.MainToolBarActionGroup">
+      <separator/>
+      <reference id="Android.SyncProject" />
+      <reference id="Android.RunAndroidAvdManager" />
+      <reference id="Android.RunAndroidSdkManager" />
+      <reference id="Android.RunDdms" />
+      <separator/>
+
+      <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
     </group>
 
     <group id="Internal.Android" text="Android" popup="true" internal="true">
