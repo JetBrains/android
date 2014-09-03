@@ -250,8 +250,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     am.registerAction("ClearPrefs", action);
     androidToolsGroup.add(action);
 
-    androidToolsGroup.add(new MemoryProfilerAction());
-
     action = new SdkQuickfixWizard.LaunchMe();
     am.registerAction("ShowQuickfix", action);
     androidToolsGroup.add(action);
