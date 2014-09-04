@@ -145,14 +145,12 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         if (map.containsKey(name)) {
           // The item already exists in this map; only add if there isn't an item with the
           // same qualifiers
-          ResourceFile itemSource = item.getSource();
-          String qualifiers = itemSource != null ? itemSource.getQualifiers() : "";
+          String qualifiers = item.getQualifiers();
           boolean contains = false;
           List<ResourceItem> list = map.get(name);
           assert list != null;
           for (ResourceItem existing : list) {
-            ResourceFile source = existing.getSource();
-            if (source != null && qualifiers.equals(source.getQualifiers())) {
+            if (qualifiers.equals(existing.getQualifiers())) {
               contains = true;
               break;
             }

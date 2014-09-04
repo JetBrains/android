@@ -25,6 +25,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.google.common.base.Splitter;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiDirectory;
@@ -68,7 +69,16 @@ public class PsiResourceItem extends ResourceItem {
           }
         }
       }
-      return new FolderConfiguration();
+
+      String qualifiers = getQualifiers();
+      if (qualifiers.isEmpty()) {
+        return new FolderConfiguration();
+      }
+      FolderConfiguration fromQualifiers = FolderConfiguration.getConfigFromQualifiers(Splitter.on('-').split(qualifiers));
+      if (fromQualifiers == null) {
+        return new FolderConfiguration();
+      }
+      return fromQualifiers;
     }
     return source.getFolderConfiguration();
   }
