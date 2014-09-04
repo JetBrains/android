@@ -16,7 +16,6 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
-import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
@@ -382,8 +381,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private void createAndAlignApk(final String apkPath) {
     AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
     assert platform != null;
-    String sdkPath = platform.getSdkData().getPath();
-    String zipAlignPath = sdkPath + File.separatorChar + AndroidCommonUtils.toolPath(SdkConstants.FN_ZIPALIGN);
+    final String sdkPath = platform.getSdkData().getPath();
+    String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, platform.getTarget());
     File zipalign = new File(zipAlignPath);
     if (!zipalign.isFile()) {
       BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();

@@ -24,7 +24,6 @@ import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.CompileContext;
 import org.jetbrains.jps.incremental.ProjectBuildException;
 import org.jetbrains.jps.incremental.StopBuildException;
-import org.jetbrains.jps.incremental.TargetBuilder;
 import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.messages.ProgressMessage;
@@ -183,8 +182,8 @@ public class AndroidPackagingBuilder extends AndroidTargetBuilder<BuildRootDescr
 
     final Map<AndroidCompilerMessageKind, List<String>> messages = AndroidApkBuilder
       .execute(resPackagePath, classesDexFilePath, resourceRoots, externalJars,
-               nativeLibDirs, additionalNativeLibs, outputPath, release, sdkPath, customKeyStorePath,
-               new MyExcludedSourcesFilter(context.getProjectDescriptor().getProject()));
+               nativeLibDirs, additionalNativeLibs, outputPath, release, sdkPath, platform.getTarget(),
+               customKeyStorePath, new MyExcludedSourcesFilter(context.getProjectDescriptor().getProject()));
 
     if (messages.get(AndroidCompilerMessageKind.ERROR).size() == 0) {
       final List<String> srcFiles = new ArrayList<String>();
