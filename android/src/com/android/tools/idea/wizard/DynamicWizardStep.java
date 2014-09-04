@@ -19,10 +19,14 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBColor;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,6 +50,31 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
 
   public DynamicWizardStep() {
     myState = new ScopedStateStore(STEP, null, this);
+  }
+
+  public static JPanel createWizardStepHeader(JBColor headerColor, Icon icon, String title) {
+    JPanel panel = new JPanel();
+    panel.setBackground(headerColor);
+    panel.setBorder(BorderFactory.createLineBorder(Color.RED));
+    panel.setLayout(new GridLayoutManager(2, 2, new Insets(18, 0, 12, 0), 2, 2));
+    GridConstraints c = new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_NORTHWEST,
+                                            GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                            GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(60, 60), null);
+    ImageComponent image = new ImageComponent(icon);
+    panel.add(image, c);
+    c = new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_SOUTHWEST, GridConstraints.FILL_HORIZONTAL,
+                            GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+                            GridConstraints.SIZEPOLICY_FIXED, null, null, null);
+    JLabel titleLabel = new JLabel(title);
+    titleLabel.setForeground(Color.WHITE);
+    titleLabel.setFont(titleLabel.getFont().deriveFont(24f));
+    panel.add(titleLabel, c);
+    c.setRow(1);
+    c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
+    JLabel productLabel = new JLabel("Android Studio");
+    productLabel.setForeground(Color.WHITE);
+    panel.add(productLabel, c);
+    return panel;
   }
 
   /**
