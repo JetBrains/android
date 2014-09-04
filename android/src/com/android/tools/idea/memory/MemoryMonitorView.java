@@ -19,6 +19,8 @@ import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.ClientCellRenderer;
+import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.memory.actions.*;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Maps;
@@ -148,15 +150,7 @@ public class MemoryMonitorView
       }
     });
 
-    myClientCombo.setRenderer(new ListCellRendererWrapper<Client>() {
-      @Override
-      public void customize(JList list, Client value, int index, boolean selected, boolean hasFocus) {
-        if (value != null) {
-          String desc = value.getClientData().getClientDescription();
-          setText(desc != null ? desc : value.toString());
-        }
-      }
-    });
+    myClientCombo.setRenderer(new ClientCellRenderer());
   }
 
   private void initializeDeviceCombo() {
@@ -169,14 +163,7 @@ public class MemoryMonitorView
       }
     });
 
-    myDeviceCombo.setRenderer(new ListCellRendererWrapper<IDevice>() {
-      @Override
-      public void customize(JList list, IDevice value, int index, boolean selected, boolean hasFocus) {
-        if (value != null) {
-          setText(value.getName());
-        }
-      }
-    });
+    myDeviceCombo.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer());
   }
 
   private void $$$setupUI$$$() {
