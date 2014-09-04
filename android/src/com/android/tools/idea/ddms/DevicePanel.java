@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.ddms;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
@@ -24,7 +23,6 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.actions.*;
 import com.android.tools.idea.ddms.hprof.DumpHprofAction;
 import com.android.tools.idea.ddms.hprof.SaveHprofHandler;
-import com.android.utils.Pair;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -32,15 +30,12 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ListSpeedSearch;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,10 +44,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 public class DevicePanel implements Disposable,
                                     AndroidDebugBridge.IClientChangeListener,
@@ -141,34 +133,7 @@ public class DevicePanel implements Disposable,
     myClientsList.setModel(myClientsListModel);
     myClientsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myClientsList.setEmptyText("No debuggable applications");
-    myClientsList.setCellRenderer(new ColoredListCellRenderer() {
-      @Override
-      protected void customizeCellRenderer(JList list,
-                                           Object value,
-                                           int index,
-                                           boolean selected,
-                                           boolean hasFocus) {
-        if (!(value instanceof Client)) {
-          return;
-        }
-
-        Client c = (Client)value;
-        ClientData cd = c.getClientData();
-        String name = cd.getClientDescription();
-        if (name != null) {
-          List<Pair<String, SimpleTextAttributes>> nameComponents = renderAppName(name);
-          for (Pair<String, SimpleTextAttributes> component: nameComponents) {
-            append(component.getFirst(), component.getSecond());
-          }
-        }
-
-        if (cd.isValidUserId() && cd.getUserId() != 0) {
-          append(String.format(" (user %1$d)", cd.getUserId()), SimpleTextAttributes.GRAY_ATTRIBUTES);
-        }
-
-        append(String.format(" (%1$d)", cd.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
-      }
-    });
+    myClientsList.setCellRenderer(new ClientCellRenderer());
     new ListSpeedSearch(myClientsList) {
       @Override
       protected boolean isMatchingElement(Object element, String pattern) {
@@ -190,21 +155,6 @@ public class DevicePanel implements Disposable,
         myDeviceContext.fireClientSelected(c);
       }
     });
-  }
-
-  @VisibleForTesting
-  static List<Pair<String, SimpleTextAttributes>> renderAppName(String name) {
-    int index = name.lastIndexOf('.');
-    if (index == -1) {
-      return Collections.singletonList(Pair.of(name, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
-    } else {
-      List<Pair<String, SimpleTextAttributes>> components = new ArrayList<Pair<String, SimpleTextAttributes>>(2);
-      components.add(Pair.of(name.substring(0, index + 1), SimpleTextAttributes.REGULAR_ATTRIBUTES));
-      if (index < name.length() - 1) {
-        components.add(Pair.of(name.substring(index + 1), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES));
-      }
-      return components;
-    }
   }
 
   @Override
