@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class AdbService {
   private static final Ddmlib ourDdmlib = new Ddmlib();
   private static SettableFuture<AndroidDebugBridge> ourFuture;
-  private static MonitorDebugBridgeConnectionTask ourMonitorTask;
+  private static BridgeConnectorTask ourMonitorTask;
 
   public static synchronized ListenableFuture<AndroidDebugBridge> initializeAndGetBridge(@NotNull File adb, boolean recreate) {
     if (recreate && ourFuture != null) {
@@ -48,11 +48,7 @@ public class AdbService {
 
     if (ourFuture == null) {
       ourFuture = SettableFuture.create();
-
-      AdbErrors.clear();
-      ourDdmlib.initialize(adb);
-
-      ourMonitorTask = new MonitorDebugBridgeConnectionTask(ourDdmlib, ourFuture);
+      ourMonitorTask = new BridgeConnectorTask(adb, ourDdmlib, ourFuture);
       ApplicationManager.getApplication().executeOnPooledThread(ourMonitorTask);
     }
 
@@ -107,20 +103,25 @@ public class AdbService {
     }
   }
 
-  private static class MonitorDebugBridgeConnectionTask implements Runnable {
+  private static class BridgeConnectorTask implements Runnable {
     private static final long TIMEOUT_MS = 10000;
     private final CountDownLatch myCancelLatch = new CountDownLatch(1);
 
     private final Ddmlib myDdmlib;
     private final SettableFuture<AndroidDebugBridge> myResult;
+    private final File myAdb;
 
-    public MonitorDebugBridgeConnectionTask(@NotNull Ddmlib ddmlib, @NotNull SettableFuture<AndroidDebugBridge> result) {
+    public BridgeConnectorTask(File adb, @NotNull Ddmlib ddmlib, @NotNull SettableFuture<AndroidDebugBridge> result) {
+      myAdb = adb;
       myDdmlib = ddmlib;
       myResult = result;
     }
 
     @Override
     public void run() {
+      AdbErrors.clear();
+      myDdmlib.initialize(myAdb);
+
       long startTime = System.currentTimeMillis();
 
       while (!myDdmlib.isConnected()) {
