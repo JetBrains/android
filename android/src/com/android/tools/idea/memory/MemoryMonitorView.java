@@ -150,7 +150,9 @@ public class MemoryMonitorView
       }
     });
 
-    myClientCombo.setRenderer(new ClientCellRenderer());
+    myClientCombo.setRenderer(new ClientCellRenderer("No Debuggable Applications"));
+    Dimension size = myClientCombo.getMinimumSize();
+    myClientCombo.setMinimumSize(new Dimension(250, size.height));
   }
 
   private void initializeDeviceCombo() {
@@ -163,7 +165,9 @@ public class MemoryMonitorView
       }
     });
 
-    myDeviceCombo.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer());
+    myDeviceCombo.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices"));
+    Dimension size = myDeviceCombo.getMinimumSize();
+    myDeviceCombo.setMinimumSize(new Dimension(200, size.height));
   }
 
   private void $$$setupUI$$$() {
