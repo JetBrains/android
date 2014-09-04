@@ -704,6 +704,15 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
+  public static File getAdb(@NotNull Project project) {
+    AndroidSdkData data = getProjectSdkData(project);
+    if (data == null) {
+      data = getFirstAndroidModuleSdkData(project);
+    }
+    return data == null ? null : data.getAdb();
+  }
+
+  @Nullable
   private static AndroidSdkData getFirstAndroidModuleSdkData(Project project) {
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     for (AndroidFacet facet : facets) {
