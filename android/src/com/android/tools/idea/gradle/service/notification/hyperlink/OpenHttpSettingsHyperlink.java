@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,7 @@ package com.android.tools.idea.gradle.service.notification.hyperlink;
 
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.net.HTTPProxySettingsPanel;
-import com.intellij.util.net.HttpConfigurable;
+import com.intellij.util.net.HttpProxyConfigurable;
 import org.jetbrains.annotations.NotNull;
 
 public class OpenHttpSettingsHyperlink extends NotificationHyperlink {
@@ -28,6 +27,6 @@ public class OpenHttpSettingsHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    ShowSettingsUtil.getInstance().editConfigurable(project, new HTTPProxySettingsPanel(HttpConfigurable.getInstance()));
+    ShowSettingsUtil.getInstance().editConfigurable(project, new HttpProxyConfigurable());
   }
 }
