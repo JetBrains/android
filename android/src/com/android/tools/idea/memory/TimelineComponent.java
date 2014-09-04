@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.memory;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import gnu.trove.TIntObjectHashMap;
@@ -22,7 +23,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 
@@ -390,18 +394,32 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
     g2d.setFont(TIMELINE_FONT);
     g2d.setColor(TEXT_COLOR);
     FontMetrics metrics = g2d.getFontMetrics();
-    float offset = metrics.charWidth('0') * 0.5f;
+    float offset = metrics.stringWidth("000") * 0.5f;
     Path2D.Float lines = new Path2D.Float();
     for (int sec = Math.max((int)Math.ceil(myBeginTime), 0); sec < myEndTime; sec++) {
       float x = timeToX(sec);
       boolean big = sec % 5 == 0;
       if (big) {
-        g2d.drawString(sec + "s", x - offset, myBottom + metrics.getAscent() + 5);
+        String text = formatTime(sec);
+        g2d.drawString(text, x - metrics.stringWidth(text) + offset, myBottom + metrics.getAscent() + 5);
       }
       lines.moveTo(x, myBottom);
       lines.lineTo(x, myBottom + (big ? 5 : 2));
     }
     g2d.draw(lines);
+  }
+
+  @VisibleForTesting
+  static String formatTime(int seconds) {
+    int[] factors = {60, seconds};
+    String[] suffix = {"m", "h"};
+    String ret = seconds % 60 + "s";
+    int t = seconds / 60;
+    for (int i = 0; i < suffix.length && t > 0; i++) {
+      ret = t % factors[i] + suffix[i] + " " + ret;
+      t /= factors[i];
+    }
+    return ret;
   }
 
   private void drawMarkers(Graphics2D g2d) {
