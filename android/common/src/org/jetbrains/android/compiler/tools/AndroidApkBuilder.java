@@ -20,6 +20,7 @@ import com.android.jarutils.DebugKeyProvider;
 import com.android.jarutils.JavaResourceFilter;
 import com.android.jarutils.SignedJarBuilder;
 import com.android.prefs.AndroidLocation;
+import com.android.sdklib.IAndroidTarget;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtil;
@@ -118,6 +119,7 @@ public class AndroidApkBuilder {
                                                                       @NotNull String finalApk,
                                                                       boolean unsigned,
                                                                       @NotNull String sdkPath,
+                                                                      @NotNull IAndroidTarget target,
                                                                       @Nullable String customKeystorePath,
                                                                       @NotNull Condition<File> resourceFilter) throws IOException {
     final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
@@ -161,7 +163,7 @@ public class AndroidApkBuilder {
           finalPackage(dexPath, resourceRoots, externalJars, nativeLibsFolders, finalApk, resPackagePath, customKeystorePath, false,
                        resourceFilter));
       }
-      final String zipAlignPath = sdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.FN_ZIPALIGN);
+      final String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, target);
       boolean withAlignment = new File(zipAlignPath).exists();
       String unalignedApk = AndroidCommonUtils.addSuffixToFileName(finalApk, UNALIGNED_SUFFIX);
 
