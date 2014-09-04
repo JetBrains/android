@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringResourceViewPanel;
