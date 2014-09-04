@@ -17,24 +17,20 @@
 package com.android.tools.idea.ddms;
 
 import com.android.utils.Pair;
-import com.intellij.ui.SimpleTextAttributes;
 import junit.framework.TestCase;
 
-import java.util.List;
+public class ClientCellRendererTest extends TestCase {
 
-public class DevicePanelTest extends TestCase {
-  public void testAppNameRendering() {
-    verifyAppNameRendering("com.android.settings", "com.android.", "settings");
-    verifyAppNameRendering("com.android.", "com.android.");
-    verifyAppNameRendering("system_process", "system_process");
-    verifyAppNameRendering("com.google.chrome:sandbox", "com.google.", "chrome:sandbox");
+  private static void verifyAppNameRendering(String name, String first, String second) {
+    Pair<String, String> p = ClientCellRenderer.splitApplicationName(name);
+    assertEquals(first, p.getFirst());
+    assertEquals(second, p.getSecond());
   }
 
-  private void verifyAppNameRendering(String name, String... components) {
-    List<Pair<String, SimpleTextAttributes>> c = DevicePanel.renderAppName(name);
-
-    for (int i = 0; i < components.length; i++) {
-      assertEquals(components[i], c.get(i).getFirst());
-    }
+  public void testAppNameSplit() {
+    verifyAppNameRendering("com.android.settings", "com.android.", "settings");
+    verifyAppNameRendering("com.android.", "com.android.", "");
+    verifyAppNameRendering("system_process", "", "system_process");
+    verifyAppNameRendering("com.google.chrome:sandbox", "com.google.", "chrome:sandbox");
   }
 }
