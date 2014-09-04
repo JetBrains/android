@@ -32,6 +32,6 @@ public class AndroidTemplateProjectStructureAction extends AnAction implements D
   public void actionPerformed(final AnActionEvent e) {
     Project defaultProject = ProjectManagerEx.getInstanceEx().getDefaultProject();
     AndroidProjectStructureConfigurable configurable = AndroidProjectStructureConfigurable.getInstance(defaultProject);
-    ShowSettingsUtil.getInstance().editConfigurable(defaultProject, OptionsEditorDialog.DIMENSION_KEY, configurable);
+    ShowSettingsUtil.getInstance().editConfigurable(defaultProject, OptionsEditorDialog.DIMENSION_KEY, configurable, true);
   }
 }
