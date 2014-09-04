@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.run;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerContentInfo;
@@ -84,6 +85,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   private static final Object myDebugLock = new Object();
   @NonNls private static final String ANDROID_DEBUG_SELECTED_TAB_PROPERTY = "ANDROID_DEBUG_SELECTED_TAB_";
   public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
+
+  private static NotificationGroup ourNotificationGroup; // created and accessed only in EDT
 
   private static void tryToCloseOldSessions(final Executor executor, Project project) {
     final ExecutionManager manager = ExecutionManager.getInstance(project);
@@ -322,9 +325,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           notificationMessage = "Session <a href=''>'" + sessionName + "'</a>: " + status;
         }
 
-        NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId(), true)
-          .createNotification("", notificationMessage,
-                              type, new NotificationListener() {
+        if (ourNotificationGroup == null) {
+          ourNotificationGroup = NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId(), true);
+        }
+
+        ourNotificationGroup
+          .createNotification("", notificationMessage, type, new NotificationListener() {
             @Override
             public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
               if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
