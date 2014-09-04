@@ -179,7 +179,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private static void addComponent(JComponent parent, JComponent component, int row, int column, boolean isLast) {
+  private static int addComponent(JComponent parent, JComponent component, int row, int column, boolean isLast) {
     GridConstraints gridConstraints = new GridConstraints();
     gridConstraints.setRow(row);
     gridConstraints.setColumn(column);
@@ -202,6 +202,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     if (isLast && !isGreedyComponent && column < COLUMN_COUNT - 1) {
       addComponent(parent, new Spacer(), row, column + 1, true);
     }
+
+    return columnSpan;
   }
 
   private Map<Parameter, Object> getParameterObjectMap(Collection<Parameter> parameters,
@@ -259,7 +261,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     else {
       switch (parameter.type) {
         case BOOLEAN:
-          label.setText(null);
+          label = null;
           dataComponent = new JCheckBox(parameter.name);
           break;
         case ENUM:
@@ -281,8 +283,10 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       dataComponent.getAccessibleContext().setAccessibleDescription(parameter.help);
     }
     register(parameter, dataComponent);
-    label.setLabelFor(dataComponent);
-    return Arrays.asList(label, dataComponent);
+    if (label != null) {
+      label.setLabelFor(dataComponent);
+    }
+    return label != null ? Arrays.asList(label, dataComponent) : Arrays.asList(dataComponent);
   }
 
   private JComponent createClassEntry(Parameter parameter, Module module) {
@@ -595,11 +599,22 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     GridLayoutManager layout = new GridLayoutManager(parameters.size() + 1, COLUMN_COUNT);
     layout.setSameSizeHorizontally(false);
     myTemplateParameters.setLayout(layout);
-    int row = 0;
+    CellLocation location = new CellLocation();
     for (final Parameter parameter : parameters) {
-      addComponents(parameter, row++);
+      addComponents(parameter, location);
     }
-    addSourceSetControls(row);
+    if (location.column > 0) {
+      //add spacers before moving to the next row.
+      if (location.column < COLUMN_COUNT) {
+        addComponent(myTemplateParameters, new Spacer(), location.row, location.column, true);
+      }
+      location.row++;
+    }
+    addSourceSetControls(location.row);
+  }
+
+  class CellLocation {
+    public int row = 0, column = 0;
   }
 
   private void addSourceSetControls(int row) {
@@ -697,14 +712,48 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private void addComponents(Parameter parameter, int row) {
+  private void addComponents(Parameter parameter, CellLocation location) {
     List<JComponent> keyComponents = createComponents(parameter);
+
+    // If a group of components take a full row, we ensure we are on
+    // a fresh row at the start, and also ensure we end on a new row
+    // for the next component.
+    // We only group components together on the same row if both
+    // component sets indicate they allow it.
+    // Right now, our indication for requiring a full row is simply
+    // if the # of components is > 1.  Only checkbox is allowed to
+    // share a row.
+    boolean isFullRow = keyComponents.size() > 1;
+
+    // We start a new row if these components are "fullrow" while on an previously used row
+    // or if there isn't enough space.
+    if ((isFullRow && location.column > 0)
+        || location.column + keyComponents.size() > COLUMN_COUNT) {
+
+      // Add spacers before moving to the next row.
+      if (location.column < COLUMN_COUNT) {
+        addComponent(myTemplateParameters, new Spacer(), location.row, location.column, true);
+      }
+      location.column = 0;
+      location.row++;
+    }
+
+    // For any component that didn't return a label (checkbox for now), we manually add a null label here to keep the layout the same.
+    if (location.column == 0 && keyComponents.size() == 1 && keyComponents.get(0) instanceof JCheckBox) {
+      location.column += addComponent(myTemplateParameters, new JLabel(), location.row, location.column, false);
+    }
+
     myParameterComponents.put(parameter, keyComponents);
-    int column = 0;
     for (Iterator<JComponent> iterator = keyComponents.iterator(); iterator.hasNext(); ) {
       JComponent keyComponent = iterator.next();
-      addComponent(myTemplateParameters, keyComponent, row, column++, !iterator.hasNext());
+      location.column += addComponent(myTemplateParameters, keyComponent, location.row, location.column,
+                                      isFullRow && !iterator.hasNext() );
       setControlDescription(keyComponent, parameter.help);
+    }
+
+    if (isFullRow) {
+      location.row++;
+      location.column = 0;
     }
   }
 
