@@ -34,7 +34,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class SampleTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testCreateNewMobileProject() {
-    IdeFrameFixture projectFrame = new ProjectDescriptor("Test Application").create();
+    IdeFrameFixture projectFrame = newProject("Test Application").create();
     FileFixture layoutFile = projectFrame.findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
     layoutFile.requireOpenAndSelected();
 
