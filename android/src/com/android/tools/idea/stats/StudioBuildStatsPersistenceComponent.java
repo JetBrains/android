@@ -48,11 +48,10 @@ import java.util.List;
  */
 @State(
   name = "StudioBuildStatistic",
-  roamingType = RoamingType.DISABLED,
   storages = {
-    @Storage(
-      file = StoragePathMacros.APP_CONFIG + "/studio.build.statistics.xml"
-    )})
+    @Storage(file = StoragePathMacros.APP_CONFIG + "/studio.build.statistics.xml", roamingType = RoamingType.DISABLED)
+  }
+)
 public class StudioBuildStatsPersistenceComponent
   implements ApplicationComponent, PersistentStateComponent<Element> {
 
