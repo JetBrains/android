@@ -88,7 +88,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
       return;
     }
 
-    File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
+    File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
     useLocalUnsupportedGradle(projectFrame.getProject());
@@ -111,7 +111,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
       return;
     }
 
-    File projectPath = getProjectDirPath(PROJECT_DIR_NAME);
+    File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
     useLocalUnsupportedGradle(projectFrame.getProject());
