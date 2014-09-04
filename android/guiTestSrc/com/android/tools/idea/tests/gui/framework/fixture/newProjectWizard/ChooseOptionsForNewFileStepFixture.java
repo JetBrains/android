@@ -29,8 +29,7 @@ public class ChooseOptionsForNewFileStepFixture extends AbstractWizardStepFixtur
 
   public ChooseOptionsForNewFileStepFixture enterActivityName(@NotNull String name) {
     JTextField textField = robot.finder().findByLabel(target, "Activity Name:", JTextField.class, true);
-    myDriver.focusAndWaitForFocusGain(textField);
-    robot.enterText(name);
+    replaceText(textField, name);
     return this;
   }
 

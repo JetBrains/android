@@ -16,22 +16,25 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import org.fest.swing.core.Robot;
-import org.fest.swing.driver.ComponentDriver;
+import org.fest.swing.driver.JTextComponentDriver;
 import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class AbstractWizardStepFixture extends ComponentFixture<JRootPane> {
-  @NotNull protected final ComponentDriver myDriver;
-
   protected AbstractWizardStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
     super(robot, target);
-    myDriver = new ComponentDriver(robot);
   }
 
   @NotNull
   protected JTextField findTextFieldWithLabel(@NotNull String label) {
     return robot.finder().findByLabel(target, label, JTextField.class, true);
+  }
+
+  protected void replaceText(@NotNull JTextField textField, @NotNull String text) {
+    JTextComponentDriver driver = new JTextComponentDriver(robot);
+    driver.selectAll(textField);
+    driver.enterText(textField, text);
   }
 }

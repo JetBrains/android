@@ -39,16 +39,14 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
   @NotNull
   public ConfigureAndroidProjectStepFixture enterApplicationName(@NotNull String text) {
     JTextField textField = findTextFieldWithLabel("Application name:");
-    myDriver.focusAndWaitForFocusGain(textField);
-    robot.enterText(text);
+    replaceText(textField, text);
     return this;
   }
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterCompanyDomain(@NotNull String text) {
     JTextField textField = findTextFieldWithLabel("Company Domain:");
-    myDriver.focusAndWaitForFocusGain(textField);
-    robot.enterText(text);
+    replaceText(textField, text);
     return this;
   }
 
@@ -71,8 +69,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
         return textField.isShowing();
       }
     });
-    myDriver.focusAndWaitForFocusGain(textField);
-    robot.enterText(text);
+    replaceText(textField, text);
 
     // click "Done"
     robot.click(editLabel);
