@@ -114,14 +114,12 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
 
   @SuppressWarnings("ConstantConditions")
   public void start() {
-    if (myExecutingTask == null) {
+    if (myExecutingTask == null && myClient != null) {
       myData.clear();
       AndroidDebugBridge.addClientChangeListener(this);
       myRunning = true;
       myExecutingTask = ApplicationManager.getApplication().executeOnPooledThread(this);
-      if (myClient != null) {
-        myClient.setHeapInfoUpdateEnabled(true);
-      }
+      myClient.setHeapInfoUpdateEnabled(true);
 
       for (MemorySamplerListener listener : myListeners) {
         listener.onStart();
@@ -238,12 +236,9 @@ public class MemorySampler implements Runnable, AndroidDebugBridge.IClientChange
 
   public void setClient(@Nullable Client client) {
     if (client != myClient) {
-      boolean running = isRunning();
       stop();
       myClient = client;
-      if (running) {
-        start();
-      }
+      start();
     }
   }
 
