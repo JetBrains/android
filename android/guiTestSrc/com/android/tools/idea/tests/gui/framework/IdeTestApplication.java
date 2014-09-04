@@ -19,9 +19,11 @@ import com.intellij.ide.BootstrapClassLoaderUtil;
 import com.intellij.ide.WindowsCommandLineProcessor;
 import com.intellij.idea.Main;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.*;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.PlatformUtils;
 import com.intellij.util.lang.UrlClassLoader;
@@ -32,9 +34,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationLocationPath;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.ensureExists;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.fest.reflect.core.Reflection.staticMethod;
 
 public class IdeTestApplication implements Disposable {
@@ -125,14 +125,12 @@ public class IdeTestApplication implements Disposable {
     if (!isLoaded()) {
       return;
     }
-    final Application applicationEx = ApplicationManager.getApplication();
-    if (applicationEx != null) {
-      new WriteAction() {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          Disposer.dispose(applicationEx);
-        }
-      }.execute();
+    Application application = ApplicationManager.getApplication();
+    if (application instanceof ApplicationEx) {
+      ((ApplicationEx)application).exit(true);
+    }
+    else {
+      application.exit();
     }
     ourInstance = null;
   }
