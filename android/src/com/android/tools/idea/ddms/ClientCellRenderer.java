@@ -28,6 +28,17 @@ import javax.swing.*;
 
 public class ClientCellRenderer extends ColoredListCellRenderer {
 
+  @NotNull
+  private final String myEmptyText;
+
+  public ClientCellRenderer() {
+    this("");
+  }
+
+  public ClientCellRenderer(@NotNull String emptyText) {
+    myEmptyText = emptyText;
+  }
+
   @VisibleForTesting
   static Pair<String, String> splitApplicationName(String name) {
     int index = name.lastIndexOf('.');
@@ -59,6 +70,8 @@ public class ClientCellRenderer extends ColoredListCellRenderer {
                                        boolean hasFocus) {
     if (value instanceof Client) {
       renderClient((Client)value, this);
+    } else if (value == null) {
+      append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
     }
   }
 }
