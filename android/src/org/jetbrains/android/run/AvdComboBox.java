@@ -18,6 +18,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.ComponentBasedErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +101,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
     if (facet != null) {
       final Set<String> filteringSet = new HashSet<String>();
       if (myShowNotLaunchedOnly) {
-        final AndroidDebugBridge debugBridge = facet.getDebugBridge();
+        final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(facet.getModule().getProject());
         if (debugBridge != null) {
           for (IDevice device : debugBridge.getDevices()) {
             final String avdName = device.getAvdName();
