@@ -29,13 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture {
-  @NotNull private final AbstractButtonDriver myButtonDriver;
-  @NotNull private final JComboBoxDriver myComboBoxDriver;
-
   protected ConfigureFormFactorStepFixture(@NotNull Robot robot, @NotNull JRootPane target) {
     super(robot, target);
-    myButtonDriver = new AbstractButtonDriver(robot);
-    myComboBoxDriver = new JComboBoxDriver(robot);
   }
 
   @NotNull
@@ -48,8 +43,9 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture {
         return text != null && text.startsWith(formFactor.toString());
       }
     });
-    myButtonDriver.requireEnabled(checkBox);
-    myButtonDriver.select(checkBox);
+    AbstractButtonDriver buttonDriver = new AbstractButtonDriver(robot);
+    buttonDriver.requireEnabled(checkBox);
+    buttonDriver.select(checkBox);
 
     final JComboBox comboBox = robot.finder().findByName(target, formFactor.id + ".minSdk", JComboBox.class);
     int itemIndex = GuiActionRunner.execute(new GuiQuery<Integer>() {
@@ -69,7 +65,8 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture {
     if (itemIndex < 0) {
       throw new LocationUnavailableException("Unable to find SDK " + api + " in " + formFactor + " drop-down");
     }
-    myComboBoxDriver.selectItem(comboBox, itemIndex);
+    JComboBoxDriver comboBoxDriver = new JComboBoxDriver(robot);
+    comboBoxDriver.selectItem(comboBox, itemIndex);
     return this;
   }
 }
