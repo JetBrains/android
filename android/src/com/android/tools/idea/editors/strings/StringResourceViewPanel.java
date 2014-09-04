@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
@@ -200,26 +202,11 @@ public class StringResourceViewPanel {
   }
 
   private void initEditPanel() {
-    FocusListener editFocusListener = new FocusAdapter() {
-      @Override
-      public void focusLost(FocusEvent e) {
-        ApplicationManager.getApplication().assertIsDispatchThread();
-        JTextComponent component = (JTextComponent) e.getComponent();
-        onTextFieldUpdate(component);
-      }
-    };
-    myKey.addFocusListener(editFocusListener);
-    myDefaultValue.addFocusListener(editFocusListener);
-    myTranslation.addFocusListener(editFocusListener);
-
     KeyListener keyListener = new KeyAdapter() {
       @Override
-      public void keyPressed(KeyEvent e) {
-        ApplicationManager.getApplication().assertIsDispatchThread();
-        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-          JTextComponent component = (JTextComponent) e.getComponent();
-          onTextFieldUpdate(component);
-        }
+      public void keyReleased(KeyEvent e) {
+        JTextComponent component = (JTextComponent)e.getComponent();
+        onTextFieldUpdate(component);
       }
     };
     myKey.addKeyListener(keyListener);
@@ -234,7 +221,14 @@ public class StringResourceViewPanel {
     }
 
     int row = myTable.getSelectedRow();
-    int column = myTable.getSelectedColumn();
+    int column = myTable.getSelectedColumn();;
+
+    if (component == myKey) {
+      column = ConstantColumn.KEY.ordinal();
+    }
+    else if (component == myDefaultValue) {
+      column = ConstantColumn.DEFAULT_VALUE.ordinal();
+    }
 
     String value = component.getText();
     model.setValueAt(value, row, column);
@@ -347,6 +341,8 @@ public class StringResourceViewPanel {
       // If a text component is not editable when it gains focus and becomes editable while still focused,
       // the caret does not appear, so we need to set the caret visibility manually
       component.getCaret().setVisible(editable && component.hasFocus());
+
+      component.setFont(CellRenderer.getFontAbleToDisplay(text, component.getFont()));
     }
   }
 }
