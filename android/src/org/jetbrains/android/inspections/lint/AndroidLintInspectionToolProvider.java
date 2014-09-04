@@ -1429,6 +1429,13 @@ public class AndroidLintInspectionToolProvider {
       super(AndroidBundle.message("android.lint.inspections.registered"), RegistrationDetector.ISSUE);
     }
   }
+
+  public static class AndroidLintRelativeOverlapInspection extends AndroidLintInspectionBase {
+    public AndroidLintRelativeOverlapInspection() {
+      super(AndroidBundle.message("android.lint.inspections.relative.overlap"), RelativeOverlapDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintRequiredSizeInspection extends AndroidLintInspectionBase {
     public AndroidLintRequiredSizeInspection() {
       super(AndroidBundle.message("android.lint.inspections.required.size"), RequiredAttributeDetector.ISSUE);
