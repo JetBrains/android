@@ -23,6 +23,7 @@ import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -59,6 +60,18 @@ public class DeviceRenderer {
   }
 
   public static class DeviceComboBoxRenderer extends ColoredListCellRenderer {
+
+    @NotNull
+    private String myEmptyText;
+
+    public DeviceComboBoxRenderer(@NotNull String emptyText) {
+      myEmptyText = emptyText;
+    }
+
+    public DeviceComboBoxRenderer() {
+      this("[none]");
+    }
+
     @Override
     protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
       if (value instanceof String) {
@@ -68,7 +81,7 @@ public class DeviceRenderer {
         renderDeviceName((IDevice)value, this);
       }
       else if (value == null) {
-        append("[none]", SimpleTextAttributes.ERROR_ATTRIBUTES);
+        append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
       }
     }
   }
