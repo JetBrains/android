@@ -31,15 +31,12 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
 import icons.AndroidIcons;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -143,28 +140,8 @@ public class ConfigureAndroidProjectPath extends DynamicWizardPath {
    * @return
    */
   protected static JPanel buildConfigurationHeader() {
-    JPanel panel = new JPanel();
-    panel.setBackground(WizardConstants.ANDROID_NPW_HEADER_COLOR);
-    panel.setBorder(BorderFactory.createLineBorder(Color.RED));
-    panel.setLayout(new GridLayoutManager(2, 2, new Insets(18, 0, 12, 0), 2, 2));
-    GridConstraints c = new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_NORTHWEST,
-                                            GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                            GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(60, 60), null);
-    ImageComponent image = new ImageComponent(AndroidIcons.Wizards.NewProjectMascotGreen);
-    panel.add(image, c);
-    c = new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_SOUTHWEST, GridConstraints.FILL_HORIZONTAL,
-                            GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
-                            GridConstraints.SIZEPOLICY_FIXED, null, null, null);
-    JLabel projectLabel = new JLabel("New Project");
-    projectLabel.setForeground(Color.WHITE);
-    projectLabel.setFont(projectLabel.getFont().deriveFont(24f));
-    panel.add(projectLabel, c);
-    c.setRow(1);
-    c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
-    JLabel productLabel = new JLabel("Android Studio");
-    productLabel.setForeground(Color.WHITE);
-    panel.add(productLabel, c);
-    return panel;
+    return DynamicWizardStep.createWizardStepHeader(WizardConstants.ANDROID_NPW_HEADER_COLOR,
+                                                    AndroidIcons.Wizards.NewProjectMascotGreen, "New Project");
   }
 
   /**
