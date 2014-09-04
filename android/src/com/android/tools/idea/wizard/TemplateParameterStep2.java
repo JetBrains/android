@@ -51,6 +51,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiClassUtil;
 import com.intellij.ui.*;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -95,6 +96,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private JPanel myRootPanel;
   private JLabel myParameterDescription;
   private JSeparator myFooterSeparator;
+  private JBScrollPane myParameterScrollPane;
   private Map<String, Object> myParameterDefaultValues = Maps.newHashMap();
   private TemplateEntry myCurrentTemplate;
   private JComboBox mySourceSet;
@@ -119,6 +121,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     myParameterToKey = CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(new ParameterKeyFunction()));
     myRootPanel.setBorder(createBodyBorder());
     myTemplateDescription.setBorder(BorderFactory.createEmptyBorder(0, 0, myTemplateDescription.getFont().getSize(), 0));
+    myParameterScrollPane.getViewport().setOpaque(false);
     setBodyComponent(myRootPanel);
   }
 
