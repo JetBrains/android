@@ -65,6 +65,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.PlatformUtils;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -357,6 +358,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null) {
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
+      return;
+    }
+
+    // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
+    if (AndroidPlugin.isGuiTestingMode()) {
+      // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return;
     }
 
