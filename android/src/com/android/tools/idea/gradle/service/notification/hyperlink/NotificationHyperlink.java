@@ -44,6 +44,11 @@ public abstract class NotificationHyperlink {
 
   @Override
   public String toString() {
+    return toHtml();
+  }
+
+  @NotNull
+  public String toHtml() {
     return myValue;
   }
 

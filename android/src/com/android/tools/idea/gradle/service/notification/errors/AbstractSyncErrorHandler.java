@@ -105,7 +105,7 @@ public abstract class AbstractSyncErrorHandler {
     if (hyperlinkCount > 0) {
       StringBuilder b = new StringBuilder();
       for (int i = 0; i < hyperlinkCount; i++) {
-        b.append(hyperlinks[i].toString());
+        b.append(hyperlinks[i].toHtml());
         if (i < hyperlinkCount - 1) {
           b.append("<br>");
         }
