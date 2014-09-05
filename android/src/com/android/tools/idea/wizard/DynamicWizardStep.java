@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.Map;
 import java.util.Set;
@@ -55,7 +56,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   public static JPanel createWizardStepHeader(JBColor headerColor, Icon icon, String title) {
     JPanel panel = new JPanel();
     panel.setBackground(headerColor);
-    panel.setBorder(BorderFactory.createLineBorder(Color.RED));
+    panel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     panel.setLayout(new GridLayoutManager(2, 2, new Insets(18, 0, 12, 0), 2, 2));
     GridConstraints c = new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_NORTHWEST,
                                             GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,

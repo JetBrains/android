@@ -102,7 +102,6 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     JComponent header = getHeader();
     if (header != null) {
       myCustomHeaderPanel.add(header, BorderLayout.CENTER);
-      header.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
       myCustomHeaderPanel.setVisible(true);
       myCustomHeaderPanel.repaint();
       myTitlePanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
