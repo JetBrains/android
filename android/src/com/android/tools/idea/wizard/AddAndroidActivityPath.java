@@ -249,7 +249,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     }
     assert javaPath != null;
     // Calculate package name
-    paths.put(TemplateMetadata.ATTR_PACKAGE_ROOT, packageName);
+    paths.put(TemplateMetadata.ATTR_PACKAGE_NAME, packageName);
     String relativePackageDir = packageName.replace('.', File.separatorChar);
     File srcOut = new File(javaDir, relativePackageDir);
     File testOut = new File(testDir, relativePackageDir);
