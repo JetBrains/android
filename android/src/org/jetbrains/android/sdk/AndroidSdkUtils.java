@@ -30,9 +30,11 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.CommonBundle;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.OSProcessManager;
 import com.intellij.facet.ProjectFacetManager;
@@ -43,7 +45,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -65,6 +69,7 @@ import org.jetbrains.android.actions.AndroidRunDdmsAction;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.logcat.AdbErrors;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -73,6 +78,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Eugene.Kudelevsky
@@ -695,21 +703,13 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  public static AndroidDebugBridge getDebugBridge(@NotNull Project project) {
-    AndroidSdkData data = getProjectSdkData(project);
-    if (data == null) {
-      data = getFirstAndroidModuleSdkData(project);
-    }
-    return data == null ? null : data.getDebugBridge(project);
-  }
-
-  @Nullable
   public static File getAdb(@NotNull Project project) {
     AndroidSdkData data = getProjectSdkData(project);
     if (data == null) {
       data = getFirstAndroidModuleSdkData(project);
     }
-    return data == null ? null : data.getAdb();
+    File adb = data == null ? null : new File(data.getLocation(), AndroidCommonUtils.platformToolPath(SdkConstants.FN_ADB));
+    return adb != null && adb.exists() ? adb : null;
   }
 
   @Nullable
@@ -848,5 +848,93 @@ public final class AndroidSdkUtils {
       return String.format("API %1$d: Android %2$s", version.getApiLevel(), release);
     }
     return String.format("API %1$d", version.getApiLevel());
+  }
+
+  @Nullable
+  public static AndroidDebugBridge getDebugBridge(@NotNull Project project) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    AndroidSdkData data = getProjectSdkData(project);
+    if (data == null) {
+      data = getFirstAndroidModuleSdkData(project);
+    }
+    if (data == null) {
+      return null;
+    }
+
+    AndroidDebugBridge bridge = null;
+    boolean retry = false;
+    do {
+      File adb = getAdb(project);
+      if (adb == null) {
+        LOG.error("Unable to locate adb within SDK");
+        return null;
+      }
+
+      Future<AndroidDebugBridge> future = AdbService.initializeAndGetBridge(adb, retry);
+      MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
+      ProgressManager.getInstance().run(task);
+
+      if (task.wasCanceled()) { // if the user cancelled the dialog
+        return null;
+      }
+
+      retry = false;
+      try {
+        bridge = future.get();
+      }
+      catch (InterruptedException e) {
+        break;
+      }
+      catch (ExecutionException e) {
+        // timed out waiting for bridge, ask the user what to do
+        final String adbErrors = Joiner.on('\n').join(AdbErrors.getErrors());
+        String message =
+          "ADB not responding. If you'd like to retry, then please manually kill \"" + SdkConstants.FN_ADB + "\" and click 'Restart'";
+        if (!adbErrors.isEmpty()) {
+          message += "\nErrors from ADB:\n" + adbErrors;
+        }
+        retry = Messages.showYesNoDialog(project, message, CommonBundle.getErrorTitle(), "&Restart", "&Cancel", Messages.getErrorIcon()) ==
+                Messages.YES;
+      }
+    } while (retry);
+
+    return bridge;
+  }
+
+  private static class MyMonitorBridgeConnectionTask extends Task.Modal {
+    private final Future<AndroidDebugBridge> myFuture;
+    private boolean myCancelled; // set/read only on EDT
+
+    public MyMonitorBridgeConnectionTask(@Nullable Project project, Future<AndroidDebugBridge> future) {
+      super(project, "Waiting for adb", true);
+      myFuture = future;
+    }
+
+    @Override
+    public void run(@NotNull ProgressIndicator indicator) {
+      indicator.setIndeterminate(true);
+      while (!myFuture.isDone()) {
+        try {
+          myFuture.get(200, TimeUnit.MILLISECONDS);
+        }
+        catch (Exception ignored) {
+          // all we need to know is whether the future completed or not..
+        }
+
+        if (indicator.isCanceled()) {
+          return;
+        }
+      }
+    }
+
+    @Override
+    public void onCancel() {
+      myCancelled = true;
+    }
+
+    public boolean wasCanceled() {
+      return myCancelled;
+    }
   }
 }

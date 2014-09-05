@@ -17,45 +17,31 @@
 package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.repository.updater.SettingsController;
 import com.android.sdklib.repository.local.LocalSdk;
 import com.android.sdklib.repository.remote.RemoteSdk;
-import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.utils.NullLogger;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.intellij.CommonBundle;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.containers.HashMap;
-import org.jetbrains.android.logcat.AdbErrors;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Eugene.Kudelevsky
@@ -228,92 +214,6 @@ public class AndroidSdkData {
   @Override
   public int hashCode() {
     return FileUtil.fileHashCode(getLocation());
-  }
-
-  @Nullable
-  public File getAdb() {
-    File adb = new File(getLocation(), AndroidCommonUtils.platformToolPath(SdkConstants.FN_ADB));
-    return adb.exists() ? adb : null;
-  }
-
-  @Nullable
-  public AndroidDebugBridge getDebugBridge(@NotNull Project project) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    AndroidDebugBridge bridge = null;
-    boolean retry = false;
-    do {
-      File adb = getAdb();
-      if (adb == null) {
-        LOG.error("Unable to locate adb within SDK: " + getLocation().getPath());
-        return null;
-      }
-
-      Future<AndroidDebugBridge> future = AdbService.initializeAndGetBridge(adb, retry);
-      MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
-      ProgressManager.getInstance().run(task);
-
-      if (task.wasCanceled()) { // if the user cancelled the dialog
-        return null;
-      }
-
-      retry = false;
-      try {
-        bridge = future.get();
-      }
-      catch (InterruptedException e) {
-        break;
-      }
-      catch (ExecutionException e) {
-        // timed out waiting for bridge, ask the user what to do
-        final String adbErrors = Joiner.on('\n').join(AdbErrors.getErrors());
-        String message =
-          "ADB not responding. If you'd like to retry, then please manually kill \"" + SdkConstants.FN_ADB + "\" and click 'Restart'";
-        if (!adbErrors.isEmpty()) {
-          message += "\nErrors from ADB:\n" + adbErrors;
-        }
-        retry = Messages.showYesNoDialog(project, message, CommonBundle.getErrorTitle(), "&Restart", "&Cancel", Messages.getErrorIcon()) ==
-                Messages.YES;
-      }
-    } while (retry);
-
-    return bridge;
-  }
-
-  private static class MyMonitorBridgeConnectionTask extends Task.Modal {
-    private final Future<AndroidDebugBridge> myFuture;
-    private boolean myCancelled; // set/read only on EDT
-
-    public MyMonitorBridgeConnectionTask(@Nullable Project project, Future<AndroidDebugBridge> future) {
-      super(project, "Waiting for adb", true);
-      myFuture = future;
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      indicator.setIndeterminate(true);
-      while (!myFuture.isDone()) {
-        try {
-          myFuture.get(200, TimeUnit.MILLISECONDS);
-        }
-        catch (Exception ignored) {
-          // all we need to know is whether the future completed or not..
-        }
-
-        if (indicator.isCanceled()) {
-          return;
-        }
-      }
-    }
-
-    @Override
-    public void onCancel() {
-      myCancelled = true;
-    }
-
-    public boolean wasCanceled() {
-      return myCancelled;
-    }
   }
 
   @NotNull
