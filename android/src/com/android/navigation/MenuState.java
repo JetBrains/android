@@ -18,13 +18,17 @@ package com.android.navigation;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.Property;
-import com.android.resources.ResourceFolderType;
 
 public class MenuState extends State {
   private final String xmlResourceName;
 
   public MenuState(@NonNull @Property("xmlResourceName") String xmlResourceName) {
     this.xmlResourceName = xmlResourceName;
+  }
+
+  @Override
+  public <T> T accept(Visitor<T> visitor) {
+    return visitor.visit(this);
   }
 
   @Nullable
