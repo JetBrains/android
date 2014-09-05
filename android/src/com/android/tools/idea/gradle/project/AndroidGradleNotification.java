@@ -79,7 +79,7 @@ public class AndroidGradleNotification {
     b.append(text);
 
     for (NotificationHyperlink hyperlink : hyperlinks) {
-      b.append("<br>\n").append(hyperlink.toString());
+      b.append("<br>\n").append(hyperlink.toHtml());
     }
 
     return b.toString();
