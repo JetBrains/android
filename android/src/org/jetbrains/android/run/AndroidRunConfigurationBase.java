@@ -229,14 +229,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         @Nullable
         @Override
         public AndroidDebugBridge compute() {
-          return facet.getDebugBridge();
+          return AndroidSdkUtils.getDebugBridge(facet.getModule().getProject());
         }
       })) {
         return null;
       }
     }
 
-    if (platform.getSdkData().getDebugBridge(getProject()) == null) return null;
+    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) return null;
 
     TargetChooser targetChooser = null;
     switch (getTargetSelectionMode()) {

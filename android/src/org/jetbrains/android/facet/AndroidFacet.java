@@ -18,7 +18,6 @@ package org.jetbrains.android.facet;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -502,16 +501,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myLocalResourceManager = null;
     myPublicSystemResourceManager = null;
     myInitialClassMaps.clear();
-  }
-
-  // can be invoked only from dispatch thread!
-  @Nullable
-  public AndroidDebugBridge getDebugBridge() {
-    AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-    if (platform != null) {
-      return platform.getSdkData().getDebugBridge(getModule().getProject());
-    }
-    return null;
   }
 
   @NotNull
