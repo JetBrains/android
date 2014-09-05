@@ -19,6 +19,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.ResourceChooserDialogFixture;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +65,6 @@ public class ConfigurationToolbarFixture {
     return this;
   }
 
-
   /**
    * Requires the configuration theme to be the given theme
    */
@@ -102,6 +102,16 @@ public class ConfigurationToolbarFixture {
     myRobot.click(menuButton);
 
     clickPopupMenuItem(labelPrefix);
+  }
+
+  public void createOtherVariation(@NotNull String variation) {
+    JButton menuButton = findToolbarButton("Configuration to render this layout with in the IDE");
+    myRobot.click(menuButton);
+
+    clickPopupMenuItem("Create Other...");
+    ResourceChooserDialogFixture resourceChooser = ResourceChooserDialogFixture.findDialog(myRobot);
+    resourceChooser.setDirectoryName(variation);
+    resourceChooser.clickOK();
   }
 
   @Nullable
