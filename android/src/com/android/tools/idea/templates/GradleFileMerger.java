@@ -155,7 +155,7 @@ public class GradleFileMerger {
       GradleCoordinate highest = Collections.max(dependencies.get(key), COMPARE_PLUS_LOWER);
 
       // For test consistency, don't depend on installed SDK state while testing
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      if (!ApplicationManager.getApplication().isUnitTestMode() || Boolean.getBoolean("force.gradlemerger.repository.check")) {
         // If this coordinate points to an artifact in one of our repositories, check to see if there is a static version
         // that we can add instead of a plus revision.
         if (RepositoryUrlManager.supports(highest.getArtifactId())) {
