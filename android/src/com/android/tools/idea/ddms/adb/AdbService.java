@@ -32,18 +32,31 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * {@link com.android.tools.idea.ddms.adb.AdbService} is the main entry point to initializing and obtaining the
+ * {@link com.android.ddmlib.AndroidDebugBridge}.
+ *
+ * <p>Actions that require a handle to the debug bridge should invoke {@link #getDebugBridge(java.io.File)} to obtain
+ * the debug bridge. This bridge is only valid at the time it is obtained, and could go stale in the future (e.g. user disables
+ * adb integration via {@link org.jetbrains.android.actions.AndroidEnableAdbServiceAction}, or launches monitor via
+ * {@link org.jetbrains.android.actions.AndroidRunDdmsAction}).
+ *
+ * <p>Components that need to keep a handle to the bridge for longer durations (such as tool windows that monitor device state) should do so
+ * by first invoking {@link #getDebugBridge(java.io.File)} to obtain the bridge, and implementing
+ * {@link com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
+ */
 public class AdbService {
   private static final Ddmlib ourDdmlib = new Ddmlib();
   private static SettableFuture<AndroidDebugBridge> ourFuture;
   private static BridgeConnectorTask ourMonitorTask;
 
-  public static synchronized ListenableFuture<AndroidDebugBridge> initializeAndGetBridge(@NotNull File adb, boolean recreate) {
-    if (recreate && ourFuture != null) {
-      ourFuture = null;
-      ourMonitorTask.cancel();
-      ourDdmlib.terminate();
+  public static synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
+    // Cancel previous requests if they were unsuccessful
+    if (ourFuture != null && !wasSuccessful(ourFuture)) {
+      terminateDdmlib();
     }
 
     if (ourFuture == null) {
@@ -57,6 +70,7 @@ public class AdbService {
 
   public static synchronized void terminateDdmlib() {
     ourFuture = null;
+    ourMonitorTask.cancel();
     ourDdmlib.terminate();
   }
 
@@ -100,6 +114,21 @@ public class AdbService {
     terminateDdmlib();
     if (hidden) {
       toolWindow.show(null);
+    }
+  }
+
+  /** Returns whether the future has completed successfully. */
+  private static boolean wasSuccessful(Future<AndroidDebugBridge> future) {
+    if (!future.isDone()) {
+      return false;
+    }
+
+    try {
+      AndroidDebugBridge bridge = future.get();
+      return bridge != null && bridge.isConnected();
+    }
+    catch (Exception e) {
+      return false;
     }
   }
 
