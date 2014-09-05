@@ -21,11 +21,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
+import org.fest.swing.timing.Pause;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
@@ -89,5 +91,21 @@ public class GradleSyncTest extends GuiTestCase {
 
     message.findHyperlink("Re-download dependencies and sync project (requires network)");
     message.findHyperlink("Stop Gradle daemons and sync project");
+  }
+
+  @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=72556
+  public void testHandlingOfUnexpectedEndOfBlockData() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    projectFrame.requestProjectSyncAndSimulateFailure("unexpected end of block data");
+
+    MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
+    MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("An unexpected I/O error occurred."));
+
+    Pause.pause(1, TimeUnit.MINUTES);
+
+    message.findHyperlink("Build Project");
+    message.findHyperlink("Open Android SDK Manager");
   }
 }
