@@ -1,5 +1,6 @@
 package org.jetbrains.android.actions;
 
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.intellij.CommonBundle;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -9,6 +10,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +73,12 @@ public class AndroidRunDdmsAction extends AndroidRunSdkToolAction {
               return;
             }
             AndroidEnableAdbServiceAction.setAdbServiceEnabled(project, true);
+
+            // trigger creation of new bridge
+            File adb = AndroidSdkUtils.getAdb(project);
+            if (adb != null) {
+              AdbService.getDebugBridge(adb);
+            }
           }
         });
       }

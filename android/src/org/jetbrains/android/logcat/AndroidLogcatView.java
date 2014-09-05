@@ -37,6 +37,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
+import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -219,9 +220,19 @@ public abstract class AndroidLogcatView implements Disposable {
           }
 
           @Override
-          public void clientSelected(@Nullable Client c) {
+          public void clientSelected(@Nullable final Client c) {
             if (PropertiesComponent.getInstance().getBoolean(FILTER_LOGCAT_WHEN_SELECTION_CHANGES, true)) {
-              createAndSelectFilterForClient(c);
+              if (ApplicationManager.getApplication().isDispatchThread()) {
+                createAndSelectFilterForClient(c);
+              }
+              else {
+                ApplicationManager.getApplication().invokeLater(new Runnable() {
+                  @Override
+                  public void run() {
+                    createAndSelectFilterForClient(c);
+                  }
+                });
+              }
             }
           }
         };
