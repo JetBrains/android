@@ -43,6 +43,7 @@ import gnu.trove.TIntArrayList;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -161,7 +162,7 @@ public class DeviceChooser implements Disposable {
     myDeviceTable.setAutoCreateRowSorter(true);
 
     myRefreshingAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
-    myBridge = myFacet.getDebugBridge();
+    myBridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
   }
 
   private static EnumSet<IDevice.HardwareFeature> getRequiredHardwareFeatures(List<UsesFeature> requiredFeatures) {
@@ -313,7 +314,7 @@ public class DeviceChooser implements Disposable {
     for (int row : rows) {
       if (row >= 0) {
         Object serial = myDeviceTable.getValueAt(row, SERIAL_COLUMN_INDEX);
-        final AndroidDebugBridge bridge = myFacet.getDebugBridge();
+        final AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
         if (bridge == null) {
           return EMPTY_DEVICE_ARRAY;
         }

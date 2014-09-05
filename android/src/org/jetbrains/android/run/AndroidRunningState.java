@@ -97,6 +97,7 @@ import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AvdManagerLog;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidOutputReceiver;
@@ -293,7 +294,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   private Set<IDevice> getOnlineDevices() {
-    AndroidDebugBridge debugBridge = myFacet.getDebugBridge();
+    AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(myFacet.getModule().getProject());
     if (debugBridge == null) {
       return Collections.emptySet();
     }
