@@ -126,11 +126,13 @@ public class IdeTestApplication implements Disposable {
       return;
     }
     Application application = ApplicationManager.getApplication();
-    if (application instanceof ApplicationEx) {
-      ((ApplicationEx)application).exit(true);
-    }
-    else {
-      application.exit();
+    if (application != null) {
+      if (application instanceof ApplicationEx) {
+        ((ApplicationEx)application).exit(true);
+      }
+      else {
+        application.exit();
+      }
     }
     ourInstance = null;
   }
