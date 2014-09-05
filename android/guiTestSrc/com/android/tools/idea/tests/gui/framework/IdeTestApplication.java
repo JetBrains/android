@@ -94,9 +94,15 @@ public class IdeTestApplication implements Disposable {
     myIdeClassLoader = BootstrapClassLoaderUtil.initClassLoader(true);
     WindowsCommandLineProcessor.ourMirrorClass = Class.forName(WindowsCommandLineProcessor.class.getName(), true, myIdeClassLoader);
 
-    Class<?> clazz = Class.forName("com.intellij.ide.plugins.PluginManager", true, myIdeClassLoader);
+    // We set "GUI Testing Mode" on right away, even before loading the IDE.
+    Class<?> androidPluginClass = Class.forName("org.jetbrains.android.AndroidPlugin", true, myIdeClassLoader);
+    staticMethod("setGuiTestingMode").withParameterTypes(boolean.class)
+                                     .in(androidPluginClass)
+                                     .invoke(true);
+
+    Class<?> pluginManagerClass = Class.forName("com.intellij.ide.plugins.PluginManager", true, myIdeClassLoader);
     staticMethod("start").withParameterTypes(String.class, String.class, String[].class)
-                         .in(clazz)
+                         .in(pluginManagerClass)
                          .invoke("com.intellij.idea.MainImpl", "start", args);
   }
 
