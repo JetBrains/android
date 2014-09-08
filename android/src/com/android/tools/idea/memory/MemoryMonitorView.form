@@ -11,7 +11,7 @@
       <grid id="f69f3" binding="myToolbarPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="1" anchor="8" fill="2" indent="0" use-parent-layout="false">
-            <preferred-size width="32" height="0"/>
+            <minimum-size width="32" height="-1"/>
           </grid>
         </constraints>
         <properties/>
