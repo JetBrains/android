@@ -18,6 +18,13 @@ package com.android.navigation;
 import com.android.annotations.NonNull;
 
 public abstract class State {
+  public abstract static class Visitor<T> {
+    public abstract T visit(ActivityState state);
+    public abstract T visit(MenuState state);
+  }
+
+  public abstract <T> T accept(Visitor<T> visitor);
+
   public abstract String getClassName();
 
   public abstract String getXmlResourceName();

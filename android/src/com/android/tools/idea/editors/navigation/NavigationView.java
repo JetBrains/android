@@ -63,7 +63,7 @@ import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationView extends JComponent {
-  private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
+  //private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
   public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
   private static final Color BACKGROUND_COLOR = new JBColor(Gray.get(192), Gray.get(70));
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = new JBColor(Gray.get(180), Gray.get(60));
@@ -93,13 +93,13 @@ public class NavigationView extends JComponent {
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
+  private final SelectionModel mySelectionModel;
 
   private final Assoc<State, AndroidRootComponent> myStateComponentAssociation = new Assoc<State, AndroidRootComponent>();
   private final Assoc<Transition, Component> myTransitionEditorAssociation = new Assoc<Transition, Component>();
 
   private boolean myStateCacheIsValid;
   private boolean myTransitionEditorCacheIsValid;
-  @NotNull private Selections.Selection mySelection = Selections.NULL;
   private Map<State, Map<String, RenderedView>> myLocationToRenderedView = new IdentityHashMap<State, Map<String, RenderedView>>();
   private Image myBackgroundImage;
   private Point myMouseLocation;
@@ -161,9 +161,10 @@ public class NavigationView extends JComponent {
     return new RenderingParameters(project, configuration, facet);
   }
 
-  public NavigationView(RenderingParameters renderingParams, NavigationModel model) {
+  public NavigationView(RenderingParameters renderingParams, NavigationModel model, SelectionModel selectionModel) {
     myRenderingParams = renderingParams;
     myNavigationModel = model;
+    mySelectionModel = selectionModel;
 
     setFocusable(true);
     setLayout(null);
@@ -201,7 +202,7 @@ public class NavigationView extends JComponent {
       Action remove = new AbstractAction() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          mySelection.remove();
+          mySelectionModel.getSelection().remove();
           setSelection(Selections.NULL);
         }
       };
@@ -376,7 +377,7 @@ public class NavigationView extends JComponent {
   }
 
   private void setSelection(@NotNull Selections.Selection selection) {
-    mySelection = selection;
+    mySelectionModel.setSelection(selection);
     // the re-validate() call shouldn't be necessary but removing it causes orphaned
     // combo-boxes to remain visible (and click-able) after a 'remove' operation
     revalidate();
@@ -384,7 +385,7 @@ public class NavigationView extends JComponent {
   }
 
   private void moveSelection(Point location) {
-    mySelection.moveTo(location);
+    mySelectionModel.getSelection().moveTo(location);
     revalidate();
     repaint();
   }
@@ -397,7 +398,7 @@ public class NavigationView extends JComponent {
   }
 
   private void finaliseSelectionLocation(Point location) {
-    mySelection = mySelection.finaliseSelectionLocation(location);
+    mySelectionModel.setSelection(mySelectionModel.getSelection().finaliseSelectionLocation(location));
     revalidate();
     repaint();
   }
@@ -678,8 +679,8 @@ public class NavigationView extends JComponent {
   }
 
   private void paintSelection(Graphics g) {
-    mySelection.paint(g, hasFocus());
-    mySelection.paintOver(g);
+    mySelectionModel.getSelection().paint(g, hasFocus());
+    mySelectionModel.getSelection().paintOver(g);
   }
 
   private void paintChildren(Graphics g, Condition<Component> condition) {
@@ -853,8 +854,12 @@ public class NavigationView extends JComponent {
     if (component instanceof AndroidRootComponent) {
       AndroidRootComponent androidRootComponent = (AndroidRootComponent)component;
       if (!shiftDown) {
-        return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, mouseDownLocation, transition,
-                                                            getStateComponentAssociation().valueToKey.get(androidRootComponent),
+        State state = getStateComponentAssociation().valueToKey.get(androidRootComponent);
+        if (state == null) {
+          return Selections.NULL;
+        }
+        return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition,
+                                                            myRenderingParams, mouseDownLocation, state,
                                                             myTransform);
       }
       else {
