@@ -156,7 +156,13 @@ public class RenderLogger extends LayoutLog {
     String description = describe(message);
 
     if (LOG_ALL) {
-      LOG.error(String.format("%1$s: %2$s", myName, description));
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        LOG.error(String.format("%1$s: %2$s", myName, description));
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
     }
 
     // Workaround: older layout libraries don't provide a tag for this error
@@ -437,7 +443,13 @@ public class RenderLogger extends LayoutLog {
     }
 
     if (LOG_ALL) {
-      LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        LOG.warn(String.format("%1$s: %2$s", myName, description), throwable);
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
     }
 
     if (throwable != null) {
