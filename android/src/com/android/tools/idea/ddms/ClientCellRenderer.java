@@ -25,6 +25,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Comparator;
 
 public class ClientCellRenderer extends ColoredListCellRenderer {
 
@@ -72,6 +73,19 @@ public class ClientCellRenderer extends ColoredListCellRenderer {
       renderClient((Client)value, this);
     } else if (value == null) {
       append(myEmptyText, SimpleTextAttributes.ERROR_ATTRIBUTES);
+    }
+  }
+
+  public static class ClientComparator implements Comparator<Client> {
+    @Override
+    public int compare(Client a, Client b) {
+      ClientData ad = a.getClientData();
+      ClientData bd = b.getClientData();
+
+      String as = ad.getClientDescription() != null ? ad.getClientDescription() : String.valueOf(ad.getPid());
+      String bs = bd.getClientDescription() != null ? bd.getClientDescription() : String.valueOf(bd.getPid());
+
+      return as.compareTo(bs);
     }
   }
 }
