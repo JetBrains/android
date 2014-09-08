@@ -737,9 +737,9 @@ public final class AndroidSdkUtils {
     return null;
   }
 
-  public static boolean activateDdmsIfNecessary(@NotNull Project project, @NotNull Computable<AndroidDebugBridge> bridgeProvider) {
+  public static boolean activateDdmsIfNecessary(@NotNull Project project) {
     if (AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
-      AndroidDebugBridge bridge = bridgeProvider.compute();
+      AndroidDebugBridge bridge = getDebugBridge(project);
       if (bridge != null && AdbService.isDdmsCorrupted(bridge)) {
         LOG.info("DDMLIB is corrupted and will be restarted");
         AdbService.restartDdmlib(project);

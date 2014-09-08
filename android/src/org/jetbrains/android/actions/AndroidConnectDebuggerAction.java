@@ -37,13 +37,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
     final Project project = e.getData(CommonDataKeys.PROJECT);
     assert project != null;
 
-    if (!AndroidSdkUtils.activateDdmsIfNecessary(project, new Computable<AndroidDebugBridge>() {
-      @Nullable
-      @Override
-      public AndroidDebugBridge compute() {
-        return AndroidSdkUtils.getDebugBridge(project);
-      }
-    })) {
+    if (!AndroidSdkUtils.activateDdmsIfNecessary(project)) {
       return;
     }
 
