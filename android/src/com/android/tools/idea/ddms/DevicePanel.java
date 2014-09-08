@@ -44,7 +44,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Comparator;
 
 public class DevicePanel implements Disposable,
                                     AndroidDebugBridge.IClientChangeListener,
@@ -55,18 +54,7 @@ public class DevicePanel implements Disposable,
   private JBList myClientsList;
 
   private final DefaultComboBoxModel myComboBoxModel = new DefaultComboBoxModel();
-  private final SortedListModel<Client> myClientsListModel = new SortedListModel<Client>(new Comparator<Client>() {
-    @Override
-    public int compare(Client c1, Client c2) {
-      String pkg1 = c1.getClientData().getClientDescription();
-      String pkg2 = c2.getClientData().getClientDescription();
-      if (pkg1 != null && pkg2 != null) {
-        return pkg1.compareTo(pkg2);
-      } else {
-        return 0;
-      }
-    }
-  });
+  private final SortedListModel<Client> myClientsListModel = new SortedListModel<Client>(new ClientCellRenderer.ClientComparator());
   private boolean myIgnoreListeners;
 
   private final DeviceContext myDeviceContext;

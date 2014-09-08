@@ -18,6 +18,7 @@ package com.android.tools.idea.memory;
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.ClientCellRenderer;
 import com.android.tools.idea.ddms.DeviceRenderer;
@@ -41,7 +42,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -57,6 +57,8 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +73,7 @@ public class MemoryMonitorView
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
    * a sample on every GC.
    */
-  public static final int SAMPLES = 1024;
+  public static final int SAMPLES = 2048;
   private static final Color BACKGROUND_COLOR = UIUtil.getTextFieldBackground();
   private static final int SAMPLE_FREQUENCY_MS = 500;
   @NotNull
@@ -312,7 +314,10 @@ public class MemoryMonitorView
         }
       }
 
-      for (Client client : device.getClients()) {
+      Client[] clients = device.getClients();
+      Arrays.sort(clients, new ClientCellRenderer.ClientComparator());
+
+      for (Client client : clients) {
         myClientCombo.addItem(client);
         if (client == toSelect) {
           myClientCombo.setSelectedItem(toSelect);
