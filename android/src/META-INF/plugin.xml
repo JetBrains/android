@@ -620,6 +620,8 @@
     <codeInsight.lineMarkerProvider language="JAVA" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <implicitUsageProvider implementation="org.jetbrains.android.AndroidImplicitUsagesProvider"/>
     <spellchecker.support language="XML" implementationClass="org.jetbrains.android.spellchecker.AndroidXmlSpellcheckingStrategy" order="before xml"/>
+    <spellchecker.support language="TEXT" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
+    <spellchecker.support language="Properties" implementationClass="org.jetbrains.android.spellchecker.AndroidTextSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
     <testSrcLocator implementation="org.jetbrains.android.run.testing.AndroidTestLocationProvider"/>
   </extensions>
