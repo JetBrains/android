@@ -21,20 +21,21 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
-import org.fest.swing.timing.Pause;
+import com.intellij.openapi.util.io.FileUtil;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
+import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
@@ -103,9 +104,22 @@ public class GradleSyncTest extends GuiTestCase {
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
     MessageFixture message = messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("An unexpected I/O error occurred."));
 
-    Pause.pause(1, TimeUnit.MINUTES);
-
     message.findHyperlink("Build Project");
     message.findHyperlink("Open Android SDK Manager");
   }
+
+  @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=66880
+  public void testAutomaticCreationOfMissingWrapper() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    File wrapperDirPath = new File(projectFrame.getProjectPath(), FD_GRADLE);
+    FileUtil.delete(wrapperDirPath);
+    assertThat(wrapperDirPath).doesNotExist();
+
+    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
+
+    // Sync was successful. Check that the wrapper was created.
+    assertThat(wrapperDirPath).isDirectory();
+ }
 }
