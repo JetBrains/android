@@ -81,8 +81,10 @@ public class NavigationEditor implements FileEditor {
   @Nullable
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
+  private SelectionModel mySelectionModel = new SelectionModel();
   private final VirtualFile myFile;
   private JComponent myComponent;
+  private Inspector myInspector;
   private CodeGenerator myCodeGenerator;
   private boolean myModified;
   private boolean myPendingFileSystemChanges;
@@ -116,15 +118,31 @@ public class NavigationEditor implements FileEditor {
       try {
         myNavigationModel = read(file);
         myCodeGenerator = new CodeGenerator(myNavigationModel, module);
-        NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel);
-        JBScrollPane scrollPane = new JBScrollPane(editor);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-        JPanel p = new JPanel(new BorderLayout());
-
-        JComponent controls = createToolbar(editor);
-        p.add(controls, BorderLayout.NORTH);
-        p.add(scrollPane);
-        myComponent = p;
+        NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel, mySelectionModel);
+        // Create UI
+        {
+          JPanel panel = new JPanel(new BorderLayout());
+          {
+            JComponent toolBar = createToolbar(editor);
+            panel.add(toolBar, BorderLayout.NORTH);
+          }
+          {
+            JSplitPane splitPane = new JSplitPane();
+            //splitPane.setDividerSize(1);
+            {
+              JBScrollPane scrollPane = new JBScrollPane(editor);
+              scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+              splitPane.setLeftComponent(scrollPane);
+            }
+            {
+              myInspector = new Inspector(mySelectionModel);
+              splitPane.setRightComponent(new JBScrollPane(myInspector.container));
+            }
+            splitPane.setResizeWeight(.8);
+            panel.add(splitPane);
+          }
+          myComponent = panel;
+        }
       }
       catch (FileReadException e) {
         myErrorHandler.handleError("Invalid Navigation File", e.getMessage());
@@ -299,12 +317,12 @@ public class NavigationEditor implements FileEditor {
     {
       ActionManager actionManager = ActionManager.getInstance();
       ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
-      panel.add(zoomToolBar.getComponent(), BorderLayout.WEST);
+      panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
       {
         HyperlinkLabel label = new HyperlinkLabel();
         label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
-        label.setHyperlinkText(" ", "What's this?", " ");
-        panel.add(label, BorderLayout.EAST);
+        label.setHyperlinkText("   ", "What's this?", "");
+        panel.add(label, BorderLayout.WEST);
       }
     }
 
@@ -449,7 +467,7 @@ public class NavigationEditor implements FileEditor {
     return result;
   }
 
-  private Collection<State> getNonTransitionStates(Collection<State> states, Set<State> transitionStates) {
+  private static Collection<State> getNonTransitionStates(Collection<State> states, Set<State> transitionStates) {
     Collection<State> unattached = new ArrayList<State>(states);
     unattached.removeAll(transitionStates);
     return unattached;
