@@ -9,8 +9,10 @@ borderless
 checkable
 clickable
 codec
+compat
 datagram
 dimen
+dimens
 drawables
 dropdown
 ellipsize
@@ -31,6 +33,7 @@ intra
 keycode
 keyguard
 mipmap
+myapplication
 monospace
 multiline
 nanos
