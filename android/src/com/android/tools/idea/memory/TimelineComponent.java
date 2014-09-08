@@ -196,7 +196,7 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
 
     Dimension dim = getSize();
 
-    g2d.setClip(null);
+    g2d.setClip(0, 0, dim.width, dim.height);
     g2d.setColor(getBackground());
     g2d.fillRect(0, 0, dim.width, dim.height);
 
@@ -224,7 +224,7 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
       drawTimelineData(g2d);
       drawEvents(g2d);
 
-      g2d.setClip(null);
+      g2d.setClip(0, 0, dim.width, dim.height);
 
       drawLabels(g2d);
       drawTimeMarkers(g2d);
@@ -423,6 +423,10 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
   }
 
   private void drawMarkers(Graphics2D g2d) {
+    if (myYScale <= 0) {
+      return;
+    }
+
     // Animate the fade in/out of markers.
     g2d.setFont(TIMELINE_FONT);
     FontMetrics metrics = g2d.getFontMetrics();
@@ -474,8 +478,10 @@ public class TimelineComponent extends JComponent implements ActionListener, Hie
   private void drawGuides(Graphics2D g2d) {
     g2d.setColor(TEXT_COLOR);
     g2d.drawLine(LEFT_MARGIN - 10, myBottom, myRight + 10, myBottom);
-    g2d.drawLine(LEFT_MARGIN, myBottom, LEFT_MARGIN, TOP_MARGIN);
-    g2d.drawLine(myRight, myBottom, myRight, TOP_MARGIN);
+    if (myYScale > 0) {
+      g2d.drawLine(LEFT_MARGIN, myBottom, LEFT_MARGIN, TOP_MARGIN);
+      g2d.drawLine(myRight, myBottom, myRight, TOP_MARGIN);
+    }
   }
 
   private void setPaths(int from, int to) {
