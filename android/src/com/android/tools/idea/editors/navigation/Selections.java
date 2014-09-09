@@ -34,6 +34,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.Point;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Map;
 
 import static com.android.tools.idea.editors.navigation.NavigationView.Line;
@@ -84,12 +86,46 @@ class Selections {
     }
   }
 
+  private static void configureHyperLinkLabelForClassName(final RenderingParameters renderingParameters,
+                                                          HyperlinkLabel link, final String className) {
+    link.setOpaque(false);
+    if (className == null) {
+      return;
+    }
+    link.setHyperlinkText(className.substring(1 + className.lastIndexOf('.')));
+    link.addHyperlinkListener(new HyperlinkListener() {
+      @Override
+      public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
+        PsiClass psiClass = Utilities.getPsiClass(renderingParameters.myConfiguration.getModule(), className);
+        if (psiClass != null) {
+          AndroidRootComponent.launchEditor(renderingParameters, psiClass.getContainingFile(), false);
+        }
+      }
+    });
+  }
+
+  private static void configureHyperlinkForXMLFile(final RenderingParameters renderingParameters,
+                                                   HyperlinkLabel link, @Nullable final String xmlFileName, final boolean isMenu) {
+    link.setOpaque(false);
+    link.setHyperlinkText(xmlFileName == null ? "" : xmlFileName);
+    link.addHyperlinkListener(new HyperlinkListener() {
+      @Override
+      public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
+        PsiFile layoutXmlFile =
+          NavigationView.getLayoutXmlFile(isMenu, xmlFileName, renderingParameters.myConfiguration, renderingParameters.myProject);
+        AndroidRootComponent.launchEditor(renderingParameters, layoutXmlFile, false);
+      }
+    });
+  }
+
   static class ComponentSelection<T extends Component> extends Selection {
+    protected final RenderingParameters myRenderingParameters;
     protected final T myComponent;
     protected final Transition myTransition;
     protected final NavigationModel myNavigationModel;
 
-    ComponentSelection(NavigationModel navigationModel, T component, Transition transition) {
+    ComponentSelection(RenderingParameters renderingParameters, NavigationModel navigationModel, T component, Transition transition) {
+      myRenderingParameters = renderingParameters;
       myNavigationModel = navigationModel;
       myComponent = component;
       myTransition = transition;
@@ -125,12 +161,31 @@ class Selections {
     protected void remove() {
       myNavigationModel.remove(myTransition);
     }
+
+    @Override
+    protected void configureInspector(Inspector inspector) {
+      TransitionInspector transitionInspector = new TransitionInspector();
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source, myTransition.getSource().getState().getClassName());
+      {
+        JComboBox comboBox = transitionInspector.trigger;
+        comboBox.setSelectedItem(myTransition.getType());
+        comboBox.addItemListener(new ItemListener() {
+          @Override
+          public void itemStateChanged(ItemEvent itemEvent) {
+            myTransition.setType((String)itemEvent.getItem());
+            myNavigationModel.getListeners().notify(Event.update(Transition.class));
+          }
+        });
+      }
+      configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.destination,
+                                          myTransition.getDestination().getState().getClassName());
+      inspector.setInspectorComponent(transitionInspector.container);
+    }
   }
 
   static class AndroidRootComponentSelection extends ComponentSelection<AndroidRootComponent> {
     protected final Point myMouseDownLocation;
     protected final Point myOrigComponentLocation;
-    private final RenderingParameters myRenderingParameters;
     @NotNull
     private final State myState;
     private final Transform myTransform;
@@ -142,8 +197,7 @@ class Selections {
                                   Point mouseDownLocation,
                                   @NotNull State state,
                                   Transform transform) {
-      super(navigationModel, component, transition);
-      myRenderingParameters = renderingParameters;
+      super(renderingParameters, navigationModel, component, transition);
       myMouseDownLocation = mouseDownLocation;
       myOrigComponentLocation = myComponent.getLocation();
       myState = state;
@@ -176,33 +230,6 @@ class Selections {
       return this;
     }
 
-    private void configureHyperLinkLabelForClassName(final Module module, HyperlinkLabel link, final String className) {
-      link.setOpaque(false);
-      link.setHyperlinkText(className.substring(1 + className.lastIndexOf('.')));
-      link.addHyperlinkListener(new HyperlinkListener() {
-        @Override
-        public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-          PsiClass psiClass = Utilities.getPsiClass(module, className);
-          if (psiClass != null) {
-            AndroidRootComponent.launchEditor(myRenderingParameters, psiClass.getContainingFile(), false);
-          }
-        }
-      });
-    }
-
-    private void configureHyperlinkForXMLFile(HyperlinkLabel link, @Nullable final String xmlFileName, final boolean isMenu) {
-      link.setOpaque(false);
-      link.setHyperlinkText(xmlFileName == null ? "" : xmlFileName);
-      link.addHyperlinkListener(new HyperlinkListener() {
-        @Override
-        public void hyperlinkUpdate(HyperlinkEvent hyperlinkEvent) {
-          PsiFile layoutXmlFile =
-            NavigationView.getLayoutXmlFile(isMenu, xmlFileName, myRenderingParameters.myConfiguration, myRenderingParameters.myProject);
-          AndroidRootComponent.launchEditor(myRenderingParameters, layoutXmlFile, false);
-        }
-      });
-    }
-
     @Override
     protected void configureInspector(final Inspector inspector) {
       myState.accept(new State.Visitor<Void>() {
@@ -213,11 +240,11 @@ class Selections {
           {
             HyperlinkLabel link = activityInspector.classNameLabel;
             final String className = myState.getClassName();
-            configureHyperLinkLabelForClassName(module, link, className);
+            configureHyperLinkLabelForClassName(myRenderingParameters, link, className);
           }
           {
             HyperlinkLabel link = activityInspector.xmlFileNameLabel;
-            configureHyperlinkForXMLFile(link, Analyser.getXMLFileName(module, myState.getClassName(), true), false);
+            configureHyperlinkForXMLFile(myRenderingParameters, link, Analyser.getXMLFileName(module, myState.getClassName(), true), false);
           }
           {
             JPanel fragmentList = activityInspector.fragmentList;
@@ -225,7 +252,7 @@ class Selections {
             fragmentList.setLayout(new BoxLayout(fragmentList, BoxLayout.Y_AXIS));
             for (FragmentEntry entry : state.getFragments()) {
               HyperlinkLabel hyperlinkLabel = new HyperlinkLabel();
-              configureHyperLinkLabelForClassName(module, hyperlinkLabel, entry.className);
+              configureHyperLinkLabelForClassName(myRenderingParameters, hyperlinkLabel, entry.className);
               fragmentList.add(hyperlinkLabel);
             }
           }
@@ -248,7 +275,7 @@ class Selections {
         @Override
         public Void visit(MenuState state) {
           MenuInspector menuInspector = new MenuInspector();
-          configureHyperlinkForXMLFile(menuInspector.xmlFileNameLabel, myState.getXmlResourceName(), true);
+          configureHyperlinkForXMLFile(myRenderingParameters, menuInspector.xmlFileNameLabel, myState.getXmlResourceName(), true);
           inspector.setInspectorComponent(menuInspector.container);
           return null;
         }

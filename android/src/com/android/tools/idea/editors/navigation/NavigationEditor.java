@@ -128,7 +128,6 @@ public class NavigationEditor implements FileEditor {
           }
           {
             JSplitPane splitPane = new JSplitPane();
-            //splitPane.setDividerSize(1);
             {
               JBScrollPane scrollPane = new JBScrollPane(editor);
               scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
@@ -138,7 +137,7 @@ public class NavigationEditor implements FileEditor {
               myInspector = new Inspector(mySelectionModel);
               splitPane.setRightComponent(new JBScrollPane(myInspector.container));
             }
-            splitPane.setResizeWeight(.8);
+            splitPane.setDividerLocation(.7);
             panel.add(splitPane);
           }
           myComponent = panel;
