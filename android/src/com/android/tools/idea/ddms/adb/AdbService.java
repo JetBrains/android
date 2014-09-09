@@ -28,6 +28,7 @@ import org.jetbrains.android.logcat.AdbErrors;
 import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.concurrent.CancellationException;
@@ -49,9 +50,9 @@ import java.util.concurrent.TimeUnit;
  * {@link com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
 public class AdbService {
-  private static final Ddmlib ourDdmlib = new Ddmlib();
-  private static SettableFuture<AndroidDebugBridge> ourFuture;
-  private static BridgeConnectorTask ourMonitorTask;
+  @NotNull private static final Ddmlib ourDdmlib = new Ddmlib();
+  @Nullable private static SettableFuture<AndroidDebugBridge> ourFuture;
+  @Nullable private static BridgeConnectorTask ourMonitorTask;
 
   public static synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
     // Cancel previous requests if they were unsuccessful
@@ -70,7 +71,9 @@ public class AdbService {
 
   public static synchronized void terminateDdmlib() {
     ourFuture = null;
-    ourMonitorTask.cancel();
+    if (ourMonitorTask != null) {
+      ourMonitorTask.cancel();
+    }
     ourDdmlib.terminate();
   }
 
