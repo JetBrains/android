@@ -25,6 +25,7 @@ import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -72,7 +73,34 @@ final class PreSyncChecks {
       }
     });
 
+    createGradleWrapperIfMissing(project);
     attemptToUpdateGradleVersionIfApplicable(project, filesToProcess);
+  }
+
+  private static void createGradleWrapperIfMissing(@NotNull Project project) {
+    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
+
+    DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
+    if (distributionType == DistributionType.DEFAULT_WRAPPED) {
+      File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+      if (wrapperPropertiesFile == null) {
+        File projectDirPath = new File(project.getBasePath());
+
+        // attempt to delete the whole gradle wrapper folder.
+        File gradleDirPath = new File(projectDirPath, SdkConstants.FD_GRADLE);
+        if (!FileUtil.delete(gradleDirPath)) {
+          // deletion failed. Let sync continue.
+          return;
+        }
+
+        try {
+          GradleUtil.createGradleWrapper(projectDirPath, null /* use latest supported version of Gradle */);
+        }
+        catch (IOException e) {
+          LOG.info("Failed to create Gradle wrapper for project '" + project.getName() + "'", e);
+        }
+      }
+    }
   }
 
   private static void attemptToUpdateGradleVersionIfApplicable(@NotNull Project project, @NotNull List<File> gradleFiles) {
