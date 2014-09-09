@@ -164,6 +164,7 @@
     <applicationService serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"
                         serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
+    <applicationService serviceImplementation="com.android.tools.idea.run.ApkUploaderService"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
