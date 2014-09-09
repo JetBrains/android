@@ -58,7 +58,6 @@ import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
@@ -863,7 +862,7 @@ public final class AndroidSdkUtils {
     }
 
     AndroidDebugBridge bridge = null;
-    boolean retry = false;
+    boolean retry;
     do {
       File adb = getAdb(project);
       if (adb == null) {
@@ -871,7 +870,7 @@ public final class AndroidSdkUtils {
         return null;
       }
 
-      Future<AndroidDebugBridge> future = AdbService.initializeAndGetBridge(adb, retry);
+      Future<AndroidDebugBridge> future = AdbService.getDebugBridge(adb);
       MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
       ProgressManager.getInstance().run(task);
 
