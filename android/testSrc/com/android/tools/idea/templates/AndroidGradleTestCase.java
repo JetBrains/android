@@ -304,23 +304,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
-    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
-    if (!gradleWrapperSrc.exists()) {
-      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-        gradleWrapperSrc = new File(root, FD_GRADLE_WRAPPER);
-        if (gradleWrapperSrc.exists()) {
-          break;
-        } else {
-          gradleWrapperSrc = null;
-        }
-      }
-    }
-    if (gradleWrapperSrc == null) {
-      return;
-    }
-    FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
-    File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
-    GradleUtil.updateGradleDistributionUrl(GRADLE_LATEST_VERSION, wrapperPropertiesFile);
+    GradleUtil.createGradleWrapper(projectRoot, null /* use latest supported Gradle version */);
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
