@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@android:drawable/ic_delete" >
+
+    <target
+        android:name="progressBar"
+        android:animation="@android:anim/fade_in" />
+
+    <target
+        android:name="root"
+        android:animation="@android:anim/fade_out" />
+
+</animated-vector>
