@@ -23,7 +23,6 @@ import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
-import org.fest.swing.driver.JTextComponentDriver;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
@@ -33,11 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
@@ -79,26 +75,6 @@ public class FileChooserDialogFixture extends ComponentFixture<JDialog> {
 
   @NotNull
   public FileChooserDialogFixture select(@NotNull File file) {
-    final JTextField textField = robot.finder().findByType(target, JTextField.class, true);
-    JTextComponentDriver driver = new JTextComponentDriver(robot);
-    driver.deleteText(textField);
-
-    pause(new Condition("'Path' text field is not empty") {
-      @Override
-      public boolean test() {
-        return !textField.getText().isEmpty();
-      }
-    }, SHORT_TIMEOUT);
-
-    List<String> segments = splitPath(file.getPath());
-    int segmentCount = segments.size();
-    for (int i = 0; i < segmentCount; i++) {
-      String segment = segments.get(i);
-      if (segment.isEmpty()) {
-        segments.set(i, File.separator);
-      }
-    }
-
     WeakReference<DialogWrapper> dialogWrapperRef = field("myDialogWrapper").ofType(new TypeRef<WeakReference<DialogWrapper>>() {})
                                                                             .in(target).get();
 
