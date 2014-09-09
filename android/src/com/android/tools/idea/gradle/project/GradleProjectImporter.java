@@ -59,7 +59,6 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
@@ -70,7 +69,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
-import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -456,21 +454,6 @@ public class GradleProjectImporter {
 
   private static void setUpGradleProjectSettings(@NotNull Project project, @NotNull GradleProjectSettings settings) {
     settings.setExternalProjectPath(FileUtil.toCanonicalPath(project.getBasePath()));
-
-    DistributionType distributionType = settings.getDistributionType();
-
-    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-    if (wrapperPropertiesFile == null) {
-      if (DistributionType.LOCAL != distributionType) {
-        settings.setDistributionType(DistributionType.LOCAL);
-      }
-      if (StringUtil.isEmpty(settings.getGradleHome())) {
-        settings.setGradleHome(getLastUsedGradleHome());
-      }
-    }
-    else if (distributionType == null) {
-      settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
-    }
   }
 
   private void doImport(@NotNull final Project project,
