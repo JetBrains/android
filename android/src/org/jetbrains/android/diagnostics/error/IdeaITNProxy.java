@@ -16,109 +16,33 @@
 package org.jetbrains.android.diagnostics.error;
 
 import com.android.tools.idea.gradle.util.Projects;
-import com.intellij.diagnostic.DiagnosticBundle;
-import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.errorreport.bean.ErrorBean;
-import com.intellij.errorreport.error.InternalEAPException;
-import com.intellij.errorreport.error.NoSuchEAPUserException;
-import com.intellij.errorreport.error.UpdateAvailableException;
 import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.net.HttpConfigurable;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by IntelliJ IDEA.
- * User: stathik
- * Date: Aug 4, 2003
- * Time: 8:12:00 PM
- * To change this template use Options | File Templates.
- * This is a copy of {@link com.intellij.errorreport.itn.ITNProxy}
- */
 public class IdeaITNProxy {
-  @NonNls public static final String ENCODING = "UTF8";
-  public static final String POST_DELIMITER = "&";
-
-  @NonNls public static final String NEW_THREAD_URL = "http://www.intellij.net/trackerRpc/idea/createScr";
-
-  @NonNls private static final String HTTP_CONTENT_LENGTH = "Content-Length";
-  @NonNls private static final String HTTP_CONTENT_TYPE = "Content-Type";
-  @NonNls private static final String HTTP_WWW_FORM = "application/x-www-form-urlencoded";
-  @NonNls private static final String HTTP_POST = "POST";
-
-  public static int postNewThread (String login, String password, ErrorBean error, String compilationTimestamp)
-    throws IOException, NoSuchEAPUserException, InternalEAPException, UpdateAvailableException {
-
-    @NonNls List<Pair<String, String>> params =
-      getKeyValuePairs(login, password, error, compilationTimestamp,
-                       ApplicationManager.getApplication(),
-                       (ApplicationInfoEx)ApplicationInfo.getInstance(),
-                       ApplicationNamesInfo.getInstance(), UpdateSettings.getInstance());
-
-    HttpURLConnection connection = post(new URL(NEW_THREAD_URL), join(params));
-    int responseCode = connection.getResponseCode();
-
-    if (responseCode != HttpURLConnection.HTTP_OK) {
-      throw new InternalEAPException(DiagnosticBundle.message("error.http.result.code", responseCode));
-    }
-
-    String reply;
-
-    InputStream is = new BufferedInputStream(connection.getInputStream());
-    try {
-      reply = readFrom(is);
-    } finally {
-      is.close();
-    }
-
-    if ("unauthorized".equals(reply)) {
-      throw new NoSuchEAPUserException(login);
-    }
-
-    if (reply.startsWith("update ")) {
-      throw new UpdateAvailableException(reply.substring(7));
-    }
-
-    if (reply.startsWith("message ")) {
-      throw new InternalEAPException(reply.substring(8));
-    }
-
-    try {
-      return Integer.valueOf(reply.trim()).intValue();
-    } catch (NumberFormatException ex) {
-      // Tibor!!!! :-E
-      throw new InternalEAPException(DiagnosticBundle.message("error.itn.returns.wrong.data"));
-    }
-  }
-
   public static List<Pair<String, String>> getKeyValuePairs(@Nullable String login,
-                                                             @Nullable String password,
-                                                             ErrorBean error,
-                                                             String compilationTimestamp,
-                                                             Application application,
-                                                             ApplicationInfoEx appInfo,
-                                                             ApplicationNamesInfo namesInfo,
-                                                             UpdateSettings updateSettings) {
-    @NonNls List<Pair<String,String>> params = new ArrayList<Pair<String, String>>();
+                                                            @Nullable String password,
+                                                            ErrorBean error,
+                                                            String compilationTimestamp,
+                                                            Application application,
+                                                            ApplicationInfoEx appInfo,
+                                                            ApplicationNamesInfo namesInfo,
+                                                            UpdateSettings updateSettings) {
+    List<Pair<String, String>> params = new ArrayList<Pair<String, String>>();
 
     params.add(Pair.create("protocol.version", "1"));
 
@@ -128,7 +52,6 @@ public class IdeaITNProxy {
     }
 
     params.add(Pair.create("os.name", SystemProperties.getOsName()));
-
     params.add(Pair.create("java.version", SystemProperties.getJavaVersion()));
     params.add(Pair.create("java.vm.vendor", SystemProperties.getJavaVmVendor()));
 
@@ -156,7 +79,6 @@ public class IdeaITNProxy {
 
     params.add(Pair.create("error.message", error.getMessage()));
     params.add(Pair.create("error.stacktrace", error.getStackTrace()));
-
     params.add(Pair.create("error.description", error.getDescription()));
 
     params.add(Pair.create("assignee.id", error.getAssigneeId() == null ? null : Integer.toString(error.getAssigneeId())));
@@ -174,59 +96,7 @@ public class IdeaITNProxy {
     return params;
   }
 
-  private static String readFrom(InputStream is) throws IOException {
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    int c;
-    while ((c = is.read()) != -1) {
-      out.write(c);
-    }
-    String s = out.toString();
-    out.close();
-    return s;
-  }
-
   private static String format(Calendar calendar) {
-    return calendar == null ?  "" : Long.toString(calendar.getTime().getTime());
-  }
-
-  private static HttpURLConnection post(URL url, byte[] bytes) throws IOException {
-    HttpURLConnection connection = (HttpURLConnection)HttpConfigurable.getInstance().openConnection(url.toString());
-
-    connection.setRequestMethod(HTTP_POST);
-    connection.setDoInput(true);
-    connection.setDoOutput(true);
-    connection.setRequestProperty(HTTP_CONTENT_TYPE, String.format("%s; charset=%s", HTTP_WWW_FORM, ENCODING));
-    connection.setRequestProperty(HTTP_CONTENT_LENGTH, Integer.toString(bytes.length));
-
-    OutputStream out = new BufferedOutputStream(connection.getOutputStream());
-    try {
-      out.write(bytes);
-      out.flush();
-    } finally {
-      out.close();
-    }
-
-    return connection;
-  }
-
-  private static byte[] join(List<Pair<String, String>> params) throws UnsupportedEncodingException {
-    StringBuilder builder = new StringBuilder();
-
-    Iterator<Pair<String, String>> it = params.iterator();
-
-    while (it.hasNext()) {
-      Pair<String, String> param = it.next();
-
-      if (StringUtil.isEmpty(param.first))
-        throw new IllegalArgumentException(param.toString());
-
-      if (StringUtil.isNotEmpty(param.second))
-        builder.append(param.first).append("=").append(URLEncoder.encode(param.second, ENCODING));
-
-      if (it.hasNext())
-        builder.append(POST_DELIMITER);
-    }
-
-    return builder.toString().getBytes();
+    return calendar == null ? "" : Long.toString(calendar.getTime().getTime());
   }
 }
