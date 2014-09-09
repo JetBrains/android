@@ -16,9 +16,15 @@
 
 package org.jetbrains.android.logcat;
 
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Log;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.DevicePanel;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.adb.AdbService;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ProjectTopics;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.impl.ConsoleViewImpl;
@@ -29,6 +35,7 @@ import com.intellij.execution.ui.layout.PlaceInGrid;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -41,6 +48,7 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
@@ -56,6 +64,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -102,8 +112,11 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
     layoutUi.getOptions().setLeftToolbar(devicePanel.getToolbarActions(), ActionPlaces.UNKNOWN);
     layoutUi.getOptions().setTopToolbar(logcatView.getToolbarActions(), ActionPlaces.UNKNOWN);
 
+    final JBLoadingPanel loadingPanel = new JBLoadingPanel(new BorderLayout(), project);
+    loadingPanel.add(layoutUi.getComponent());
+
     final ContentManager contentManager = toolWindow.getContentManager();
-    Content c = contentManager.getFactory().createContent(layoutUi.getComponent(), "DDMS", true);
+    Content c = contentManager.getFactory().createContent(loadingPanel, "DDMS", true);
 
     // Store references to the logcat & device panel views, so that these views can be retrieved directly from
     // the DDMS tool window. (e.g. to clear logcat before a launch, select a particular device, etc)
@@ -125,6 +138,31 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware {
         }
       }
     }, project.getDisposed());
+
+    final File adb = AndroidSdkUtils.getAdb(project);
+    if (adb == null) {
+      return;
+    }
+
+    loadingPanel.setLoadingText("Initializing ADB");
+    loadingPanel.startLoading();
+
+    ListenableFuture<AndroidDebugBridge> future = AdbService.getDebugBridge(adb);
+    Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
+      @Override
+      public void onSuccess(@Nullable AndroidDebugBridge bridge) {
+        loadingPanel.stopLoading();
+      }
+
+      @Override
+      public void onFailure(Throwable t) {
+        loadingPanel.stopLoading();
+
+        // TODO: surface this in the UI
+        Logger LOG = Logger.getInstance(DevicePanel.class);
+        LOG.error("Unable to obtain debug bridge", t);
+      }
+    }, EdtExecutor.INSTANCE);
   }
 
   private static Content createDeviceContent(RunnerLayoutUi layoutUi,

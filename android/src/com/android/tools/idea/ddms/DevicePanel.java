@@ -27,15 +27,14 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,8 +45,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class DevicePanel implements Disposable,
-                                    AndroidDebugBridge.IClientChangeListener,
-                                    AndroidDebugBridge.IDeviceChangeListener {
+                                    AndroidDebugBridge.IDeviceChangeListener,
+                                    AndroidDebugBridge.IDebugBridgeChangeListener {
   private static final String NO_DEVICES = "No Connected Devices";
   private JPanel myPanel;
   private JComboBox myDevicesComboBox;
@@ -59,25 +58,15 @@ public class DevicePanel implements Disposable,
 
   private final DeviceContext myDeviceContext;
   private final Project myProject;
-  private AndroidDebugBridge myBridge;
+  @Nullable private AndroidDebugBridge myBridge;
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
     myProject = project;
     myDeviceContext = context;
     Disposer.register(myProject, this);
 
-    if (!AndroidSdkUtils.activateDdmsIfNecessary(project)) {
-      myBridge = null;
-      return;
-    }
-
-    myBridge = AndroidSdkUtils.getDebugBridge(project);
-    if (myBridge == null) {
-      return;
-    }
-
-    myBridge.addDeviceChangeListener(this);
-    myBridge.addClientChangeListener(this);
+    AndroidDebugBridge.addDeviceChangeListener(this);
+    AndroidDebugBridge.addDebugBridgeChangeListener(this);
 
     ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
     ClientData.setHprofDumpHandler(new SaveHprofHandler(project));
@@ -100,9 +89,14 @@ public class DevicePanel implements Disposable,
       }
     });
     myDevicesComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer());
+  }
 
-    IDevice[] devices = myBridge.getDevices();
-    if (devices.length == 0) {
+  private void setBridge(@Nullable AndroidDebugBridge bridge) {
+    myBridge = bridge;
+    myComboBoxModel.removeAllElements();
+
+    IDevice[] devices = myBridge == null ? null : myBridge.getDevices();
+    if (devices == null || devices.length == 0) {
       myComboBoxModel.addElement(NO_DEVICES);
     } else {
       for (IDevice device : devices) {
@@ -148,7 +142,7 @@ public class DevicePanel implements Disposable,
   public void dispose() {
     if (myBridge != null) {
       AndroidDebugBridge.removeDeviceChangeListener(this);
-      AndroidDebugBridge.removeClientChangeListener(this);
+      AndroidDebugBridge.removeDebugBridgeChangeListener(this);
 
       myBridge = null;
     }
@@ -159,7 +153,13 @@ public class DevicePanel implements Disposable,
   }
 
   @Override
-  public void clientChanged(Client client, int changeMask) {
+  public void bridgeChanged(final AndroidDebugBridge bridge) {
+    ApplicationManager.getApplication().invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        setBridge(bridge);
+      }
+    });
   }
 
   @Override
