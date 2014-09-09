@@ -46,7 +46,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
     super.update(data);
 
     // if it is not part of the main source set, then append the provider name
-    IdeaSourceProvider sourceProvider = getSourceProvider(getValue());
+    IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, getValue());
     if (sourceProvider != null && !SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
       PsiFile file = getValue();
       data.addText(file.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
@@ -56,8 +56,8 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
   }
 
   @Nullable
-  private IdeaSourceProvider getSourceProvider(@NotNull PsiFile file) {
-    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(myFacet)) {
+  public static IdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
+    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(facet)) {
       if (file.getVirtualFile().equals(provider.getManifestFile())) {
         return provider;
       }
@@ -68,7 +68,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
   @Nullable
   @Override
   public Comparable getSortKey() {
-    IdeaSourceProvider sourceProvider = getSourceProvider(getValue());
+    IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, getValue());
     if (sourceProvider == null || SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
       return  "";
     } else {
@@ -94,7 +94,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
     PsiFile file = getValue();
     sb.append(file.getName());
     sb.append(" (");
-    sb.append(getSourceProvider(getValue()).getName());
+    sb.append(getSourceProvider(myFacet, getValue()).getName());
     sb.append(")");
     return sb.toString();
   }

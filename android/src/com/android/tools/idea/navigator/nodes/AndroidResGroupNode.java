@@ -129,11 +129,16 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
       return;
     }
 
-    new OpenFileDescriptor(myProject, findFileToOpen(myFiles).getVirtualFile()).navigate(requestFocus);
+    PsiFile fileToOpen = findFileToOpen(myFiles);
+    if (fileToOpen == null) {
+      return;
+    }
+
+    new OpenFileDescriptor(myProject, fileToOpen.getVirtualFile()).navigate(requestFocus);
   }
 
   /** Returns the best configuration of a particular resource given a set of multiple configurations of the same resource. */
-  @NotNull
+  @Nullable
   private static PsiFile findFileToOpen(@NotNull List<PsiFile> files) {
     PsiFile bestFile = null;
     FolderConfiguration bestConfig = null;
