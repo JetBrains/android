@@ -519,20 +519,20 @@ public class LombokPsiParser extends JavaParser {
 
     @NonNull
     @Override
-    public Iterable<ResolvedMethod> getMethods(@NonNull String name) {
+    public Iterable<ResolvedMethod> getMethods(@NonNull String name, boolean includeInherited) {
       ensureInitialized();
       if (myClass != null) {
-        return super.getMethods(name);
+        return super.getMethods(name, includeInherited);
       }
       return Collections.emptyList();
     }
 
     @Nullable
     @Override
-    public ResolvedField getField(@NonNull String name) {
+    public ResolvedField getField(@NonNull String name, boolean includeInherited) {
       ensureInitialized();
       if (myClass != null) {
-        return super.getField(name);
+        return super.getField(name, includeInherited);
       }
       return null;
     }
@@ -636,9 +636,9 @@ public class LombokPsiParser extends JavaParser {
 
     @NonNull
     @Override
-    public Iterable<ResolvedMethod> getMethods(@NonNull String name) {
+    public Iterable<ResolvedMethod> getMethods(@NonNull String name, boolean includeInherited) {
       if (myClass != null) {
-        PsiMethod[] methods = myClass.findMethodsByName(name, true);
+        PsiMethod[] methods = myClass.findMethodsByName(name, includeInherited);
         if (methods.length > 0) {
           List<ResolvedMethod> result = Lists.newArrayListWithExpectedSize(methods.length);
           for (PsiMethod method : methods) {
@@ -654,9 +654,9 @@ public class LombokPsiParser extends JavaParser {
 
     @Nullable
     @Override
-    public ResolvedField getField(@NonNull String name) {
+    public ResolvedField getField(@NonNull String name, boolean includeInherited) {
       if (myClass != null) {
-        PsiField field = myClass.findFieldByName(name, true);
+        PsiField field = myClass.findFieldByName(name, includeInherited);
         if (field != null) {
           return new ResolvedPsiField(field);
         }
