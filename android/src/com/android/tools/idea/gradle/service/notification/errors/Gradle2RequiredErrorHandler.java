@@ -30,7 +30,7 @@ public class Gradle2RequiredErrorHandler extends AbstractSyncErrorHandler {
                              @NotNull Project project) {
     String msg = error.getMessage();
     if (msg.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) {
-      String newMsg = "Gradle 2.0 is required.";
+      String newMsg = "Gradle 2.1 is required.";
       updateNotification(notification, project, newMsg);
       return true;
     }

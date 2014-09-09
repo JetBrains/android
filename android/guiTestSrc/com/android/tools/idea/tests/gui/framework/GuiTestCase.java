@@ -392,7 +392,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull File projectPath, @NotNull FileChooserDialogFixture fileChooserDialog) {
-    fileChooserDialog.select(projectPath).clickOK();
+    fileChooserDialog.select(projectPath).clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
