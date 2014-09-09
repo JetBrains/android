@@ -30,11 +30,9 @@ import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
 import com.intellij.ide.dnd.TransferableWrapper;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.Condition;
@@ -50,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -66,6 +65,7 @@ public class NavigationView extends JComponent {
   //private static final Logger LOG = Logger.getInstance("#" + NavigationView.class.getName());
   public static final com.android.navigation.Dimension GAP = new com.android.navigation.Dimension(500, 100);
   private static final Color BACKGROUND_COLOR = new JBColor(Gray.get(192), Gray.get(70));
+  private static final Color TRIGGER_BACKGROUND_COLOR = new JBColor(Gray.get(200), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MINOR = new JBColor(Gray.get(180), Gray.get(60));
   private static final Color SNAP_GRID_LINE_COLOR_MIDDLE = new JBColor(Gray.get(170), Gray.get(50));
   private static final Color SNAP_GRID_LINE_COLOR_MAJOR = new JBColor(Gray.get(160), Gray.get(40));
@@ -730,6 +730,9 @@ public class NavigationView extends JComponent {
         if (editor == null) { // if model is changed on another thread we may see null here (with new notification system)
           continue;
         }
+        if (editor.getParent() == null) { // unclear why this happens
+          add(editor);
+        }
         Dimension preferredSize = editor.getPreferredSize();
         Point[] points = getControlPoints(transition);
         Point location = diff(midPoint(points[1], points[2]), midPoint(preferredSize));
@@ -751,22 +754,16 @@ public class NavigationView extends JComponent {
     }
   }
 
-  private JComboBox createEditorFor(final Transition transition) {
+  private static Component createEditorFor(final Transition transition) {
+    if (DEBUG) System.out.println("NavigationView: createEditorFor");
     String gesture = transition.getType();
-    JComboBox c = new ComboBox(new DefaultComboBoxModel(new Object[]{"press", "swipe"}));
-    c.setSelectedItem(gesture);
-    c.setForeground(getForeground());
-    //c.setBorder(LABEL_BORDER);
-    //c.setOpaque(true);
-    c.setBackground(BACKGROUND_COLOR);
-    c.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        transition.setType((String)itemEvent.getItem());
-        myNavigationModel.getListeners().notify(NavigationModel.Event.update(Transition.class));
-      }
-    });
-    return c;
+    JLabel result = new JLabel(gesture.equals("press") ? "O" : "<->");
+    result.setFont(result.getFont().deriveFont(20f));
+    result.setForeground(TRANSITION_LINE_COLOR);
+    result.setBackground(TRIGGER_BACKGROUND_COLOR);
+    result.setBorder(new LineBorder(TRANSITION_LINE_COLOR, 1));
+    result.setOpaque(true);
+    return result;
   }
 
   private void syncTransitionCache(Assoc<Transition, Component> assoc) {
@@ -858,6 +855,7 @@ public class NavigationView extends JComponent {
         if (state == null) {
           return Selections.NULL;
         }
+        setComponentZOrder(androidRootComponent, 0);
         return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition,
                                                             myRenderingParams, mouseDownLocation, state,
                                                             myTransform);
@@ -868,7 +866,7 @@ public class NavigationView extends JComponent {
       }
     }
     else {
-      return new Selections.ComponentSelection<Component>(myNavigationModel, component, transition);
+      return new Selections.ComponentSelection<Component>(myRenderingParams, myNavigationModel, component, transition);
     }
   }
 
