@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.run.ApkUploaderService;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
@@ -59,6 +60,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -1151,9 +1153,17 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   private boolean uploadAndInstallApk(@NotNull IDevice device, @NotNull String packageName, @NotNull String localPath)
     throws IOException, AdbCommandRejectedException, TimeoutException {
     String remotePath = "/data/local/tmp/" + packageName;
-    if (!uploadApp(device, remotePath, localPath)) return false;
-    if (!installApp(device, remotePath, packageName)) return false;
-    return true;
+    ApkUploaderService.UploadResult result = uploadApp(device, remotePath, localPath);
+    switch (result) {
+      case SUCCESS:
+        return installApp(device, remotePath, packageName);
+      case FAILED:
+        return false;
+      case CACHED:
+        message("No apk changes detected. Skipping file upload.", STDOUT);
+        return true;
+    }
+    return false;
   }
 
   private class MyISyncProgressMonitor implements SyncService.ISyncProgressMonitor {
@@ -1179,19 +1189,19 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     }
   }
 
-  private boolean uploadApp(@NotNull IDevice device, @NotNull String remotePath, @NotNull String localPath) throws IOException {
-    if (myStopped) return false;
+  private ApkUploaderService.UploadResult uploadApp(@NotNull IDevice device, @NotNull String remotePath, @NotNull String localPath) throws IOException {
+    if (myStopped) return ApkUploaderService.UploadResult.FAILED;
     message("Uploading file\n\tlocal path: " + localPath + "\n\tremote path: " + remotePath, STDOUT);
     String exceptionMessage;
     String errorMessage;
+
     try {
-      SyncService service = device.getSyncService();
-      if (service == null) {
+      ApkUploaderService installer = ServiceManager.getService(ApkUploaderService.class);
+      ApkUploaderService.UploadResult result = installer.uploadApk(device, localPath, remotePath, new MyISyncProgressMonitor());
+      if (result == ApkUploaderService.UploadResult.FAILED) {
         message("Can't upload file: device is not available.", STDERR);
-        return false;
       }
-      service.pushFile(localPath, remotePath, new MyISyncProgressMonitor());
-      return true;
+      return result;
     }
     catch (TimeoutException e) {
       LOG.info(e);
@@ -1246,7 +1256,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     else {
       message(errorMessage + '\n' + exceptionMessage, STDERR);
     }
-    return false;
+    return ApkUploaderService.UploadResult.FAILED;
   }
 
   @SuppressWarnings({"DuplicateThrows"})
