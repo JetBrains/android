@@ -21,6 +21,7 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
+import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -72,6 +73,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.GRADLE_DAEMON_TIMEOUT_MS;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
@@ -233,7 +236,7 @@ public final class GradleUtil {
    * @param gradleVersion  the Gradle version to update the property to.
    * @param propertiesFile the given Gradle wrapper properties file.
    * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
-   *         correct value.
+   * correct value.
    * @throws IOException if something goes wrong when saving the file.
    */
   public static boolean updateGradleDistributionUrl(@NotNull String gradleVersion, @NotNull File propertiesFile) throws IOException {
@@ -487,7 +490,7 @@ public final class GradleUtil {
    * Prefixes string with colon if there isn't one already there.
    */
   @Nullable
-  @Contract ("null -> null;!null -> !null")
+  @Contract("null -> null;!null -> !null")
   public static String makeAbsolute(String string) {
     if (string == null) {
       return null;
@@ -507,7 +510,6 @@ public final class GradleUtil {
    * Tests if the Gradle path is valid and return index of the offending
    * character or -1 if none.
    * <p/>
-
    */
   public static int isValidGradlePath(@NotNull String gradlePath) {
     return ILLEGAL_GRADLE_PATH_CHARS_MATCHER.indexIn(gradlePath);
@@ -516,9 +518,7 @@ public final class GradleUtil {
   /**
    * Checks if the project already has a module with given Gradle path.
    */
-  public static boolean hasModule(@Nullable Project project,
-                                  @NotNull String gradlePath,
-                                  boolean checkProjectFolder) {
+  public static boolean hasModule(@Nullable Project project, @NotNull String gradlePath, boolean checkProjectFolder) {
     if (project == null) {
       return false;
     }
@@ -597,5 +597,44 @@ public final class GradleUtil {
       }
     }
     return null;
+  }
+
+  /**
+   * Creates the Gradle wrapper in the project at the given directory.
+   *
+   * @param projectDirPath the project's root directory.
+   * @param gradleVersion the version of Gradle to use. If not specified, this method will use the latest supported version of Gradle.
+   * @return {@code true} if the project already has the wrapper or the wrapper was successfully created; {@code false} if the wrapper was
+   * not created (e.g. the template files for the wrapper were not found.)
+   * @throws IOException any unexpected I/O error.
+   *
+   * @see com.android.SdkConstants#GRADLE_LATEST_VERSION
+   */
+  public static boolean createGradleWrapper(@NotNull File projectDirPath, @Nullable String gradleVersion) throws IOException {
+    File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
+    if (projectWrapperDirPath.isDirectory()) {
+      // already exists. Nothing to do.
+      return true;
+    }
+    File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
+    if (!wrapperSrcDirPath.exists()) {
+      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
+        wrapperSrcDirPath = new File(root, FD_GRADLE_WRAPPER);
+        if (wrapperSrcDirPath.exists()) {
+          break;
+        }
+        else {
+          wrapperSrcDirPath = null;
+        }
+      }
+    }
+    if (wrapperSrcDirPath == null) {
+      return false;
+    }
+    FileUtil.copyDirContent(wrapperSrcDirPath, projectDirPath);
+    File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectDirPath);
+    String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
+    updateGradleDistributionUrl(version, wrapperPropertiesFile);
+    return true;
   }
 }
