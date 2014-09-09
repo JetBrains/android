@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilationStatusListener;
@@ -35,13 +36,17 @@ import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
+import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -62,9 +67,11 @@ import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.reflect.core.Reflection.staticField;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
@@ -329,6 +336,30 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public IdeFrameFixture requestProjectSync() {
     myGradleProjectEventListener.reset();
+
+    // We wait until all "Run Configurations" are populated in the toolbar combo-box. Until then the "Project Sync" button is not in its
+    // final position, and FEST will click the wrong button.
+    pause(new Condition("Waiting for 'Run Configurations' to be populated") {
+      @Override
+      public boolean test() {
+        String selectedConfiguration = GuiActionRunner.execute(new GuiQuery<String>() {
+          @Override
+          @Nullable
+          protected String executeInEDT() throws Throwable {
+            Key<?> key = staticField("BUTTON_KEY").ofType(new TypeRef<Key<?>>() {})
+                                                  .in(RunConfigurationsComboBoxAction.class)
+                                                  .get();
+            Object runConfigurationComboBox = target.getComponent().getRootPane().getClientProperty(key);
+            if (runConfigurationComboBox != null) {
+              assertThat(runConfigurationComboBox).isInstanceOf(JButton.class);
+              return ((JButton)runConfigurationComboBox).getText();
+            }
+            return null;
+          }
+        });
+        return isNotEmpty(selectedConfiguration);
+      }
+    }, SHORT_TIMEOUT);
     findActionButtonByActionId("Android.SyncProject").click();
     return this;
   }
