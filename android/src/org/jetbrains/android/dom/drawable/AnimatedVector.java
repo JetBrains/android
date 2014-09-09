@@ -15,14 +15,22 @@
  */
 package org.jetbrains.android.dom.drawable;
 
+import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.Required;
+import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.resources.ResourceValue;
 
 import java.util.List;
 
 @DefinesXml
-public interface Vector extends DrawableDomElement {
-  List<VectorPath> getPaths();
-  List<VectorGroup> getGroups();
-  List<VectorClipPath> getClipPaths();
+public interface AnimatedVector extends DrawableDomElement {
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("drawable")
+  @Required
+  AndroidAttributeValue<ResourceValue> getDrawable();
+
+  List<AnimatedVectorTarget> getTargets();
 }
