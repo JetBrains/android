@@ -1382,6 +1382,12 @@ public class AndroidLintInspectionToolProvider {
     }
   }
 
+  public static class AndroidLintOverrideAbstractInspection extends AndroidLintInspectionBase {
+    public AndroidLintOverrideAbstractInspection() {
+      super(AndroidBundle.message("android.lint.inspections.override.abstract"), OverrideConcreteDetector.ISSUE);
+    }
+  }
+
   public static class AndroidLintPackagedPrivateKeyInspection extends AndroidLintInspectionBase {
     public AndroidLintPackagedPrivateKeyInspection() {
       super(AndroidBundle.message("android.lint.inspections.packaged.private.key"), PrivateKeyDetector.ISSUE);
