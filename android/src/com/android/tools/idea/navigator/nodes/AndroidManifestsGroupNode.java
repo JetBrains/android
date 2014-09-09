@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.SdkConstants;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,6 +32,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
+import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,6 +81,46 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
       presentation.setIcon(icon);
     }
     presentation.setPresentableText(MANIFESTS_NODE);
+  }
+
+  @Override
+  public boolean expandOnDoubleClick() {
+    return false;
+  }
+
+  @Override
+  public boolean canNavigate() {
+    return !mySources.isEmpty();
+  }
+
+  @Override
+  public void navigate(boolean requestFocus) {
+    VirtualFile fileToOpen = findFileToOpen(mySources);
+    if (fileToOpen == null) {
+      return;
+    }
+
+    new OpenFileDescriptor(myProject, fileToOpen).navigate(requestFocus);
+  }
+
+  @Nullable
+  private VirtualFile findFileToOpen(@NotNull Set<VirtualFile> files) {
+    VirtualFile bestFile = Iterables.getFirst(files, null);
+
+    PsiManager psiManager = PsiManager.getInstance(myProject);
+    for (VirtualFile f : files) {
+      PsiFile psiFile = psiManager.findFile(f);
+      if (psiFile == null) {
+        continue;
+      }
+
+      IdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(getValue(), psiFile);
+      if (sourceProvider != null && SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
+        bestFile = f;
+      }
+    }
+
+    return bestFile;
   }
 
   @NotNull
