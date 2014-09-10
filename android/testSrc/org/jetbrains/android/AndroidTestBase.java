@@ -18,6 +18,7 @@ package org.jetbrains.android;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -84,7 +85,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     if (new File(adtPath).exists()) {
       return adtPath;
     }
-    return new File(PathManager.getHomePath(), "android/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
   }
 
   public static String getDefaultTestSdkPath() {
