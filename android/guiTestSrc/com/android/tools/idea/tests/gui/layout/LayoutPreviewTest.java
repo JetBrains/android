@@ -57,7 +57,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     assertEquals("layout", editor.getCurrentFile().getParent().getName());
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
-    Object firstRender = preview.waitForRenderToFinish();
+    Object render = preview.waitForRenderToFinish();
     preview.requireRenderSuccessful();
     ConfigurationToolbarFixture toolbar = preview.getToolbar();
     toolbar.requireTheme("@style/AppTheme");
@@ -66,21 +66,51 @@ public class LayoutPreviewTest extends GuiTestCase {
 
     toolbar.chooseDevice("Nexus 5");
     toolbar.toggleOrientation();
-    Object secondRender = preview.waitForNextRenderToFinish(firstRender);
+    render = preview.waitForNextRenderToFinish(render);
     toolbar.requireOrientation("Landscape");
     toolbar.requireDevice("Nexus 5");
 
     toolbar.createLandscapeVariation();
-    Object thirdRender = preview.waitForNextRenderToFinish(secondRender);
+    render = preview.waitForNextRenderToFinish(render);
     preview.requireRenderSuccessful();
     assertEquals("layout-land", editor.getCurrentFile().getParent().getName());
     toolbar.requireOrientation("Landscape");
 
     toolbar.toggleOrientation();
-    preview.waitForNextRenderToFinish(thirdRender);
+    render = preview.waitForNextRenderToFinish(render);
+    preview.requireRenderSuccessful();
     toolbar.requireOrientation("Portrait");
     // We should have switched back to the first file again since -land doesn't match portrait
     assertEquals("layout", editor.getCurrentFile().getParent().getName());
+
+    toolbar.createOtherVariation("layout-v17");
+    render = preview.waitForNextRenderToFinish(render);
+    preview.requireRenderSuccessful();
+    assertEquals("layout-v17", editor.getCurrentFile().getParent().getName());
+    toolbar.requireDevice("Nexus 5"); // The device shouldn't have changed.
+
+    toolbar.toggleOrientation();
+    render = preview.waitForNextRenderToFinish(render);
+    preview.requireRenderSuccessful();
+    toolbar.requireDevice("Nexus 5");  // We should still be using the same device.
+    toolbar.requireOrientation("Landscape");
+    // The file should have switched to layout-land.
+    assertEquals("layout-land", editor.getCurrentFile().getParent().getName());
+
+    toolbar.toggleOrientation();
+    render = preview.waitForNextRenderToFinish(render);
+    preview.requireRenderSuccessful();
+    toolbar.requireDevice("Nexus 5");
+    toolbar.requireOrientation("Portrait");
+    assertEquals("layout", editor.getCurrentFile().getParent().getName());
+
+    toolbar.chooseDevice("Nexus 4");
+    preview.waitForNextRenderToFinish(render);
+    preview.requireRenderSuccessful();
+    // We should still be in the same file.
+    assertEquals("layout", editor.getCurrentFile().getParent().getName());
+
+
   }
 
   @SuppressWarnings("ConstantConditions")
