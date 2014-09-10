@@ -18,7 +18,6 @@ package com.android.tools.idea.memory;
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.ClientCellRenderer;
 import com.android.tools.idea.ddms.DeviceRenderer;
@@ -58,7 +57,6 @@ import java.awt.event.HierarchyListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -67,7 +65,7 @@ import static com.android.tools.idea.startup.AndroidStudioSpecificInitializer.EN
 
 public class MemoryMonitorView
   implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IClientChangeListener, MemorySampler.MemorySamplerListener,
-             HierarchyListener {
+             HierarchyListener, AndroidDebugBridge.IDebugBridgeChangeListener {
 
   /**
    * Maximum number of samples to keep in memory. We not only sample at {@code SAMPLE_FREQUENCY_MS} but we also receive
@@ -78,7 +76,8 @@ public class MemoryMonitorView
   private static final int SAMPLE_FREQUENCY_MS = 500;
   @NotNull
   private final Project myProject;
-  private final AndroidDebugBridge myBridge;
+  @Nullable
+  private AndroidDebugBridge myBridge;
   @NotNull
   private final Map<String, String> myPreferredClients;
   public boolean myIgnoreActionEvents;
@@ -129,15 +128,15 @@ public class MemoryMonitorView
 
     myMemorySamplerTask = new MemorySamplerTask(project, myMemorySampler);
 
-    // TODO: Handle case where no bridge can be found.
-    myBridge = AndroidSdkUtils.getDebugBridge(myProject);
-    AndroidDebugBridge.addDeviceChangeListener(this);
-    AndroidDebugBridge.addClientChangeListener(this);
 
     initializeDeviceCombo();
     initializeClientCombo();
 
-    updateDeviceCombo();
+    AndroidSdkUtils.activateDdmsIfNecessary(myProject);
+
+    AndroidDebugBridge.addDeviceChangeListener(this);
+    AndroidDebugBridge.addClientChangeListener(this);
+    AndroidDebugBridge.addDebugBridgeChangeListener(this);
   }
 
   private void initializeClientCombo() {
@@ -232,6 +231,12 @@ public class MemoryMonitorView
   }
 
   @Override
+  public void bridgeChanged(AndroidDebugBridge bridge) {
+    myBridge = bridge;
+    updateDeviceCombo();
+  }
+
+  @Override
   public void deviceConnected(IDevice device) {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
@@ -281,11 +286,13 @@ public class MemoryMonitorView
     boolean update = true;
     IDevice selected = (IDevice)myDeviceCombo.getSelectedItem();
     myDeviceCombo.removeAllItems();
-    for (IDevice device : myBridge.getDevices()) {
-      myDeviceCombo.addItem(device);
-      if (selected == device) {
-        myDeviceCombo.setSelectedItem(device);
-        update = false;
+    if (myBridge != null) {
+      for (IDevice device : myBridge.getDevices()) {
+        myDeviceCombo.addItem(device);
+        if (selected == device) {
+          myDeviceCombo.setSelectedItem(device);
+          update = false;
+        }
       }
     }
 
