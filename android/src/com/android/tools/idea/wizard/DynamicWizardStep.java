@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
@@ -38,10 +39,10 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
  * A step in a wizard path.
  */
 public abstract class DynamicWizardStep extends ScopedDataBinder implements Step {
+  private static final Logger LOG = Logger.getInstance(DynamicWizardStep.class);
 
   // Reference to the parent path.
   protected DynamicWizardPath myPath;
-
 
   // Used by update() to ensure multiple update steps are not run at the same time
   private boolean myUpdateInProgress;
@@ -267,7 +268,13 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     if (errorMessage != null && !errorMessage.startsWith("<html>")) {
       errorMessage = "<html>" + errorMessage + "</html>";
     }
-    getMessageLabel().setText(errorMessage);
+    JLabel label = getMessageLabel();
+    if (label != null) {
+      label.setText(errorMessage);
+    }
+    else {
+      LOG.debug("Message was displayed on a step without error label", new Exception());
+    }
   }
 
   @Override
@@ -286,10 +293,11 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   public abstract JComponent getComponent();
 
   /**
-   * Must return a label that can be used to display messages to users.
-   * @return a JLabel (or descendent) used to display errors and information to the user.
+   * Returns a label that can be used to display messages to users.
+   * @return a JLabel (or descendent) used to display errors and information to the user
+   *         or <code>null</code> if no errors can be displayed on this page.
    */
-  @NotNull
+  @Nullable
   public abstract JLabel getMessageLabel();
 
   /**
