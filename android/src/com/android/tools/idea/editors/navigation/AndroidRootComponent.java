@@ -76,7 +76,7 @@ public class AndroidRootComponent extends JComponent {
   }
 
   @Nullable
-  private RenderResult getRenderResult() {
+  public RenderResult getRenderResult() {
     return myRenderResult;
   }
 
@@ -292,31 +292,6 @@ public class AndroidRootComponent extends JComponent {
         }
       }
     });
-  }
-
-  @Nullable
-  public RenderedView getRootView() {
-    RenderResult renderResult = getRenderResult();
-    if (renderResult == null) {
-      return null;
-    }
-    return getRoot(renderResult);
-  }
-
-  @Nullable
-  private static RenderedView getRoot(@Nullable RenderResult renderResult) {
-    if (renderResult == null) {
-      return null;
-    }
-    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
-    if (hierarchy == null) {
-      return null;
-    }
-    List<RenderedView> roots = hierarchy.getRoots();
-    if (roots.isEmpty()) {
-      return null;
-    }
-    return roots.get(0);
   }
 
   @Nullable
