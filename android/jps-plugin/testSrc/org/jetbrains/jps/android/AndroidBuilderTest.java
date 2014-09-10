@@ -2,6 +2,7 @@ package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -1361,7 +1362,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
       return adtPath;
     }
 
-    return new File(PathManager.getHomePath(), "android/android").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("android/android").getPath();
   }
 
   private static void createTextFile(@NotNull String path, @NotNull String text) throws IOException {
