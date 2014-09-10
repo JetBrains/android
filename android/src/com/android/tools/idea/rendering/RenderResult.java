@@ -123,6 +123,11 @@ public class RenderResult {
   }
 
   @Nullable
+  public List<ViewInfo> getRootViews() {
+    return myRootViews;
+  }
+
+  @Nullable
   public IncludeReference getIncludedWithin() {
     return myIncludedWithin;
   }
