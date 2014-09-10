@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
+import com.android.tools.idea.editors.strings.FontUtil;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.AbstractTableCellEditor;
 
 import javax.swing.*;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -46,13 +48,38 @@ public class StringsCellEditor extends AbstractTableCellEditor {
 
   @Override
   public boolean isCellEditable(EventObject e) {
-    return e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
+    boolean doubleClick =
+      e instanceof MouseEvent && ((MouseEvent)e).getClickCount() == 2 && ((MouseEvent)e).getButton() == MouseEvent.BUTTON1;
+    if (!doubleClick) {
+      return false;
+    }
+
+    if (!(e.getSource() instanceof JTable)) {
+      return false;
+    }
+
+    JTable source = ((JTable)e.getSource());
+    if (source.getSelectedRowCount() != 1 || source.getSelectedColumnCount() != 1) {
+      return false;
+    }
+
+    int row = source.getSelectedRow();
+    int col = source.getSelectedColumn();
+
+    StringResourceTableModel model = (StringResourceTableModel)source.getModel();
+    String value = (String)model.getValueAt(row, col);
+
+    // multi line values cannot be edited inline
+    return !StringsCellRenderer.shouldClip(value);
   }
 
   @Override
   public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-    assert value instanceof String;
-    myTextField.setText((String)value);
+    StringResourceTableModel model = (StringResourceTableModel)table.getModel();
+    String v = (String)model.getValueAt(row, column);
+
+    myTextField.setText(v);
+    myTextField.setFont(FontUtil.getFontAbleToDisplay(v, myTextField.getFont()));
     return myTextField;
   }
 
