@@ -17,14 +17,13 @@ package com.android.tools.idea.editors.navigation;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
-import com.android.tools.idea.rendering.RenderedView;
-import com.android.tools.idea.rendering.ResourceHelper;
-import com.android.tools.idea.rendering.ShadowPainter;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.wizard.NewTemplateObjectWizard;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
@@ -56,6 +55,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
+import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
 import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
@@ -323,6 +323,20 @@ public class NavigationView extends JComponent {
     return null;
   }
 
+  static String getViewId(@Nullable ViewInfo leaf) {
+    if (leaf != null) {
+      Object cookie = leaf.getCookie();
+      if (cookie instanceof XmlTag) {
+        XmlTag tag = (XmlTag)cookie;
+        String attributeValue = tag.getAttributeValue("android:id");
+        if (attributeValue != null && attributeValue.startsWith(ID_PREFIX)) {
+          return attributeValue.substring(ID_PREFIX.length());
+        }
+      }
+    }
+    return null;
+  }
+
   @Nullable
   static RenderedView getNamedParent(@Nullable RenderedView view) {
     while (view != null && getViewId(view) == null) {
@@ -334,13 +348,27 @@ public class NavigationView extends JComponent {
   private Map<String, RenderedView> getNameToRenderedView(State state) {
     Map<String, RenderedView> result = myLocationToRenderedView.get(state);
     if (result == null) {
-      RenderedView root = getStateComponentAssociation().keyToValue.get(state).getRootView();
-      if (root != null) {
-        myLocationToRenderedView.put(state, result = createViewNameToRenderedView(root));
+      AndroidRootComponent androidRootComponent = getStateComponentAssociation().keyToValue.get(state);
+      if (androidRootComponent == null) {
+        return Collections.emptyMap();
       }
-      else {
+
+      RenderResult renderResult = androidRootComponent.getRenderResult();
+      if (renderResult == null) {
         return Collections.emptyMap(); // rendering library hasn't loaded, temporarily return an empty map
       }
+
+      RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
+      if (hierarchy == null) {
+        return Collections.emptyMap();
+      }
+
+      List<RenderedView> roots = hierarchy.getRoots();
+      Map<String, RenderedView> renderedViews = new HashMap<String, RenderedView>();
+      for (RenderedView root : roots) {
+        renderedViews.putAll(createViewNameToRenderedView(root));
+      }
+      myLocationToRenderedView.put(state, result = renderedViews);
     }
     return result;
   }
@@ -350,6 +378,22 @@ public class NavigationView extends JComponent {
     new Object() {
       void walk(RenderedView parent) {
         for (RenderedView child : parent.getChildren()) {
+          String id = getViewId(child);
+          if (id != null) {
+            result.put(id, child);
+          }
+          walk(child);
+        }
+      }
+    }.walk(root);
+    return result;
+  }
+
+  private static Map<String, ViewInfo> createViewNameToViewInfo(@NotNull ViewInfo root) {
+    final Map<String, ViewInfo> result = new HashMap<String, ViewInfo>();
+    new Object() {
+      void walk(ViewInfo parent) {
+        for (ViewInfo child : parent.getChildren()) {
           String id = getViewId(child);
           if (id != null) {
             result.put(id, child);
@@ -461,7 +505,8 @@ public class NavigationView extends JComponent {
     // draw background
     if (mDrawGrid) {
       g.drawImage(getBackGroundImage(), 0, 0, null);
-    } else {
+    }
+    else {
       Color tmp = getBackground();
       g.setColor(BACKGROUND_COLOR);
       g.fillRect(0, 0, getWidth(), getHeight());
@@ -713,7 +758,6 @@ public class NavigationView extends JComponent {
 
   @Override
   public void doLayout() {
-    if (DEBUG) System.out.println("NavigationView: doLayout");
     Map<Transition, Component> transitionToEditor = getTransitionEditorAssociation().keyToValue;
 
     Map<State, AndroidRootComponent> stateToComponent = getStateComponentAssociation().keyToValue;
@@ -856,9 +900,8 @@ public class NavigationView extends JComponent {
           return Selections.NULL;
         }
         setComponentZOrder(androidRootComponent, 0);
-        return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition,
-                                                            myRenderingParams, mouseDownLocation, state,
-                                                            myTransform);
+        return new Selections.AndroidRootComponentSelection(myNavigationModel, androidRootComponent, transition, myRenderingParams,
+                                                            mouseDownLocation, state, myTransform);
       }
       else {
         RenderedView leaf = getRenderedView(androidRootComponent, mouseDownLocation);
