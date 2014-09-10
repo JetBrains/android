@@ -23,7 +23,6 @@ import com.android.tools.idea.rendering.Locale;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -43,11 +42,12 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +69,6 @@ public class StringResourceViewPanel {
 
   private JPanel myWarningPanel;
   private JBLabel myWarningLabel;
-
 
   private LocalResourceRepository myResourceRepository;
   private long myModificationCount;
@@ -103,7 +102,7 @@ public class StringResourceViewPanel {
     initEditPanel();
     initTable();
 
-    myTableModel = new StringResourceTableModel(this, myFacet, null);
+    myTableModel = new StringResourceTableModel(null);
     myTable.setModel(myTableModel);
     myLoadingPanel.setLoadingText("Loading string resource data");
     myLoadingPanel.startLoading();
@@ -189,7 +188,7 @@ public class StringResourceViewPanel {
                                          StringResourceData.resourceToString(defaultValue), true);
             reloadData();
           }
-        }).createPopup().show(JBPopupFactory.getInstance().guessBestPopupLocation(toolbar.getToolbarDataContext()));
+        }).createPopup().showUnderneathOf(toolbar.getComponent());
       }
     };
     group.addAction(addLocaleAction);
@@ -221,13 +220,17 @@ public class StringResourceViewPanel {
     }
 
     int row = myTable.getSelectedRow();
-    int column = myTable.getSelectedColumn();;
+    int column;
 
     if (component == myKey) {
       column = ConstantColumn.KEY.ordinal();
     }
     else if (component == myDefaultValue) {
       column = ConstantColumn.DEFAULT_VALUE.ordinal();
+    }
+    else {
+      assert component == myTranslation;
+      column = myTable.getSelectedColumn();
     }
 
     String value = component.getText();
@@ -242,7 +245,9 @@ public class StringResourceViewPanel {
     myTable.getTableHeader().addMouseListener(headerListener);
     myTable.getTableHeader().addMouseMotionListener(headerListener);
 
-    myTable.getSelectionModel().addListSelectionListener(new CellSelectionListener());
+    CellSelectionListener selectionListener = new CellSelectionListener();
+    myTable.getSelectionModel().addListSelectionListener(selectionListener);
+    myTable.getColumnModel().getSelectionModel().addListSelectionListener(selectionListener);
 
     myTable.setDefaultEditor(String.class, new StringsCellEditor());
     myTable.getParent().addComponentListener(new ResizeListener(myTable));
@@ -318,13 +323,13 @@ public class StringResourceViewPanel {
         int row = myTable.getSelectedRow();
         int column = myTable.getSelectedColumn();
 
-        key = String.valueOf(model.getValue(row, ConstantColumn.KEY.ordinal()));
-        defaultValue = String.valueOf(model.getValue(row, ConstantColumn.DEFAULT_VALUE.ordinal()));
+        key = String.valueOf(model.getValueAt(row, ConstantColumn.KEY.ordinal()));
+        defaultValue = String.valueOf(model.getValueAt(row, ConstantColumn.DEFAULT_VALUE.ordinal()));
         keyEditable = true;
         defaultValueEditable = true;
 
         if (column >= ConstantColumn.COUNT) {
-          translation = String.valueOf(model.getValue(row, column));
+          translation = String.valueOf(model.getValueAt(row, column));
           translationEditable = true;
         }
       }
@@ -342,7 +347,7 @@ public class StringResourceViewPanel {
       // the caret does not appear, so we need to set the caret visibility manually
       component.getCaret().setVisible(editable && component.hasFocus());
 
-      component.setFont(CellRenderer.getFontAbleToDisplay(text, component.getFont()));
+      component.setFont(FontUtil.getFontAbleToDisplay(text, component.getFont()));
     }
   }
 }
