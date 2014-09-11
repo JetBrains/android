@@ -19,6 +19,7 @@ package com.android.tools.idea.editors;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.Projects;
+import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -39,9 +40,11 @@ import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_BUNDLES
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
   private final Project myProject;
+  private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
 
-  public GeneratedFileNotificationProvider(Project project) {
+  public GeneratedFileNotificationProvider(Project project, GeneratedSourceFileChangeTracker changeTracker) {
     myProject = project;
+    myGeneratedSourceFileChangeTracker = changeTracker;
   }
 
   @Override
@@ -61,6 +64,11 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
       return null;
     }
     if (VfsUtilCore.isAncestor(buildFolder, file, false)) {
+      if (fileEditor.isModified() && myGeneratedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
+        // A warning is already being displayed by GeneratedFileEditingNotificationProvider
+        return null;
+      }
+
       VirtualFile explodedBundled = buildFolder.findChild(EXPLODED_BUNDLES);
       if (explodedBundled == null) {
         // 0.8.2+
