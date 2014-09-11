@@ -15,40 +15,36 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.wizard.*;
-import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
 /**
- * Wizard to setup Android Studio before the first run
+ * Wizard step for selecting installation types
  */
-public class FirstRunWizard extends DynamicWizard {
+public class InstallationTypeWizardStep extends FirstRunWizardStep {
+  private JPanel myContents;
+  private JRadioButton myStandardRadioButton;
+  private JRadioButton myCustomRadioButton;
 
-  public static final String WIZARD_TITLE = "Android Studio Setup";
-
-  public FirstRunWizard(DynamicWizardHost host) {
-    super(null, null, WIZARD_TITLE, host);
-    setTitle(WIZARD_TITLE);
+  public InstallationTypeWizardStep() {
+    super(null);
+    setComponent(myContents);
   }
 
   @Override
   public void init() {
-    addPath(new SingleStepPath(new FirstRunWelcomeStep()));
-    addPath(new SetupJdkPath());
-    addPath(new SingleStepPath(new InstallationTypeWizardStep()));
-
-    super.init();
-  }
-
-  @Override
-  public void performFinishingActions() {
 
   }
 
+  @Nullable
   @Override
-  protected String getWizardActionDescription() {
-    return "Android Studio Setup";
+  public JLabel getMessageLabel() {
+    return null;
+  }
+
+  @Override
+  public JComponent getPreferredFocusedComponent() {
+    return null;
   }
 }

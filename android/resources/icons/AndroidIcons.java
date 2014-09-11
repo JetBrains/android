@@ -72,6 +72,12 @@ public class AndroidIcons {
   public static final Icon Mobile = load("/icons/mobile.png");
   public static final Icon Tv = load("/icons/tv.png");
 
+  public static final Icon Wear_128 = load("/icons/wear-128.png");
+  public static final Icon Car_128 = load("/icons/car-128.png");
+  public static final Icon Glass_128 = load("/icons/glass-128.png");
+  public static final Icon Mobile_128 = load("/icons/mobile-128.png");
+  public static final Icon Tv_128 = load("/icons/tv-128.png");
+
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
     public static final Icon Night = load("/icons/nightmode.png");
@@ -127,6 +133,7 @@ public class AndroidIcons {
     public static final Icon FormFactorTV = load("/icons/wizards/tv.png"); // 64x64
     public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
+    public static final Icon FirstRunWizard = load("/icons/wizards/welcome_material.png"); // 80x80
   }
 
   public static class Views {
