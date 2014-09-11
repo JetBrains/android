@@ -15,11 +15,22 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.wizard.ScopedStateStore;
+import com.google.common.base.Objects;
+
 /**
  * Reports progress of the SDK verification.
  */
 public class VerifySdkStep extends ProgressStep {
-  public VerifySdkStep() {
+  private final ScopedStateStore.Key<Boolean> myKeyShouldDownload;
+
+  public VerifySdkStep(ScopedStateStore.Key<Boolean> keyShouldDownload) {
     super("Android SDK Verification", "Verifying necessary Android SDK components");
+    myKeyShouldDownload = keyShouldDownload;
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return !Objects.equal(Boolean.TRUE, myState.get(myKeyShouldDownload));
   }
 }
