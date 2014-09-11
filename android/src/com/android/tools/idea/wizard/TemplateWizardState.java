@@ -40,7 +40,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 /**
  * Value object which holds the current state of the wizard pages for
  * {@link NewTemplateObjectWizard}-derived wizards.
+ *
+ * Deprecated. Use {@link ScopedStateStore} and {@link ScopedDataBinder} instead.
  */
+@Deprecated
 public class TemplateWizardState implements Function<String, Object> {
   /*
    * TODO: The parameter handling code needs to be completely rewritten. It's extremely fragile now. When it's rewritten, it needs to take
