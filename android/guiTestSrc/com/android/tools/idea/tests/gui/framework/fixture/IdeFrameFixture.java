@@ -87,6 +87,7 @@ import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
@@ -317,9 +318,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @Nullable
   @Contract("_, true -> !null")
   public VirtualFile findFileByRelativePath(@NotNull String relativePath, boolean requireExists) {
+    //noinspection Contract
+    assertFalse("Should use '/' in test relative paths, not File.separator", relativePath.contains("\\"));
     Project project = getProject();
     VirtualFile file = project.getBaseDir().findFileByRelativePath(relativePath);
     if (requireExists) {
+      //noinspection Contract
       assertNotNull("Unable to find file with relative path " + quote(relativePath), file);
     }
     return file;

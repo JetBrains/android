@@ -27,12 +27,17 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFi
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import static com.android.SdkConstants.DOT_PNG;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit test for the layout preview window
@@ -276,5 +281,55 @@ public class LayoutPreviewTest extends GuiTestCase {
     // Editing resource files and making sure style updates
     // RTL rendering
     // ScrollViews (no device clipping)
+  }
+
+  @Test
+  @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void testEditCustomView() throws Exception {
+    // Opens the LayoutTest project, opens a layout with a custom view, checks
+    // that it can't render yet (because the project hasn't been built),
+    // builds the project, checks that the render works, edits the custom view
+    // source code, ensures that the render lists the custom view as out of date,
+    // applies the suggested fix to build the project, and finally asserts that the
+    // build is now successful.
+
+    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
+    LayoutPreviewFixture preview = editor.getLayoutPreview(true);
+    assertNotNull(preview);
+    preview.waitForNextRenderToFinish();
+
+    String viewClassFile = "app/build/intermediates/classes/debug/com/android/tools/tests/layout/MyButton.class";
+    if (projectFrame.findFileByRelativePath(viewClassFile, false) != null) {
+      fail("Project should be clean at the start of this test; when that is not the case it's probably " +
+           "some caching of loaded projects in tools/adt/idea/android/testData/guiTests/newProjects which " +
+           "we will soon get rid of.");
+    }
+
+    RenderErrorPanelFixture renderErrors = preview.getRenderErrors();
+    renderErrors.requireHaveRenderError("The following classes could not be found");
+    renderErrors.requireHaveRenderError("com.android.tools.tests.layout.MyButton");
+    renderErrors.requireHaveRenderError("Change to android.widget.Button");
+
+    GradleInvocationResult result = projectFrame.invokeProjectMake();
+    assertTrue(result.isBuildSuccessful());
+
+    // Build completion should trigger re-render
+    preview.waitForNextRenderToFinish();
+    preview.requireRenderSuccessful();
+
+    // Next let's edit the custom view source file
+    editor.open("app/src/main/java/com/android/tools/tests/layout/MyButton.java", EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("extends Button {", null, true));
+    editor.enterText(" // test");
+
+    // Switch back; should trigger render:
+    editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    renderErrors.requireHaveRenderError("The MyButton custom view has been edited more recently than the last build");
+    renderErrors.performSuggestion("Build");
+    preview.waitForNextRenderToFinish();
+    preview.requireRenderSuccessful();
   }
 }
