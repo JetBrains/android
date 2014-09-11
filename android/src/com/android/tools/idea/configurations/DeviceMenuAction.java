@@ -140,6 +140,19 @@ public class DeviceMenuAction extends FlatComboAction {
           return AndroidIcons.Mobile;
       }
     }
+
+    @NotNull
+    public Icon getLargeIcon() {
+      switch (this) {
+        case CAR: return AndroidIcons.Car_128;
+        case WEAR: return AndroidIcons.Wear_128;
+        case TV: return AndroidIcons.Tv_128;
+        case GLASS: return AndroidIcons.Glass_128;
+        case MOBILE:
+        default:
+          return AndroidIcons.Mobile_128;
+      }
+    }
   }
 
   @Override
