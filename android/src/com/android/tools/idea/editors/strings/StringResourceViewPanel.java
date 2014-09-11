@@ -23,13 +23,13 @@ import com.android.tools.idea.rendering.Locale;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -43,8 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
@@ -69,7 +67,6 @@ public class StringResourceViewPanel {
 
   private JPanel myWarningPanel;
   private JBLabel myWarningLabel;
-
 
   private LocalResourceRepository myResourceRepository;
   private long myModificationCount;
@@ -97,13 +94,17 @@ public class StringResourceViewPanel {
     myDefaultValueWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
     myTranslationWithBrowseBtn.setButtonIcon(AllIcons.Actions.ShowViewer);
 
+    ActionListener showMultilineActionListener = new ShowMultilineActionListener();
+    myDefaultValueWithBrowseBtn.addActionListener(showMultilineActionListener);
+    myTranslationWithBrowseBtn.addActionListener(showMultilineActionListener);
+
     myDefaultValue = myDefaultValueWithBrowseBtn.getTextField();
     myTranslation = myTranslationWithBrowseBtn.getTextField();
 
     initEditPanel();
     initTable();
 
-    myTableModel = new StringResourceTableModel(this, myFacet, null);
+    myTableModel = new StringResourceTableModel(null);
     myTable.setModel(myTableModel);
     myLoadingPanel.setLoadingText("Loading string resource data");
     myLoadingPanel.startLoading();
@@ -189,7 +190,7 @@ public class StringResourceViewPanel {
                                          StringResourceData.resourceToString(defaultValue), true);
             reloadData();
           }
-        }).createPopup().show(JBPopupFactory.getInstance().guessBestPopupLocation(toolbar.getToolbarDataContext()));
+        }).createPopup().showUnderneathOf(toolbar.getComponent());
       }
     };
     group.addAction(addLocaleAction);
@@ -206,7 +207,10 @@ public class StringResourceViewPanel {
       @Override
       public void keyReleased(KeyEvent e) {
         JTextComponent component = (JTextComponent)e.getComponent();
-        onTextFieldUpdate(component);
+
+        if (component.isEditable()) {
+          onTextFieldUpdate(component);
+        }
       }
     };
     myKey.addKeyListener(keyListener);
@@ -221,13 +225,17 @@ public class StringResourceViewPanel {
     }
 
     int row = myTable.getSelectedRow();
-    int column = myTable.getSelectedColumn();;
+    int column;
 
     if (component == myKey) {
       column = ConstantColumn.KEY.ordinal();
     }
     else if (component == myDefaultValue) {
       column = ConstantColumn.DEFAULT_VALUE.ordinal();
+    }
+    else {
+      assert component == myTranslation;
+      column = myTable.getSelectedColumn();
     }
 
     String value = component.getText();
@@ -242,7 +250,9 @@ public class StringResourceViewPanel {
     myTable.getTableHeader().addMouseListener(headerListener);
     myTable.getTableHeader().addMouseMotionListener(headerListener);
 
-    myTable.getSelectionModel().addListSelectionListener(new CellSelectionListener());
+    CellSelectionListener selectionListener = new CellSelectionListener();
+    myTable.getSelectionModel().addListSelectionListener(selectionListener);
+    myTable.getColumnModel().getSelectionModel().addListSelectionListener(selectionListener);
 
     myTable.setDefaultEditor(String.class, new StringsCellEditor());
     myTable.getParent().addComponentListener(new ResizeListener(myTable));
@@ -305,33 +315,36 @@ public class StringResourceViewPanel {
         return;
       }
 
-      String key = "";
-      String defaultValue = "";
-      String translation = "";
-
-      boolean keyEditable = false;
-      boolean defaultValueEditable = false;
-      boolean translationEditable = false;
-
-      StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
-      if (myTable.getSelectedRowCount() == 1 && myTable.getSelectedColumnCount() == 1) {
-        int row = myTable.getSelectedRow();
-        int column = myTable.getSelectedColumn();
-
-        key = String.valueOf(model.getValue(row, ConstantColumn.KEY.ordinal()));
-        defaultValue = String.valueOf(model.getValue(row, ConstantColumn.DEFAULT_VALUE.ordinal()));
-        keyEditable = true;
-        defaultValueEditable = true;
-
-        if (column >= ConstantColumn.COUNT) {
-          translation = String.valueOf(model.getValue(row, column));
-          translationEditable = true;
-        }
+      if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
+        setTextAndEditable(myKey, "", false);
+        setTextAndEditable(myDefaultValue, "", false);
+        setTextAndEditable(myTranslation, "", false);
+        myDefaultValueWithBrowseBtn.getButton().setEnabled(false);
+        myTranslationWithBrowseBtn.getButton().setEnabled(false);
+        return;
       }
 
-      setTextAndEditable(myKey, key, keyEditable);
+      StringResourceTableModel model = (StringResourceTableModel) myTable.getModel();
+
+      int row = myTable.getSelectedRow();
+      int column = myTable.getSelectedColumn();
+      Locale locale = model.localeOfColumn(column);
+
+      String key = model.keyOfRow(row);
+      setTextAndEditable(myKey, key, false); // TODO: keys are not editable, we want them to be refactor operations
+
+      String defaultValue = (String)model.getValueAt(row, ConstantColumn.DEFAULT_VALUE.ordinal());
+      boolean defaultValueEditable = !StringUtil.containsChar(defaultValue, '\n'); // don't allow editing multiline chars in a text field
       setTextAndEditable(myDefaultValue, defaultValue, defaultValueEditable);
-      setTextAndEditable(myTranslation, translation, translationEditable);
+      myDefaultValueWithBrowseBtn.getButton().setEnabled(true);
+
+      if (locale != null) {
+        String translation = (String)model.getValueAt(row, column);
+        boolean translationEditable = !StringUtil.containsChar(translation, '\n'); // don't allow editing multiline chars in a text field
+        setTextAndEditable(myTranslation, translation, translationEditable);
+      }
+
+      myTranslationWithBrowseBtn.getButton().setEnabled(locale != null);
     }
 
     private void setTextAndEditable(@NotNull JTextComponent component, @NotNull String text, boolean editable) {
@@ -342,7 +355,37 @@ public class StringResourceViewPanel {
       // the caret does not appear, so we need to set the caret visibility manually
       component.getCaret().setVisible(editable && component.hasFocus());
 
-      component.setFont(CellRenderer.getFontAbleToDisplay(text, component.getFont()));
+      component.setFont(FontUtil.getFontAbleToDisplay(text, component.getFont()));
+    }
+  }
+
+  private class ShowMultilineActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      if (myTable.getSelectedRowCount() != 1 || myTable.getSelectedColumnCount() != 1) {
+        return;
+      }
+
+      int row = myTable.getSelectedRow();
+      int column = myTable.getSelectedColumn();
+
+      StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
+      String key = model.keyOfRow(row);
+      String value = (String)model.getValueAt(row, ConstantColumn.DEFAULT_VALUE.ordinal());
+
+      Locale locale = model.localeOfColumn(column);
+      String translation = locale == null ? null : (String)model.getValueAt(row, column);
+
+      MultilineStringEditorDialog d = new MultilineStringEditorDialog(myFacet, key, value, locale, translation);
+      if (d.showAndGet()) {
+        if (!StringUtil.equals(value, d.getDefaultValue())) {
+          model.setValueAt(d.getDefaultValue(), row, ConstantColumn.DEFAULT_VALUE.ordinal());
+        }
+
+        if (locale != null && !StringUtil.equals(translation, d.getTranslation())) {
+          model.setValueAt(d.getTranslation(), row, column);
+        }
+      }
     }
   }
 }

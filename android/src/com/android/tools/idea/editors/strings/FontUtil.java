@@ -13,59 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.table;
+package com.android.tools.idea.editors.strings;
 
 import com.google.common.collect.Sets;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.FontPreferences;
-import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.editor.impl.ComplementaryFontsRegistry;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.Set;
 
-public class CellRenderer implements TableCellRenderer {
-  @Override
-  public Component getTableCellRendererComponent(JTable table, Object value, boolean selected, boolean focused, int row, int column) {
-    TableCellRenderer defaultRenderer = table.getDefaultRenderer(table.getModel().getColumnClass(column));
-    Component component = defaultRenderer.getTableCellRendererComponent(table, value, selected, focused, row, column);
-
-    String tooltip = ((StringResourceTableModel) table.getModel()).getCellProblem(row, column);
-    if (component instanceof JComponent) {
-      ((JComponent) component).setToolTipText(tooltip);
-    }
-
-    Color foreground = UIUtil.getTableForeground(selected);
-    Color background = UIUtil.getTableBackground(selected);
-    if (!selected && tooltip != null) {
-      if (ConstantColumn.indexMatchesColumn(column, ConstantColumn.KEY)) {
-        // If a cell in the Key column is problematic, color the text red
-        foreground = JBColor.RED;
-      } else {
-        // If any other cell is problematic, shade its background a different color
-        background = UIUtil.getDecoratedRowColor();
-      }
-    }
-
-    component.setForeground(foreground);
-    component.setBackground(background);
-
-    if (value instanceof String) {
-      String s = (String)value;
-      Font f = getFontAbleToDisplay(s, table.getFont());
-      component.setFont(f);
-    }
-
-    return component;
-  }
-
+public class FontUtil {
   @NotNull
   public static Font getFontAbleToDisplay(@NotNull String s, @NotNull Font defaultFont) {
     if (SystemInfo.isMac          // On Macs, all fonts can display all the characters because the system renders using fallback fonts.
