@@ -16,16 +16,29 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.wizard.DynamicWizardPath;
+import com.android.tools.idea.wizard.ScopedStateStore;
+import com.google.common.base.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Guides the user through setting up an emulator on first Android Studio run.
  */
 public class SetupEmulatorPath extends DynamicWizardPath {
+  private ScopedStateStore.Key<Boolean> myIsCustomInstall;
+
+  public SetupEmulatorPath(ScopedStateStore.Key<Boolean> isCustomInstall) {
+    myIsCustomInstall = isCustomInstall;
+  }
+
   @Override
   protected void init() {
     addStep(new MacEmulatorSettingsStep());
     addStep(new LinuxEmulatorSettingsStep());
+  }
+
+  @Override
+  public boolean isPathVisible() {
+    return Objects.equal(Boolean.TRUE, getState().get(myIsCustomInstall));
   }
 
   @NotNull
