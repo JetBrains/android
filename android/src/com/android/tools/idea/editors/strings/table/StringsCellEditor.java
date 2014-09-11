@@ -66,6 +66,10 @@ public class StringsCellEditor extends AbstractTableCellEditor {
     int row = source.getSelectedRow();
     int col = source.getSelectedColumn();
 
+    if (col == ConstantColumn.KEY.ordinal()) {
+      return false; // TODO: keys are not editable, we want them to be refactor operations
+    }
+
     StringResourceTableModel model = (StringResourceTableModel)source.getModel();
     String value = (String)model.getValueAt(row, col);
 
