@@ -39,7 +39,7 @@ import java.util.List;
 import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
- * {@linkplain NewModuleWizard} guides the user through adding a new module to an existing project. It has a template-based flow and as the
+ * {@linkplain NewModuleWizardDynamic} guides the user through adding a new module to an existing project. It has a template-based flow and as the
  * first step of the wizard allows the user to choose a template which will guide the rest of the wizard flow.
  */
 public class NewModuleWizardDynamic extends NewProjectWizardDynamic {

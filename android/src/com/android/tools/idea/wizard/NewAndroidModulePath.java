@@ -40,7 +40,10 @@ import static com.android.tools.idea.wizard.ChooseTemplateStep.MetadataListItem;
 /**
  * This class deals with the "main" flow of the new module wizard when
  * either Android application or Android library is added to the project.
+ *
+ * Deprecated. Use {@link NewModuleWizardDynamic} instead.
  */
+@Deprecated
 @NewModuleWizardDynamic.Migrated
 public final class NewAndroidModulePath implements WizardPath {
   private static final Logger LOG = Logger.getInstance(NewAndroidModulePath.class);
