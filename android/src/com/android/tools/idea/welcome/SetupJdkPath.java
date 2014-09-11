@@ -16,15 +16,20 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.wizard.DynamicWizardPath;
+import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.ScopedStateStore.Key;
+import com.android.tools.idea.wizard.ScopedStateStore.Scope;
 import org.jetbrains.annotations.NotNull;
 
 /**
- *
+ * Guides the user through setting up the JDK location.
  */
 public class SetupJdkPath extends DynamicWizardPath {
+  private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
+
   @Override
   protected void init() {
-    addStep(new JdkAndJreLocationStep());
+    addStep(new JdkLocationStep(KEY_JDK_LOCATION));
   }
 
   @NotNull
