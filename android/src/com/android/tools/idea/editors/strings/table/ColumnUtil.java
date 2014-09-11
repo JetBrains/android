@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.rendering.Locale;
+import com.intellij.ui.BooleanTableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -25,7 +26,7 @@ import java.awt.*;
 import java.util.*;
 
 public class ColumnUtil {
-  private static final TableCellRenderer CELL_RENDERER = new CellRenderer();
+  private static final TableCellRenderer CELL_RENDERER = new StringsCellRenderer();
 
   public static void setColumns(@NotNull JTable table) {
     StringResourceTableModel model = (StringResourceTableModel) table.getModel();
@@ -33,7 +34,12 @@ public class ColumnUtil {
     Enumeration<TableColumn> columns = table.getColumnModel().getColumns();
     while (columns.hasMoreElements()) {
       TableColumn column = columns.nextElement();
-      column.setCellRenderer(CELL_RENDERER);
+      if (column.getModelIndex() == ConstantColumn.UNTRANSLATABLE.ordinal()) {
+        column.setCellRenderer(new BooleanTableCellRenderer());
+      }
+      else {
+        column.setCellRenderer(CELL_RENDERER);
+      }
       int index = column.getModelIndex();
       FontMetrics fontMetrics = table.getFontMetrics(table.getFont());
       Locale locale = model.localeOfColumn(index);
@@ -42,8 +48,8 @@ public class ColumnUtil {
       column.setHeaderRenderer(renderer);
       // Sets Key and Default Value columns to initially display at full width and all others to be collapsed
       int width;
-      if (ConstantColumn.indexMatchesColumn(index, ConstantColumn.KEY) ||
-          ConstantColumn.indexMatchesColumn(index, ConstantColumn.DEFAULT_VALUE)) {
+      if (ConstantColumn.KEY.ordinal() == index ||
+          ConstantColumn.DEFAULT_VALUE.ordinal() == index) {
         width = renderer.getFullExpandedWidth();
       } else {
         width = renderer.getCollapsedWidth();

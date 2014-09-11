@@ -26,13 +26,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.table.AbstractTableModel;
 
 public class StringResourceTableModel extends AbstractTableModel {
-  @NotNull private final StringResourceViewPanel myPanel;
-  @NotNull private final AndroidFacet myFacet;
   @Nullable private StringResourceData myData;
 
-  public StringResourceTableModel(@NotNull StringResourceViewPanel panel, @NotNull AndroidFacet facet, @Nullable StringResourceData data) {
-    myPanel = panel;
-    myFacet = facet;
+  public StringResourceTableModel(@Nullable StringResourceData data) {
     myData = data;
   }
 
@@ -81,27 +77,9 @@ public class StringResourceTableModel extends AbstractTableModel {
     }
   }
 
-  /**
-   * Gets a clipped version of the value at (row, column), appropriate for displaying in a single-line JTable cell.
-   * @param row The row index
-   * @param column The column index
-   * @return The clipped value
-   */
   @NotNull
   @Override
   public Object getValueAt(int row, int column) {
-    Object value = getValue(row, column);
-    return value instanceof String ? clip(String.valueOf(value)) : value;
-  }
-
-  /**
-   * Gets the value at (row, column), which may span multiple lines.
-   * @param row The row index
-   * @param column The column index
-   * @return The value
-   */
-  @NotNull
-  public Object getValue(int row, int column) {
     if (myData == null) {
       return "";
     }
@@ -122,14 +100,6 @@ public class StringResourceTableModel extends AbstractTableModel {
       default:
         return "";
     }
-  }
-
-  /**
-   * Clips a value to a single line to fit in a default JTable cell
-   */
-  private static String clip(String str) {
-    int end = str.indexOf('\n');
-    return end < 0 ? str : str.substring(0, end) + "[...]";
   }
 
   @Override
