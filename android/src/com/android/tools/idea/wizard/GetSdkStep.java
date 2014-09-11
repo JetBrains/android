@@ -16,6 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -193,7 +194,8 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
 
   @Override
   public boolean isStepVisible() {
-    return DefaultSdks.getDefaultAndroidHome() == null;
+    File home = DefaultSdks.getDefaultAndroidHome();
+    return Objects.equal(Boolean.TRUE, Boolean.getBoolean("android.sdk.prompt")) || home == null;
   }
 
   @NotNull
