@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.configurations.OverlayContainer;
 import com.android.tools.idea.rendering.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
@@ -25,6 +27,7 @@ import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,6 +109,12 @@ public class AndroidLayoutPreviewPanel extends RenderedPanel {
       Overlay.paintOverlays(myOverlayContainer, component, g, px, py);
     }
     return paintedImage;
+  }
+
+  @VisibleForTesting
+  public void paintOverlays(Graphics g) {
+    assert AndroidPlugin.isGuiTestingMode() || ApplicationManager.getApplication().isUnitTestMode();
+    Overlay.paintOverlays(myOverlayContainer, getPaintComponent().getParent(), g, 0, 0);
   }
 
   @Override
