@@ -39,7 +39,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 /**
  * Value object which holds the current state of the wizard pages for the
  * {@link com.android.tools.idea.wizard.NewModuleWizard}
+ *
+ * Deprecated. Use {@link ScopedStateStore} instead.
  */
+@Deprecated
 public class NewModuleWizardState extends TemplateWizardState {
   private static final Logger LOG = Logger.getInstance(NewModuleWizardState.class);
 
