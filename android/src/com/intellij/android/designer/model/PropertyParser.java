@@ -73,15 +73,7 @@ public class PropertyParser {
     myDefinitions = targetData.getAttrDefs(module.getProject());
 
     LayoutLibrary library = renderService.getLayoutLib();
-    myClassLoader = new ProjectClassLoader(library.getClassLoader(), module);
-  }
-
-  public void loadRecursive(RadViewComponent component) throws Exception {
-    load(component);
-
-    for (RadComponent child : component.getChildren()) {
-      loadRecursive((RadViewComponent)child);
-    }
+    myClassLoader = new ProjectClassLoader(library.getClassLoader(), module, null, null);
   }
 
   public void load(RadViewComponent component) throws Exception {
@@ -377,7 +369,7 @@ public class PropertyParser {
       Class<?> testClass = myClassLoader.loadClass(test.getTarget());
       return baseClass.isAssignableFrom(testClass);
     }
-    catch (Throwable e) {
+    catch (Throwable ignored) {
     }
     return false;
   }

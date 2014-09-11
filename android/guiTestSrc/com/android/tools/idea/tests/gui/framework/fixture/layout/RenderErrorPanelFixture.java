@@ -46,7 +46,7 @@ public class RenderErrorPanelFixture {
     RenderErrorPanel panel = new RenderErrorPanel();
     String html = panel.showErrors(lastResult);
     assertNotNull(html);
-    assertTrue("Did not find " + error + " in " + html, html.contains(error));
+    assertTrue("Did not find '" + error + "' in " + html, html.contains(error));
   }
 
   public void performSuggestion(@NotNull String linkText) {
