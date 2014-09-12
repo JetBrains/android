@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.wizard.*;
-import icons.AndroidIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import com.android.tools.idea.wizard.DynamicWizard;
+import com.android.tools.idea.wizard.DynamicWizardHost;
+import com.android.tools.idea.wizard.ScopedStateStore;
+import com.android.tools.idea.wizard.SingleStepPath;
 
 /**
  * Wizard to setup Android Studio before the first run
  */
 public class FirstRunWizard extends DynamicWizard {
-
   public static final String WIZARD_TITLE = "Android Studio Setup";
+  private static final ScopedStateStore.Key<Boolean> KEY_CUSTOM_INSTALL =
+    ScopedStateStore.createKey("custom.install", ScopedStateStore.Scope.WIZARD, Boolean.class);
 
   public FirstRunWizard(DynamicWizardHost host) {
     super(null, null, WIZARD_TITLE, host);
@@ -37,9 +37,9 @@ public class FirstRunWizard extends DynamicWizard {
   public void init() {
     addPath(new SingleStepPath(new FirstRunWelcomeStep()));
     addPath(new SetupJdkPath());
-    addPath(new SingleStepPath(new InstallationTypeWizardStep()));
-    addPath(new SetupAndroidSdkPath());
-    addPath(new SetupEmulatorPath());
+    addPath(new SingleStepPath(new InstallationTypeWizardStep(KEY_CUSTOM_INSTALL)));
+    addPath(new SetupAndroidSdkPath(KEY_CUSTOM_INSTALL));
+    addPath(new SetupEmulatorPath(KEY_CUSTOM_INSTALL));
     addPath(new DownloadComponentsPath(getDisposable()));
 
     super.init();
