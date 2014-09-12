@@ -34,9 +34,11 @@ import com.intellij.ui.popup.list.ListPopupModel;
 import org.fest.swing.core.BasicRobot;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
+import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Timeout;
@@ -65,8 +67,8 @@ public final class GuiTests {
   public static final Timeout LONG_TIMEOUT = timeout(5, MINUTES);
 
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
+  public static final String GRADLE_2_1_HOME_PROPERTY = "gradle.2.1.home.path";
   public static final String GRADLE_1_12_HOME_PROPERTY = "gradle.1.12.home.path";
-  public static final String GRADLE_2_HOME_PROPERTY = "gradle.2.0.home.path";
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
@@ -236,6 +238,20 @@ public final class GuiTests {
         return (Container)SwingUtilities.getRoot(component);
       }
     });
+  }
+
+  public static void findAndClickOkButton(@NotNull ComponentFixture<? extends Container> container) {
+    findAndClickButton(container, "OK");
+  }
+
+  public static void findAndClickCancelButton(@NotNull ComponentFixture<? extends Container> container) {
+    findAndClickButton(container, "Cancel");
+  }
+
+  public static void findAndClickButton(@NotNull ComponentFixture<? extends Container> container, @NotNull String text) {
+    Robot robot = container.robot;
+    JButton button = robot.finder().find(container.target, JButtonMatcher.withText(text).andShowing());
+    robot.click(button);
   }
 
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
