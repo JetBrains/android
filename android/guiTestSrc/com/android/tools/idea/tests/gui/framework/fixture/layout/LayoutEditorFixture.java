@@ -81,6 +81,14 @@ public class LayoutEditorFixture extends ComponentFixture<AndroidDesignerEditorP
     return waitForNextRenderToFinish(null);
   }
 
+  /** Rendering token used by {@link #waitForRenderToFinish()} */
+  private Object myPreviousRender;
+
+  @Override
+  public void waitForNextRenderToFinish() {
+    myPreviousRender = waitForNextRenderToFinish(myPreviousRender);
+  }
+
   @NotNull
   @Override
   public Object waitForNextRenderToFinish(@Nullable final Object previous) {
