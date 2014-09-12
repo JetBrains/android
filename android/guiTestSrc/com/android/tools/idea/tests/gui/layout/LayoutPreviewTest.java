@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.ConfigurationToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.ImageFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
+import com.android.tools.lint.detector.api.LintUtils;
+import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import static com.android.SdkConstants.DOT_PNG;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 
@@ -42,6 +49,9 @@ import static junit.framework.Assert.assertNotNull;
  * </ul>
  */
 public class LayoutPreviewTest extends GuiTestCase {
+  // Default folder in the GUI test data directory where we're storing rendering thumbnails
+  public static final String THUMBNAIL_FOLDER = "thumbnails";
+
   @Test
   @IdeGuiTest
   public void testConfigurationTweaks() throws Exception {
@@ -203,5 +213,68 @@ public class LayoutPreviewTest extends GuiTestCase {
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForNextRenderToFinish();
     toolbar.requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
+  }
+
+  @NotNull
+  private String suggestName(EditorFixture editor) {
+    String currentFileName = editor.getCurrentFileName();
+    assertNotNull(currentFileName);
+    String prefix = this.getClass().getSimpleName() + "-" + getTestName();
+    String pngFileName = LintUtils.getBaseName(currentFileName) + DOT_PNG;
+    return THUMBNAIL_FOLDER + "/" + prefix + "-" + pngFileName;
+  }
+
+  @Test
+  @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void testRendering() throws Exception {
+    // Opens a number of layouts in the layout test project and checks that the rendering looks roughly
+    // correct.
+
+    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/widgets.xml", EditorFixture.Tab.EDITOR);
+    LayoutPreviewFixture preview = editor.getLayoutPreview(true);
+    assertNotNull(preview);
+    ConfigurationToolbarFixture toolbar = preview.getToolbar();
+    preview.waitForNextRenderToFinish();
+    if (!toolbar.isDevice("Nexus 5")) {
+      toolbar.chooseDevice("Nexus 5");
+      preview.waitForNextRenderToFinish();
+    }
+
+    // Basic layout, including action bar, device frame, Holo-based app theme
+    preview.requireThumbnailMatch(suggestName(editor));
+
+    //// Drawable shape
+    editor.open("app/src/main/res/drawable/progress.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    preview.requireThumbnailMatch(suggestName(editor));
+
+    // Using an included layout, and various gradients and text styles
+    editor.open("app/src/main/res/layout/textstyles.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    preview.requireThumbnailMatch(suggestName(editor));
+
+    // Included render: inner layout rendered inside an outer layout
+    editor.open("app/src/main/res/layout/included.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    preview.requireThumbnailMatch(suggestName(editor));
+
+    // Render menu
+    editor.open("app/src/main/res/menu/my.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    preview.requireThumbnailMatch(suggestName(editor));
+
+    // TODO:
+    // Disabling device frames
+    // Multi configuration editing
+    // Material design rendering
+    // Theme switching
+    // Menu rendering
+    // Android Wear, Android TV form factor rendering
+    // Switching rendering targets
+    // Editing resource files and making sure style updates
+    // RTL rendering
+    // ScrollViews (no device clipping)
   }
 }
