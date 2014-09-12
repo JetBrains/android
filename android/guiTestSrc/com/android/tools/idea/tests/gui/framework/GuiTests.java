@@ -42,6 +42,7 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.fest.swing.timing.Timeout;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.AndroidTestBase;
@@ -52,9 +53,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
@@ -299,6 +303,25 @@ public final class GuiTests {
     }
 
     return null;
+  }
+
+  /** Waits for a first component which passes the given matcher to become visible */
+  @NotNull
+  public static <T extends Component> T findWhenVisible(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
+    final AtomicReference<T> reference = new AtomicReference<T>();
+    Pause.pause(new Condition("Find component using " + matcher.toString()) {
+      @Override
+      public boolean test() {
+        Collection<T> allFound = robot.finder().findAll(matcher);
+        boolean found = allFound.size() == 1;
+        if (found) {
+          reference.set(getFirstItem(allFound));
+        }
+        return found;
+      }
+    }, SHORT_TIMEOUT);
+
+    return reference.get();
   }
 
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
