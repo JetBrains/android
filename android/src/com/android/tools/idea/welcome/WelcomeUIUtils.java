@@ -16,11 +16,14 @@
 package com.android.tools.idea.welcome;
 
 import com.google.common.collect.ImmutableMap;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.font.TextAttribute;
 
 /**
@@ -37,13 +40,22 @@ public final class WelcomeUIUtils {
    * changing the cursor and font style. This is preferred to styling a {@link JLabel}
    * as button is focusable control and better supports accessibility.
    */
-  public static void makeButtonAHyperlink(@NotNull JButton button) {
+  public static void makeButtonAHyperlink(JButton button) {
     button.setBorderPainted(false);
     button.setBorder(null);
     button.setForeground(JBColor.blue);
     button.setOpaque(false);
     button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    button.setFont(button.getFont().deriveFont(ImmutableMap.of(TextAttribute.UNDERLINE,
-                                                               TextAttribute.UNDERLINE_LOW_ONE_PIXEL)));
+    button.setFont(button.getFont().deriveFont(ImmutableMap.of(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL)));
+  }
+
+  public static void makeButtonAHyperlink(@NotNull JButton button, @NotNull final String url) {
+    makeButtonAHyperlink(button);
+    button.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        BrowserUtil.browse(url);
+      }
+    });
   }
 }
