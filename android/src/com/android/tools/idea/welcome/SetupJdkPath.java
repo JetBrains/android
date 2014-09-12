@@ -15,40 +15,26 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.wizard.*;
-import icons.AndroidIcons;
+import com.android.tools.idea.wizard.DynamicWizardPath;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 /**
- * Wizard to setup Android Studio before the first run
+ *
  */
-public class FirstRunWizard extends DynamicWizard {
+public class SetupJdkPath extends DynamicWizardPath {
+  @Override
+  protected void init() {
+    addStep(new JdkAndJreLocationStep());
+  }
 
-  public static final String WIZARD_TITLE = "Android Studio Setup";
-
-  public FirstRunWizard(DynamicWizardHost host) {
-    super(null, null, WIZARD_TITLE, host);
-    setTitle(WIZARD_TITLE);
+  @NotNull
+  @Override
+  public String getPathName() {
+    return "Setup JDK";
   }
 
   @Override
-  public void init() {
-    addPath(new SingleStepPath(new FirstRunWelcomeStep()));
-    addPath(new SetupJdkPath());
-    addPath(new SingleStepPath(new InstallationTypeWizardStep()));
-
-    super.init();
-  }
-
-  @Override
-  public void performFinishingActions() {
-
-  }
-
-  @Override
-  protected String getWizardActionDescription() {
-    return "Android Studio Setup";
+  public boolean performFinishingActions() {
+    return false;
   }
 }
