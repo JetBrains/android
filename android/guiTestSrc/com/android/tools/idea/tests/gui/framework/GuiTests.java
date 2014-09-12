@@ -307,7 +307,7 @@ public final class GuiTests {
 
   /** Waits for a first component which passes the given matcher to become visible */
   @NotNull
-  public static <T extends Component> T findWhenVisible(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
+  public static <T extends Component> T waitUntilFound(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
     final AtomicReference<T> reference = new AtomicReference<T>();
     Pause.pause(new Condition("Find component using " + matcher.toString()) {
       @Override
