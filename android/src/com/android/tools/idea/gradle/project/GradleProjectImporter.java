@@ -68,7 +68,6 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -79,8 +78,6 @@ import java.util.Collection;
 
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode.MODAL_SYNC;
-import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome;
-import static org.jetbrains.plugins.gradle.util.GradleUtil.isGradleDefaultWrapperFilesExist;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -137,31 +134,8 @@ public class GradleProjectImporter {
 
     // Set up Gradle settings. Otherwise we get an "already disposed project" error.
     new GradleSettings(ProjectManager.getInstance().getDefaultProject());
-
-    // If we have Gradle wrapper go ahead and import the project, without showing the "Project Import" wizard.
-    boolean hasGradleWrapper = isGradleDefaultWrapperFilesExist(projectDirPath.getPath());
-
-    if (!hasGradleWrapper) {
-      // If we don't have a Gradle wrapper, but we have the location of GRADLE_HOME, we import the project without showing the "Project
-      // Import" wizard.
-      boolean validGradleHome = false;
-      String gradleHome = getLastUsedGradleHome();
-      if (!gradleHome.isEmpty()) {
-        GradleInstallationManager gradleInstallationManager = ServiceManager.getService(GradleInstallationManager.class);
-        File gradleHomePath = new File(FileUtil.toSystemDependentName(gradleHome));
-        validGradleHome = gradleInstallationManager.isGradleSdkHome(gradleHomePath);
-      }
-      if (!validGradleHome) {
-        ChooseGradleHomeDialog chooseGradleHomeDialog = new ChooseGradleHomeDialog();
-        if (!chooseGradleHomeDialog.showAndGet()) {
-          return;
-        }
-        chooseGradleHomeDialog.storeLastUsedGradleHome();
-      }
-    }
     createProjectFileForGradleProject(selectedFile, null);
   }
-
 
   /**
    * Creates IntelliJ project file in the root of the project directory.

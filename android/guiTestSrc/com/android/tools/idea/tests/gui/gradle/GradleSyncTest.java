@@ -21,22 +21,18 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
-import com.intellij.openapi.util.io.FileUtil;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 public class GradleSyncTest extends GuiTestCase {
@@ -115,11 +111,9 @@ public class GradleSyncTest extends GuiTestCase {
   public void testAutomaticCreationOfMissingWrapper() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
-    File wrapperDirPath = projectFrame.deleteGradleWrapper();
-
-    projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    // Sync was successful. Check that the wrapper was created.
-    assertThat(wrapperDirPath).isDirectory();
- }
+    projectFrame.deleteGradleWrapper()
+                .requestProjectSync()
+                .waitForGradleProjectSyncToFinish()
+                .requireGradleWrapperSet();
+  }
 }
