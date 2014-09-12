@@ -248,7 +248,7 @@ public class DeviceChooser implements Disposable {
 
         private int safeGetApiLevel(IDevice device) {
           try {
-            String s = device.getPropertyCacheOrSync(IDevice.PROP_BUILD_API_LEVEL);
+            String s = device.getProperty(IDevice.PROP_BUILD_API_LEVEL);
             return StringUtil.isNotEmpty(s) ? Integer.parseInt(s) : 0;
           } catch (Exception e) {
             return 0;
