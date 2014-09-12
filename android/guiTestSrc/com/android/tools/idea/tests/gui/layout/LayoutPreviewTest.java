@@ -42,7 +42,6 @@ import static junit.framework.Assert.assertNotNull;
  * </ul>
  */
 public class LayoutPreviewTest extends GuiTestCase {
-  @SuppressWarnings("ConstantConditions")
   @Test
   @IdeGuiTest
   public void testConfigurationTweaks() throws Exception {
@@ -54,10 +53,10 @@ public class LayoutPreviewTest extends GuiTestCase {
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    assertEquals("layout", editor.getCurrentFile().getParent().getName());
+    editor.requireFolderName("layout");
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
-    Object render = preview.waitForRenderToFinish();
+    preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
     ConfigurationToolbarFixture toolbar = preview.getToolbar();
     toolbar.requireTheme("@style/AppTheme");
@@ -66,54 +65,51 @@ public class LayoutPreviewTest extends GuiTestCase {
 
     toolbar.chooseDevice("Nexus 5");
     toolbar.toggleOrientation();
-    render = preview.waitForNextRenderToFinish(render);
+    preview.waitForNextRenderToFinish();
     toolbar.requireOrientation("Landscape");
     toolbar.requireDevice("Nexus 5");
 
     toolbar.createLandscapeVariation();
-    render = preview.waitForNextRenderToFinish(render);
+    preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
-    assertEquals("layout-land", editor.getCurrentFile().getParent().getName());
+    editor.requireFolderName("layout-land");
     toolbar.requireOrientation("Landscape");
 
     toolbar.toggleOrientation();
-    render = preview.waitForNextRenderToFinish(render);
-    preview.requireRenderSuccessful();
+
+    preview.waitForNextRenderToFinish();
     toolbar.requireOrientation("Portrait");
     // We should have switched back to the first file again since -land doesn't match portrait
-    assertEquals("layout", editor.getCurrentFile().getParent().getName());
+    editor.requireFolderName("layout");
 
     toolbar.createOtherVariation("layout-v17");
-    render = preview.waitForNextRenderToFinish(render);
+    preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
-    assertEquals("layout-v17", editor.getCurrentFile().getParent().getName());
+    editor.requireFolderName("layout-v17");
     toolbar.requireDevice("Nexus 5"); // The device shouldn't have changed.
 
     toolbar.toggleOrientation();
-    render = preview.waitForNextRenderToFinish(render);
+    preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
     toolbar.requireDevice("Nexus 5");  // We should still be using the same device.
     toolbar.requireOrientation("Landscape");
     // The file should have switched to layout-land.
-    assertEquals("layout-land", editor.getCurrentFile().getParent().getName());
+    editor.requireFolderName("layout-land");
 
     toolbar.toggleOrientation();
-    render = preview.waitForNextRenderToFinish(render);
+    preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
     toolbar.requireDevice("Nexus 5");
     toolbar.requireOrientation("Portrait");
-    assertEquals("layout", editor.getCurrentFile().getParent().getName());
+    editor.requireFolderName("layout");
 
     toolbar.chooseDevice("Nexus 4");
-    preview.waitForNextRenderToFinish(render);
+    preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
     // We should still be in the same file.
-    assertEquals("layout", editor.getCurrentFile().getParent().getName());
-
-
+    editor.requireFolderName("layout");
   }
 
-  @SuppressWarnings("ConstantConditions")
   @Test
   @IdeGuiTest(closeProjectBeforeExecution = true)
   public void testEdits() throws Exception {
@@ -122,9 +118,9 @@ public class LayoutPreviewTest extends GuiTestCase {
     // Load layout, wait for render to be shown in the preview window
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
-    assertEquals("layout", editor.getCurrentFile().getParent().getName());
     LayoutPreviewFixture preview = editor.getLayoutPreview(true);
     assertNotNull(preview);
+    editor.requireName("activity_my.xml");
     preview.waitForRenderToFinish();
 
     // Move caret to right after the end of the <TextView> element declaration
@@ -138,12 +134,12 @@ public class LayoutPreviewTest extends GuiTestCase {
 
     // Then enter some text, which should trigger render warnings:
     editor.enterText("\n    <Button android:text=\"New Button\"/>\n");
-    Object firstRender = preview.waitForRenderToFinish();
+    preview.waitForNextRenderToFinish();
     RenderErrorPanelFixture renderErrors = preview.getRenderErrors();
     renderErrors.requireHaveRenderError("One or more layouts are missing the layout_width or layout_height attributes");
 
     // Invoke one of the suggested fixes and make sure the XML is updated properly
-    renderErrors.performSuggestion(">Automatically add all missing attributes");
+    renderErrors.performSuggestion("Automatically add all missing attributes");
 
     assertEquals("        android:layout_height=\"wrap_content\" />\n" +
                  "        <Button android:text=\"New Button\"\n" +
@@ -154,7 +150,58 @@ public class LayoutPreviewTest extends GuiTestCase {
                  "</RelativeLayout>\n", editor.getCurrentLineContents(false, true, 4));
 
     // And now it should re-render and be successful again
-    preview.waitForNextRenderToFinish(firstRender);
+    preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
+  }
+
+  @Test
+  @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void testConfigurationMatching() throws Exception {
+    // Opens the LayoutTest project, opens a layout with a custom view, checks
+    // that it can't render yet (because the project hasn't been built),
+    // builds the project, checks that the render works, edits the custom view
+    // source code, ensures that the render lists the custom view as out of date,
+    // applies the suggested fix to build the project, and finally asserts that the
+    // build is now successful.
+
+    IdeFrameFixture projectFrame = openProject("LayoutTest");
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
+    LayoutPreviewFixture preview = editor.getLayoutPreview(true);
+    assertNotNull(preview);
+    ConfigurationToolbarFixture toolbar = preview.getToolbar();
+    toolbar.chooseDevice("Nexus 5");
+    preview.waitForNextRenderToFinish();
+    toolbar.requireDevice("Nexus 5");
+    editor.requireFolderName("layout");
+    toolbar.requireOrientation("Portrait");
+
+    toolbar.chooseDevice("Nexus 7");
+    preview.waitForNextRenderToFinish();
+    toolbar.requireDevice("Nexus 7 2013");
+    editor.requireFolderName("layout-sw600dp");
+
+    toolbar.chooseDevice("Nexus 10");
+    preview.waitForNextRenderToFinish();
+    toolbar.requireDevice("Nexus 10");
+    editor.requireFolderName("layout-sw600dp");
+    toolbar.requireOrientation("Landscape"); // Default orientation for Nexus 10
+
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    toolbar.requireDevice("Nexus 10"); // Since we switched to it most recently
+    toolbar.requireOrientation("Portrait");
+
+    toolbar.chooseDevice("Nexus 7");
+    preview.waitForNextRenderToFinish();
+    toolbar.chooseDevice("Nexus 4");
+    preview.waitForNextRenderToFinish();
+    editor.open("app/src/main/res/layout-sw600dp/layout2.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    editor.requireFolderName("layout-sw600dp");
+    toolbar.requireDevice("Nexus 7 2013"); // because it's the most recently configured sw600-dp compatible device
+    editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+    toolbar.requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 }
