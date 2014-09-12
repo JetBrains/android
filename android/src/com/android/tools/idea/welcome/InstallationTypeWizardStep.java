@@ -16,13 +16,9 @@
 package com.android.tools.idea.welcome;
 
 import com.android.tools.idea.wizard.ScopedStateStore;
-import com.google.common.base.Objects;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 /**
  * Wizard step for selecting installation types
@@ -41,33 +37,7 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
 
   @Override
   public void init() {
-    register(myDataKey, myContents, new ComponentBinding<Boolean, JPanel>() {
-      @Override
-      public void setValue(@Nullable Boolean newValue, @NotNull JPanel component) {
-        boolean customInstall = Objects.equal(Boolean.TRUE, newValue);
-        myStandardRadioButton.setSelected(!customInstall);
-        myCustomRadioButton.setSelected(customInstall);
-      }
-
-      @Nullable
-      @Override
-      public Boolean getValue(@NotNull JPanel component) {
-        return myCustomRadioButton.isSelected();
-      }
-
-      @Override
-      public void addActionListener(@NotNull final ActionListener listener, @NotNull final JPanel component) {
-        ActionListener actionListener = new ActionListener() {
-          @Override
-          public void actionPerformed(ActionEvent e) {
-            ActionEvent event = new ActionEvent(component, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers());
-            listener.actionPerformed(event);
-          }
-        };
-        myStandardRadioButton.addActionListener(actionListener);
-        myCustomRadioButton.addActionListener(actionListener);
-      }
-    });
+    register(myDataKey, myContents, new TwoRadiosToBooleanBinding(myCustomRadioButton, myStandardRadioButton));
   }
 
   @Nullable
@@ -80,4 +50,5 @@ public class InstallationTypeWizardStep extends FirstRunWizardStep {
   public JComponent getPreferredFocusedComponent() {
     return myStandardRadioButton;
   }
+
 }
