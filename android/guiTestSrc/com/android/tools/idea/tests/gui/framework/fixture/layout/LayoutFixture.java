@@ -44,6 +44,16 @@ public interface LayoutFixture {
   Object waitForRenderToFinish();
 
   /**
+   * Waits for the next render to finish. This method guarantees that it will wait for a more recent
+   * render than the last call to this method. This is a convenience implementation on top of
+   * {@link #waitForNextRenderToFinish(Object)} where the fixture keeps track of the most recent
+   * rendering token on its own and passes it to the next call. Whereas {@link #waitForRenderToFinish()}
+   * can be a no-op if there is already a rendering result present, this method is only a no-op
+   * the first time it is called (if there is already a rendering result available).
+   */
+  void waitForNextRenderToFinish();
+
+  /**
    * Waits for render to finish, if render is in progress. Otherwise returns immediately.
    * @param previous If not null, represents a rendering token (previously returned from this method) which
    *    we don't want to return; we expect a more recent rendering to be processed and will wait for it
