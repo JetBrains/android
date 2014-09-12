@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleWrapperPropertiesFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
@@ -119,6 +120,9 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+
+    File wrapperDirPath = projectFrame.deleteGradleWrapper();
+
     projectFrame.useLocalGradleDistribution(getUnsupportedGradleHome())
                 .requestProjectSync();
 
@@ -130,7 +134,17 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFail();
 
     MessagesToolWindowFixture messages = projectFrame.getMessagesToolWindow();
-    messages.getGradleSyncContent().requireMessage(ERROR, "Gradle 2.1 is required.");
+    MessagesToolWindowFixture.MessageFixture msg =
+      messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
+    msg.findHyperlink("Migrate to Gradle wrapper and sync project").click();
+
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    // Verify that wrapper was created and used.
+    assertThat(wrapperDirPath).isDirectory();
+
+    GradleProjectSettings settings = projectFrame.getGradleSettings();
+    assertEquals(DEFAULT_WRAPPED, settings.getDistributionType());
   }
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
