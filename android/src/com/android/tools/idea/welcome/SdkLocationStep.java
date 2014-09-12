@@ -15,43 +15,42 @@
  */
 package com.android.tools.idea.welcome;
 
-import com.android.tools.idea.wizard.*;
-import icons.AndroidIcons;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 /**
- * Wizard to setup Android Studio before the first run
+ * Wizard step for selecting existing SDK location.
  */
-public class FirstRunWizard extends DynamicWizard {
+public class SdkLocationStep extends FirstRunWizardStep {
+  private JRadioButton myDownloadTheLatestVersionRadioButton;
+  private JRadioButton myUseAnExistingAndroidRadioButton;
+  private JLabel myError;
+  private TextFieldWithBrowseButton myExistingSdkPath;
+  private JPanel myContentsPane;
 
-  public static final String WIZARD_TITLE = "Android Studio Setup";
-
-  public FirstRunWizard(DynamicWizardHost host) {
-    super(null, null, WIZARD_TITLE, host);
-    setTitle(WIZARD_TITLE);
+  public SdkLocationStep() {
+    super("SDK Settings");
+    myError.setText("");
+    myError.setForeground(JBColor.red);
+    setComponent(myContentsPane);
   }
 
   @Override
   public void init() {
-    addPath(new SingleStepPath(new FirstRunWelcomeStep()));
-    addPath(new SetupJdkPath());
-    addPath(new SingleStepPath(new InstallationTypeWizardStep()));
-    addPath(new SetupAndroidSdkPath());
-    addPath(new SetupEmulatorPath());
-    addPath(new DownloadComponentsPath(getDisposable()));
-
-    super.init();
-  }
-
-  @Override
-  public void performFinishingActions() {
 
   }
 
   @Override
-  protected String getWizardActionDescription() {
-    return "Android Studio Setup";
+  public JComponent getPreferredFocusedComponent() {
+    return myDownloadTheLatestVersionRadioButton;
+  }
+
+  @NotNull
+  @Override
+  public JLabel getMessageLabel() {
+    return myError;
   }
 }
