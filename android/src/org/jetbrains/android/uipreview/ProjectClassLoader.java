@@ -4,20 +4,30 @@ import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.rendering.AarResourceClassRegistry;
-import com.android.tools.idea.rendering.AppResourceRepository;
-import com.android.tools.idea.rendering.RenderClassLoader;
+import com.android.tools.idea.rendering.*;
+import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -35,6 +45,8 @@ import java.util.Set;
 
 import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.EXT_JAR;
+import static com.android.SdkConstants.FN_RESOURCE_CLASS;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static org.jetbrains.android.facet.ResourceFolderManager.EXPLODED_AAR;
 
 /**
@@ -44,10 +56,15 @@ public final class ProjectClassLoader extends RenderClassLoader {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.ProjectClassLoader");
 
   private final Module myModule;
+  private final RenderLogger myLogger;
+  private final Object myCredential;
 
-  public ProjectClassLoader(@Nullable ClassLoader parentClassLoader, Module module) {
+  public ProjectClassLoader(@Nullable ClassLoader parentClassLoader, @NotNull Module module, @Nullable RenderLogger logger,
+                            @Nullable Object credential) {
     super(parentClassLoader);
     myModule = module;
+    myLogger = logger;
+    myCredential = credential;
   }
 
   @Override
@@ -80,7 +97,7 @@ public final class ProjectClassLoader extends RenderClassLoader {
       return null;
     }
 
-    return new ProjectClassLoader(library.getClassLoader(), module);
+    return new ProjectClassLoader(library.getClassLoader(), module, null, null);
   }
 
   @NotNull
@@ -170,6 +187,67 @@ public final class ProjectClassLoader extends RenderClassLoader {
   }
 
   @Override
+  @Nullable
+  protected Class<?> loadClassFile(final String fqcn, File classFile) {
+    // Make sure the class file is up to date and if not, log an error
+    if (myLogger != null) {
+      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        long classFileModified = classFile.lastModified();
+        if (classFileModified > 0L) {
+          VirtualFile virtualFile = ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>() {
+            @Nullable
+            @Override
+            public VirtualFile compute() {
+              Project project = myModule.getProject();
+              GlobalSearchScope scope = myModule.getModuleScope();
+              PsiManager psiManager = PsiManager.getInstance(project);
+              JavaPsiFacade psiFacade = JavaPsiFacade.getInstance(psiManager.getProject());
+              PsiClass source = psiFacade.findClass(fqcn, scope);
+              if (source != null) {
+                PsiFile containingFile = source.getContainingFile();
+                if (containingFile != null) {
+                  return containingFile.getVirtualFile();
+                }
+              }
+
+              return null;
+            }
+          });
+
+          if (virtualFile != null && !FN_RESOURCE_CLASS.equals(virtualFile.getName())) { // Don't flag R.java edits; not done by user
+            // Edited but not yet saved?
+            boolean modified = FileDocumentManager.getInstance().isFileModified(virtualFile);
+            if (!modified) {
+              // Check timestamp
+              File sourceFile = VfsUtilCore.virtualToIoFile(virtualFile);
+              long sourceFileModified = sourceFile.lastModified();
+              if (sourceFileModified > classFileModified) {
+                modified = true;
+              }
+            }
+
+            if (modified) {
+              RenderProblem.Html problem = RenderProblem.create(WARNING);
+              HtmlBuilder builder = problem.getHtmlBuilder();
+              String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
+              builder.addLink("The " + className + " custom view has been edited more recently than the last build: ",
+                              "Build", " the project.",
+                              myLogger.getLinkManager().createCompileModuleUrl());
+              myLogger.addMessage(problem);
+            }
+          }
+        }
+      } finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
+    }
+
+    return super.loadClassFile(fqcn, classFile);
+  }
+
+  @Override
   protected URL[] getExternalJars() {
     final List<URL> result = new ArrayList<URL>();
 
@@ -183,7 +261,10 @@ public final class ProjectClassLoader extends RenderClassLoader {
             File parentFile = file.getParentFile();
             if (parentFile != null && (parentFile.getPath().endsWith(DOT_AAR) ||
               parentFile.getPath().contains(EXPLODED_AAR))) {
-              AarResourceClassRegistry.get().addLibrary(AppResourceRepository.getAppResources(myModule, true), parentFile);
+              AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
+              if (appResources != null) {
+                AarResourceClassRegistry.get().addLibrary(appResources, parentFile);
+              }
             }
           }
           catch (MalformedURLException e) {
