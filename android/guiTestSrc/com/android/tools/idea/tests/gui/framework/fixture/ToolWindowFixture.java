@@ -41,7 +41,7 @@ public abstract class ToolWindowFixture {
 
   protected ToolWindowFixture(@NotNull String toolWindowId, @NotNull Project project, @NotNull Robot robot) {
     ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId);
-    assertNotNull(toolWindow);
+    assertNotNull("Could not find tool window " + toolWindowId, toolWindow);
     myToolWindow = toolWindow;
     myRobot = robot;
   }
