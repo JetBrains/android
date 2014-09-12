@@ -24,17 +24,22 @@ import org.jetbrains.annotations.NotNull;
  * Guides the user through the Android SDK discovery.
  */
 public class SetupAndroidSdkPath extends DynamicWizardPath {
-  private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
+  private static final ScopedStateStore.Key<Boolean> KEY_SHOULD_DOWNLOAD =
+    ScopedStateStore.createKey("should.download", ScopedStateStore.Scope.PATH, Boolean.class);
+  private static final ScopedStateStore.Key<String> KEY_EXISTING_SDK_LOCATION =
+    ScopedStateStore.createKey("existing.sdk.location", ScopedStateStore.Scope.PATH, String.class);
 
+  private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   public SetupAndroidSdkPath(ScopedStateStore.Key<Boolean> isCustomInstall) {
     myIsCustomInstall = isCustomInstall;
   }
 
   @Override
   protected void init() {
-    addStep(new SdkLocationStep());
-    addStep(new VerifySdkStep());
-    addStep(new SdkComponentsStep());
+    myState.put(KEY_SHOULD_DOWNLOAD, true);
+    addStep(new SdkLocationStep(KEY_SHOULD_DOWNLOAD, KEY_EXISTING_SDK_LOCATION));
+    addStep(new VerifySdkStep(KEY_SHOULD_DOWNLOAD));
+    addStep(new SdkComponentsStep(KEY_SHOULD_DOWNLOAD));
   }
 
   @Override
