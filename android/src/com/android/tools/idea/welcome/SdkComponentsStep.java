@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.WizardConstants;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -45,6 +47,7 @@ import java.util.Set;
  */
 public class SdkComponentsStep extends FirstRunWizardStep {
   private final Node[] myNodes;
+  private final ScopedStateStore.Key<Boolean> myKeyShouldDownload;
   private JPanel myContents;
   private JBTable myComponentsTable;
   private JTextPane myComponentDescription;
@@ -54,8 +57,9 @@ public class SdkComponentsStep extends FirstRunWizardStep {
   private JSplitPane mySplitPane;
   private Set<Node> myUncheckedComponents = Sets.newHashSet();
 
-  public SdkComponentsStep() {
+  public SdkComponentsStep(ScopedStateStore.Key<Boolean> keyShouldDownload) {
     super("SDK Settings");
+    myKeyShouldDownload = keyShouldDownload;
     myComponentDescription.setEditable(false);
     myComponentDescription.setContentType("text/html");
     myComponentDescription.setText("<html><h1>SDK Component</h1>" + "<body>A <em>really</em> important component.</body></html>");
@@ -164,6 +168,11 @@ public class SdkComponentsStep extends FirstRunWizardStep {
       }
     }
     return true;
+  }
+
+  @Override
+  public boolean isStepVisible() {
+    return Objects.equal(Boolean.TRUE, myState.get(myKeyShouldDownload));
   }
 
   private static final class Node {
