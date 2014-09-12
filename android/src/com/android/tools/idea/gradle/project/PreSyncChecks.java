@@ -76,37 +76,10 @@ final class PreSyncChecks {
       }
     });
 
-    createGradleWrapperIfMissing(project);
-    attemptToUpdateGradleVersionIfApplicable(project, filesToProcess);
+    ensureCorrectGradleSettings(project, filesToProcess);
   }
 
-  private static void createGradleWrapperIfMissing(@NotNull Project project) {
-    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
-
-    DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
-    if (distributionType == DistributionType.DEFAULT_WRAPPED) {
-      File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-      if (wrapperPropertiesFile == null) {
-        File projectDirPath = new File(project.getBasePath());
-
-        // attempt to delete the whole gradle wrapper folder.
-        File gradleDirPath = new File(projectDirPath, SdkConstants.FD_GRADLE);
-        if (!FileUtil.delete(gradleDirPath)) {
-          // deletion failed. Let sync continue.
-          return;
-        }
-
-        try {
-          GradleUtil.createGradleWrapper(projectDirPath, null /* use latest supported version of Gradle */);
-        }
-        catch (IOException e) {
-          LOG.info("Failed to create Gradle wrapper for project '" + project.getName() + "'", e);
-        }
-      }
-    }
-  }
-
-  private static void attemptToUpdateGradleVersionIfApplicable(@NotNull Project project, @NotNull List<File> gradleFiles) {
+  private static void ensureCorrectGradleSettings(@NotNull Project project, @NotNull List<File> gradleFiles) {
     String originalPluginVersion = null;
     for (File fileToCheck : gradleFiles) {
       if (SdkConstants.FN_BUILD_GRADLE.equals(fileToCheck.getName())) {
@@ -126,7 +99,8 @@ final class PreSyncChecks {
       }
     }
     if (StringUtil.isEmpty(originalPluginVersion)) {
-      // Could not obtain plug-in version. Continue with sync.
+      // Could not obtain plug-in version. Continue.
+      ensureGradleDistributionIsSet(project);
       return;
     }
     String pluginVersion = originalPluginVersion.replace('+', '0');
@@ -139,6 +113,7 @@ final class PreSyncChecks {
     }
     if (pluginRevision == null || (pluginRevision.getMajor() == 0 && pluginRevision.getMinor() <= 12)) {
       // Unable to parse the plug-in version, or the plug-in is version 0.12 or older. Continue with sync.
+      ensureGradleDistributionIsSet(project);
       return;
     }
 
@@ -154,6 +129,60 @@ final class PreSyncChecks {
     }
     else if (distributionType == DistributionType.LOCAL) {
       attemptToUseSupportedLocalGradle(originalPluginVersion, gradleSettings, project);
+    }
+  }
+
+  private static void ensureGradleDistributionIsSet(@NotNull Project project) {
+    GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
+    if (gradleSettings == null) {
+      // Unlikely to happen. When we get to this point we already created GradleProjectSettings.
+      return;
+    }
+
+    File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
+
+    if (wrapperPropertiesFile == null) {
+      DistributionType distributionType = gradleSettings.getDistributionType();
+      boolean createWrapper = false;
+      if (distributionType == null) {
+        String msg = "Gradle settings for this project are not configured yet.\n\n" +
+                     "Would you like the project to use the Gradle wrapper?\n" +
+                     "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
+                     "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
+        int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
+        createWrapper = answer == Messages.OK;
+
+      } else if (distributionType == DistributionType.DEFAULT_WRAPPED) {
+        createWrapper = true;
+      }
+
+      if (createWrapper) {
+        File projectDirPath = new File(project.getBasePath());
+
+        // attempt to delete the whole gradle wrapper folder.
+        File gradleDirPath = new File(projectDirPath, SdkConstants.FD_GRADLE);
+        if (!FileUtil.delete(gradleDirPath)) {
+          // deletion failed. Let sync continue.
+          return;
+        }
+
+        try {
+          GradleUtil.createGradleWrapper(projectDirPath, null /* use latest supported version of Gradle */);
+          if (distributionType == null) {
+            gradleSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
+          }
+        }
+        catch (IOException e) {
+          LOG.info("Failed to create Gradle wrapper for project '" + project.getName() + "'", e);
+        }
+      }
+      else if (distributionType == null) {
+        ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog();
+        if (dialog.showAndGet()) {
+          String enteredGradleHomePath = dialog.getEnteredGradleHomePath();
+          gradleSettings.setGradleHome(enteredGradleHomePath);
+        }
+      }
     }
   }
 
@@ -224,9 +253,9 @@ final class PreSyncChecks {
 
       String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle " + newGradleVersion + " or newer.\n" +
                    "A local Gradle distribution was not found, or was not properly set in the IDE.\n\n" +
-                   "Would you like to migrate your project to use the Gradle wrapper instead?.\n" +
+                   "Would you like your project to use the Gradle wrapper instead?\n" +
                    "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
-                   "Click 'OK' to migrate to the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
+                   "Click 'OK' to use the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
       int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
       if (answer == Messages.OK) {
         try {
