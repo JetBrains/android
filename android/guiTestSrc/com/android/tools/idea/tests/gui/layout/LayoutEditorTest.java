@@ -55,7 +55,7 @@ public class LayoutEditorTest extends GuiTestCase {
     editor.selectEditorTab(EditorFixture.Tab.DESIGN);
     LayoutEditorFixture layout = editor.getLayoutEditor(false);
     assertNotNull(layout);
-    Object firstRender = layout.waitForRenderToFinish();
+    layout.waitForNextRenderToFinish();
 
     // Initially the root layout is selected
     layout.requireSelectionCount(1);
@@ -75,7 +75,7 @@ public class LayoutEditorTest extends GuiTestCase {
     property.requireDisplayName("text");
     property.requireValue("@string/hello_world");
     property.enterValue("New Label");
-    layout.waitForNextRenderToFinish(firstRender);
+    layout.waitForNextRenderToFinish();
     property.requireValue("New Label");
 
     LayoutPaletteFixture palette = layout.getPaletteFixture();
