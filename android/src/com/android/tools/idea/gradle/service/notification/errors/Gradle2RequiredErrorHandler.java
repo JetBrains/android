@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
+import com.android.tools.idea.gradle.service.notification.hyperlink.CreateGradleWrapperHyperlink;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
@@ -30,8 +31,9 @@ public class Gradle2RequiredErrorHandler extends AbstractSyncErrorHandler {
                              @NotNull Project project) {
     String msg = error.getMessage();
     if (msg.endsWith("org/codehaus/groovy/runtime/typehandling/ShortTypeHandling")) {
-      String newMsg = "Gradle 2.1 is required.";
-      updateNotification(notification, project, newMsg);
+      String gradleVersion = "2.1";
+      String newMsg = String.format("Gradle %1$s is required.", gradleVersion);
+      updateNotification(notification, project, newMsg, new CreateGradleWrapperHyperlink(gradleVersion));
       return true;
     }
     return false;
