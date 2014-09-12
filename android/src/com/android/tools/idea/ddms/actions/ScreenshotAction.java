@@ -62,7 +62,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
           ImageIO.write(getScreenshot(), SdkConstants.EXT_PNG, backingFile);
 
           ScreenshotViewer viewer = new ScreenshotViewer(project, getScreenshot(), backingFile, device,
-                                                         device.getPropertyCacheOrSync(IDevice.PROP_DEVICE_MODEL));
+                                                         device.getProperty(IDevice.PROP_DEVICE_MODEL));
           if (viewer.showAndGet()) {
             File screenshot = viewer.getScreenshot();
             VirtualFile vf = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(screenshot);
