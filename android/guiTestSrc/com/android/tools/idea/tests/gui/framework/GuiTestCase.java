@@ -187,7 +187,6 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true);
-
     findWelcomeFrame().clickImportProjectButton();
 
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
@@ -292,11 +291,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected File setUpProject(@NotNull String projectDirName, boolean forOpen, boolean updateGradleVersions) throws IOException {
-    File masterProjectPath = getMasterProjectDirPath(projectDirName);
-
-    File projectPath = getTestProjectDirPath(projectDirName);
-    delete(projectPath);
-    copyDir(masterProjectPath, projectPath);
+    File projectPath = copyProjectBeforeOpening(projectDirName);
 
     File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);
     if (gradlePropertiesFilePath.isFile()) {
@@ -345,6 +340,16 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
+  protected File copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
+    File masterProjectPath = getMasterProjectDirPath(projectDirName);
+
+    File projectPath = getTestProjectDirPath(projectDirName);
+    delete(projectPath);
+    copyDir(masterProjectPath, projectPath);
+    return projectPath;
+  }
+
+  @NotNull
   private static File getMasterProjectDirPath(@NotNull String projectDirName) {
     return new File(getTestProjectsRootDirPath(), projectDirName);
   }
@@ -354,7 +359,7 @@ public abstract class GuiTestCase {
     return new File(getProjectCreationLocationPath(), projectDirName);
   }
 
-  private static void cleanUpProjectForImport(@NotNull File projectPath) {
+  protected void cleanUpProjectForImport(@NotNull File projectPath) {
     File dotIdeaFolderPath = new File(projectPath, FN_DOT_IDEA);
     if (dotIdeaFolderPath.isDirectory()) {
       File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
