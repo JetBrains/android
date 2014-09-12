@@ -167,14 +167,9 @@ public abstract class RenderTestBase extends AndroidTestCase {
     }
   }
 
-  protected void assertImageSimilar(String imageName, BufferedImage goldenImage,
-                                  BufferedImage image, float maxPercentDifferent) throws IOException {
-    assertTrue("Widths differ too much for " + imageName, Math.abs(goldenImage.getWidth()
-                                                                   - image.getWidth()) < 2);
-    assertTrue("Widths differ too much for " + imageName, Math.abs(goldenImage.getHeight()
-                                                                   - image.getHeight()) < 2);
-
-    assertEquals(TYPE_INT_ARGB, image.getType());
+  public static void assertImageSimilar(String imageName, BufferedImage goldenImage,
+                                  BufferedImage image, double maxPercentDifferent) throws IOException {
+    assertEquals("Only TYPE_INT_ARGB image types are supported",  TYPE_INT_ARGB, image.getType());
 
     if (goldenImage.getType() != TYPE_INT_ARGB) {
       @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
@@ -241,7 +236,19 @@ public abstract class RenderTestBase extends AndroidTestCase {
     long total = imageHeight * imageWidth * 3L * 256L;
     float percentDifference = (float) (delta * 100 / (double) total);
 
+    String error = null;
     if (percentDifference > maxPercentDifferent) {
+      error = String.format("Images differ (by %.1f%%)", percentDifference);
+    } else if (Math.abs(goldenImage.getWidth() - image.getWidth()) >= 2) {
+      error = "Widths differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
+              "vs" + image.getWidth() + "x" + image.getHeight();
+    } else if (Math.abs(goldenImage.getHeight() - image.getHeight()) >= 2) {
+      error = "Heights differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
+              "vs" + image.getWidth() + "x" + image.getHeight();
+    }
+
+    assertEquals(TYPE_INT_ARGB, image.getType());
+    if (error != null) {
       // Expected on the left
       // Golden on the right
       g.drawImage(goldenImage, 0, 0, null);
@@ -260,16 +267,16 @@ public abstract class RenderTestBase extends AndroidTestCase {
         assertTrue(deleted);
       }
       ImageIO.write(deltaImage, "PNG", output);
-      String message = String.format("Images differ (by %.1f%%) - see details in %s",
-                                     percentDifference, output);
-      System.out.println(message);
-      fail(message);
+      error += " - see details in " + output.getPath();
+      System.out.println(error);
+      fail(error);
     }
 
     g.dispose();
   }
 
-  protected File getTempDir() {
+  @NotNull
+  public static File getTempDir() {
     if (System.getProperty("os.name").equals("Mac OS X")) {
       return new File("/tmp"); //$NON-NLS-1$
     }

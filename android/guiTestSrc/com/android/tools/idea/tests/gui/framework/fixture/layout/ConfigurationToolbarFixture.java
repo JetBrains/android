@@ -56,6 +56,13 @@ public class ConfigurationToolbarFixture {
     return this;
   }
 
+
+  /** Returns true if the given device is currently selected */
+  @SuppressWarnings("ConstantConditions")
+  public boolean isDevice(String id) {
+    return id.equals(getConfiguration().getDevice().getId());
+  }
+
   /**
    * Requires the orientation name to be the given name (typically Portrait or Landscape)
    */

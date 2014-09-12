@@ -60,6 +60,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.finder.WindowFinder.findFrame;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.swing.timing.Timeout.timeout;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public final class GuiTests {
@@ -69,6 +70,13 @@ public final class GuiTests {
   public static final String GUI_TESTS_RUNNING_IN_SUITE_PROPERTY = "gui.tests.running.in.suite";
   public static final String GRADLE_2_1_HOME_PROPERTY = "gradle.2.1.home.path";
   public static final String GRADLE_1_12_HOME_PROPERTY = "gradle.1.12.home.path";
+
+  /** Environment variable set by users to point to sources */
+  public static final String AOSP_SOURCE_PATH = "AOSP_SOURCE_PATH";
+  /** Older environment variable pointing to the sdk dir inside AOSP; checked for compatibility */
+  public static final String ADT_SDK_SOURCE_PATH = "ADT_SDK_SOURCE_PATH";
+  /** AOSP-relative path to directory containing GUI test data */
+  public static final String RELATIVE_DATA_PATH = "tools/adt/idea/android/testData/guiTests".replace('/', File.separatorChar);
 
   // Called by IdeTestApplication via reflection.
   @SuppressWarnings("UnusedDeclaration")
@@ -252,6 +260,35 @@ public final class GuiTests {
     Robot robot = container.robot;
     JButton button = robot.finder().find(container.target, JButtonMatcher.withText(text).andShowing());
     robot.click(button);
+  }
+
+  /** Returns a full path to the GUI data directory in the user's AOSP source tree, if known, or null */
+  @Nullable
+  public static File getTestDataDir() {
+    File aosp = getAospSourceDir();
+    return aosp != null ? new File(aosp, RELATIVE_DATA_PATH) : null;
+  }
+
+  /**
+   * Returns a full path to the user's AOSP source tree (e.g. the directory expected to
+   * contain tools/adt/idea etc including the GUI tests
+   */
+  @Nullable
+  public static File getAospSourceDir() {
+    String aosp = System.getenv(AOSP_SOURCE_PATH);
+    if (aosp == null) {
+      String sdk = System.getenv(ADT_SDK_SOURCE_PATH);
+      if (sdk != null) {
+        aosp = sdk + File.separator + "..";
+      }
+    }
+    if (aosp != null) {
+      File dir = new File(aosp);
+      assertTrue(dir.getPath() + " (pointed to by " + AOSP_SOURCE_PATH + " or " + ADT_SDK_SOURCE_PATH + " does not exist", dir.exists());
+      return dir;
+    }
+
+    return null;
   }
 
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
