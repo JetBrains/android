@@ -331,6 +331,13 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
 
     /**
+     * Attach a change listener to the underlying component.
+     */
+    public void addChangeListener(@NotNull ChangeListener listener, @NotNull C component) {
+
+    }
+
+    /**
      * Attach an item listener to the underlying component.
      */
     public void addItemListener(@NotNull ItemListener listener, @NotNull C component) {
@@ -368,6 +375,7 @@ public class ScopedDataBinder implements ScopedStateStore.ScopedStoreListener, F
     }
     component.addFocusListener(this);
     binding.addActionListener(this, component);
+    binding.addChangeListener(this, component);
     binding.addItemListener(this, component);
     Document document = binding.getDocument(component);
     if (document != null) {

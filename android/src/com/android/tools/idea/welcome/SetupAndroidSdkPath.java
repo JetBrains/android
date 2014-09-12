@@ -28,6 +28,8 @@ public class SetupAndroidSdkPath extends DynamicWizardPath {
     ScopedStateStore.createKey("should.download", ScopedStateStore.Scope.PATH, Boolean.class);
   private static final ScopedStateStore.Key<String> KEY_EXISTING_SDK_LOCATION =
     ScopedStateStore.createKey("existing.sdk.location", ScopedStateStore.Scope.PATH, String.class);
+  private static final ScopedStateStore.Key<String> KEY_DOWNLOAD_SDK_LOCATION =
+    ScopedStateStore.createKey("download.sdk.location", ScopedStateStore.Scope.PATH, String.class);
 
   private final ScopedStateStore.Key<Boolean> myIsCustomInstall;
   public SetupAndroidSdkPath(ScopedStateStore.Key<Boolean> isCustomInstall) {
@@ -39,7 +41,7 @@ public class SetupAndroidSdkPath extends DynamicWizardPath {
     myState.put(KEY_SHOULD_DOWNLOAD, true);
     addStep(new SdkLocationStep(KEY_SHOULD_DOWNLOAD, KEY_EXISTING_SDK_LOCATION));
     addStep(new VerifySdkStep(KEY_SHOULD_DOWNLOAD));
-    addStep(new SdkComponentsStep(KEY_SHOULD_DOWNLOAD));
+    addStep(new SdkComponentsStep(KEY_SHOULD_DOWNLOAD, KEY_DOWNLOAD_SDK_LOCATION));
   }
 
   @Override

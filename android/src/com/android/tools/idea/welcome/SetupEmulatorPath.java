@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.google.common.base.Objects;
@@ -24,6 +25,13 @@ import org.jetbrains.annotations.NotNull;
  * Guides the user through setting up an emulator on first Android Studio run.
  */
 public class SetupEmulatorPath extends DynamicWizardPath {
+  // In UI we cannot use longs, so we need to pick a unit other then byte
+  public static final Storage.Unit UI_UNITS = Storage.Unit.MiB;
+  public static final String HAXM_URL = "http://www.intel.com/software/android/";
+
+  private static final ScopedStateStore.Key<Integer> KEY_EMULATOR_MEMORY =
+    ScopedStateStore.createKey("emulator.memory", ScopedStateStore.Scope.PATH, Integer.class);
+
   private ScopedStateStore.Key<Boolean> myIsCustomInstall;
 
   public SetupEmulatorPath(ScopedStateStore.Key<Boolean> isCustomInstall) {
@@ -32,7 +40,7 @@ public class SetupEmulatorPath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    addStep(new MacEmulatorSettingsStep());
+    addStep(new MacEmulatorSettingsStep(KEY_EMULATOR_MEMORY));
     addStep(new LinuxEmulatorSettingsStep());
   }
 
