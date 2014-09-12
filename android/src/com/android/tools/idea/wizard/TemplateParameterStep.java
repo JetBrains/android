@@ -41,7 +41,10 @@ import java.util.Set;
 /**
  * TemplateParameterStep is a step in new project or add module wizards that pulls eligible parameters from the template being run
  * and puts up a UI to let the user edit those parameters.
+ *
+ * Deprecated. Use {@link TemplateParameterStep2} instead.
  */
+@Deprecated
 public class TemplateParameterStep extends TemplateWizardStep {
   private static final Logger LOG = Logger.getInstance(TemplateParameterStep.class);
 

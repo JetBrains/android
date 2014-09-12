@@ -55,7 +55,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * NewTemplateObjectWizard is a base class for templates that instantiate new Android objects based on templates. These aren't for
  * complex objects like projects or modules that get customized wizards, but objects simple enough that we can show a generic template
  * parameter page and run the template against the source tree.
+ *
+ * Deprecated. Extend from {@link DynamicWizard} instead.
  */
+@Deprecated
 public class NewTemplateObjectWizard extends TemplateWizard implements TemplateParameterStep.UpdateListener,
                                                                        ChooseTemplateStep.TemplateChangeListener,
                                                                        ChooseSourceSetStep.SourceProviderSelectedListener {
