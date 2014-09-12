@@ -22,7 +22,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.ComponentFixture;
@@ -34,6 +33,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
@@ -109,9 +109,8 @@ public class FileChooserDialogFixture extends ComponentFixture<JDialog> {
   }
 
   @NotNull
-  public FileChooserDialogFixture clickOK() {
-    JButton button = robot.finder().find(target, JButtonMatcher.withText("OK").andShowing());
-    robot.click(button);
+  public FileChooserDialogFixture clickOk() {
+    findAndClickOkButton(this);
     return this;
   }
 }

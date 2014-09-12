@@ -35,6 +35,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistribu
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static com.intellij.openapi.util.io.FileUtil.delete;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
@@ -113,9 +114,7 @@ public class GradleSyncTest extends GuiTestCase {
   public void testAutomaticCreationOfMissingWrapper() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
-    File wrapperDirPath = new File(projectFrame.getProjectPath(), FD_GRADLE);
-    FileUtil.delete(wrapperDirPath);
-    assertThat(wrapperDirPath).doesNotExist();
+    File wrapperDirPath = projectFrame.deleteGradleWrapper();
 
     projectFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 

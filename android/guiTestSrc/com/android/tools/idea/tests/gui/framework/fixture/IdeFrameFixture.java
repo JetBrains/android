@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.openapi.Disposable;
@@ -53,6 +54,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,12 +63,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.android.SdkConstants.FD_GRADLE;
 import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static junit.framework.Assert.assertNotNull;
@@ -75,6 +79,7 @@ import static org.fest.reflect.core.Reflection.staticField;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.fail;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
@@ -472,6 +477,29 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     JDialog preferencesDialog = preferencesDialogRef.get();
     assertNotNull(preferencesDialog);
     return new IdeSettingsDialogFixture(robot, preferencesDialog);
+  }
+
+  @NotNull
+  public File deleteGradleWrapper() {
+    File wrapperDirPath = new File(getProjectPath(), FD_GRADLE);
+    delete(wrapperDirPath);
+    assertThat(wrapperDirPath).as("Gradle wrapper").doesNotExist();
+    return wrapperDirPath;
+  }
+
+  @NotNull
+  public IdeFrameFixture useLocalGradleDistribution(@NotNull String gradleHome) {
+    GradleProjectSettings settings = getGradleSettings();
+    settings.setDistributionType(LOCAL);
+    settings.setGradleHome(gradleHome);
+    return this;
+  }
+
+  @NotNull
+  public GradleProjectSettings getGradleSettings() {
+    GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(getProject());
+    assertNotNull(settings);
+    return settings;
   }
 
   private static class NoOpDisposable implements Disposable {
