@@ -45,11 +45,11 @@ public class DeviceRendererTest extends TestCase {
       EasyMock.expect(d.getAvdName()).andStubReturn(avdName);
     }
     else {
-      EasyMock.expect(d.getPropertyCacheOrSync(PROP_DEVICE_MANUFACTURER)).andStubReturn(manufacturer);
-      EasyMock.expect(d.getPropertyCacheOrSync(PROP_DEVICE_MODEL)).andStubReturn(model);
+      EasyMock.expect(d.getProperty(PROP_DEVICE_MANUFACTURER)).andStubReturn(manufacturer);
+      EasyMock.expect(d.getProperty(PROP_DEVICE_MODEL)).andStubReturn(model);
     }
-    EasyMock.expect(d.getPropertyCacheOrSync(PROP_BUILD_VERSION)).andStubReturn(buildVersion);
-    EasyMock.expect(d.getPropertyCacheOrSync(PROP_BUILD_API_LEVEL)).andStubReturn(apiLevel);
+    EasyMock.expect(d.getProperty(PROP_BUILD_VERSION)).andStubReturn(buildVersion);
+    EasyMock.expect(d.getProperty(PROP_BUILD_API_LEVEL)).andStubReturn(apiLevel);
     EasyMock.expect(d.getSerialNumber()).andStubReturn(serial);
     EasyMock.expect(d.getState()).andStubReturn(state);
     EasyMock.replay(d);

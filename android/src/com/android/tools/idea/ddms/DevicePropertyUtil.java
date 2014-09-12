@@ -38,35 +38,25 @@ public class DevicePropertyUtil {
            allCaps : StringUtil.capitalizeWords(manufacturer, true);
   }
 
-  @Nullable
-  private static String getProperty(IDevice d, String prop) {
-    try {
-      return d.getPropertyCacheOrSync(prop);
-    }
-    catch (Exception e) {
-      return null;
-    }
-  }
-
   public static String getManufacturer(IDevice d, String unknown) {
-    String m = getProperty(d, IDevice.PROP_DEVICE_MANUFACTURER);
+    String m = d.getProperty(IDevice.PROP_DEVICE_MANUFACTURER);
     return m != null ? fixManufacturerName(m) : unknown;
   }
 
   public static String getModel(IDevice d, String unknown) {
-    String m = getProperty(d, IDevice.PROP_DEVICE_MODEL);
+    String m = d.getProperty(IDevice.PROP_DEVICE_MODEL);
     return m != null ? StringUtil.capitalizeWords(m, true) : unknown;
   }
 
   public static String getBuild(IDevice d) {
     StringBuilder sb = new StringBuilder(20);
-    String v = getProperty(d, IDevice.PROP_BUILD_VERSION);
+    String v = d.getProperty(IDevice.PROP_BUILD_VERSION);
     if (v != null) {
       sb.append("Android ");
       sb.append(v);
     }
 
-    v = getProperty(d, IDevice.PROP_BUILD_API_LEVEL);
+    v = d.getProperty(IDevice.PROP_BUILD_API_LEVEL);
     if (v != null) {
       sb.append(String.format(" (API %1$s)", v));
     }
@@ -81,12 +71,12 @@ public class DevicePropertyUtil {
   @NotNull
   public static AndroidVersion getDeviceVersion(@NotNull IDevice device) {
     try {
-      String apiLevel = device.getPropertyCacheOrSync(IDevice.PROP_BUILD_API_LEVEL);
+      String apiLevel = device.getProperty(IDevice.PROP_BUILD_API_LEVEL);
       if (apiLevel == null) {
         return AndroidVersion.DEFAULT;
       }
 
-      return new AndroidVersion(Integer.parseInt(apiLevel), device.getPropertyCacheOrSync(IDevice.PROP_BUILD_CODENAME));
+      return new AndroidVersion(Integer.parseInt(apiLevel), device.getProperty(IDevice.PROP_BUILD_CODENAME));
     }
     catch (Exception e) {
       return AndroidVersion.DEFAULT;
