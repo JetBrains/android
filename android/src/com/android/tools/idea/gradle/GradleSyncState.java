@@ -29,6 +29,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -37,6 +38,7 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.AppUIUtil;
@@ -207,14 +209,27 @@ public class GradleSyncState {
     if (mySyncInProgress) {
       return false;
     }
+
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
     File settingsFilePath = new File(myProject.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
-    if (settingsFilePath.exists() && settingsFilePath.lastModified() > referenceTimeInMillis) {
-      return true;
+    if (settingsFilePath.exists()) {
+      VirtualFile settingsFile = LocalFileSystem.getInstance().findFileByIoFile(settingsFilePath);
+      if (fileDocumentManager.isFileModified(settingsFile)) {
+        return true;
+      }
+      if (settingsFilePath.lastModified() > referenceTimeInMillis) {
+        return true;
+      }
     }
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
       if (buildFile != null) {
+        if (fileDocumentManager.isFileModified(buildFile)) {
+          return true;
+        }
+
         File buildFilePath = VfsUtilCore.virtualToIoFile(buildFile);
         if (buildFilePath.lastModified() > referenceTimeInMillis) {
           return true;

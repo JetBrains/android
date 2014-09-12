@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.google.common.collect.Lists;
 import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,11 +42,16 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
+import org.fest.reflect.core.Reflection;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.ComponentFixture;
@@ -61,6 +67,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FD_GRADLE;
@@ -443,6 +450,76 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   @NotNull
   public MessagesToolWindowFixture getMessagesToolWindow() {
     return new MessagesToolWindowFixture(getProject(), robot);
+  }
+
+  /** Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is null */
+  public void requireEditorNotification(@Nullable String message) {
+    findPanel(message); // fails test if not found (or if null and notifications were found)
+  }
+
+  /** Locates an editor notification with the given main message (unless the message is null, in which case we assert
+   * that there are no visible editor notifications. Will fail if the given notification is not found. */
+  @Nullable
+  private EditorNotificationPanel findPanel(@Nullable String message) {
+    Collection<EditorNotificationPanel> panels = robot.finder().findAll(target, new GenericTypeMatcher<EditorNotificationPanel>(
+      EditorNotificationPanel.class, true) {
+      @Override
+      protected boolean isMatching(EditorNotificationPanel component) {
+        return true;
+      }
+    });
+
+    if (message == null) {
+      if (!panels.isEmpty()) {
+        List<String> labels = Lists.newArrayList();
+        for (EditorNotificationPanel panel : panels) {
+          labels.add(getEditorNotificationLabel(panel));
+        }
+        fail("Found editor notifications when none were expected: " + labels);
+      }
+    } else {
+      List<String> labels = Lists.newArrayList();
+      for (EditorNotificationPanel panel : panels) {
+        String label = getEditorNotificationLabel(panel);
+        labels.add(label);
+        if (label.contains(message)) {
+          return panel;
+        }
+      }
+
+      fail("Did not find message " + message + "; available notifications are " + labels);
+    }
+
+    return null;
+  }
+
+  /** Looks up the main label for a given editor notification panel */
+  private String getEditorNotificationLabel(@NotNull EditorNotificationPanel panel) {
+    final JLabel label = robot.finder().find(panel, JLabelMatcher.any());
+    return GuiActionRunner.execute(new GuiQuery<String>() {
+      @Override
+      @Nullable
+      protected String executeInEDT() throws Throwable {
+        return label.getText();
+      }
+    });
+  }
+
+  /** Clicks the given link in the editor notification with the given message */
+  public void clickEditorNotification(@NotNull String message, @NotNull final String linkText) {
+    final EditorNotificationPanel panel = findPanel(message);
+    assertNotNull(panel);
+
+    HyperlinkLabel label = robot.finder().find(panel, new GenericTypeMatcher<HyperlinkLabel>(
+      HyperlinkLabel.class, true) {
+      @Override
+      protected boolean isMatching(HyperlinkLabel component) {
+        String text = Reflection.method("getText").withReturnType(String.class).in(component).invoke();
+        return text.contains(linkText);
+      }
+    });
+    ComponentDriver driver = new ComponentDriver(robot);
+    driver.click(label);
   }
 
   @NotNull

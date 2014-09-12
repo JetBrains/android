@@ -616,6 +616,16 @@ public class EditorFixture {
   }
 
   /**
+   * Like {@link #open(String, com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab)} but
+   * always uses the default tab
+   *
+   * @param file the project-relative path (with /, not File.separator, as the path separator)
+   */
+  public EditorFixture open(@NotNull final String relativePath) {
+    return open(relativePath, Tab.DEFAULT);
+  }
+
+  /**
    * Invokes the given action. This will look up the corresponding action's key bindings, if any, and invoke
    * it. It will fail if the action is not enabled, or if it is interactive.
    *
