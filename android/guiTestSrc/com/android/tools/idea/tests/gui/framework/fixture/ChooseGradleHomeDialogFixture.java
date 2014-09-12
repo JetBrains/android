@@ -23,7 +23,6 @@ import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.fixture.DialogFixture;
@@ -36,8 +35,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -88,24 +86,19 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
     });
 
     fileChooserDialog.select(gradleHomePath);
-    fileChooserDialog.clickOK();
+    fileChooserDialog.clickOk();
 
     return this;
   }
 
   @NotNull
-  public ChooseGradleHomeDialogFixture clickOK() {
-    clickButtonWithText("OK");
+  public ChooseGradleHomeDialogFixture clickOk() {
+    findAndClickOkButton(this);
     return this;
   }
 
   public void clickCancel() {
-    clickButtonWithText("Cancel");
-  }
-
-  private void clickButtonWithText(@NotNull String text) {
-    JButton button = robot.finder().find(target, JButtonMatcher.withText(text).andShowing());
-    robot.click(button);
+    findAndClickCancelButton(this);
   }
 
   @NotNull
@@ -148,7 +141,7 @@ public class ChooseGradleHomeDialogFixture extends ComponentFixture<Dialog> {
   }
 
   public void requireNotShowing() {
-    assertFalse(isShowing(target));
+    assertFalse("Dialog '" + target.getTitle() + "' is showing", isShowing(target));
   }
 
   public void close() {
