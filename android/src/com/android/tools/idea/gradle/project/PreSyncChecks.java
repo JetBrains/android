@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
@@ -30,12 +31,15 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.util.Processor;
 import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyLexer;
+import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,11 +64,28 @@ final class PreSyncChecks {
   private PreSyncChecks() {
   }
 
-  static void check(@NotNull Project project) {
+  static boolean canSync(@NotNull Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
-      return;
+      // Unlikely to happen. Even if it does, let sync continue.
+      return true;
     }
+
+    try {
+      if (hasEmptySettingsFile(project)) {
+        String msg = "Unable to sync project with Gradle. The file 'settings.gradle' does not specify any modules (sub-projects.)";
+        Messages.showErrorDialog(project, msg, GRADLE_SYNC_MSG_TITLE);
+        return false;
+      }
+    }
+    catch (IOException e) {
+      // Failed to read settings.gradle, ask user if she would like to continue.
+      String msg = "Failed to read contents of settings.gradle file: " + e.getMessage() + ".\n" +
+                   "Would you like to continue? (Project sync may never stop if the file is empty.)";
+      int answer = Messages.showYesNoDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getErrorIcon());
+      return answer == Messages.YES;
+    }
+
     final List<File> filesToProcess = Lists.newArrayList();
     VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
       @Override
@@ -77,6 +98,32 @@ final class PreSyncChecks {
     });
 
     ensureCorrectGradleSettings(project, filesToProcess);
+    return true;
+  }
+
+  @VisibleForTesting
+  static boolean hasEmptySettingsFile(@NotNull Project project) throws IOException {
+    File settingsFile = new File(project.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
+    if (!settingsFile.isFile()) {
+      return false;
+    }
+    String text = FileUtil.loadFile(settingsFile);
+    if (StringUtil.isEmptyOrSpaces(text)) {
+      // empty file (maybe with spaces only)
+      return true;
+    }
+
+    GroovyLexer lexer = new GroovyLexer();
+    lexer.start(text);
+    while (lexer.getTokenType() != null) {
+      IElementType type = lexer.getTokenType();
+      if (type == GroovyTokenTypes.mIDENT && "include".equals(lexer.getTokenText())) {
+        // most likely this is a module (e.g. include ":app")
+        return false;
+      }
+      lexer.advance();
+    }
+    return true;
   }
 
   private static void ensureCorrectGradleSettings(@NotNull Project project, @NotNull List<File> gradleFiles) {
