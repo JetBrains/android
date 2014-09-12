@@ -33,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Processor;
 import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
@@ -50,9 +51,11 @@ final class PreSyncChecks {
 
   private static final Logger LOG = Logger.getInstance(PreSyncChecks.class);
 
-  private static final String MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13 = "2.0";
+  private static final String MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13 = "2.1";
   private static final FullRevision MINIMUM_SUPPORTED_GRADLE_REVISION_FOR_PLUGIN_0_13 =
     FullRevision.parseRevision(MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13);
+
+  private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
 
   private PreSyncChecks() {
   }
@@ -144,12 +147,13 @@ final class PreSyncChecks {
 
     DistributionType distributionType = gradleSettings != null ? gradleSettings.getDistributionType() : null;
 
-    boolean usingWrapper = distributionType == DistributionType.DEFAULT_WRAPPED && wrapperPropertiesFile != null;
+    boolean usingWrapper =
+      (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
     if (usingWrapper) {
       attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, originalPluginVersion, project);
     }
     else if (distributionType == DistributionType.LOCAL) {
-      attemptToUseSupportedLocalGradle(gradleSettings);
+      attemptToUseSupportedLocalGradle(originalPluginVersion, gradleSettings, project);
     }
   }
 
@@ -181,7 +185,7 @@ final class PreSyncChecks {
       String newGradleVersion = MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13;
       String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle " + newGradleVersion + " or newer.\n\n" +
                    "Click 'OK' to automatically update the Gradle version in the Gradle wrapper and continue.";
-      Messages.showMessageDialog(project, msg, "Gradle Sync", Messages.getQuestionIcon());
+      Messages.showMessageDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
       try {
         GradleUtil.updateGradleDistributionUrl(newGradleVersion, wrapperPropertiesFile);
       }
@@ -191,22 +195,51 @@ final class PreSyncChecks {
     }
   }
 
-  private static void attemptToUseSupportedLocalGradle(@NotNull GradleProjectSettings gradleSettings) {
+  private static void attemptToUseSupportedLocalGradle(@NotNull String pluginVersion,
+                                                       @NotNull GradleProjectSettings gradleSettings,
+                                                       @NotNull Project project) {
     String gradleHome = gradleSettings.getGradleHome();
+
+    FullRevision gradleVersion = null;
+    boolean askToSwitchToWrapper = false;
     if (StringUtil.isEmpty(gradleHome)) {
       // Unable to obtain the path of the Gradle local installation. Continue with sync.
-      return;
+      askToSwitchToWrapper = true;
     }
-    File gradleHomePath = new File(gradleHome);
-    FullRevision gradleVersion = GradleUtil.getGradleVersion(gradleHomePath);
+    else {
+      File gradleHomePath = new File(gradleHome);
+      gradleVersion = GradleUtil.getGradleVersion(gradleHomePath);
 
-    if (gradleVersion == null) {
-      // Unable to obtain the path of the Gradle local installation. Continue with sync.
-      return;
+      if (gradleVersion == null) {
+        askToSwitchToWrapper = true;
+      }
     }
 
-    if (!isSupportedGradleVersion(gradleVersion)) {
+    if (!askToSwitchToWrapper) {
+      askToSwitchToWrapper = !isSupportedGradleVersion(gradleVersion);
+    }
+
+    if (askToSwitchToWrapper) {
       String newGradleVersion = MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13;
+
+      String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle " + newGradleVersion + " or newer.\n" +
+                   "A local Gradle distribution was not found, or was not properly set in the IDE.\n\n" +
+                   "Would you like to migrate your project to use the Gradle wrapper instead?.\n" +
+                   "(The wrapper will automatically download the latest supported Gradle version).\n\n" +
+                   "Click 'OK' to migrate to the Gradle wrapper, or 'Cancel' to manually set the path of a local Gradle distribution.";
+      int answer = Messages.showOkCancelDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
+      if (answer == Messages.OK) {
+        try {
+          File projectDirPath = new File(project.getBasePath());
+          GradleUtil.createGradleWrapper(projectDirPath, newGradleVersion);
+          gradleSettings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
+        }
+        catch (IOException e) {
+          LOG.warn("Failed to update Gradle wrapper file to Gradle version " + newGradleVersion, e);
+        }
+        return;
+      }
+
       ChooseGradleHomeDialog dialog = new ChooseGradleHomeDialog(newGradleVersion);
       dialog.setTitle(String.format("Please select the location of a Gradle distribution version %1$s or newer", newGradleVersion));
       if (dialog.showAndGet()) {
@@ -216,8 +249,8 @@ final class PreSyncChecks {
     }
   }
 
-  private static boolean isSupportedGradleVersion(@NotNull FullRevision gradleVersion) {
+  private static boolean isSupportedGradleVersion(@Nullable FullRevision gradleVersion) {
     // Plug-in v0.13.+ supports Gradle 2.0+ only.
-    return gradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_REVISION_FOR_PLUGIN_0_13) >= 0;
+    return gradleVersion != null && gradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_REVISION_FOR_PLUGIN_0_13) >= 0;
   }
 }
