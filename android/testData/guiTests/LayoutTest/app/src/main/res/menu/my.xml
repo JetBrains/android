@@ -6,4 +6,9 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         app:showAsAction="never" />
+    <item android:id="@+id/toolbar"
+        android:icon="@android:drawable/ic_dialog_email"
+        android:title="E-mail"
+        android:orderInCategory="200"
+        app:showAsAction="ifRoom" />
 </menu>
