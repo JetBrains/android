@@ -298,7 +298,7 @@ public class AndroidStatisticsService implements StatisticsService {
       return "[SendStats] Invalid arguments";
     }
 
-    String url = "http://play.googleapis.com/log";
+    String url = "https://play.google.com/log";
     byte[] data = request.toByteArray();
 
     HttpURLConnection connection = HttpConfigurable.getInstance().openHttpConnection(url);
