@@ -21,6 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.intellij.ide.GeneralSettings;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -275,6 +276,15 @@ public final class GuiTests {
    */
   @Nullable
   public static File getAospSourceDir() {
+    // If running tests from the IDE, we can find the AOSP directly without user environment variable help
+    File home = new File(PathManager.getHomePath());
+    if (home.exists()) {
+      File parentFile = home.getParentFile();
+      if (parentFile != null && "tools".equals(parentFile.getName())) {
+        return parentFile.getParentFile();
+      }
+    }
+
     String aosp = System.getenv(AOSP_SOURCE_PATH);
     if (aosp == null) {
       String sdk = System.getenv(ADT_SDK_SOURCE_PATH);
