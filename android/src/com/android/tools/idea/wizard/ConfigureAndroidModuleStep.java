@@ -71,7 +71,10 @@ import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
  * parameters.
+ *
+ * Deprecated. Use {@link ConfigureAndroidModuleStepDynamic} instead.
  */
+@Deprecated
 public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final String SAMPLE_PACKAGE_PREFIX = "com.example.";
   private static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
