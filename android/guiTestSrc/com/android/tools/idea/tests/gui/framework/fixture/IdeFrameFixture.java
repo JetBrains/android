@@ -86,8 +86,10 @@ import static org.fest.reflect.core.Reflection.staticField;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
@@ -561,11 +563,30 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
-  public File deleteGradleWrapper() {
-    File wrapperDirPath = new File(getProjectPath(), FD_GRADLE);
+  public IdeFrameFixture deleteGradleWrapper() {
+    deleteWrapper(getProjectPath());
+    return this;
+  }
+
+  @NotNull
+  public IdeFrameFixture requireGradleWrapperSet() {
+    File wrapperDirPath = getGradleWrapperDirPath(getProjectPath());
+    assertThat(wrapperDirPath).as("Gradle wrapper").isDirectory();
+
+    GradleProjectSettings settings = getGradleSettings();
+    assertEquals("Gradle distribution type", DEFAULT_WRAPPED, settings.getDistributionType());
+    return this;
+  }
+
+  public static void deleteWrapper(@NotNull File projectDirPath) {
+    File wrapperDirPath = getGradleWrapperDirPath(projectDirPath);
     delete(wrapperDirPath);
     assertThat(wrapperDirPath).as("Gradle wrapper").doesNotExist();
-    return wrapperDirPath;
+  }
+
+  @NotNull
+  private static File getGradleWrapperDirPath(@NotNull File projectDirPath) {
+    return new File(projectDirPath, FD_GRADLE);
   }
 
   @NotNull
