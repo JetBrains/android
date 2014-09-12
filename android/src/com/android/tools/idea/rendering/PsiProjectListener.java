@@ -162,6 +162,8 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
       }
     } else if (isRelevantFile(psiFile)) {
       dispatchChildAdded(event, psiFile.getVirtualFile());
+    } else if (isGradleFileEdit(psiFile)) {
+      notifyGradleEdit(psiFile);
     }
   }
 
@@ -192,6 +194,8 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
     } else if (isRelevantFile(psiFile)) {
       VirtualFile file = psiFile.getVirtualFile();
       dispatchChildRemoved(event, file);
+    } else if (isGradleFileEdit(psiFile)) {
+      notifyGradleEdit(psiFile);
     }
   }
 
@@ -208,12 +212,8 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
     if (psiFile != null) {
       if (isRelevantFile(psiFile)) {
         dispatchChildReplaced(event, psiFile.getVirtualFile());
-      }
-      if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
-        VirtualFile virtualFile = psiFile.getVirtualFile();
-        if (virtualFile != null && SdkConstants.EXT_GRADLE.equals(virtualFile.getExtension())) {
-          EditorNotifications.getInstance(psiFile.getProject()).updateAllNotifications();
-        }
+      } else if (isGradleFileEdit(psiFile)) {
+        notifyGradleEdit(psiFile);
       }
     } else {
       PsiElement parent = event.getParent();
@@ -229,6 +229,21 @@ public class PsiProjectListener extends PsiTreeChangeAdapter {
     if (repository != null) {
       repository.getPsiListener().childReplaced(event);
     }
+  }
+
+  private static boolean isGradleFileEdit(@NotNull PsiFile psiFile) {
+    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
+      VirtualFile virtualFile = psiFile.getVirtualFile();
+      if (virtualFile != null && SdkConstants.EXT_GRADLE.equals(virtualFile.getExtension())) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private static void notifyGradleEdit(@NotNull PsiFile psiFile) {
+    EditorNotifications.getInstance(psiFile.getProject()).updateAllNotifications();
   }
 
   @Override
