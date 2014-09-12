@@ -22,36 +22,24 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.intellij.util.SystemProperties;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ComponentFixture;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleWrapperPropertiesFilePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_1_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
 /**
  * Tests upgrade of Android Gradle plug-in and Gradle itself.
@@ -79,7 +67,8 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
     importProjectDialog.select(projectPath).clickOk();
 
-    GradleVersionUpdateMessageDialogFixture.find(myRobot).clickOk();
+    // Expect message suggesting to update Gradle wrapper.
+    GradleSyncMessageDialogFixture.find(myRobot).clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -97,7 +86,8 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     projectFrame.useLocalGradleDistribution(getUnsupportedGradleHome())
                 .requestProjectSync();
 
-    GradleVersionUpdateMessageDialogFixture.find(myRobot).clickCancel();
+    // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
+    GradleSyncMessageDialogFixture.find(myRobot).clickCancel();
 
     String gradleHome = System.getProperty(GRADLE_2_1_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
@@ -121,12 +111,12 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
-    File wrapperDirPath = projectFrame.deleteGradleWrapper();
-
-    projectFrame.useLocalGradleDistribution(getUnsupportedGradleHome())
+    projectFrame.deleteGradleWrapper()
+                .useLocalGradleDistribution(getUnsupportedGradleHome())
                 .requestProjectSync();
 
-    GradleVersionUpdateMessageDialogFixture.find(myRobot).clickCancel();
+    // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
+    GradleSyncMessageDialogFixture.find(myRobot).clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.clickCancel();
@@ -138,13 +128,8 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
       messages.getGradleSyncContent().findMessage(ERROR, firstLineStartingWith("Gradle 2.1 is required."));
     msg.findHyperlink("Migrate to Gradle wrapper and sync project").click();
 
-    projectFrame.waitForGradleProjectSyncToFinish();
-
-    // Verify that wrapper was created and used.
-    assertThat(wrapperDirPath).isDirectory();
-
-    GradleProjectSettings settings = projectFrame.getGradleSettings();
-    assertEquals(DEFAULT_WRAPPED, settings.getDistributionType());
+    projectFrame.waitForGradleProjectSyncToFinish()
+                .requireGradleWrapperSet();
   }
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
@@ -156,20 +141,15 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
-    File wrapperDirPath = projectFrame.deleteGradleWrapper();
-
-    projectFrame.useLocalGradleDistribution("")
+    projectFrame.deleteGradleWrapper()
+                .useLocalGradleDistribution("")
                 .requestProjectSync();
 
-    GradleVersionUpdateMessageDialogFixture.find(myRobot).clickOk();
+    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+    GradleSyncMessageDialogFixture.find(myRobot).clickOk();
 
-    projectFrame.waitForGradleProjectSyncToFinish();
-
-    // Verify that wrapper was created and used.
-    assertThat(wrapperDirPath).isDirectory();
-
-    GradleProjectSettings settings = projectFrame.getGradleSettings();
-    assertEquals(DEFAULT_WRAPPED, settings.getDistributionType());
+    projectFrame.waitForGradleProjectSyncToFinish()
+                .requireGradleWrapperSet();
   }
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
@@ -181,21 +161,16 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
-    File wrapperDirPath = projectFrame.deleteGradleWrapper();
-
     File nonExistingDirPath = new File(SystemProperties.getUserHome(), UUID.randomUUID().toString());
-    projectFrame.useLocalGradleDistribution(nonExistingDirPath.getPath())
+    projectFrame.deleteGradleWrapper()
+                .useLocalGradleDistribution(nonExistingDirPath.getPath())
                 .requestProjectSync();
 
-    GradleVersionUpdateMessageDialogFixture.find(myRobot).clickOk();
+    // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
+    GradleSyncMessageDialogFixture.find(myRobot).clickOk();
 
-    projectFrame.waitForGradleProjectSyncToFinish();
-
-    // Verify that wrapper was created and used.
-    assertThat(wrapperDirPath).isDirectory();
-
-    GradleProjectSettings settings = projectFrame.getGradleSettings();
-    assertEquals(DEFAULT_WRAPPED, settings.getDistributionType());
+    projectFrame.waitForGradleProjectSyncToFinish()
+                .requireGradleWrapperSet();
   }
 
   private boolean skipTest() {
@@ -216,44 +191,5 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
       fail("Please specify the path of a local, Gradle 1.12 distribution using the system property " + quote(GRADLE_1_12_HOME_PROPERTY));
     }
     return unsupportedGradleHome;
-  }
-
-  private static class GradleVersionUpdateMessageDialogFixture extends ComponentFixture<JDialog> {
-    @NotNull
-    static GradleVersionUpdateMessageDialogFixture find(@NotNull final Robot robot) {
-      // Expect a dialog explaining that the version of Gradle in the project's wrapper needs to be updated to version 2.1, and click the
-      // "OK" button.
-      final AtomicReference<JDialog> dialogRef = new AtomicReference<JDialog>();
-      Pause.pause(new Condition("Find Gradle version update dialog") {
-        @Override
-        public boolean test() {
-          Collection<JDialog> allFound = robot.finder().findAll(new GenericTypeMatcher<JDialog>(JDialog.class) {
-            @Override
-            protected boolean isMatching(JDialog dialog) {
-              return "Gradle Sync".equals(dialog.getTitle()) && dialog.isShowing();
-            }
-          });
-          boolean found = allFound.size() == 1;
-          if (found) {
-            dialogRef.set(getFirstItem(allFound));
-          }
-          return found;
-        }
-      }, SHORT_TIMEOUT);
-      return new GradleVersionUpdateMessageDialogFixture(robot, dialogRef.get());
-    }
-
-
-    private GradleVersionUpdateMessageDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-      super(robot, target);
-    }
-
-    void clickOk() {
-      findAndClickOkButton(this);
-    }
-
-    void clickCancel() {
-      findAndClickCancelButton(this);
-    }
   }
 }
