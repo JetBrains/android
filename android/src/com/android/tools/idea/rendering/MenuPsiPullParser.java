@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.FD_RES_MENU;
+import static com.android.SdkConstants.*;
 
 /**
  * An extension of {@link LayoutPsiPullParser} specific for Menu xml files.
@@ -37,6 +37,9 @@ public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayo
       @Override
       public String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName) {
         if (ANDROID_URI.equals(namespace)) {
+          if (localName.equals(ATTR_SHOW_AS_ACTION)) {
+            return getShowAsActionValue(node);
+          }
           for (String filter : FILTERS) {
             if (filter.equals(localName)) {
               // An empty return value means, remove the attribute and null means no preference.
@@ -44,6 +47,23 @@ public class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayo
             }
           }
         }
+        return null;
+      }
+
+      @Nullable
+      private String getShowAsActionValue(@NotNull XmlTag node) {
+        // Search for the attribute in the android and tools namespace.
+        if (node.getAttribute(ATTR_SHOW_AS_ACTION, ANDROID_URI) != null || node.getAttribute(ATTR_SHOW_AS_ACTION, TOOLS_URI) != null) {
+          // Return null to indicate that we don't want to filter this attribute.
+          return null;
+        }
+        // For appcompat, the attribute may be present in the app's namespace.
+        // Try with res-auto namespace.
+        XmlAttribute attr = node.getAttribute(ATTR_SHOW_AS_ACTION, AUTO_URI);
+        if (attr != null) {
+          return attr.getValue();
+        }
+        // No match found.
         return null;
       }
     });
