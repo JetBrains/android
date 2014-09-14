@@ -11,6 +11,7 @@ import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
@@ -37,6 +38,7 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.checks.FragmentDetector.ISSUE;
 import static com.android.tools.lint.checks.PluralsDetector.IMPLIED_QUANTITY;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
  * Registrations for all the various Lint rules as local IDE inspections, along with quickfixes for many of them
@@ -193,8 +195,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String oldCall = AppCompatCallDetector.getOldCall(message);
-      String newCall = AppCompatCallDetector.getNewCall(message);
+      String oldCall = AppCompatCallDetector.getOldCall(message, RAW);
+      String newCall = AppCompatCallDetector.getNewCall(message, RAW);
       if (oldCall != null && newCall != null) {
         return new AndroidLintQuickFix[]{ new ReplaceStringQuickFix("Replace with " + newCall + "()", oldCall, newCall) };
       }
@@ -318,7 +320,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String replacedType = JavaPerformanceDetector.getReplacedType(message);
+      String replacedType = JavaPerformanceDetector.getReplacedType(message, RAW);
       if (replacedType != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with valueOf()", "(new\\s+" + replacedType + ")",
                                                                    replacedType + ".valueOf")};
@@ -572,8 +574,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String obsolete = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message);
-      String available = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message);
+      String obsolete = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message, RAW);
+      String available = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message, RAW);
       if (obsolete != null && available != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Update to " + available, obsolete, available)};
       }
@@ -676,8 +678,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String before = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message);
-      String after = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message);
+      String before = GradleDetector.getOldValue(GradleDetector.DEPENDENCY, message, RAW);
+      String after = GradleDetector.getNewValue(GradleDetector.DEPENDENCY, message, RAW);
       if (before != null && after != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Change to " + after, before, after)};
       }
@@ -694,8 +696,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull final String message) {
-      String before = GradleDetector.getOldValue(GradleDetector.DEPRECATED, message);
-      String after = GradleDetector.getNewValue(GradleDetector.DEPRECATED, message);
+      String before = GradleDetector.getOldValue(GradleDetector.DEPRECATED, message, RAW);
+      String after = GradleDetector.getNewValue(GradleDetector.DEPRECATED, message, RAW);
       if (before != null && after != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, before, after)};
       }
@@ -711,7 +713,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-      String before = GradleDetector.getOldValue(GradleDetector.PLUS, message);
+      String before = GradleDetector.getOldValue(GradleDetector.PLUS, message, RAW);
       if (before != null && before.endsWith("+")) {
         final GradleCoordinate plus = GradleCoordinate.parseCoordinateString(before);
         if (plus != null && plus.getArtifactId() != null) {
@@ -1015,7 +1017,7 @@ public class AndroidLintInspectionToolProvider {
 
   private static AndroidLintQuickFix[] getApiDetectorFixes(@NotNull PsiElement startElement,
                                                            @SuppressWarnings("UnusedParameters") @NotNull PsiElement endElement,
-                                                           String message) {
+                                                           @NotNull String message) {
     // TODO: Return one for each parent context (declaration, method, class, outer class(es)
     Pattern pattern = Pattern.compile("\\s(\\d+)\\s"); //$NON-NLS-1$
     Matcher matcher = pattern.matcher(message);
@@ -1282,8 +1284,8 @@ public class AndroidLintInspectionToolProvider {
     @Override
     @NotNull
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String current = MissingClassDetector.getOldValue(MissingClassDetector.INNERCLASS, message);
-      String proposed = MissingClassDetector.getNewValue(MissingClassDetector.INNERCLASS, message);
+      String current = MissingClassDetector.getOldValue(MissingClassDetector.INNERCLASS, message, RAW);
+      String proposed = MissingClassDetector.getNewValue(MissingClassDetector.INNERCLASS, message, RAW);
       if (proposed != null && current != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, current, proposed)};
       }
@@ -1401,7 +1403,7 @@ public class AndroidLintInspectionToolProvider {
     @Override
     @NotNull
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String escaped = PropertyFileDetector.getSuggestedEscape(message);
+      String escaped = PropertyFileDetector.getSuggestedEscape(message, RAW);
       if (escaped != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, escaped)};
       }
@@ -1422,7 +1424,7 @@ public class AndroidLintInspectionToolProvider {
     @Override
     @NotNull
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String expected = DuplicateResourceDetector.getExpectedType(message);
+      String expected = DuplicateResourceDetector.getExpectedType(message, RAW);
       if (expected != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, "(@.*/)", "@" + expected + "/")};
       }
@@ -1539,8 +1541,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String current = GradleDetector.getOldValue(GradleDetector.STRING_INTEGER, message);
-      String proposed = GradleDetector.getNewValue(GradleDetector.STRING_INTEGER, message);
+      String current = GradleDetector.getOldValue(GradleDetector.STRING_INTEGER, message, RAW);
+      String proposed = GradleDetector.getNewValue(GradleDetector.STRING_INTEGER, message, RAW);
       if (proposed != null && current != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace with integer", current, proposed)};
       }
@@ -1563,7 +1565,7 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      List<String> suggestions = TypoDetector.getSuggestions(message);
+      List<String> suggestions = TypoDetector.getSuggestions(message, RAW);
       if (suggestions != null && !suggestions.isEmpty()) {
         List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(suggestions.size());
         for (String suggestion : suggestions) {
@@ -1599,8 +1601,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      String current = WrongCallDetector.getOldValue(message);
-      String proposed = WrongCallDetector.getNewValue(message);
+      String current = WrongCallDetector.getOldValue(message, RAW);
+      String proposed = WrongCallDetector.getNewValue(message, RAW);
       if (proposed != null && current != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix("Replace call with " + proposed + "()", current, proposed)};
       }
@@ -1617,8 +1619,8 @@ public class AndroidLintInspectionToolProvider {
     @NotNull
     @Override
     public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-      final String current = WrongCaseDetector.getOldValue(message);
-      final String proposed = WrongCaseDetector.getNewValue(message);
+      final String current = WrongCaseDetector.getOldValue(message, RAW);
+      final String proposed = WrongCaseDetector.getNewValue(message, RAW);
       if (proposed != null && current != null) {
         return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, current, proposed) {
           @Override
