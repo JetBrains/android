@@ -16,6 +16,7 @@
 package com.intellij.android.designer.inspection;
 
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.IXmlAttributeLocator;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -43,6 +44,9 @@ import org.jetbrains.android.inspections.lint.*;
 import javax.swing.*;
 import java.util.List;
 
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+import static com.android.tools.lint.detector.api.TextFormat.TEXT;
+
 /**
  * @author Alexander Lobas
  */
@@ -56,7 +60,7 @@ public final class ErrorAnalyzer {
       state = annotator.doAnnotate(state);
       for (ProblemData problemData : state.getProblems()) {
         Issue issue = problemData.getIssue();
-        String message = problemData.getMessage();
+        String message = RAW.convertTo(problemData.getMessage(), TEXT);
 
         TextRange range = problemData.getTextRange();
         if (range.getStartOffset() == range.getEndOffset()) {

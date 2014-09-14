@@ -55,6 +55,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
+
 /**
  * @author Eugene.Kudelevsky
  */
@@ -161,7 +163,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                               @NonNull Severity severity,
                               @Nullable Location location,
                               @NonNull String message,
-                              @Nullable Object data);
+                              @NonNull TextFormat format);
 
   /**
    * Recursively calls {@link #report} on the secondary location of this error, if any, which in turn may call it on a third
@@ -169,13 +171,13 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
    * problem for each location associated with the lint error.
    */
   protected void reportSecondary(@NonNull Context context, @NonNull Issue issue, @NonNull Severity severity, @NonNull Location location,
-                                 @NonNull String message, @Nullable Object data) {
+                                 @NonNull String message, @NonNull TextFormat format) {
     Location secondary = location.getSecondary();
     if (secondary != null) {
       if (secondary.getMessage() != null) {
         message = message + " (" + secondary.getMessage() + ")";
       }
-      report(context, issue, severity, secondary, message, data);
+      report(context, issue, severity, secondary, message, format);
     }
   }
 
@@ -413,7 +415,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                        @NonNull Severity severity,
                        @Nullable Location location,
                        @NonNull String message,
-                       @Nullable Object data) {
+                       @NonNull TextFormat format) {
       if (location != null) {
         final File file = location.getFile();
         final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
@@ -427,12 +429,13 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                                       : TextRange.EMPTY_RANGE;
 
           Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
+          message = format.convertTo(message, RAW);
           myState.getProblems().add(new ProblemData(issue, message, textRange, configuredSeverity));
         }
 
         Location secondary = location.getSecondary();
         if (secondary != null && myState.getMainFile().equals(LocalFileSystem.getInstance().findFileByIoFile(secondary.getFile()))) {
-          reportSecondary(context, issue, severity, location, message, data);
+          reportSecondary(context, issue, severity, location, message, format);
         }
       }
     }
@@ -550,7 +553,7 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
                        @NonNull Severity severity,
                        @Nullable Location location,
                        @NonNull String message,
-                       @Nullable Object data) {
+                       @NonNull TextFormat format) {
       VirtualFile vFile = null;
       File file = null;
 
@@ -597,10 +600,11 @@ public abstract class IntellijLintClient extends LintClient implements Disposabl
           }
         }
         Severity configuredSeverity = severity != issue.getDefaultSeverity() ? severity : null;
+        message = format.convertTo(message, RAW);
         problemList.add(new ProblemData(issue, message, textRange, configuredSeverity));
 
         if (location != null && location.getSecondary() != null) {
-          reportSecondary(context, issue, severity, location, message, data);
+          reportSecondary(context, issue, severity, location, message, format);
         }
       }
     }
