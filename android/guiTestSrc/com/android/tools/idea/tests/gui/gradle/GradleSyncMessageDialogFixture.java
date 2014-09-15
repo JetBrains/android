@@ -17,54 +17,53 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.ComponentFixture;
-import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.google.common.base.Strings.nullToEmpty;
 
+// TODO: Generalize this class as MessageDialogFixture.
 class GradleSyncMessageDialogFixture extends ComponentFixture<JDialog> {
   @NotNull
   static GradleSyncMessageDialogFixture find(@NotNull final Robot robot) {
     // Expect a dialog explaining that the version of Gradle in the project's wrapper needs to be updated to version 2.1, and click the
     // "OK" button.
-    final AtomicReference<JDialog> dialogRef = new AtomicReference<JDialog>();
-    Pause.pause(new Condition("Find Gradle version update dialog") {
+    JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
-      public boolean test() {
-        Collection<JDialog> allFound = robot.finder().findAll(new GenericTypeMatcher<JDialog>(JDialog.class) {
-          @Override
-          protected boolean isMatching(JDialog dialog) {
-            return "Gradle Sync".equals(dialog.getTitle()) && dialog.isShowing();
-          }
-        });
-        boolean found = allFound.size() == 1;
-        if (found) {
-          dialogRef.set(getFirstItem(allFound));
-        }
-        return found;
+      protected boolean isMatching(JDialog dialog) {
+        return "Gradle Sync".equals(dialog.getTitle()) && dialog.isShowing();
       }
-    }, SHORT_TIMEOUT);
-    return new GradleSyncMessageDialogFixture(robot, dialogRef.get());
+    });
+    return new GradleSyncMessageDialogFixture(robot, dialog);
   }
 
   private GradleSyncMessageDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
     super(robot, target);
   }
 
-  void clickOk() {
+  @NotNull
+  GradleSyncMessageDialogFixture clickOk() {
     findAndClickOkButton(this);
+    return this;
   }
 
   void clickCancel() {
     findAndClickCancelButton(this);
+  }
+
+  @NotNull
+  String getMessage() {
+    final JTextPane textPane = robot.finder().findByType(target, JTextPane.class);
+    return GuiActionRunner.execute(new GuiQuery<String>() {
+      @Override
+      protected String executeInEDT() throws Throwable {
+        return nullToEmpty(textPane.getText());
+      }
+    });
   }
 }
