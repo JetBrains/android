@@ -19,10 +19,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+
+import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 
 public class ImportProjectTest extends GuiTestCase {
   @Test @IdeGuiTest
@@ -39,7 +42,7 @@ public class ImportProjectTest extends GuiTestCase {
     importProjectDialog.select(projectDirPath).clickOk();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    GradleSyncMessageDialogFixture.find(myRobot).clickOk();
+    findGradleSyncMessageDialog(myRobot).clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectDirPath);
     projectFrame.waitForGradleProjectSyncToFinish()
