@@ -3,7 +3,7 @@
     package="test.pkg" >
 
     <uses-sdk android:minSdkVersion="4" />
-    <<warning descr="Should explicitly set android:allowBackup to true or false (it's true by default, and that can have some security implications for the application's data)">applicat<caret>ion</warning> android:icon="@drawable/ic_launcher">
+    <<warning descr="Should explicitly set `android:allowBackup` to `true` or `false` (it's `true` by default, and that can have some security implications for the application's data)">applicat<caret>ion</warning> android:icon="@drawable/ic_launcher">
     </application>
 
 </manifest>
