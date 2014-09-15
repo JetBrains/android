@@ -117,6 +117,10 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     List<PsiDirectory> psiDirectories = Lists.newArrayListWithExpectedSize(mySourceRoots.size());
 
     for (VirtualFile root : mySourceRoots) {
+      if (!root.isValid()) {
+        continue;
+      }
+
       final PsiDirectory directory = psiManager.findDirectory(root);
       if (directory != null) {
         psiDirectories.add(directory);
