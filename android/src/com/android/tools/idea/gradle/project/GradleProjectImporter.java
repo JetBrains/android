@@ -435,7 +435,14 @@ public class GradleProjectImporter {
                         @NotNull final ProgressExecutionMode progressExecutionMode,
                         boolean generateSourcesOnSuccess,
                         @Nullable final GradleSyncListener listener) throws ConfigurationException {
-    PreSyncChecks.check(project);
+    if (!PreSyncChecks.canSync(project)) {
+      // User should have already warned that something is not right and sync cannot continue.
+      GradleSyncState syncState = GradleSyncState.getInstance(project);
+      syncState.syncStarted(true);
+      NewProjectImportGradleSyncListener.createTopLevelProjectAndOpen(project);
+      syncState.syncFailed("Issues with settings.gradle file (e.g. empty file)");
+      return;
+    }
 
     if (AndroidStudioSpecificInitializer.isAndroidStudio() && Projects.isDirectGradleInvocationEnabled(project)) {
       // We cannot do the same when using JPS. We don't have access to the contents of the Message view used by JPS.
