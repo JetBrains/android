@@ -17,6 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.codeInsight.highlighting.TooltipLinkHandler;
 import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.codeInspection.InspectionsBundle;
@@ -47,7 +48,7 @@ public class LintInspectionDescriptionLinkHandler extends TooltipLinkHandler {
 
     Issue issue = new BuiltinIssueRegistry().getIssue(refSuffix);
     if (issue != null) {
-      String html = issue.getExplanation(Issue.OutputFormat.HTML);
+      String html = issue.getExplanation(TextFormat.HTML);
       // IntelliJ seems to treat newlines in the HTML as needing to also be converted to <br> (whereas
       // Lint includes these for HTML readability but they shouldn't add additional lines since it has
       // already added <br> as well) so strip these out
