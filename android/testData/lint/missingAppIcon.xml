@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="test.pkg" >
 
-    <<warning descr="Should explicitly set android:icon, there is no default">applica<caret>tion</warning> android:allowBackup="false">
+    <<warning descr="Should explicitly set `android:icon`, there is no default">applica<caret>tion</warning> android:allowBackup="false">
     </application>
 
 </manifest>

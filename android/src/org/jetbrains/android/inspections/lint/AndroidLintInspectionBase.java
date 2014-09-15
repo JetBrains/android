@@ -2,7 +2,6 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.lint.detector.api.*;
-import com.android.utils.XmlUtils;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -36,7 +35,8 @@ import org.jetbrains.annotations.TestOnly;
 import java.io.File;
 import java.util.*;
 
-import static com.android.tools.lint.detector.api.Issue.OutputFormat;
+import static com.android.tools.lint.detector.api.TextFormat.HTML;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
  * @author Eugene.Kudelevsky
@@ -152,7 +152,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
     for (ProblemData problemData : problems) {
       final String s = problemData.getMessage();
-      final String message = XmlUtils.toXmlTextValue(s);
+      final String message = RAW.convertTo(s, HTML);
       final TextRange range = problemData.getTextRange();
 
       if (range.getStartOffset() == range.getEndOffset()) {
@@ -312,14 +312,14 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   public String getStaticDescription() {
     StringBuilder sb = new StringBuilder(1000);
     sb.append("<html><body>");
-    sb.append(myIssue.getDescription(OutputFormat.HTML));
+    sb.append(myIssue.getBriefDescription(HTML));
     sb.append("<br><br>");
-    sb.append(myIssue.getExplanation(OutputFormat.HTML));
+    sb.append(myIssue.getExplanation(HTML));
     List<String> urls = myIssue.getMoreInfo();
     if (!urls.isEmpty()) {
       boolean separated = false;
       for (String url : urls) {
-        if (!myIssue.getExplanation(OutputFormat.RAW).contains(url)) {
+        if (!myIssue.getExplanation(RAW).contains(url)) {
           if (!separated) {
             sb.append("<br><br>");
             separated = true;
