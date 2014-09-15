@@ -58,6 +58,8 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.detector.api.TextFormat.HTML;
+import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
  * @author Eugene.Kudelevsky
@@ -292,7 +294,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
           + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
           +">" + DaemonBundle.message("inspection.extended.description")
           +"</a> " + getShowMoreShortCut();
-      String tooltip = XmlStringUtil.wrapInHtml(XmlStringUtil.escapeString(message) + link);
+      String tooltip = XmlStringUtil.wrapInHtml(RAW.convertTo(message, HTML) + link);
 
       try {
         return (Annotation)createHtmlAnnotation.invoke(holder, severity, range, message, tooltip);
