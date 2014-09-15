@@ -128,7 +128,7 @@ public class ConfigurationToolbarFixture {
 
   @NotNull
   private JButton findToolbarButton(@NotNull final String tooltip) {
-    return GuiTests.findWhenVisible(myRobot, new GenericTypeMatcher<JButton>(JButton.class) {
+    return GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<JButton>(JButton.class) {
       @Override
       protected boolean isMatching(JButton button) {
         return tooltip.equals(button.getToolTipText());
