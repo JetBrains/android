@@ -118,8 +118,8 @@ public class LaunchCompatibilityTest extends TestCase {
   private static IDevice createMockDevice(int api, @Nullable String codeName, boolean supportsFeature) {
     IDevice device = mock(IDevice.class);
     try {
-      when(device.getPropertyCacheOrSync(IDevice.PROP_BUILD_API_LEVEL)).thenReturn(Integer.toString(api));
-      when(device.getPropertyCacheOrSync(IDevice.PROP_BUILD_CODENAME)).thenReturn(codeName);
+      when(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)).thenReturn(Integer.toString(api));
+      when(device.getProperty(IDevice.PROP_BUILD_CODENAME)).thenReturn(codeName);
       when(device.supportsFeature(any(IDevice.HardwareFeature.class))).thenReturn(supportsFeature);
     }
     catch (Exception ignored) {
