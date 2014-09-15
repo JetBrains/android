@@ -11,6 +11,7 @@ import com.android.tools.lint.detector.api.Scope;
 import com.android.utils.SdkUtils;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.FileModificationService;
+import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.codeInsight.intention.IntentionAction;
@@ -20,10 +21,15 @@ import com.intellij.codeInspection.ex.DisableInspectionToolAction;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
+import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -33,6 +39,8 @@ import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ui.UIUtil;
+import com.intellij.xml.util.XmlStringUtil;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -42,6 +50,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -221,7 +231,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
                 displayLevel = configuredLevel;
               }
             }
-            final Annotation annotation = createAnnotation(holder, message, range, displayLevel);
+            final Annotation annotation = createAnnotation(holder, message, range, displayLevel, issue);
 
             for (AndroidLintQuickFix fix : inspection.getQuickFixes(startElement, endElement, message)) {
               if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
@@ -254,22 +264,92 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @SuppressWarnings("deprecation")
   @NotNull
-  private static Annotation createAnnotation(@NotNull AnnotationHolder holder,
-                                             @NotNull String message,
-                                             @NotNull TextRange range,
-                                             @NotNull HighlightDisplayLevel displayLevel) {
+  private Annotation createAnnotation(@NotNull AnnotationHolder holder,
+                                      @NotNull String message,
+                                      @NotNull TextRange range,
+                                      @NotNull HighlightDisplayLevel displayLevel,
+                                      @NotNull Issue issue) {
+    // Convert from inspection severity to annotation severity
+    HighlightSeverity severity;
     if (displayLevel == HighlightDisplayLevel.ERROR) {
-      return holder.createErrorAnnotation(range, message);
+      severity = HighlightSeverity.ERROR;
+    } else if (displayLevel == HighlightDisplayLevel.WARNING) {
+      severity = HighlightSeverity.WARNING;
+    } else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING) {
+      severity = HighlightSeverity.WEAK_WARNING;
+    } else if (displayLevel == HighlightDisplayLevel.INFO) {
+      severity = HighlightSeverity.INFO;
+    } else {
+      severity = HighlightSeverity.WARNING;
     }
-    else if (displayLevel == HighlightDisplayLevel.WEAK_WARNING) {
-      return holder.createWeakWarningAnnotation(range, message);
+
+    // Attempt to mark up as HTML? Only if available
+    Method createHtmlAnnotation = getCreateHtmlAnnotation();
+    if (createHtmlAnnotation != null) {
+      // Based on LocalInspectionsPass#createHighlightInfo
+      String link = " <a "
+          +"href=\"#lint/" + issue.getId() + "\""
+          + (UIUtil.isUnderDarcula() ? " color=\"7AB4C9\" " : "")
+          +">" + DaemonBundle.message("inspection.extended.description")
+          +"</a> " + getShowMoreShortCut();
+      String tooltip = XmlStringUtil.wrapInHtml(XmlStringUtil.escapeString(message) + link);
+
+      try {
+        return (Annotation)createHtmlAnnotation.invoke(holder, severity, range, message, tooltip);
+      }
+      catch (IllegalAccessException ignored) {
+        ourCreateHtmlAnnotationMethod = null;
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourCreateHtmlAnnotationMethodFailed = true;
+      }
+      catch (InvocationTargetException e) {
+        ourCreateHtmlAnnotationMethod = null;
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourCreateHtmlAnnotationMethodFailed = true;
+      }
     }
-    else if (displayLevel == HighlightDisplayLevel.INFO) {
-      return holder.createInfoAnnotation(range, message);
+
+    return holder.createAnnotation(severity, range, message);
+  }
+
+  private static boolean ourCreateHtmlAnnotationMethodFailed;
+  private static Method ourCreateHtmlAnnotationMethod;
+
+  @Nullable
+  private static Method getCreateHtmlAnnotation() {
+    if (ourCreateHtmlAnnotationMethod != null) {
+      return ourCreateHtmlAnnotationMethod;
     }
-    else {
-      return holder.createWarningAnnotation(range, message);
+    if (ourCreateHtmlAnnotationMethodFailed) {
+      return null;
+    } else {
+      ourCreateHtmlAnnotationMethodFailed = true;
+      try {
+        ourCreateHtmlAnnotationMethod = AnnotationHolder.class.getMethod("createAnnotation", HighlightSeverity.class,
+                                                                        TextRange.class, String.class, String.class);
+      }
+      catch (NoSuchMethodException ignore) {
+      }
+      return ourCreateHtmlAnnotationMethod;
     }
+  }
+
+  // Based on similar code in the LocalInspectionsPass constructor
+  private String myShortcutText;
+  private String getShowMoreShortCut() {
+    if (myShortcutText == null) {
+      final KeymapManager keymapManager = KeymapManager.getInstance();
+      if (keymapManager != null) {
+        final Keymap keymap = keymapManager.getActiveKeymap();
+        myShortcutText =
+          keymap == null ? "" : "(" + KeymapUtil.getShortcutsText(keymap.getShortcuts(IdeActions.ACTION_SHOW_ERROR_DESCRIPTION)) + ")";
+      }
+      else {
+        myShortcutText = "";
+      }
+    }
+
+    return myShortcutText;
   }
 
   private static class MyDisableInspectionFix implements IntentionAction, Iconable {
