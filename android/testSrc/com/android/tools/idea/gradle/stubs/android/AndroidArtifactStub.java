@@ -88,6 +88,12 @@ public class AndroidArtifactStub implements AndroidArtifact {
 
   @Override
   @NotNull
+  public String getCompileTaskName() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public String getAssembleTaskName() {
     return "assemble" + StringUtil.capitalize(myBuildType);
   }
