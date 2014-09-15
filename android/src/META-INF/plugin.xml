@@ -474,6 +474,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongViewCast" displayName="Mismatched view type" groupKey="android.lint.inspections.group.name" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLintWrongViewCastInspection"/>
 
     <codeInspection.InspectionExtension implementation="org.jetbrains.android.inspections.lint.AndroidInspectionExtensionsFactory"/>
+    <codeInsight.linkHandler prefix="#lint/" handlerClass="org.jetbrains.android.inspections.lint.LintInspectionDescriptionLinkHandler"/>
 
     <colorSettingsPage implementation="org.jetbrains.android.logcat.AndroidLogcatColorPage"/>
     <findUsagesHandlerFactory implementation="org.jetbrains.android.AndroidFindUsagesHandlerFactory"/>
