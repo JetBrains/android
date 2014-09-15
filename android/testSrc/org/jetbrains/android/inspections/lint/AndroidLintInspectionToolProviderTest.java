@@ -162,7 +162,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         String id = issue.getId();
         sb.append(id);
         sb.append("\" displayName=\"");
-        sb.append(XmlUtils.toXmlAttributeValue(issue.getBriefDescription(Issue.OutputFormat.TEXT)));
+        sb.append(XmlUtils.toXmlAttributeValue(issue.getBriefDescription(TextFormat.TEXT)));
         sb.append("\" groupKey=\"android.lint.inspections.group.name\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
         sb.append(issue.isEnabledByDefault());
         sb.append("\" level=\"");
@@ -264,7 +264,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   }
 
   private static String getBriefDescription(Issue issue) {
-    return issue.getBriefDescription(Issue.OutputFormat.TEXT);
+    return issue.getBriefDescription(TextFormat.TEXT);
   }
 
   private static String getMessageKey(Issue issue) {
