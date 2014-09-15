@@ -20,6 +20,8 @@ import com.intellij.compiler.actions.CompileDirtyAction;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.WindowManager;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidMakeProjectAction extends AndroidBuildProjectAction {
@@ -29,6 +31,11 @@ public class AndroidMakeProjectAction extends AndroidBuildProjectAction {
 
   @Override
   protected void buildGradleProject(@NotNull Project project, @NotNull DataContext dataContext) {
+    StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
+    if (statusBar != null) {
+      // Reset info from the previous runs (if any).
+      statusBar.setInfo(" ");
+    }
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     GradleInvoker.getInstance(project).compileJava(moduleManager.getModules());
   }
