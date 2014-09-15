@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Integrates paths from old module import wizard into the new ("dynamic") module wizard
  */
-public class LegacyPathWrapper implements AndroidStudioWizardPath, ModuleTemplateProvider {
+public class LegacyPathWrapper implements NewModuleDynamicPath {
   private final NewModuleWizardState myWizardState;
   private final WizardPath myWizardPath;
   private final List<ModuleWizardStep> mySteps;
