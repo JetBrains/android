@@ -28,12 +28,18 @@ import java.io.IOException;
 import java.util.Properties;
 
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.findWrapperPropertiesFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistributionUrl;
+import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
+import static com.intellij.openapi.util.io.FileUtil.delete;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
@@ -115,5 +121,25 @@ public class GradleSyncTest extends GuiTestCase {
                 .requestProjectSync()
                 .waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
+  }
+
+  @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=72294
+  public void testSyncWithEmptyGradleSettingsFile() throws IOException {
+    IdeFrameFixture projectFrame = openSimpleApplication();
+
+    File settingsFilePath = new File(projectFrame.getProjectPath(), FN_SETTINGS_GRADLE);
+    delete(settingsFilePath);
+    writeToFile(settingsFilePath, " ");
+    assertThat(settingsFilePath).isFile();
+
+    projectFrame.requestProjectSync();
+
+    GradleSyncMessageDialogFixture messageDialog = GradleSyncMessageDialogFixture.find(myRobot);
+    String message = messageDialog.getMessage();
+    assertThat(message).startsWith("Unable to sync project with Gradle.");
+    messageDialog.clickOk();
+
+    assertTrue(lastGradleSyncFailed(projectFrame.getProject()));
   }
 }
