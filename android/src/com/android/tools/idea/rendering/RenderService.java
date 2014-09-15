@@ -27,6 +27,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.RenderContext;
@@ -37,6 +41,9 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.model.ManifestInfo.ActivityAttributes;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
+import com.android.utils.HtmlBuilder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -46,6 +53,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -73,6 +81,7 @@ import java.util.Set;
 import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
  * The {@link RenderService} provides rendering and layout information for
@@ -175,6 +184,8 @@ public class RenderService implements IImageFactory {
       return null;
     }
 
+    warnIfObsoleteLayoutLib(module, logger, renderContext, target);
+
     LayoutLibrary layoutLib;
     try {
       layoutLib = platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
@@ -209,6 +220,94 @@ public class RenderService implements IImageFactory {
 
     return service;
   }
+
+  protected static void warnIfObsoleteLayoutLib(final Module module,
+                                                RenderLogger logger,
+                                                final RenderContext renderContext,
+                                                IAndroidTarget target) {
+    if (!ourWarnAboutObsoleteLayoutLibVersions) {
+      return;
+    }
+
+    final AndroidVersion version = target.getVersion();
+    final int revision;
+    // Look up the current minimum required version for layoutlib for each API level. Note that these
+    // are minimum revisions; if a later version is available, it will be installed.
+    switch (version.getFeatureLevel()) {
+      case 21:
+        if (version.isPreview()) {
+          revision = 4;
+        } else {
+          revision = 1;
+        }
+        break;
+      case 20: revision = 1; break;
+      case 19: revision = 3; break;
+      case 18: revision = 2; break;
+      case 17: revision = 2; break;
+      case 16: revision = 4; break;
+      case 15: revision = 3; break;
+      case 14: revision = 3; break;
+      case 13: revision = 1; break;
+      case 12: revision = 3; break;
+      case 11: revision = 2; break;
+      case 10: revision = 2; break;
+      case 8: revision = 3; break;
+      default: revision = -1; break;
+    }
+
+    if (revision >= 0 && target.getRevision() < revision) {
+      RenderProblem.Html problem = RenderProblem.create(WARNING);
+      problem.tag("obsoleteLayoutlib");
+      HtmlBuilder builder = problem.getHtmlBuilder();
+      builder.add("Using an obsolete version of the " + target.getVersionName() + " layout library which contains many known bugs: ");
+      builder.addLink("Install Update", logger.getLinkManager().createRunnableLink(new Runnable() {
+        @Override
+        public void run() {
+          // Don't warn again
+          //noinspection AssignmentToStaticFieldFromInstanceMethod
+          ourWarnAboutObsoleteLayoutLibVersions = false;
+
+          List<IPkgDesc> requested = Lists.newArrayList();
+          // The revision to install. Note that this will install a higher version than this if available;
+          // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
+          requested.add(PkgDesc.Builder.newPlatform(version, new MajorRevision(revision), FullRevision.NOT_SPECIFIED).create());
+          SdkQuickfixWizard wizard = new SdkQuickfixWizard(module.getProject(), null, requested);
+          wizard.init();
+
+          if (wizard.showAndGet()) {
+            if (renderContext != null) {
+              // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
+              Configuration configuration = renderContext.getConfiguration();
+              if (configuration != null) {
+                configuration.getConfigurationManager().setTarget(null);
+              }
+              renderContext.requestRender();
+              // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
+              // take effect.
+              Messages.showInfoMessage(module.getProject(),
+                                     "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
+                                     "Restart Recommended");
+            }
+          }
+        }
+      }));
+      builder.addLink(", ", "Ignore For Now", null, logger.getLinkManager().createRunnableLink(new Runnable() {
+        @Override
+        public void run() {
+          //noinspection AssignmentToStaticFieldFromInstanceMethod
+          ourWarnAboutObsoleteLayoutLibVersions = false;
+          if (renderContext != null) {
+            renderContext.requestRender();
+          }
+        }
+      }));
+
+      logger.addMessage(problem);
+    }
+  }
+
+  private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
 
   /**
    * Use the {@link #create} factory instead
