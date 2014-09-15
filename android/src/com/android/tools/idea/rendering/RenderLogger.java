@@ -427,6 +427,7 @@ public class RenderLogger extends LayoutLog {
     // TODO: Remove me
     if ("colorfilter".equals(tag)) {
       // L layoutlib requires this for actionbar but does not render it yet; for now, silently fix it
+      // Fixed in revision 4, we can remove this check soon
       return;
     }
     else if ("broken".equals(tag) &&
@@ -456,7 +457,7 @@ public class RenderLogger extends LayoutLog {
       myHaveExceptions = true;
     }
 
-    RenderProblem error = new RenderProblem.Deferred(ERROR, tag, description, throwable);
+    RenderProblem error = RenderProblem.createDeferred(ERROR, tag, description, throwable);
     error.setClientData(description);
     if (myFidelityWarnings == null) {
       myFidelityWarnings = new ArrayList<RenderProblem>();
