@@ -73,6 +73,12 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
+  @Nullable
+  public Integer getMaxSdkVersion() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public int getRenderscriptTargetApi() {
     throw new UnsupportedOperationException();
   }

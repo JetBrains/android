@@ -120,4 +120,10 @@ public class BuildTypeStub implements BuildType {
   public Collection<File> getConsumerProguardFiles() {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  @NotNull
+  public Map<String, String> getManifestPlaceholders() {
+    throw new UnsupportedOperationException();
+  }
 }
