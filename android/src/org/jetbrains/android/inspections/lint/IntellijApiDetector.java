@@ -630,7 +630,8 @@ public class IntellijApiDetector extends ApiDetector {
           PsiBinaryExpression binary = (PsiBinaryExpression)condition;
           IElementType tokenType = binary.getOperationTokenType();
           if (tokenType == JavaTokenType.GT || tokenType == JavaTokenType.GE ||
-              tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT) {
+              tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT ||
+              tokenType == JavaTokenType.EQEQ) {
             PsiExpression left = binary.getLOperand();
             if (left instanceof PsiReferenceExpression) {
               PsiReferenceExpression ref = (PsiReferenceExpression)left;
@@ -654,19 +655,23 @@ public class IntellijApiDetector extends ApiDetector {
                   assert fromThen == !fromElse;
                   if (tokenType == JavaTokenType.GE) {
                     // if (SDK_INT >= ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return api <= level && fromThen;
+                    return level >= api && fromThen;
                   }
                   else if (tokenType == JavaTokenType.GT) {
                     // if (SDK_INT > ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return api < level && fromThen;
+                    return level >= api - 1 && fromThen;
                   }
                   else if (tokenType == JavaTokenType.LE) {
                     // if (SDK_INT <= ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return api < level && fromElse;
+                    return level >= api - 1 && fromElse;
                   }
                   else if (tokenType == JavaTokenType.LT) {
                     // if (SDK_INT < ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return api <= level && fromElse;
+                    return level >= api && fromElse;
+                  }
+                  else if (tokenType == JavaTokenType.EQEQ) {
+                      // if (SDK_INT == ICE_CREAM_SANDWICH) { <call> } else {  }
+                      return level >= api && fromThen;
                   } else {
                     assert false : tokenType;
                   }
