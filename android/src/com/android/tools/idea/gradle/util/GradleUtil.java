@@ -24,9 +24,11 @@ import com.android.tools.idea.gradle.project.ChooseGradleHomeDialog;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -42,9 +44,11 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.net.HttpConfigurable;
 import icons.AndroidIcons;
@@ -70,6 +74,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,6 +88,8 @@ import static org.jetbrains.plugins.gradle.util.GradleUtil.getLastUsedGradleHome
  * Utilities related to Gradle.
  */
 public final class GradleUtil {
+  private static final Pattern ANDROID_GRADLE_PLUGIN_DEPENDENCY_PATTERN = Pattern.compile("['\"]com.android.tools.build:gradle:(.+)['\"]");
+
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
 
   /** The name of the gradle wrapper executable associated with the current OS. */
@@ -636,5 +643,40 @@ public final class GradleUtil {
     String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
     updateGradleDistributionUrl(version, wrapperPropertiesFile);
     return true;
+  }
+
+  @Nullable
+  public static String getAndroidGradleModelVersion(@NotNull Project project) {
+    VirtualFile baseDir = project.getBaseDir();
+    if (baseDir == null) {
+      // This is default project.
+      return null;
+    }
+    final AtomicReference<String> modelVersionRef = new AtomicReference<String>();
+    VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
+      @Override
+      public boolean process(VirtualFile virtualFile) {
+        if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
+          File fileToCheck = VfsUtilCore.virtualToIoFile(virtualFile);
+          try {
+            String contents = Files.toString(fileToCheck, Charsets.UTF_8);
+            Matcher matcher = ANDROID_GRADLE_PLUGIN_DEPENDENCY_PATTERN.matcher(contents);
+            if (matcher.find()) {
+              String modelVersion = matcher.group(1);
+              if (!StringUtil.isEmpty(modelVersion)) {
+                modelVersionRef.set(modelVersion);
+                return false; // we found the model version. Stop.
+              }
+            }
+          }
+          catch (IOException e) {
+            LOG.warn("Failed to read contents of " + fileToCheck.getPath());
+          }
+        }
+        return true;
+      }
+    });
+
+    return modelVersionRef.get();
   }
 }
