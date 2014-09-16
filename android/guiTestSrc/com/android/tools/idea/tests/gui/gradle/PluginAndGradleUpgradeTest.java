@@ -17,10 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.ChooseGradleHomeDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.junit.FixMethodOrder;
@@ -36,6 +33,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistribu
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_1_12_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.GRADLE_2_1_HOME_PROPERTY;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static junit.framework.Assert.fail;
@@ -68,7 +66,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     importProjectDialog.select(projectPath).clickOk();
 
     // Expect message suggesting to update Gradle wrapper.
-    GradleSyncMessageDialogFixture.find(myRobot).clickOk();
+    findGradleSyncMessageDialog(myRobot).clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
@@ -87,7 +85,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    GradleSyncMessageDialogFixture.find(myRobot).clickCancel();
+    findGradleSyncMessageDialog(myRobot).clickCancel();
 
     String gradleHome = System.getProperty(GRADLE_2_1_HOME_PROPERTY);
     if (isEmpty(gradleHome)) {
@@ -116,7 +114,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "Cancel" to use local distribution.
-    GradleSyncMessageDialogFixture.find(myRobot).clickCancel();
+    findGradleSyncMessageDialog(myRobot).clickCancel();
 
     ChooseGradleHomeDialogFixture chooseGradleHomeDialog = ChooseGradleHomeDialogFixture.find(myRobot);
     chooseGradleHomeDialog.clickCancel();
@@ -146,7 +144,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    GradleSyncMessageDialogFixture.find(myRobot).clickOk();
+    findGradleSyncMessageDialog(myRobot).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
@@ -167,7 +165,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
                 .requestProjectSync();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
-    GradleSyncMessageDialogFixture.find(myRobot).clickOk();
+    findGradleSyncMessageDialog(myRobot).clickOk();
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
