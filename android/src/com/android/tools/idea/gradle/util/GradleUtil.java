@@ -112,7 +112,11 @@ public final class GradleUtil {
   private GradleUtil() {
   }
 
-  // This is temporary, until the model returns more outputs per artifact.
+  /**
+   * This is temporary, until the model returns more outputs per artifact.
+   * Deprecating since the model 0.13 provides multiple outputs per artifact if split apks are enabled.
+   */
+  @Deprecated
   @NotNull
   public static AndroidArtifactOutput getOutput(@NotNull AndroidArtifact artifact) {
     Collection<AndroidArtifactOutput> outputs = artifact.getOutputs();
