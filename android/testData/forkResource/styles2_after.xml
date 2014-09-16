@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Foo"></style>
+    <style name="Bar"></style>
+    <style name="ButtonAppearance">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textAppearance">@style/my_button_text_appearance</item>
+    </style>
+</resources>
