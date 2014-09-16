@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
@@ -34,6 +35,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.updateGradleDistribu
 import static com.android.tools.idea.gradle.util.Projects.lastGradleSyncFailed;
 import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
 import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageMatcher.firstLineStartingWith;
+import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
@@ -135,7 +137,7 @@ public class GradleSyncTest extends GuiTestCase {
 
     projectFrame.requestProjectSync();
 
-    GradleSyncMessageDialogFixture messageDialog = GradleSyncMessageDialogFixture.find(myRobot);
+    MessageDialogFixture messageDialog = findGradleSyncMessageDialog(myRobot);
     String message = messageDialog.getMessage();
     assertThat(message).startsWith("Unable to sync project with Gradle.");
     messageDialog.clickOk();

@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.gradle;
+package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
+import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
@@ -23,41 +26,50 @@ import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.lang.ref.WeakReference;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Strings.nullToEmpty;
+import static org.fest.reflect.core.Reflection.field;
+import static org.junit.Assert.assertNotNull;
 
-// TODO: Generalize this class as MessageDialogFixture.
-class GradleSyncMessageDialogFixture extends ComponentFixture<JDialog> {
+public class MessageDialogFixture extends ComponentFixture<JDialog> {
   @NotNull
-  static GradleSyncMessageDialogFixture find(@NotNull final Robot robot) {
-    // Expect a dialog explaining that the version of Gradle in the project's wrapper needs to be updated to version 2.1, and click the
-    // "OK" button.
+  public static MessageDialogFixture findByTitle(@NotNull Robot robot, @NotNull final String title) {
     JDialog dialog = waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(JDialog dialog) {
-        return "Gradle Sync".equals(dialog.getTitle()) && dialog.isShowing();
+        if (!title.equals(dialog.getTitle()) || !dialog.isShowing()) {
+          return false;
+        }
+        WeakReference<DialogWrapper> dialogWrapperRef = field("myDialogWrapper").ofType(new TypeRef<WeakReference<DialogWrapper>>() {})
+                                                                                .in(dialog)
+                                                                                .get();
+        DialogWrapper wrapper = dialogWrapperRef.get();
+        assertNotNull(wrapper);
+        String typeName = Messages.class.getName() + "$MessageDialog";
+        return typeName.equals(wrapper.getClass().getName());
       }
     });
-    return new GradleSyncMessageDialogFixture(robot, dialog);
+    return new MessageDialogFixture(robot, dialog);
   }
 
-  private GradleSyncMessageDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
+  private MessageDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
     super(robot, target);
   }
 
   @NotNull
-  GradleSyncMessageDialogFixture clickOk() {
+  public MessageDialogFixture clickOk() {
     findAndClickOkButton(this);
     return this;
   }
 
-  void clickCancel() {
+  public void clickCancel() {
     findAndClickCancelButton(this);
   }
 
   @NotNull
-  String getMessage() {
+  public String getMessage() {
     final JTextPane textPane = robot.finder().findByType(target, JTextPane.class);
     return GuiActionRunner.execute(new GuiQuery<String>() {
       @Override
