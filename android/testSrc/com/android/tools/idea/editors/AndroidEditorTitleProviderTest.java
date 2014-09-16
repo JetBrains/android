@@ -17,6 +17,7 @@ package com.android.tools.idea.editors;
 
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -60,7 +61,7 @@ public class AndroidEditorTitleProviderTest extends AndroidTestCase {
     if (expected == null) {
       assertNull(title);
     } else {
-      assertEquals(expected, title);
+      assertEquals(expected, title != null ? FileUtil.toSystemIndependentName(title) : null);
     }
   }
 }
