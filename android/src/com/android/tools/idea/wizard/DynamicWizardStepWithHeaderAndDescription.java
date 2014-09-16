@@ -133,7 +133,9 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
       myFocusListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-          updateDescription((JComponent)evt.getNewValue());
+          if (evt.getNewValue() instanceof Component) {
+            updateDescription((Component)evt.getNewValue());
+          }
         }
       };
       KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PROPERTY_FOCUS_OWNER, myFocusListener);
@@ -146,8 +148,15 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     }
   }
 
-  private void updateDescription(JComponent focusedComponent) {
-    myState.put(KEY_DESCRIPTION, myControlDescriptions.get(focusedComponent));
+  private String getDescriptionText(Component component) {
+    while (component instanceof Component && !myControlDescriptions.containsKey(component)) {
+      component = component.getParent();
+    }
+    return component != null ? myControlDescriptions.get(component) : "";
+  }
+
+  private void updateDescription(Component focusedComponent) {
+    myState.put(KEY_DESCRIPTION, getDescriptionText(focusedComponent));
   }
 
   @Override

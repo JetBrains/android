@@ -350,6 +350,8 @@ public class Template {
           break;
         case EXTERNAL:
           break;
+        case CUSTOM:
+          break;
       }
     }
     convertApisToInt(args);
