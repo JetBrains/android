@@ -151,7 +151,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     if (highest != null) {
       myTemplateState.put(ATTR_BUILD_API, highest.getFeatureLevel());
-      myTemplateState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(highest));
+      myTemplateState.put(ATTR_BUILD_API_STRING, getBuildApiString(highest));
+      myTemplateState.myModified.add(ATTR_TARGET_API);
+      myTemplateState.myModified.add(ATTR_TARGET_API_STRING);
+
+      myTemplateState.put(ATTR_TARGET_API, highest.getFeatureLevel());
+      myTemplateState.put(ATTR_TARGET_API_STRING, getBuildApiString(highest));
       myTemplateState.myModified.add(ATTR_BUILD_API);
       myTemplateState.myModified.add(ATTR_BUILD_API_STRING);
       if (highest.getFeatureLevel() >= SdkVersionInfo.HIGHEST_KNOWN_API) {
