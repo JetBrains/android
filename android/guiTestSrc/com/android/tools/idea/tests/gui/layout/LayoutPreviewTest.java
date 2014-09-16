@@ -15,28 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.ConfigurationToolbarFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.ImageFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
 import com.android.tools.lint.detector.api.LintUtils;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.android.SdkConstants.DOT_PNG;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -126,9 +124,42 @@ public class LayoutPreviewTest extends GuiTestCase {
   }
 
   @Test
+  @Ignore  // TODO: Remove when issue 76009 is fixed.
+  @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void testPreviewConfigurationTweaks() throws Exception {
+    IdeFrameFixture projectFrame = newProject("LayoutPreviewTest2").withActivity("MyActivity").create();
+
+    EditorFixture editor = projectFrame.getEditor();
+    editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
+    editor.requireFolderName("layout");
+    LayoutPreviewFixture preview = editor.getLayoutPreview(true);
+    assertNotNull(preview);
+    preview.waitForNextRenderToFinish();
+    preview.requireRenderSuccessful();
+    ConfigurationToolbarFixture toolbar = preview.getToolbar();
+
+    String rtl = "RTL";
+    String original = "Original";
+    List<String> rtlList = Collections.singletonList(rtl);
+    List<String> originalList = Collections.singletonList(original);
+    toolbar.chooseLocale("Preview Right-to-Left Layout");
+    preview.waitForNextRenderToFinish();
+    preview.requirePreviewTitles(rtlList);
+    for (int i = 0; i < 2; i++) {
+      preview.switchToPreview(rtl);
+      preview.waitForNextRenderToFinish();
+      preview.requirePreviewTitles(originalList);
+      preview.switchToPreview(original);
+      preview.waitForNextRenderToFinish();
+      preview.requirePreviewTitles(rtlList);
+    }
+    toolbar.removePreviews();
+  }
+
+  @Test
   @IdeGuiTest(closeProjectBeforeExecution = true)
   public void testEdits() throws Exception {
-    IdeFrameFixture projectFrame = newProject("LayoutPreviewTest2").withActivity("MyActivity").create();
+    IdeFrameFixture projectFrame = newProject("LayoutPreviewTest3").withActivity("MyActivity").create();
 
     // Load layout, wait for render to be shown in the preview window
     EditorFixture editor = projectFrame.getEditor();
