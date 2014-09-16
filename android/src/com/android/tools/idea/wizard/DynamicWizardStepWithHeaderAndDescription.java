@@ -65,6 +65,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
   private JPanel myNorthPanel;
   private JPanel myCustomHeaderPanel;
   private JPanel myTitlePanel;
+  private JPanel mySouthPanel;
   private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
 
   /**
@@ -89,7 +90,7 @@ public abstract class DynamicWizardStepWithHeaderAndDescription extends DynamicW
     myIcon.setIcon(icon);
     int fontHeight = myMessageLabel.getFont().getSize();
     myTitleLabel.setBorder(BorderFactory.createEmptyBorder(fontHeight, 0, fontHeight, 0));
-    myMessageLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, fontHeight, 0));
+    mySouthPanel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
     if (getTitleBackgroundColor() != null) {
       myTitlePanel.setBackground(getTitleBackgroundColor());
       myNorthPanel.setBackground(getTitleBackgroundColor());
