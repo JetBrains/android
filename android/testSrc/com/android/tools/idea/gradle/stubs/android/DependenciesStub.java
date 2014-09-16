@@ -48,7 +48,7 @@ public class DependenciesStub implements Dependencies {
   }
 
   public void addJar(@NotNull File jar) {
-    myJavaLibraries.add(new JavaLibrayStub(jar));
+    myJavaLibraries.add(new JavaLibraryStub(jar));
   }
 
   public void addProject(@NotNull String project) {

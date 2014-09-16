@@ -23,10 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-public class JavaLibrayStub implements JavaLibrary {
+public class JavaLibraryStub implements JavaLibrary {
   @NotNull private final File myJarFile;
 
-  public JavaLibrayStub(@NotNull File jarFile) {
+  public JavaLibraryStub(@NotNull File jarFile) {
     myJarFile = jarFile;
   }
 
