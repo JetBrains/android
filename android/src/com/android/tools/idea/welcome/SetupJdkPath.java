@@ -15,17 +15,29 @@
  */
 package com.android.tools.idea.welcome;
 
+import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.wizard.DynamicWizardPath;
 import com.android.tools.idea.wizard.ScopedStateStore;
 import com.android.tools.idea.wizard.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.ScopedStateStore.Scope;
+import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 /**
  * Guides the user through setting up the JDK location.
  */
 public class SetupJdkPath extends DynamicWizardPath {
   private static Key<String> KEY_JDK_LOCATION = ScopedStateStore.createKey("jdk.location", Scope.PATH, String.class);
+
+  @Override
+  public boolean isPathVisible() {
+    Sdk defaultJdk = DefaultSdks.getDefaultJdk();
+    return defaultJdk == null || !Jdks.isApplicableJdk(defaultJdk, LanguageLevel.JDK_1_7);
+  }
 
   @Override
   protected void init() {
@@ -40,6 +52,9 @@ public class SetupJdkPath extends DynamicWizardPath {
 
   @Override
   public boolean performFinishingActions() {
-    return false;
+    String path = myState.get(KEY_JDK_LOCATION);
+    assert path != null;
+    DefaultSdks.setDefaultJavaHome(new File(path));
+    return true;
   }
 }
