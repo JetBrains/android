@@ -18,32 +18,29 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LanguageQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.editors.strings.StringResourceData;
+import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileTypes.ex.FakeFileType;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.testFramework.LightVirtualFile;
-import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -118,25 +115,24 @@ public class StringsWriteUtils {
 
   /**
    * Creates a string resource in the specified locale.
-   * @param locale The locale in which to create the resource
-   * @param name The name of the string resource
-   * @param value The desired value
-   * @param translatable Whether the resource is translatable
-   * @return True if the resource was successfully created, false otherwise
+   *
+   * @return the resource item that was created, null if it wasn't created or could not be read back
    */
-  public static boolean createItem(@NotNull Project project,
-                                   @NotNull VirtualFile resFolder,
-                                   @Nullable Locale locale,
-                                   @NotNull final String name,
-                                   @NotNull final String value,
-                                   final boolean translatable) {
+  @Nullable
+  public static ResourceItem createItem(@NotNull final AndroidFacet facet,
+                                        @NotNull VirtualFile resFolder,
+                                        @Nullable final Locale locale,
+                                        @NotNull final String name,
+                                        @NotNull final String value,
+                                        final boolean translatable) {
+    Project project = facet.getModule().getProject();
     XmlFile resourceFile = getStringResourceFile(project, resFolder, locale);
     if (resourceFile == null) {
-      return false;
+      return null;
     }
     final XmlTag root = resourceFile.getRootTag();
     if (root == null) {
-      return false;
+      return null;
     }
     new WriteCommandAction.Simple(project, "Creating string " + name, resourceFile) {
       @Override
@@ -151,7 +147,47 @@ public class StringsWriteUtils {
         root.addSubTag(child, false);
       }
     }.execute();
-    return true;
+
+    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return getStringResourceItem(facet, name, locale);
+    } else {
+      return ApplicationManager.getApplication().runReadAction(new Computable<ResourceItem>() {
+        @Override
+        public ResourceItem compute() {
+          return getStringResourceItem(facet, name, locale);
+        }
+      });
+    }
+  }
+
+  @Nullable
+  private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
+    LocalResourceRepository repository = facet.getModuleResources(true);
+    List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
+    if (items == null) {
+      return null;
+    }
+
+    for (ResourceItem item : items) {
+      FolderConfiguration config = item.getConfiguration();
+      LanguageQualifier languageQualifier = config == null ? null : config.getLanguageQualifier();
+
+      if (languageQualifier == null) {
+        if (locale == null) {
+          return item;
+        }
+        else {
+          continue;
+        }
+      }
+
+      Locale l = Locale.create(languageQualifier, config.getRegionQualifier());
+      if (l.equals(locale)) {
+        return item;
+      }
+    }
+
+    return null;
   }
 
   @Nullable
