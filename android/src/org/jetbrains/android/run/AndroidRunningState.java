@@ -17,10 +17,12 @@ package org.jetbrains.android.run;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.build.SplitOutput;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.*;
+import com.android.ide.common.build.SplitOutputMatcher;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -34,6 +36,8 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.ApkUploaderService;
 import com.android.tools.idea.run.LaunchCompatibility;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.CommonBundle;
 import com.intellij.execution.DefaultExecutionResult;
@@ -87,6 +91,8 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
+import org.gradle.internal.reflect.*;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -905,8 +911,13 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
           // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
           if (!ideaAndroidProject.getDelegate().isLibrary()) {
-            AndroidArtifactOutput output = GradleUtil.getOutput(selectedVariant.getMainArtifact());
-            File apk = output.getOutputFile();
+            File apk = getApk(selectedVariant, device);
+            if (apk == null) {
+              String message =
+                AndroidBundle.message("deployment.failed.cannot.determine.apk", selectedVariant.getDisplayName(), device.getName());
+              message(message, STDERR);
+              return false;
+            }
             if (!uploadAndInstallApk(device, myPackageName, apk.getAbsolutePath())) {
               return false;
             }
@@ -993,6 +1004,45 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       LOG.info(e);
       String message = e.getMessage();
       message("I/O Error" + (message != null ? ": " + message : ""), STDERR);
+      return false;
+    }
+  }
+
+  @Nullable
+  private static File getApk(@NotNull Variant variant, @NotNull IDevice device) {
+    List<AndroidArtifactOutput> outputs = Lists.newArrayList(variant.getMainArtifact().getOutputs());
+    if (outputs.isEmpty()) {
+      LOG.info("No outputs for the main artifact of variant: " + variant.getDisplayName());
+      return null;
+    }
+
+    // version 0.13 of the Gradle builder model introduces new APIs. We first need to check which version
+    // is in use by this project.
+    if (!hasSplitsModel(outputs.get(0))) {
+      LOG.info("Using older Gradle model w/o information about split apks");
+      return outputs.get(0).getOutputFile();
+    }
+    else {
+      List<String> abis = device.getAbis();
+      int density = device.getDensity();
+      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, density, abis);
+      if (output == null) {
+        String message =
+          AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(',').join(abis));
+        LOG.error(message);
+        return null;
+      }
+      return output.getOutputFile();
+    }
+  }
+
+  // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.12.x, whichever is earlier (b.android.com/76248)
+  private static boolean hasSplitsModel(AndroidArtifactOutput androidArtifactOutput) {
+    try {
+      androidArtifactOutput.getAbiFilter();
+      return true;
+    }
+    catch (UnsupportedMethodException e) {
       return false;
     }
   }
