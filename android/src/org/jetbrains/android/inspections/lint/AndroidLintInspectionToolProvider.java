@@ -7,30 +7,26 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.actions.OverrideResourceAction;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.Issue;
-import com.android.tools.lint.detector.api.TextFormat;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpressionList;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethodCallExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
-import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -750,35 +746,9 @@ public class AndroidLintInspectionToolProvider {
               }
 
               // Regular Gradle dependency? Look in Gradle cache
-              List<GradleCoordinate> coordinates = Lists.newArrayList();
-              File gradleCache = new File(SystemProperties.getUserHome(), DOT_GRADLE + File.separator + "caches");
-              if (gradleCache.exists()) {
-                String groupId = plus.getGroupId();
-                for (File moduleDir : FileUtil.notNullize(gradleCache.listFiles())) {
-                  if (moduleDir.getName().startsWith("modules-") && moduleDir.isDirectory()) {
-                    for (File metadataDir : FileUtil.notNullize(moduleDir.listFiles())) {
-                      if (metadataDir.getName().startsWith("metadata-") && metadataDir.isDirectory()) {
-                        File versionDir = new File(metadataDir, "descriptors" + File.separator + groupId + File.separator + artifactId);
-                        if (versionDir.isDirectory()) {
-                          for (File version : FileUtil.notNullize(versionDir.listFiles())) {
-                            String name = version.getName();
-                            if (name.startsWith(filter) && !name.isEmpty() && Character.isDigit(name.charAt(0))) {
-                              GradleCoordinate v = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + name);
-                              if (v != null) {
-                                coordinates.add(v);
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-                if (!coordinates.isEmpty()) {
-                  Collections.sort(coordinates, GradleCoordinate.COMPARE_PLUS_LOWER);
-                  GradleCoordinate best = coordinates.get(coordinates.size() - 1);
-                  return best.toString();
-                }
+              GradleCoordinate found = GradleUtil.findLatestVersionInGradleCache(plus, filter);
+              if (found != null) {
+                return found.toString();
               }
 
               return null;
