@@ -192,7 +192,7 @@ public class DevicePanel implements Disposable,
       @Override
       public void run() {
         myDevicesComboBox.repaint();
-        if (!myDevicesComboBox.getSelectedItem().equals(device)) {
+        if (device != myDevicesComboBox.getSelectedItem()) {
           return;
         }
 
@@ -200,7 +200,9 @@ public class DevicePanel implements Disposable,
           updateClientsForDevice(device);
         }
 
-        myDeviceContext.fireDeviceChanged(device, changeMask);
+        if (device != null) {
+          myDeviceContext.fireDeviceChanged(device, changeMask);
+        }
       }
     });
   }
