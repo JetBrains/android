@@ -23,10 +23,10 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.OptionAction;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.wm.WelcomeFrameProvider;
 import com.intellij.openapi.wm.WelcomeScreen;
-import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
+import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
 import com.intellij.ui.IdeBorderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -322,6 +320,11 @@ public class WelcomeScreenHost extends JPanel implements WelcomeScreen, DynamicW
     @Override
     public void actionPerformed(ActionEvent e) {
       myWizard.doFinishAction();
+      NewWelcomeScreen welcomeScreen = new NewWelcomeScreen();
+      Disposer.register(getDisposable(), welcomeScreen);
+      getRootPane().setDefaultButton(null);
+      welcomeScreen.setupFrame(myFrame);
+      myFrame.setContentPane(welcomeScreen.getWelcomePanel());
     }
   }
 }
