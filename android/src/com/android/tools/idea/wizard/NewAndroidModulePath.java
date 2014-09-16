@@ -44,7 +44,7 @@ import static com.android.tools.idea.wizard.ChooseTemplateStep.MetadataListItem;
  * Deprecated. Use {@link NewModuleWizardDynamic} instead.
  */
 @Deprecated
-@NewModuleWizardDynamic.Migrated
+@LegacyWizardPathProvider.Migrated
 public final class NewAndroidModulePath implements WizardPath {
   private static final Logger LOG = Logger.getInstance(NewAndroidModulePath.class);
   @NotNull private final NewModuleWizardState myWizardState;
