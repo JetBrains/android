@@ -19,10 +19,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
@@ -37,6 +36,8 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.basic.BasicHTML;
+import javax.swing.text.View;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -174,12 +175,13 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
     public TemplateListCellRenderer() {
       myLabel.setFont(UIUtil.getListFont());
       myDescriptionLabel.setFont(UIUtil.getToolTipFont());
-      myPanel.add(myLabel, BorderLayout.CENTER);
-      myPanel.add(myDescriptionLabel, BorderLayout.SOUTH);
+      myDescriptionLabel.setVerticalAlignment(SwingConstants.TOP);
+      myPanel.add(myLabel, BorderLayout.NORTH);
+      myPanel.add(myDescriptionLabel, BorderLayout.CENTER);
     }
 
-    private static Font smaller(Font font) {
-      return font.deriveFont(font.getStyle(), font.getSize() - 2);
+    private static int getInsetsWidth(Insets insets) {
+      return insets.left + insets.right;
     }
 
     @Override
@@ -200,14 +202,26 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
         border = IdeBorderFactory.createEmptyBorder(border.getBorderInsets(myLabel));
       }
 
+      myPanel.setBorder(border);
       if (value instanceof ModuleTemplate) {
-        myLabel.setText(((ModuleTemplate)value).getName());
-        myDescriptionLabel.setText(((ModuleTemplate)value).getDescription());
+        String name = ((ModuleTemplate)value).getName();
+        myLabel.setText(name);
+        String description = ((ModuleTemplate)value).getDescription();
+        if (!StringUtil.isEmpty(description) && !BasicHTML.isHTMLString(description)) {
+          description = "<html>" + description + "</html>";
+        }
+        if (!StringUtil.isEmpty(description)) {
+          View htmlView = BasicHTML.createHTMLView(myDescriptionLabel, description);
+          int width = 630 - (getInsetsWidth(border.getBorderInsets(myPanel)) + getInsetsWidth(list.getInsets()));
+          htmlView.setSize(width, 500);
+          int preferredSpan = (int)htmlView.getPreferredSpan(View.Y_AXIS);
+          myDescriptionLabel.setPreferredSize(new Dimension(width, preferredSpan));
+        }
+        myDescriptionLabel.setText(description);
       }
       myLabel.setForeground(fg);
       myDescriptionLabel.setForeground(descriptionFg);
       myPanel.setBackground(bg);
-      myPanel.setBorder(border);
       return myPanel;
     }
   }
