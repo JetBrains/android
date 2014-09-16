@@ -72,7 +72,7 @@ public class AndroidGradleProjectData implements Serializable {
   private static final boolean ENABLED = !Boolean.getBoolean("studio.disable.synccache");
 
   @SuppressWarnings("unchecked") private static final Set<Class<?>> SUPPORTED_TYPES =
-    ImmutableSet.of(File.class, Boolean.class, String.class, Collection.class, Map.class, Set.class);
+    ImmutableSet.of(File.class, Boolean.class, String.class, Integer.class, Collection.class, Map.class, Set.class);
 
   private static final Logger LOG = Logger.getInstance(AndroidGradleProjectData.class);
 
@@ -349,6 +349,9 @@ public class AndroidGradleProjectData implements Serializable {
    * Here we assume that the given object can be represented as a map of method name to return value. The original object
    * is regenerated using this assumption which gives a serializable/deserializable object.
    *
+   * If a method throws an exception it is assumed that it is the intended behaviour and the same exception will be thrown in the
+   * reproxied counterpart. This is useful for Gradle model methods that are not present in the actual model object being used.
+   *
    * @param object the object to 'reproxy'.
    * @param type   the runtime type of the object. This is the expected type of object, and must be a superclass or equals to T.
    * @param <T>    the type of the object.
@@ -360,6 +363,9 @@ public class AndroidGradleProjectData implements Serializable {
   static <T> T reproxy(Type type, T object) {
     if (object == null) {
       return null;
+    }
+    if (object instanceof InvocationErrorValue) {
+      return object;
     }
 
     if (type instanceof ParameterizedType) {
@@ -423,14 +429,17 @@ public class AndroidGradleProjectData implements Serializable {
     for (Method m : clazz.getMethods()) {
       try {
         if (Modifier.isPublic(m.getModifiers())) {
-          values.put(m.toGenericString(), reproxy(m.getGenericReturnType(), m.invoke(object)));
+          Object value;
+          try {
+            value = m.invoke(object);
+          } catch (InvocationTargetException e) {
+            value = new InvocationErrorValue(e);
+          }
+          values.put(m.toGenericString(), reproxy(m.getGenericReturnType(), value));
         }
       }
       catch (IllegalAccessException e) {
         throw new IllegalStateException("A non public method shouldn't have been called.", e);
-      }
-      catch (InvocationTargetException e) {
-        throw new IllegalStateException("Invalid method receiver.", e);
       }
     }
     return (T)Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new WrapperInvocationHandler(values));
@@ -623,12 +632,24 @@ public class AndroidGradleProjectData implements Serializable {
         if (!values.containsKey(key)) {
           LOG.warn("Invoking a non-existent reproxy method: " + key);
         }
-        return values.get(key);
+        Object value = values.get(key);
+        if (value instanceof InvocationErrorValue) {
+          throw ((InvocationErrorValue)value).exception;
+        }
+        return value;
       }
     }
 
     private boolean proxyEquals(Object other) {
       return other != null && Proxy.isProxyClass(other.getClass()) && Proxy.getInvocationHandler(other).equals(this);
+    }
+  }
+
+  private static class InvocationErrorValue implements Serializable {
+    public InvocationTargetException exception;
+
+    private InvocationErrorValue(InvocationTargetException exception) {
+      this.exception = exception;
     }
   }
 }
