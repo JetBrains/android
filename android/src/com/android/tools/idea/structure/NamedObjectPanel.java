@@ -29,6 +29,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.pom.java.LanguageLevel;
+import com.intellij.psi.PsiNameHelper;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.containers.SortedList;
@@ -78,6 +80,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
   private JSplitPane mySplitPane;
   private JPanel myRightPane;
   private KeyValuePane myDetailsPane;
+  private JLabel myNameWarning;
   private final BuildFileKey myBuildFileKey;
   private final String myNewItemName;
   private final SortedListModel myListModel;
@@ -143,6 +146,8 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     mySplitPane.setLeftComponent(decorator.createPanel());
     mySplitPane.setDividerLocation(200);
     myRightPane.setBorder(IdeBorderFactory.createBorder());
+
+    myNameWarning.setForeground(JBColor.RED);
   }
 
   @Override
@@ -372,7 +377,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     if (myCurrentObject == null || myUpdating) {
       return;
     }
-    String newName = myObjectName.getText();
+    String newName = validateName();
     if (newName != null && !myCurrentObject.getName().equals(newName)) {
       myCurrentObject.setName(newName);
       myList.updateUI();
@@ -391,10 +396,27 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
       myDetailsPane.setCurrentBuildFileObject(myCurrentObject != null ? myCurrentObject.getValues() : null);
       myDetailsPane.setCurrentModelObject(myCurrentObject != null ? myModelObjects.get(myCurrentObject.getName()) : null);
       myDetailsPane.updateUiFromCurrentObject();
+      validateName();
     }
     finally {
       myUpdating = false;
     }
+  }
+
+  @NotNull
+  private String validateName() {
+    if (myCurrentObject == null) {
+      return "";
+    }
+    String newName = myObjectName.getText();
+    if (!PsiNameHelper.getInstance(myProject).isIdentifier(newName, LanguageLevel.JDK_1_7)) {
+      myNameWarning.setText("Name must be a valid Java identifier");
+      newName = myCurrentObject.getName();
+    }
+    else {
+      myNameWarning.setText(" ");
+    }
+  return newName;
   }
 
   @Nullable
