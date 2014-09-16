@@ -20,19 +20,13 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.util.Processor;
 import org.gradle.wrapper.WrapperExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,13 +37,11 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 final class PreSyncChecks {
-  private static final Pattern ANDROID_GRADLE_PLUGIN_DEPENDENCY_PATTERN = Pattern.compile("['\"]com.android.tools.build:gradle:(.+)['\"]");
   private static final Pattern GRADLE_DISTRIBUTION_URL_PATTERN =
     Pattern.compile("http://services\\.gradle\\.org/distributions/gradle-(.+)-(.+)\\.zip");
 
@@ -67,7 +59,7 @@ final class PreSyncChecks {
   static boolean canSync(@NotNull Project project) {
     VirtualFile baseDir = project.getBaseDir();
     if (baseDir == null) {
-      // Unlikely to happen. Even if it does, let sync continue.
+      // Unlikely to happen because it would mean this is the default project.
       return true;
     }
 
@@ -86,18 +78,8 @@ final class PreSyncChecks {
       return answer == Messages.YES;
     }
 
-    final List<File> filesToProcess = Lists.newArrayList();
-    VfsUtil.processFileRecursivelyWithoutIgnored(baseDir, new Processor<VirtualFile>() {
-      @Override
-      public boolean process(VirtualFile virtualFile) {
-        if (SdkConstants.FN_BUILD_GRADLE.equals(virtualFile.getName())) {
-          filesToProcess.add(VfsUtilCore.virtualToIoFile(virtualFile));
-        }
-        return true;
-      }
-    });
-
-    ensureCorrectGradleSettings(project, filesToProcess);
+    String modelVersion = GradleUtil.getAndroidGradleModelVersion(project);
+    ensureCorrectGradleSettings(project, modelVersion);
     return true;
   }
 
@@ -126,31 +108,13 @@ final class PreSyncChecks {
     return true;
   }
 
-  private static void ensureCorrectGradleSettings(@NotNull Project project, @NotNull List<File> gradleFiles) {
-    String originalPluginVersion = null;
-    for (File fileToCheck : gradleFiles) {
-      if (SdkConstants.FN_BUILD_GRADLE.equals(fileToCheck.getName())) {
-        try {
-          String contents = Files.toString(fileToCheck, Charsets.UTF_8);
-          Matcher matcher = ANDROID_GRADLE_PLUGIN_DEPENDENCY_PATTERN.matcher(contents);
-          if (matcher.find()) {
-            originalPluginVersion = matcher.group(1);
-            if (!StringUtil.isEmpty(originalPluginVersion)) {
-              break;
-            }
-          }
-        }
-        catch (IOException e) {
-          LOG.warn("Failed to read contents of " + fileToCheck.getPath());
-        }
-      }
-    }
-    if (StringUtil.isEmpty(originalPluginVersion)) {
+  private static void ensureCorrectGradleSettings(@NotNull Project project, @Nullable String modelVersion) {
+    if (StringUtil.isEmpty(modelVersion)) {
       // Could not obtain plug-in version. Continue.
       ensureGradleDistributionIsSet(project);
       return;
     }
-    String pluginVersion = originalPluginVersion.replace('+', '0');
+    String pluginVersion = modelVersion.replace('+', '0');
     FullRevision pluginRevision = null;
     try {
       pluginRevision = FullRevision.parseRevision(pluginVersion);
@@ -172,10 +136,10 @@ final class PreSyncChecks {
     boolean usingWrapper =
       (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
     if (usingWrapper) {
-      attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, originalPluginVersion, project);
+      attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, modelVersion, project);
     }
     else if (distributionType == DistributionType.LOCAL) {
-      attemptToUseSupportedLocalGradle(originalPluginVersion, gradleSettings, project);
+      attemptToUseSupportedLocalGradle(modelVersion, gradleSettings, project);
     }
   }
 
