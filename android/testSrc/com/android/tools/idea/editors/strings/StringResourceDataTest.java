@@ -17,12 +17,10 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.ModuleResourceRepository;
 import com.google.common.base.Function;
 import com.google.common.collect.*;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -158,7 +156,7 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals(expected, tag.getValue().getText());
   }
 
-  public void disabled_testAddingTranslation() {
+  public void testAddingTranslation() {
     VirtualFile res = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
     ModuleResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res));
     StringResourceData data = StringResourceParser.parse(myFacet, repository);
@@ -169,7 +167,10 @@ public class StringResourceDataTest extends AndroidTestCase {
 
     assertTrue(data.setTranslation(key, locale, "Hello"));
 
-    List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);
+    XmlTag tag = getNthXmlTag(res.findFileByRelativePath("values-en/strings.xml"), "string", 3);
+    assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME));
+    assertEquals("Hello", tag.getValue().getText());
+
     assertEquals("Hello", StringResourceData.resourceToString(data.getTranslations().get(key, locale)));
   }
 

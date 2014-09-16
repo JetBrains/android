@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.PsiResourceItem;
@@ -149,16 +148,31 @@ public class StringResourceData {
     if (currentItem != null) { // modify existing item
       String oldText = resourceToString(currentItem);
       if (!StringUtil.equals(oldText, value)) {
-        return StringsWriteUtils.setItemText(myFacet.getModule().getProject(), currentItem, value);
+        boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), currentItem, value);
+        if (changed && value.isEmpty()) {
+          if (locale == null) {
+            myDefaultValues.remove(key);
+          }
+          else {
+            myTranslations.remove(key, locale);
+          }
+        }
+        return changed;
       }
     }
     else { // create new item
-      boolean created = StringsWriteUtils.createItem(myFacet.getModule().getProject(), myFacet.getPrimaryResourceDir(), locale, key, value,
-                                          !getUntranslatableKeys().contains(key));
-      if (created) {
-        // TODO: rescan items, possibly reuse StringResourceParser
+      ResourceItem item =
+        StringsWriteUtils.createItem(myFacet, myFacet.getPrimaryResourceDir(), locale, key, value, !getUntranslatableKeys().contains(key));
+      if (item != null) {
+        if (locale == null) {
+          myDefaultValues.put(key, item);
+        }
+        else {
+          myTranslations.put(key, locale, item);
+        }
+        return true;
       }
-      return created;
+      return false;
     }
     return false;
   }
