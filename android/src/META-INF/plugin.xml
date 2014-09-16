@@ -643,10 +643,12 @@
     <extensionPoint name="lightBuildProvider" interface="org.jetbrains.android.compiler.AndroidLightBuildProvider"/>
     <extensionPoint name="refactoringContextProvider" interface="org.jetbrains.android.refactoring.AndroidRefactoringContextProvider"/>
     <extensionPoint name="newModuleWizardPathFactory" interface="com.android.tools.idea.wizard.NewModuleWizardPathFactory"/>
+    <extensionPoint name="newModuleDynamicPathFactory" interface="com.android.tools.idea.wizard.NewModuleDynamicPathFactory"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="org.jetbrains.android">
     <newModuleWizardPathFactory implementation="com.android.tools.idea.wizard.WrapArchiveWizardPathFactory"/>
+    <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.LegacyWizardPathProvider"/>
   </extensions>
 
   <!-- Layout editor -->

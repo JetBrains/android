@@ -62,8 +62,10 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
 
   @Override
   protected void addPaths() {
-    Collection<LegacyPathWrapper> wrappers = getLegacyPaths();
-    addPath(new SingleStepPath(new ChooseModuleTypeStep(Iterables.concat(ImmutableSet.of(new AndroidModuleTemplatesProvider()), wrappers), getDisposable())));
+    Collection<NewModuleDynamicPath> contributions = getContributedPaths();
+    Iterable<ModuleTemplateProvider> templateProviders =
+      Iterables.concat(ImmutableSet.of(new AndroidModuleTemplatesProvider()), contributions);
+    addPath(new SingleStepPath(new ChooseModuleTypeStep(templateProviders, getDisposable())));
     addPath(new SingleStepPath(new ConfigureAndroidModuleStepDynamic(getProject(), getDisposable())) {
       @Override
       public boolean isPathVisible() {
@@ -73,13 +75,17 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
       addPath(path);
     }
-    for (LegacyPathWrapper wrapper : wrappers) {
-      addPath(wrapper);
+    for (NewModuleDynamicPath contribution : contributions) {
+      addPath(contribution);
     }
   }
 
-  private Collection<LegacyPathWrapper> getLegacyPaths() {
-    return new LegacyWizardModuleBuilder(getProject(), getDisposable()).getWrappers();
+  private Collection<NewModuleDynamicPath> getContributedPaths() {
+    ImmutableSet.Builder<NewModuleDynamicPath> builder = ImmutableSet.builder();
+    for (NewModuleDynamicPathFactory factory : NewModuleDynamicPathFactory.EP_NAME.getExtensions()) {
+      builder.addAll(factory.createWizardPaths(getProject(), getDisposable()));
+    }
+    return builder.build();
   }
 
   @Override
@@ -111,44 +117,5 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
         return TemplateUtils.openEditors(project, myFilesToOpen, true);
       }
     });
-  }
-
-  @Retention(RetentionPolicy.RUNTIME)
-  public @interface Migrated {
-  }
-
-  private static class LegacyWizardModuleBuilder extends TemplateWizardModuleBuilder {
-    private final Collection<LegacyPathWrapper> myWrappers;
-
-    public LegacyWizardModuleBuilder(@Nullable Project project, Disposable disposable) {
-      super(null, null, project, null, Lists.<ModuleWizardStep>newLinkedList(), disposable, false);
-      myWrappers = wrapPaths();
-    }
-
-    private Collection<LegacyPathWrapper> wrapPaths() {
-      List<LegacyPathWrapper> wrappers = ContainerUtil.newLinkedList();
-      for (WizardPath wizardPath : getPaths()) {
-        if (wizardPath.getClass().getAnnotation(Migrated.class) == null) {
-          wrappers.add(new LegacyPathWrapper(myWizardState, wizardPath));
-        }
-      }
-      return wrappers;
-    }
-
-    public Collection<LegacyPathWrapper> getWrappers() {
-      return myWrappers;
-    }
-
-    @Override
-    public void update() {
-      super.update();
-      if (myWrappers != null) {
-        for (LegacyPathWrapper wrapper : myWrappers) {
-          if (wrapper.isPathVisible()) {
-            wrapper.updateWizard();
-          }
-        }
-      }
-    }
   }
 }
