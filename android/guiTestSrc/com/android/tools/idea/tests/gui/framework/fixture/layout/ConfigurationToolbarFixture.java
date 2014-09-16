@@ -94,7 +94,7 @@ public class ConfigurationToolbarFixture {
    */
   @SuppressWarnings("SpellCheckingInspection")
   public void createLandscapeVariation() {
-    JButton menuButton = findToolbarButton("Configuration to render this layout with in the IDE");
+    JButton menuButton = findToolbarButton("Configuration to render this layout with inside the IDE");
     myRobot.click(menuButton);
 
     clickPopupMenuItem("Create Landscape Variation");
@@ -112,7 +112,7 @@ public class ConfigurationToolbarFixture {
   }
 
   public void createOtherVariation(@NotNull String variation) {
-    JButton menuButton = findToolbarButton("Configuration to render this layout with in the IDE");
+    JButton menuButton = findToolbarButton("Configuration to render this layout with inside the IDE");
     myRobot.click(menuButton);
 
     clickPopupMenuItem("Create Other...");
