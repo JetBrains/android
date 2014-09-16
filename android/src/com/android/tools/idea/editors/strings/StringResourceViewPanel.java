@@ -132,7 +132,7 @@ public class StringResourceViewPanel {
         NewStringKeyDialog dialog = new NewStringKeyDialog(myFacet);
         if (dialog.showAndGet()) {
           StringsWriteUtils
-            .createItem(myFacet.getModule().getProject(), dialog.getResFolder(), null, dialog.getKey(), dialog.getDefaultValue(), true);
+            .createItem(myFacet, dialog.getResFolder(), null, dialog.getKey(), dialog.getDefaultValue(), true);
           reloadData();
         }
       }
@@ -186,7 +186,7 @@ public class StringResourceViewPanel {
             }
 
             Locale l = (Locale)list.getSelectedValue();
-            StringsWriteUtils.createItem(myFacet.getModule().getProject(), myFacet.getPrimaryResourceDir(), l, key,
+            StringsWriteUtils.createItem(myFacet, myFacet.getPrimaryResourceDir(), l, key,
                                          StringResourceData.resourceToString(defaultValue), true);
             reloadData();
           }
@@ -338,12 +338,13 @@ public class StringResourceViewPanel {
       setTextAndEditable(myDefaultValue, defaultValue, defaultValueEditable);
       myDefaultValueWithBrowseBtn.getButton().setEnabled(true);
 
+      boolean translationEditable = false;
+      String translation = "";
       if (locale != null) {
-        String translation = (String)model.getValueAt(row, column);
-        boolean translationEditable = !StringUtil.containsChar(translation, '\n'); // don't allow editing multiline chars in a text field
-        setTextAndEditable(myTranslation, translation, translationEditable);
+        translation = (String)model.getValueAt(row, column);
+        translationEditable = !StringUtil.containsChar(translation, '\n'); // don't allow editing multiline chars in a text field
       }
-
+      setTextAndEditable(myTranslation, translation, translationEditable);
       myTranslationWithBrowseBtn.getButton().setEnabled(locale != null);
     }
 
