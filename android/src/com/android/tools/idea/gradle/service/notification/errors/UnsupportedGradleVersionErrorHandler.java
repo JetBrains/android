@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.service.notification.errors;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleModelVersionHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.CreateGradleWrapperHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.service.notification.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -23,7 +24,10 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import java.io.File;
 import java.util.List;
@@ -43,8 +47,19 @@ public class UnsupportedGradleVersionErrorHandler extends AbstractSyncErrorHandl
       File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
       if (wrapperPropertiesFile != null) {
         // It is very likely that we need to fix the model version as well. Do everything in one shot.
-        NotificationHyperlink hyperlink = new FixGradleModelVersionHyperlink("Fix Gradle wrapper and re-import project", false);
-        hyperlinks.add(hyperlink);
+        NotificationHyperlink hyperlink = FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper(project);
+        if (hyperlink != null) {
+          hyperlinks.add(hyperlink);
+        }
+      }
+      else {
+        GradleProjectSettings gradleProjectSettings = GradleUtil.getGradleProjectSettings(project);
+        if (gradleProjectSettings != null && gradleProjectSettings.getDistributionType() == DistributionType.LOCAL) {
+          String gradleVersion = GradleUtil.getSupportedGradleVersion(project);
+          if (StringUtil.isNotEmpty(gradleVersion)) {
+            hyperlinks.add(new CreateGradleWrapperHyperlink(gradleVersion));
+          }
+        }
       }
       hyperlinks.add(new OpenGradleSettingsHyperlink());
       updateNotification(notification, project, error.getMessage(), hyperlinks);

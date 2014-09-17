@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
@@ -46,7 +47,12 @@ import static org.junit.Assert.assertTrue;
 public class GradleSyncTest extends GuiTestCase {
   @Test @IdeGuiTest
   public void testUnsupportedGradleVersion() throws IOException {
-    IdeFrameFixture projectFrame = openSimpleApplication();
+    final File projectPath = setUpProject(SIMPLE_APPLICATION_DIR_NAME, true, false /* do not update plug-in version to 0.13 */);
+
+    findWelcomeFrame().clickOpenProjectButton();
+
+    FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
+    IdeFrameFixture projectFrame = openProjectAndWaitUntilOpened(projectPath, openProjectDialog);
 
     // Ensure we have an old, unsupported Gradle in the wrapper.
     File wrapperPropertiesFile = findWrapperPropertiesFile(projectFrame.getProject());
@@ -57,7 +63,7 @@ public class GradleSyncTest extends GuiTestCase {
     projectFrame.requireEditorNotification("Gradle project sync failed.");
 
     MessagesToolWindowFixture.ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
-    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("You are using an unsupported version of Gradle"));
+    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("The project is using an unsupported version of Gradle"));
 
     HyperlinkFixture hyperlink = message.findHyperlink("Fix Gradle wrapper and re-import project");
     hyperlink.click();

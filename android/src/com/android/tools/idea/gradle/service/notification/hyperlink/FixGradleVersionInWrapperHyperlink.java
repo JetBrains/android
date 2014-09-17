@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.gradle.service.notification.hyperlink;
 
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.DistributionType;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import javax.swing.event.HyperlinkEvent;
 import java.io.File;
@@ -36,10 +40,13 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @NotNull private final String myGradleVersion;
 
   @Nullable
-  public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project, @NotNull String supportedGradleVersion) {
+  public static NotificationHyperlink createIfProjectUsesGradleWrapper(@NotNull Project project) {
     File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
     if (wrapperPropertiesFile != null) {
-      return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, supportedGradleVersion);
+      String supportedGradleVersion = GradleUtil.getSupportedGradleVersion(project);
+      if (StringUtil.isNotEmpty(supportedGradleVersion)) {
+        return new FixGradleVersionInWrapperHyperlink(wrapperPropertiesFile, supportedGradleVersion);
+      }
     }
     return null;
   }
@@ -53,13 +60,18 @@ public class FixGradleVersionInWrapperHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
+    GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(project);
+    if (settings != null) {
+      settings.setDistributionType(DistributionType.DEFAULT_WRAPPED);
+    }
+    GradleProjectImporter.getInstance().requestProjectSync(project, null);
   }
 
   @Override
   public boolean executeIfClicked(@NotNull Project project, @NotNull HyperlinkEvent event) {
     // we need HyperlinkEvent for the link deactivation after the fix apply
     final boolean updated = updateGradleVersion(project, myWrapperPropertiesFile, myGradleVersion);
-    if(updated){
+    if (updated) {
       EditableNotificationMessageElement.disableLink(event);
     }
     return updated;
