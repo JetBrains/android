@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationLocationPath;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.getProjectCreationDirPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.fest.reflect.core.Reflection.staticMethod;
 
@@ -57,7 +57,7 @@ public class IdeTestApplication implements Disposable {
       ourInstance = new IdeTestApplication();
       recreateDirectory(configDirPath);
 
-      File newProjectsRootDirPath = getProjectCreationLocationPath();
+      File newProjectsRootDirPath = getProjectCreationDirPath();
       recreateDirectory(newProjectsRootDirPath);
 
       UrlClassLoader ideClassLoader = ourInstance.getIdeClassLoader();
