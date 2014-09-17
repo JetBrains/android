@@ -20,12 +20,15 @@ import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static junit.framework.Assert.assertNotNull;
 
 public class ImportProjectTest extends GuiTestCase {
   @Test @IdeGuiTest
@@ -39,7 +42,11 @@ public class ImportProjectTest extends GuiTestCase {
     // Import project
     findWelcomeFrame().clickImportProjectButton();
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
-    importProjectDialog.select(projectDirPath).clickOk();
+
+    VirtualFile toSelect = findFileByIoFile(projectDirPath, true);
+    assertNotNull(toSelect);
+
+    importProjectDialog.select(toSelect).clickOk();
 
     // Expect message suggesting to use Gradle wrapper. Click "OK" to use wrapper.
     findGradleSyncMessageDialog(myRobot).clickOk();
