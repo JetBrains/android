@@ -28,6 +28,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.impl.WindowManagerImpl;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
@@ -63,6 +66,8 @@ import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.swing.timing.Pause.pause;
@@ -188,10 +193,14 @@ public abstract class GuiTestCase {
   @NotNull
   protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true, null);
+
+    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+
     findWelcomeFrame().clickImportProjectButton();
 
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
-    return openProjectAndWaitUntilOpened(projectPath, importProjectDialog);
+    return openProjectAndWaitUntilOpened(toSelect, importProjectDialog);
   }
 
   @NotNull
@@ -207,10 +216,13 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture openProject(@NotNull File projectPath) {
+    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+
     findWelcomeFrame().clickOpenProjectButton();
 
     FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-    return openProjectAndWaitUntilOpened(projectPath, openProjectDialog);
+    return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
   }
 
   @NotNull
@@ -404,10 +416,10 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull File projectPath, @NotNull FileChooserDialogFixture fileChooserDialog) {
+  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectPath, @NotNull FileChooserDialogFixture fileChooserDialog) {
     fileChooserDialog.select(projectPath).clickOk();
 
-    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    IdeFrameFixture projectFrame = findIdeFrame(virtualToIoFile(projectPath));
     projectFrame.waitForGradleProjectSyncToFinish();
 
     return projectFrame;
