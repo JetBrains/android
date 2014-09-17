@@ -2,9 +2,11 @@
 
 buildscript {
     repositories {
-        jcenter()
+        // We need to use mavenCentral instead of jcenter because this project is used to test project sync when using old versions of
+        // Gradle. For example, syncing using Gradle 1.5 throws an exception because it doesn't know about jcenter.
+        mavenCentral()
         if (System.getenv("MAVEN_URL") != null) {
-            maven {url System.getenv("MAVEN_URL")}
+          maven {url System.getenv("MAVEN_URL")}
         }
     }
     dependencies {
@@ -17,6 +19,6 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
     }
 }

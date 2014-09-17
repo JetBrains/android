@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
@@ -22,32 +23,41 @@ import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
 import com.intellij.openapi.options.newEditor.OptionsEditor;
 import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
 import com.intellij.openapi.options.newEditor.OptionsTree;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.SystemInfo;
 import org.fest.reflect.reference.TypeRef;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.ComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.lang.ref.WeakReference;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
-public class IdeSettingsDialogFixture extends ComponentFixture<JDialog> {
-  @NotNull private final OptionsEditorDialog myDialogWrapper;
+public class IdeSettingsDialogFixture extends IdeaDialogFixture<OptionsEditorDialog> {
+  public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
+    final Ref<OptionsEditorDialog> wrapperRef = new Ref<OptionsEditorDialog>();
+    JDialog dialog = GuiTests.waitUntilFound(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(JDialog dialog) {
+        String expectedTitle = SystemInfo.isMac ? "Preferences" : "Settings";
+        if (expectedTitle.equals(dialog.getTitle()) && dialog.isShowing()) {
+          OptionsEditorDialog wrapper = getDialogWrapperFrom(dialog, OptionsEditorDialog.class);
+          if (wrapper != null) {
+            wrapperRef.set(wrapper);
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+    return new IdeSettingsDialogFixture(robot, dialog, wrapperRef.get());
+  }
 
-  public IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(robot, target);
-    WeakReference<DialogWrapper> dialogWrapperRef = field("myDialogWrapper").ofType(new TypeRef<WeakReference<DialogWrapper>>() {})
-                                                                            .in(target)
-                                                                            .get();
-    DialogWrapper dialogWrapper = dialogWrapperRef.get();
-    assertThat(dialogWrapper).isInstanceOf(OptionsEditorDialog.class);
-    //noinspection ConstantConditions
-    myDialogWrapper = (OptionsEditorDialog)dialogWrapper;
+  private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull OptionsEditorDialog dialogWrapper) {
+    super(robot, target, dialogWrapper);
   }
 
   @NotNull
@@ -57,9 +67,15 @@ public class IdeSettingsDialogFixture extends ComponentFixture<JDialog> {
 
   private List<String> getSettingsNames(@NotNull Class<? extends ConfigurableGroup> groupType) {
     List<String> names = Lists.newArrayList();
-    OptionsEditor optionsEditor = field("myEditor").ofType(OptionsEditor.class).in(myDialogWrapper).get();
-    OptionsTree optionsTree = field("myTree").ofType(OptionsTree.class).in(optionsEditor).get();
-    List<ConfigurableGroup> groups = field("myGroups").ofType(new TypeRef<List<ConfigurableGroup>>() {}).in(optionsTree).get();
+    OptionsEditor optionsEditor = field("myEditor").ofType(OptionsEditor.class)
+                                                   .in(getDialogWrapper())
+                                                   .get();
+    OptionsTree optionsTree = field("myTree").ofType(OptionsTree.class)
+                                             .in(optionsEditor)
+                                             .get();
+    List<ConfigurableGroup> groups = field("myGroups").ofType(new TypeRef<List<ConfigurableGroup>>() {})
+                                                      .in(optionsTree)
+                                                      .get();
     ConfigurableGroup group = null;
     for (ConfigurableGroup current : groups) {
       if (groupType.isInstance(current)) {
