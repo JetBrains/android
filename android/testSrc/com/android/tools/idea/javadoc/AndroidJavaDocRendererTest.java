@@ -233,6 +233,21 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                  "</body></html>");
   }
 
+  public void testAlphaColor() {
+    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/values2.xml", "res/values/values2.xml");
+    checkJavadoc("/javadoc/colors/layout3.xml", "res/layout/layout.xml",
+                 "<html><body>" +
+                 "<table style=\"background-color:rgb(0,0,0);color:white;width:200px;text-align:center;vertical-align:middle;\" " +
+                 "border=\"0\">" +
+                 "<tr height=\"100\">" +
+                 "<td align=\"center\" valign=\"middle\" height=\"100\">#80000000" +
+                 "</td>" +
+                 "</tr>" +
+                 "</table><BR/>\n" +
+                 "@color/my_color => #80000000<BR/>\n" +
+                 "</body></html>");
+  }
+
   public void testColorsAndResolution() {
     // This test checks
     //  - invoking XML documentation from an XML text node
