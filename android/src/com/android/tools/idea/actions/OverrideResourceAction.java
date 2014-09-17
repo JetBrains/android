@@ -26,7 +26,9 @@ import com.android.tools.idea.configurations.RenderContext;
 import com.android.tools.idea.rendering.PsiResourceItem;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.utils.Pair;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
+import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -42,15 +44,13 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
+import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
@@ -61,6 +61,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.ATTR_NAME;
 
@@ -73,12 +74,6 @@ import static com.android.SdkConstants.ATTR_NAME;
  *   <li>Offer specific suggestions for folder configurations based on resource type. For example, for a string value
  *   it's probably a locale; for a style it's probably an API version, for a layout it's probably
  *   a screen size or an orientation, and so on.</li>
- *   <li>When extracting values that contain children (e.g. a plural, an array, a declare styleable, a markup string, etc) also insert
- *   child content</li>
- *   <li>Similarly, when duplicating a resource element, copy all attributes on it. For example, with a style, copy not
- *       just the name but the parent attribute as well.</li>
- *   <li>Hook this up as a quickfix for the API detector, where you can easily create an override of a layout which uses
- *       a tag that is too new, or a layout style with a new parent, etc.</li>
  * </ul>
  */
 public class OverrideResourceAction extends AbstractIntentionAction {
@@ -183,7 +178,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     }
     if (dir != null) {
       String value = PsiResourceItem.getTextContent(tag).trim();
-      createValueResource(file, facet, dir, name, value, type);
+      createValueResource(file, facet, dir, name, value, type, tag.getText());
     }
   }
 
@@ -224,13 +219,47 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   private static void createValueResource(@NotNull PsiFile file,
                                           @NotNull AndroidFacet facet,
                                           @NotNull PsiDirectory dir,
-                                          @NotNull String resName,
-                                          @NotNull String value,
-                                          @NotNull ResourceType type) {
-    String filename = file.getName();
-    List<String> dirNames = Collections.singletonList(dir.getName());
-    Module module = facet.getModule();
-    AndroidResourceUtil.createValueResource(module, resName, type, filename, dirNames, value, true /*showFirst*/);
+                                          @NotNull final String resName,
+                                          @NotNull final String value,
+                                          @NotNull final ResourceType type,
+                                          @NotNull final String oldTagText) {
+    final String filename = file.getName();
+    final List<String> dirNames = Collections.singletonList(dir.getName());
+    final Module module = facet.getModule();
+    final AtomicReference<PsiElement> openAfter = new AtomicReference<PsiElement>();
+    final WriteCommandAction<Void> action = new WriteCommandAction<Void>(facet.getModule().getProject(),
+                                                                   "Override Resource " + resName, file) {
+      @Override
+      protected void run(@NotNull Result<Void> result) {
+        List<ResourceElement> elements = Lists.newArrayListWithExpectedSize(1);
+        // AndroidResourceUtil.createValueResource will create a new resource value in the given resource
+        // folder (and record the corresponding tags added in the elements list passed into it).
+        // However, it only creates a new element and sets the name attribute on it; it does not
+        // transfer attributes, child content etc. Therefore, we use this utility method first to
+        // create the corresponding tag, and then *afterwards* we will replace the tag with a text copy
+        // from the resource tag we are overriding. We do this all under a single write lock such
+        // that it becomes a single atomic operation.
+        AndroidResourceUtil.createValueResource(module, resName, type, filename, dirNames, value, elements);
+        if (elements.size() == 1) {
+          final XmlTag tag = elements.get(0).getXmlTag();
+          if (tag != null && tag.isValid()) {
+            try {
+              XmlTag tagFromText = XmlElementFactory.getInstance(tag.getProject()).createTagFromText(oldTagText);
+              PsiElement replaced = tag.replace(tagFromText);
+              openAfter.set(replaced);
+            } catch (IncorrectOperationException e) {
+              // The user tried to override an invalid XML fragment: don't attempt to do a replacement in that case
+              openAfter.set(tag);
+            }
+          }
+        }
+      }
+    };
+    action.execute();
+    PsiElement tag = openAfter.get();
+    if (tag != null) {
+      NavigationUtil.openFileWithPsiElement(tag, true, true);
+    }
   }
 
   /**
@@ -394,7 +423,11 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return null;
     }
     if (ApplicationManager.getApplication().isUnitTestMode() && ourTargetFolderName != null) {
-        return directory.createSubdirectory(ourTargetFolderName);
+      PsiDirectory subDirectory = directory.findSubdirectory(ourTargetFolderName);
+      if (subDirectory != null) {
+        return subDirectory;
+      }
+      return directory.createSubdirectory(ourTargetFolderName);
     }
     final CreateResourceDirectoryDialog dialog = new CreateResourceDirectoryDialog(project, folderType) {
       @Override
