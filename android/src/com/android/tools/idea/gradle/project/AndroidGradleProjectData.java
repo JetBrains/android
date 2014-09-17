@@ -433,7 +433,7 @@ public class AndroidGradleProjectData implements Serializable {
           try {
             value = m.invoke(object);
           } catch (InvocationTargetException e) {
-            value = new InvocationErrorValue(e);
+            value = new InvocationErrorValue(e.getCause());
           }
           values.put(m.toGenericString(), reproxy(m.getGenericReturnType(), value));
         }
@@ -646,9 +646,9 @@ public class AndroidGradleProjectData implements Serializable {
   }
 
   private static class InvocationErrorValue implements Serializable {
-    public InvocationTargetException exception;
+    public Throwable exception;
 
-    private InvocationErrorValue(InvocationTargetException exception) {
+    private InvocationErrorValue(Throwable exception) {
       this.exception = exception;
     }
   }
