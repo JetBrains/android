@@ -17,6 +17,7 @@
 package com.android.tools.idea;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -25,14 +26,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.ANDROID_PKG;
-import static com.android.SdkConstants.R_CLASS;
+import static com.android.SdkConstants.*;
 
 public class AndroidPsiUtils {
   /**
@@ -236,5 +237,46 @@ public class AndroidPsiUtils {
       return null;
     }
     return ResourceType.getEnum(qualifierExpression.getLastChild().getText());
+  }
+
+  /**
+   * Looks up the declared associated context/activity for the given XML file and
+   * returns the resolved fully qualified name if found
+   *
+   * @param module module containing the XML file
+   * @param xmlFile the XML file
+   * @return the associated fully qualified name, or null
+   */
+  @Nullable
+  public static String getDeclaredContextFqcn(@NotNull Module module, @NotNull XmlFile xmlFile) {
+    String context = getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
+    if (context != null && !context.isEmpty()) {
+      boolean startsWithDot = context.charAt(0) == '.';
+      if (startsWithDot || context.indexOf('.') == -1) {
+        // Prepend application package
+        String pkg = ManifestInfo.get(module, false).getPackage();
+        return startsWithDot ? pkg + context : pkg + '.' + context;
+      }
+
+    }
+    return null;
+  }
+
+  /**
+   * Looks up the declared associated context/activity for the given XML file and
+   * returns the associated class, if found
+   *
+   * @param module module containing the XML file
+   * @param xmlFile the XML file
+   * @return the associated class, or null
+   */
+  @Nullable
+  public static PsiClass getContextClass(@NotNull Module module, @NotNull XmlFile xmlFile) {
+    String fqn = getDeclaredContextFqcn(module, xmlFile);
+    if (fqn != null) {
+      Project project = module.getProject();
+      return JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
+    }
+    return null;
   }
 }
