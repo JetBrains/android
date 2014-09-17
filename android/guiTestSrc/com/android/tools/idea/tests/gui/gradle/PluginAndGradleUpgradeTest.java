@@ -54,7 +54,7 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
       return;
     }
 
-    File projectPath = setUpProject(PROJECT_DIR_NAME, false, false);
+    File projectPath = setUpProject(PROJECT_DIR_NAME, false, false, null);
 
     // Ensure we have a pre-2.1 Gradle in the wrapper.
     File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectPath);
