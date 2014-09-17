@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 public class SourceProviderStub implements SourceProvider {
@@ -181,6 +182,6 @@ public class SourceProviderStub implements SourceProvider {
   @Override
   @NotNull
   public Collection<File> getJniLibsDirectories() {
-    return null;
+    return Collections.emptyList();
   }
 }

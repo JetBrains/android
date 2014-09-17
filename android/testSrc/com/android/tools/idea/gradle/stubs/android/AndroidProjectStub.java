@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
