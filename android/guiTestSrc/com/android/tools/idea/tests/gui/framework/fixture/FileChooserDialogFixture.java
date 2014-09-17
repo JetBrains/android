@@ -17,31 +17,28 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.fileChooser.ex.FileSystemTreeImpl;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 
-public class FileChooserDialogFixture extends ComponentFixture<JDialog> {
+public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialogImpl> {
   @NotNull
   public static FileChooserDialogFixture findOpenProjectDialog(@NotNull Robot robot) {
     return findDialog(robot, new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -64,23 +61,34 @@ public class FileChooserDialogFixture extends ComponentFixture<JDialog> {
   }
 
   @NotNull
-  public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull GenericTypeMatcher<JDialog> matcher) {
-    JDialog dialog = robot.finder().find(matcher);
-    return new FileChooserDialogFixture(robot, dialog);
+  public static FileChooserDialogFixture findDialog(@NotNull Robot robot, @NotNull final GenericTypeMatcher<JDialog> matcher) {
+    final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
+    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(JDialog dialog) {
+        if (!matcher.matches(dialog)) {
+          return false;
+        }
+        FileChooserDialogImpl wrapper = getDialogWrapperFrom(dialog, FileChooserDialogImpl.class);
+        if (wrapper != null) {
+          wrapperRef.set(wrapper);
+          return true;
+        }
+        return false;
+      }
+    });
+    return new FileChooserDialogFixture(robot, dialog, wrapperRef.get());
   }
 
-  private FileChooserDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(robot, target);
+  private FileChooserDialogFixture(@NotNull Robot robot, @NotNull JDialog target, @NotNull FileChooserDialogImpl dialogWrapper) {
+    super(robot, target, dialogWrapper);
   }
 
   @NotNull
   public FileChooserDialogFixture select(@NotNull File file) {
-    WeakReference<DialogWrapper> dialogWrapperRef = field("myDialogWrapper").ofType(new TypeRef<WeakReference<DialogWrapper>>() {})
-                                                                            .in(target).get();
-
-    DialogWrapper dialogWrapper = dialogWrapperRef.get();
-    assertThat(dialogWrapper).isInstanceOf(FileChooserDialogImpl.class);
-    final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class).in(dialogWrapper).get();
+    final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class)
+                                                                       .in(getDialogWrapper())
+                                                                       .get();
 
     final VirtualFile toSelect = findFileByIoFile(file, true);
     assertNotNull(toSelect);
@@ -103,7 +111,7 @@ public class FileChooserDialogFixture extends ComponentFixture<JDialog> {
       public boolean test() {
         return fileSelected.get();
       }
-    });
+    }, SHORT_TIMEOUT);
 
     return this;
   }
