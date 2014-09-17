@@ -22,6 +22,7 @@ import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.download.DownloadableFileDescription;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collection;
@@ -78,6 +79,7 @@ public class InstallContext {
     return myDownloadLocations.values();
   }
 
+  @Nullable
   public File getDownloadLocation(DownloadableFileDescription description) {
     return myDownloadLocations.get(description);
   }
