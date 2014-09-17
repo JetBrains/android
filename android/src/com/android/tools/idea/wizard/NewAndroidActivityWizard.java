@@ -51,6 +51,10 @@ public final class NewAndroidActivityWizard extends DynamicWizard {
     myHost.setPreferredWindowSize(new Dimension(800, 640));
   }
 
+  public void setOpenCreatedFiles(boolean openCreatedFiles) {
+    getState().put(AddAndroidActivityPath.KEY_OPEN_EDITORS, openCreatedFiles);
+  }
+
   @Override
   protected String getWizardActionDescription() {
     return myPath.getActionDescription();
