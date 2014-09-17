@@ -625,30 +625,45 @@ public final class GradleUtil {
    */
   public static boolean createGradleWrapper(@NotNull File projectDirPath, @Nullable String gradleVersion) throws IOException {
     File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
-    if (projectWrapperDirPath.isDirectory()) {
-      // already exists. Nothing to do.
-      return true;
-    }
-    File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
-    if (!wrapperSrcDirPath.exists()) {
-      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-        wrapperSrcDirPath = new File(root, FD_GRADLE_WRAPPER);
-        if (wrapperSrcDirPath.exists()) {
-          break;
-        }
-        else {
-          wrapperSrcDirPath = null;
+    if (!projectWrapperDirPath.isDirectory()) {
+      File wrapperSrcDirPath = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
+      if (!wrapperSrcDirPath.exists()) {
+        for (File root : TemplateManager.getExtraTemplateRootFolders()) {
+          wrapperSrcDirPath = new File(root, FD_GRADLE_WRAPPER);
+          if (wrapperSrcDirPath.exists()) {
+            break;
+          }
+          else {
+            wrapperSrcDirPath = null;
+          }
         }
       }
+      if (wrapperSrcDirPath == null) {
+        return false;
+      }
+      FileUtil.copyDirContent(wrapperSrcDirPath, projectDirPath);
     }
-    if (wrapperSrcDirPath == null) {
-      return false;
-    }
-    FileUtil.copyDirContent(wrapperSrcDirPath, projectDirPath);
     File wrapperPropertiesFile = getGradleWrapperPropertiesFilePath(projectDirPath);
     String version = gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION;
     updateGradleDistributionUrl(version, wrapperPropertiesFile);
     return true;
+  }
+
+  @Nullable
+  public static String getSupportedGradleVersion(@NotNull Project project) {
+    FullRevision modelVersion = getResolvedAndroidGradleModelVersion(project);
+    if (modelVersion != null) {
+      return getSupportedGradleVersion(modelVersion);
+    }
+    return null;
+  }
+
+  @Nullable
+  public static String getSupportedGradleVersion(@NotNull FullRevision modelVersion) {
+    if (modelVersion.getMajor() == 0) {
+      return modelVersion.getMinor() >= 13 ? SdkConstants.GRADLE_LATEST_VERSION : SdkConstants.GRADLE_MINIMUM_VERSION;
+    }
+    return null;
   }
 
   /**
