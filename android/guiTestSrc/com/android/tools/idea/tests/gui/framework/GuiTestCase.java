@@ -44,6 +44,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -54,7 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.templates.AndroidGradleTestCase.createGradleWrapper;
+import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
 import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
@@ -71,7 +72,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
   @NonNls private static final String FN_DOT_IDEA = ".idea";
-  @NonNls protected static final String SIMPLE_APPLICATION_DIR_NAME = "SimpleApplication";
 
   protected Robot myRobot;
 
@@ -187,7 +187,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = setUpProject(projectDirName, false, true);
+    File projectPath = setUpProject(projectDirName, false, true, null);
     findWelcomeFrame().clickImportProjectButton();
 
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
@@ -196,13 +196,17 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture openSimpleApplication() throws IOException {
-    return openProject(SIMPLE_APPLICATION_DIR_NAME);
+    return openProject("SimpleApplication");
   }
 
   @NotNull
   protected IdeFrameFixture openProject(@NotNull String projectDirName) throws IOException {
-    final File projectPath = setUpProject(projectDirName, true, true);
+    File projectPath = setUpProject(projectDirName, true, true, null);
+    return openProject(projectPath);
+  }
 
+  @NotNull
+  protected IdeFrameFixture openProject(@NotNull File projectPath) {
     findWelcomeFrame().clickOpenProjectButton();
 
     FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
@@ -291,7 +295,10 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected File setUpProject(@NotNull String projectDirName, boolean forOpen, boolean updateGradleVersions) throws IOException {
+  protected File setUpProject(@NotNull String projectDirName,
+                              boolean forOpen,
+                              boolean updateAndroidPluginVersion,
+                              @Nullable String gradleVersion) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
     File gradlePropertiesFilePath = new File(projectPath, SdkConstants.FN_GRADLE_PROPERTIES);
@@ -299,9 +306,9 @@ public abstract class GuiTestCase {
       delete(gradlePropertiesFilePath);
     }
 
-    createGradleWrapper(projectPath);
+    createGradleWrapper(projectPath, gradleVersion);
 
-    if (updateGradleVersions) {
+    if (updateAndroidPluginVersion) {
       updateGradleVersions(projectPath);
     }
 
@@ -357,7 +364,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected File getTestProjectDirPath(@NotNull String projectDirName) {
-    return new File(getProjectCreationLocationPath(), projectDirName);
+    return new File(getProjectCreationDirPath(), projectDirName);
   }
 
   protected void cleanUpProjectForImport(@NotNull File projectPath) {
