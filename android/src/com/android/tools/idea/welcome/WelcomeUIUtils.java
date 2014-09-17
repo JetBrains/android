@@ -35,12 +35,7 @@ public final class WelcomeUIUtils {
     // No instantiation
   }
 
-  /**
-   * Turns {@link javax.swing.JButton} into a hyperlink by removing fill, border,
-   * changing the cursor and font style. This is preferred to styling a {@link JLabel}
-   * as button is focusable control and better supports accessibility.
-   */
-  public static void makeButtonAHyperlink(JButton button) {
+  private static void makeButtonAHyperlink(JButton button) {
     button.setBorderPainted(false);
     button.setBorder(null);
     button.setForeground(JBColor.blue);
@@ -49,6 +44,14 @@ public final class WelcomeUIUtils {
     button.setFont(button.getFont().deriveFont(ImmutableMap.of(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL)));
   }
 
+  /**
+   * Turns {@link javax.swing.JButton} into a hyperlink by removing fill, border,
+   * changing the cursor and font style. This is preferred to styling a {@link JLabel}
+   * as button is focusable control and better supports accessibility.
+   *
+   * @param button button to restyle
+   * @param url    URL to open in the browser when button is clicked
+   */
   public static void makeButtonAHyperlink(@NotNull JButton button, @NotNull final String url) {
     makeButtonAHyperlink(button);
     button.addActionListener(new ActionListener() {
