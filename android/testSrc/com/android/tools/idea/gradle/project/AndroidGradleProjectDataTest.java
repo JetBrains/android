@@ -26,10 +26,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
@@ -72,22 +69,59 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     assertEquals(expected.getStringCollection(), actual.getStringCollection());
     assertEquals(expected.getBooleanList(), actual.getBooleanList());
     assertEquals(expected.getStringSet(), actual.getStringSet());
+
     assertProxyCollectionEquals(expected.getProxyCollection(), actual.getProxyCollection());
     assertProxyCollectionEquals(expected.getProxyList(), actual.getProxyList());
     assertProxyCollectionEquals(expected.getMapToProxy(), actual.getMapToProxy());
+
+    InvocationTargetException exception = null;
+    try {
+      expected.doesNotExist();
+      fail("Original method should throw.");
+    }
+    catch (InvocationTargetException e) {
+      // Expected.
+      exception = e;
+    }
+
+    try {
+      actual.doesNotExist();
+      fail("Reproxy should also throw.");
+    }
+    catch (InvocationTargetException e) {
+      assertNotNull(e.getCause());
+      assertNotNull(exception.getCause());
+      assertEquals(e.getCause().getMessage(), exception.getCause().getMessage());
+    }
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    final MyInterfaceImpl delegate = new MyInterfaceImpl();
-    myProxy =
-      (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, new InvocationHandler() {
+  private static MyInterface createProxyInstance(boolean recurse) {
+    final MyInterfaceImpl delegate = new MyInterfaceImpl(recurse);
+    return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, new InvocationHandler() {
         @Override
         public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
           return method.invoke(delegate, objects);
         }
       });
+  }
+
+  private static void assertTypeIsSupported(Package reproxy, Class<?> clazz) {
+    if (!clazz.isPrimitive() && clazz.getPackage().equals(reproxy)) {
+      for (Method method : clazz.getMethods()) {
+        if (Modifier.isPublic(method.getModifiers())) {
+          assertTypeIsSupported(reproxy, method.getReturnType());
+        }
+      }
+    }
+    else {
+      assertTrue("Unsupported type " + clazz, AndroidGradleProjectData.isSupported(clazz));
+    }
+  }
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myProxy = createProxyInstance(true);
   }
 
   public void testReproxy() throws Exception {
@@ -124,19 +158,6 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
   public void testSupportedTypes() throws Exception {
     assertTypeIsSupported(AndroidProject.class.getPackage(), AndroidProject.class);
-  }
-
-  private static void assertTypeIsSupported(Package reproxy, Class<?> clazz) {
-    if (!clazz.isPrimitive() && clazz.getPackage().equals(reproxy)) {
-      for (Method method : clazz.getMethods()) {
-        if (Modifier.isPublic(method.getModifiers())) {
-          assertTypeIsSupported(reproxy, method.getReturnType());
-        }
-      }
-    }
-    else {
-      assertTrue("Unsupported type " + clazz, AndroidGradleProjectData.isSupported(clazz));
-    }
   }
 
   public void testEndToEnd() throws Exception {
@@ -214,6 +235,8 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     @Nullable
     Map<String, Collection<MyInterface>> getMapToProxy();
+
+    boolean doesNotExist() throws InvocationTargetException;
   }
 
   static class MyInterfaceImpl implements MyInterface {
@@ -222,10 +245,6 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     MyInterfaceImpl(boolean recurse) {
       this.recurse = recurse;
-    }
-
-    MyInterfaceImpl() {
-      this(true);
     }
 
     @Override
@@ -250,7 +269,7 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     @Override
     public Collection<MyInterface> getProxyCollection() {
-      return recurse ? Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)) : null;
+      return recurse ? Sets.newHashSet(createProxyInstance(false)) : null;
     }
 
     @Override
@@ -260,7 +279,7 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
 
     @Override
     public List<MyInterface> getProxyList() {
-      return recurse ? Lists.<MyInterface>newArrayList(new MyInterfaceImpl(false)) : null;
+      return recurse ? Lists.newArrayList(createProxyInstance(false)) : null;
     }
 
     @Override
@@ -273,7 +292,12 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
       if (!recurse) return null;
 
       return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two", Lists
-        .<MyInterface>newArrayList(new MyInterfaceImpl(false), new MyInterfaceImpl(false)));
+        .newArrayList(createProxyInstance(false), createProxyInstance(false)));
+    }
+
+    @Override
+    public boolean doesNotExist() throws InvocationTargetException {
+      throw new InvocationTargetException(new UnsupportedOperationException("This method doesn't exist"));
     }
   }
 }
