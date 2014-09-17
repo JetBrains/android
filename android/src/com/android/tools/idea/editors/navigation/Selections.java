@@ -167,7 +167,9 @@ class Selections {
       TransitionInspector transitionInspector = new TransitionInspector();
       configureHyperLinkLabelForClassName(myRenderingParameters, transitionInspector.source, myTransition.getSource().getState().getClassName());
       {
-        JComboBox comboBox = transitionInspector.trigger;
+        JComboBox comboBox = transitionInspector.gesture;
+        comboBox.addItem(Transition.PRESS);
+        comboBox.addItem(Transition.SWIPE);
         comboBox.setSelectedItem(myTransition.getType());
         comboBox.addItemListener(new ItemListener() {
           @Override
