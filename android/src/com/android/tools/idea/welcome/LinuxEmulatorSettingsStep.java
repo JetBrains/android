@@ -30,7 +30,7 @@ public class LinuxEmulatorSettingsStep extends FirstRunWizardStep {
   public LinuxEmulatorSettingsStep() {
     super("Emulator Settings");
     setComponent(myRoot);
-    WelcomeUIUtils.makeButtonAHyperlink(myLink);
+    WelcomeUIUtils.makeButtonAHyperlink(myLink, SetupEmulatorPath.HAXM_URL);
   }
 
   @Override
