@@ -78,7 +78,7 @@ final class PreSyncChecks {
       return answer == Messages.YES;
     }
 
-    String modelVersion = GradleUtil.getAndroidGradleModelVersion(project);
+    FullRevision modelVersion = GradleUtil.getResolvedAndroidGradleModelVersion(project);
     ensureCorrectGradleSettings(project, modelVersion);
     return true;
   }
@@ -108,22 +108,14 @@ final class PreSyncChecks {
     return true;
   }
 
-  private static void ensureCorrectGradleSettings(@NotNull Project project, @Nullable String modelVersion) {
-    if (StringUtil.isEmpty(modelVersion)) {
+  private static void ensureCorrectGradleSettings(@NotNull Project project, @Nullable FullRevision modelVersion) {
+    if (modelVersion == null) {
       // Could not obtain plug-in version. Continue.
       ensureGradleDistributionIsSet(project);
       return;
     }
-    String pluginVersion = modelVersion.replace('+', '0');
-    FullRevision pluginRevision = null;
-    try {
-      pluginRevision = FullRevision.parseRevision(pluginVersion);
-    }
-    catch (NumberFormatException e) {
-      LOG.warn("Failed to parse '" + pluginVersion + "'");
-    }
-    if (pluginRevision == null || (pluginRevision.getMajor() == 0 && pluginRevision.getMinor() <= 12)) {
-      // Unable to parse the plug-in version, or the plug-in is version 0.12 or older. Continue with sync.
+    if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 12) {
+      // Plug-in is version 0.12 or older. Continue with sync.
       ensureGradleDistributionIsSet(project);
       return;
     }
@@ -136,10 +128,10 @@ final class PreSyncChecks {
     boolean usingWrapper =
       (distributionType == null || distributionType == DistributionType.DEFAULT_WRAPPED) && wrapperPropertiesFile != null;
     if (usingWrapper) {
-      attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, modelVersion, project);
+      attemptToUpdateGradleVersionInWrapper(wrapperPropertiesFile, modelVersion.toString(), project);
     }
     else if (distributionType == DistributionType.LOCAL) {
-      attemptToUseSupportedLocalGradle(modelVersion, gradleSettings, project);
+      attemptToUseSupportedLocalGradle(modelVersion.toString(), gradleSettings, project);
     }
   }
 
