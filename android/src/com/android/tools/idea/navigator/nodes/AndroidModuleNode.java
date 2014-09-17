@@ -150,4 +150,10 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     Module module = getValue();
     return String.format("%1$s (Android)", module.getName());
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) return false;
+    return super.equals(o);
+  }
 }
