@@ -106,7 +106,7 @@ public final class GuiTests {
   }
 
   public static void setUpDefaultProjectCreationLocationPath() {
-    GeneralSettings.getInstance().setLastProjectCreationLocation(getProjectCreationLocationPath().getPath());
+    GeneralSettings.getInstance().setLastProjectCreationLocation(getProjectCreationDirPath().getPath());
   }
 
   // Called by IdeTestApplication via reflection.
@@ -158,7 +158,7 @@ public final class GuiTests {
   }
 
   @NotNull
-  public static File getProjectCreationLocationPath() {
+  public static File getProjectCreationDirPath() {
     return new File(getTestProjectsRootDirPath(), "newProjects");
   }
 
