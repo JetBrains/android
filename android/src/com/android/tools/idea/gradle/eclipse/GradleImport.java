@@ -101,6 +101,10 @@ public class GradleImport {
   static {
     String repository = System.getProperty(MAVEN_URL_PROPERTY);
     if (repository == null) {
+      repository = System.getenv("MAVEN_URL"); // as used by the CI server, and also all other test projects
+    }
+
+    if (repository == null) {
       repository = "jcenter()";
     }
     else {
