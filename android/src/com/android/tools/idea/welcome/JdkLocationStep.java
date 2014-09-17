@@ -103,10 +103,6 @@ public class JdkLocationStep extends FirstRunWizardStep {
     }
   }
 
-  private static boolean needsJdk() {
-    return !SystemInfo.isJavaVersionAtLeast("7.0");
-  }
-
   private static boolean isJdk7(String path) {
     String jdkVersion = JavaSdk.getJdkVersion(path);
     if (jdkVersion != null) {
@@ -198,11 +194,6 @@ public class JdkLocationStep extends FirstRunWizardStep {
   @Override
   public JLabel getMessageLabel() {
     return myError;
-  }
-
-  @Override
-  public boolean isStepVisible() {
-    return needsJdk();
   }
 
   private class DetectJdkTask extends Task.Modal {
