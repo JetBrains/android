@@ -16,7 +16,7 @@
 
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
       if (System.getenv("MAVEN_URL") != null) {
         maven {url System.getenv("MAVEN_URL")}
       }
