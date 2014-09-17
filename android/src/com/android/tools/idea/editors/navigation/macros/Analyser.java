@@ -336,7 +336,7 @@ public class Analyser {
         public void process(MultiMatch.Bindings<PsiElement> args) {
           String menuIdName = args.get("id").getLastChild().getText();
           final MenuState menu = getMenuState(menuIdName, miniModel.menuNameToMenuState);
-          addTransition(model, new Transition("press", new Locator(fromActivityState), new Locator(menu)));
+          addTransition(model, new Transition(Transition.PRESS, new Locator(fromActivityState), new Locator(menu)));
           // Search for menu item bindings
           search(activityOrFragmentClass, "boolean onPrepareOptionsMenu(Menu m)",
                  myMacros.installMenuItemOnGetMenuItemAndLaunchActivityMacro, new Processor() {
@@ -347,7 +347,7 @@ public class Analyser {
                   ActivityState activityState = getActivityState(className, miniModel.classNameToActivityState);
                   // e.g. $id=PsiReferenceExpression:R.id.action_account
                   String menuItemName = args.get("$menuItem", "$id").getLastChild().getText();
-                  addTransition(model, new Transition("press", Locator.of(menu, menuItemName), new Locator(activityState)));
+                  addTransition(model, new Transition(Transition.PRESS, Locator.of(menu, menuItemName), new Locator(activityState)));
                 }
               }
             });
@@ -481,7 +481,7 @@ public class Analyser {
         String qualifiedName = getQualifiedName(activityClass);
         if (qualifiedName != null) {
           State toState = getActivityState(qualifiedName, activities);
-          addTransition(model, new Transition("press", Locator.of(fromState, viewName), new Locator(toState)));
+          addTransition(model, new Transition(Transition.PRESS, Locator.of(fromState, viewName), new Locator(toState)));
         }
       }
     };
