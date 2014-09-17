@@ -49,7 +49,7 @@ public class GradleUtilTest extends TestCase {
   }
 
   public void testGetGradleInvocationJvmArgWithAssembleTranslateBuildMode() {
-    assertEquals("-DenableTranslation=true" ,GradleUtil.getGradleInvocationJvmArg(BuildMode.ASSEMBLE_TRANSLATE));
+    assertEquals("-DenableTranslation=true", GradleUtil.getGradleInvocationJvmArg(BuildMode.ASSEMBLE_TRANSLATE));
   }
 
   public void testGetGradleWrapperPropertiesFilePath() throws IOException {
@@ -158,5 +158,46 @@ public class GradleUtilTest extends TestCase {
     File jarFile = new File("ant-1.9.3.jar");
     FullRevision gradleVersion = GradleUtil.getGradleVersionFromJar(jarFile);
     assertNull(gradleVersion);
+  }
+
+  public void testGetAndroidGradleModelVersion() throws IOException {
+    String contents ="buildscript {\n" +
+                     "    repositories {\n" +
+                     "        jcenter()\n" +
+                     "    }\n" +
+                     "    dependencies {\n" +
+                     "        classpath 'com.android.tools.build:gradle:0.13.0'\n" +
+                     "    }\n" +
+                     "}";
+    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
+    assertNotNull(revision);
+    assertEquals("0.13.0", revision.toString());
+  }
+
+  public void testGetAndroidGradleModelVersionWithPlusInMicro() throws IOException {
+    String contents ="buildscript {\n" +
+                     "    repositories {\n" +
+                     "        jcenter()\n" +
+                     "    }\n" +
+                     "    dependencies {\n" +
+                     "        classpath 'com.android.tools.build:gradle:0.13.+'\n" +
+                     "    }\n" +
+                     "}";
+    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
+    assertNotNull(revision);
+    assertEquals("0.13.0", revision.toString());
+  }
+
+  public void testGetAndroidGradleModelVersionWithPlusNotation() throws IOException {
+    String contents ="buildscript {\n" +
+                     "    repositories {\n" +
+                     "        jcenter()\n" +
+                     "    }\n" +
+                     "    dependencies {\n" +
+                     "        classpath 'com.android.tools.build:gradle:+'\n" +
+                     "    }\n" +
+                     "}";
+    FullRevision revision = GradleUtil.getResolvedAndroidGradleModelVersion(contents);
+    assertNotNull(revision);
   }
 }
