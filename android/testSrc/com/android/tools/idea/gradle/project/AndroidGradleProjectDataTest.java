@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -74,12 +75,12 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     assertProxyCollectionEquals(expected.getProxyList(), actual.getProxyList());
     assertProxyCollectionEquals(expected.getMapToProxy(), actual.getMapToProxy());
 
-    InvocationTargetException exception = null;
+    UnsupportedMethodException exception = null;
     try {
       expected.doesNotExist();
       fail("Original method should throw.");
     }
-    catch (InvocationTargetException e) {
+    catch (UnsupportedMethodException e) {
       // Expected.
       exception = e;
     }
@@ -88,10 +89,9 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
       actual.doesNotExist();
       fail("Reproxy should also throw.");
     }
-    catch (InvocationTargetException e) {
-      assertNotNull(e.getCause());
-      assertNotNull(exception.getCause());
-      assertEquals(e.getCause().getMessage(), exception.getCause().getMessage());
+    catch (UnsupportedMethodException e) {
+      assertEquals(e.getClass(), exception.getClass());
+      assertEquals(e.getMessage(), exception.getMessage());
     }
   }
 
@@ -100,7 +100,11 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     return (MyInterface)Proxy.newProxyInstance(MyInterface.class.getClassLoader(), new Class[]{MyInterface.class}, new InvocationHandler() {
         @Override
         public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-          return method.invoke(delegate, objects);
+          try {
+            return method.invoke(delegate, objects);
+          } catch (InvocationTargetException e) {
+            throw e.getCause();
+          }
         }
       });
   }
@@ -236,7 +240,7 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     @Nullable
     Map<String, Collection<MyInterface>> getMapToProxy();
 
-    boolean doesNotExist() throws InvocationTargetException;
+    boolean doesNotExist() throws UnsupportedMethodException;
   }
 
   static class MyInterfaceImpl implements MyInterface {
@@ -291,13 +295,13 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     public Map<String, Collection<MyInterface>> getMapToProxy() {
       if (!recurse) return null;
 
-      return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two", Lists
-        .newArrayList(createProxyInstance(false), createProxyInstance(false)));
+      return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two",
+                                                              Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
     }
 
     @Override
-    public boolean doesNotExist() throws InvocationTargetException {
-      throw new InvocationTargetException(new UnsupportedOperationException("This method doesn't exist"));
+    public boolean doesNotExist() throws UnsupportedMethodException {
+      throw new UnsupportedMethodException("This method doesn't exist");
     }
   }
 }
