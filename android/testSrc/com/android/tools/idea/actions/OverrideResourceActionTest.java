@@ -52,6 +52,22 @@ public class OverrideResourceActionTest extends AndroidTestCase {
     doTest("values-en", null, "strings_after.xml", "res/values-en/myStrings.xml", file, true);
   }
 
+  public void testStyles() throws IOException {
+    // Ensures that we copy child content
+    // This tests creating a new file
+    createManifest();
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "res/values/styles.xml");
+    doTest("values-v21", null, "styles_after.xml", "res/values-v21/styles.xml", file, true);
+  }
+
+  public void testStyles2() throws IOException {
+    // This tests inserting into an existing overridden folder
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "styles2v21" + ".xml", "res/values-v21/styles.xml");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "res/values/styles.xml");
+    doTest("values-v21", null, "styles2_after.xml", "res/values-v21/styles.xml", file, true);
+  }
+
   private void doTest(@NotNull String newFolder,
                       @Nullable final Runnable invokeAfterTemplate,
                       @NotNull String after,
