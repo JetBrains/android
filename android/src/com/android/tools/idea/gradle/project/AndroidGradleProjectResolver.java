@@ -55,12 +55,10 @@ import com.intellij.util.containers.ContainerUtilRt;
 import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.util.GradleVersion;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
-import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -68,7 +66,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 
@@ -301,18 +298,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
         if ("org.gradle.api.artifacts.result.ResolvedComponentResult".equals(msg) ||
             "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
-          GradleVersion supported = getGradleSupportedVersion();
-          return new ExternalSystemException(getUnsupportedGradleVersionErrorMsg(supported));
+          return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }
       }
     }
     ExternalSystemException userFriendlyError = myErrorHandler.getUserFriendlyError(error, projectPath, buildFilePath);
     return userFriendlyError != null ? userFriendlyError : nextResolver.getUserFriendlyError(error, projectPath, buildFilePath);
-  }
-
-  @NotNull
-  private static GradleVersion getGradleSupportedVersion() {
-    return GradleVersion.version(GRADLE_MINIMUM_VERSION);
   }
 
   @NotNull
@@ -328,13 +319,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
     return builder.toString();
-  }
-
-  @NotNull
-  private static String getUnsupportedGradleVersionErrorMsg(@NotNull GradleVersion supportedVersion) {
-    String version = supportedVersion.getVersion();
-    return String.format("The project is using an unsupported version of Gradle. Please use version %1$s.\n", version) +
-           AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
   }
 
   @NotNull

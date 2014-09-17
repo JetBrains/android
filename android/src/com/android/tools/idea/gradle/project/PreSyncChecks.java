@@ -47,10 +47,6 @@ final class PreSyncChecks {
 
   private static final Logger LOG = Logger.getInstance(PreSyncChecks.class);
 
-  private static final String MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13 = "2.1";
-  private static final FullRevision MINIMUM_SUPPORTED_GRADLE_REVISION_FOR_PLUGIN_0_13 =
-    FullRevision.parseRevision(MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13);
-
   private static final String GRADLE_SYNC_MSG_TITLE = "Gradle Sync";
 
   private PreSyncChecks() {
@@ -214,7 +210,7 @@ final class PreSyncChecks {
     FullRevision gradleRevision = FullRevision.parseRevision(gradleVersion);
 
     if (!isSupportedGradleVersion(gradleRevision)) {
-      String newGradleVersion = MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13;
+      String newGradleVersion = SdkConstants.GRADLE_LATEST_VERSION;
       String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle " + newGradleVersion + " or newer.\n\n" +
                    "Click 'OK' to automatically update the Gradle version in the Gradle wrapper and continue.";
       Messages.showMessageDialog(project, msg, GRADLE_SYNC_MSG_TITLE, Messages.getQuestionIcon());
@@ -252,7 +248,7 @@ final class PreSyncChecks {
     }
 
     if (askToSwitchToWrapper) {
-      String newGradleVersion = MINIMUM_SUPPORTED_GRADLE_VERSION_FOR_PLUGIN_0_13;
+      String newGradleVersion = SdkConstants.GRADLE_LATEST_VERSION;
 
       String msg = "Version " + pluginVersion + " of the Android Gradle plug-in requires Gradle " + newGradleVersion + " or newer.\n" +
                    "A local Gradle distribution was not found, or was not properly set in the IDE.\n\n" +
@@ -282,7 +278,8 @@ final class PreSyncChecks {
   }
 
   private static boolean isSupportedGradleVersion(@Nullable FullRevision gradleVersion) {
-    // Plug-in v0.13.+ supports Gradle 2.0+ only.
-    return gradleVersion != null && gradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_REVISION_FOR_PLUGIN_0_13) >= 0;
+    // Plug-in v0.13.+ supports Gradle 2.1+ only.
+    FullRevision supported = FullRevision.parseRevision(SdkConstants.GRADLE_LATEST_VERSION);
+    return gradleVersion != null && gradleVersion.compareTo(supported) >= 0;
   }
 }
