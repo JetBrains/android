@@ -71,6 +71,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
   @NonNls private static final String FN_DOT_IDEA = ".idea";
+  @NonNls protected static final String SIMPLE_APPLICATION_DIR_NAME = "SimpleApplication";
 
   protected Robot myRobot;
 
@@ -195,7 +196,7 @@ public abstract class GuiTestCase {
 
   @NotNull
   protected IdeFrameFixture openSimpleApplication() throws IOException {
-    return openProject("SimpleApplication");
+    return openProject(SIMPLE_APPLICATION_DIR_NAME);
   }
 
   @NotNull
