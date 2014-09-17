@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.gradle;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 import org.junit.FixMethodOrder;
@@ -36,6 +37,8 @@ import static com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWin
 import static com.android.tools.idea.tests.gui.gradle.GradleSyncUtil.findGradleSyncMessageDialog;
 import static com.intellij.ide.errorTreeView.ErrorTreeElementKind.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.util.Strings.quote;
 
@@ -63,7 +66,11 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
     // Import the project
     findWelcomeFrame().clickImportProjectButton();
     FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
-    importProjectDialog.select(projectPath).clickOk();
+
+    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    assertNotNull(toSelect);
+
+    importProjectDialog.select(toSelect).clickOk();
 
     // Expect message suggesting to update Gradle wrapper.
     findGradleSyncMessageDialog(myRobot).clickOk();
