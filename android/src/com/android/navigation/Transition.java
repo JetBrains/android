@@ -18,6 +18,9 @@ package com.android.navigation;
 import com.android.annotations.Property;
 
 public class Transition {
+  public static final String PRESS = "Press";
+  public static final String SWIPE = "Swipe";
+
   private String type;
   private final Locator source;
   private final Locator destination;

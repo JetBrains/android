@@ -24,7 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.wizard.NewTemplateObjectWizard;
+import com.android.tools.idea.wizard.NewAndroidActivityWizard;
 import com.intellij.ide.dnd.DnDEvent;
 import com.intellij.ide.dnd.DnDManager;
 import com.intellij.ide.dnd.DnDTarget;
@@ -58,7 +58,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.editors.navigation.Utilities.*;
-import static com.android.tools.idea.templates.Template.CATEGORY_ACTIVITIES;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class NavigationView extends JComponent {
@@ -90,6 +89,8 @@ public class NavigationView extends JComponent {
   private static final Condition<Component> EDITORS = not(SCREENS);
   private static final boolean DRAW_DESTINATION_RECTANGLES = false;
   private static final boolean DEBUG = false;
+  // See http://www.google.com/design/spec/patterns/gestures.html#gestures-gestures
+  private static final Color GESTURE_ICON_COLOR = new JBColor(new Color(0xE64BA7), new Color(0xE64BA7));
 
   private final RenderingParameters myRenderingParams;
   private final NavigationModel myNavigationModel;
@@ -323,6 +324,7 @@ public class NavigationView extends JComponent {
     return null;
   }
 
+  @Nullable
   static String getViewId(@Nullable ViewInfo leaf) {
     if (leaf != null) {
       Object cookie = leaf.getCookie();
@@ -798,16 +800,38 @@ public class NavigationView extends JComponent {
     }
   }
 
-  private static Component createEditorFor(final Transition transition) {
-    if (DEBUG) System.out.println("NavigationView: createEditorFor");
-    String gesture = transition.getType();
-    JLabel result = new JLabel(gesture.equals("press") ? "O" : "<->");
+  private static JComponent getPressGestureIcon() {
+    return new JComponent() {
+      private Dimension SIZE = new Dimension(24, 24);
+
+      @Override
+      public Dimension getPreferredSize() {
+        return SIZE;
+      }
+
+      @Override
+      public void paintComponent(Graphics g) {
+        RenderingHints rh = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        ((Graphics2D)g).setRenderingHints(rh);
+        g.setColor(GESTURE_ICON_COLOR);
+        g.fillOval(0, 0, SIZE.width - 1, SIZE.height - 1);
+      }
+    };
+  }
+
+  private static JLabel getSwipeGestureIcon() {
+    JLabel result = new JLabel("<->");
     result.setFont(result.getFont().deriveFont(20f));
     result.setForeground(TRANSITION_LINE_COLOR);
     result.setBackground(TRIGGER_BACKGROUND_COLOR);
     result.setBorder(new LineBorder(TRANSITION_LINE_COLOR, 1));
     result.setOpaque(true);
     return result;
+  }
+
+  private static Component createEditorFor(final Transition transition) {
+    String gesture = transition.getType();
+    return gesture.equals(Transition.PRESS) ? getPressGestureIcon() : getSwipeGestureIcon();
   }
 
   private void syncTransitionCache(Assoc<Transition, Component> assoc) {
@@ -920,13 +944,11 @@ public class NavigationView extends JComponent {
       anItem.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
-          Project project = myRenderingParams.myProject;
           Module module = myRenderingParams.myFacet.getModule();
-          NewTemplateObjectWizard dialog = new NewTemplateObjectWizard(project, module, null, CATEGORY_ACTIVITIES);
+          NewAndroidActivityWizard dialog = new NewAndroidActivityWizard(module, null, null);
+          dialog.init();
+          dialog.setOpenCreatedFiles(false);
           dialog.show();
-          if (dialog.isOK()) {
-            dialog.createTemplateObject(false);
-          }
         }
       });
       menu.add(anItem);

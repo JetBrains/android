@@ -40,7 +40,8 @@
             </constraints>
             <properties>
               <font style="1"/>
-              <text value="Trigger:"/>
+              <labelFor value="9a873"/>
+              <text value="Gesture:"/>
             </properties>
           </component>
           <component id="40915" class="javax.swing.JLabel">
@@ -63,15 +64,12 @@
               <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
             </constraints>
           </vspacer>
-          <component id="9a873" class="javax.swing.JComboBox" binding="trigger">
+          <component id="9a873" class="javax.swing.JComboBox" binding="gesture">
             <constraints>
-              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <model>
-                <item value="press"/>
-                <item value="swipe"/>
-              </model>
+              <model/>
             </properties>
           </component>
         </children>
