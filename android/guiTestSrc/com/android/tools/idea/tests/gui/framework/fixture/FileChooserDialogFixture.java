@@ -27,13 +27,10 @@ import org.fest.swing.timing.Condition;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static junit.framework.Assert.assertNotNull;
 import static org.fest.reflect.core.Reflection.field;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
@@ -85,19 +82,17 @@ public class FileChooserDialogFixture extends IdeaDialogFixture<FileChooserDialo
   }
 
   @NotNull
-  public FileChooserDialogFixture select(@NotNull File file) {
+  public FileChooserDialogFixture select(@NotNull final VirtualFile file) {
     final FileSystemTreeImpl fileSystemTree = field("myFileSystemTree").ofType(FileSystemTreeImpl.class)
                                                                        .in(getDialogWrapper())
                                                                        .get();
 
-    final VirtualFile toSelect = findFileByIoFile(file, true);
-    assertNotNull(toSelect);
     final AtomicBoolean fileSelected = new AtomicBoolean();
 
     GuiActionRunner.execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        fileSystemTree.select(toSelect, new Runnable() {
+        fileSystemTree.select(file, new Runnable() {
           @Override
           public void run() {
             fileSelected.set(true);
