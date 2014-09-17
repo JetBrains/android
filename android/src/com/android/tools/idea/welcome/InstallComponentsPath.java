@@ -43,11 +43,12 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
   public static final InstallableComponent[] COMPONENTS = createComponents();
 
   private static InstallableComponent[] createComponents() {
+    AndroidSdk androidSdk = new AndroidSdk(KEY_CUSTOM_INSTALL);
     if (SystemInfo.isWindows || SystemInfo.isMac) {
-      return new InstallableComponent[]{new Haxm(KEY_CUSTOM_INSTALL)};
+      return new InstallableComponent[]{androidSdk, new Haxm(KEY_CUSTOM_INSTALL)};
     }
     else {
-      return new InstallableComponent[0];
+      return new InstallableComponent[]{androidSdk};
     }
   }
 
@@ -104,8 +105,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       descriptions.addAll(component.getFilesToDownloadAndExpand());
     }
     InstallContext installContext = new InstallContext(tempDirectory, descriptions, progressStep);
-    List<PreinstallOperation> preinstallOperations = ImmutableList.of(new DownloadOperation(installContext),
-                                                                      new UnzipOperation(installContext));
+    List<PreinstallOperation> preinstallOperations =
+      ImmutableList.of(new DownloadOperation(installContext), new UnzipOperation(installContext));
     try {
       for (PreinstallOperation operation : preinstallOperations) {
         if (!operation.execute()) {
