@@ -33,7 +33,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
 /**
  * Provides better error messages for android projects import failures.
@@ -63,8 +62,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     if (isOldGradleVersion(rootCause)) {
-      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.", GRADLE_LATEST_VERSION);
-      msg += ('\n' + FIX_GRADLE_VERSION);
+      String msg = "The project is using an unsupported version of Gradle.\n" + FIX_GRADLE_VERSION;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
