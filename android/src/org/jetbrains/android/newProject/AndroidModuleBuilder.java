@@ -42,6 +42,8 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.DumbAwareRunnable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectType;
+import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.*;
@@ -96,23 +98,215 @@ import static org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotE
  * @author Eugene.Kudelevsky
  */
 public class AndroidModuleBuilder extends JavaModuleBuilder {
+  public static final ProjectType ANDROID_PROJECT_TYPE = new ProjectType("Android");
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.newProject.AndroidModuleBuilder");
-
+  private final AndroidProjectType myProjectType;
   private String myPackageName;
   private String myApplicationName;
   private String myActivityName;
-  private final ProjectType myProjectType;
   private Module myTestedModule;
   private TargetSelectionMode myTargetSelectionMode;
   private String myPreferredAvd;
 
   @SuppressWarnings("UnusedDeclaration")
   public AndroidModuleBuilder() {
-    this(ProjectType.APPLICATION);
+    this(AndroidProjectType.APPLICATION);
   }
 
-  public AndroidModuleBuilder(ProjectType type) {
+  public AndroidModuleBuilder(AndroidProjectType type) {
     myProjectType = type;
+  }
+
+  @NotNull
+  private static String getAntProjectName(@NotNull String moduleName) {
+    StringBuilder result = new StringBuilder();
+    for (int i = 0; i < moduleName.length(); i++) {
+      char c = moduleName.charAt(i);
+      if (!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || Character.isDigit(c))) {
+        c = '_';
+      }
+      result.append(c);
+    }
+    return result.toString();
+  }
+
+  private static Sdk getAndroidSdkForModule(@NotNull Module module) {
+    return ModuleRootManager.getInstance(module).getSdk();
+  }
+
+  private static void copyGeneratedAndroidProject(File tempDir, VirtualFile contentRoot, VirtualFile sourceRoot) {
+    final File[] children = tempDir.listFiles();
+    if (children != null) {
+      for (File child : children) {
+        if (SdkConstants.FD_SOURCES.equals(child.getName())) {
+          continue;
+        }
+        final File to = new File(contentRoot.getPath(), child.getName());
+
+        try {
+          if (child.isDirectory()) {
+            FileUtil.copyDir(child, to);
+          }
+          else {
+            FileUtil.copy(child, to);
+          }
+        }
+        catch (IOException e) {
+          LOG.error(e);
+        }
+      }
+    }
+
+    final File tempSourceRoot = new File(tempDir, SdkConstants.FD_SOURCES);
+    if (tempSourceRoot.exists()) {
+      final File to = new File(sourceRoot.getPath());
+
+      try {
+        FileUtil.copyDir(tempSourceRoot, to);
+      }
+      catch (IOException e) {
+        LOG.error(e);
+      }
+    }
+  }
+
+  private static void configureManifest(@NotNull AndroidFacet facet, @NotNull IAndroidTarget target) {
+    final Manifest manifest = facet.getManifest();
+    if (manifest == null) {
+      return;
+    }
+
+    final XmlTag manifestTag = manifest.getXmlTag();
+    if (manifestTag == null) {
+      return;
+    }
+
+    final PsiFile manifestFile = manifestTag.getContainingFile();
+    if (manifestFile == null) {
+      return;
+    }
+
+    final VirtualFile vManifestFile = manifestFile.getVirtualFile();
+    if (vManifestFile == null ||
+        !ReadonlyStatusHandler.ensureFilesWritable(manifestFile.getProject(), vManifestFile)) {
+      return;
+    }
+    XmlTag usesSdkTag = manifestTag.createChildTag("uses-sdk", "", null, false);
+    if (usesSdkTag != null) {
+      usesSdkTag = manifestTag.addSubTag(usesSdkTag, true);
+      usesSdkTag.setAttribute("minSdkVersion", SdkConstants.NS_RESOURCES, target.getVersion().getApiString());
+    }
+    CodeStyleManager.getInstance(manifestFile.getProject()).reformat(manifestFile);
+  }
+
+  private static void createManifestFileAndAntFiles(Project project, VirtualFile contentRoot, Module module) {
+    VirtualFile existingManifestFile = contentRoot.findChild(FN_ANDROID_MANIFEST_XML);
+    if (existingManifestFile != null) {
+      return;
+    }
+    try {
+      AndroidFileTemplateProvider
+        .createFromTemplate(project, contentRoot, AndroidFileTemplateProvider.ANDROID_MANIFEST_TEMPLATE, FN_ANDROID_MANIFEST_XML);
+
+      Sdk sdk = getAndroidSdkForModule(module);
+      if (sdk == null) return;
+      AndroidPlatform platform = AndroidPlatform.parse(sdk);
+
+      if (platform == null) {
+        Messages.showErrorDialog(project, "Cannot parse Android SDK: '" + SdkConstants.FN_PROJECT_PROPERTIES + "' won't be generated",
+                                 CommonBundle.getErrorTitle());
+        return;
+      }
+
+      Properties properties = FileTemplateManager.getInstance().getDefaultProperties(project);
+      properties.setProperty("TARGET", platform.getTarget().hashString());
+      AndroidFileTemplateProvider.createFromTemplate(project, contentRoot, AndroidFileTemplateProvider.DEFAULT_PROPERTIES_TEMPLATE,
+                                                     SdkConstants.FN_PROJECT_PROPERTIES, properties);
+    }
+    catch (Exception e) {
+      LOG.error(e);
+    }
+  }
+
+  private static void addTestRunConfiguration(final AndroidFacet facet, @NotNull TargetSelectionMode mode, @Nullable String preferredAvd) {
+    Project project = facet.getModule().getProject();
+    RunManagerEx runManager = RunManagerEx.getInstanceEx(project);
+    Module module = facet.getModule();
+    RunnerAndConfigurationSettings settings = runManager
+      .createRunConfiguration(module.getName(), AndroidTestRunConfigurationType.getInstance().getFactory());
+
+    AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
+    configuration.setModule(module);
+    configuration.setTargetSelectionMode(mode);
+    if (preferredAvd != null) {
+      configuration.PREFERRED_AVD = preferredAvd;
+    }
+
+    runManager.addConfiguration(settings, false);
+    runManager.setActiveConfiguration(settings);
+  }
+
+  @Nullable
+  private static VirtualFile findSourceRoot(ModifiableRootModel model) {
+    VirtualFile genSourceRoot = AndroidRootUtil.getStandardGenDir(model.getModule());
+    for (VirtualFile root : model.getSourceRoots()) {
+      if (!Comparing.equal(root, genSourceRoot)) {
+        return root;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static PsiDirectory createPackageIfPossible(final PsiDirectory sourceDir, String packageName) {
+    if (sourceDir != null) {
+      final String[] ids = packageName.split("\\.");
+      return ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
+        @Override
+        public PsiDirectory compute() {
+          PsiDirectory dir = sourceDir;
+          for (String id : ids) {
+            PsiDirectory child = dir.findSubdirectory(id);
+            dir = child == null ? dir.createSubdirectory(id) : child;
+          }
+          return dir;
+        }
+      });
+    }
+    return null;
+  }
+
+  private static void createFileFromResource(Project project, VirtualFile drawableDir, String name, String resourceFilePath)
+    throws IOException {
+    if (drawableDir.findChild(name) != null) {
+      return;
+    }
+    VirtualFile resFile = drawableDir.createChildData(project, name);
+    InputStream stream = AndroidModuleBuilder.class.getResourceAsStream(resourceFilePath);
+    try {
+      byte[] bytes = FileUtil.adaptiveLoadBytes(stream);
+      resFile.setBinaryContent(bytes);
+    }
+    finally {
+      stream.close();
+    }
+  }
+
+  private static Pair<String, Boolean> runAndroidTool(@NotNull GeneralCommandLine commandLine) {
+    final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
+    String result;
+    boolean success = false;
+    try {
+      success = AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForever.getInstance()) == ExecutionStatus.SUCCESS;
+      result = processor.getMessage();
+    }
+    catch (ExecutionException e) {
+      result = e.getMessage();
+    }
+    if (result != null) {
+      LOG.debug(result);
+    }
+    return Pair.create(result, success);
   }
 
   @Override
@@ -137,7 +331,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     VirtualFile[] files = rootModel.getContentRoots();
     if (files.length > 0) {
       final VirtualFile contentRoot = files[0];
-      final AndroidFacet facet = AndroidUtils.addAndroidFacet(rootModel.getModule(), contentRoot, myProjectType == ProjectType.LIBRARY);
+      final AndroidFacet facet = AndroidUtils.addAndroidFacet(rootModel.getModule(), contentRoot, myProjectType == AndroidProjectType.LIBRARY);
 
       if (myProjectType == null) {
         ImportDependenciesUtil.importDependencies(rootModel.getModule(), true);
@@ -145,9 +339,10 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       }
 
       final Project project = rootModel.getProject();
+      ProjectTypeService.setProjectType(project, new ProjectType("Android"));
       final VirtualFile sourceRoot = findSourceRoot(rootModel);
 
-      if (myProjectType == ProjectType.TEST) {
+      if (myProjectType == AndroidProjectType.TEST) {
         assert myTestedModule != null;
         facet.getProperties().PACK_TEST_CODE = true;
         ModuleOrderEntry entry = rootModel.addModuleOrderEntry(myTestedModule);
@@ -185,7 +380,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       }
     }
 
-    if (myProjectType == ProjectType.APPLICATION) {
+    if (myProjectType == AndroidProjectType.APPLICATION) {
       createDirectoryStructure(contentRoot, sourceRoot, facet);
     }
     else {
@@ -207,19 +402,6 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     if (myTargetSelectionMode != null) {
       addRunConfiguration(facet, myTargetSelectionMode, myPreferredAvd);
     }
-  }
-
-  @NotNull
-  private static String getAntProjectName(@NotNull String moduleName) {
-    StringBuilder result = new StringBuilder();
-    for (int i = 0; i < moduleName.length(); i++) {
-      char c = moduleName.charAt(i);
-      if (!(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || Character.isDigit(c))) {
-        c = '_';
-      }
-      result.append(c);
-    }
-    return result.toString();
   }
 
   private boolean createProjectByAndroidTool(final VirtualFile contentRoot,
@@ -282,7 +464,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     final String targetDirectoryPath = tempContentRoot.getPath();
     commandLine.addParameter(FileUtil.toSystemDependentName(targetDirectoryPath));
 
-    if (myProjectType == ProjectType.APPLICATION || myProjectType == ProjectType.LIBRARY) {
+    if (myProjectType == AndroidProjectType.APPLICATION || myProjectType == AndroidProjectType.LIBRARY) {
       String apiLevel = target.hashString();
       commandLine.addParameter("--target");
       commandLine.addParameter(apiLevel);
@@ -290,11 +472,11 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       commandLine.addParameter(myPackageName);
     }
 
-    if (myProjectType == ProjectType.APPLICATION) {
+    if (myProjectType == AndroidProjectType.APPLICATION) {
       commandLine.addParameter("--activity");
       commandLine.addParameter(myActivityName);
     }
-    else if (myProjectType == ProjectType.TEST) {
+    else if (myProjectType == AndroidProjectType.TEST) {
       final AndroidFacet testedFacet = AndroidFacet.getInstance(myTestedModule);
       final VirtualFile moduleDir = testedFacet != null
                                     ? AndroidRootUtil.getMainContentRoot(testedFacet)
@@ -383,13 +565,13 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
                   if (project.isDisposed()) {
                     return;
                   }
-                  if (myProjectType == ProjectType.APPLICATION) {
+                  if (myProjectType == AndroidProjectType.APPLICATION) {
                     assignApplicationName(facet);
                     configureManifest(facet, target);
                     createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_ASSETS);
                     createChildDirectoryIfNotExist(project, contentRoot, SdkConstants.FD_NATIVE_LIBS);
                   }
-                  else if (myProjectType == ProjectType.LIBRARY && myPackageName != null) {
+                  else if (myProjectType == AndroidProjectType.LIBRARY && myPackageName != null) {
                     final String[] dirs = myPackageName.split("\\.");
                     VirtualFile file = sourceRoot;
 
@@ -418,10 +600,10 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
                 }
 
                 if (myTargetSelectionMode != null) {
-                  if (myProjectType == ProjectType.APPLICATION) {
+                  if (myProjectType == AndroidProjectType.APPLICATION) {
                     addRunConfiguration(facet, myTargetSelectionMode, myPreferredAvd);
                   }
-                  else if (myProjectType == ProjectType.TEST) {
+                  else if (myProjectType == AndroidProjectType.TEST) {
                     addTestRunConfiguration(facet, myTargetSelectionMode, myPreferredAvd);
                   }
                 }
@@ -434,75 +616,6 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       }
     });
     return true;
-  }
-
-  private static Sdk getAndroidSdkForModule(@NotNull Module module) {
-    return ModuleRootManager.getInstance(module).getSdk();
-  }
-
-  private static void copyGeneratedAndroidProject(File tempDir, VirtualFile contentRoot, VirtualFile sourceRoot) {
-    final File[] children = tempDir.listFiles();
-    if (children != null) {
-      for (File child : children) {
-        if (SdkConstants.FD_SOURCES.equals(child.getName())) {
-          continue;
-        }
-        final File to = new File(contentRoot.getPath(), child.getName());
-
-        try {
-          if (child.isDirectory()) {
-            FileUtil.copyDir(child, to);
-          }
-          else {
-            FileUtil.copy(child, to);
-          }
-        }
-        catch (IOException e) {
-          LOG.error(e);
-        }
-      }
-    }
-
-    final File tempSourceRoot = new File(tempDir, SdkConstants.FD_SOURCES);
-    if (tempSourceRoot.exists()) {
-      final File to = new File(sourceRoot.getPath());
-
-      try {
-        FileUtil.copyDir(tempSourceRoot, to);
-      }
-      catch (IOException e) {
-        LOG.error(e);
-      }
-    }
-  }
-
-  private static void configureManifest(@NotNull AndroidFacet facet, @NotNull IAndroidTarget target) {
-    final Manifest manifest = facet.getManifest();
-    if (manifest == null) {
-      return;
-    }
-
-    final XmlTag manifestTag = manifest.getXmlTag();
-    if (manifestTag == null) {
-      return;
-    }
-
-    final PsiFile manifestFile = manifestTag.getContainingFile();
-    if (manifestFile == null) {
-      return;
-    }
-
-    final VirtualFile vManifestFile = manifestFile.getVirtualFile();
-    if (vManifestFile == null ||
-        !ReadonlyStatusHandler.ensureFilesWritable(manifestFile.getProject(), vManifestFile)) {
-      return;
-    }
-    XmlTag usesSdkTag = manifestTag.createChildTag("uses-sdk", "", null, false);
-    if (usesSdkTag != null) {
-      usesSdkTag = manifestTag.addSubTag(usesSdkTag, true);
-      usesSdkTag.setAttribute("minSdkVersion", SdkConstants.NS_RESOURCES, target.getVersion().getApiString());
-    }
-    CodeStyleManager.getInstance(manifestFile.getProject()).reformat(manifestFile);
   }
 
   private void assignApplicationName(AndroidFacet facet) {
@@ -539,35 +652,6 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
       }
     }
 
-  private static void createManifestFileAndAntFiles(Project project, VirtualFile contentRoot, Module module) {
-    VirtualFile existingManifestFile = contentRoot.findChild(FN_ANDROID_MANIFEST_XML);
-    if (existingManifestFile != null) {
-      return;
-    }
-    try {
-      AndroidFileTemplateProvider
-        .createFromTemplate(project, contentRoot, AndroidFileTemplateProvider.ANDROID_MANIFEST_TEMPLATE, FN_ANDROID_MANIFEST_XML);
-
-      Sdk sdk = getAndroidSdkForModule(module);
-      if (sdk == null) return;
-      AndroidPlatform platform = AndroidPlatform.parse(sdk);
-
-      if (platform == null) {
-        Messages.showErrorDialog(project, "Cannot parse Android SDK: '" + SdkConstants.FN_PROJECT_PROPERTIES + "' won't be generated",
-                                 CommonBundle.getErrorTitle());
-        return;
-      }
-
-      Properties properties = FileTemplateManager.getInstance().getDefaultProperties(project);
-      properties.setProperty("TARGET", platform.getTarget().hashString());
-      AndroidFileTemplateProvider.createFromTemplate(project, contentRoot, AndroidFileTemplateProvider.DEFAULT_PROPERTIES_TEMPLATE,
-                                                     SdkConstants.FN_PROJECT_PROPERTIES, properties);
-    }
-    catch (Exception e) {
-      LOG.error(e);
-    }
-  }
-
   private void addRunConfiguration(@NotNull AndroidFacet facet,
                                    @NotNull TargetSelectionMode targetSelectionMode,
                                    @Nullable String targetAvd) {
@@ -581,56 +665,8 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     AndroidUtils.addRunConfiguration(facet, activityClass, false, targetSelectionMode, targetAvd);
   }
 
-  private static void addTestRunConfiguration(final AndroidFacet facet, @NotNull TargetSelectionMode mode, @Nullable String preferredAvd) {
-    Project project = facet.getModule().getProject();
-    RunManagerEx runManager = RunManagerEx.getInstanceEx(project);
-    Module module = facet.getModule();
-    RunnerAndConfigurationSettings settings = runManager
-      .createRunConfiguration(module.getName(), AndroidTestRunConfigurationType.getInstance().getFactory());
-
-    AndroidTestRunConfiguration configuration = (AndroidTestRunConfiguration)settings.getConfiguration();
-    configuration.setModule(module);
-    configuration.setTargetSelectionMode(mode);
-    if (preferredAvd != null) {
-      configuration.PREFERRED_AVD = preferredAvd;
-    }
-
-    runManager.addConfiguration(settings, false);
-    runManager.setActiveConfiguration(settings);
-  }
-
   private boolean isHelloAndroid() {
     return StringUtil.isNotEmpty(myActivityName);
-  }
-
-  @Nullable
-  private static VirtualFile findSourceRoot(ModifiableRootModel model) {
-    VirtualFile genSourceRoot = AndroidRootUtil.getStandardGenDir(model.getModule());
-    for (VirtualFile root : model.getSourceRoots()) {
-      if (!Comparing.equal(root, genSourceRoot)) {
-        return root;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private static PsiDirectory createPackageIfPossible(final PsiDirectory sourceDir, String packageName) {
-    if (sourceDir != null) {
-      final String[] ids = packageName.split("\\.");
-      return ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>() {
-        @Override
-        public PsiDirectory compute() {
-          PsiDirectory dir = sourceDir;
-          for (String id : ids) {
-            PsiDirectory child = dir.findSubdirectory(id);
-            dir = child == null ? dir.createSubdirectory(id) : child;
-          }
-          return dir;
-        }
-      });
-    }
-    return null;
   }
 
   private void createActivityAndSetupManifest(final AndroidFacet facet, final PsiDirectory sourceDir) {
@@ -692,32 +728,16 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     }
   }
 
-  private static void createFileFromResource(Project project, VirtualFile drawableDir, String name, String resourceFilePath)
-    throws IOException {
-    if (drawableDir.findChild(name) != null) {
-      return;
-    }
-    VirtualFile resFile = drawableDir.createChildData(project, name);
-    InputStream stream = AndroidModuleBuilder.class.getResourceAsStream(resourceFilePath);
-    try {
-      byte[] bytes = FileUtil.adaptiveLoadBytes(stream);
-      resFile.setBinaryContent(bytes);
-    }
-    finally {
-      stream.close();
-    }
-  }
-
   public void setActivityName(String activityName) {
     myActivityName = activityName;
   }
 
-  public void setApplicationName(String applicationName) {
-    myApplicationName = applicationName;
-  }
-
   public String getApplicationName() {
     return myApplicationName;
+  }
+
+  public void setApplicationName(String applicationName) {
+    myApplicationName = applicationName;
   }
 
   public void setPackageName(String packageName) {
@@ -727,6 +747,11 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
   @Override
   public ModuleType getModuleType() {
     return StdModuleTypes.JAVA;
+  }
+
+  @Override
+  protected ProjectType getProjectType() {
+    return ANDROID_PROJECT_TYPE;
   }
 
   @Nullable
@@ -791,23 +816,6 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
     return getClass().getName();
   }
 
-  private static Pair<String, Boolean> runAndroidTool(@NotNull GeneralCommandLine commandLine) {
-    final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
-    String result;
-    boolean success = false;
-    try {
-      success = AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForever.getInstance()) == ExecutionStatus.SUCCESS;
-      result = processor.getMessage();
-    }
-    catch (ExecutionException e) {
-      result = e.getMessage();
-    }
-    if (result != null) {
-      LOG.debug(result);
-    }
-    return Pair.create(result, success);
-  }
-
   @Override
   public boolean isSuitableSdkType(SdkTypeId sdkType) {
     return AndroidSdkType.getInstance() == sdkType;
@@ -815,7 +823,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
   public static class Library extends AndroidModuleBuilder {
     public Library() {
-      super(ProjectType.LIBRARY);
+      super(AndroidProjectType.LIBRARY);
     }
 
     @Override
@@ -832,7 +840,7 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
 
   public static class Test extends AndroidModuleBuilder {
     public Test() {
-      super(ProjectType.TEST);
+      super(AndroidProjectType.TEST);
     }
 
     @Override

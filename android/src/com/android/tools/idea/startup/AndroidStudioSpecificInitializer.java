@@ -83,23 +83,19 @@ import java.util.Properties;
 
 /** Initialization performed only in the context of the Android IDE. */
 public class AndroidStudioSpecificInitializer implements Runnable {
-  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
-
-  private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList(
-    "org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable", "org.intellij.plugins.xpathView.XPathConfigurable",
-    "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl"
-  );
-
   /**
    * We set the timeout for Gradle daemons to -1, this way IDEA will not set it to 1 minute and it will use the default instead (3 hours.)
    * We need to keep Gradle daemons around as much as possible because creating new daemons is resource-consuming and slows down the IDE.
    */
   public static final int GRADLE_DAEMON_TIMEOUT_MS = -1;
-
   static {
     System.setProperty("external.system.remote.process.idle.ttl.ms", String.valueOf(GRADLE_DAEMON_TIMEOUT_MS));
   }
-
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.startup.AndroidStudioSpecificInitializer");
+  private static final List<String> IDE_SETTINGS_TO_REMOVE = Lists.newArrayList(
+    "org.jetbrains.plugins.javaFX.JavaFxSettingsConfigurable", "org.intellij.plugins.xpathView.XPathConfigurable",
+    "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl"
+  );
   @NonNls private static final String USE_IDEA_NEW_PROJECT_WIZARDS = "use.idea.newProjectWizard";
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
@@ -114,63 +110,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   public static boolean isAndroidStudio() {
     return "AndroidStudio".equals(PlatformUtils.getPlatformPrefix());
-  }
-
-  @Override
-  public void run() {
-    checkInstallation();
-    cleanUpIdePreferences();
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      replaceIdeaNewProjectActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
-      replaceProjectStructureActions();
-    }
-
-    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
-      replaceIdeaMakeActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
-      hideIdeaNewFilePopupActions();
-    }
-
-    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      registerExperimentalActions();
-    }
-
-    try {
-      // Setup JDK and Android SDK if necessary
-      setupSdks();
-    } catch (Exception e) {
-      LOG.error("Unexpected error while setting up SDKs: ", e);
-    }
-
-    registerAppClosing();
-
-    // Always reset the Default scheme to match Android standards
-    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
-    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
-    if (scheme != null) {
-      CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      if (settings != null) {
-        AndroidCodeStyleSettingsModifier.modify(settings);
-      }
-    }
-
-    // Modify built-in "Default" color scheme to remove background from XML tags.
-    // "Darcula" and user schemes will not be touched.
-    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
-    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
-    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
-
-    checkAndSetAndroidSdkSources();
   }
 
   private static void checkInstallation() {
@@ -279,8 +218,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   }
 
   private static void replaceProjectStructureActions() {
-    replaceAction("ShowProjectStructureSettings", new AndroidShowStructureSettingsAction());
-
     AndroidTemplateProjectStructureAction showDefaultProjectStructureAction = new AndroidTemplateProjectStructureAction();
     showDefaultProjectStructureAction.getTemplatePresentation().setText("Default Project Structure...");
     replaceAction("TemplateProjectStructure", showDefaultProjectStructureAction);
@@ -538,7 +475,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     });
   }
 
-
   private static void checkAndSetAndroidSdkSources() {
     for (Sdk sdk : AndroidSdkUtils.getAllAndroidSdks()) {
       checkAndSetSources(sdk);
@@ -562,5 +498,62 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         sdkModificator.commitChanges();
       }
     }
+  }
+
+  @Override
+  public void run() {
+    checkInstallation();
+    cleanUpIdePreferences();
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
+      replaceIdeaNewProjectActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
+      replaceProjectStructureActions();
+    }
+
+    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
+      replaceIdeaMakeActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
+      hideIdeaNewFilePopupActions();
+    }
+
+    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
+      registerExperimentalActions();
+    }
+
+    try {
+      // Setup JDK and Android SDK if necessary
+      setupSdks();
+    } catch (Exception e) {
+      LOG.error("Unexpected error while setting up SDKs: ", e);
+    }
+
+    registerAppClosing();
+
+    // Always reset the Default scheme to match Android standards
+    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
+    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
+    if (scheme != null) {
+      CodeStyleSettings settings = scheme.getCodeStyleSettings();
+      if (settings != null) {
+        AndroidCodeStyleSettingsModifier.modify(settings);
+      }
+    }
+
+    // Modify built-in "Default" color scheme to remove background from XML tags.
+    // "Darcula" and user schemes will not be touched.
+    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
+    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
+    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
+
+    checkAndSetAndroidSdkSources();
   }
 }
