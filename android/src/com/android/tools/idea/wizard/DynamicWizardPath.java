@@ -86,6 +86,12 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     init();
   }
 
+  @Nullable
+  @Override
+  public DynamicWizard getWizard() {
+    return myWizard;
+  }
+
   /**
    * Set up this path. Addition of steps and other instantiations should be done here.
    */
@@ -396,6 +402,36 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
   public void updateCurrentStep() {
     if (getCurrentStep() != null) {
       getCurrentStep().invokeUpdate(null);
+    }
+  }
+
+  @Override
+  public boolean containsStep(@NotNull String stepName, boolean visibleOnly) {
+    for (DynamicWizardStep step : mySteps) {
+      if (visibleOnly && !step.isStepVisible()) {
+        continue;
+      }
+      if (stepName.equals(step.getStepName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void navigateToNamedStep(@NotNull String stepName, boolean requireVisible) {
+    for (DynamicWizardStep step : mySteps) {
+      if (requireVisible && !step.isStepVisible()) {
+        continue;
+      }
+      if (stepName.equals(step.getStepName())) {
+        myCurrentStep = step;
+        myCurrentStepIndex = mySteps.indexOf(step);
+        myCurrentStep.onEnterStep();
+        myCurrentStep.invokeUpdate(null);
+        invokeUpdate(null);
+        return;
+      }
     }
   }
 }

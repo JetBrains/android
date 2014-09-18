@@ -115,6 +115,14 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     return myPath != null ? myPath.getModule() : null;
   }
 
+  @Nullable
+  protected final DynamicWizard getWizard() {
+    if (myPath != null) {
+      return myPath.getWizard();
+    }
+    return null;
+  }
+
   /**
    * Optionally add an icon to the left side of the screen.
    * @return An icon to be displayed on the left side of the wizard.
