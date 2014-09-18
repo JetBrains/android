@@ -2,6 +2,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.navigation.GotoRelatedProvider;
@@ -103,6 +104,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   public static Computable<List<GotoRelatedItem>> getLazyItemsForXmlFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     final String resourceType = facet.getLocalResourceManager().getFileResourceType(file);
 
+    // TODO: Handle menus as well!
     if (ResourceType.LAYOUT.getName().equals(resourceType)) {
       return collectRelatedJavaFiles(file, facet);
     }
@@ -170,7 +172,8 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
   }
 
   @Nullable
-  private static Computable<List<GotoRelatedItem>> collectRelatedJavaFiles(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
+  private static Computable<List<GotoRelatedItem>> collectRelatedJavaFiles(@NotNull final XmlFile file,
+                                                                           @NotNull final AndroidFacet facet) {
     final String resType = ResourceType.LAYOUT.getName();
     final String resourceName = AndroidCommonUtils.getResourceName(resType, file.getName());
     final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
@@ -187,6 +190,12 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
       public List<GotoRelatedItem> compute() {
         final JavaPsiFacade facade = JavaPsiFacade.getInstance(module.getProject());
         final List<PsiClass> psiContextClasses = new ArrayList<PsiClass>();
+
+        // Explicitly chosen in the layout/menu file with a tools:context attribute?
+        PsiClass declared = AndroidPsiUtils.getContextClass(module, file);
+        if (declared != null) {
+          return Collections.singletonList(new GotoRelatedItem(declared, "JAVA"));
+        }
 
         for (String contextClassName : CONTEXT_CLASSES) {
           final PsiClass contextClass = facade.findClass(
