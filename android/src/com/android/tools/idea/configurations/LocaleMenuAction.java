@@ -48,7 +48,7 @@ public class LocaleMenuAction extends FlatComboAction {
   public LocaleMenuAction(RenderContext renderContext) {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Locale to render layout with in the IDE");
+    presentation.setDescription("Locale to render layout with inside the IDE");
     updatePresentation(presentation);
   }
 

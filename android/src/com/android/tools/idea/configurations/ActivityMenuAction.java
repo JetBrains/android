@@ -54,6 +54,7 @@ public class ActivityMenuAction extends FlatComboAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setIcon(AndroidIcons.Activity);
+    presentation.setDescription("Associate with Activity...");
     updatePresentation(presentation);
   }
 
