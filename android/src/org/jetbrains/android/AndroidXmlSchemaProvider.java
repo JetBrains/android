@@ -137,11 +137,12 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     Set<String> result = new HashSet<String>();
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
+      result.add(SdkConstants.NS_RESOURCES);
       String localNs = getLocalXmlNamespace(facet);
       if (localNs != null) {
         result.add(localNs);
       }
-      result.add(SdkConstants.NS_RESOURCES);
+      result.add(SdkConstants.TOOLS_URI);
     }
     return result;
   }
