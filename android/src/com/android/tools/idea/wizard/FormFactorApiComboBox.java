@@ -29,6 +29,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
+import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -139,7 +143,7 @@ public final class FormFactorApiComboBox extends JComboBox {
       }
       if (target == null) {
         AndroidVersion androidVersion = new AndroidVersion(targetItem.apiLevel, null);
-        // TODO(davidherman): If the user has no APIs installed, we then request to install whichever version the user has targeted here.
+        // TODO: If the user has no APIs installed, we then request to install whichever version the user has targeted here.
         // Instead, we should choose to install the highest stable API possible. However, users having no SDK at all installed is pretty
         // unlikely, so this logic can wait for a followup CL.
         if (ourHighestInstalledApiTarget == null ||
@@ -154,6 +158,24 @@ public final class FormFactorApiComboBox extends JComboBox {
         }
       }
       PropertiesComponent.getInstance().setValue(getPropertiesComponentMinSdkKey(myFormFactor), targetItem.id.toString());
+
+      // Check Java language level; should be 7 for L; eventually this will be automatically defaulted by the Android Gradle plugin
+      // instead: https://code.google.com/p/android/issues/detail?id=76252
+      String javaVersion = null;
+      if (target != null && target.getVersion().getFeatureLevel() >= 21) {
+        AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+        if (sdkData != null) {
+          JavaSdk jdk = JavaSdk.getInstance();
+          Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
+          if (sdk != null) {
+            JavaSdkVersion version = jdk.getVersion(sdk);
+            if (version != null && version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
+              javaVersion = JavaSdkVersion.JDK_1_7.getDescription();
+            }
+          }
+        }
+      }
+      stateStore.put(getLanguageLevelKey(myFormFactor), javaVersion);
     }
   }
 
