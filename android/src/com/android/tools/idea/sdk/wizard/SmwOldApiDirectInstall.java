@@ -33,6 +33,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
@@ -208,12 +209,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithHeaderAndDescri
                     null);  // acceptLicense
 
       while (myBackgroundSuccess == null) {
-        try {
-          Thread.sleep(100);
-        }
-        catch (InterruptedException e) {
-          // Pass
-        }
+        TimeoutUtil.sleep(100);
       }
       UIUtil.invokeLaterIfNeeded(new Runnable() {
         @Override
