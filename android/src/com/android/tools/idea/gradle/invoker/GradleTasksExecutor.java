@@ -51,7 +51,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.progress.util.ProgressIndicatorBase;
+import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.project.DumbModeAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -777,7 +777,7 @@ class GradleTasksExecutor extends Task.Backgroundable {
     }
   }
 
-  private class ProgressIndicatorStateDelegate extends ProgressIndicatorBase {
+  private class ProgressIndicatorStateDelegate extends AbstractProgressIndicatorExBase {
     @Override
     public void cancel() {
       super.cancel();
