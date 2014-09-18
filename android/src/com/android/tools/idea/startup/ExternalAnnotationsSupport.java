@@ -46,6 +46,11 @@ import java.util.List;
 @SuppressWarnings("SpellCheckingInspection") // "Modificator" in API usage
 public class ExternalAnnotationsSupport {
   private static final Logger LOG = Logger.getInstance(ExternalAnnotationsSupport.class);
+  private static final String[] DEVELOPMENT_ANNOTATIONS_PATHS = {
+    "/../adt/idea/android/annotations",
+    "/android/android/annotations",
+    "/community/android/android/annotations"
+  };
 
   // Based on similar code in MagicConstantInspection
   @SuppressWarnings("ALL")
@@ -125,15 +130,11 @@ public class ExternalAnnotationsSupport {
     // release build?
     String releaseLocation = homePath + "/plugins/android/lib/androidAnnotations.jar";
     VirtualFile root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
-    if (root == null) {
-      // development
-      String developmentLocation = homePath + "/../adt/idea/android/annotations";
+
+    for (String relativePath : DEVELOPMENT_ANNOTATIONS_PATHS) {
+      if (root != null) break;
+      String developmentLocation = homePath + relativePath;
       root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(developmentLocation));
-    }
-    if (root == null) {
-      // development
-      String jetbrainsDevelopmentLocation = homePath + "/android/android/annotations";
-      root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(jetbrainsDevelopmentLocation));
     }
 
     if (root == null) {

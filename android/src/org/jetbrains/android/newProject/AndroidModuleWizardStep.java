@@ -35,19 +35,19 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
   private final AndroidAppPropertiesEditor myAppPropertiesEditor;
 
   private final AndroidModuleBuilder myModuleBuilder;
-  private final ProjectType myProjectType;
-  private JPanel myPanel;
+  private final AndroidProjectType myProjectType;
   private final Alarm myAvdsUpdatingAlarm = new Alarm();
+  private JPanel myPanel;
   private boolean myInitialized;
 
   public AndroidModuleWizardStep(@NotNull AndroidModuleBuilder moduleBuilder,
                                  ModulesProvider modulesProvider,
-                                 ProjectType projectType) {
+                                 AndroidProjectType projectType) {
     super();
     myProjectType = projectType;
     myModuleBuilder = moduleBuilder;
     myAppPropertiesEditor = new AndroidAppPropertiesEditor(moduleBuilder.getName(), modulesProvider);
-    assert projectType == ProjectType.APPLICATION;
+    assert projectType == AndroidProjectType.APPLICATION;
     myPanel = new JPanel();
     myPanel.setLayout(new OverlayLayout(myPanel));
     myPanel.add(myAppPropertiesEditor.getContentPanel());
@@ -87,7 +87,7 @@ public class AndroidModuleWizardStep extends ModuleWizardStep {
 
   @Override
   public boolean validate() throws ConfigurationException {
-    myAppPropertiesEditor.validate(myProjectType == ProjectType.LIBRARY);
+    myAppPropertiesEditor.validate(myProjectType == AndroidProjectType.LIBRARY);
     return true;
   }
 
