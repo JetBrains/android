@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context=".Activity2">
+<TextView  
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:onClick="clickHandler1"/>
+  <TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:onClick="<warning descr="Method 'clickHandler2' is missing in 'Activity2' or has incorrect signature">clickHandler2</warning>"/>
+</LinearLayout>

@@ -264,7 +264,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testObsoleteDependency() throws Exception {
     doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintGradleDependencyInspection(),
-                  "Change to 17.0.0", "build.gradle", "gradle");
+                  "Change to 18.0.0", "build.gradle", "gradle");
   }
 
   public void testGradleDeprecation() throws Exception {
