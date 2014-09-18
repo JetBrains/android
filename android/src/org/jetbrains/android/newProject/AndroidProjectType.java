@@ -18,6 +18,6 @@ package org.jetbrains.android.newProject;
 /**
  * @author Eugene.Kudelevsky
  */
-enum ProjectType {
+enum AndroidProjectType {
   APPLICATION, LIBRARY, TEST
 }

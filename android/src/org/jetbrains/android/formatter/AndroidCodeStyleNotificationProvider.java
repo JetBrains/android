@@ -1,6 +1,7 @@
 package org.jetbrains.android.formatter;
 
 import com.intellij.application.options.XmlCodeStyleSettingsProvider;
+import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
@@ -9,7 +10,6 @@ import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -91,9 +91,9 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
       createActionLabel("Open code style settings", new Runnable() {
         @Override
         public void run() {
-          ShowSettingsUtil.getInstance().showSettingsDialog(
-            myProject, XmlCodeStyleSettingsProvider.CONFIGURABLE_DISPLAY_NAME);
-          myNotifications.updateAllNotifications();
+          ShowSettingsUtilImpl.showSettingsDialog(
+            myProject, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.CONFIGURABLE_DISPLAY_NAME, "");
+            myNotifications.updateAllNotifications();
         }
       });
 

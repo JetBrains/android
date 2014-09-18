@@ -61,7 +61,7 @@ public class TemplateManager {
    * templates with the application instead of waiting for SDK updates.
    */
   private static final String BUNDLED_TEMPLATE_PATH = "/plugins/android/lib/templates";
-  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates"};
+  private static final String[] DEVELOPMENT_TEMPLATE_PATHS = {"/../../tools/base/templates", "/android/tools-base/templates", "/community/android/tools-base/templates"};
   private static final String EXPLODED_AAR_PATH = "build/intermediates/exploded-aar";
 
   public static final String CATEGORY_OTHER = "Other";
