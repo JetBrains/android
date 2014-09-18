@@ -145,6 +145,13 @@ public class AndroidGotoRelatedTest extends AndroidTestCase {
     doTestGotoRelatedFile(activityFile, Arrays.asList(layout, layoutLand), PsiFile.class);
   }
 
+  public void testSpecifiedWithAttribute() throws Exception {
+    createManifest();
+    final VirtualFile layout = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml");
+    final VirtualFile activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity4.java", "src/p1/p2/MyActivity.java");
+    doTestGotoRelatedFile(layout, Collections.singletonList(activityFile), PsiClass.class);
+  }
+
   private void doTestGotoRelatedFile(VirtualFile file, List<VirtualFile> expectedTargetFiles, Class<?> targetElementClass) {
     final List<GotoRelatedItem> items = doGotoRelatedFile(file);
     doCheckItems(expectedTargetFiles, items, targetElementClass);

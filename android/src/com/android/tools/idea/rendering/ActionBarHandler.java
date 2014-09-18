@@ -115,20 +115,13 @@ public class ActionBarHandler extends ActionBarCallback {
         myMenus = new ArrayList<String>();
         Iterables.addAll(myMenus, Splitter.on(',').trimResults().omitEmptyStrings().split(commaSeparatedMenus));
       } else {
-        String context = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
-        if (context != null && !context.isEmpty()) {
-          // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
-          // This is just a simple textual search; we need to replace this with a proper model lookup.
-          boolean startsWithDot = context.charAt(0) == '.';
-          if (startsWithDot || context.indexOf('.') == -1) {
-            // Prepend application package
-            String pkg = ManifestInfo.get(myRenderService.getModule(), false).getPackage();
-            context = startsWithDot ? pkg + context : pkg + '.' + context;
-          }
-          final String fqn = context;
+        final String fqn = AndroidPsiUtils.getDeclaredContextFqcn(myRenderService.getModule(), xmlFile);
+        if (fqn != null) {
           ApplicationManager.getApplication().runReadAction(new Runnable() {
             @Override
             public void run() {
+              // Glance at the onCreateOptionsMenu of the associated context and use any menus found there.
+              // This is just a simple textual search; we need to replace this with a proper model lookup.
               Project project = xmlFile.getProject();
               PsiClass clz = JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
               if (clz != null) {
@@ -136,6 +129,10 @@ public class ActionBarHandler extends ActionBarCallback {
                   if (method instanceof PsiCompiledElement) {
                     continue;
                   }
+                  // TODO: This should instead try to use the GotoRelated implementation's notion
+                  // of associated activities; see what is done in
+                  // AndroidMissingOnClickHandlerInspection. However, the AndroidGotoRelatedProvider
+                  // will first need to properly handle menus.
                   String matchText = method.getText();
                   Matcher matcher = MENU_FIELD_PATTERN.matcher(matchText);
                   Set<String> menus = Sets.newTreeSet();
