@@ -100,6 +100,20 @@ public class ConfigurationToolbarFixture {
     clickPopupMenuItem("Create Landscape Variation");
   }
 
+  public void chooseLocale(@NotNull String locale) {
+    JButton localeChooser = findToolbarButton("Locale to render layout with inside the IDE");
+    myRobot.click(localeChooser);
+
+    clickPopupMenuItem(locale);
+  }
+
+  public void removePreviews() {
+    JButton menuButton = findToolbarButton("Configuration to render this layout with inside the IDE");
+    myRobot.click(menuButton);
+
+    clickPopupMenuItem("None");
+  }
+
   /**
    * Selects a device matching the given label prefix in the configuration toolbar's device menu
    */

@@ -19,10 +19,16 @@ import com.android.tools.idea.configurations.ConfigurationToolBar;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderedImage;
+import com.android.tools.idea.rendering.multi.RenderPreview;
+import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.core.Robot;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
 import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowForm;
@@ -33,9 +39,12 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Fixture wrapping the the layout preview window
@@ -120,6 +129,48 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
   @Override
   public void requireRenderSuccessful(boolean allowErrors, boolean allowWarnings) {
     getRenderErrors().requireRenderSuccessful(allowErrors, allowWarnings);
+  }
+
+  /**
+   * Require that the title of the previews showing match the list of titles passed. The number of previews should match the size of list.
+   */
+  public void requirePreviewTitles(@NotNull List<String> titles) {
+    RenderPreviewManager previewManager = getContent().getPreviewManager(false);
+    if (titles.isEmpty()) {
+      if (previewManager == null) {
+        return;
+      }
+      assertFalse(previewManager.hasPreviews());
+    }
+    assertNotNull(previewManager);
+    List<RenderPreview> previews = previewManager.getPreviews();
+    assertNotNull(previews);
+
+    List<String> previewTitles = new ArrayList<String>(titles.size());
+    for (RenderPreview preview : previews) {
+      previewTitles.add(preview.getDisplayName());
+    }
+    assertEquals(titles, previewTitles);
+  }
+
+  public void switchToPreview(@NotNull String displayName) {
+    final RenderPreviewManager previewManager = getContent().getPreviewManager(false);
+    assertNotNull(previewManager);
+    List<RenderPreview> previews = previewManager.getPreviews();
+    if (previews != null) {
+      for (final RenderPreview renderPreview : previews) {
+        if (displayName.equals(renderPreview.getDisplayName())) {
+          GuiActionRunner.execute(new GuiTask() {
+            @Override
+            public void executeInEDT() {
+              previewManager.switchTo(renderPreview);
+            }
+          });
+          return;
+        }
+      }
+    }
+    fail("No preview titled " + displayName + " exists.");
   }
 
   /**
