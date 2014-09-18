@@ -20,6 +20,7 @@ import com.android.sdklib.repository.FullRevision;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -74,8 +75,11 @@ final class PreSyncChecks {
       return answer == Messages.YES;
     }
 
-    FullRevision modelVersion = GradleUtil.getResolvedAndroidGradleModelVersion(project);
-    ensureCorrectGradleSettings(project, modelVersion);
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      // Don't check Gradle settings in unit tests. They should be set up properly.
+      FullRevision modelVersion = GradleUtil.getResolvedAndroidGradleModelVersion(project);
+      ensureCorrectGradleSettings(project, modelVersion);
+    }
     return true;
   }
 
