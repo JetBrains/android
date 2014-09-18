@@ -26,16 +26,6 @@
   </extensions>
 
   <actions>
-    <group id="Android.MainToolBarActionGroup">
-      <separator/>
-      <reference id="Android.SyncProject" />
-      <reference id="Android.RunAndroidAvdManager" />
-      <reference id="Android.RunAndroidSdkManager" />
-      <reference id="Android.RunDdms" />
-      <separator/>
-
-      <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
-    </group>
 
     <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
             text="Add RTL Support Where Possible..." description="Add right-to-left (RTL) support where possible">
@@ -48,7 +38,14 @@
         icon="AndroidIcons.SdkManagerLarge" >
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
+
+    <action id="ShowProjectStructureSettings" class="com.android.tools.idea.actions.AndroidShowStructureSettingsAction"
+            project-type="Android" icon="AllIcons.General.ProjectStructure"/>
   </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <defaultProjectTypeProvider type="Android"/>
+  </extensions>
 
   <application-components>
     <component>

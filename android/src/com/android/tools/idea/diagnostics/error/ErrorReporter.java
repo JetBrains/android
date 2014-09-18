@@ -29,7 +29,6 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -46,6 +45,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.List;
@@ -59,26 +59,9 @@ public class ErrorReporter extends ErrorReportSubmitter {
   }
 
   @Override
-  public SubmittedReportInfo submit(IdeaLoggingEvent[] events, Component parentComponent) {
-    // obsolete API
-    return new SubmittedReportInfo(null, "0", SubmittedReportInfo.SubmissionStatus.FAILED);
-  }
-
-  @Override
-  public boolean trySubmitAsync(IdeaLoggingEvent[] events,
-                                String additionalInfo,
-                                Component parentComponent,
-                                Consumer<SubmittedReportInfo> consumer) {
-    return sendError(events[0], additionalInfo, parentComponent, consumer);
-  }
-
-  private static boolean sendError(IdeaLoggingEvent event,
-                                   String additionalInfo,
-                                   final Component parentComponent,
-                                   final Consumer<SubmittedReportInfo> callback) {
-    ErrorBean errorBean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
-
-    return doSubmit(event, parentComponent, callback, errorBean, additionalInfo);
+  public boolean submit(@NotNull IdeaLoggingEvent[] events, String additionalInfo, @NotNull Component parentComponent, @NotNull Consumer<SubmittedReportInfo> consumer) {
+    ErrorBean errorBean = new ErrorBean(events[0].getThrowable(), IdeaLogger.ourLastActionId);
+    return doSubmit(events[0], parentComponent, consumer, errorBean, additionalInfo);
   }
 
   private static boolean doSubmit(final IdeaLoggingEvent event,
@@ -136,11 +119,10 @@ public class ErrorReporter extends ErrorReportSubmitter {
       public void consume(Exception e) {
         // TODO: check for updates
         String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
-        NotificationListener listener = new NotificationListener.UrlOpeningListener(true);
         ReportMessages.GROUP.createNotification(ReportMessages.ERROR_REPORT,
                                                 message,
                                                 NotificationType.ERROR,
-                                                listener).setImportant(false).notify(project);
+                                                NotificationListener.URL_OPENING_LISTENER).setImportant(false).notify(project);
       }
     };
     AnonymousFeedbackTask task =
