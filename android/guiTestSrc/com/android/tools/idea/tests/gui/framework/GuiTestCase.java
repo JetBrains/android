@@ -43,7 +43,6 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -62,6 +61,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGui
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
+import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.delete;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -74,8 +74,6 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(GuiTestRunner.class)
 public abstract class GuiTestCase {
-  @NonNls private static final String FN_DOT_IDEA = ".idea";
-
   protected Robot myRobot;
 
   @SuppressWarnings("UnusedDeclaration") // This field is set via reflection.
@@ -242,31 +240,41 @@ public abstract class GuiTestCase {
       withName(name);
     }
 
-    /** Set a custom package to use in the new project */
+    /**
+     * Set a custom package to use in the new project
+     */
     public NewProjectDescriptor withPackageName(@NotNull String pkg) {
       myPkg = pkg;
       return this;
     }
 
-    /** Set a new project name to use for the new project */
+    /**
+     * Set a new project name to use for the new project
+     */
     public NewProjectDescriptor withName(@NotNull String name) {
       myName = name;
       return this;
     }
 
-    /** Set a custom activity name to use in the new project */
+    /**
+     * Set a custom activity name to use in the new project
+     */
     public NewProjectDescriptor withActivity(@NotNull String activity) {
       myActivity = activity;
       return this;
     }
 
-    /** Set a custom minimum SDK version to use in the new project */
+    /**
+     * Set a custom minimum SDK version to use in the new project
+     */
     public NewProjectDescriptor withMinSdk(@NotNull String minSdk) {
       myMinSdk = minSdk;
       return this;
     }
 
-    /** Set a custom company domain to enter in the new project wizard */
+    /**
+     * Set a custom company domain to enter in the new project wizard
+     */
     public NewProjectDescriptor withCompanyDomain(@NotNull String domain) {
       myDomain = domain;
       return this;
@@ -282,9 +290,7 @@ public abstract class GuiTestCase {
       NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-      configureAndroidProjectStep.enterApplicationName(myName)
-                                 .enterCompanyDomain(myDomain)
-                                 .enterPackageName(myPkg);
+      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
       File projectPath = configureAndroidProjectStep.getLocationInFileSystem();
       newProjectWizard.clickNext();
 
@@ -304,6 +310,29 @@ public abstract class GuiTestCase {
     }
   }
 
+  /**
+   * Sets up a project before using it in a UI test:
+   * <ul>
+   * <li>Makes a copy of the project in testData/guiTests/newProjects (deletes any existing copy of the project first.) This copy is
+   * the one the test will use.</li>
+   * <li>Creates a Gradle wrapper for the test project.</li>
+   * <li>Updates the version of the Android Gradle plug-in used by the project, if applicable</li>
+   * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
+   * 'ADT_TEST_SDK_PATH'</li>
+   * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
+   * <li>Deletes .idea directory, .iml files and build directories, if the project will be impoted.</li>
+   * <p/>
+   * </ul>
+   *
+   * @param projectDirName the name of the project's root directory. Tests are located in testData/guiTests.
+   * @param forOpen indicates whether the project will be opened by the IDE, or imported.
+   * @param updateAndroidPluginVersion indicates if the latest supported version of the Android Gradle plug-in should be set in the
+   *                                   project.
+   * @param gradleVersion the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the lastest supported
+   *                      version of Gradle.
+   * @return the path of project's root directory (that is the copy, not the original one.)
+   * @throws IOException if an unexpected I/O error occurs.
+   */
   @NotNull
   protected File setUpProject(@NotNull String projectDirName,
                               boolean forOpen,
@@ -330,10 +359,10 @@ public abstract class GuiTestCase {
     localProperties.save();
 
     if (forOpen) {
-      File toDotIdea = new File(projectPath, FN_DOT_IDEA);
+      File toDotIdea = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
       ensureExists(toDotIdea);
 
-      File fromDotIdea = new File(getTestProjectsRootDirPath(), join("commonFiles", FN_DOT_IDEA));
+      File fromDotIdea = new File(getTestProjectsRootDirPath(), join("commonFiles", DIRECTORY_BASED_PROJECT_DIR));
       assertThat(fromDotIdea).isDirectory();
 
       for (File from : notNullize(fromDotIdea.listFiles())) {
@@ -378,7 +407,7 @@ public abstract class GuiTestCase {
   }
 
   protected void cleanUpProjectForImport(@NotNull File projectPath) {
-    File dotIdeaFolderPath = new File(projectPath, FN_DOT_IDEA);
+    File dotIdeaFolderPath = new File(projectPath, DIRECTORY_BASED_PROJECT_DIR);
     if (dotIdeaFolderPath.isDirectory()) {
       File modulesXmlFilePath = new File(dotIdeaFolderPath, "modules.xml");
       if (modulesXmlFilePath.isFile()) {
@@ -414,7 +443,8 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectPath, @NotNull FileChooserDialogFixture fileChooserDialog) {
+  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectPath,
+                                                          @NotNull FileChooserDialogFixture fileChooserDialog) {
     fileChooserDialog.select(projectPath).clickOk();
 
     IdeFrameFixture projectFrame = findIdeFrame(virtualToIoFile(projectPath));
