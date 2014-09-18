@@ -54,7 +54,7 @@ public class ConfigurationMenuAction extends FlatComboAction {
   public ConfigurationMenuAction(RenderContext renderContext) {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
-    presentation.setDescription("Configuration to render this layout with in the IDE");
+    presentation.setDescription("Configuration to render this layout with inside the IDE");
     presentation.setIcon(AndroidIcons.AndroidFile);
   }
 
