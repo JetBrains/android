@@ -714,6 +714,26 @@ public class AndroidLayoutDomTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
+  public void testOnClickHighlighting5() throws Throwable {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=76262
+    myFixture.allowTreeAccessForAllFiles();
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity8.java", "src/p1/p2/Activity2.java");
+    doTestHighlighting();
+  }
+
+  public void testOnClickHighlighting6() throws Throwable {
+    // Like testOnClickHighlighting5, but instead of having the activity be found
+    // due to a setContentView call, it's declared explicitly with a tools:context
+    // attribute instead
+    myFixture.allowTreeAccessForAllFiles();
+    myFixture.enableInspections(AndroidMissingOnClickHandlerInspection.class);
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity7.java", "src/p1/p2/Activity1.java");
+    myFixture.copyFileToProject(testFolder + "/OnClickActivity9.java", "src/p1/p2/Activity2.java");
+    doTestHighlighting();
+  }
+
   public void testOnClickHighlightingJava() throws Throwable {
     myFixture.enableInspections(UnusedSymbolLocalInspection.class);
     final VirtualFile f = myFixture.copyFileToProject(testFolder + "/" + getTestName(true) + ".java", "src/p1/p2/MyActivity1.java");
