@@ -217,7 +217,7 @@ public class GetSdkStep extends DynamicWizardStepWithHeaderAndDescription {
     }
     FileChooserDescriptor chooserDescriptor = AndroidSdkType.getInstance().getHomeChooserDescriptor();
     FileChooserDialog chooser = new FileChooserDialogImpl(chooserDescriptor, (Project)null);
-    VirtualFile[] files = chooser.choose(currentFile, null);
+    VirtualFile[] files = chooser.choose(null, currentFile);
     if (files.length == 0) {
       return null;
     } else {
