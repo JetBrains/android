@@ -1,5 +1,6 @@
 package org.jetbrains.android.dom;
 
+import com.android.SdkConstants;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.documentation.DocumentationManager;
@@ -75,6 +76,7 @@ abstract class AndroidDomTest extends AndroidTestCase {
     if (customNamespace) {
       expectedVariants.add("http://schemas.android.com/apk/res/p1.p2");
     }
+    expectedVariants.add(SdkConstants.TOOLS_URI);
     assertEquals(expectedVariants, variants);
   }
 
