@@ -31,6 +31,7 @@ import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -114,6 +115,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     return result;
   }
 
+  @Nullable
   public static PsiClass findActivityClass(@NotNull Module module) {
     return JavaPsiFacade.getInstance(module.getProject())
       .findClass(AndroidUtils.ACTIVITY_BASE_CLASS_NAME, module.getModuleWithDependenciesAndLibrariesScope(false));
@@ -188,13 +190,12 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           }
         }
         PsiClass activity = null;
-
         for (PsiClass relatedActivity : myRelatedActivities) {
-          if (!resolvedClasses.contains(relatedActivity)) {
+          if (!containsOrExtends(resolvedClasses, relatedActivity)) {
             activity = relatedActivity;
             break;
           }
-          else if (activity == null && resolvedClassesWithMistake.contains(relatedActivity)) {
+          else if (activity == null && containsOrExtends(resolvedClassesWithMistake, relatedActivity)) {
             activity = relatedActivity;
           }
         }
@@ -211,6 +212,22 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           reportMissingOnClickProblem(ref, resolvedClassesWithMistake.iterator().next(), methodName, true);
         }
       }
+    }
+
+    /**
+     * Returns true if the given associated activity class is either found in the given set of
+     * classes, or (less likely) extends any of the classes in that set
+     */
+    private static boolean containsOrExtends(@NotNull Set<PsiClass> resolvedClasses, @NotNull PsiClass relatedActivity) {
+      if (resolvedClasses.contains(relatedActivity)) {
+        return true;
+      }
+      for (PsiClass resolvedClass : resolvedClasses) {
+        if (relatedActivity.isInheritor(resolvedClass, false)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private void reportMissingOnClickProblem(OnClickConverter.MyReference reference,
@@ -282,12 +299,6 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     public void doApplyFix(@NotNull Project project) {
       final String paramType = myConverter.getDefaultMethodParameterType(myClass);
       AndroidCreateOnClickHandlerAction.addHandlerMethod(project, myClass, myMethodName, paramType);
-    }
-
-    @NotNull
-    private static String getShortName(@NotNull String fullClassName) {
-      final int index = fullClassName.lastIndexOf('.');
-      return index < 0 ? fullClassName : fullClassName.substring(index + 1);
     }
   }
 }
