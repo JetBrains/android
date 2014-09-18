@@ -17,9 +17,8 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable;
 import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
-import com.intellij.idea.ActionsBundle;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
@@ -28,27 +27,19 @@ import com.intellij.openapi.project.ProjectManager;
 /**
  * Displays the "Project Structure" dialog.
  */
-public class AndroidShowStructureSettingsAction extends AndroidActionRemover {
-  public AndroidShowStructureSettingsAction() {
-    super(new ShowStructureSettingsAction(), ActionsBundle.message("action.ShowProjectStructureSettings.text"));
-  }
+public class AndroidShowStructureSettingsAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
     Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
-    if (AndroidStudioSpecificInitializer.isAndroidStudio() && (project == null || Projects.isGradleProject(project))) {
+    if (project == null || Projects.isGradleProject(project)) {
       if (project == null) {
         project = ProjectManager.getInstance().getDefaultProject();
       }
       AndroidProjectStructureConfigurable.getInstance(project).showDialog();
     }
     else {
-      super.actionPerformed(e);
+      new ShowStructureSettingsAction().actionPerformed(e);
     }
-  }
-
-  @Override
-  public void update(AnActionEvent e) {
-    myDelegate.update(e);
   }
 }
