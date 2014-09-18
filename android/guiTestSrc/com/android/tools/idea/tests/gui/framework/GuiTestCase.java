@@ -320,7 +320,7 @@ public abstract class GuiTestCase {
    * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
    * 'ADT_TEST_SDK_PATH'</li>
    * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
-   * <li>Deletes .idea directory, .iml files and build directories, if the project will be impoted.</li>
+   * <li>Deletes .idea directory, .iml files and build directories, if the project will be imported.</li>
    * <p/>
    * </ul>
    *
@@ -328,9 +328,9 @@ public abstract class GuiTestCase {
    * @param forOpen indicates whether the project will be opened by the IDE, or imported.
    * @param updateAndroidPluginVersion indicates if the latest supported version of the Android Gradle plug-in should be set in the
    *                                   project.
-   * @param gradleVersion the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the lastest supported
+   * @param gradleVersion the Gradle version to use in the wrapper. If {@code null} is passed, this method will use the latest supported
    *                      version of Gradle.
-   * @return the path of project's root directory (that is the copy, not the original one.)
+   * @return the path of project's root directory (the copy of the project, not the original one.)
    * @throws IOException if an unexpected I/O error occurs.
    */
   @NotNull
