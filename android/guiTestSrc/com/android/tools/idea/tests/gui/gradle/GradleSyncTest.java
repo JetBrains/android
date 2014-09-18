@@ -55,10 +55,14 @@ public class GradleSyncTest extends GuiTestCase {
     assertNotNull(wrapperPropertiesFile);
     updateGradleDistributionUrl("1.5", wrapperPropertiesFile);
 
-    projectFrame.requestProjectSync();
+    projectFrame.requestProjectSyncAndExpectFailure()
+                .requireEditorNotification("Gradle project sync failed.");
 
-    // Expect message asking for updating wrapper with supported Gradle version.
-    findGradleSyncMessageDialog(myRobot).clickOk();
+    MessagesToolWindowFixture.ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
+    MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("The project is using an unsupported version of Gradle"));
+
+    HyperlinkFixture hyperlink = message.findHyperlink("Fix Gradle wrapper and re-import project");
+    hyperlink.click();
 
     projectFrame.waitForGradleProjectSyncToFinish();
   }

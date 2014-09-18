@@ -193,6 +193,12 @@ final class PreSyncChecks {
   private static void attemptToUpdateGradleVersionInWrapper(@NotNull final File wrapperPropertiesFile,
                                                             @NotNull FullRevision modelVersion,
                                                             @NotNull Project project) {
+    if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <=12) {
+      // Do not perform this check for plug-in 0.12. It supports many versions of Gradle.
+      // Let sync fail if using an unsupported Gradle versions.
+      return;
+    }
+
     Properties wrapperProperties = null;
     try {
       wrapperProperties = PropertiesUtil.getProperties(wrapperPropertiesFile);
