@@ -118,7 +118,7 @@ public class AndroidImportProjectAction extends AnAction {
     if (lastLocation != null) {
       toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(lastLocation);
     }
-    VirtualFile[] files = chooser.choose(toSelect, null);
+    VirtualFile[] files = chooser.choose(null, toSelect);
     if (files.length == 0) {
       return null;
     }
