@@ -45,7 +45,8 @@ public class ApkUploaderService implements AndroidDebugBridge.IDeviceChangeListe
     AndroidDebugBridge.removeDeviceChangeListener(this);
   }
 
-  public UploadResult uploadApk(@NotNull IDevice device, @NotNull String localPath, @NotNull String remotePath)
+  /** Returns true if the apk was uploaded to the device, and false if it was already present on the device. */
+  public boolean uploadApk(@NotNull IDevice device, @NotNull String localPath, @NotNull String remotePath)
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException {
 
     HashCode hash = Files.hash(new File(localPath), Hashing.goodFastHash(32));
@@ -55,7 +56,7 @@ public class ApkUploaderService implements AndroidDebugBridge.IDeviceChangeListe
     if (cache != null) {
       HashCode got = cache.get(remotePath);
       if (hash.equals(got)) {
-        return UploadResult.CACHED;
+        return false;
       }
       else {
         // Remove it in case there is an error uploading the apk.
@@ -69,7 +70,7 @@ public class ApkUploaderService implements AndroidDebugBridge.IDeviceChangeListe
 
     device.pushFile(localPath, remotePath);
     cache.put(remotePath, hash);
-    return UploadResult.SUCCESS;
+    return true;
   }
 
   @Override
@@ -83,11 +84,5 @@ public class ApkUploaderService implements AndroidDebugBridge.IDeviceChangeListe
 
   @Override
   public void deviceChanged(IDevice device, int changeMask) {
-  }
-
-  public enum UploadResult {
-    SUCCESS,
-    FAILED,
-    CACHED
   }
 }
