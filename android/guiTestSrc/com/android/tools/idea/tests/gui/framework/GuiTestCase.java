@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
@@ -185,13 +186,30 @@ public abstract class GuiTestCase {
   protected IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectPath = setUpProject(projectDirName, false, true, null);
 
-    VirtualFile toSelect = findFileByIoFile(projectPath, true);
+    final VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    findWelcomeFrame().clickImportProjectButton();
+    AndroidPlugin.GuiTestSuiteState testSuiteState = getTestSuiteState();
+    if (!testSuiteState.isImportProjectWizardAlreadyTested()) {
+      testSuiteState.setImportProjectWizardAlreadyTested(true);
 
-    FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
-    return openProjectAndWaitUntilOpened(toSelect, importProjectDialog);
+      findWelcomeFrame().clickImportProjectButton();
+
+      FileChooserDialogFixture importProjectDialog = FileChooserDialogFixture.findImportProjectDialog(myRobot);
+      return openProjectAndWaitUntilOpened(toSelect, importProjectDialog);
+    }
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        GradleProjectImporter.getInstance().importProject(toSelect);
+      }
+    });
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    return projectFrame;
   }
 
   @NotNull
@@ -210,10 +228,9 @@ public abstract class GuiTestCase {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    AndroidPlugin.GuiTestSuiteState state = AndroidPlugin.getGuiTestSuiteState();
-    assertNotNull(state);
-    if (!state.isOpenProjectWizardAlreadyUsed()) {
-      state.setOpenProjectWizardAlreadyUsed(true);
+    AndroidPlugin.GuiTestSuiteState state = getTestSuiteState();
+    if (!state.isOpenProjectWizardAlreadyTested()) {
+      state.setOpenProjectWizardAlreadyTested(true);
 
       findWelcomeFrame().clickOpenProjectButton();
 
@@ -233,6 +250,13 @@ public abstract class GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
 
     return projectFrame;
+  }
+
+  @NotNull
+  private static AndroidPlugin.GuiTestSuiteState getTestSuiteState() {
+    AndroidPlugin.GuiTestSuiteState state = AndroidPlugin.getGuiTestSuiteState();
+    assertNotNull(state);
+    return state;
   }
 
   /**
