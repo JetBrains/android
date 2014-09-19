@@ -36,7 +36,7 @@ public abstract class PropertyWithNamespace extends Property<RadViewComponent> {
 
   protected abstract String getAttributeName();
 
-  protected String getNamespace(RadViewComponent component, boolean createNamespaceIfNecessary) {
+  public String getNamespace(RadViewComponent component, boolean createNamespaceIfNecessary) {
     String attributeName = getAttributeName();
     XmlTag tag = component.getTag();
     boolean isLayoutParam = attributeName.startsWith(SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX);

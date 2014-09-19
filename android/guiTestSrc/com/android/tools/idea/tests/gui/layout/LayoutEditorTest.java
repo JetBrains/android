@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -79,6 +80,18 @@ public class LayoutEditorTest extends GuiTestCase {
     imageView.requireTitle("ImageView");
     imageView.requireTag("ImageView");
     imageView.requireCategory("Widgets");
+
+    // Check id editing (has custom editor which strips out id prefixes
+    PropertyFixture idProperty = propertySheet.findProperty("id");
+    assertThat(idProperty).as("ID property").isNotNull();
+    assert idProperty != null; // for null analysis
+    idProperty.enterValue("tv1");
+    idProperty.requireXmlValue("@+id/tv1");
+
+    // This will work when PropertyFixture#getValue properly reads the actual displayed text
+    // rather than the property model value
+    //idProperty.requireValue("tv1");
+    idProperty.requireValue("@+id/tv1");
 
     // Check XML escaping: regression test for
     //   https://code.google.com/p/android/issues/detail?id=76283
