@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.wizard.FormFactorUtils.FormFactor;
 import com.google.common.collect.Lists;
 import com.intellij.ide.startup.StartupManagerEx;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,6 +28,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -34,10 +36,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_JAVA_VERSION;
 import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
 
@@ -135,6 +139,24 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       }
     }
 
+    // Pick the highest language level of all the modules/form factors.
+    // We have to pick the language level up front while creating the project rather than
+    // just reacting to it during sync, because otherwise the user gets prompted with
+    // a changing-language-level-requires-reopening modal dialog box and have to reload
+    // the project
+    LanguageLevel initialLanguageLevel = null;
+    Iterator<FormFactor> iterator = FormFactor.iterator();
+    while (iterator.hasNext()) {
+      FormFactor factor = iterator.next();
+      Object version = getState().get(FormFactorUtils.getLanguageLevelKey(factor));
+      if (version != null) {
+        LanguageLevel level = LanguageLevel.parse(version.toString());
+        if (level != null && (initialLanguageLevel == null || level.isAtLeast(initialLanguageLevel))) {
+          initialLanguageLevel = level;
+        }
+      }
+    }
+
     try {
       projectImporter.importNewlyCreatedProject(projectName, rootLocation, new NewProjectImportGradleSyncListener() {
         @Override
@@ -158,7 +180,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
         private boolean openTemplateFiles(Project project) {
           return TemplateUtils.openEditors(project, myFilesToOpen, true);
         }
-      }, null, null);
+      }, null, initialLanguageLevel);
     }
     catch (IOException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
