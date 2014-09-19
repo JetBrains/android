@@ -1216,29 +1216,6 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return false;
   }
 
-  private class MyISyncProgressMonitor implements SyncService.ISyncProgressMonitor {
-    @Override
-    public void start(int totalWork) {
-    }
-
-    @Override
-    public void stop() {
-    }
-
-    @Override
-    public boolean isCanceled() {
-      return myStopped;
-    }
-
-    @Override
-    public void startSubTask(String name) {
-    }
-
-    @Override
-    public void advance(int work) {
-    }
-  }
-
   private ApkUploaderService.UploadResult uploadApp(@NotNull IDevice device, @NotNull String remotePath, @NotNull String localPath) throws IOException {
     if (myStopped) return ApkUploaderService.UploadResult.FAILED;
     message("Uploading file\n\tlocal path: " + localPath + "\n\tremote path: " + remotePath, STDOUT);
@@ -1247,7 +1224,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
     try {
       ApkUploaderService installer = ServiceManager.getService(ApkUploaderService.class);
-      ApkUploaderService.UploadResult result = installer.uploadApk(device, localPath, remotePath, new MyISyncProgressMonitor());
+      ApkUploaderService.UploadResult result = installer.uploadApk(device, localPath, remotePath);
       if (result == ApkUploaderService.UploadResult.FAILED) {
         message("Can't upload file: device is not available.", STDERR);
       }

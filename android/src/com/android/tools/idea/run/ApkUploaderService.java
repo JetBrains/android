@@ -21,6 +21,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class ApkUploaderService implements AndroidDebugBridge.IDeviceChangeListe
     AndroidDebugBridge.removeDeviceChangeListener(this);
   }
 
-  public UploadResult uploadApk(IDevice device, String localPath, String remotePath, SyncService.ISyncProgressMonitor monitor)
+  public UploadResult uploadApk(@NotNull IDevice device, @NotNull String localPath, @NotNull String remotePath)
     throws AdbCommandRejectedException, IOException, TimeoutException, SyncException {
 
     HashCode hash = Files.hash(new File(localPath), Hashing.goodFastHash(32));
@@ -66,11 +67,7 @@ public class ApkUploaderService implements AndroidDebugBridge.IDeviceChangeListe
       myCache.put(serial, cache);
     }
 
-    SyncService service = device.getSyncService();
-    if (service == null) {
-      return UploadResult.FAILED;
-    }
-    service.pushFile(localPath, remotePath, monitor);
+    device.pushFile(localPath, remotePath);
     cache.put(remotePath, hash);
     return UploadResult.SUCCESS;
   }
