@@ -333,10 +333,6 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
 
     Step newStep;
     if (!myCurrentPath.hasNext() && myPathListIterator.hasNext()) {
-      if (!myCurrentPath.readyToLeavePath()) {
-        myHost.shakeWindow();
-        return;
-      }
       myCurrentPath = myPathListIterator.next();
       myCurrentPath.onPathStarted(true /* fromBeginning */);
       newStep = myCurrentPath.getCurrentStep();
@@ -384,12 +380,8 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    * this method.
    */
   public final void doFinishAction() {
-    if (myCurrentPath != null && !myCurrentPath.readyToLeavePath()) {
-      myHost.shakeWindow();
-      return;
-    }
     myHost.close(false);
-    new WriteCommandAction<Void>(getProject(), getWizardActionDescription(), (PsiFile[])null) {
+    new WriteCommandAction<Void>(getProject(), getWizardActionDescription(), (PsiFile[]) null) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
         for (AndroidStudioWizardPath path : myPaths) {
