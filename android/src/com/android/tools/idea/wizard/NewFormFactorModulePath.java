@@ -50,6 +50,7 @@ import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
   private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
+  private static final Key<Boolean> IS_LIBRARY_MODULE_KEY = createKey(ATTR_IS_LIBRARY_MODULE, PATH, Boolean.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
   private static final Key<String> MODULE_LOCATION_KEY = createKey(ATTR_PROJECT_OUT, PATH, String.class);
@@ -107,6 +108,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
   @Override
   protected void init() {
     //noinspection ConstantConditions
+    myState.put(IS_LIBRARY_MODULE_KEY, false);
     myState.put(SRC_DIR_KEY, calculateSrcDir());
     myState.put(RES_DIR_KEY, "src/main/res");
     myState.put(AIDL_DIR_KEY, "src/main/aidl");
