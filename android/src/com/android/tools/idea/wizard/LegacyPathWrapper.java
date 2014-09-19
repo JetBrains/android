@@ -191,6 +191,11 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
     }
   }
 
+  @Override
+  public boolean readyToLeavePath() {
+    return true;
+  }
+
   private static final class TemplateEntryModuleTemplate implements ModuleTemplate {
     private final ChooseTemplateStep.MetadataListItem myTemplate;
 
