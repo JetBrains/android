@@ -31,11 +31,6 @@ public interface AndroidStudioWizardPath {
   void onPathStarted(boolean fromBeginning);
 
   /**
-   * Called when the wizard proceeds past the last visible step of the path.
-   */
-  boolean readyToLeavePath();
-
-  /**
    * @return the current step object for this path, or null if this path has not yet been started, or has already ended.
    */
   Step getCurrentStep();
