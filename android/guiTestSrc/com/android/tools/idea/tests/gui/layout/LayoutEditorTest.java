@@ -46,8 +46,7 @@ public class LayoutEditorTest extends GuiTestCase {
   @Test
   @IdeGuiTest
   public void testSetProperty() throws Exception {
-    // Create a new project rather than opening the sample application since we need to edit it
-    IdeFrameFixture projectFrame = newProject("LayoutEditorTest").withActivity("MyActivity").create();
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = projectFrame.getEditor();
