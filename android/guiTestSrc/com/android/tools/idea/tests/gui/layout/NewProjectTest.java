@@ -22,13 +22,19 @@ import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
+import java.io.File;
+
+import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -88,6 +94,95 @@ public class NewProjectTest extends GuiTestCase {
     for (Module module : ModuleManager.getInstance(projectFrame.getProject()).getModules()) {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtension.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
+    }
+  }
+
+  @NotNull
+  private NewProjectDescriptor newProject(@NotNull String name) {
+    return new NewProjectDescriptor(name);
+  }
+
+  /**
+   * Describes a new test project to be created.
+   */
+  private class NewProjectDescriptor {
+    private String myActivity = "MainActivity";
+    private String myPkg = "com.android.test.app";
+    private String myMinSdk = "19";
+    private String myName = "TestProject";
+    private String myDomain = "com.android";
+
+    private NewProjectDescriptor(@NotNull String name) {
+      withName(name);
+    }
+
+    /**
+     * Set a custom package to use in the new project
+     */
+    NewProjectDescriptor withPackageName(@NotNull String pkg) {
+      myPkg = pkg;
+      return this;
+    }
+
+    /**
+     * Set a new project name to use for the new project
+     */
+    NewProjectDescriptor withName(@NotNull String name) {
+      myName = name;
+      return this;
+    }
+
+    /**
+     * Set a custom activity name to use in the new project
+     */
+    NewProjectDescriptor withActivity(@NotNull String activity) {
+      myActivity = activity;
+      return this;
+    }
+
+    /**
+     * Set a custom minimum SDK version to use in the new project
+     */
+    NewProjectDescriptor withMinSdk(@NotNull String minSdk) {
+      myMinSdk = minSdk;
+      return this;
+    }
+
+    /**
+     * Set a custom company domain to enter in the new project wizard
+     */
+    NewProjectDescriptor withCompanyDomain(@NotNull String domain) {
+      myDomain = domain;
+      return this;
+    }
+
+    /**
+     * Creates a project fixture for this description
+     */
+    @NotNull
+    IdeFrameFixture create() {
+      findWelcomeFrame().clickNewProjectButton();
+
+      NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
+
+      ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
+      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
+      File projectPath = configureAndroidProjectStep.getLocationInFileSystem();
+      newProjectWizard.clickNext();
+
+      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
+      newProjectWizard.clickNext();
+
+      // Skip "Add Activity" step
+      newProjectWizard.clickNext();
+
+      newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
+      newProjectWizard.clickFinish();
+
+      IdeFrameFixture projectFrame = findIdeFrame(myName, projectPath);
+      projectFrame.waitForGradleProjectSyncToFinish();
+
+      return projectFrame;
     }
   }
 }
