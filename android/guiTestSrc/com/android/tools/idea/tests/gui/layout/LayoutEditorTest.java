@@ -57,10 +57,6 @@ public class LayoutEditorTest extends GuiTestCase {
     assertNotNull(layout);
     layout.waitForNextRenderToFinish();
 
-    // Initially the root layout is selected
-    layout.requireSelectionCount(1);
-    assertEquals("RelativeLayout", layout.getSelection().get(0).getTagName());
-
     // Find and click the first text view
     LayoutEditorComponentFixture textView = layout.findView("TextView", 0);
     textView.click();
@@ -84,5 +80,16 @@ public class LayoutEditorTest extends GuiTestCase {
     imageView.requireTitle("ImageView");
     imageView.requireTag("ImageView");
     imageView.requireCategory("Widgets");
+
+    // Check XML escaping: regression test for
+    //   https://code.google.com/p/android/issues/detail?id=76283
+    property.enterValue("a < b > c & d ' e \" f");
+    layout.waitForNextRenderToFinish();
+    property.requireValue("a < b > c & d ' e \" f");
+    // make sure XML source was escaped properly
+    editor.selectEditorTab(EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("android:text=\"", null, true));
+    assertEquals("android:text=\"a &lt; b > c &amp; d &apos; e &quot; f\"",
+                 editor.getCurrentLineContents(true, false, 0));
   }
 }
