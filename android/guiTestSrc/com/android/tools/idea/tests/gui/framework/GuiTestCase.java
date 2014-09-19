@@ -21,7 +21,6 @@ import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -61,7 +60,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.createGradleWrapper;
 import static com.android.tools.idea.templates.AndroidGradleTestCase.updateGradleVersions;
 import static com.android.tools.idea.tests.gui.framework.GuiTestRunner.canRunGuiTests;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static com.intellij.ide.impl.ProjectUtil.closeAndDispose;
 import static com.intellij.openapi.project.ProjectCoreUtil.DIRECTORY_BASED_PROJECT_DIR;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -235,95 +233,6 @@ public abstract class GuiTestCase {
     projectFrame.waitForGradleProjectSyncToFinish();
 
     return projectFrame;
-  }
-
-  @NotNull
-  protected NewProjectDescriptor newProject(@NotNull String name) {
-    return new NewProjectDescriptor(name);
-  }
-
-  /**
-   * Descriptor which describes a new test project to be created
-   */
-  public class NewProjectDescriptor {
-    private String myActivity = "MainActivity";
-    private String myPkg = "com.android.test.app";
-    private String myMinSdk = "19";
-    private String myName = "TestProject";
-    private String myDomain = "com.android";
-
-    private NewProjectDescriptor(@NotNull String name) {
-      withName(name);
-    }
-
-    /**
-     * Set a custom package to use in the new project
-     */
-    public NewProjectDescriptor withPackageName(@NotNull String pkg) {
-      myPkg = pkg;
-      return this;
-    }
-
-    /**
-     * Set a new project name to use for the new project
-     */
-    public NewProjectDescriptor withName(@NotNull String name) {
-      myName = name;
-      return this;
-    }
-
-    /**
-     * Set a custom activity name to use in the new project
-     */
-    public NewProjectDescriptor withActivity(@NotNull String activity) {
-      myActivity = activity;
-      return this;
-    }
-
-    /**
-     * Set a custom minimum SDK version to use in the new project
-     */
-    public NewProjectDescriptor withMinSdk(@NotNull String minSdk) {
-      myMinSdk = minSdk;
-      return this;
-    }
-
-    /**
-     * Set a custom company domain to enter in the new project wizard
-     */
-    public NewProjectDescriptor withCompanyDomain(@NotNull String domain) {
-      myDomain = domain;
-      return this;
-    }
-
-    /**
-     * Creates a project fixture for this description
-     */
-    @NotNull
-    public IdeFrameFixture create() {
-      findWelcomeFrame().clickNewProjectButton();
-
-      NewProjectWizardFixture newProjectWizard = findNewProjectWizard();
-
-      ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
-      File projectPath = configureAndroidProjectStep.getLocationInFileSystem();
-      newProjectWizard.clickNext();
-
-      newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, myMinSdk);
-      newProjectWizard.clickNext();
-
-      // Skip "Add Activity" step
-      newProjectWizard.clickNext();
-
-      newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
-      newProjectWizard.clickFinish();
-
-      IdeFrameFixture projectFrame = findIdeFrame(myName, projectPath);
-      projectFrame.waitForGradleProjectSyncToFinish();
-
-      return projectFrame;
-    }
   }
 
   /**
