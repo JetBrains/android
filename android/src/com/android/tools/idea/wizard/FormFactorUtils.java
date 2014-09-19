@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,7 @@ public class FormFactorUtils {
   public static final String INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_MODULE_NAME = "projectName";
 
+  /** TODO: Turn into an enum and combine with {@link com.android.tools.idea.configurations.DeviceMenuAction.FormFactor} */
   public static class FormFactor {
     public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet", 15,
                                                            Lists.newArrayList("20", "Glass"), null);
@@ -92,6 +94,10 @@ public class FormFactorUtils {
     @Nullable
     public Icon getIcon() {
       return myIcon;
+    }
+
+    public static Iterator<FormFactor> iterator() {
+      return myFormFactors.values().iterator();
     }
   }
 
