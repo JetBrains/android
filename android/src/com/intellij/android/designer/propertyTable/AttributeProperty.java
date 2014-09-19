@@ -16,6 +16,7 @@
 package com.intellij.android.designer.propertyTable;
 
 import com.android.resources.ResourceType;
+import com.android.utils.XmlUtils;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.editors.EventHandlerEditor;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
@@ -112,14 +113,15 @@ public class AttributeProperty extends PropertyWithNamespace implements IXmlAttr
 
   @Override
   public Object getValue(@NotNull RadViewComponent component) throws Exception {
-    Object value = null;
-
     XmlAttribute attribute = getAttribute(component);
     if (attribute != null) {
-      value = attribute.getValue();
+      String attributeValue = attribute.getValue();
+      if (attributeValue != null) {
+        return XmlUtils.fromXmlAttributeValue(attributeValue);
+      }
     }
 
-    return value == null ? "" : value;
+    return "";
   }
 
   @Override
@@ -135,7 +137,8 @@ public class AttributeProperty extends PropertyWithNamespace implements IXmlAttr
         }
         else {
           String namespace = getNamespace(component, true);
-          component.getTag().setAttribute(myDefinition.getName(), namespace, (String)value);
+          String escapedValue = XmlUtils.toXmlAttributeValue((String)value);
+          component.getTag().setAttribute(myDefinition.getName(), namespace, escapedValue);
         }
       }
     });
