@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.ServiceLoader;
 
 import static com.android.SdkConstants.*;
 import static com.android.utils.SdkUtils.createPathComment;
@@ -57,7 +58,7 @@ public class BuildOutputParserTest extends TestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    parser = new BuildOutputParser();
+    parser = new BuildOutputParser(ServiceLoader.load(PatternAwareOutputParser.class));
   }
 
   @Override

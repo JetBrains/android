@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * The Where section may not appear (it usually only shows up if there's a problem in the build.gradle file itself). We parse this
  * out to get the failure message and module, and the where output if it appears.
  */
-class BuildFailureParser implements PatternAwareOutputParser {
+public class BuildFailureParser implements PatternAwareOutputParser {
   private static final Pattern[] BEGINNING_PATTERNS =
     {Pattern.compile("^FAILURE: Build failed with an exception."), Pattern.compile("^\\* What went wrong:")};
 

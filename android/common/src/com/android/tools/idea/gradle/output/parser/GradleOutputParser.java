@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.regex.Pattern;
 
-class GradleOutputParser implements PatternAwareOutputParser {
+public class GradleOutputParser implements PatternAwareOutputParser {
   private static final Pattern ERROR_COUNT_PATTERN = Pattern.compile("[\\d]+ error(s)?");
 
   @Override
