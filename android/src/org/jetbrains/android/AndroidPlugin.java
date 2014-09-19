@@ -67,14 +67,23 @@ public class AndroidPlugin implements ApplicationComponent {
   }
 
   public static class GuiTestSuiteState {
-    private boolean myOpenProjectWizardAlreadyUsed;
+    private boolean myOpenProjectWizardAlreadyTested;
+    private boolean myImportProjectWizardAlreadyTested;
 
-    public boolean isOpenProjectWizardAlreadyUsed() {
-      return myOpenProjectWizardAlreadyUsed;
+    public boolean isOpenProjectWizardAlreadyTested() {
+      return myOpenProjectWizardAlreadyTested;
     }
 
-    public void setOpenProjectWizardAlreadyUsed(boolean openProjectWizardAlreadyUsed) {
-      myOpenProjectWizardAlreadyUsed = openProjectWizardAlreadyUsed;
+    public void setOpenProjectWizardAlreadyTested(boolean openProjectWizardAlreadyTested) {
+      myOpenProjectWizardAlreadyTested = openProjectWizardAlreadyTested;
+    }
+
+    public boolean isImportProjectWizardAlreadyTested() {
+      return myImportProjectWizardAlreadyTested;
+    }
+
+    public void setImportProjectWizardAlreadyTested(boolean importProjectWizardAlreadyTested) {
+      myImportProjectWizardAlreadyTested = importProjectWizardAlreadyTested;
     }
   }
 }
