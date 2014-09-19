@@ -1200,35 +1200,26 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     return uploadAndInstallApk(device, packageName, localPath);
   }
 
+  /**
+   * Installs the given apk on the device.
+   * @return whether the installation was successful
+   */
   private boolean uploadAndInstallApk(@NotNull IDevice device, @NotNull String packageName, @NotNull String localPath)
     throws IOException, AdbCommandRejectedException, TimeoutException {
-    String remotePath = "/data/local/tmp/" + packageName;
-    ApkUploaderService.UploadResult result = uploadApp(device, remotePath, localPath);
-    switch (result) {
-      case SUCCESS:
-        return installApp(device, remotePath, packageName);
-      case FAILED:
-        return false;
-      case CACHED:
-        message("No apk changes detected. Skipping file upload.", STDOUT);
-        return true;
-    }
-    return false;
-  }
 
-  private ApkUploaderService.UploadResult uploadApp(@NotNull IDevice device, @NotNull String remotePath, @NotNull String localPath) throws IOException {
-    if (myStopped) return ApkUploaderService.UploadResult.FAILED;
-    message("Uploading file\n\tlocal path: " + localPath + "\n\tremote path: " + remotePath, STDOUT);
+    if (myStopped) return false;
+    String remotePath = "/data/local/tmp/" + packageName;
     String exceptionMessage;
     String errorMessage;
-
+    message("Uploading file\n\tlocal path: " + localPath + "\n\tremote path: " + remotePath, STDOUT);
     try {
       ApkUploaderService installer = ServiceManager.getService(ApkUploaderService.class);
-      ApkUploaderService.UploadResult result = installer.uploadApk(device, localPath, remotePath);
-      if (result == ApkUploaderService.UploadResult.FAILED) {
-        message("Can't upload file: device is not available.", STDERR);
+      if (installer.uploadApk(device, localPath, remotePath)) {
+        return installApp(device, remotePath, packageName);
+      } else {
+        message("No apk changes detected. Skipping file upload.", STDOUT);
       }
-      return result;
+      return true;
     }
     catch (TimeoutException e) {
       LOG.info(e);
@@ -1283,7 +1274,7 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     else {
       message(errorMessage + '\n' + exceptionMessage, STDERR);
     }
-    return ApkUploaderService.UploadResult.FAILED;
+    return false;
   }
 
   @SuppressWarnings({"DuplicateThrows"})
