@@ -296,6 +296,11 @@ public abstract class DynamicWizardPath implements ScopedStateStore.ScopedStoreL
     return myCurrentStep;
   }
 
+  @Override
+  public boolean readyToLeavePath() {
+    return myCurrentStep == null || myCurrentStep.commitStep();
+  }
+
   /**
    * @return the previous visible step in this path or null if there are no previous visible steps
    */
