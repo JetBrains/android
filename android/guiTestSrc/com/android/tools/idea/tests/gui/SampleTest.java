@@ -15,41 +15,17 @@
  */
 package com.android.tools.idea.tests.gui;
 
-import com.android.builder.model.AndroidProject;
-import com.android.builder.model.ApiVersion;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static org.fest.assertions.Assertions.assertThat;
 
 public class SampleTest extends GuiTestCase {
-  @Test @IdeGuiTest
-  public void testCreateNewMobileProject() {
-    IdeFrameFixture projectFrame = newProject("Test Application").create();
-    FileFixture layoutFile = projectFrame.findExistingFileByRelativePath("app/src/main/res/layout/activity_main.xml");
-    layoutFile.requireOpenAndSelected();
-
-    // Verify state of project
-    projectFrame.requireModuleCount(2);
-    IdeaAndroidProject appAndroidProject = projectFrame.getAndroidProjectForModule("app");
-    assertThat(appAndroidProject.getVariantNames()).as("variants").containsOnly("debug", "release");
-    assertThat(appAndroidProject.getSelectedVariant().getName()).as("selected variant").isEqualTo("debug");
-
-    AndroidProject model = appAndroidProject.getDelegate();
-    ApiVersion minSdkVersion = model.getDefaultConfig().getProductFlavor().getMinSdkVersion();
-    assertNotNull("minSdkVersion", minSdkVersion);
-    assertThat(minSdkVersion.getApiString()).as("minSdkVersion API").isEqualTo("19");
-  }
-
   @Test @IdeGuiTest
   public void testEditor() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
