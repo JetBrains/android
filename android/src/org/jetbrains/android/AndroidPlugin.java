@@ -21,6 +21,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author coyote
@@ -30,6 +31,7 @@ public class AndroidPlugin implements ApplicationComponent {
   public static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
 
   private static boolean ourGuiTestingMode;
+  private static GuiTestSuiteState ourGuiTestSuiteState;
 
   @Override
   @NotNull
@@ -63,5 +65,27 @@ public class AndroidPlugin implements ApplicationComponent {
 
   public static void setGuiTestingMode(boolean guiTestingMode) {
     ourGuiTestingMode = guiTestingMode;
+    if (guiTestingMode) {
+      ourGuiTestSuiteState = new GuiTestSuiteState();
+    }
+  }
+
+  // Ideally we would have this class in IdeTestApplication. The problem is that IdeTestApplication and UI tests run in different
+  // ClassLoaders and UI tests are unable to see the same instance of IdeTestApplication.
+  @Nullable
+  public static GuiTestSuiteState getGuiTestSuiteState() {
+    return ourGuiTestSuiteState;
+  }
+
+  public static class GuiTestSuiteState {
+    private boolean myOpenProjectWizardAlreadyUsed;
+
+    public boolean isOpenProjectWizardAlreadyUsed() {
+      return myOpenProjectWizardAlreadyUsed;
+    }
+
+    public void setOpenProjectWizardAlreadyUsed(boolean openProjectWizardAlreadyUsed) {
+      myOpenProjectWizardAlreadyUsed = openProjectWizardAlreadyUsed;
+    }
   }
 }
