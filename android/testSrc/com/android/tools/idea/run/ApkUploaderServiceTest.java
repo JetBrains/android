@@ -18,7 +18,7 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 
 import java.io.File;
 
@@ -57,45 +57,28 @@ public class ApkUploaderServiceTest extends TestCase {
   }
 
   public void testUploadApkTwice() throws Exception {
-
-    ApkUploaderService.UploadResult result = myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.SUCCESS, result);
-
-    result = myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.CACHED, result);
+    assertTrue(myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath));
+    assertFalse(myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath));
   }
 
   public void testUploadModifiedApkTwice() throws Exception {
-    ApkUploaderService.UploadResult result = myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.SUCCESS, result);
-
+    assertTrue(myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath));
     FileUtil.writeToFile(myFile, "changed!");
-
-    result = myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.SUCCESS, result);
+    assertTrue(myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath));
   }
 
   public void testUploadApkAfterDisconnect() throws Exception {
-    ApkUploaderService.UploadResult result = myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.SUCCESS, result);
-
-    result = myService.uploadApk(myDevice2, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.SUCCESS, result);
+    assertTrue(myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath));
+    assertTrue(myService.uploadApk(myDevice2, myFile.getAbsolutePath(), myRemotePath));
 
     myService.deviceDisconnected(myDevice2);
 
-    result = myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.CACHED, result);
-
-    result = myService.uploadApk(myDevice2, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.SUCCESS, result);
+    assertFalse(myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath));
+    assertTrue(myService.uploadApk(myDevice2, myFile.getAbsolutePath(), myRemotePath));
 
     myService.deviceDisconnected(myDevice1);
 
-    result = myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.SUCCESS, result);
-
-    result = myService.uploadApk(myDevice2, myFile.getAbsolutePath(), myRemotePath);
-    assertEquals(ApkUploaderService.UploadResult.CACHED, result);
+    assertTrue(myService.uploadApk(myDevice1, myFile.getAbsolutePath(), myRemotePath));
+    assertFalse(myService.uploadApk(myDevice2, myFile.getAbsolutePath(), myRemotePath));
   }
 }
