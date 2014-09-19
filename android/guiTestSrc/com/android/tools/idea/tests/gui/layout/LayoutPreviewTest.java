@@ -62,7 +62,7 @@ public class LayoutPreviewTest extends GuiTestCase {
     // orientation to landscape, create a landscape variation file, ensure
     // it's in the right folder, toggle orientation back, ensure file switched
     // back to the portrait/original file
-    IdeFrameFixture projectFrame = newProject("LayoutPreviewTest1").withActivity("MyActivity").create();
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -127,7 +127,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   @Ignore  // TODO: Remove when issue 76009 is fixed.
   @IdeGuiTest(closeProjectBeforeExecution = true)
   public void testPreviewConfigurationTweaks() throws Exception {
-    IdeFrameFixture projectFrame = newProject("LayoutPreviewTest2").withActivity("MyActivity").create();
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
@@ -159,7 +159,7 @@ public class LayoutPreviewTest extends GuiTestCase {
   @Test
   @IdeGuiTest(closeProjectBeforeExecution = true)
   public void testEdits() throws Exception {
-    IdeFrameFixture projectFrame = newProject("LayoutPreviewTest3").withActivity("MyActivity").create();
+    IdeFrameFixture projectFrame = openSimpleApplication();
 
     // Load layout, wait for render to be shown in the preview window
     EditorFixture editor = projectFrame.getEditor();
