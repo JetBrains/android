@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.multi;
 
-import com.android.builder.model.ApiVersion;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.Capability;
 import com.android.ide.common.res2.ResourceItem;
@@ -32,7 +32,6 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
-import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.AppResourceRepository;
 import com.android.tools.idea.rendering.Locale;
@@ -1817,6 +1816,12 @@ public class RenderPreviewManager implements Disposable {
     myRenderContext.updateLayout();
     layout(true);
     redraw();
+  }
+
+  @Nullable
+  @VisibleForTesting
+  public List<RenderPreview> getPreviews() {
+    return myPreviews;
   }
 
   /**
