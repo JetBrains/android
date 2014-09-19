@@ -27,6 +27,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.WindowManager;
@@ -43,6 +44,7 @@ import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
 import org.jdom.xpath.XPath;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -132,11 +134,6 @@ public abstract class GuiTestCase {
     return IdeFrameFixture.find(myRobot, projectPath, projectName);
   }
 
-  @NotNull
-  protected IdeFrameFixture findIdeFrame(@NotNull File projectPath) {
-    return IdeFrameFixture.find(myRobot, projectPath, null);
-  }
-
   @SuppressWarnings("UnusedDeclaration")
   // Called by GuiTestRunner via reflection.
   protected void closeAllProjects() {
@@ -211,14 +208,33 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture openProject(@NotNull File projectPath) {
+  protected IdeFrameFixture openProject(@NotNull final File projectPath) {
     VirtualFile toSelect = findFileByIoFile(projectPath, true);
     assertNotNull(toSelect);
 
-    findWelcomeFrame().clickOpenProjectButton();
+    AndroidPlugin.GuiTestSuiteState state = AndroidPlugin.getGuiTestSuiteState();
+    assertNotNull(state);
+    if (!state.isOpenProjectWizardAlreadyUsed()) {
+      state.setOpenProjectWizardAlreadyUsed(true);
 
-    FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
-    return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
+      findWelcomeFrame().clickOpenProjectButton();
+
+      FileChooserDialogFixture openProjectDialog = FileChooserDialogFixture.findOpenProjectDialog(myRobot);
+      return openProjectAndWaitUntilOpened(toSelect, openProjectDialog);
+    }
+
+    GuiActionRunner.execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() throws Throwable {
+        ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+        projectManager.loadAndOpenProject(projectPath.getPath());
+      }
+    });
+
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    return projectFrame;
   }
 
   @NotNull
@@ -443,13 +459,19 @@ public abstract class GuiTestCase {
   }
 
   @NotNull
-  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectPath,
+  protected IdeFrameFixture openProjectAndWaitUntilOpened(@NotNull VirtualFile projectDir,
                                                           @NotNull FileChooserDialogFixture fileChooserDialog) {
-    fileChooserDialog.select(projectPath).clickOk();
+    fileChooserDialog.select(projectDir).clickOk();
 
-    IdeFrameFixture projectFrame = findIdeFrame(virtualToIoFile(projectPath));
+    File projectPath = virtualToIoFile(projectDir);
+    IdeFrameFixture projectFrame = findIdeFrame(projectPath);
     projectFrame.waitForGradleProjectSyncToFinish();
 
     return projectFrame;
+  }
+
+  @NotNull
+  protected IdeFrameFixture findIdeFrame(@NotNull File projectPath) {
+    return IdeFrameFixture.find(myRobot, projectPath, null);
   }
 }
