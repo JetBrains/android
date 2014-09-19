@@ -46,7 +46,7 @@ public class MultipleModuleTypeCompilationTest extends GuiTestCase {
     GradleInvocationResult result = ideFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
     List<String> invokedTasks = result.getTasks();
-    assertThat(invokedTasks).containsOnly(":app:compileDebugJava", ":javaLib:compileJava");
+    assertThat(invokedTasks).containsOnly(":app:compileDebugSources", ":javaLib:compileJava");
   }
 
   @Test @IdeGuiTest
