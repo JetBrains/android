@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.propertyTable.PropertyTable;
+import com.intellij.designer.propertyTable.PropertyTablePanel;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,12 +35,20 @@ public class PropertySheetFixture {
   private final LayoutEditorFixture myEditorFixture;
   @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"})
   private final AndroidDesignerEditorPanel myPanel;
+  private final PropertyTablePanel myPropertyTablePanel;
 
   public PropertySheetFixture(@NotNull Robot robot, @NotNull LayoutEditorFixture editorFixture,
                               @NotNull AndroidDesignerEditorPanel panel) {
     myRobot = robot;
     myEditorFixture = editorFixture;
     myPanel = panel;
+
+    myPropertyTablePanel = GuiTests.waitUntilFound(myRobot, new GenericTypeMatcher<PropertyTablePanel>(PropertyTablePanel.class) {
+      @Override
+      protected boolean isMatching(PropertyTablePanel component) {
+        return true;
+      }
+    });
   }
 
   @Nullable
@@ -53,5 +64,10 @@ public class PropertySheetFixture {
     }
 
     return null;
+  }
+
+  @NotNull
+  PropertyTablePanel getPropertyTablePanel() {
+    return myPropertyTablePanel;
   }
 }
