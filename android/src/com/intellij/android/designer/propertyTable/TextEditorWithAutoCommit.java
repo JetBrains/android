@@ -15,6 +15,7 @@
  */
 package com.intellij.android.designer.propertyTable;
 
+import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.designer.propertyTable.editors.TextEditorWrapper;
 
 import java.awt.event.ActionEvent;
@@ -33,5 +34,6 @@ public class TextEditorWithAutoCommit extends TextEditorWrapper {
         fireValueCommitted(false, true);
       }
     });
+    ResourceEditor.selectTextOnFocusGain(myTextField);
   }
 }
