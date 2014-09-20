@@ -15,16 +15,41 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.propertyTable.AttributeProperty;
 import com.intellij.designer.model.Property;
+import com.intellij.designer.propertyTable.PropertyEditor;
+import com.intellij.designer.propertyTable.RadPropertyTable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.ThrowableComputable;
+import org.fest.swing.cell.JTableCellReader;
+import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JTextComponentMatcher;
+import org.fest.swing.data.TableCell;
+import org.fest.swing.data.TableCellFinder;
+import org.fest.swing.driver.ComponentDriver;
+import org.fest.swing.driver.JTableDriver;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import javax.swing.table.TableModel;
+import javax.swing.text.JTextComponent;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
 import static org.junit.Assert.assertEquals;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -68,7 +93,17 @@ public class PropertyFixture {
   @SuppressWarnings("unchecked")
   @NotNull
   public String getValue() throws Exception {
-    // TODO: Read via the UI property widget instead
+    /*
+    TODO: Read via the UI property widget instead
+    This should do the trick, but still needs some timing debugging:
+
+    TableCell cell = findTableCell(true);
+    assertNotNull(cell);
+
+    JTableDriver tableDriver = new JTableDriver(myRobot);
+    String value = tableDriver.value(getTable(), cell);
+    return value == null ? "<null>" : value;
+     */
     return ApplicationManager.getApplication().runReadAction(new ThrowableComputable<String,Exception>() {
       @Override
       public String compute() throws Exception {
@@ -78,26 +113,67 @@ public class PropertyFixture {
     });
   }
 
+  public void requireXmlValue(@Nullable String expectedValue) {
+    assertThat(myProperty).isInstanceOf(AttributeProperty.class);
+    AttributeProperty attributeProperty = (AttributeProperty)myProperty;
+    RadViewComponent component = myComponent.getComponent();
+    String namespace = attributeProperty.getNamespace(component, false);
+    String value = component.getTag().getAttributeValue(attributeProperty.getName(), namespace);
+    assertEquals(expectedValue, value);
+  }
+
+  @Nullable
+  private TableCell findTableCell(boolean requireExists) {
+    RadPropertyTable table = getTable();
+    TableModel model = table.getModel();
+    int rowCount = model.getRowCount();
+    int columnCount = model.getColumnCount();
+    for (int row = 0; row < rowCount; row++) {
+      for (int column = 0; column < columnCount; column++) {
+        Object valueAt = model.getValueAt(row, column);
+        if (valueAt == myProperty) {
+          return TableCell.row(row).column(1);
+        }
+      }
+    }
+
+    if (requireExists) {
+      fail("Could not find property " + myProperty + " in the property table!");
+    }
+
+    return null;
+  }
+
+  private RadPropertyTable getTable() {
+    return myPropertySheetFixture.getPropertyTablePanel().getPropertyTable();
+  }
+
   /** Types in the given value into the property */
   @SuppressWarnings("unchecked")
   public void enterValue(@NotNull final String value) {
-    // TODO: This should use the robot on the *UI* in the property sheet to edit the value instead!
+    RadPropertyTable table = getTable();
+    TableCell cell = findTableCell(true);
+    assertNotNull(cell);
+    final ComponentDriver componentDriver = new ComponentDriver(myRobot);
+    JTableDriver tableDriver = new JTableDriver(myRobot);
+
+    // Can't use startCellEditing; doesn't support the subclasses in the designer property sheet
+    //tableDriver.startCellEditing(table, cell);
+    tableDriver.click(table, cell, MouseButton.LEFT_BUTTON, 1);
+
+    final JTextComponent field = waitUntilFound(myRobot, table, JTextComponentMatcher.any());
+    componentDriver.focusAndWaitForFocusGain(field);
     GuiActionRunner.execute(new GuiTask() {
       @Override
       protected void executeInEDT() throws Throwable {
-        //noinspection ConstantConditions
-        WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-          @Override
-          public void run() {
-            try {
-              myProperty.setValue(myComponent.getComponent(), value);
-            }
-            catch (Exception e) {
-              fail(e.toString());
-            }
-          }
-        });
+        field.selectAll(); // workaround: when mouse clicking the focus listener doesn't kick in on some Linux window managers
       }
     });
+    myRobot.waitForIdle();
+    myRobot.enterText(value);
+    componentDriver.pressAndReleaseKeys(field, KeyEvent.VK_ENTER);
+
+    // Ensure that after entering the text, the property is committed and exists text editing
+    waitUntilGone(myRobot, table, JTextComponentMatcher.any());
   }
 }
