@@ -15,22 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import com.intellij.android.designer.model.RadViewComponent;
 import com.intellij.android.designer.propertyTable.AttributeProperty;
 import com.intellij.designer.model.Property;
-import com.intellij.designer.propertyTable.PropertyEditor;
 import com.intellij.designer.propertyTable.RadPropertyTable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.ThrowableComputable;
-import org.fest.swing.cell.JTableCellReader;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JTextComponentMatcher;
 import org.fest.swing.data.TableCell;
-import org.fest.swing.data.TableCellFinder;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.driver.JTableDriver;
 import org.fest.swing.edt.GuiActionRunner;
@@ -38,19 +33,14 @@ import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.table.TableModel;
 import javax.swing.text.JTextComponent;
-
-import java.awt.*;
 import java.awt.event.KeyEvent;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
-import static org.junit.Assert.assertEquals;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Fixture representing a property in the property sheet
@@ -150,7 +140,17 @@ public class PropertyFixture {
 
   /** Types in the given value into the property */
   @SuppressWarnings("unchecked")
-  public void enterValue(@NotNull final String value) {
+  public void enterValue(@NotNull String value) {
+    enterValue(value, null);
+  }
+
+  /** Types in the given value into the property, and checks that the value is rejected */
+  @SuppressWarnings("unchecked")
+  public void enterInvalidValue(@NotNull String value, @NotNull String expectedError) {
+    enterValue(value, expectedError);
+  }
+
+  private void enterValue(@NotNull final String value, @Nullable String expectedError) {
     RadPropertyTable table = getTable();
     TableCell cell = findTableCell(true);
     assertNotNull(cell);
@@ -173,7 +173,16 @@ public class PropertyFixture {
     myRobot.enterText(value);
     componentDriver.pressAndReleaseKeys(field, KeyEvent.VK_ENTER);
 
-    // Ensure that after entering the text, the property is committed and exists text editing
-    waitUntilGone(myRobot, table, JTextComponentMatcher.any());
+    if (expectedError == null) {
+      // Ensure that after entering the text, the property is committed and exists text editing
+      waitUntilGone(myRobot, table, JTextComponentMatcher.any());
+    } else {
+      MessageDialogFixture dialog = MessageDialogFixture.findByTitle(myRobot, "Invalid Input");
+      String message = dialog.getMessage();
+      assertTrue("Message should contain " + expectedError + " but was " + message,
+                 message.contains(expectedError));
+      dialog.clickOk();
+      componentDriver.pressAndReleaseKeys(field, KeyEvent.VK_ESCAPE);
+    }
   }
 }
