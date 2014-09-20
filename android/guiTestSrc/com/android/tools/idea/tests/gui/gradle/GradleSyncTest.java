@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessageDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.HyperlinkFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixture.MessageFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
@@ -129,21 +130,38 @@ public class GradleSyncTest extends GuiTestCase {
 
   @Test @IdeGuiTest
   // See https://code.google.com/p/android/issues/detail?id=72294
-  public void testSyncWithEmptyGradleSettingsFile() throws IOException {
+  public void testSyncWithEmptyGradleSettingsFileInMultiModuleProject() throws IOException {
     IdeFrameFixture projectFrame = openSimpleApplication();
 
-    File settingsFilePath = new File(projectFrame.getProjectPath(), FN_SETTINGS_GRADLE);
-    delete(settingsFilePath);
-    writeToFile(settingsFilePath, " ");
-    assertThat(settingsFilePath).isFile();
+    createEmptyGradleSettingsFile(projectFrame.getProjectPath());
 
     projectFrame.requestProjectSync();
 
     MessageDialogFixture messageDialog = findGradleSyncMessageDialog(myRobot);
     String message = messageDialog.getMessage();
-    assertThat(message).startsWith("Unable to sync project with Gradle.");
-    messageDialog.clickOk();
+    assertThat(message).startsWith("The project seems to have more than one module (or sub-project) " +
+                                   "but the file 'settings.gradle' does not specify any of them.");
+    messageDialog.clickCancel(); // Do not continue with sync.
 
     assertTrue(lastGradleSyncFailed(projectFrame.getProject()));
+  }
+
+  @Test @IdeGuiTest
+  // See https://code.google.com/p/android/issues/detail?id=76444
+  public void testSyncWithEmptyGradleSettingsFileInSingleModuleProject() throws IOException {
+    IdeFrameFixture projectFrame = importProject("Basic");
+
+    createEmptyGradleSettingsFile(projectFrame.getProjectPath());
+
+    // Sync should be successful for single-module projects with an empty settings.gradle file.
+    projectFrame.requestProjectSync()
+                .waitForGradleProjectSyncToFinish();
+  }
+
+  public void createEmptyGradleSettingsFile(@NotNull File projectPath) throws IOException {
+    File settingsFilePath = new File(projectPath, FN_SETTINGS_GRADLE);
+    delete(settingsFilePath);
+    writeToFile(settingsFilePath, " ");
+    assertThat(settingsFilePath).isFile();
   }
 }
