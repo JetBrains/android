@@ -26,7 +26,6 @@ import com.intellij.android.designer.propertyTable.renderers.ResourceRenderer;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.propertyTable.PropertyEditor;
 import com.intellij.designer.propertyTable.PropertyRenderer;
-import com.intellij.designer.propertyTable.editors.TextEditorWrapper;
 import com.intellij.designer.propertyTable.renderers.LabelPropertyRenderer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
@@ -67,7 +66,7 @@ public class AttributeProperty extends PropertyWithNamespace implements IXmlAttr
     if (formats.size() == 1) {
       if (formats.contains(AttributeFormat.Float)) {
         myRenderer = new LabelPropertyRenderer(null);
-        myEditor = new TextEditorWrapper();
+        myEditor = new TextEditorWithAutoCommit();
         return;
       }
       if (formats.contains(AttributeFormat.Enum)) {

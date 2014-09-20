@@ -33,6 +33,7 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import org.fest.swing.core.BasicRobot;
+import org.fest.swing.core.ComponentFinder;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JButtonMatcher;
@@ -308,20 +309,46 @@ public final class GuiTests {
   /** Waits for a first component which passes the given matcher to become visible */
   @NotNull
   public static <T extends Component> T waitUntilFound(@NotNull final Robot robot, @NotNull final GenericTypeMatcher<T> matcher) {
+    return waitUntilFound(robot, null, matcher);
+  }
+
+  /** Waits for a first component which passes the given matcher under the given root to become visible. */
+  @NotNull
+  public static <T extends Component> T waitUntilFound(@NotNull final Robot robot,
+                                                       @Nullable final Container root,
+                                                       @NotNull final GenericTypeMatcher<T> matcher) {
     final AtomicReference<T> reference = new AtomicReference<T>();
     Pause.pause(new Condition("Find component using " + matcher.toString()) {
       @Override
       public boolean test() {
-        Collection<T> allFound = robot.finder().findAll(matcher);
+        ComponentFinder finder = robot.finder();
+        Collection<T> allFound = root != null ? finder.findAll(root, matcher) : finder.findAll(matcher);
         boolean found = allFound.size() == 1;
         if (found) {
           reference.set(getFirstItem(allFound));
+        } else if (allFound.size() > 1) {
+          // Only allow a single component to be found, otherwise you can get some really confusing
+          // test failures; the matcher should pick a specific enough instance
+          fail("Found more than one " + matcher.supportedType().getSimpleName() + " which matches the criteria: " + allFound);
         }
         return found;
       }
     }, SHORT_TIMEOUT);
 
     return reference.get();
+  }
+
+  /** Waits until no components match the given criteria under the given root */
+  public static <T extends Component> void waitUntilGone(@NotNull final Robot robot,
+                                                         @NotNull final Container root,
+                                                         @NotNull final GenericTypeMatcher<T> matcher) {
+    Pause.pause(new Condition("Find component using " + matcher.toString()) {
+      @Override
+      public boolean test() {
+        Collection<T> allFound = robot.finder().findAll(root, matcher);
+        return allFound.isEmpty();
+      }
+    }, SHORT_TIMEOUT);
   }
 
   private static class MyProjectManagerListener extends ProjectManagerAdapter {
