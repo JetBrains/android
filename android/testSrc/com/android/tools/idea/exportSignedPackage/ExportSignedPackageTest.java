@@ -59,9 +59,7 @@ public class ExportSignedPackageTest extends TestCase {
     return model;
   }
 
-  // Disable these two tests until the IDE properly supports Gradle 2.0
-  // TODO: https://code.google.com/p/android/issues/detail?id=73249
-  public void disable_testNoFlavors() {
+  public void testNoFlavors() {
     AndroidProject androidProject = getAndroidProject("no_flavors");
     assertNotNull(androidProject);
 
@@ -73,7 +71,7 @@ public class ExportSignedPackageTest extends TestCase {
     assertEquals(":assembleRelease", assembleTasks.get(0));
   }
 
-  public void disable_testFlavors() {
+  public void testFlavors() {
     AndroidProject androidProject = getAndroidProject("multiflavor");
     assertNotNull(androidProject);
 
