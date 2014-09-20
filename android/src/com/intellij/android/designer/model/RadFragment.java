@@ -22,10 +22,10 @@ import com.intellij.android.designer.designSurface.AndroidDesignerEditorPanel;
 import com.intellij.android.designer.propertyTable.FragmentProperty;
 import com.intellij.android.designer.propertyTable.IdProperty;
 import com.intellij.android.designer.propertyTable.JavadocParser;
+import com.intellij.android.designer.propertyTable.TextEditorWithAutoCommit;
 import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.model.RadComponent;
-import com.intellij.designer.propertyTable.editors.TextEditorWrapper;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -63,7 +63,7 @@ public class RadFragment extends RadViewComponent implements IConfigurableCompon
                                                                       JavadocParser.build("class",
                                                                                           "Supply the name of the fragment class to instantiate."));
 
-  private static final Property TAG_PROPERTY = new FragmentProperty("tag", SdkConstants.ANDROID_URI, new TextEditorWrapper(),
+  private static final Property TAG_PROPERTY = new FragmentProperty("tag", SdkConstants.ANDROID_URI, new TextEditorWithAutoCommit(),
                                                                     JavadocParser.build(
                                                                       "tag",
                                                                       "Use <code>device-admin</code> as the root tag of the XML resource that\n" +

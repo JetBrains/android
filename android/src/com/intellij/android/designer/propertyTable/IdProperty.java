@@ -234,7 +234,7 @@ public class IdProperty extends AttributeProperty {
       textField.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-          fireValueCommitted(true, true);
+          fireValueCommitted(false, true);
         }
       });
     }
