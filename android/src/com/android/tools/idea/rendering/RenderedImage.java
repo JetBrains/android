@@ -21,10 +21,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,8 +135,7 @@ public class RenderedImage {
         DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
         Device device = myConfiguration.getDevice();
         if (device != null) {
-          AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-            AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+          AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
           if (settings.isShowDeviceFrames()) {
             State deviceState = myConfiguration.getDeviceState();
             if (deviceState != null) {
@@ -256,8 +254,7 @@ public class RenderedImage {
   public int getRequiredWidth() {
     int width = (int)(myScale * myImage.getWidth());
     if (myThumbnailHasFrame || myImageBounds == null && myScaledImage == null && myDeviceFrameEnabled &&
-        AndroidLayoutPreviewToolWindowSettings.getInstance(
-          myConfiguration.getModule().getProject()).getGlobalState().isShowDeviceFrames()) {
+        AndroidEditorSettings.getInstance().getGlobalState().isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
       if (device != null) {
@@ -281,8 +278,7 @@ public class RenderedImage {
   public int getRequiredHeight() {
     int height = (int)(myScale * myImage.getHeight());
     if (myThumbnailHasFrame || myImageBounds == null && myScaledImage == null && myDeviceFrameEnabled &&
-        AndroidLayoutPreviewToolWindowSettings.getInstance(
-          myConfiguration.getModule().getProject()).getGlobalState().isShowDeviceFrames()) {
+        AndroidEditorSettings.getInstance().getGlobalState().isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
       if (device != null) {
@@ -321,8 +317,7 @@ public class RenderedImage {
         DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
         Device device = myConfiguration.getDevice();
         if (device != null) {
-          AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-            AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+          AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
           if (settings.isShowDeviceFrames()) {
             boolean showEffects = settings.isShowEffects();
             State deviceState = myConfiguration.getDeviceState();
@@ -443,8 +438,7 @@ public class RenderedImage {
         if (myDeviceFrameEnabled) {
           DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
           if (device != null) {
-            AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-              AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+            AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
             if (settings.isShowDeviceFrames()) {
               State state = myConfiguration.getDeviceState();
               if (state != null) {
@@ -473,9 +467,7 @@ public class RenderedImage {
       return false;
     }
 
-    Project project = myConfiguration.getModule().getProject();
-    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
     if (!settings.isRetina()) {
       return false;
     }
