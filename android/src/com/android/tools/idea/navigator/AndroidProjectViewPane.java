@@ -50,6 +50,7 @@ import javax.swing.tree.DefaultTreeModel;
 import java.util.List;
 
 public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
+  // Note: This value is duplicated in ProjectViewImpl.java to set the default view to be the Android project view.
   public static final String ID = "AndroidView";
 
   public AndroidProjectViewPane(Project project) {
