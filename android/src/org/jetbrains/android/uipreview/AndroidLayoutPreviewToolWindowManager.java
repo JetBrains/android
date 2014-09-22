@@ -302,7 +302,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
   }
 
   private void initToolWindow() {
-    myToolWindowForm = new AndroidLayoutPreviewToolWindowForm(myProject, this);
+    myToolWindowForm = new AndroidLayoutPreviewToolWindowForm(this);
     final String toolWindowId = AndroidBundle.message("android.layout.preview.tool.window.title");
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
@@ -320,7 +320,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
-          AndroidLayoutPreviewToolWindowSettings.getInstance(myProject).getGlobalState().setVisible(visible);
+          AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
 
           if (visible && !myVisible) {
             render();
@@ -451,7 +451,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
           initToolWindow();
         }
 
-        final AndroidLayoutPreviewToolWindowSettings settings = AndroidLayoutPreviewToolWindowSettings.getInstance(myProject);
+        final AndroidEditorSettings settings = AndroidEditorSettings.getInstance();
         final boolean hideForNonLayoutFiles = settings.getGlobalState().isHideForNonLayoutFiles();
 
         if (activeEditor == null) {
@@ -475,7 +475,7 @@ public class AndroidLayoutPreviewToolWindowManager implements ProjectComponent {
         }
 
         myToolWindow.setAvailable(true, null);
-        final boolean visible = AndroidLayoutPreviewToolWindowSettings.getInstance(myProject).getGlobalState().isVisible();
+        final boolean visible = AndroidEditorSettings.getInstance().getGlobalState().isVisible();
         if (visible) {
           // Clear out the render result for the previous file, such that it doesn't briefly show between the time the
           // tool window is shown and the time the render has completed
