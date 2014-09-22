@@ -216,13 +216,13 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
    */
   protected final void addPath(@NotNull AndroidStudioWizardPath path) {
     myPaths.add(path);
+    path.attachToWizard(this);
     // If this is the first visible path, select it
     if (myCurrentPath == null && path.isPathVisible()) {
       myCurrentPath = path;
     }
     // Rebuild the iterator to avoid concurrent modification exceptions
-    myPathListIterator = new PathIterator(myPaths);
-    path.attachToWizard(this);
+    myPathListIterator = new PathIterator(myPaths, myCurrentPath);
   }
 
   /**
@@ -457,6 +457,40 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     myHost.setTitle(title);
   }
 
+  /**
+   * Returns true if a step with the given name exists in this wizard's current configuration.
+   * If visibleOnly is set to true, only visible steps (that are part of visible paths) will
+   * be considered.
+   */
+  public boolean containsStep(@NotNull String stepName, boolean visibleOnly) {
+    for (AndroidStudioWizardPath path : myPaths) {
+      if (visibleOnly && !path.isPathVisible()) {
+        continue;
+      }
+      if (path.containsStep(stepName, visibleOnly)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Navigates this wizard to the step with the given name if it exists. If not, this function
+   * is a no-op. If the requireVisible parameter is set to true, then only currently visible steps (which
+   * are part of currently visible paths) will be considered.
+   */
+  public void navigateToNamedStep(@NotNull String stepName, boolean requireVisible) {
+    for (AndroidStudioWizardPath path : myPaths) {
+      if ((!requireVisible || path.isPathVisible()) && path.containsStep(stepName, requireVisible)) {
+        myCurrentPath = path;
+        myPathListIterator.myCurrentIndex = myPathListIterator.myList.indexOf(myCurrentPath);
+        myCurrentPath.navigateToNamedStep(stepName, requireVisible);
+        showStep(myCurrentPath.getCurrentStep());
+        return;
+      }
+    }
+  }
+
   protected static class PathIterator {
 
     private int myCurrentIndex;
@@ -465,6 +499,14 @@ public abstract class DynamicWizard implements ScopedStateStore.ScopedStoreListe
     public PathIterator(ArrayList<AndroidStudioWizardPath> list) {
       myList = list;
       myCurrentIndex = 0;
+    }
+
+    public PathIterator(ArrayList<AndroidStudioWizardPath> list, AndroidStudioWizardPath currentLocation) {
+      this(list);
+      int index = myList.indexOf(currentLocation);
+      if (currentLocation != null && index != -1) {
+        myCurrentIndex = index;
+      }
     }
 
     /**
