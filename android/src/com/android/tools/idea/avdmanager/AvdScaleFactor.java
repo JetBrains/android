@@ -20,6 +20,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
+/**
+ * Enum of common scale factors used for launching the emulator.
+ * The value string is passed to the --scale parameter of the emulator.
+ */
 public enum AvdScaleFactor {
   TEN_TO_ONE(10, 1, "0.1"),
   FOUR_TO_ONE(4, 1, "0.25"),
