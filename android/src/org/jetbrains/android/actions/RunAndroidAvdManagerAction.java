@@ -16,8 +16,11 @@
 package org.jetbrains.android.actions;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -31,7 +34,7 @@ import java.io.File;
 /**
  * @author Eugene.Kudelevsky
  */
-public class RunAndroidAvdManagerAction extends AndroidRunSdkToolAction {
+public class RunAndroidAvdManagerAction extends AnAction {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.actions.RunAndroidAvdManagerAction");
 
   public RunAndroidAvdManagerAction() {
@@ -42,72 +45,18 @@ public class RunAndroidAvdManagerAction extends AndroidRunSdkToolAction {
     super(name);
   }
 
+  @Override
+  public void actionPerformed(AnActionEvent e) {
+    openAvdManager();
+  }
+
+  public static void openAvdManager() {
+    AvdListDialog dialog = new AvdListDialog(null);
+    dialog.init();
+    dialog.show();
+  }
+
   public static String getName() {
     return AndroidBundle.message("android.run.avd.manager.action.text");
-  }
-
-  @Override
-  protected void doRunTool(@NotNull final Project project, @NotNull String sdkPath) {
-    runAvdManager(sdkPath, new ProjectBasedErrorReporter(project), ModalityState.defaultModalityState());
-  }
-
-  public static void runAvdManager(@NotNull final String sdkPath,
-                                   @NotNull final ErrorReporter errorReporter,
-                                   @NotNull final ModalityState modalityState) {
-    final ProgressWindow p = new ProgressWindow(false, true, null);
-    p.setIndeterminate(false);
-    p.setDelayInMillis(0);
-
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final String toolPath = sdkPath + File.separator + AndroidCommonUtils.toolPath(SdkConstants.androidCmdName());
-        GeneralCommandLine commandLine = new GeneralCommandLine();
-        commandLine.setExePath(toolPath);
-        commandLine.addParameter("avd");
-
-        final StringBuildingOutputProcessor processor = new StringBuildingOutputProcessor();
-        try {
-          if (AndroidUtils.executeCommand(commandLine, processor, WaitingStrategies.WaitForTime.getInstance(1000)) ==
-              ExecutionStatus.TIMEOUT) {
-
-            // It takes about 2 seconds to start the AVD Manager on Windows. Display a small
-            // progress indicator otherwise it seems like the action wasn't invoked and users tend
-            // to click multiple times on it, ending up with several instances of the manager
-            // window.
-            try {
-              p.start();
-              p.setText("Starting AVD Manager...");
-              for (double d = 0; d < 1; d += 1.0 / 20) {
-                p.setFraction(d);
-                //noinspection BusyWait
-                Thread.sleep(100);
-              }
-            }
-            catch (InterruptedException ignore) {
-            }
-            finally {
-              p.stop();
-            }
-
-            return;
-          }
-        }
-        catch (ExecutionException e) {
-          LOG.error(e);
-          return;
-        }
-        final String message = processor.getMessage();
-
-        if (message.toLowerCase().contains("error")) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              errorReporter.report("Cannot launch AVD manager.\nOutput:\n" + message, getName());
-            }
-          }, modalityState);
-        }
-      }
-    });
   }
 }

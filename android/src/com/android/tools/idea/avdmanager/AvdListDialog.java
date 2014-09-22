@@ -50,6 +50,11 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
     }
   }
 
+  @Override
+  public void init() {
+    super.init();
+  }
+
   @Nullable
   @Override
   protected JComponent createNorthPanel() {
@@ -82,18 +87,5 @@ public class AvdListDialog extends DialogWrapper implements AvdUiAction.AvdInfoP
   @Override
   public void refreshAvds() {
     myAvdDisplayList.refreshAvds();
-  }
-
-  public static class LaunchMe extends AnAction {
-    public LaunchMe() {
-      super("Launch AVD List");
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-      AvdListDialog dialog = new AvdListDialog(null);
-      dialog.init();
-      dialog.show();
-    }
   }
 }
