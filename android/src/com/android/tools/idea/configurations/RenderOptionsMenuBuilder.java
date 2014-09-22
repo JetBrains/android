@@ -15,30 +15,67 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.intellij.android.designer.AndroidDesignerEditorProvider;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CheckboxAction;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Builder which creates a toolbar with render options, such as the ability to turn off device frame rendering
- * @see AndroidLayoutPreviewToolWindowSettings
+ * @see org.jetbrains.android.uipreview.AndroidEditorSettings
  */
 public class RenderOptionsMenuBuilder {
   final DefaultActionGroup myGroup;
-  final AndroidLayoutPreviewToolWindowSettings mySettings;
+  final AndroidEditorSettings mySettings;
   private final RenderContext myContext;
 
-  private RenderOptionsMenuBuilder(@NotNull final RenderContext context, @NotNull Project project) {
+  private RenderOptionsMenuBuilder(@NotNull final RenderContext context) {
     myGroup = new DefaultActionGroup();
-    mySettings = AndroidLayoutPreviewToolWindowSettings.getInstance(project);
+    mySettings = AndroidEditorSettings.getInstance();
     myContext = context;
   }
 
-  public static RenderOptionsMenuBuilder create(@NotNull final RenderContext context, @NotNull Project project) {
-    return new RenderOptionsMenuBuilder(context, project);
+  public static RenderOptionsMenuBuilder create(@NotNull final RenderContext context) {
+    return new RenderOptionsMenuBuilder(context);
+  }
+
+  @NotNull
+  public RenderOptionsMenuBuilder addPreferXmlOption() {
+    myGroup.addAction(new CheckboxAction("Prefer XML Editor") {
+      @Override
+      public boolean isSelected(AnActionEvent e) {
+        return mySettings.getGlobalState().isPreferXmlEditor();
+      }
+
+      @Override
+      public void setSelected(AnActionEvent e, boolean state) {
+        mySettings.getGlobalState().setPreferXmlEditor(state);
+
+        // Switch to XML editor
+        Module module = myContext.getModule();
+        VirtualFile file = myContext.getVirtualFile();
+        if (module != null && file != null) {
+          Project project = module.getProject();
+          FileEditorManager manager = FileEditorManager.getInstance(project);
+          if (state) {
+            OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, 0);
+            manager.openEditor(descriptor, true);
+          }
+          else {
+            FileEditorManager.getInstance(project).setSelectedEditor(file, AndroidDesignerEditorProvider.ANDROID_DESIGNER_ID);
+          }
+        }
+      }
+    }).setAsSecondary(true);
+
+    return this;
   }
 
   @NotNull

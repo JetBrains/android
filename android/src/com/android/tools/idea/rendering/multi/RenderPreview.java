@@ -45,7 +45,7 @@ import com.intellij.util.PairFunction;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -633,8 +633,7 @@ public class RenderPreview implements Disposable {
     }
 
     Project project = myConfiguration.getModule().getProject();
-    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
 
     if (UIUtil.isRetina() && ImageUtils.supportsRetina() && settings.isRetina() && createRetinaThumbnail()) {
       return;
@@ -694,9 +693,7 @@ public class RenderPreview implements Disposable {
     myThumbnailHasFrame = false;
     boolean showFrame = myShowFrame;
 
-    Project project = myConfiguration.getModule().getProject();
-    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
     if (showFrame && settings.isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
