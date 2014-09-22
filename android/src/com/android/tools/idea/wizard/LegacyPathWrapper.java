@@ -106,6 +106,27 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   }
 
   @Override
+  public boolean containsStep(@NotNull String stepName, boolean visibleOnly) {
+    for (ModuleWizardStep step : mySteps) {
+      if (stepName.equals(step.getName())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void navigateToNamedStep(@NotNull String stepName, boolean requireVisible) {
+    for (ModuleWizardStep step : mySteps) {
+      if (stepName.equals(step.getName())) {
+        myCurrentStep = mySteps.indexOf(step);
+        updateWizard();
+        return;
+      }
+    }
+  }
+
+  @Override
   public boolean isPathVisible() {
     ModuleTemplate moduleTemplate = myWizard.getState().get(WizardConstants.SELECTED_MODULE_TYPE_KEY);
     return moduleTemplate != null && Iterables.contains(myTypes, moduleTemplate);
@@ -125,6 +146,12 @@ public class LegacyPathWrapper implements NewModuleDynamicPath {
   @Override
   public void attachToWizard(DynamicWizard dynamicWizard) {
     myWizard = dynamicWizard;
+  }
+
+  @Nullable
+  @Override
+  public DynamicWizard getWizard() {
+    return myWizard;
   }
 
   @Override
