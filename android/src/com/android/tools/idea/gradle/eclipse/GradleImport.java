@@ -96,7 +96,7 @@ public class GradleImport {
   public static final String ECLIPSE_DOT_CLASSPATH = ".classpath";
   public static final String ECLIPSE_DOT_PROJECT = ".project";
   public static final String IMPORT_SUMMARY_TXT = "import-summary.txt";
-  static final String MAVEN_REPOSITORY;
+  public static final String MAVEN_REPOSITORY;
 
   static {
     String repository = System.getProperty(MAVEN_URL_PROPERTY);
