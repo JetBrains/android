@@ -91,8 +91,8 @@ public class AndroidDesignerActionPanel extends DesignerActionPanel {
     JPanel bottom = new JPanel(new BorderLayout());
     bottom.add(layoutToolBar.getComponent(), BorderLayout.WEST);
     RenderContext context = (AndroidDesignerEditorPanel)myDesigner;
-    RenderOptionsMenuBuilder optionsMenuBuilder = RenderOptionsMenuBuilder.create(context, myDesigner.getProject());
-    ActionToolbar optionsToolBar = optionsMenuBuilder.addDeviceFrameOption().addRetinaOption().build();
+    RenderOptionsMenuBuilder optionsMenuBuilder = RenderOptionsMenuBuilder.create(context);
+    ActionToolbar optionsToolBar = optionsMenuBuilder.addPreferXmlOption().addDeviceFrameOption().addRetinaOption().build();
     JPanel combined = new JPanel(new BorderLayout());
     combined.add(zoomToolBar.getComponent(), BorderLayout.WEST);
     combined.add(optionsToolBar.getComponent(), BorderLayout.EAST);
