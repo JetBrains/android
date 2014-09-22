@@ -131,26 +131,26 @@ public class DeviceMenuAction extends FlatComboAction {
     @NotNull
     public Icon getIcon() {
       switch (this) {
-        case CAR: return AndroidIcons.Car;
-        case WEAR: return AndroidIcons.Wear;
-        case TV: return AndroidIcons.Tv;
-        case GLASS: return AndroidIcons.Glass;
+        case CAR: return AndroidIcons.FormFactors.Car_16;
+        case WEAR: return AndroidIcons.FormFactors.Wear_16;
+        case TV: return AndroidIcons.FormFactors.Tv_16;
+        case GLASS: return AndroidIcons.FormFactors.Glass_16;
         case MOBILE:
         default:
-          return AndroidIcons.Mobile;
+          return AndroidIcons.FormFactors.Mobile_16;
       }
     }
 
     @NotNull
     public Icon getLargeIcon() {
       switch (this) {
-        case CAR: return AndroidIcons.Car_128;
-        case WEAR: return AndroidIcons.Wear_128;
-        case TV: return AndroidIcons.Tv_128;
-        case GLASS: return AndroidIcons.Glass_128;
+        case CAR: return AndroidIcons.FormFactors.Car_128;
+        case WEAR: return AndroidIcons.FormFactors.Wear_128;
+        case TV: return AndroidIcons.FormFactors.Tv_128;
+        case GLASS: return AndroidIcons.FormFactors.Glass_128;
         case MOBILE:
         default:
-          return AndroidIcons.Mobile_128;
+          return AndroidIcons.FormFactors.Mobile_128;
       }
     }
   }
