@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.table.*;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -129,10 +130,9 @@ public class StringResourceViewPanel {
 
       @Override
       public void actionPerformed(AnActionEvent e) {
-        NewStringKeyDialog dialog = new NewStringKeyDialog(myFacet);
+        NewStringKeyDialog dialog = new NewStringKeyDialog(myFacet, ImmutableSet.copyOf(myData.getKeys()));
         if (dialog.showAndGet()) {
-          StringsWriteUtils
-            .createItem(myFacet, dialog.getResFolder(), null, dialog.getKey(), dialog.getDefaultValue(), true);
+          StringsWriteUtils.createItem(myFacet, dialog.getResFolder(), null, dialog.getKey(), dialog.getDefaultValue(), true);
           reloadData();
         }
       }
