@@ -72,6 +72,8 @@ public class AvdWizardConstants {
 
   public static final Key<Boolean> IS_IN_EDIT_MODE_KEY = createKey(WIZARD_ONLY + "isInEditMode", WIZARD, Boolean.class);
 
+  public static final Key<File> CUSTOM_SKIN_FILE_KEY = createKey(AvdManager.AVD_INI_SKIN_PATH, WIZARD, File.class);
+
   // Device definition keys
 
   public static final Key<String> DEVICE_NAME_KEY = createKey("DeviceName", STEP, String.class);
@@ -94,8 +96,6 @@ public class AvdWizardConstants {
   public static final Key<Boolean> HAS_GYROSCOPE_KEY = createKey("HasGyroscope", STEP, Boolean.class);
   public static final Key<Boolean> HAS_GPS_KEY = createKey("HasGPS", STEP, Boolean.class);
   public static final Key<Boolean> HAS_PROXIMITY_SENSOR_KEY = createKey("HasProximitySensor", STEP, Boolean.class);
-
-  public static final Key<File> CUSTOM_SKIN_FILE_KEY = createKey("CustomSkinFile", STEP, File.class);
 
   public static final Key<Screen> WIP_SCREEN_KEY = createKey("ScreenUnderConstruction", STEP, Screen.class);
   public static final Key<Hardware> WIP_HARDWARE_KEY = createKey("HardwareUnderConstruction" ,STEP, Hardware.class);
