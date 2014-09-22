@@ -29,6 +29,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jdom.Element;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -82,6 +83,8 @@ public final class AndroidDesignerEditorProvider implements FileEditorProvider, 
   @NotNull
   @Override
   public FileEditorPolicy getPolicy() {
-    return FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
+    return AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()
+           ? FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR
+           : FileEditorPolicy.PLACE_BEFORE_DEFAULT_EDITOR;
   }
 }
