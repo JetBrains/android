@@ -71,7 +71,7 @@ public class ChooseModuleTypeStep extends DynamicWizardStepWithHeaderAndDescript
 
   @Nullable
   @Contract("null->null")
-  private static Image iconToImage(@Nullable Icon icon) {
+  public static Image iconToImage(@Nullable Icon icon) {
     if (icon == null) {
       return null;
     }
