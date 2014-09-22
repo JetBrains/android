@@ -16,6 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.intellij.ide.wizard.Step;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface for the wizard paths
@@ -75,6 +77,18 @@ public interface AndroidStudioWizardPath {
   boolean canGoNext();
 
   /**
+   * Returns true if the path contains a step with the given name.
+   */
+  boolean containsStep(@NotNull String stepName, boolean visibleOnly);
+
+  /**
+   * Set the current step to the step with the given name if it exists.
+   * If the step does not exist or is not visible (and visibleOnly is true)
+   * then this is a no-op.
+   */
+  void navigateToNamedStep(@NotNull String stepName, boolean visibleOnly);
+
+  /**
    * Determine whether this path is visible as part of the wizard flow.
    * Subclasses which implement branching must override this function.
    *
@@ -91,6 +105,11 @@ public interface AndroidStudioWizardPath {
    * Attach this path to a {@link DynamicWizard}, linking it to that wizard's state.
    */
   void attachToWizard(DynamicWizard dynamicWizard);
+
+  /**
+   * Get the wizard that this path is currently attached to
+   */
+  @Nullable DynamicWizard getWizard();
 
   /**
    * Determine whether this path is optional or required.
