@@ -1,0 +1,85 @@
+/*
+ * Copyright (C) 2014 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.tests.gui.gradle;
+
+import com.android.tools.idea.tests.gui.framework.GuiTestCase;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.RenameDialogFixture;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
+import com.intellij.refactoring.rename.DirectoryAsPackageRenameHandler;
+import com.intellij.refactoring.rename.RenameHandler;
+import org.fest.swing.edt.GuiActionRunner;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
+import org.jetbrains.android.util.AndroidBundle;
+import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class RenameTest extends GuiTestCase {
+
+  @Test
+  @IdeGuiTest
+  public void sourceRoot() throws Exception {
+    final IdeFrameFixture projectFrame = openSimpleApplication();
+    final Project project = projectFrame.getProject();
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    for (Module module : modules) {
+      final VirtualFile[] sourceRoots = ModuleRootManager.getInstance(module).getSourceRoots();
+      for (final VirtualFile sourceRoot : sourceRoots) {
+        PsiDirectory directory = GuiActionRunner.execute(new GuiQuery<PsiDirectory>() {
+          @Override
+          protected PsiDirectory executeInEDT() throws Throwable {
+            PsiDirectory result = PsiManager.getInstance(project).findDirectory(sourceRoot);
+            assert result != null;
+            return result;
+          }
+        });
+        for (final RenameHandler handler : Extensions.getExtensions(RenameHandler.EP_NAME)) {
+          if (handler instanceof DirectoryAsPackageRenameHandler) {
+            final RenameDialogFixture renameDialog = RenameDialogFixture.startFor(directory, handler, myRobot);
+            assertFalse(renameDialog.warningExists(null));
+            renameDialog.setNewName(renameDialog.getNewName() + 1);
+            // 'Rename dialog' show a warning asynchronously to the text change, that's why we wait here for the
+            // warning to appear
+            final Ref<Boolean> ok = new Ref<Boolean>();
+            Pause.pause(new Condition("Wait until error text appears") {
+              @Override
+              public boolean test() {
+                ok.set(renameDialog.warningExists(AndroidBundle.message("android.refactoring.gradle.warning.rename.source.root")));
+                return ok.get();
+              }
+            }, GuiTests.SHORT_TIMEOUT);
+            assertTrue(ok.get());
+            return;
+          }
+        }
+      }
+    }
+  }
+}
