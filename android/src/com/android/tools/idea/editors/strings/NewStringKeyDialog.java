@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.Set;
 
 public class NewStringKeyDialog extends DialogWrapper {
   private JPanel myPanel;
@@ -40,7 +43,9 @@ public class NewStringKeyDialog extends DialogWrapper {
   private String myDefaultValue;
   private VirtualFile myResFolder;
 
-  public NewStringKeyDialog(@NotNull final AndroidFacet facet) {
+  private final ResourceNameValidator myResourceNameValidator;
+
+  public NewStringKeyDialog(@NotNull final AndroidFacet facet, @NotNull Set<String> existing) {
     super(facet.getModule().getProject(), false);
 
     final VirtualFile baseDir = facet.getModule().getProject().getBaseDir();
@@ -53,6 +58,8 @@ public class NewStringKeyDialog extends DialogWrapper {
       }
     });
     myResFolderCombo.setSelectedIndex(0);
+
+    myResourceNameValidator = ResourceNameValidator.create(false, existing, ResourceType.STRING);
 
     init();
   }
@@ -74,6 +81,12 @@ public class NewStringKeyDialog extends DialogWrapper {
   protected ValidationInfo doValidate() {
     if (myKeyField.getText().isEmpty()) {
       return new ValidationInfo("Key cannot be empty", myKeyField);
+    }
+
+    String key = myKeyField.getText().trim();
+    String error = myResourceNameValidator.getErrorText(key);
+    if (error != null) {
+      return new ValidationInfo(error, myKeyField);
     }
 
     if (myDefaultValueField.getText().isEmpty()) {
