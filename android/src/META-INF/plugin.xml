@@ -165,6 +165,8 @@
                         serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.ApkUploaderService"/>
+    <applicationService serviceInterface="org.jetbrains.android.uipreview.AndroidEditorSettings"
+                        serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <exportable serviceInterface="com.android.tools.idea.folding.AndroidFoldingSettings"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
@@ -538,8 +540,6 @@
                     serviceImplementation="com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidLogcatFiltersPreferences"/>
-    <projectService serviceInterface="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"
-                    serviceImplementation="org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings"/>
     <projectService serviceInterface="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"
                     serviceImplementation="org.jetbrains.android.logcat.AndroidConfiguredLogFilters"/>
     <projectService serviceInterface="org.jetbrains.android.maven.AndroidExternalApklibDependenciesManager"
