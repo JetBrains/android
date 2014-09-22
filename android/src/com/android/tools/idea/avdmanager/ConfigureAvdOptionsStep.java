@@ -430,6 +430,7 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
     FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
     myCustomSkinPath.addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition",
                                                  getProject(), skinChooserDescriptor);
+    setControlDescription(myCustomSkinPath, myAvdConfigurationOptionHelpPanel.getDescription(CUSTOM_SKIN_FILE_KEY));
 
     registerValueDeriver(CUSTOM_SKIN_FILE_KEY, new ValueDeriver<File>() {
       @Nullable
