@@ -18,13 +18,13 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
+import com.android.tools.idea.avdmanager.AvdListDialog;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
@@ -189,12 +189,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     am.registerAction("ClearPrefs", action);
     androidToolsGroup.add(action);
 
-    action = new SdkQuickfixWizard.LaunchMe();
-    am.registerAction("ShowQuickfix", action);
-    androidToolsGroup.add(action);
-
     action = new ExperimentalActionsForTesting.NewNewModuleWizardAction();
     am.registerAction("NewNewModuleWizard", action);
+    androidToolsGroup.add(action);
+
+    action = new AvdListDialog.LaunchMe();
+    am.registerAction("ShowAvdList", action);
     androidToolsGroup.add(action);
   }
 

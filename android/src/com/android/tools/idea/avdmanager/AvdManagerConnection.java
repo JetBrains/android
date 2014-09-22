@@ -310,6 +310,7 @@ public class AvdManagerConnection {
                                           @NotNull ScreenOrientation orientation,
                                           boolean isCircular,
                                           @Nullable String sdCard,
+                                          @Nullable File skinFolder,
                                           @NotNull Map<String, String> hardwareProperties,
                                           boolean createSnapshot) {
     if (!initIfNecessary()) {
@@ -330,9 +331,8 @@ public class AvdManagerConnection {
     Dimension resolution = device.getScreenSize(device.getDefaultState().getOrientation()); //device.getScreenSize(orientation);
     assert resolution != null;
     String skinName = null;
-    File skinFolder = null;
 
-    if (isCircular) {
+    if (skinFolder == null && isCircular) {
       skinFolder = getRoundSkin(systemImageDescription);
     }
     if (skinFolder == null) {
@@ -371,5 +371,11 @@ public class AvdManagerConnection {
       return false;
     }
     return ourAvdManager.getAvd(candidate, false) != null;
+  }
+
+  static boolean isAvdRepairable(AvdInfo.AvdStatus avdStatus) {
+    return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
+           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
+           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING;
   }
 }
