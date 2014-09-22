@@ -47,4 +47,17 @@ public class SingleStepPath extends DynamicWizardPath {
   public boolean performFinishingActions() {
     return true;
   }
+
+  @Override
+  public boolean validate() {
+    return myStep.validate();
+  }
+
+  @Override
+  public boolean containsStep(@NotNull String stepName, boolean visibleOnly) {
+    if (visibleOnly && !isPathVisible()) {
+      return false;
+    }
+    return stepName.equals(myStep.getStepName());
+  }
 }
