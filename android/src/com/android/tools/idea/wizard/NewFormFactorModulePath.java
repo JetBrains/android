@@ -106,8 +106,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
 
   @Override
   protected void init() {
-    //noinspection ConstantConditions
-    System.out.println("Initing");
     myState.put(WizardConstants.IS_LIBRARY_KEY, false);
     myState.put(SRC_DIR_KEY, calculateSrcDir());
     myState.put(RES_DIR_KEY, "src/main/res");
