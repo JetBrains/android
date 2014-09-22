@@ -422,6 +422,10 @@ public class ConfigureAvdOptionsStep extends DynamicWizardStepWithHeaderAndDescr
       }
     });
 
+    File currentSkinFile = myState.get(CUSTOM_SKIN_FILE_KEY);
+    if (currentSkinFile != null) {
+      myState.put(CUSTOM_SKIN_PATH_KEY, currentSkinFile.getPath());
+    }
     register(CUSTOM_SKIN_PATH_KEY, myCustomSkinPath);
     FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
     myCustomSkinPath.addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition",
