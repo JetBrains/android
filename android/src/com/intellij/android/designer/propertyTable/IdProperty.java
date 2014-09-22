@@ -16,9 +16,13 @@
 package com.intellij.android.designer.propertyTable;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceType;
+import com.android.tools.idea.rendering.ResourceNameValidator;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.android.designer.model.IdManager;
 import com.intellij.android.designer.model.RadModelBuilder;
 import com.intellij.android.designer.model.RadViewComponent;
+import com.intellij.android.designer.propertyTable.editors.ResourceEditor;
 import com.intellij.designer.model.PropertiesContainer;
 import com.intellij.designer.model.Property;
 import com.intellij.designer.model.PropertyContext;
@@ -48,6 +52,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 
@@ -237,6 +242,7 @@ public class IdProperty extends AttributeProperty {
           fireValueCommitted(false, true);
         }
       });
+      ResourceEditor.selectTextOnFocusGain(textField);
     }
 
     @NotNull
@@ -257,6 +263,16 @@ public class IdProperty extends AttributeProperty {
       if (!text.startsWith(PREFIX_RESOURCE_REF)) {
         text = NEW_ID_PREFIX + text;
       }
+
+      String name = LintUtils.stripIdPrefix(text);
+      if (name.length() > 0) {
+        ResourceNameValidator validator = ResourceNameValidator.create(false, (Set<String>)null, ResourceType.ID);
+        String errorText = validator.getErrorText(name);
+        if (errorText != null) {
+          throw new IllegalArgumentException(errorText);
+        }
+      }
+
       return text;
     }
 
