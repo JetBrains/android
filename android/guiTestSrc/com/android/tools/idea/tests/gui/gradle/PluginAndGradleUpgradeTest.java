@@ -47,16 +47,10 @@ import static org.fest.util.Strings.quote;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PluginAndGradleUpgradeTest extends GuiTestCase {
-  private static final String MAVEN_URL = "MAVEN_URL";
-
   private static final String PROJECT_DIR_NAME = "PluginAndGradleUpgrade";
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = true)
   public void test1UpdateGradleVersionInWrapper() throws IOException {
-    if (skipTest()) {
-      return;
-    }
-
     File projectPath = setUpProject(PROJECT_DIR_NAME, false, false, null);
 
     // Ensure we have a pre-2.1 Gradle in the wrapper.
@@ -81,10 +75,6 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test2UpdateGradleVersionWithLocalDistribution() {
-    if (skipTest()) {
-      return;
-    }
-
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
 
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
@@ -109,10 +99,6 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test3ShowUserFriendlyErrorWhenUsingUnsupportedVersionOfGradle() {
-    if (skipTest()) {
-      return;
-    }
-
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
@@ -139,10 +125,6 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test4CreateWrapperWhenLocalDistributionPathIsNotSet() {
-    if (skipTest()) {
-      return;
-    }
-
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
@@ -159,10 +141,6 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
   @Test @IdeGuiTest(closeProjectBeforeExecution = false)
   public void test5CreateWrapperWhenLocalDistributionPathDoesNotExist() {
-    if (skipTest()) {
-      return;
-    }
-
     File projectPath = getTestProjectDirPath(PROJECT_DIR_NAME);
     IdeFrameFixture projectFrame = findIdeFrame(projectPath);
 
@@ -176,17 +154,6 @@ public class PluginAndGradleUpgradeTest extends GuiTestCase {
 
     projectFrame.waitForGradleProjectSyncToFinish()
                 .requireGradleWrapperSet();
-  }
-
-  private boolean skipTest() {
-    boolean skip = false;
-    String customRepositoryUrl = System.getenv(MAVEN_URL);
-    if (isEmpty(customRepositoryUrl)) {
-      String msg = String.format("Test '%1$s' skipped. It requires the system property '%2$s'.", getTestName(), MAVEN_URL);
-      System.out.println(msg);
-      skip = true;
-    }
-    return skip;
   }
 
   @NotNull
