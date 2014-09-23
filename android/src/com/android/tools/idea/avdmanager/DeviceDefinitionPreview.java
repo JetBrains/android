@@ -35,6 +35,8 @@ import java.awt.geom.Line2D;
 import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
 
+import static com.android.tools.idea.avdmanager.AvdWizardConstants.*;
+
 /**
  * A preview component for displaying information about
  * a device definition. This panel displays the dimensions of the device
@@ -50,9 +52,6 @@ public class DeviceDefinitionPreview extends JPanel {
   public static final int DIMENSION_LINE_WIDTH = 1; // px
   public static final int OUTLINE_LINE_WIDTH = 5;   // px
   private Device myDevice;
-  private final Font myFont = new Font("Sans", Font.PLAIN, 12);
-  private final Font myFigureFont = new Font("Sans", Font.PLAIN, 10);
-  private final Font myTitleFont = new Font("Sans", Font.BOLD, 16);
   private static final int PADDING = 20;
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
@@ -71,7 +70,7 @@ public class DeviceDefinitionPreview extends JPanel {
     g2d.setColor(JBColor.background());
     g2d.fillRect(0, 0, getWidth(), getHeight());
     g2d.setColor(JBColor.foreground());
-    g2d.setFont(myFont);
+    g2d.setFont(STANDARD_FONT);
 
     if (myDevice == null) {
       FontMetrics metrics = g2d.getFontMetrics();
@@ -88,8 +87,8 @@ public class DeviceDefinitionPreview extends JPanel {
     icon.paintIcon(this, g, PADDING/2, PADDING/2);
 
     // Paint the device name
-    g2d.setFont(myTitleFont);
-    FontMetrics metrics = g.getFontMetrics(myTitleFont);
+    g2d.setFont(TITLE_FONT);
+    FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
     g2d.drawString(myDevice.getDisplayName(), 50, PADDING + metrics.getHeight() / 2);
     g2d.drawLine(0, 50, getWidth(), 50);
 
@@ -107,8 +106,8 @@ public class DeviceDefinitionPreview extends JPanel {
       g2d.setStroke(new BasicStroke(DIMENSION_LINE_WIDTH));
       g2d.setColor(OUR_GRAY);
 
-      g2d.setFont(myFigureFont);
-      metrics = g2d.getFontMetrics(myFigureFont);
+      g2d.setFont(FIGURE_FONT);
+      metrics = g2d.getFontMetrics(FIGURE_FONT);
       int stringHeight = metrics.getHeight() - metrics.getDescent();
 
       // Paint the width dimension
@@ -180,8 +179,8 @@ public class DeviceDefinitionPreview extends JPanel {
 
       // Paint the details. If it's a portrait phone, then paint to the right of the rect.
       // If it's a landscape tablet/tv, paint below.
-      g2d.setFont(myFont);
-      metrics = g2d.getFontMetrics(myFont);
+      g2d.setFont(STANDARD_FONT);
+      metrics = g2d.getFontMetrics(STANDARD_FONT);
       stringHeight = metrics.getHeight();
       int infoSegmentX;
       int infoSegmentY;
