@@ -111,59 +111,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     return "AndroidStudio".equals(PlatformUtils.getPlatformPrefix());
   }
 
-  @Override
-  public void run() {
-    checkInstallation();
-    cleanUpIdePreferences();
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      replaceIdeaNewProjectActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
-      replaceProjectStructureActions();
-    }
-
-    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
-      replaceIdeaMakeActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
-      hideIdeaNewFilePopupActions();
-    }
-    
-    try {
-      // Setup JDK and Android SDK if necessary
-      setupSdks();
-    } catch (Exception e) {
-      LOG.error("Unexpected error while setting up SDKs: ", e);
-    }
-
-    registerAppClosing();
-
-    // Always reset the Default scheme to match Android standards
-    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
-    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
-    if (scheme != null) {
-      CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      if (settings != null) {
-        AndroidCodeStyleSettingsModifier.modify(settings);
-      }
-    }
-
-    // Modify built-in "Default" color scheme to remove background from XML tags.
-    // "Darcula" and user schemes will not be touched.
-    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
-    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
-    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
-
-    checkAndSetAndroidSdkSources();
-  }
-
   private static void checkInstallation() {
     String studioHome = PathManager.getHomePath();
     if (StringUtil.isEmpty(studioHome)) {
@@ -552,10 +499,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
     if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
       hideIdeaNewFilePopupActions();
-    }
-
-    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      registerExperimentalActions();
     }
 
     try {
