@@ -29,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.text.DecimalFormat;
 
 import static com.android.tools.idea.avdmanager.AvdWizardConstants.SystemImageDescription;
 
@@ -41,9 +40,6 @@ public class SystemImagePreview extends JPanel {
   private static final String NO_SYSTEM_IMAGE_SELECTED = "No System Image Selected";
   private static final int FIGURE_PADDING = 3;
   private SystemImageDescription myImageDescription;
-  private static final Font ourFont = new Font("Sans", Font.PLAIN, 12);
-  private static final Font ourFigureFont = new Font("Sans", Font.PLAIN, 10);
-  private static final Font ourTitleFont = new Font("Sans", Font.BOLD, 16);
   private static final int PADDING = 20;
 
   /**
@@ -63,7 +59,7 @@ public class SystemImagePreview extends JPanel {
     g2d.setColor(JBColor.background());
     g2d.fillRect(0, 0, getWidth(), getHeight());
     g2d.setColor(JBColor.foreground());
-    g2d.setFont(ourFont);
+    g2d.setFont(AvdWizardConstants.STANDARD_FONT);
 
     if (myImageDescription == null) {
       FontMetrics metrics = g2d.getFontMetrics();
@@ -74,8 +70,8 @@ public class SystemImagePreview extends JPanel {
     }
 
     // Paint the device name
-    g2d.setFont(ourTitleFont);
-    FontMetrics metrics = g.getFontMetrics(ourTitleFont);
+    g2d.setFont(AvdWizardConstants.TITLE_FONT);
+    FontMetrics metrics = g.getFontMetrics(AvdWizardConstants.TITLE_FONT);
     String codeName = getCodeName(myImageDescription);
     g2d.drawString(codeName, PADDING, PADDING + metrics.getHeight() / 2);
     g2d.drawLine(0, 50, getWidth(), 50);
@@ -87,26 +83,26 @@ public class SystemImagePreview extends JPanel {
     }
 
     // Paint the details.
-    int stringHeight = g2d.getFontMetrics(ourTitleFont).getHeight();
-    int figureHeight = g2d.getFontMetrics(ourFigureFont).getHeight();
+    int stringHeight = g2d.getFontMetrics(AvdWizardConstants.TITLE_FONT).getHeight();
+    int figureHeight = g2d.getFontMetrics(AvdWizardConstants.FIGURE_FONT).getHeight();
     int infoSegmentX = FIGURE_PADDING + PADDING + 128;
     int infoSegmentY = PADDING + 75;
 
     // Paint the API Level
     infoSegmentY += figureHeight;
-    g2d.setFont(ourFigureFont);
+    g2d.setFont(AvdWizardConstants.FIGURE_FONT);
     g2d.drawString("API Level", infoSegmentX, infoSegmentY);
     infoSegmentY += stringHeight;
-    g2d.setFont(ourTitleFont);
+    g2d.setFont(AvdWizardConstants.TITLE_FONT);
     g2d.drawString(myImageDescription.target.getVersion().getApiString(), infoSegmentX, infoSegmentY);
     infoSegmentY += PADDING;
 
     // Paint the platform version
     infoSegmentY += figureHeight;
-    g2d.setFont(ourFigureFont);
+    g2d.setFont(AvdWizardConstants.FIGURE_FONT);
     g2d.drawString("Android", infoSegmentX, infoSegmentY);
     infoSegmentY += stringHeight;
-    g2d.setFont(ourTitleFont);
+    g2d.setFont(AvdWizardConstants.TITLE_FONT);
     g2d.drawString(myImageDescription.target.getVersionName(), infoSegmentX, infoSegmentY);
 
     // Paint the vendor name
@@ -135,16 +131,16 @@ public class SystemImagePreview extends JPanel {
 
     // Paint the CPU architecture
     infoSegmentY += figureHeight;
-    g2d.setFont(ourFigureFont);
+    g2d.setFont(AvdWizardConstants.FIGURE_FONT);
     g2d.drawString("System Image", infoSegmentX, infoSegmentY);
     infoSegmentY += stringHeight;
-    g2d.setFont(ourTitleFont);
+    g2d.setFont(AvdWizardConstants.TITLE_FONT);
     g2d.drawString(myImageDescription.systemImage.getAbiType(), infoSegmentX, infoSegmentY);
 
     // If this API level is deprecated, paint a warning
     if (myImageDescription.target.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
       infoSegmentY += stringHeight * 2;
-      g2d.setFont(ourTitleFont);
+      g2d.setFont(AvdWizardConstants.TITLE_FONT);
       g2d.drawString("This API Level is Deprecated", PADDING, infoSegmentY);
     }
   }
