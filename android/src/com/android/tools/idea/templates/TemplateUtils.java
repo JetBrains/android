@@ -36,6 +36,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -322,9 +323,7 @@ public class TemplateUtils {
    */
   public static boolean openEditor(@NotNull Project project, @NotNull VirtualFile vFile) {
     OpenFileDescriptor descriptor;
-    if (vFile.getFileType() == StdFileTypes.XML) {
-      // For XML files, ensure that we open the text editor rather than the default
-      // editor for now, until the layout editor is fully done
+    if (vFile.getFileType() == StdFileTypes.XML && AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
       descriptor = new OpenFileDescriptor(project, vFile, 0);
     } else {
       descriptor = new OpenFileDescriptor(project, vFile);

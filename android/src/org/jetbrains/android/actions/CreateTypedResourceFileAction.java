@@ -17,6 +17,8 @@
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.rendering.LayoutPullParserFactory;
+import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.CreateElementActionBase;
@@ -26,12 +28,14 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlDocument;
@@ -41,6 +45,7 @@ import com.intellij.util.PsiNavigateUtil;
 import com.intellij.xml.refactoring.XmlTagInplaceRenamer;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -126,7 +131,18 @@ public class CreateTypedResourceFileAction extends CreateElementActionBase {
   }
 
   protected void doNavigate(XmlFile file) {
-    PsiNavigateUtil.navigate(file);
+    if (file.isValid() && LayoutPullParserFactory.isSupported(file)) {
+      VirtualFile virtualFile = file.getVirtualFile();
+      if (virtualFile != null && virtualFile.isValid()) {
+        if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
+          new OpenFileDescriptor(file.getProject(), virtualFile, 0).navigate(true);
+        } else {
+          new OpenFileDescriptor(file.getProject(), virtualFile).navigate(true);
+        }
+      }
+    } else {
+      PsiNavigateUtil.navigate(file);
+    }
   }
 
   @Override
