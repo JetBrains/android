@@ -204,11 +204,12 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
    * (e.g. 1200x1920 - xhdpi) or "Unknown Resolution" if the AVD does not define a resolution.
    */
   protected static String getResolution(AvdInfo info) {
-    String resolution;Dimension res = AvdManagerConnection.getAvdResolution(info);
+    String resolution;
+    Dimension res = AvdManagerConnection.getAvdResolution(info);
     Density density = AvdManagerConnection.getAvdDensity(info);
     String densityString = density == null ? "Unknown Density" : density.getResourceValue();
     if (res != null) {
-      resolution = String.format(Locale.getDefault(), "%dx%d - %s", res.width, res.height, densityString);
+      resolution = String.format(Locale.getDefault(), "%1$d \u00D7 %2$d: %3$s", res.width, res.height, densityString);
     } else {
       resolution = "Unknown Resolution";
     }
