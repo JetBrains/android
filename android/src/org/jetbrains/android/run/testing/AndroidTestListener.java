@@ -109,15 +109,28 @@ public class AndroidTestListener implements ITestRunListener {
   }
 
   @Override
-  public void testFailed(TestFailure status, TestIdentifier test, String stackTrace) {
+  public void testFailed(TestIdentifier test, String stackTrace) {
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testFailed");
     builder.addAttribute("name", test.getTestName());
     builder.addAttribute("message", "");
     builder.addAttribute("details", stackTrace);
-    if (status == TestFailure.ERROR) {
-      builder.addAttribute("error", "true");
-    }
+    builder.addAttribute("error", "true");
     getProcessHandler().notifyTextAvailable(builder.toString() + '\n', ProcessOutputTypes.STDOUT);
+  }
+
+  @Override
+  public void testAssumptionFailure(TestIdentifier test, String trace) {
+    ServiceMessageBuilder builder = ServiceMessageBuilder.testFailed(test.getTestName());
+    builder.addAttribute("message", "Assumption Failed");
+    builder.addAttribute("details", trace);
+    builder.addAttribute("error", "true");
+    getProcessHandler().notifyTextAvailable(builder.toString() + "\n", ProcessOutputTypes.STDOUT);
+  }
+
+  @Override
+  public void testIgnored(TestIdentifier test) {
+    ServiceMessageBuilder builder = ServiceMessageBuilder.testIgnored(test.getTestName());
+    getProcessHandler().notifyTextAvailable(builder.toString() + "\n", ProcessOutputTypes.STDOUT);
   }
 
   @Override
