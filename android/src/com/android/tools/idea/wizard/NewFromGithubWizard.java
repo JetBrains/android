@@ -81,10 +81,10 @@ public class NewFromGithubWizard extends TemplateWizard implements TemplateWizar
    * Container for results obtained by an attempt to download a repository from Github.
    */
   public static class GithubRepoContents {
-    List<File> templateFolders;
-    List<File> sampleRoots;
-    File rootFolder;
-    String errorMessage;
+    public List<File> templateFolders;
+    public List<File> sampleRoots;
+    public File rootFolder;
+    public String errorMessage;
   }
 
   /**
