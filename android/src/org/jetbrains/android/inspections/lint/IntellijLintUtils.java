@@ -100,6 +100,9 @@ public class IntellijLintUtils {
     }
     LintRequest request = context.getDriver().getRequest();
     Project project = ((IntellijLintRequest)request).getProject();
+    if (project.isDisposed()) {
+      return null;
+    }
     return PsiManager.getInstance(project).findFile(file);
   }
 
