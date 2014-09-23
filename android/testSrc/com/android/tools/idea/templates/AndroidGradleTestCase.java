@@ -196,6 +196,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadProject(String relativePath, boolean buildProject) throws IOException, ConfigurationException {
+    loadProject(relativePath, buildProject, null);
+  }
+
+  protected void loadProject(String relativePath, boolean buildProject, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException {
     File root = new File(getTestDataPath(), relativePath.replace('/', File.separatorChar));
     assertTrue(root.getPath(), root.exists());
     File build = new File(root, FN_BUILD_GRADLE);
@@ -221,7 +226,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     }
 
-    importProject(project, project.getName(), projectRoot);
+    importProject(project, project.getName(), projectRoot, listener);
 
     assertTrue(Projects.isGradleProject(project));
     assertFalse(Projects.isIdeaAndroidProject(project));
@@ -375,7 +380,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       String projectName = projectWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
       File projectRoot = new File(projectWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
       assertEquals(projectRoot, VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir()));
-      importProject(myFixture.getProject(), projectName, projectRoot);
+      importProject(myFixture.getProject(), projectName, projectRoot, null);
     }
   }
 
@@ -446,15 +451,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  public static void importProject(Project project, String projectName, File projectRoot) throws IOException, ConfigurationException {
+  private static void importProject(Project project, String projectName, File projectRoot, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously. This
     // causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-    projectImporter.importProject(projectName, projectRoot, false /* do not generate sources */, new GradleSyncListener.Adapter() {
-      @Override
-      public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
-        fail(errorMessage);
-      }
-    }, project, null);
+
+    if (listener == null) {
+      listener = new GradleSyncListener.Adapter() {
+        @Override
+        public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
+          fail(errorMessage);
+        }
+      };
+    }
+    projectImporter.importProject(projectName, projectRoot, false /* do not generate sources */, listener, project, null);
   }
 }

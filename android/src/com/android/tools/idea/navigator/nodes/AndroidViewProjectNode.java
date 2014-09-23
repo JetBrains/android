@@ -21,6 +21,8 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -32,6 +34,7 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -71,6 +74,15 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
         else {
           children.add(new NonAndroidModuleNode(project, module, settings));
         }
+      }
+    }
+
+    // If this is a gradle project, and its sync failed, then we attempt to show project root as a folder so that the files
+    // are still visible. See https://code.google.com/p/android/issues/detail?id=76564
+    if (children.isEmpty() && Projects.isBuildWithGradle(project) && Projects.lastGradleSyncFailed(project)) {
+      PsiDirectory dir = PsiManager.getInstance(project).findDirectory(project.getBaseDir());
+      if (dir != null) {
+        children.add(new PsiDirectoryNode(project, dir, settings));
       }
     }
 
