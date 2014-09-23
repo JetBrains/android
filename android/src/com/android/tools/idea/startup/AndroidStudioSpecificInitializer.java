@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -112,6 +111,59 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     return "AndroidStudio".equals(PlatformUtils.getPlatformPrefix());
   }
 
+  @Override
+  public void run() {
+    checkInstallation();
+    cleanUpIdePreferences();
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
+      replaceIdeaNewProjectActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
+      replaceProjectStructureActions();
+    }
+
+    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
+      replaceIdeaMakeActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
+      hideIdeaNewFilePopupActions();
+    }
+    
+    try {
+      // Setup JDK and Android SDK if necessary
+      setupSdks();
+    } catch (Exception e) {
+      LOG.error("Unexpected error while setting up SDKs: ", e);
+    }
+
+    registerAppClosing();
+
+    // Always reset the Default scheme to match Android standards
+    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
+    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
+    if (scheme != null) {
+      CodeStyleSettings settings = scheme.getCodeStyleSettings();
+      if (settings != null) {
+        AndroidCodeStyleSettingsModifier.modify(settings);
+      }
+    }
+
+    // Modify built-in "Default" color scheme to remove background from XML tags.
+    // "Darcula" and user schemes will not be touched.
+    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
+    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
+    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
+
+    checkAndSetAndroidSdkSources();
+  }
+
   private static void checkInstallation() {
     String studioHome = PathManager.getHomePath();
     if (StringUtil.isEmpty(studioHome)) {
@@ -177,25 +229,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     catch (Throwable e) {
       LOG.info("Failed to clean up IDE preferences", e);
     }
-  }
-
-  private static void registerExperimentalActions() {
-    ActionManager am = ActionManager.getInstance();
-    AnAction action = new NewFromGithubAction();
-    am.registerAction("NewFromGithubAction", action);
-    ((DefaultActionGroup)am.getAction("NewGroup")).add(action);
-    DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
-    action = new ExperimentalActionsForTesting.ClearPrefsAction();
-    am.registerAction("ClearPrefs", action);
-    androidToolsGroup.add(action);
-
-    action = new ExperimentalActionsForTesting.NewNewModuleWizardAction();
-    am.registerAction("NewNewModuleWizard", action);
-    androidToolsGroup.add(action);
-
-    action = new AvdListDialog.LaunchMe();
-    am.registerAction("ShowAvdList", action);
-    androidToolsGroup.add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
