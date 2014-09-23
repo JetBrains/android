@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilationStatusListener;
@@ -38,12 +37,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.IdeConfigurablesGroup;
 import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
-import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.ui.EditorNotificationPanel;
@@ -51,9 +47,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.reflect.core.Reflection;
-import org.fest.reflect.reference.TypeRef;
-import org.fest.swing.annotation.GUITest;
-import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
@@ -89,7 +82,6 @@ import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.reflect.core.Reflection.staticField;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
@@ -379,22 +371,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     pause(new Condition("Waiting for 'Run Configurations' to be populated") {
       @Override
       public boolean test() {
-        String selectedConfiguration = GuiActionRunner.execute(new GuiQuery<String>() {
-          @Override
-          @Nullable
-          protected String executeInEDT() throws Throwable {
-            Key<?> key = staticField("BUTTON_KEY").ofType(new TypeRef<Key<?>>() {})
-                                                  .in(RunConfigurationsComboBoxAction.class)
-                                                  .get();
-            Object runConfigurationComboBox = target.getComponent().getRootPane().getClientProperty(key);
-            if (runConfigurationComboBox != null) {
-              assertThat(runConfigurationComboBox).isInstanceOf(JButton.class);
-              return ((JButton)runConfigurationComboBox).getText();
-            }
-            return null;
-          }
-        });
-        return isNotEmpty(selectedConfiguration);
+        RunConfigurationComboBoxFixture runConfigurationComboBox = RunConfigurationComboBoxFixture.find(IdeFrameFixture.this);
+        return isNotEmpty(runConfigurationComboBox.getText());
       }
     }, SHORT_TIMEOUT);
     findActionButtonByActionId("Android.SyncProject").click();
