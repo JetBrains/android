@@ -93,6 +93,8 @@ public class LayoutEditorTest extends GuiTestCase {
     //idProperty.requireValue("tv1");
     idProperty.requireValue("@+id/tv1");
 
+    idProperty.enterInvalidValue("new", "Java keyword");
+
     // Check XML escaping: regression test for
     //   https://code.google.com/p/android/issues/detail?id=76283
     property.enterValue("a < b > c & d ' e \" f");
