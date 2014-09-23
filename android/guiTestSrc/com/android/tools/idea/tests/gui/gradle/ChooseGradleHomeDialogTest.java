@@ -37,8 +37,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 public class ChooseGradleHomeDialogTest extends GuiTestCase {
   private static final String MINIMUM_GRADLE_VERSION = "2.0";
 
-
-
   @Test @IdeGuiTest
   public void testValidationWithInvalidMinimumGradleVersion() {
     String oldGradleHome = System.getProperty(GRADLE_1_12_HOME_PROPERTY);
