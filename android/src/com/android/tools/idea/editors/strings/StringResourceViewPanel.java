@@ -66,9 +66,6 @@ public class StringResourceViewPanel {
 
   private JPanel myToolbarPanel;
 
-  private JPanel myWarningPanel;
-  private JBLabel myWarningLabel;
-
   private LocalResourceRepository myResourceRepository;
   private long myModificationCount;
 
@@ -80,13 +77,6 @@ public class StringResourceViewPanel {
 
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), parentDisposable, 200);
     myLoadingPanel.add(myContainer);
-
-    Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
-    if (color == null) {
-      color = UIUtil.getToolTipBackground();
-    }
-    myWarningLabel.setOpaque(false);
-    myWarningPanel.setBackground(color);
 
     ActionToolbar toolbar = createToolbar();
     myToolbarPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
