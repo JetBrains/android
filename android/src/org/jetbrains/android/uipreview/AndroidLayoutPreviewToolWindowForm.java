@@ -69,7 +69,7 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
   private final HoverOverlay myHover = new HoverOverlay(this);
   private final List<Overlay> myOverlays = Arrays.asList(myHover, new IncludeOverlay(this));
 
-  public AndroidLayoutPreviewToolWindowForm(final Project project, AndroidLayoutPreviewToolWindowManager toolWindowManager) {
+  public AndroidLayoutPreviewToolWindowForm(AndroidLayoutPreviewToolWindowManager toolWindowManager) {
     Disposer.register(this, myPreviewPanel);
 
     myToolWindowManager = toolWindowManager;
@@ -86,7 +86,10 @@ public class AndroidLayoutPreviewToolWindowForm implements Disposable, Configura
     myActionToolBar = ActionManager.getInstance().createActionToolbar("LayoutPreview", actionGroup, true);
     myActionToolBar.setReservePlaceAutoPopupIcon(false);
 
-    ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this, project).addHideOption().addDeviceFrameOption()
+    ActionToolbar optionsToolBar = RenderOptionsMenuBuilder.create(this)
+      .addPreferXmlOption()
+      .addHideOption()
+      .addDeviceFrameOption()
       .addRetinaOption().build();
     JComponent toolbar = myActionToolBar.getComponent();
     ConfigurationToolBar configToolBar = new ConfigurationToolBar(this);

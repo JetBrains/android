@@ -16,30 +16,26 @@
 package org.jetbrains.android.uipreview;
 
 import com.intellij.openapi.components.*;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 @State(
-  name = "AndroidLayoutPreviewToolWindow",
+  name = "AndroidEditors",
   storages = {
-    @Storage(id = "AndroidLayoutPreviewToolWindow", file = StoragePathMacros.WORKSPACE_FILE)
+    @Storage(file = StoragePathMacros.APP_CONFIG + "/androidEditors.xml")
   }
 )
-public class AndroidLayoutPreviewToolWindowSettings implements PersistentStateComponent<AndroidLayoutPreviewToolWindowSettings.MyState> {
+public class AndroidEditorSettings implements PersistentStateComponent<AndroidEditorSettings.MyState> {
   private GlobalState myGlobalState = new GlobalState();
 
-  public static AndroidLayoutPreviewToolWindowSettings getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidLayoutPreviewToolWindowSettings.class);
+  public static AndroidEditorSettings getInstance() {
+    return ServiceManager.getService(AndroidEditorSettings.class);
   }
-  
+
   @NotNull
   public GlobalState getGlobalState() {
     return myGlobalState;
   }
-  
+
   @Override
   public MyState getState() {
     final MyState state = new MyState();
@@ -70,6 +66,7 @@ public class AndroidLayoutPreviewToolWindowSettings implements PersistentStateCo
     private boolean myShowDeviceFrames = true;
     private boolean myShowEffects = true;
     private boolean myRetina = true;
+    private boolean myPreferXmlEditor = false;
 
     public boolean isRetina() {
       return myRetina;
@@ -109,6 +106,14 @@ public class AndroidLayoutPreviewToolWindowSettings implements PersistentStateCo
 
     public void setShowEffects(boolean showEffects) {
       myShowEffects = showEffects;
+    }
+
+    public boolean isPreferXmlEditor() {
+      return myPreferXmlEditor;
+    }
+
+    public void setPreferXmlEditor(boolean preferXmlEditor) {
+      myPreferXmlEditor = preferXmlEditor;
     }
   }
 }
