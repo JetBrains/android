@@ -47,7 +47,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
     }
 
     final EditorNotificationPanel panel = new EditorNotificationPanel();
-    panel.setText("Translation editor available");
+    panel.setText("Edit translations for all locales in the translations editor.");
     panel.createActionLabel("Open editor", new Runnable() {
       @Override
       public void run() {
