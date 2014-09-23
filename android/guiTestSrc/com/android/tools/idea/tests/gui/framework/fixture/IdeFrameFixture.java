@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.execution.actions.RunConfigurationsComboBoxAction;
 import com.intellij.openapi.Disposable;
@@ -35,10 +37,12 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.IdeConfigurablesGroup;
 import com.intellij.openapi.options.ex.ProjectConfigurablesGroup;
+import com.intellij.openapi.options.newEditor.OptionsEditorDialog;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.ui.EditorNotificationPanel;
@@ -47,6 +51,8 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.messages.MessageBusConnection;
 import org.fest.reflect.core.Reflection;
 import org.fest.reflect.reference.TypeRef;
+import org.fest.swing.annotation.GUITest;
+import org.fest.swing.core.ComponentMatcher;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
@@ -55,6 +61,7 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
+import org.fest.swing.timing.Pause;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -67,6 +74,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FD_GRADLE;
@@ -578,6 +586,33 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     GradleProjectSettings settings = GradleUtil.getGradleProjectSettings(getProject());
     assertNotNull(settings);
     return settings;
+  }
+
+  @NotNull
+  public AvdManagerDialogFixture invokeAvdManager() {
+    JMenuItem openToolsMenu = findActionMenuItem("Tools");
+    robot.click(openToolsMenu);
+
+    Pause.pause(new Condition("Waiting for Launch AVD list timed out!") {
+      @Override
+      public boolean test() {
+        JMenuItem openToolsMenu = findActionMenuItem("Tools");
+        robot.click(openToolsMenu);
+        Pause.pause(1, TimeUnit.SECONDS);
+        JPopupMenu activePopupMenu = robot.findActivePopupMenu();
+        Collection<JMenuItem> found = robot.finder().findAll(activePopupMenu, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+          @Override
+          protected boolean isMatching(JMenuItem component) {
+            return component.getText().equals("Launch AVD List");
+          }
+        });
+        if (found.size() > 0) {
+          robot.click(Iterables.getFirst(found, null));
+        }
+        return found.size() > 0;
+      }
+    }, GuiTests.SHORT_TIMEOUT);
+    return AvdManagerDialogFixture.find(robot);
   }
 
   private static class NoOpDisposable implements Disposable {
