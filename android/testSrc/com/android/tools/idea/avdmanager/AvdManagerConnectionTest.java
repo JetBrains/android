@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.resources.Density;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.descriptors.IdDisplay;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
@@ -66,14 +67,28 @@ public class AvdManagerConnectionTest extends AndroidGradleTestCase {
 
   public void testGetAvdDensity() throws Exception {
     myPropertiesMap.put("hw.lcd.density", "120");
-    assertEquals("ldpi", AvdManagerConnection.getAvdDensity(myAvdInfo));
+    Density avdDensity = AvdManagerConnection.getAvdDensity(myAvdInfo);
+    assertNotNull(avdDensity);
+    assertEquals("ldpi", avdDensity.getResourceValue());
+
     myPropertiesMap.put("hw.lcd.density", "160");
-    assertEquals("mdpi", AvdManagerConnection.getAvdDensity(myAvdInfo));
+    avdDensity = AvdManagerConnection.getAvdDensity(myAvdInfo);
+    assertNotNull(avdDensity);
+    assertEquals("mdpi", avdDensity.getResourceValue());
+
     myPropertiesMap.put("hw.lcd.density", "240");
-    assertEquals("hdpi", AvdManagerConnection.getAvdDensity(myAvdInfo));
+    avdDensity = AvdManagerConnection.getAvdDensity(myAvdInfo);
+    assertNotNull(avdDensity);
+    assertEquals("hdpi", avdDensity.getResourceValue());
+
     myPropertiesMap.put("hw.lcd.density", "320");
-    assertEquals("xhdpi", AvdManagerConnection.getAvdDensity(myAvdInfo));
+    avdDensity = AvdManagerConnection.getAvdDensity(myAvdInfo);
+    assertNotNull(avdDensity);
+    assertEquals("xhdpi", avdDensity.getResourceValue());
+
     myPropertiesMap.put("hw.lcd.density", "480");
-    assertEquals("xxhdpi", AvdManagerConnection.getAvdDensity(myAvdInfo));
+    avdDensity = AvdManagerConnection.getAvdDensity(myAvdInfo);
+    assertNotNull(avdDensity);
+    assertEquals("xxhdpi", avdDensity.getResourceValue());
   }
 }
