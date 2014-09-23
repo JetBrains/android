@@ -25,6 +25,7 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdManager;
 
+import java.awt.*;
 import java.io.File;
 
 import static com.android.sdklib.devices.Storage.Unit;
@@ -107,6 +108,11 @@ public class AvdWizardConstants {
   public static final String DEFAULT_NETWORK_LATENCY = "none";
   public static final String DEFAULT_CAMERA = "none";
   public static final Storage DEFAULT_INTERNAL_STORAGE = new Storage(200, Unit.MiB);
+
+  // Fonts
+  static final Font STANDARD_FONT = new Font("Sans", Font.PLAIN, 12);
+  static final Font FIGURE_FONT = new Font("Sans", Font.PLAIN, 10);
+  static final Font TITLE_FONT = new Font("Sans", Font.BOLD, 16);
 
   public static final class SystemImageDescription {
     public IAndroidTarget target;

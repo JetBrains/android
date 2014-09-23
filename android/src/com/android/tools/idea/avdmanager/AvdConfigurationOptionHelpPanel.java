@@ -39,8 +39,6 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Key;
  */
 public class AvdConfigurationOptionHelpPanel extends JPanel {
   private static final String NO_OPTION_SELECTED = "Nothing Selected";
-  private static final Font ourFont = new Font("Sans", Font.PLAIN, 12);
-  private static final Font ourTitleFont = new Font("Sans", Font.BOLD, 16);
   private static final int PADDING = 20;
   private String myErrorMessage;
   private String myTitle;
@@ -67,7 +65,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     g2d.setColor(JBColor.background());
     g2d.fillRect(0, 0, getWidth(), getHeight());
     g2d.setColor(JBColor.foreground());
-    g2d.setFont(ourFont);
+    g2d.setFont(STANDARD_FONT);
 
     if (myTitle == null) {
       FontMetrics metrics = g2d.getFontMetrics();
@@ -78,17 +76,17 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
     }
 
     // Paint the name
-    g2d.setFont(ourTitleFont);
-    FontMetrics metrics = g.getFontMetrics(ourTitleFont);
+    g2d.setFont(TITLE_FONT);
+    FontMetrics metrics = g.getFontMetrics(TITLE_FONT);
     g2d.drawString(myTitle, PADDING, PADDING + metrics.getHeight() / 2);
     g2d.drawLine(0, 50, getWidth(), 50);
 
     // Paint the details.
-    int stringHeight = g2d.getFontMetrics(ourTitleFont).getHeight();
+    int stringHeight = g2d.getFontMetrics(TITLE_FONT).getHeight();
     int infoSegmentX = PADDING;
     int infoSegmentY = PADDING + stringHeight * 2;
 
-    g2d.setFont(ourFont);
+    g2d.setFont(STANDARD_FONT);
     int maxWidth = getWidth() - 2 * PADDING;
 
     // If there's an error message, paint it
@@ -151,6 +149,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
       put(BACK_CAMERA_KEY, "Back Camera").
       put(USE_HOST_GPU_KEY, "Use Host GPU").
       put(USE_SNAPSHOT_KEY, "Enable Snapshot").
+      put(CUSTOM_SKIN_FILE_KEY, "Custom Hardware Skin").
       build();
 
   private static Map<Key<?>, String> DESCRIPTIONS = ImmutableMap.<Key<?>, String>builder().
@@ -183,6 +182,9 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
                           " Launch from snapshot and Save to snapshot. This way, when you close the emulator, a snapshot" +
                           " of the AVD state is saved and used to quickly re-launch the AVD next time. " +
                           " Note this will make the emulator slow to close. ").
+    put(CUSTOM_SKIN_FILE_KEY, "A collection of images and configuration data that indicates how to populate the window. Each skin can have " +
+                              "several \"layouts\" (e.g. \"landscape\" and \"portrait\") corresponding to different orientation " +
+                              "/ physical configurations of the emulated device.\n").
     build();
 
   /**
