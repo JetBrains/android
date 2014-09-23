@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilationStatusListener;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -83,6 +84,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.reflect.core.Reflection.staticField;
 import static org.fest.swing.timing.Pause.pause;
 import static org.fest.util.Strings.quote;
+import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -214,6 +216,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     assertNotNull(result);
 
     return result;
+  }
+
+  @NotNull
+  public IdeFrameFixture invokeProjectMakeAndSimulateFailure(@NotNull final String failure) {
+    Runnable failTask = new Runnable() {
+      @Override
+      public void run() {
+        throw new ExternalSystemException(failure);
+      }
+    };
+    ApplicationManager.getApplication().putUserData(EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, failTask);
+    selectProjectMakeAction();
+    return this;
   }
 
   @NotNull
@@ -512,8 +527,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     final EditorNotificationPanel panel = findPanel(message);
     assertNotNull(panel);
 
-    HyperlinkLabel label = robot.finder().find(panel, new GenericTypeMatcher<HyperlinkLabel>(
-      HyperlinkLabel.class, true) {
+    HyperlinkLabel label = robot.finder().find(panel, new GenericTypeMatcher<HyperlinkLabel>(HyperlinkLabel.class, true) {
       @Override
       protected boolean isMatching(HyperlinkLabel component) {
         String text = Reflection.method("getText").withReturnType(String.class).in(component).invoke();
