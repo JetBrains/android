@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -136,11 +135,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
       hideIdeaNewFilePopupActions();
     }
-
-    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      registerExperimentalActions();
-    }
-
+    
     try {
       // Setup JDK and Android SDK if necessary
       setupSdks();
@@ -238,25 +233,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     catch (Throwable e) {
       LOG.info("Failed to clean up IDE preferences", e);
     }
-  }
-
-  private static void registerExperimentalActions() {
-    ActionManager am = ActionManager.getInstance();
-    AnAction action = new NewFromGithubAction();
-    am.registerAction("NewFromGithubAction", action);
-    ((DefaultActionGroup)am.getAction("NewGroup")).add(action);
-    DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
-    action = new ExperimentalActionsForTesting.ClearPrefsAction();
-    am.registerAction("ClearPrefs", action);
-    androidToolsGroup.add(action);
-
-    action = new ExperimentalActionsForTesting.NewNewModuleWizardAction();
-    am.registerAction("NewNewModuleWizard", action);
-    androidToolsGroup.add(action);
-
-    action = new AvdListDialog.LaunchMe();
-    am.registerAction("ShowAvdList", action);
-    androidToolsGroup.add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
