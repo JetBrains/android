@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -28,7 +27,7 @@ public class AndroidGradleFacetEditorTab extends FacetEditorTab {
     return "Android Gradle Module Settings";
   }
 
-  @Nullable
+  @NotNull
   @Override
   public JComponent createComponent() {
     return myModuleEditor.getPanel();
