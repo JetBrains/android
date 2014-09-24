@@ -45,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -109,10 +111,25 @@ public class AvdManagerConnection {
         ourAvdManager.reloadAvds(SDK_LOG);
       }
       catch (AndroidLocation.AndroidLocationException e) {
-        throw new RuntimeException(e); // TODO: REPLACE BEFORE SUBMITTING
+        IJ_LOG.error("Could not find Android SDK!", e);
       }
     }
-    return Lists.newArrayList(ourAvdManager.getAllAvds());
+    ArrayList<AvdInfo> avdInfos = Lists.newArrayList(ourAvdManager.getAllAvds());
+    boolean needsRefresh = false;
+    for (AvdInfo info : avdInfos) {
+      if (info.getStatus() == AvdInfo.AvdStatus.ERROR_IMAGE_DIR) {
+        updateAvdImageFolder(info);
+        needsRefresh = true;
+      } else if (info.getStatus() == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED) {
+        updateDeviceChanged(info);
+        needsRefresh = true;
+      }
+    }
+    if (needsRefresh) {
+      return getAvds(true);
+    } else {
+      return avdInfos;
+    }
   }
 
   /**
@@ -377,5 +394,42 @@ public class AvdManagerConnection {
     return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
            || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING;
+  }
+
+  public static boolean updateAvdImageFolder(@NotNull AvdInfo avdInfo) {
+    if (initIfNecessary()) {
+      try {
+        ourAvdManager.updateAvd(avdInfo, SDK_LOG);
+        return true;
+      }
+      catch (IOException e) {
+        IJ_LOG.error("Could not update AVD " + avdInfo.getName(), e);
+      }
+    }
+    return false;
+  }
+
+  public static boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
+    if (initIfNecessary()) {
+      try {
+        ourAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
+        return true;
+      }
+      catch (IOException e) {
+        IJ_LOG.error("Could not update AVD Device " + avdInfo.getName(), e);
+      }
+    }
+    return false;
+  }
+
+  public static boolean wipeUserData(@NotNull AvdInfo avdInfo) {
+    if (initIfNecessary()) {
+      File userdataImage = new File(avdInfo.getDataFolderPath(), "userdata-qemu.img");
+      if (userdataImage.isFile()) {
+        return userdataImage.delete();
+      }
+      return true;
+    }
+    return false;
   }
 }
