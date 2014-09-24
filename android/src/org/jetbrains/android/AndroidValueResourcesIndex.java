@@ -1,6 +1,7 @@
 package org.jetbrains.android;
 
 import com.android.resources.ResourceType;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -139,9 +140,10 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
   }
 
   private static String normalizeDelimiters(String s) {
-    final StringBuilder result = new StringBuilder();
+    int length = s.length();
+    final StringBuilder result = new StringBuilder(length);
 
-    for (int i = 0, n = s.length(); i < n; i++) {
+    for (int i = 0, n = length; i < n; i++) {
       final char c = s.charAt(i);
       if (Character.isLetterOrDigit(c)) {
         result.append(c);
@@ -201,7 +203,7 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
       if (size == 0) {
         return Collections.emptySet();
       }
-      final Set<MyResourceInfo> result = new HashSet<MyResourceInfo>(size);
+      final Set<MyResourceInfo> result = Sets.newHashSetWithExpectedSize(size);
 
       for (int i = 0; i < size; i++) {
         final String type = in.readUTF();
@@ -303,6 +305,20 @@ public class AndroidValueResourcesIndex extends FileBasedIndexExtension<Resource
       int result = myResourceEntry.hashCode();
       result = 31 * result + myOffset;
       return result;
+    }
+
+    @Override
+    public String toString() {
+      return this.getClass().getDeclaringClass().getSimpleName() +
+             '.' +
+             this.getClass().getSimpleName() +
+             '@' +
+             Integer.toHexString(System.identityHashCode(this)) +
+             '(' +
+             myResourceEntry +
+             ',' +
+             myOffset +
+             ')';
     }
   }
 }
