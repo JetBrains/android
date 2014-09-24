@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.Collection;
 
-public class NewProjectWizardFixture extends ComponentFixture<JDialog> {
+public class NewProjectWizardFixture extends AbstractWizardFixture {
   @NotNull
   public static NewProjectWizardFixture find(@NotNull Robot robot) {
     JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -62,19 +62,6 @@ public class NewProjectWizardFixture extends ComponentFixture<JDialog> {
   }
 
   @NotNull
-  private JRootPane findStepWithTitle(@NotNull final String title) {
-    final JRootPane rootPane = target.getRootPane();
-    Pause.pause(new Condition("'Panel with title \"" + title + "\" is visible'") {
-      @Override
-      public boolean test() {
-        Collection<JLabel> found = robot.finder().findAll(rootPane, JLabelMatcher.withText(title).andShowing());
-        return !found.isEmpty();
-      }
-    });
-    return rootPane;
-  }
-
-  @NotNull
   public NewProjectWizardFixture clickNext() {
     JButton button = findButtonByText("Next");
     robot.click(button);
@@ -86,10 +73,5 @@ public class NewProjectWizardFixture extends ComponentFixture<JDialog> {
     JButton button = findButtonByText("Finish");
     robot.click(button);
     return this;
-  }
-
-  @NotNull
-  private JButton findButtonByText(@NotNull String text) {
-    return robot.finder().find(target, JButtonMatcher.withText(text).andShowing());
   }
 }
