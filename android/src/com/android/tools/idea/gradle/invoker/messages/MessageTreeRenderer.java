@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.invoker.messages;
 
+import com.android.tools.idea.ui.MultilineColoredTreeCellRenderer;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.errorTreeView.*;
-import com.intellij.ui.MultilineTreeCellRenderer;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
@@ -29,9 +29,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 /**
 * Renders elements in the "Messages" window. This renderer does not add the message type as a prefix (e.g. "Information:");
 */
-class MessageTreeRenderer extends MultilineTreeCellRenderer {
+class MessageTreeRenderer extends MultilineColoredTreeCellRenderer {
   @Override
-  protected void initComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+  protected void initComponent(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
     ErrorTreeElement element = getElement(value);
 
     if (element != null) {
