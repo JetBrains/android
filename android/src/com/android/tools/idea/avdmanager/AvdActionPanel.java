@@ -72,7 +72,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     if (avdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
       if (AvdManagerConnection.isAvdRepairable(avdInfo.getStatus())) {
         JBLabel repairAction = new JBLabel("Repair Device", AllIcons.General.BalloonWarning, SwingConstants.LEADING);
-        myButtonActionMap.put(repairAction, new RepairAvdAction(this));
+        myButtonActionMap.put(repairAction, new EditAvdAction(this));
         repairAction.addMouseListener(mouseAdapter);
         add(repairAction, "Repair Device");
       } else {
@@ -119,6 +119,8 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
                             new EditAvdAction(this),
                             new DuplicateAvdAction(this),
                             //new ExportAvdAction(this), // TODO: implement export/import
+                            new ShowAvdOnDiskAction(this),
+                            new WipeAvdDataAction(this),
                             new DeleteAvdAction(this));
   }
 

@@ -17,29 +17,37 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.diagnostic.Logger;
 
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
 
 /**
- * Repair the given AVD. Not yet implemented.
+ * Show the contents of the AVD on disk
  */
-public class RepairAvdAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(RunAvdAction.class);
+public class ShowAvdOnDiskAction extends AvdUiAction {
+  private static final Logger LOG = Logger.getInstance(ShowAvdOnDiskAction.class);
 
-  public RepairAvdAction(AvdInfoProvider avdInfoProvider) {
-    super(avdInfoProvider, "Repair", "Repair this AVD", AllIcons.Actions.IntentionBulb);
+  public ShowAvdOnDiskAction(AvdInfoProvider avdInfoProvider) {
+    super(avdInfoProvider, "Show on Disk", "Open the location of this AVD's data files", AllIcons.Actions.Menu_open);
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    LOG.warn("Repairing AVD " + getAvdInfo().getName());
-    throw new UnsupportedOperationException("Repairing AVDs is not yet implemented");
+    AvdInfo info = getAvdInfo();
+    if (info == null) {
+      return;
+    }
+    File dataFolder = new File(info.getDataFolderPath());
+    ShowFilePathAction.openDirectory(dataFolder);
   }
 
   @Override
   public boolean isEnabled() {
-    AvdInfo avdInfo = getAvdInfo();
-    return avdInfo != null && AvdManagerConnection.isAvdRepairable(avdInfo.getStatus());
+    return getAvdInfo() != null;
   }
 }
