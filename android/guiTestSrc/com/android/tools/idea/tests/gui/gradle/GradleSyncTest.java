@@ -56,8 +56,7 @@ public class GradleSyncTest extends GuiTestCase {
     assertNotNull(wrapperPropertiesFile);
     updateGradleDistributionUrl("1.5", wrapperPropertiesFile);
 
-    projectFrame.requestProjectSyncAndExpectFailure()
-                .requireEditorNotification("Gradle project sync failed.");
+    projectFrame.requestProjectSyncAndExpectFailure();
 
     MessagesToolWindowFixture.ContentFixture syncMessages = projectFrame.getMessagesToolWindow().getGradleSyncContent();
     MessageFixture message = syncMessages.findMessage(ERROR, firstLineStartingWith("The project is using an unsupported version of Gradle"));
