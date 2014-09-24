@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator;
 
+import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
@@ -22,6 +24,7 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -33,6 +36,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
@@ -160,6 +164,52 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "    dimens.xml (w820dp)\n" +
       "  resources\n" +
       "   sample_resource.txt\n";
+    int numLines = expected.split("\n").length;
+    ProjectViewTestUtil
+      .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
+                            printInfo);
+  }
+
+  public void testFailedImport() throws Exception {
+    loadProject("projects/navigator/invalid", false, new GradleSyncListener.Adapter() {
+      @Override
+      public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
+        // If the sync fails, then IDE creates an empty top level module. Mimic the same behavior for this test.
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            NewProjectImportGradleSyncListener.createTopLevelModule(project);
+          }
+        });
+      }
+    });
+
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), myTestRootDisposable);
+
+    Queryable.PrintInfo printInfo = new Queryable.PrintInfo();
+    PsiDirectory dir = getBaseFolder();
+    assertNotNull(dir);
+
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertEquals(1, modules.length);
+
+    String projectName = getProject().getName();
+    String expected =
+      projectName + "\n" +
+      " Gradle Scripts\n" +
+      "  build.gradle (" + modules[0].getName() + ")\n" +
+      "  gradle-wrapper.properties\n" +
+      " " + modules[0].getName() + "\n" +
+      "  .idea\n" +
+      "  AndroidManifest.xml\n" +
+      "  build.gradle\n" +
+      "  gradle\n" +
+      "   wrapper\n" +
+      "    gradle-wrapper.jar\n" +
+      "    gradle-wrapper.properties\n" +
+      "  gradlew\n" +
+      "  gradlew.bat\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil
       .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
