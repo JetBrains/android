@@ -67,4 +67,16 @@ public class ResourceEntry {
     result = 31 * result + myContext.hashCode();
     return result;
   }
+
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() +
+           '@' +
+           Integer.toHexString(System.identityHashCode(this)) +
+           '(' +
+           myType +
+           ',' +
+           myName +
+           (myContext.isEmpty() ? "" : ',' + myContext + ')');
+  }
 }
