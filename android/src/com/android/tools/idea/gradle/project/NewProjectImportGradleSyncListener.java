@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.facet.FacetManager;
@@ -69,7 +70,8 @@ public abstract class NewProjectImportGradleSyncListener implements GradleSyncLi
     activateProjectView(project);
   }
 
-  private static void createTopLevelModule(@NotNull Project project) {
+  @VisibleForTesting
+  public static void createTopLevelModule(@NotNull Project project) {
     ModuleManager moduleManager = ModuleManager.getInstance(project);
 
     File projectRootDir = new File(project.getBasePath());
