@@ -15,17 +15,22 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("android.editors.strings");
+import java.awt.*;
+
+public class StringResourceEditorNotificationProvider extends EditorNotifications.Provider<StringResourceEditorNotificationProvider.InfoPanel> {
+  private static final Key<InfoPanel> KEY = Key.create("android.editors.strings");
   private final Project myProject;
   private boolean myShow;
 
@@ -35,18 +40,18 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
   }
 
   @Override
-  public Key<EditorNotificationPanel> getKey() {
+  public Key<InfoPanel> getKey() {
     return KEY;
   }
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull final VirtualFile file, FileEditor fileEditor) {
+  public InfoPanel createNotificationPanel(@NotNull final VirtualFile file, FileEditor fileEditor) {
     if (!myShow || !StringResourceEditorProvider.canViewTranslations(myProject, file)) {
       return null;
     }
 
-    final EditorNotificationPanel panel = new EditorNotificationPanel();
+    final InfoPanel panel = new InfoPanel();
     panel.setText("Edit translations for all locales in the translations editor.");
     panel.createActionLabel("Open editor", new Runnable() {
       @Override
@@ -62,5 +67,13 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
       }
     });
     return panel;
+  }
+
+  public static class InfoPanel extends EditorNotificationPanel {
+    @Override
+    public Color getBackground() {
+      Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.READONLY_BACKGROUND_COLOR);
+      return color == null ? UIUtil.getPanelBackground() : color;
+    }
   }
 }
