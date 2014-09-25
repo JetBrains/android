@@ -100,6 +100,10 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     assertFalse(new AndroidAddStringResourceAction().isAvailable(myFixture.getProject(), myFixture.getEditor(), javaPsiFile));
   }
 
+  public void test15() throws IOException {
+    doTest(getTestName(false), "strings.xml", null, true, "strings15_after.xml");
+  }
+
   public void testEscape() throws IOException {
     doTest(getTestName(false), "strings.xml", null, true, "strings_escape_after.xml");
   }
@@ -133,6 +137,20 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "res/layout/layout.xml");
     myFixture.configureFromExistingVirtualFile(file);
     assertFalse(new AndroidAddStringResourceAction().isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
+  }
+
+  public void testFromLayout2() throws IOException {
+    createManifest();
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "res/layout/layout.xml");
+    doExtractAndCheckStringsXml("strings.xml", null, true, getTestName(true) + "_strings_after.xml", file);
+    myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
+  }
+
+  public void testFromLayout3() throws IOException {
+    createManifest();
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "res/layout/layout.xml");
+    doExtractAndCheckStringsXml("strings.xml", null, true, getTestName(true) + "_strings_after.xml", file);
+    myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
   }
 
   public void testFromManifest() {
