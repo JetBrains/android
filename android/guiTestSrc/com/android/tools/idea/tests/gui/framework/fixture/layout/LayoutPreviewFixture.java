@@ -16,18 +16,15 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.configurations.ConfigurationToolBar;
-import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderedImage;
+import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.multi.RenderPreview;
 import com.android.tools.idea.rendering.multi.RenderPreviewManager;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Condition;
 import org.fest.swing.timing.Pause;
@@ -40,7 +37,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
@@ -108,8 +104,10 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
       @Override
       public boolean test() {
         AndroidLayoutPreviewToolWindowManager manager = getManager();
-        return !manager.isRenderPending() && manager.getToolWindowForm() != null && manager.getToolWindowForm().getLastResult() != null
-          && manager.getToolWindowForm().getLastResult() != previous;
+        return !manager.isRenderPending() &&
+               manager.getToolWindowForm() != null &&
+               manager.getToolWindowForm().getLastResult() != null &&
+               manager.getToolWindowForm().getLastResult() != previous;
       }
     }, SHORT_TIMEOUT);
 
@@ -233,5 +231,38 @@ public class LayoutPreviewFixture extends ToolWindowFixture implements LayoutFix
     }
 
     imageFixture.requireSimilar(relativePath, cropped);
+  }
+
+  @NotNull
+  public LayoutWidgetFixture find(@NotNull TagMatcher matcher) {
+    List<LayoutWidgetFixture> all = findAll(matcher);
+    assertTrue("Expected to find exactly one match, but found " + all.size() + ": " + all, all.size() == 1);
+    return all.get(0);
+  }
+
+  @NotNull
+  public List<LayoutWidgetFixture> findAll(@NotNull TagMatcher matcher) {
+    waitForRenderToFinish();
+    RenderResult lastResult = getContent().getLastResult();
+    assertNotNull("No render result available", lastResult);
+
+    List<LayoutWidgetFixture> result = Lists.newArrayList();
+    RenderedViewHierarchy hierarchy = lastResult.getHierarchy();
+    assertNotNull("No view hierarchy", hierarchy);
+
+    for (RenderedView view : hierarchy.getRoots()) {
+      addMatching(view, matcher, result);
+    }
+
+    return result;
+  }
+
+  private void addMatching(@NotNull RenderedView view, @NotNull TagMatcher matcher, @NotNull List<LayoutWidgetFixture> result) {
+    if (view.tag != null && matcher.isMatching(view.tag)) {
+      result.add(new LayoutWidgetFixture(this, view));
+    }
+    for (RenderedView child : view.getChildren()) {
+      addMatching(child, matcher, result);
+    }
   }
 }

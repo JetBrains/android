@@ -5,6 +5,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.DynamicResourceValueItem;
 import com.android.tools.idea.rendering.LocalResourceRepository;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -101,8 +102,8 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     final List<ResolveResult> result = new ArrayList<ResolveResult>();
 
     if (elements.isEmpty() && myResourceValue.getResourceName() != null) {
-      // Temporary workaround: AAR libraries may not have been picked up properly.
-      // Use app resources to find these missing references, if applicable.
+      // Dynamic items do not appear in the XML scanning file index; look for
+      // these in the resource repositories.
       LocalResourceRepository resources = AppResourceRepository.getAppResources(myFacet.getModule(), true);
       ResourceType resourceType = myResourceValue.getType();
       if (resourceType != null && (resourceType != ResourceType.ATTR || attrReference)) { // If not, it could be some broken source, such as @android/test
@@ -113,6 +114,8 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
             XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
             if (tag != null) {
               elements.add(tag);
+            } else if (item instanceof DynamicResourceValueItem) {
+              result.add(((DynamicResourceValueItem)item).createResolveResult());
             }
           }
         }
