@@ -17,6 +17,7 @@
 package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -121,7 +122,7 @@ public class AndroidResourceUtil {
 
   @NotNull
   public static String normalizeXmlResourceValue(@NotNull String value) {
-    return value.replace("'", "\\'").replace("\"", "\\\"");
+    return ValueXmlHelper.escapeResourceString(value, false);
   }
 
   static {
