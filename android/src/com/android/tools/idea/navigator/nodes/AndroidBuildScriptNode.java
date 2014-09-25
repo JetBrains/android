@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiFile;
@@ -55,11 +56,29 @@ public class AndroidBuildScriptNode extends PsiFileNode {
   @Nullable
   @Override
   public Comparable getSortKey() {
-    // returns qualifer + name
-    // we want to compare by the qualifier first so that build scripts from same module are grouped together
+    String priority;
+
+    // We want the build scripts to be ordered as follows:
+    //   1. We want the build scripts inside modules.
+    //   2. Within a module, we want all the build scripts grouped together
+    //   3. Finally, we want all the global and project wide build scripts.
+    // This is achieved in a very simple way by the priorities set below.
+    if (myQualifier != null) {
+      boolean isModuleName = ModuleManager.getInstance(myProject).findModuleByName(myQualifier) != null;
+      if (isModuleName) {
+        priority = "1-";
+      }
+      else {
+        priority = "2-";
+      }
+      priority += myQualifier + "-";
+    }
+    else {
+      priority = "3-";
+    }
+
     PsiFile f = getValue();
-    String name = myQualifier == null ? " (0)" : myQualifier;
-    return f == null ? name : name + f.getName();
+    return f == null ? priority : priority + f.getName();
   }
 
   @Override
