@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.editors.strings.StringResourceEditor;
+import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.rendering.ResourceHelper;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
@@ -813,6 +815,36 @@ public class EditorFixture {
     }, SHORT_TIMEOUT);
 
     return new LayoutPreviewFixture(robot, myFrame.getProject());
+  }
+
+  /**
+   * Returns a fixture around the {@link com.android.tools.idea.editors.strings.StringResourceEditor} <b>if</b> the currently
+   * displayed editor is a translations editor.
+   */
+  @Nullable
+  public TranslationsEditorFixture getTranslationsEditor() {
+    VirtualFile currentFile = getCurrentFile();
+    if (!(currentFile instanceof StringsVirtualFile)) {
+      return null;
+    }
+
+    return GuiActionRunner.execute(new GuiQuery<TranslationsEditorFixture>() {
+      @Override
+      @Nullable
+      protected TranslationsEditorFixture executeInEDT() throws Throwable {
+        FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
+        FileEditor[] editors = manager.getSelectedEditors();
+        if (editors.length == 0) {
+          return null;
+        }
+        FileEditor selected = editors[0];
+        if (!(selected instanceof StringResourceEditor)) {
+          return null;
+        }
+
+        return new TranslationsEditorFixture(robot, (StringResourceEditor)selected);
+      }
+    });
   }
 
   /**
