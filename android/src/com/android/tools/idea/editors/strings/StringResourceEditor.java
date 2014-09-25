@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import com.android.annotations.VisibleForTesting;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -130,5 +131,10 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   @Override
   public void dispose() {
+  }
+
+  @VisibleForTesting
+  public JTable getTranslationsTable() {
+    return myPanel.getTable();
   }
 }
