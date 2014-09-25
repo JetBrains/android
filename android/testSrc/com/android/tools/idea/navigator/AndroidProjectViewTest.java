@@ -120,14 +120,14 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "  jniLibs\n" +
       "   libc.so\n" +
       " Gradle Scripts\n" +
-      "  gradle-wrapper.properties\n" +
-      "  local.properties\n" +
-      "  settings.gradle (Project Settings)\n" +
       "  build.gradle (app)\n" +
       "  sonar.gradle (app)\n" +
       "  build.gradle (javamodule)\n" +
       "  build.gradle (lib)\n" +
-      "  build.gradle (" + rootModuleName + ")\n";
+      "  build.gradle (" + rootModuleName + ")\n" +
+      "  settings.gradle (Project Settings)\n" +
+      "  gradle-wrapper.properties\n" +
+      "  local.properties\n";
     int numLines = expected.split("\n").length;
     ProjectViewTestUtil
       .assertStructureEqual(structure, expected, numLines, new GroupByTypeComparator(null, "android"), structure.getRootElement(),
