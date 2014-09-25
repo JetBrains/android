@@ -456,8 +456,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   /** Checks that the given error message is showing in the editor (or no messages are showing, if the parameter is null */
-  public void requireEditorNotification(@Nullable String message) {
-    findPanel(message); // fails test if not found (or if null and notifications were found)
+  @Nullable
+  public EditorNotificationPanelFixture requireEditorNotification(@Nullable String message) {
+    EditorNotificationPanel panel = findPanel(message);  // fails test if not found (or if null and notifications were found)
+    return new EditorNotificationPanelFixture(robot, panel);
   }
 
   /** Locates an editor notification with the given main message (unless the message is null, in which case we assert
