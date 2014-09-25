@@ -245,7 +245,9 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
 
     ResourceFile source = item.getSource();
-    assert source != null : item.getName();
+    if (source == null) { // most likely a dynamically defined value
+      return null;
+    }
 
     if (source instanceof PsiResourceFile) {
       PsiResourceFile prf = (PsiResourceFile)source;
