@@ -263,6 +263,10 @@ public class StringResourceViewPanel {
     myTable = new JBTable();
   }
 
+  public JTable getTable() {
+    return myTable;
+  }
+
   private class ParseTask extends Task.Backgroundable {
     private AtomicReference<LocalResourceRepository> myResourceRepositoryRef = new AtomicReference<LocalResourceRepository>(null);
     private AtomicReference<StringResourceData> myResourceDataRef = new AtomicReference<StringResourceData>(null);
