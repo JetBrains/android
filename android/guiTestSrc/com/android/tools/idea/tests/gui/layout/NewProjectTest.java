@@ -20,8 +20,10 @@ import com.android.builder.model.ApiVersion;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectionsFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
@@ -33,10 +35,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
 import static com.android.tools.idea.wizard.FormFactorUtils.FormFactor.MOBILE;
 import static junit.framework.Assert.assertNotNull;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class NewProjectTest extends GuiTestCase {
   @Test
@@ -66,6 +70,43 @@ public class NewProjectTest extends GuiTestCase {
       LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtension.getInstance(module);
       assertThat(moduleExt.getLanguageLevel()).as("Gradle Java language level in module " + module.getName()).isNull();
     }
+  }
+
+  @Test
+  @IdeGuiTest
+  public void testNoWarningsInNewProjects() throws IOException {
+    // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
+    // This checks that our (default) project templates are warnings-clean.
+    // The test then proceeds to make a couple of edits and checks that these do not generate additional
+    // warnings either.
+    IdeFrameFixture projectFrame = newProject("Test Application").create();
+
+    // Insert resValue statements which should not add warnings (since they are generated files; see
+    // https://code.google.com/p/android/issues/detail?id=76715
+    EditorFixture editor = projectFrame.getEditor();
+    String buildGradlePath = "app/build.gradle";
+    editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("defaultConfig {", null, true));
+    editor.enterText("\nresValue \"string\", \"foo\", \"Typpo Here\"");
+    projectFrame.clickEditorNotification("Gradle files have changed since last project sync", "Sync Now");
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    InspectionsFixture inspections = projectFrame.inspectCode();
+
+    assertEquals("Test Application\n" +
+                 // This warning is from the "foo" string we created in the Gradle resValue declaration above
+                 "    Android Lint\n" +
+                 "        Unused resources\n" +
+                 "            app\n" +
+                 "                The resource 'R.string.foo' appears to be unused\n" +
+                 // This warning is wrong: https://code.google.com/p/android/issues/detail?id=76719
+                 "    Assignment issues\n" +
+                 "        Incompatible type assignments\n" +
+                 "            app\n" +
+                 "                'dependencies' cannot be applied to '(groovy.lang.Closure)'\n" +
+                 "            build.gradle\n" +
+                 "                'dependencies' cannot be applied to '(groovy.lang.Closure)'\n",
+                 inspections.getResults());
   }
 
   @Test

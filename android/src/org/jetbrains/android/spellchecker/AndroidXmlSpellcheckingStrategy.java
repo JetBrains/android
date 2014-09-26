@@ -15,8 +15,12 @@
  */
 package org.jetbrains.android.spellchecker;
 
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -39,6 +43,7 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.dom.converters.ConstantFieldConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -157,8 +162,25 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   private static boolean inEnglish(PsiElement element) {
     XmlFile file = PsiTreeUtil.getParentOfType(element, XmlFile.class);
     if (file != null) {
-      if (file.getName().equals(ANDROID_MANIFEST_XML)) {
+      String name = file.getName();
+      if (name.equals(ANDROID_MANIFEST_XML)) {
         return true;
+      } else if (name.equals("generated.xml")) {
+        // Android Studio Workaround for issue https://code.google.com/p/android/issues/detail?id=76715
+        // If this a generated file like this:
+        //   ${project}/${module}/build/generated/res/generated/{test?}/${flavors}/${build-type}/values/generated.xml
+        // ? If so, skip it.
+        AndroidFacet facet = AndroidFacet.getInstance(file);
+        VirtualFile virtualFile = file.getVirtualFile();
+        if (facet != null && facet.isGradleProject() && virtualFile != null) {
+          IdeaAndroidProject project = facet.getIdeaAndroidProject();
+          if (project != null) {
+            VirtualFile buildFolder = VfsUtil.findFileByIoFile(project.getDelegate().getBuildFolder(), false);
+            if (buildFolder != null && VfsUtilCore.isAncestor(buildFolder, virtualFile, false)) {
+              return false;
+            }
+          }
+        }
       }
       PsiDirectory dir = file.getParent();
       if (dir != null) {
