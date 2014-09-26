@@ -234,6 +234,7 @@
                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
+                      <labelFor value="ff2ce"/>
                       <text value="Scale:"/>
                     </properties>
                   </component>
@@ -280,6 +281,7 @@
                       </grid>
                     </constraints>
                     <properties>
+                      <labelFor value="3ef9c"/>
                       <text value="Back:"/>
                     </properties>
                   </component>
@@ -314,6 +316,7 @@
                       </grid>
                     </constraints>
                     <properties>
+                      <labelFor value="8ab45"/>
                       <text value="Front:"/>
                     </properties>
                   </component>
@@ -346,6 +349,7 @@
                       </grid>
                     </constraints>
                     <properties>
+                      <labelFor value="dac53"/>
                       <text value="Speed:"/>
                     </properties>
                   </component>
@@ -356,6 +360,7 @@
                       </grid>
                     </constraints>
                     <properties>
+                      <labelFor value="1ce78"/>
                       <text value="Latency:"/>
                     </properties>
                   </component>
