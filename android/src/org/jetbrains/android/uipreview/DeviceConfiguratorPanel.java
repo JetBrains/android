@@ -929,7 +929,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @Override
     JComponent getComponent() {
       final JPanel panel = new JPanel(new VerticalFlowLayout());
-      final JBLabel label = new JBLabel("Screen dimension:");
+      final JBLabel label = new JBLabel("Screen dimension in dp:");
       label.setLabelFor(mySizeField1);
       panel.add(label);
       panel.add(mySizeField1);
@@ -1294,4 +1294,3 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 }
-                                                                                   
