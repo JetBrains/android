@@ -17,8 +17,16 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.FullRevision;
+import com.android.sdklib.repository.MajorRevision;
+import com.android.sdklib.repository.descriptors.IPkgDesc;
+import com.android.sdklib.repository.descriptors.PkgDesc;
+import com.android.sdklib.repository.descriptors.PkgType;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -26,9 +34,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
@@ -208,6 +219,10 @@ public class RenderLogger extends LayoutLog {
         return;
       }
 
+      if (throwable instanceof NoSuchMethodError && "java.lang.System.arraycopy([CI[CII)V".equals(message)) {
+        addMessage(getProblemForIssue73732(throwable));
+        return;
+      }
       if (description.equals(throwable.getLocalizedMessage()) || description.equals(throwable.getMessage())) {
         description = "Exception raised during rendering: " + description;
       } else if (message == null) {
@@ -639,5 +654,65 @@ public class RenderLogger extends LayoutLog {
 
   void setCredential(@Nullable Object credential) {
     myCredential = credential;
+  }
+
+  @NotNull
+  private RenderProblem.Html getProblemForIssue73732(Throwable throwable) {
+    RenderProblem.Html problem = RenderProblem.create(ERROR);
+    problem.tag("73732");
+    problem.throwable(throwable);
+    HtmlBuilder builder = problem.getHtmlBuilder();
+    builder.add("There are some known bugs in this version of the rendering library. Until a new version is available, use the " +
+                "rendering library from L-preview.");
+    if (myModule == null) {
+      // Shouldn't really happen, but just in case...
+      return problem;
+    }
+    ShowExceptionFix detailsFix = new ShowExceptionFix(myModule.getProject(), throwable);
+    builder.addLink(" ", "Show Exception", ".", getLinkManager().createRunnableLink(detailsFix));
+    AndroidPlatform platform = AndroidPlatform.getPlatform(myModule);
+    if (platform == null) {
+      // Again, shouldn't happen.
+      return problem;
+    }
+    // Check if L-preview is installed.
+    final AndroidSdkData sdkData = platform.getSdkData();
+    final IAndroidTarget targetL = sdkData.findTargetByApiLevel("L");
+    if (targetL != null) {
+      // L-preview found.
+      builder.addLink(" Click ", "here", " to use L-preview.", getLinkManager().createRunnableLink(new Runnable() {
+        @Override
+        public void run() {
+          AndroidFacet facet = AndroidFacet.getInstance(myModule);
+          if (facet != null) {
+            facet.getConfigurationManager().setTarget(targetL);
+          }
+        }
+      }));
+      return problem;
+    }
+    builder.addLink(" Click ", "here", " to install L-preview SDK Platform", getLinkManager().createRunnableLink(new Runnable() {
+      @Override
+      public void run() {
+        IPkgDesc lPreviewLib =
+          PkgDesc.Builder.newPlatform(new AndroidVersion(21, "L"), new MajorRevision(4), FullRevision.NOT_SPECIFIED).create();
+        List<IPkgDesc> requested = Lists.newArrayList(lPreviewLib);
+        SdkQuickfixWizard wizard = new SdkQuickfixWizard(myModule.getProject(), myModule, requested);
+        wizard.init();
+        if (wizard.showAndGet()) {
+          // Force target to be recomputed.
+          sdkData.getLocalSdk().clearLocalPkg(EnumSet.of(PkgType.PKG_PLATFORM));
+          AndroidFacet facet = AndroidFacet.getInstance(myModule);
+          if (facet != null) {
+            facet.getConfigurationManager().setTarget(null);
+          }
+          // http://b.android.com/76622
+          Messages.showInfoMessage(myModule.getProject(),
+                                   "Note: Due to a bug, you may need to restart the IDE for the new LayoutLibrary to take full effect.",
+                                   "Restart Recommended");
+        }
+      }
+    }));
+    return problem;
   }
 }
