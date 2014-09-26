@@ -17,13 +17,16 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.psi.util.FileTypeUtils;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
@@ -47,6 +50,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -333,6 +337,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return avdInfo.getCpuArch();
       }
     },
+    new AvdSizeColumnInfo("Size on Disk"),
     new AvdActionsColumnInfo("Actions", 2 /* Num Visible Actions */),
   };
 
@@ -543,6 +548,45 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     @Override
     public int getWidth(JTable table) {
       return myWidth;
+    }
+  }
+
+  private class AvdSizeColumnInfo extends AvdColumnInfo {
+
+    public AvdSizeColumnInfo(@NotNull String name) {
+      super(name);
+    }
+
+    @NotNull
+    private Storage getSize(AvdInfo avdInfo) {
+      long sizeInBytes = 0;
+      if (avdInfo != null) {
+        File avdDir = new File(avdInfo.getDataFolderPath());
+        for (File file : TemplateUtils.listFiles(avdDir)) {
+          sizeInBytes += file.length();
+        }
+      }
+      return new Storage(sizeInBytes);
+    }
+
+    @Nullable
+    @Override
+    public String valueOf(AvdInfo avdInfo) {
+      Storage size = getSize(avdInfo);
+      return String.format(Locale.getDefault(), "%1$d MB", size.getSizeAsUnit(Storage.Unit.MiB));
+    }
+
+    @Nullable
+    @Override
+    public Comparator<AvdInfo> getComparator() {
+      return new Comparator<AvdInfo>() {
+        @Override
+        public int compare(AvdInfo o1, AvdInfo o2) {
+          Storage s1 = getSize(o1);
+          Storage s2 = getSize(o2);
+          return Comparing.compare(s1.getSize(), s2.getSize());
+        }
+      };
     }
   }
 }
