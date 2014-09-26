@@ -40,7 +40,19 @@ import java.util.Set;
  * The store can have a listener associated with it which will be notified of each update of the store.
  * The update will contain the key associated with the change as well as the scope of the change.
  * The store also allows for pulling change notifications rather than these pushed notifications via the
- * getRecentUpdates() and clearRecentUpdates() functions.
+ * {@link #getRecentUpdates()} and {@link #clearRecentUpdates()} functions.
+ *
+ * The currently defined scopes are STEP, PATH, and WIZARD. So, each DynamicWizardStep has a ScopedStateStore associated with it which
+ * has a scope of STEP, which only stores key/value pairs which also have a scope of STEP.
+ * The store declares a Key<T> class which must be used to store and retrieve values. A Key is parametrized with the class of the
+ * associated value. Each Key has a Scope. A null scope may be used if the client does not care where the data associated with the
+ * Key is retrieved from or stored. If a scope is specified, then calling get() will only return a value with a matching scope.
+ *
+ * <h2>Choosing Scopes</h2>
+ * Most keys should be scoped at the PATH level, since they are shared with the rest of that modular workflow.
+ * Each instance of DynamicWizardPath maintains its own ScopedStateStore instance. If you wish a key to be shared between
+ * multiple paths then it should be scoped at the WIZARD level. A STEP scoped key is only available to the instance object of the
+ * STEP in which it is registered, and thus behaves like a local variable.
  */
 public class ScopedStateStore implements Function<ScopedStateStore.Key<?>, Object> {
   // Map of the current state
