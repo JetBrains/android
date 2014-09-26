@@ -56,6 +56,7 @@ public class AvdEditWizard extends DynamicWizard {
     super(project, module, "AvdEditWizard");
     myAvdInfo = avdInfo;
     myForceCreate = forceCreate;
+    setTitle("Virtual Device Configuration");
   }
 
   @Override
