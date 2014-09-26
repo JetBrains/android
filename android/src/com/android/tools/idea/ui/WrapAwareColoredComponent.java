@@ -199,7 +199,7 @@ public class WrapAwareColoredComponent extends JComponent implements Accessible,
   }
 
   @Override
-  public void append(@NotNull final String fragment, @NotNull final SimpleTextAttributes attributes, Object tag) {
+  public void append(@NotNull final String fragment, @NotNull final SimpleTextAttributes attributes, @Nullable Object tag) {
     _append(fragment, attributes, tag);
     revalidateAndRepaint();
   }
