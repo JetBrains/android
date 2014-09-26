@@ -38,6 +38,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
@@ -234,6 +235,28 @@ public class AvdEditWizard extends DynamicWizard {
     boolean isCircular = DeviceDefinitionPreview.isCircular(device);
 
     String avdName = calculateAvdName(myAvdInfo, device, myForceCreate);
+
+    // If we're editing an AVD and we downgrade a system image, wipe the user data with confirmation
+    if (myAvdInfo != null && !myForceCreate) {
+      IAndroidTarget target = myAvdInfo.getTarget();
+      if (target != null) {
+
+        int oldApiLevel = target.getVersion().getApiLevel();
+        int newApiLevel = systemImageDescription.target.getVersion().getApiLevel();
+        if (oldApiLevel > newApiLevel) {
+          String message = String.format(Locale.getDefault(), "You are about to downgrade %1$s from API level %2$d to API level %3$d. " +
+                                                              "This requires a wipe of the userdata partition of the AVD. Do you wish to " +
+                                                              "continue with the data wipe?", avdName, oldApiLevel, newApiLevel);
+          int result = JOptionPane
+            .showConfirmDialog(null, message, "Confirm Data Wipe", JOptionPane.YES_NO_OPTION);
+          if (result == JOptionPane.YES_OPTION) {
+            AvdManagerConnection.wipeUserData(myAvdInfo);
+          } else {
+            return; // Cancel the edit operation
+          }
+        }
+      }
+    }
 
     AvdManagerConnection.createOrUpdateAvd(myAvdInfo, avdName, device, systemImageDescription, orientation, isCircular, sdCard,
                                            skinFile, hardwareProperties, false);
