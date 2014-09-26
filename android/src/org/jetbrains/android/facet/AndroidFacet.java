@@ -1050,11 +1050,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public ConfigurationManager getConfigurationManager() {
-    //noinspection ConstantConditions
     return getConfigurationManager(true);
   }
 
 
+  @Contract("true -> !null")
   @Nullable
   public ConfigurationManager getConfigurationManager(boolean createIfNecessary) {
     if (myConfigurationManager == null && createIfNecessary) {
