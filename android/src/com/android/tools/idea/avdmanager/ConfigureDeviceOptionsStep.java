@@ -589,28 +589,60 @@ public class ConfigureDeviceOptionsStep extends DynamicWizardStepWithHeaderAndDe
    */
   private void registerComponents() {
     register(DEVICE_NAME_KEY, myDeviceName, LABEL_WITH_EDIT_LINK_COMPONENT_BINDING);
+    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
 
     register(DIAGONAL_SCREENSIZE_KEY, myDiagonalScreenSize, DOUBLE_BINDING);
+    setControlDescription(myDeviceName, "Actual Android Virtual Device size of the screen, measured as the screen's diagonal");
     register(RESOLUTION_WIDTH_KEY, myScreenResolutionWidth, INT_BINDING);
+    setControlDescription(myScreenResolutionWidth, "The total number of physical pixels on a screen. " +
+                                                   "When adding support for multiple screens, applications do not work directly " +
+                                                   "with resolution; applications should be concerned only with screen size and density," +
+                                                   " as specified by the generalized size and density groups.\n" +
+                                                   "\n" +
+                                                   "Width in pixels\n");
     register(RESOLUTION_HEIGHT_KEY, myScreenResolutionHeight, INT_BINDING);
+    setControlDescription(myScreenResolutionHeight, "The total number of physical pixels on a screen. " +
+                            "When adding support for multiple screens, applications do not work directly " +
+                            "with resolution; applications should be concerned only with screen size and density," +
+                            " as specified by the generalized size and density groups.\n" +
+                            "<br>" +
+                            "Height in pixels\n");
 
     register(RAM_STORAGE_KEY, myRamField, myRamField.getBinding());
+    setControlDescription(myRamField, "The amount of physical RAM on the device.");
 
     register(HAS_HARDWARE_BUTTONS_KEY, myHasHardwareButtons);
+    setControlDescription(myHasHardwareButtons, "Enables hardware navigation button support in Android Virtual Device");
     register(HAS_HARDWARE_KEYBOARD_KEY, myHasHardwareKeyboard);
+    setControlDescription(myHasHardwareKeyboard, "Enables hardware keyboard  support in Android Virtual Device");
     register(NAVIGATION_KEY, myNavigationControlsCombo, NAVIGATION_BINDING);
+    setControlDescription(myNavigationControlsCombo, "No Navigation - No navigational controls \n" +
+                            "<br>" +
+                            "Directional Pad - Enables direction pad support in emulator\n" +
+                            "<br>" +
+                            "Trackball - Enables trackball support in emulator");
 
     register(SUPPORTS_LANDSCAPE_KEY, mySupportsLandscape);
+    setControlDescription(mySupportsLandscape, "Enables the landscape device screen state in emulator ");
     register(SUPPORTS_PORTRAIT_KEY, mySupportsPortrait);
+    setControlDescription(mySupportsPortrait, "Enables the portrait device screen state in emulator ");
 
     register(HAS_BACK_CAMERA_KEY, myHasBackFacingCamera);
+    setControlDescription(myHasBackFacingCamera, "Enables back-facing camera support in emulator");
     register(HAS_FRONT_CAMERA_KEY, myHasFrontFacingCamera);
+    setControlDescription(myHasFrontFacingCamera, "Enables front- facing camera support in emulator");
 
     register(HAS_ACCELEROMETER_KEY, myHasAccelerometer);
+    setControlDescription(myHasAccelerometer, "Enables accelerometer support in emulator");
     register(HAS_GYROSCOPE_KEY, myHasGyroscope);
+    setControlDescription(myHasGyroscope, "Enables gyroscope support in emulator");
     register(HAS_GPS_KEY, myHasGps);
+    setControlDescription(myHasGps, "Enables GPS (global positioning support) support in emulator");
     register(HAS_PROXIMITY_SENSOR_KEY, myHasProximitySensor);
+    setControlDescription(myHasProximitySensor, "Enables proximity sensor support in emulator");
   }
+
+
 
   private static final ComponentBinding<Double, JTextField> DOUBLE_BINDING = new ComponentBinding<Double, JTextField>() {
     @Override
