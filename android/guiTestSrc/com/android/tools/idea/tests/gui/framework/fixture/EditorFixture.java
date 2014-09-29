@@ -491,6 +491,33 @@ public class EditorFixture {
   }
 
   /**
+   * Finds the first position in the editor document indicated by the given text segment, where ^ (or if not defined, |) indicates
+   * the caret position.
+   *
+   * @param line the line segment to search for (with ^ or | indicating the caret position)
+   * @return the 0-based offset in the document, or -1 if not found.
+   */
+  public int findOffset(@NotNull final String line) {
+    int index = line.indexOf('^');
+    if (index == -1) {
+      // Also look for |. ^ has higher precedence since in many Android XML files we'll have | appearing as
+      // the XML value flag delimiter.
+      index = line.indexOf('|');
+    }
+    assertTrue("The text segment should contain a caret position indicated by ^ or |", index != -1);
+    String prefix = line.substring(0, index);
+    if (prefix.isEmpty()) {
+      prefix = null;
+    }
+    String suffix = line.substring(index + 1);
+    if (suffix.isEmpty()) {
+      suffix = null;
+    }
+    assertTrue("The text segment should have more text than just the caret position", prefix != null || suffix != null);
+    return findOffset(prefix, suffix, true);
+  }
+
+  /**
    * Closes the current editor
    */
   public EditorFixture close() {

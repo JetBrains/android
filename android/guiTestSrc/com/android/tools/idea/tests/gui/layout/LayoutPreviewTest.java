@@ -15,26 +15,31 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
+import com.android.sdklib.repository.FullRevision;
+import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.ConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutPreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.LayoutWidgetFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.RenderErrorPanelFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.TagMatcher.AttributeMatcher;
 import com.android.tools.lint.detector.api.LintUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.DOT_PNG;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
+import static com.android.SdkConstants.*;
+import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static junit.framework.Assert.*;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -362,5 +367,79 @@ public class LayoutPreviewTest extends GuiTestCase {
     renderErrors.performSuggestion("Build");
     preview.waitForNextRenderToFinish();
     preview.requireRenderSuccessful();
+  }
+
+
+  @Test
+  @IdeGuiTest(closeProjectBeforeExecution = true)
+  public void testRenderingDynamicResources() throws Exception {
+    // Opens a layout which contains dynamic resources (defined only in build.gradle)
+    // and checks that the values have been resolved correctly (both that there are no
+    // unresolved reference errors in the XML file, and that the rendered layout strings
+    // matches the expected overlay semantics); also edits these in the Gradle file and
+    // checks that the layout rendering is updated after a Gradle sync.
+
+    boolean updateAndroidPluginVersion = false;
+    @SuppressWarnings("ConstantConditions")
+    File projectPath = setUpProject("LayoutTest", true, updateAndroidPluginVersion, null);
+    IdeFrameFixture projectFrame = openProject(projectPath);
+
+    IdeaAndroidProject project = projectFrame.getGradleProject("app");
+    String modelVersion = project.getDelegate().getModelVersion();
+    assertNotNull(modelVersion);
+    FullRevision version = FullRevision.parseRevision(modelVersion);
+    assertNotNull("Could not parse version " + modelVersion, version);
+    if (version.getMajor() == 0 && version.getMinor() < 14) {
+      // This test tests behavior that starts working in 0.14.+
+      return;
+    }
+
+    EditorFixture editor = projectFrame.getEditor();
+    String layoutFilePath = "app/src/main/res/layout/dynamic_layout.xml";
+    editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
+    LayoutPreviewFixture preview = editor.getLayoutPreview(true);
+    assertNotNull(preview);
+    preview.waitForNextRenderToFinish();
+
+    RenderErrorPanelFixture renderErrors = preview.getRenderErrors();
+    renderErrors.requireRenderSuccessful(false, false);
+
+    LayoutWidgetFixture string1 = preview.find(new AttributeMatcher(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string1"));
+    string1.requireTag("TextView");
+    string1.requireAttribute(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string1");
+
+    string1.requireViewClass("android.widget.TextView");
+    string1.requireActualText("String 1 defined only by defaultConfig");
+
+    LayoutWidgetFixture string2 = preview.find(new AttributeMatcher(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string2"));
+    string2.requireActualText("String 1 defined only by defaultConfig");
+
+    LayoutWidgetFixture string3 = preview.find(new AttributeMatcher(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string3"));
+    string3.requireActualText("String 3 defined by build type debug");
+
+    LayoutWidgetFixture string4 = preview.find(new AttributeMatcher(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string4"));
+    string4.requireActualText("String 4 defined by flavor free");
+
+    LayoutWidgetFixture string5 = preview.find(new AttributeMatcher(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string5"));
+    string5.requireActualText("String 5 defined by build type debug");
+
+    // Ensure that all the references are properly resolved
+    FileFixture file = projectFrame.findExistingFileByRelativePath(layoutFilePath);
+    file.requireCodeAnalysisHighlightCount(ERROR, 0);
+
+    String buildGradlePath = "app/build.gradle";
+    editor.open(buildGradlePath, EditorFixture.Tab.EDITOR);
+    editor.moveTo(editor.findOffset("String 1 defined only by |defaultConfig"));
+    editor.enterText("edited ");
+    projectFrame.clickEditorNotification("Gradle files have changed since last project sync", "Sync Now");
+    projectFrame.waitForGradleProjectSyncToFinish();
+
+    editor.open(layoutFilePath, EditorFixture.Tab.EDITOR);
+    preview.waitForNextRenderToFinish();
+
+    string1 = preview.find(new AttributeMatcher(ATTR_TEXT, ANDROID_URI, "@string/dynamic_string1"));
+    string1.requireActualText("String 1 defined only by edited defaultConfig");
+
+    file.requireCodeAnalysisHighlightCount(ERROR, 0);
   }
 }
