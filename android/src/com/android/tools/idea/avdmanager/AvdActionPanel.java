@@ -119,8 +119,9 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
                             new EditAvdAction(this),
                             new DuplicateAvdAction(this),
                             //new ExportAvdAction(this), // TODO: implement export/import
-                            new ShowAvdOnDiskAction(this),
                             new WipeAvdDataAction(this),
+                            new ShowAvdOnDiskAction(this),
+                            new AvdSummaryAction(this),
                             new DeleteAvdAction(this));
   }
 
