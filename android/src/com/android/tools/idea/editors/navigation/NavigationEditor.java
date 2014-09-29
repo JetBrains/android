@@ -36,6 +36,7 @@ import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -127,17 +128,19 @@ public class NavigationEditor implements FileEditor {
             panel.add(toolBar, BorderLayout.NORTH);
           }
           {
-            JSplitPane splitPane = new JSplitPane();
+            Splitter splitPane = new Splitter();
+            splitPane.setDividerWidth(1);
+            splitPane.setShowDividerIcon(false);
+            splitPane.setProportion(.8f);
             {
               JBScrollPane scrollPane = new JBScrollPane(editor);
               scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-              splitPane.setLeftComponent(scrollPane);
+              splitPane.setFirstComponent(scrollPane);
             }
             {
               myInspector = new Inspector(mySelectionModel);
-              splitPane.setRightComponent(new JBScrollPane(myInspector.container));
+              splitPane.setSecondComponent(new JBScrollPane(myInspector.container));
             }
-            splitPane.setDividerLocation(.7);
             panel.add(splitPane);
           }
           myComponent = panel;
