@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
@@ -108,6 +109,12 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull
   public List<File> getGeneratedResourceFolders() {
     return myGeneratedResourceFolders;
+  }
+
+  @Override
+  @Nullable
+  public Set<String> getAbiFilters() {
+    return null;
   }
 
   @Override
