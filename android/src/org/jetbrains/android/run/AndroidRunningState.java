@@ -34,7 +34,7 @@ import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.run.ApkUploaderService;
+import com.android.tools.idea.run.InstalledApks;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -1224,13 +1224,18 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     String errorMessage;
     message("Uploading file\n\tlocal path: " + localPath + "\n\tremote path: " + remotePath, STDOUT);
     try {
-      ApkUploaderService installer = ServiceManager.getService(ApkUploaderService.class);
-      if (installer.uploadApk(device, localPath, remotePath)) {
-        return installApp(device, remotePath, packageName);
-      } else {
+      InstalledApks installedApks = ServiceManager.getService(InstalledApks.class);
+      if (installedApks.isInstalled(device, new File(localPath), packageName)) {
         message("No apk changes detected. Skipping file upload.", STDOUT);
+        return true;
+      } else {
+        device.pushFile(localPath, remotePath);
+        boolean installed = installApp(device, remotePath, packageName);
+        if (installed) {
+          installedApks.setInstalled(device, new File(localPath), packageName);
+        }
+        return installed;
       }
-      return true;
     }
     catch (TimeoutException e) {
       LOG.info(e);
