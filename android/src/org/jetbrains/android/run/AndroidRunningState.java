@@ -1026,10 +1026,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
       // TODO: The 2nd argument should be the ABI's supported by this variant. The model doesn't expose that right now.
       // Explanation: If you aren't using the split apk mechanism, then you'd specify an abi filter at the variant level. That information
       // is needed, so this argument was added to computeBestOutput, but the IDE model doesn't expose it.
-      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, Collections.<String>emptySet(), density, abis);
+      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, null, density, abis);
       if (output == null) {
         String message =
-          AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(',').join(abis));
+          AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
         LOG.error(message);
         return null;
       }
