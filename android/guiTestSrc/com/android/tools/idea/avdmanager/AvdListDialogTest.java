@@ -17,12 +17,15 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestCase;
 import com.android.tools.idea.tests.gui.framework.annotation.IdeGuiTest;
-import com.android.tools.idea.tests.gui.framework.fixture.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.fixture.JComboBoxFixture;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import javax.swing.*;
+import java.awt.*;
 
 public class AvdListDialogTest extends GuiTestCase {
   @Test
@@ -32,5 +35,63 @@ public class AvdListDialogTest extends GuiTestCase {
     AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
     AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
 
+    ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
+    chooseDeviceDefinitionStep.enterSearchTerm("Nexus").selectDeviceByName("Nexus 7");
+    avdEditWizard.clickNext();
+
+    ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
+    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4.2");
+    avdEditWizard.clickNext();
+
+    ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizard.getConfigureAvdOptionsStep();
+    configureAvdOptionsStep.showAdvancedSettings();
+    configureAvdOptionsStep.setFrontCamera("Emulated");
+    configureAvdOptionsStep.setScaleFactor("1dp on device = 1px on screen").setUseHostGpu(true);
+    avdEditWizard.clickFinish();
+    avdManagerDialog.close();
+
+    // Ensure the AVD was created
+    avdManagerDialog.selectAvdByName("Nexus 7 2013");
+    // Then clean it up
+    avdManagerDialog.deleteAvdByName("Nexus 7 2013");
+  }
+
+  @Test
+  @IdeGuiTest
+  public void testEditAvd() throws Exception {
+    IdeFrameFixture ideFrame = openSimpleApplication();
+    makeNexus5(ideFrame);
+    AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
+    AvdEditWizardFixture avdEditWizardFixture = avdManagerDialog.editAvdWithName("Nexus 5");
+    ConfigureAvdOptionsStepFixture configureAvdOptionsStep = avdEditWizardFixture.getConfigureAvdOptionsStep();
+
+    configureAvdOptionsStep.showAdvancedSettings();
+    configureAvdOptionsStep.setUseHostGpu(true);
+    
+    avdEditWizardFixture.clickFinish();
+    avdManagerDialog.close();
+
+    removeNexus5(ideFrame);
+  }
+
+  public static void makeNexus5(@NotNull IdeFrameFixture ideFrame) throws Exception {
+    AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
+    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
+
+    ChooseDeviceDefinitionStepFixture chooseDeviceDefinitionStep = avdEditWizard.getChooseDeviceDefinitionStep();
+    chooseDeviceDefinitionStep.selectDeviceByName("Nexus 5");
+    avdEditWizard.clickNext();
+
+    ChooseSystemImageStepFixture chooseSystemImageStep = avdEditWizard.getChooseSystemImageStep();
+    chooseSystemImageStep.selectSystemImage("KitKat", "19", "x86", "Android 4.4.2");
+    avdEditWizard.clickNext();
+    avdEditWizard.clickFinish();
+    avdManagerDialog.close();
+  }
+
+
+  public static void removeNexus5(@NotNull IdeFrameFixture ideFrame) {
+    AvdManagerDialogFixture avdManagerDialog = ideFrame.invokeAvdManager();
+    avdManagerDialog.deleteAvdByName("Nexus 5");
   }
 }
