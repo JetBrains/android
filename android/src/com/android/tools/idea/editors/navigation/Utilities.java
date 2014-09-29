@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.editors.navigation;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.io.File;
+import java.io.IOException;
 
 public class Utilities {
   public static final Dimension ZERO_SIZE = new Dimension(0, 0);
@@ -232,5 +235,35 @@ public class Utilities {
   @Nullable
   public static VirtualFile virtualFile(File file) {
     return LocalFileSystem.getInstance().findFileByIoFile(file);
+  }
+
+  public static VirtualFile mkDirs(VirtualFile dir, String path) throws IOException {
+    for(String dirName : path.split("/")) {
+      VirtualFile existingDir = dir.findFileByRelativePath(dirName);
+      dir = (existingDir != null) ? existingDir : dir.createChildDirectory(null, dirName);
+    }
+    return dir;
+  }
+
+  public static VirtualFile getNavigationFile(final VirtualFile baseDir, String deviceQualifier, final String fileName) {
+    final String relativePathOfNavDir = ".navigation" + "/" + deviceQualifier;
+    VirtualFile navFile = baseDir.findFileByRelativePath(relativePathOfNavDir + "/" + fileName);
+    if (navFile == null) {
+      navFile = ApplicationManager.getApplication().runWriteAction(new Computable<VirtualFile>() {
+        @Override
+        public VirtualFile compute() {
+          try {
+            VirtualFile dir = mkDirs(baseDir, relativePathOfNavDir);
+            return dir.createChildData(null, fileName);
+          }
+          catch (IOException e) {
+            assert false;
+            return null;
+          }
+
+        }
+      });
+    }
+    return navFile;
   }
 }
