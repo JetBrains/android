@@ -41,7 +41,7 @@ public class FmLayoutToActivityMethodTest extends TestCase {
   }
 
   public void test3() throws Exception {
-    check("activity_", "MyActivity");
+    check("activity_", "MainActivity");
   }
 
   public void test4() throws Exception {
@@ -49,6 +49,6 @@ public class FmLayoutToActivityMethodTest extends TestCase {
   }
 
   public void test5() throws Exception {
-    check("", "MyActivity");
+    check("", "MainActivity");
   }
 }
