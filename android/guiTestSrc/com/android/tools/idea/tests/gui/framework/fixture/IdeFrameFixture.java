@@ -23,8 +23,7 @@ import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.google.common.collect.Iterables;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,7 +54,6 @@ import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.ComponentFixture;
 import org.fest.swing.timing.Condition;
-import org.fest.swing.timing.Pause;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +66,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.android.SdkConstants.FD_GRADLE;
@@ -584,28 +581,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
 
   @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
-    JMenuItem openToolsMenu = findActionMenuItem("Tools");
-    robot.click(openToolsMenu);
-
-    Pause.pause(new Condition("Waiting for Launch AVD list timed out!") {
-      @Override
-      public boolean test() {
-        JMenuItem openToolsMenu = findActionMenuItem("Tools");
-        robot.click(openToolsMenu);
-        Pause.pause(1, TimeUnit.SECONDS);
-        JPopupMenu activePopupMenu = robot.findActivePopupMenu();
-        Collection<JMenuItem> found = robot.finder().findAll(activePopupMenu, new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
-          @Override
-          protected boolean isMatching(JMenuItem component) {
-            return component.getText().equals("Launch AVD List");
-          }
-        });
-        if (found.size() > 0) {
-          robot.click(Iterables.getFirst(found, null));
-        }
-        return found.size() > 0;
-      }
-    }, GuiTests.SHORT_TIMEOUT);
+    ActionButtonFixture button = findActionButtonByActionId("Android.RunAndroidAvdManager");
+    button.click();
     return AvdManagerDialogFixture.find(robot);
   }
 
