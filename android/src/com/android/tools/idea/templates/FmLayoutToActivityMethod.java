@@ -49,7 +49,7 @@ public class FmLayoutToActivityMethod implements TemplateMethodModel {
     name = TemplateUtils.underlinesToCamelCase(name);
     String className = TemplateUtils.extractClassName(name);
     if (className == null) {
-      className = "My";
+      className = "Main";
     }
     String activityName = className + ACTIVITY_NAME_SUFFIX;
 
