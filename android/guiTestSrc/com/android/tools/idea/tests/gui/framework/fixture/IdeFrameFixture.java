@@ -191,6 +191,19 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
   }
 
   @NotNull
+  public IdeaAndroidProject getGradleProject(@NotNull String moduleName) {
+    Module module = getModule(moduleName);
+    assertNotNull("Could not find module " + moduleName, module);
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertNotNull("Module " + moduleName + " is not an Android module", facet);
+    assertTrue("Module " + moduleName + " is not a Gradle project", facet.isGradleProject());
+    IdeaAndroidProject project = facet.getIdeaAndroidProject();
+    assertNotNull("Module " + moduleName + " does not have a Gradle project (not synced yet or sync failed?)", project);
+
+    return project;
+  }
+
+  @NotNull
   public GradleInvocationResult invokeProjectMake() {
     myGradleProjectEventListener.reset();
 
