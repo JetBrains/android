@@ -74,12 +74,7 @@ public class NewModuleWizardDynamic extends NewProjectWizardDynamic {
     Iterable<ModuleTemplateProvider> templateProviders =
       Iterables.concat(ImmutableSet.of(new AndroidModuleTemplatesProvider()), contributions);
     addPath(new SingleStepPath(new ChooseModuleTypeStep(templateProviders, getDisposable())));
-    addPath(new SingleStepPath(new ConfigureAndroidModuleStepDynamic(getProject(), getDisposable())) {
-      @Override
-      public boolean isPathVisible() {
-        return myState.get(SELECTED_MODULE_TYPE_KEY) instanceof CreateModuleTemplate;
-      }
-    });
+    addPath(new SingleStepPath(new ConfigureAndroidModuleStepDynamic(getProject(), getDisposable())));
     for (NewFormFactorModulePath path : NewFormFactorModulePath.getAvailableFormFactorModulePaths(getDisposable())) {
       addPath(path);
     }

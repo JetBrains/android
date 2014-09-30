@@ -43,6 +43,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaCodeFragment;
@@ -963,8 +964,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         return value;
       }
       String suggested = value;
-      int extensionOffset = value.length() - 4;
-      boolean hasExtension = value.charAt(extensionOffset) == '.';
+      String extension = FileUtilRt.getExtension(value);
+      boolean hasExtension = !extension.isEmpty();
+      int extensionOffset = value.length() - extension.length();
       //noinspection ForLoopThatDoesntUseLoopVariable
       for (int i = 2; !parameter.uniquenessSatisfied(project, module, provider, packageName, suggested); i++) {
         if (hasExtension) {

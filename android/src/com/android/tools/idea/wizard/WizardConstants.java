@@ -63,4 +63,5 @@ public class WizardConstants {
   public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+  public static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
 }
