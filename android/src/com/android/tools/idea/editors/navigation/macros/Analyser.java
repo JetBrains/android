@@ -23,7 +23,6 @@ import com.android.tools.idea.model.ManifestInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
@@ -33,7 +32,6 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.manifest.Activity;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -106,23 +104,16 @@ public class Analyser {
     }
   }
 
-  private static Set<String> readManifestFile(Project project) {
+  private static Set<String> getActivitiesFromManifestFile(Module module) {
     Set<String> result = new HashSet<String>();
-    Module[] modules = ModuleManager.getInstance(project).getModules();
-    for (Module module : modules) {
-      if (AndroidFacet.getInstance(module) == null) {
-        continue;
-      }
-
-      ManifestInfo manifestInfo = ManifestInfo.get(module, false);
-      String packageName = manifestInfo.getPackage();
-      List<Activity> activities = manifestInfo.getActivities();
-      for (Activity activity : activities) {
-        AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
-        String className = activityClass.getRawText();
-        String qualifiedName = qualifyClassNameIfNecessary(packageName, className);
-        result.add(qualifiedName);
-      }
+    ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+    String packageName = manifestInfo.getPackage();
+    List<Activity> activities = manifestInfo.getActivities();
+    for (Activity activity : activities) {
+      AndroidAttributeValue<PsiClass> activityClass = activity.getActivityClass();
+      String className = activityClass.getRawText();
+      String qualifiedName = qualifyClassNameIfNecessary(packageName, className);
+      result.add(qualifiedName);
     }
     return result;
   }
@@ -433,7 +424,7 @@ public class Analyser {
   }
 
   public NavigationModel deriveAllStatesAndTransitions(NavigationModel model, Configuration configuration) {
-    Set<String> activityClassNames = readManifestFile(myModule.getProject());
+    Set<String> activityClassNames = getActivitiesFromManifestFile(myModule);
     if (DEBUG) {
       System.out.println("deriveAllStatesAndTransitions = " + activityClassNames);
     }
