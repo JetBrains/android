@@ -10,8 +10,31 @@ android {
         targetSdkVersion 20
         versionCode 1
         versionName "1.0"
+
+        resValue "string", "dynamic_string1", "String 1 defined only by defaultConfig"
+        resValue "string", "dynamic_string2", "@string/dynamic_string1"
+        resValue "string", "dynamic_string3", "String 3 defined by defaultConfig"
+        resValue "string", "dynamic_string4", "String 4 defined by defaultConfig"
+        resValue "string", "dynamic_string5", "String 5 defined by defaultConfig"
+        resValue "dimen", "dynamic_padding", "20dp"
     }
+
+    productFlavors {
+        pro {
+            resValue "string", "dynamic_string3", "String 3 defined by flavor pro"
+            resValue "string", "dynamic_string4", "String 4 defined by flavor pro"
+        }
+        free {
+            resValue "string", "dynamic_string3", "String 3 defined by flavor free"
+            resValue "string", "dynamic_string4", "String 4 defined by flavor free"
+        }
+    }
+
     buildTypes {
+        debug {
+            resValue "string", "dynamic_string3", "String 3 defined by build type debug"
+            resValue "string", "dynamic_string5", "String 5 defined by build type debug"
+        }
         release {
             runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
