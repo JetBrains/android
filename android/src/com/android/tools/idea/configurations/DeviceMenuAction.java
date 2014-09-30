@@ -343,7 +343,7 @@ public class DeviceMenuAction extends FlatComboAction {
       Device prevDevice = configuration.getDevice();
       State prevState = configuration.getDeviceState();
       String newState = prevState != null ? prevState.getName() : null;
-      if (prevDevice != null && prevState != null && configuration.getDeviceState() == prevDevice.getDefaultState() &&
+      if (prevDevice != null && prevState != null && prevState.isDefaultState() &&
           !myDevice.getDefaultState().getName().equals(prevState.getName()) &&
           configuration.getEditedConfig().getScreenOrientationQualifier() == null) {
         VirtualFile file = configuration.getFile();
