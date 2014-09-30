@@ -23,6 +23,7 @@ import com.android.navigation.*;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.navigation.macros.Analyser;
+import com.android.tools.idea.model.ManifestInfo;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.wizard.NewAndroidActivityWizard;
 import com.intellij.ide.dnd.DnDEvent;
@@ -111,36 +112,17 @@ public class NavigationView extends JComponent {
   private boolean showRollover = false;
   private boolean mDrawGrid = false;
 
-  /*
-  void foo(String layoutFileBaseName) {
-    System.out.println("layoutFileBaseName = " + layoutFileBaseName);
-    Module module = myMyRenderingParams.myFacet.getModule();
-    ConfigurationManager manager = ConfigurationManager.create(module);
-    LocalResourceRepository resources = AppResourceRepository.getAppResources(module, true);
-
-    for (Device device : manager.getDevices()) {
-      com.android.sdklib.devices.State portrait = device.getDefaultState().deepCopy();
-      com.android.sdklib.devices.State landscape = device.getDefaultState().deepCopy();
-      portrait.setOrientation(ScreenOrientation.PORTRAIT);
-      landscape.setOrientation(ScreenOrientation.LANDSCAPE);
-
-      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(portrait)));
-      System.out.println("file = " + getMatchingFile(layoutFileBaseName, resources, DeviceConfigHelper.getFolderConfig(landscape)));
-    }
-  }
-  */
-
-  /* In projects with one module with an AndroidFacet, return that AndroidFacet. */
+  /* In projects with one module with an AndroidFacet, return that module. */
   @Nullable
-  private static AndroidFacet getAndroidFacet(@NotNull Project project, @NotNull NavigationEditor.ErrorHandler handler) {
-    AndroidFacet result = null;
+  private static Module getAndroidModule(@NotNull Project project, @NotNull NavigationEditor.ErrorHandler handler) {
+    Module result = null;
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet == null) {
         continue;
       }
       if (result == null) {
-        result = facet;
+        result = module;
       }
       else {
         handler.handleError("", "Sorry, Navigation Editor does not yet support multiple module projects. ");
@@ -154,11 +136,18 @@ public class NavigationView extends JComponent {
   public static RenderingParameters getRenderingParams(@NotNull Project project,
                                                        @NotNull VirtualFile file,
                                                        @NotNull NavigationEditor.ErrorHandler handler) {
-    AndroidFacet facet = getAndroidFacet(project, handler);
+    Module module = getAndroidModule(project, handler);
+    if (module == null) {
+      return null;
+    }
+    AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null) {
       return null;
     }
     Configuration configuration = facet.getConfigurationManager().getConfiguration(file);
+    ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+    String themeName = manifestInfo.getManifestTheme();
+    configuration.setTheme(themeName);
     return new RenderingParameters(project, configuration, facet);
   }
 
@@ -849,9 +838,8 @@ public class NavigationView extends JComponent {
   }
 
   @Nullable
-  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String resourceName, Configuration configuration, Project project) {
+  private static VirtualFile getLayoutXmlVirtualFile(boolean menu, @Nullable String resourceName, Configuration configuration) {
     ResourceType resourceType = menu ? ResourceType.MENU : ResourceType.LAYOUT;
-    PsiManager psiManager = PsiManager.getInstance(project);
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     if (resourceResolver == null) {
       return null;
@@ -860,16 +848,45 @@ public class NavigationView extends JComponent {
     if (projectResource == null) { /// seems to happen when we create a new resource
       return null;
     }
-    VirtualFile file = virtualFile(new File(projectResource.getValue()));
-    return file == null ? null : psiManager.findFile(file);
+    return virtualFile(new File(projectResource.getValue()));
   }
 
-  private AndroidRootComponent createRootComponentFor(State state) {
+  @Nullable
+  public static PsiFile getLayoutXmlFile(boolean menu, @Nullable String resourceName, Configuration configuration, Project project) {
+    VirtualFile file = getLayoutXmlVirtualFile(menu, resourceName, configuration);
+    return file == null ? null : PsiManager.getInstance(project).findFile(file);
+  }
+
+  private RenderingParameters getActivityRenderingParameters(Module module, VirtualFile virtualFile, String className) {
+    ManifestInfo manifestInfo = ManifestInfo.get(module, false);
+    Configuration configuration = myRenderingParams.myFacet.getConfigurationManager().getConfiguration(virtualFile);
+    String theme = manifestInfo.getManifestTheme();
+    ManifestInfo.ActivityAttributes activityAttributes = manifestInfo.getActivityAttributes(className);
+    if (activityAttributes != null) {
+      String activityTheme = activityAttributes.getTheme();
+      theme = activityTheme != null ? activityTheme : theme;
+    }
+    configuration.setTheme(theme);
+    return myRenderingParams.withConfiguration(configuration);
+  }
+
+  private AndroidRootComponent createUnscaledRootComponentFor(State state) {
     boolean isMenu = state instanceof MenuState;
     Module module = myRenderingParams.myFacet.getModule();
     String resourceName = isMenu ? state.getXmlResourceName() : Analyser.getXMLFileName(module, state.getClassName(), true);
-    PsiFile psiFile = getLayoutXmlFile(isMenu, resourceName, myRenderingParams.myConfiguration, myRenderingParams.myProject);
-    AndroidRootComponent result = new AndroidRootComponent(myRenderingParams, psiFile, isMenu);
+    VirtualFile virtualFile = getLayoutXmlVirtualFile(isMenu, resourceName, myRenderingParams.myConfiguration);
+    if (virtualFile == null) {
+      return new AndroidRootComponent(myRenderingParams, null, isMenu);
+    }
+    else {
+      PsiFile psiFile = PsiManager.getInstance(myRenderingParams.myProject).findFile(virtualFile);
+      RenderingParameters params = isMenu ? myRenderingParams : getActivityRenderingParameters(module, virtualFile, state.getClassName());
+      return new AndroidRootComponent(params, psiFile, isMenu);
+    }
+  }
+
+  private AndroidRootComponent createRootComponentFor(State state) {
+    AndroidRootComponent result = createUnscaledRootComponentFor(state);
     result.setScale(myTransform.myScale);
     return result;
   }

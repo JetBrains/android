@@ -194,23 +194,6 @@ public class AndroidRootComponent extends JComponent {
     return transform.modelToView(myIsMenu ? size(getMenu(myRenderResult)) : myRenderingParameters.getDeviceScreenSize());
   }
 
-  //ScalableImage image = myRenderResult.getImage();
-  //if (image != null) {
-  //  image.paint(g);
-  //}
-      /*
-      if (false) {
-        Graphics2D g2 = (Graphics2D)g;
-        g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
-        //g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-        g2.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-        g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-        g2.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
-      }
-      if (false) {
-        g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
-      }
-      */
   @Nullable
   private Image getScaledImage() {
     if (myScaledImage == null || myScaledImage.getWidth(null) != getWidth() || myScaledImage.getHeight(null) != getHeight()) {
