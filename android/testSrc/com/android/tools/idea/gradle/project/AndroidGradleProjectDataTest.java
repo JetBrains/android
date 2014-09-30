@@ -215,6 +215,24 @@ public class AndroidGradleProjectDataTest extends AndroidGradleTestCase {
     assertFalse(newData.applyTo(project));
   }
 
+  public void testNewMethod() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    MyInterface reproxy = AndroidGradleProjectData.reproxy(MyInterface.class, myProxy);
+
+    assertNotNull(reproxy);
+    InvocationHandler handler = Proxy.getInvocationHandler(reproxy);
+    assertTrue(handler instanceof AndroidGradleProjectData.WrapperInvocationHandler);
+    AndroidGradleProjectData.WrapperInvocationHandler wrapper = (AndroidGradleProjectData.WrapperInvocationHandler)handler;
+    Method m = MyInterface.class.getMethod("getString");
+    wrapper.values.remove(m.toGenericString());
+
+    try {
+      reproxy.getString();
+      fail("Removed method should throw an exception");
+    } catch (UnsupportedMethodException e) {
+      // Expected.
+    }
+  }
+
   interface MyInterface {
     String getString();
 
