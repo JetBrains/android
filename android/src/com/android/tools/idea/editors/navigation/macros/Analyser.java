@@ -47,14 +47,18 @@ public class Analyser {
   private static final String[] ID_PREFIXES = {"@+id/", "@android:id/"};
   private static final boolean DEBUG = false;
 
-  private final Project myProject;
   private final Module myModule;
   private final Macros myMacros;
 
-  public Analyser(Project project, Module module) {
-    myProject = project;
+  public Analyser(Module module) {
     myModule = module;
     myMacros = Macros.getInstance(myModule.getProject());
+  }
+
+  public NavigationModel getNavigationModel(Configuration configuration) {
+    NavigationModel result = new NavigationModel();
+    deriveAllStatesAndTransitions(result, configuration);
+    return result;
   }
 
   @Nullable
@@ -306,7 +310,7 @@ public class Analyser {
     if (xmlFileName == null) {
       return null;
     }
-    return (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, configuration, myProject);
+    return (XmlFile)NavigationView.getLayoutXmlFile(false, xmlFileName, configuration, myModule.getProject());
   }
 
   private void deriveTransitions(final NavigationModel model,
@@ -429,7 +433,7 @@ public class Analyser {
   }
 
   public NavigationModel deriveAllStatesAndTransitions(NavigationModel model, Configuration configuration) {
-    Set<String> activityClassNames = readManifestFile(myProject);
+    Set<String> activityClassNames = readManifestFile(myModule.getProject());
     if (DEBUG) {
       System.out.println("deriveAllStatesAndTransitions = " + activityClassNames);
     }

@@ -114,7 +114,7 @@ public class NavigationEditor implements FileEditor {
     if (myRenderingParams != null) {
       Configuration configuration = myRenderingParams.myConfiguration;
       Module module = configuration.getModule();
-      myAnalyser = new Analyser(project, module);
+      myAnalyser = new Analyser(module);
       try {
         myNavigationModel = read(file);
         myCodeGenerator = new CodeGenerator(myNavigationModel, module);
