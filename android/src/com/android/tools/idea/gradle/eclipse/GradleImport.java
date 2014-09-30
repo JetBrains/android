@@ -1036,6 +1036,10 @@ public class GradleImport {
       String compileSdkVersionString = compileSdkVersion.isPreview()
                                        ? '\'' + AndroidTargetHash.getPlatformHashString(compileSdkVersion) + '\''
                                        : Integer.toString(compileSdkVersion.getApiLevel());
+      String addOn = module.getAddOn();
+      if (addOn != null) {
+        compileSdkVersionString =  '\'' + addOn + '\'';
+      }
       String minSdkVersionString = minSdkVersion.isPreview()
                                    ? '\'' + module.getMinSdkVersion().getCodename() + '\''
                                    : Integer.toString(module.getMinSdkVersion().getApiLevel());
