@@ -84,6 +84,9 @@ abstract class ImportModule implements Comparable<ImportModule> {
   @NonNull
   protected abstract AndroidVersion getTargetSdkVersion();
 
+  @Nullable
+  protected abstract String getAddOn();
+
   @NonNull
   public abstract File getDir();
 
