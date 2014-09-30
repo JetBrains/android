@@ -49,6 +49,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -600,7 +601,8 @@ public class AndroidGradleProjectData implements Serializable {
     private static final Method TO_STRING = getObjectMethod("toString");
     private static final Method HASHCODE = getObjectMethod("hashCode");
     private static final Method EQUALS = getObjectMethod("equals", Object.class);
-    private final Map<String, Object> values;
+    @VisibleForTesting
+    final Map<String, Object> values;
 
     WrapperInvocationHandler(@NotNull Map<String, Object> values) {
       this.values = values;
@@ -630,7 +632,7 @@ public class AndroidGradleProjectData implements Serializable {
       else {
         String key = method.toGenericString();
         if (!values.containsKey(key)) {
-          LOG.warn("Invoking a non-existent reproxy method: " + key);
+          throw new UnsupportedMethodException("Method " + key + " not found");
         }
         Object value = values.get(key);
         if (value instanceof InvocationErrorValue) {
