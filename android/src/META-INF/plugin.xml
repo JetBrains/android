@@ -663,6 +663,7 @@
   <extensions defaultExtensionNs="org.jetbrains.android">
     <newModuleWizardPathFactory implementation="com.android.tools.idea.wizard.WrapArchiveWizardPathFactory"/>
     <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.LegacyWizardPathProvider"/>
+    <newModuleDynamicPathFactory implementation="com.android.tools.idea.wizard.JavaWizardPathProvider"/>
   </extensions>
 
   <!-- Layout editor -->

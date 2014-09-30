@@ -140,52 +140,9 @@ public class ConfigureAndroidModuleStepDynamic extends ConfigureAndroidProjectSt
       if (appName == null) {
         appName = myModuleType.formFactor.toString();
       }
-      return computeModuleName(appName);
+      return WizardUtils.computeModuleName(appName, getProject());
     }
   };
-
-  @NotNull
-  @VisibleForTesting
-  String computeModuleName(@NotNull String appName) {
-    String moduleName = appName.toLowerCase().replaceAll(INVALID_FILENAME_CHARS, "");
-    moduleName = moduleName.replaceAll("\\s", "");
-
-    if (!isUniqueModuleName(moduleName)) {
-      int i = 2;
-      while (!isUniqueModuleName(moduleName + Integer.toString(i))) {
-        i++;
-      }
-      moduleName += Integer.toString(i);
-    }
-    return moduleName;
-  }
-
-  @VisibleForTesting
-  static boolean isValidModuleName(@NotNull String moduleName) {
-    if (!moduleName.replaceAll(INVALID_FILENAME_CHARS, "").equals(moduleName)) {
-      return false;
-    }
-    for (String s : Splitter.on('.').split(moduleName)) {
-      if (INVALID_MSFT_FILENAMES.contains(s.toLowerCase())) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private boolean isUniqueModuleName(@NotNull String moduleName) {
-    if (myProject == null) {
-      return true;
-    }
-    // Check our modules
-    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module m : moduleManager.getModules()) {
-      if (m.getName().equalsIgnoreCase(moduleName)) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   @Override
   public boolean isStepVisible() {

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.wizard.ConfigureAndroidProjectStep.INVALID_FILENAME_CHARS;
+import static com.android.tools.idea.wizard.WizardConstants.INVALID_FILENAME_CHARS;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
