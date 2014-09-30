@@ -3048,6 +3048,76 @@ public class GradleImportTest extends AndroidTestCase { // Only because we need 
     deleteDir(imported);
   }
 
+  @SuppressWarnings("ResultOfMethodCallIgnored")
+  public void testAddOnPlatform() throws Exception {
+    File root = Files.createTempDir();
+    File projectDir = new File(root, "project");
+    projectDir.mkdirs();
+    createProject(projectDir, "Test2", "test.pkg");
+    createDotProject(projectDir, "Test2", true, true);
+
+    // Write project.properties file which points to the add-on
+    Files.write("# Project target.\n" +
+                "target=Google Inc.:Google APIs:18\n",
+                new File(projectDir, FN_PROJECT_PROPERTIES), UTF_8);
+
+    File imported = checkProject(projectDir,
+                                 ""
+                                 + MSG_HEADER
+                                 + MSG_FOLDER_STRUCTURE
+                                 + "* AndroidManifest.xml => Test2/src/main/AndroidManifest.xml\n"
+                                 + "* res/ => Test2/src/main/res/\n"
+                                 + "* src/ => Test2/src/main/java/\n"
+                                 + MSG_FOOTER,
+                                 false /* checkBuild */,
+                                 new ImportCustomizer() {
+                                   @Override
+                                   public void customize(GradleImport importer) {
+                                     importer.setGradleNameStyle(false);
+                                   }
+                                 });
+
+    //noinspection PointlessBooleanExpression,ConstantConditions
+    assertEquals(""
+                 + (!DECLARE_GLOBAL_REPOSITORIES ?
+                    "buildscript {\n"
+                    + "    repositories {\n"
+                    + "        " + MAVEN_REPOSITORY + "\n"
+                    + "    }\n"
+                    + "    dependencies {\n"
+                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
+                    + "    }\n"
+                    + "}\n" : "")
+                 + "apply plugin: 'com.android.application'\n"
+                 + (!DECLARE_GLOBAL_REPOSITORIES ?
+                    "\n"
+                    + "repositories {\n"
+                    + "    " + MAVEN_REPOSITORY + "\n"
+                    + "}\n" : "")
+                 + "\n"
+                 + "android {\n"
+                 + "    compileSdkVersion 'Google Inc.:Google APIs:18'\n"
+                 + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
+                 + "\n"
+                 + "    defaultConfig {\n"
+                 + "        applicationId \"test.pkg\"\n"
+                 + "        minSdkVersion 8\n"
+                 + "        targetSdkVersion 16\n"
+                 + "    }\n"
+                 + "\n"
+                 + "    buildTypes {\n"
+                 + "        release {\n"
+                 + "            runProguard false\n"
+                 + "            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'\n"
+                 + "        }\n"
+                 + "    }\n"
+                 + "}\n",
+                 Files.toString(new File(imported, "Test2" + separator + "build.gradle"), UTF_8).replace(NL, "\n"));
+
+    deleteDir(root);
+    deleteDir(imported);
+  }
+
   @SuppressWarnings({"ResultOfMethodCallIgnored", "SpellCheckingInspection"})
   public void testRiskyPathChars() throws Exception {
     File root = Files.createTempDir();
