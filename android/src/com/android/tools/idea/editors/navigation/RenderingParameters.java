@@ -27,7 +27,7 @@ import java.awt.*;
 import static com.android.tools.idea.editors.navigation.Utilities.ZERO_SIZE;
 import static com.android.tools.idea.editors.navigation.Utilities.notNull;
 
-class RenderingParameters {
+public class RenderingParameters {
   @NotNull final Project myProject;
   @NotNull final Configuration myConfiguration;
   @NotNull final AndroidFacet myFacet;
@@ -36,6 +36,10 @@ class RenderingParameters {
     this.myProject = project;
     this.myConfiguration = configuration;
     this.myFacet = facet;
+  }
+
+  public RenderingParameters withConfiguration(Configuration configuration) {
+    return new RenderingParameters(myProject, configuration, myFacet);
   }
 
   com.android.navigation.Dimension getDeviceScreenSize() {
