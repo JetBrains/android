@@ -91,7 +91,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
-import org.gradle.internal.reflect.*;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -1010,7 +1009,8 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
 
   @Nullable
   private static File getApk(@NotNull Variant variant, @NotNull IDevice device) {
-    List<AndroidArtifactOutput> outputs = Lists.newArrayList(variant.getMainArtifact().getOutputs());
+    AndroidArtifact mainArtifact = variant.getMainArtifact();
+    List<AndroidArtifactOutput> outputs = Lists.newArrayList(mainArtifact.getOutputs());
     if (outputs.isEmpty()) {
       LOG.info("No outputs for the main artifact of variant: " + variant.getDisplayName());
       return null;
@@ -1025,13 +1025,10 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
     else {
       List<String> abis = device.getAbis();
       int density = device.getDensity();
-      // TODO: The 2nd argument should be the ABI's supported by this variant. The model doesn't expose that right now.
-      // Explanation: If you aren't using the split apk mechanism, then you'd specify an abi filter at the variant level. That information
-      // is needed, so this argument was added to computeBestOutput, but the IDE model doesn't expose it.
-      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, null, density, abis);
+      Set<String> variantAbiFilters = getVariantAbiFilters(mainArtifact);
+      SplitOutput output = SplitOutputMatcher.computeBestOutput(outputs, variantAbiFilters, density, abis);
       if (output == null) {
-        String message =
-          AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
+        String message = AndroidBundle.message("deployment.failed.splitapk.nomatch", outputs.size(), density, Joiner.on(", ").join(abis));
         LOG.error(message);
         return null;
       }
@@ -1040,13 +1037,24 @@ public class AndroidRunningState implements RunProfileState, AndroidDebugBridge.
   }
 
   // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.12.x, whichever is earlier (b.android.com/76248)
-  private static boolean hasSplitsModel(AndroidArtifactOutput androidArtifactOutput) {
+  private static boolean hasSplitsModel(@NotNull AndroidArtifactOutput androidArtifactOutput) {
     try {
       androidArtifactOutput.getAbiFilter();
       return true;
     }
     catch (UnsupportedMethodException e) {
       return false;
+    }
+  }
+
+  // TODO: Remove this once we move to Gradle Model 1.0 or don't support 0.13.x, whichever is earlier (b.android.com/76248)
+  @Nullable
+  private static Set<String> getVariantAbiFilters(@NotNull AndroidArtifact artifact) {
+    try {
+      return artifact.getAbiFilters();
+    }
+    catch (UnsupportedMethodException e) {
+      return null;
     }
   }
 
