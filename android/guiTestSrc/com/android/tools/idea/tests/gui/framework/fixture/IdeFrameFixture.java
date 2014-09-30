@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProjectBuilder;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.google.common.collect.Lists;
+import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilationStatusListener;
@@ -48,6 +49,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.fest.reflect.core.Reflection;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.core.matcher.JButtonMatcher;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.edt.GuiActionRunner;
@@ -73,8 +75,7 @@ import static com.android.tools.idea.gradle.GradleSyncState.GRADLE_SYNC_TOPIC;
 import static com.android.tools.idea.gradle.compiler.PostProjectBuildTasksExecutor.GRADLE_BUILD_TOPIC;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.LONG_TIMEOUT;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.SHORT_TIMEOUT;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static junit.framework.Assert.assertNotNull;
@@ -597,6 +598,31 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameImpl> {
     ActionButtonFixture button = findActionButtonByActionId("Android.RunAndroidAvdManager");
     button.click();
     return AvdManagerDialogFixture.find(robot);
+  }
+
+  @NotNull
+  public InspectionsFixture inspectCode() {
+    JMenuItem makeProjectMenuItem = findActionMenuItem("Analyze", "Inspect Code...");
+    robot.click(makeProjectMenuItem);
+
+    //final Ref<FileChooserDialogImpl> wrapperRef = new Ref<FileChooserDialogImpl>();
+    JDialog dialog = robot.finder().find(new GenericTypeMatcher<JDialog>(JDialog.class) {
+      @Override
+      protected boolean isMatching(@NotNull JDialog dialog) {
+        return "Specify Inspection Scope".equals(dialog.getTitle());
+      }
+    });
+    JButton button = robot.finder().find(dialog, JButtonMatcher.withText("OK").andShowing());
+    robot.click(button);
+
+    final InspectionTree tree = waitUntilFound(robot, new GenericTypeMatcher<InspectionTree>(InspectionTree.class) {
+      @Override
+      protected boolean isMatching(InspectionTree component) {
+        return true;
+      }
+    });
+
+    return new InspectionsFixture(robot, getProject(), tree);
   }
 
   private static class NoOpDisposable implements Disposable {
