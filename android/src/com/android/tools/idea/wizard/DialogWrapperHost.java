@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.google.common.collect.Maps;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -125,6 +126,12 @@ public final class DialogWrapperHost extends DialogWrapper implements DynamicWiz
   public void setIcon(@Nullable Icon icon) {
     myIcon.setIcon(icon);
     myIcon.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 8));
+  }
+
+  @Override
+  public void runSensitiveOperation(@NotNull ProgressIndicator progressIndicator, boolean cancellable, @NotNull Runnable operation) {
+    // TODO: Implement when needed
+    throw new UnsupportedOperationException("Not implemented yet");
   }
 
   @Override
