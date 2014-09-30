@@ -47,7 +47,7 @@ public class FormFactorUtils {
   /** TODO: Turn into an enum and combine with {@link com.android.tools.idea.configurations.DeviceMenuAction.FormFactor} */
   public static class FormFactor {
     public static final FormFactor MOBILE = new FormFactor("Mobile", AndroidIcons.Wizards.FormFactorPhoneTablet, "Phone and Tablet", 15,
-                                                           Lists.newArrayList("20", "Glass"), null);
+                                                           Lists.newArrayList("20", "Glass", "Google APIs"), null);
     public static final FormFactor WEAR = new FormFactor("Wear", AndroidIcons.Wizards.FormFactorWear, "Wear", 20,
                                                          null, Lists.newArrayList("20"));
     public static final FormFactor GLASS = new FormFactor("Glass", AndroidIcons.Wizards.FormFactorGlass, "Glass", 19,
