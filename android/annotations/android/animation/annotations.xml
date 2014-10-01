@@ -120,8 +120,20 @@
   <item name="android.animation.ObjectAnimator android.animation.ObjectAnimator setDuration(long)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.animation.ObjectAnimator java.lang.Object getTarget()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.animation.ObjectAnimator java.lang.String getPropertyName()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.animation.ObjectAnimator void setProperty(android.util.Property) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator void setPropertyName(java.lang.String) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.animation.ObjectAnimator void setTarget(java.lang.Object) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.animation.PropertyValuesHolder android.animation.PropertyValuesHolder ofFloat(android.util.Property&lt;?,java.lang.Float&gt;, float...)">
     <annotation name="android.support.annotation.NonNull" />
