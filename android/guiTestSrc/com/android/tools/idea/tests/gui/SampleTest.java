@@ -58,5 +58,4 @@ public class SampleTest extends GuiTestCase {
     editor.enterText("    ");
     editor.invokeAction(EditorFixture.EditorAction.FORMAT);
   }
-
 }
