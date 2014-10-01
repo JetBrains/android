@@ -16,7 +16,7 @@
 package com.android.tools.idea.wizard;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.FullRevision;
@@ -71,7 +71,10 @@ import static com.android.tools.idea.wizard.NewProjectWizardState.*;
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
  * parameters.
+ *
+ * Deprecated. Use {@link ConfigureAndroidModuleStepDynamic} instead.
  */
+@Deprecated
 public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   private static final String SAMPLE_PACKAGE_PREFIX = "com.example.";
   private static final String INVALID_FILENAME_CHARS = "[/\\\\?%*:|\"<>]";
@@ -148,7 +151,12 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
     if (highest != null) {
       myTemplateState.put(ATTR_BUILD_API, highest.getFeatureLevel());
-      myTemplateState.put(ATTR_BUILD_API_STRING, TemplateMetadata.getBuildApiString(highest));
+      myTemplateState.put(ATTR_BUILD_API_STRING, getBuildApiString(highest));
+      myTemplateState.myModified.add(ATTR_TARGET_API);
+      myTemplateState.myModified.add(ATTR_TARGET_API_STRING);
+
+      myTemplateState.put(ATTR_TARGET_API, highest.getFeatureLevel());
+      myTemplateState.put(ATTR_TARGET_API_STRING, getBuildApiString(highest));
       myTemplateState.myModified.add(ATTR_BUILD_API);
       myTemplateState.myModified.add(ATTR_BUILD_API_STRING);
       if (highest.getFeatureLevel() >= SdkVersionInfo.HIGHEST_KNOWN_API) {
@@ -211,7 +219,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     if (myTemplateState.myHidden.contains(ATTR_IS_LIBRARY_MODULE)) {
       myLibraryCheckBox.setVisible(false);
     }
-    if (myTemplateState.myHidden.contains(ATTR_MODULE_NAME)) {
+    if (myTemplateState.myHidden.contains(FormFactorUtils.ATTR_MODULE_NAME)) {
       myModuleName.setVisible(false);
       myModuleNameLabel.setVisible(false);
     }
@@ -261,7 +269,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
 
-    register(ATTR_MODULE_NAME, myModuleName);
+    register(FormFactorUtils.ATTR_MODULE_NAME, myModuleName);
     register(ATTR_PROJECT_LOCATION, myProjectLocation);
     register(ATTR_APP_TITLE, myAppName);
     register(ATTR_PACKAGE_NAME, myPackageName);
@@ -342,7 +350,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @Override
   @Nullable
   public String getHelpText(@NotNull String param) {
-    if (param.equals(ATTR_MODULE_NAME)) {
+    if (param.equals(FormFactorUtils.ATTR_MODULE_NAME)) {
       return "This module name is used only by the IDE. It can typically be the same as the application name.";
     } else if (param.equals(ATTR_APP_TITLE)) {
       return "The application name is shown in the Play store, as well as in the Manage Applications list in Settings.";
@@ -433,7 +441,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
 
   @Override
   protected void deriveValues() {
-    updateDerivedValue(ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
+    updateDerivedValue(FormFactorUtils.ATTR_MODULE_NAME, myModuleName, new Callable<String>() {
       @Override
       public String call() {
         return computeModuleName();
@@ -490,7 +498,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
       }
     }
     if (!myTemplateState.hasAttr(ATTR_PACKAGE_NAME)) {
-      myTemplateState.put(ATTR_PACKAGE_NAME, SAMPLE_PACKAGE_PREFIX + '.' + myTemplateState.getString(ATTR_MODULE_NAME));
+      myTemplateState.put(ATTR_PACKAGE_NAME, SAMPLE_PACKAGE_PREFIX + '.' + myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME));
     }
     String packageName = myTemplateState.getString(ATTR_PACKAGE_NAME);
     if (packageName.startsWith(SAMPLE_PACKAGE_PREFIX)) {
@@ -498,7 +506,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
                                  "not be used", SAMPLE_PACKAGE_PREFIX));
     }
 
-    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME);
     if (moduleName.isEmpty()) {
       setErrorHtml("Please specify a module name.");
       return false;
@@ -638,7 +646,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   @VisibleForTesting
   String computePackageName() {
-    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME);
     String projectName = myTemplateState.getString(ATTR_APP_TITLE);
     projectName = nameToPackage(projectName);
     moduleName = nameToPackage(moduleName);
@@ -659,7 +667,7 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
   @NotNull
   @VisibleForTesting
   String computePackagePrefix(String packageName) {
-    String moduleName = myTemplateState.getString(ATTR_MODULE_NAME);
+    String moduleName = myTemplateState.getString(FormFactorUtils.ATTR_MODULE_NAME);
     String projectName = myTemplateState.getString(ATTR_APP_TITLE);
     if (!projectName.isEmpty()) {
       projectName = nameToPackage(projectName);
@@ -827,28 +835,9 @@ public class ConfigureAndroidModuleStep extends TemplateWizardStep {
     }
 
     public AndroidTargetComboBoxItem(@NotNull IAndroidTarget target) {
-      super(getId(target), getLabel(target), 1, 1);
+      super(getId(target), AndroidSdkUtils.getTargetLabel(target), 1, 1);
       this.target = target;
       apiLevel = target.getVersion().getFeatureLevel();
-    }
-
-    @NotNull
-    @VisibleForTesting
-    static String getLabel(@NotNull IAndroidTarget target) {
-      if (target.isPlatform()
-          && target.getVersion().getApiLevel() <= SdkVersionInfo.HIGHEST_KNOWN_API) {
-        if (target.getVersion().isPreview()) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel()) + "+: " + target.getName();
-        }
-        String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
-        if (name == null) {
-          return "API " + Integer.toString(target.getVersion().getApiLevel());
-        } else {
-          return name;
-        }
-      } else {
-        return TemplateUtils.getTargetLabel(target);
-      }
     }
 
     @NotNull

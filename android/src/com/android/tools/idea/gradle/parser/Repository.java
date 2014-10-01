@@ -37,6 +37,7 @@ public class Repository extends BuildFileStatement {
   public enum Type {
     MAVEN_CENTRAL("mavenCentral"),
     MAVEN_LOCAL("mavenLocal"),
+    JCENTER("jcenter"),
     URL("maven");
 
     private final String myCallName;
@@ -62,11 +63,13 @@ public class Repository extends BuildFileStatement {
       return new Repository(Type.MAVEN_CENTRAL, null);
     } else if (methodCallName.equalsIgnoreCase(Type.MAVEN_LOCAL.getCallName())) {
       return new Repository(Type.MAVEN_LOCAL, null);
+    } else if (methodCallName.equalsIgnoreCase(Type.JCENTER.getCallName())) {
+      return new Repository(Type.JCENTER, null);
     } else if (methodCallName.equalsIgnoreCase(Type.URL.getCallName())) {
       return new Repository(Type.URL, s);
     } else if (s.startsWith("'") && s.endsWith("'")) {
       return new Repository(Type.URL, s.substring(1, s.length() - 1));
-    } else if (s.indexOf('.') >= 0) {
+    } else if (s.indexOf('.') >= 0 && s.indexOf('{') == -1) {
       return new Repository(Type.URL, s);
     } else {
       return new UnparseableStatement(s, project);
@@ -86,6 +89,7 @@ public class Repository extends BuildFileStatement {
     switch(myType) {
       case MAVEN_CENTRAL:
       case MAVEN_LOCAL:
+      case JCENTER:
       default:
         extraGroovyCode = "()";
         break;
@@ -101,6 +105,7 @@ public class Repository extends BuildFileStatement {
     switch (myType) {
       case MAVEN_CENTRAL:
       case MAVEN_LOCAL:
+      case JCENTER:
         return myType.getCallName();
       case URL:
         return "'" + myUrl + "'";
@@ -146,6 +151,8 @@ public class Repository extends BuildFileStatement {
         list.add(new Repository(Type.MAVEN_CENTRAL, null));
       } else if (Type.MAVEN_LOCAL.getCallName().equals(callName)) {
         list.add(new Repository(Type.MAVEN_LOCAL, null));
+      } else if (Type.JCENTER.getCallName().equals(callName)) {
+        list.add(new Repository(Type.JCENTER, null));
       } else if (Type.URL.getCallName().equals(callName)) {
         // Handles repositories of the form maven('www.foo.com', 'www.fee.com')
         Iterable<Object> literals = GradleGroovyFile.getLiteralArgumentValues(methodCall);
@@ -162,7 +169,21 @@ public class Repository extends BuildFileStatement {
           // }
           GrClosableBlock cc = GradleGroovyFile.getMethodClosureArgument(methodCall);
           if (cc != null) {
-            Iterable<GrMethodCall> methodCalls = GradleGroovyFile.getMethodCalls(cc, "url");
+            Iterable<GrMethodCall> methodCalls = GradleGroovyFile.getMethodCalls(cc);
+            Iterable<GrMethodCall> urlMethodCalls = GradleGroovyFile.getMethodCalls(cc, "url");
+            if (Iterables.size(methodCalls) != Iterables.size(urlMethodCalls)) {
+              // If there's something other than a "url" in there, that can mean something like credentials:
+              // maven {
+              //   url 'www.foo.com'
+              //   credentials {
+              //     username 'user'
+              //     password 'password'
+              //   }
+              // }
+              // Just punt and treat the statement as unparseable.
+              return getUnparseableStatements(statement);
+            }
+
             for (GrMethodCall call : methodCalls) {
               Iterable<Object> values = GradleGroovyFile.getLiteralArgumentValues(call);
               for (Object value : values) {

@@ -642,7 +642,7 @@ public class GuidelineHandler {
     AndroidFacet facet = AndroidDesignerUtils.getFacet(myContext.getArea());
     if (facet != null) {
       Module module = facet.getModule();
-      return getBuildSdkVersion(module) >= RTL_TARGET_SDK_START && getTargetSdkVersion(module).getApiLevel() >= RTL_TARGET_SDK_START;
+      return getBuildSdkApiLevel(module) >= RTL_TARGET_SDK_START && getTargetSdkVersion(module).getApiLevel() >= RTL_TARGET_SDK_START;
     }
 
     return false;

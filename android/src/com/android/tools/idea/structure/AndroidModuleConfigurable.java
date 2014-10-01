@@ -17,12 +17,15 @@ package com.android.tools.idea.structure;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +41,8 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
   private final Module myModule;
 
   public AndroidModuleConfigurable(Project project, Module module, String modulePath) {
-    myDisplayName = modulePath.substring(modulePath.lastIndexOf(SdkConstants.GRADLE_PATH_SEPARATOR) + 1);
+    String moduleName = modulePath.substring(modulePath.lastIndexOf(SdkConstants.GRADLE_PATH_SEPARATOR) + 1);
+    myDisplayName = moduleName.isEmpty() ? project.getName() : moduleName;
     myModuleEditor = new AndroidModuleEditor(project, modulePath);
     myModule = module;
   }
@@ -81,6 +85,10 @@ public class AndroidModuleConfigurable extends NamedConfigurable {
 
   @Override
   public void apply() throws ConfigurationException {
+    VirtualFile file = GradleUtil.getGradleBuildFile(myModule);
+    if (!ReadonlyStatusHandler.ensureFilesWritable(myModule.getProject(), file)) {
+      throw new ConfigurationException(String.format("Build file %1$s is not writable", file.getPath()));
+    }
     myModuleEditor.apply();
   }
 

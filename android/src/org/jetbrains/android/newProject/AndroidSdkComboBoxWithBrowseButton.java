@@ -25,12 +25,15 @@ import com.intellij.openapi.projectRoots.ui.ProjectJdksEditor;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * @author Eugene.Kudelevsky
@@ -62,7 +65,7 @@ public class AndroidSdkComboBoxWithBrowseButton extends ComboboxWithBrowseButton
         if (editor.isOK()) {
           final Sdk selectedJdk = editor.getSelectedJdk();
           rebuildSdksListAndSelectSdk(selectedJdk);
-          if (selectedJdk == null || !(selectedJdk.getSdkType().equals(AndroidSdkType.getInstance()))) {
+          if (selectedJdk == null || !isAndroidSdk(selectedJdk)) {
             Messages.showErrorDialog(AndroidSdkComboBoxWithBrowseButton.this, AndroidBundle.message("select.platform.error"),
                                      CommonBundle.getErrorTitle());
           }

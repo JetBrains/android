@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.gradle.eclipse.GradleImport;
 import com.google.common.collect.Maps;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -29,6 +28,8 @@ import com.intellij.util.ui.EditableModel;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
@@ -45,6 +46,17 @@ class AdtWorkspaceForm extends ProjectImportWizardStep {
 
     myPathMapTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myPathMapTable.setStriped(true);
+    myPathMapTable.setDefaultRenderer(File.class, new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(JTable var1, Object var2, boolean var3, boolean var4, int var5, int var6) {
+        Component component = super.getTableCellRendererComponent(var1, var2, var3, var4, var5, var6);
+        File file = (File)var2;
+        if (file == null || file.getPath().trim().isEmpty()) {
+          super.setValue("<click to edit>");
+        }
+        return component;
+      }
+    });
 
     JTextField textField = new JTextField();
     DefaultCellEditor cellEditor = new DefaultCellEditor(textField);
@@ -142,7 +154,7 @@ class AdtWorkspaceForm extends ProjectImportWizardStep {
     for (Map.Entry<String,File> entry : myPathMap.entrySet()) {
       String path = entry.getKey();
       File file = entry.getValue();
-      if (file == null) {
+      if (file == null || file.getPath().trim().isEmpty()) {
         throw new ConfigurationException("Enter a value for workspace path " + path);
       } else if (!file.exists()) {
         throw new ConfigurationException(file.getPath() + " does not exist");
@@ -194,11 +206,7 @@ class AdtWorkspaceForm extends ProjectImportWizardStep {
 
         case FILE_COLUMN:
         default:
-          File file = myPathMap.get(key);
-          if (file != null) {
-            return file.getPath();
-          }
-          return "";
+          return myPathMap.get(key);
       }
     }
 
@@ -216,8 +224,14 @@ class AdtWorkspaceForm extends ProjectImportWizardStep {
     }
 
     @Override
-    public Class getColumnClass(int c) {
-      return String.class;
+    public Class<?> getColumnClass(int col) {
+      switch (col) {
+        case FILE_COLUMN:
+          return File.class;
+        case WORKSPACE_PATH_COLUMN:
+        default:
+          return String.class;
+      }
     }
 
     @Override
@@ -226,8 +240,8 @@ class AdtWorkspaceForm extends ProjectImportWizardStep {
     }
 
     @Override
-    public void setValueAt(Object aValue, int row, int col) {
-      String string = aValue.toString();
+    public void setValueAt(Object aValue   , int row, int col) {
+      String string = aValue == null ? "" : aValue.toString();
       myPathMap.put(myKeys[row], !string.isEmpty() ? new File(string) : null);
 
       AdtImportBuilder builder = AdtImportBuilder.getBuilder(getWizardContext());

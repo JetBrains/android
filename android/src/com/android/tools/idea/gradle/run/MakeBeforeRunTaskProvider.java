@@ -20,9 +20,9 @@ import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleBuilds.TestCompileType;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.collect.Lists;
@@ -42,7 +42,6 @@ import com.intellij.util.ThreeState;
 import com.intellij.util.concurrency.Semaphore;
 import icons.AndroidIcons;
 import org.jetbrains.android.run.AndroidRunConfigurationBase;
-import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -179,15 +178,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // See: https://code.google.com/p/android/issues/detail?id=70718
       GradleSyncState syncState = GradleSyncState.getInstance(myProject);
       if (syncState.isSyncNeeded() != ThreeState.NO) {
-        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener() {
-          @Override
-          public void syncStarted(@NotNull Project project) {
-          }
-
-          @Override
-          public void syncEnded(@NotNull Project project) {
-          }
-
+        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener.Adapter() {
           @Override
           public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
             errorMsgRef.set(errorMessage);
@@ -253,15 +244,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   private static TestCompileType getTestCompileType(@Nullable RunConfiguration runConfiguration) {
-    if (runConfiguration != null) {
-      String id = runConfiguration.getType().getId();
-      if (AndroidCommonUtils.isTestConfiguration(id)) {
-        return TestCompileType.JAVA_TESTS;
-      }
-      if (AndroidCommonUtils.isInstrumentationTestConfiguration(id)) {
-        return TestCompileType.ANDROID_TESTS;
-      }
-    }
-    return TestCompileType.NONE;
+    String id = runConfiguration != null ? runConfiguration.getType().getId() : null;
+    return GradleInvoker.getTestCompileType(id);
   }
 }

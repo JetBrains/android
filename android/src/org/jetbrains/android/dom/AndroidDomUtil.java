@@ -18,7 +18,7 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.intellij.openapi.module.Module;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -46,12 +46,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -61,29 +61,23 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 public class AndroidDomUtil {
 
 
-  public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter("true", "false");
-  public static final Map<String, String> SPECIAL_RESOURCE_TYPES = new HashMap<String, String>();
+  public static final StaticEnumConverter BOOLEAN_CONVERTER = new StaticEnumConverter(VALUE_TRUE, VALUE_FALSE);
+  public static final Map<String, String> SPECIAL_RESOURCE_TYPES = Maps.newHashMapWithExpectedSize(20);
   private static final PackageClassConverter ACTIVITY_CONVERTER = new PackageClassConverter(AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
-
   private static final FragmentClassConverter FRAGMENT_CLASS_CONVERTER = new FragmentClassConverter();
 
-  @NonNls public static final String ATTR_ID = "id";
-  @NonNls public static final String ATTR_STYLE = "style";
-  @NonNls public static final String ATTR_LAYOUT_PREFIX = "layout_";
-  @NonNls public static final String ATTR_LAYOUT_MARGIN = "layout_margin";
-  @NonNls public static final String ATTR_TEXT = "text";
-  @NonNls public static final String ATTR_HINT = "hint";
-  @NonNls public static final String ATTR_SRC = "src";
-  @NonNls public static final String ATTR_ON_CLICK = "onClick";
-
-
   static {
-    addSpecialResourceType(ResourceType.STRING.getName(), "label", "description", "title");
-    addSpecialResourceType(ResourceType.DRAWABLE.getName(), "icon");
-    addSpecialResourceType(ResourceType.STYLE.getName(), "theme");
+    // This section adds additional resource type registrations where the attrs metadata is lacking. For
+    // example, attrs_manifest.xml tells us that the android:icon attribute can be a reference, but not
+    // that it's a reference to a drawable.
+    addSpecialResourceType(ResourceType.STRING.getName(), ATTR_LABEL, "description", ATTR_TITLE);
+    addSpecialResourceType(ResourceType.DRAWABLE.getName(), ATTR_ICON);
+    addSpecialResourceType(ResourceType.STYLE.getName(), ATTR_THEME);
     addSpecialResourceType(ResourceType.ANIM.getName(), "animation");
-    addSpecialResourceType(ResourceType.ID.getName(), "id", "layout_toRightOf", "layout_toLeftOf", "layout_above", "layout_below",
-                           "layout_alignBaseLine", "layout_alignLeft", "layout_alignTop", "layout_alignRight", "layout_alignBottom");
+    addSpecialResourceType(ResourceType.ID.getName(), ATTR_ID, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ABOVE,
+                           ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_BASELINE, ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_ALIGN_TOP,
+                           ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ALIGN_START, ATTR_LAYOUT_ALIGN_END,
+                           ATTR_LAYOUT_TO_START_OF, ATTR_LAYOUT_TO_END_OF);
   }
 
   private AndroidDomUtil() {
@@ -198,12 +192,12 @@ public class AndroidDomUtil {
       if ("configure".equals(localName) && "appwidget-provider".equals(tagName)) {
         return ACTIVITY_CONVERTER;
       }
-      else if ("fragment".equals(localName)) {
+      else if (VIEW_FRAGMENT.equals(localName)) {
         return FRAGMENT_CLASS_CONVERTER;
       }
     }
     else if (context instanceof LayoutViewElement || context instanceof MenuItem) {
-      if ("onClick".equals(localName)) {
+      if (ATTR_ON_CLICK.equals(localName)) {
         return context instanceof LayoutViewElement
                ? OnClickConverter.CONVERTER_FOR_LAYOUT
                : OnClickConverter.CONVERTER_FOR_MENU;
@@ -249,6 +243,8 @@ public class AndroidDomUtil {
     return stringConverter;
   }
 
+  /** A "special" resource type is just additional information we've manually added about an attribute
+   * name that augments what attrs.xml and attrs_manifest.xml tell us about the attributes */
   @Nullable
   public static String getSpecialResourceType(String attrName) {
     String type = SPECIAL_RESOURCE_TYPES.get(attrName);
@@ -298,25 +294,25 @@ public class AndroidDomUtil {
       return AndroidManifestUtils.getStaticallyDefinedSubtags((ManifestElement)element);
     }
     if (element instanceof LayoutViewElement) {
-      return new String[]{"include", "requestFocus"};
+      return new String[] {VIEW_INCLUDE, REQUEST_FOCUS, TAG};
     }
     if (element instanceof LayoutElement) {
-      return new String[]{"requestFocus"};
+      return new String[]{REQUEST_FOCUS};
     }
     if (element instanceof Group || element instanceof StringArray || element instanceof IntegerArray || element instanceof Style) {
-      return new String[]{"item"};
+      return new String[]{TAG_ITEM};
     }
     if (element instanceof MenuItem) {
-      return new String[]{"menu"};
+      return new String[]{TAG_MENU};
     }
     if (element instanceof Menu) {
-      return new String[]{"item", "group"};
+      return new String[]{TAG_ITEM, TAG_GROUP};
     }
     if (element instanceof Attr) {
-      return new String[]{"enum", "flag"};
+      return new String[]{TAG_ENUM, TAG_FLAG};
     }
     if (element instanceof DeclareStyleable) {
-      return new String[]{"attr"};
+      return new String[]{TAG_ATTR};
     }
     if (element instanceof Resources) {
       return new String[]{"string", "drawable", "dimen", "color", "style", "string-array", "integer-array", "array", "plurals",

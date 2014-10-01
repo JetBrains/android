@@ -17,6 +17,7 @@
 package org.jetbrains.android.util;
 
 import com.android.SdkConstants;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ResourceHelper;
@@ -66,9 +67,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.ATTR_NAME;
-import static com.android.SdkConstants.TAG_ATTR;
-import static com.android.SdkConstants.TAG_DECLARE_STYLEABLE;
+import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.ATTR;
 import static com.android.resources.ResourceType.STYLEABLE;
 
@@ -123,7 +122,7 @@ public class AndroidResourceUtil {
 
   @NotNull
   public static String normalizeXmlResourceValue(@NotNull String value) {
-    return value.replace("'", "\\'").replace("\"", "\\\"");
+    return ValueXmlHelper.escapeResourceString(value, false);
   }
 
   static {
@@ -417,6 +416,16 @@ public class AndroidResourceUtil {
       final String resourceName = tag.getAttributeValue("name");
       return resourceName != null ? resClassName : null;
     }
+    return null;
+  }
+
+  @Nullable
+  public static ResourceType getResourceForResourceTag(@NotNull XmlTag tag) {
+    String typeName = getResourceTypeByValueResourceTag(tag);
+    if (typeName != null) {
+      return ResourceType.getEnum(typeName);
+    }
+
     return null;
   }
 
@@ -787,6 +796,16 @@ public class AndroidResourceUtil {
                                             @NotNull String fileName,
                                             @NotNull List<String> dirNames,
                                             @NotNull final String value) {
+    return createValueResource(module, resourceName, resourceType, fileName, dirNames, value, null);
+  }
+
+  public static boolean createValueResource(@NotNull Module module,
+                                            @NotNull String resourceName,
+                                            @NotNull final ResourceType resourceType,
+                                            @NotNull String fileName,
+                                            @NotNull List<String> dirNames,
+                                            @NotNull final String value,
+                                            @Nullable final List<ResourceElement> outTags) {
     return createValueResource(module, resourceName, resourceType, fileName, dirNames, new Processor<ResourceElement>() {
       @Override
       public boolean process(ResourceElement element) {
@@ -797,6 +816,10 @@ public class AndroidResourceUtil {
         else if (resourceType == STYLEABLE || resourceType == ResourceType.STYLE) {
           element.setStringValue("value");
           element.getXmlTag().getValue().setText("");
+        }
+
+        if (outTags != null) {
+          outTags.add(element);
         }
         return true;
       }

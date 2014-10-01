@@ -17,6 +17,7 @@ package com.android.tools.idea.wizard;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.IdeaGradleProject;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
@@ -24,6 +25,7 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -73,20 +75,17 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
   public static final String LIBRARY_JAR_NAME = "library.jar";
   private static final String TOP_LEVEL_BUILD_GRADLE = "buildscript {\n" +
                                                        "    repositories {\n" +
-                                                       "        mavenCentral()\n" +
-                                                       "        if (System.getenv(\"MAVEN_URL\") != null) {\n" +
-                                                       "          maven {url System.getenv(\"MAVEN_URL\")}\n" +
-                                                       "        }" +
+                                                       GradleImport.MAVEN_REPOSITORY +
                                                        "    }\n" +
                                                        "    dependencies {\n" +
                                                        "        classpath 'com.android.tools.build:gradle:" +
-                                                       SdkConstants.GRADLE_PLUGIN_LATEST_VERSION + "'\n" +
+                                                       SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION + "'\n" +
                                                        "    }\n" +
                                                        "}\n" +
                                                        "\n" +
                                                        "allprojects {\n" +
                                                        "    repositories {\n" +
-                                                       "        mavenCentral()\n" +
+                                                       GradleImport.MAVEN_REPOSITORY +
                                                        "    }\n" +
                                                        "}\n";
   private static final String BUILD_GRADLE_TEMPLATE = "apply plugin: 'java'\n\n" +
@@ -192,7 +191,9 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
     myJarFile = new File(dir, LIBRARY_JAR_NAME);
     Files.write(createRealJarArchive(), myJarFile);
 
-    System.out.printf("Project location: %s\n", getProject().getBaseDir());
+    VirtualFile baseDir = getProject().getBaseDir();
+    AndroidGradleTestCase.createGradleWrapper(VfsUtilCore.virtualToIoFile(baseDir));
+    System.out.printf("Project location: %s\n", baseDir);
   }
 
   @Override
@@ -325,13 +326,9 @@ public final class WrapArchiveWizardPathTest extends AndroidTestBase {
       settingsGradle.addModule(GradleUtil.makeAbsolute(myModuleName), VfsUtilCore.virtualToIoFile(directory.getParent()));
       final AtomicReference<String> error = Atomics.newReference();
       final AtomicBoolean done = new AtomicBoolean(false);
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener() {
+      GradleProjectImporter.getInstance().requestProjectSync(myProject, new GradleSyncListener.Adapter() {
         @Override
-        public void syncStarted(@NotNull Project project) {
-        }
-
-        @Override
-        public void syncEnded(@NotNull Project project) {
+        public void syncSucceeded(@NotNull Project project) {
           Module module = ModuleManager.getInstance(myProject).findModuleByName(myModuleName);
           assert module != null;
           FacetManager facetManager = FacetManager.getInstance(module);

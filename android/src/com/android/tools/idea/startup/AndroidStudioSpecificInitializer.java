@@ -20,15 +20,13 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.actions.*;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.android.tools.idea.run.ArrayMapRenderer;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.VersionCheck;
-import com.android.tools.idea.sdk.wizard.SdkQuickfixWizard;
-import com.android.tools.idea.wizard.ExperimentalActionsForTesting;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.io.Closeables;
 import com.intellij.debugger.settings.NodeRendererSettings;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.actions.TemplateProjectSettingsGroup;
@@ -37,6 +35,7 @@ import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -64,6 +63,7 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.util.PlatformUtils;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.messages.MessageBusConnection;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -73,7 +73,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -99,7 +98,7 @@ public class AndroidStudioSpecificInitializer implements Runnable {
   @NonNls private static final String USE_JPS_MAKE_ACTIONS = "use.idea.jpsMakeActions";
   @NonNls private static final String USE_IDEA_NEW_FILE_POPUPS = "use.idea.newFilePopupActions";
   @NonNls private static final String USE_IDEA_PROJECT_STRUCTURE = "use.idea.projectStructure";
-  @NonNls private static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
+  @NonNls public static final String ENABLE_EXPERIMENTAL_ACTIONS = "enable.experimental.actions";
 
   @NonNls private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
 
@@ -109,6 +108,59 @@ public class AndroidStudioSpecificInitializer implements Runnable {
 
   public static boolean isAndroidStudio() {
     return "AndroidStudio".equals(PlatformUtils.getPlatformPrefix());
+  }
+
+  @Override
+  public void run() {
+    checkInstallation();
+    cleanUpIdePreferences();
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
+      replaceIdeaNewProjectActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
+      replaceProjectStructureActions();
+    }
+
+    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
+      replaceIdeaMakeActions();
+    }
+
+    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
+      hideIdeaNewFilePopupActions();
+    }
+    
+    try {
+      // Setup JDK and Android SDK if necessary
+      setupSdks();
+    } catch (Exception e) {
+      LOG.error("Unexpected error while setting up SDKs: ", e);
+    }
+
+    registerAppClosing();
+
+    // Always reset the Default scheme to match Android standards
+    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
+    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
+    if (scheme != null) {
+      CodeStyleSettings settings = scheme.getCodeStyleSettings();
+      if (settings != null) {
+        AndroidCodeStyleSettingsModifier.modify(settings);
+      }
+    }
+
+    // Modify built-in "Default" color scheme to remove background from XML tags.
+    // "Darcula" and user schemes will not be touched.
+    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
+    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
+    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
+    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
+
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
+    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
+
+    checkAndSetAndroidSdkSources();
   }
 
   private static void checkInstallation() {
@@ -128,14 +180,25 @@ public class AndroidStudioSpecificInitializer implements Runnable {
       return;
     }
 
+    // Look for signs that the installation is corrupt due to improper updates (typically unzipping on top of previous install)
+    // which doesn't delete files that have been removed or renamed
+    String cause = null;
     File[] children = FileUtil.notNullize(androidPluginLibFolderPath.listFiles());
     if (hasMoreThanOneBuilderModelFile(children)) {
-      String msg = "Your Android Studio installation is corrupt and will not work properly. " +
-                   "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)\n" +
+      cause = "(Found multiple versions of builder-model-*.jar in plugins/android/lib.)";
+    } else if (new File(studioHomePath, FileUtil.join("plugins", "android-designer")).exists()) {
+      cause = "(Found plugins/android-designer which should not be present.)";
+    }
+    if (cause != null) {
+      String msg = "Your Android Studio installation is corrupt and will not work properly.\n" +
+                   cause + "\n" +
                    "This usually happens if Android Studio is extracted into an existing older version.\n\n" +
                    "Please reinstall (and make sure the new installation directory is empty first.)";
       String title = "Corrupt Installation";
-      Messages.showDialog(msg, title, new String[]{"Proceed Anyway"}, 0, Messages.getErrorIcon());
+      int option = Messages.showDialog(msg, title, new String[]{"Quit", "Proceed Anyway"}, 0, Messages.getErrorIcon());
+      if (option == 0) {
+        ApplicationManagerEx.getApplicationEx().exit();
+      }
     }
   }
 
@@ -165,21 +228,6 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     catch (Throwable e) {
       LOG.info("Failed to clean up IDE preferences", e);
     }
-  }
-
-  private static void registerExperimentalActions() {
-    ActionManager am = ActionManager.getInstance();
-    AnAction action = new NewFromGithubAction();
-    am.registerAction("NewFromGithubAction", action);
-    ((DefaultActionGroup)am.getAction("NewGroup")).add(action);
-    DefaultActionGroup androidToolsGroup = (DefaultActionGroup)am.getAction("ToolsMenu");
-    action = new ExperimentalActionsForTesting.ClearPrefsAction();
-    am.registerAction("ClearPrefs", action);
-    androidToolsGroup.add(action);
-
-    action = new SdkQuickfixWizard.LaunchMe();
-    am.registerAction("ShowQuickfix", action);
-    androidToolsGroup.add(action);
   }
 
   private static void replaceIdeaNewProjectActions() {
@@ -279,6 +327,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     File androidHome = DefaultSdks.getDefaultAndroidHome();
     if (androidHome != null) {
       // Do not prompt user to select SDK path (we have one already.) Instead, check SDK compatibility when a project is opened.
+      return;
+    }
+
+    // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
+    if (AndroidPlugin.isGuiTestingMode()) {
+      // This is good enough. Later on in the GUI test we'll validate the given SDK path.
       return;
     }
 
@@ -403,18 +457,12 @@ public class AndroidStudioSpecificInitializer implements Runnable {
     if (!f.exists()) {
       return null;
     }
-    Properties properties = new Properties();
-    FileInputStream fis = null;
     try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      fis = new FileInputStream(f);
-      properties.load(fis);
+      Properties properties = PropertiesUtil.getProperties(f);
+      return properties.getProperty("lastSdkPath");
     } catch (IOException e) {
       return null;
-    } finally {
-      Closeables.closeQuietly(fis);
     }
-    return properties.getProperty("lastSdkPath");
   }
 
   /**
@@ -482,62 +530,5 @@ public class AndroidStudioSpecificInitializer implements Runnable {
         sdkModificator.commitChanges();
       }
     }
-  }
-
-  @Override
-  public void run() {
-    checkInstallation();
-    cleanUpIdePreferences();
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_PROJECT_WIZARDS)) {
-      replaceIdeaNewProjectActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_PROJECT_STRUCTURE)) {
-      replaceProjectStructureActions();
-    }
-
-    if (!Boolean.getBoolean(USE_JPS_MAKE_ACTIONS)) {
-      replaceIdeaMakeActions();
-    }
-
-    if (!Boolean.getBoolean(USE_IDEA_NEW_FILE_POPUPS)) {
-      hideIdeaNewFilePopupActions();
-    }
-
-    if (Boolean.getBoolean(ENABLE_EXPERIMENTAL_ACTIONS)) {
-      registerExperimentalActions();
-    }
-
-    try {
-      // Setup JDK and Android SDK if necessary
-      setupSdks();
-    } catch (Exception e) {
-      LOG.error("Unexpected error while setting up SDKs: ", e);
-    }
-
-    registerAppClosing();
-
-    // Always reset the Default scheme to match Android standards
-    // User modifications won't be lost since they are made in a separate scheme (copied off of this default scheme)
-    CodeStyleScheme scheme = CodeStyleSchemes.getInstance().getDefaultScheme();
-    if (scheme != null) {
-      CodeStyleSettings settings = scheme.getCodeStyleSettings();
-      if (settings != null) {
-        AndroidCodeStyleSettingsModifier.modify(settings);
-      }
-    }
-
-    // Modify built-in "Default" color scheme to remove background from XML tags.
-    // "Darcula" and user schemes will not be touched.
-    EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
-    TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
-    TextAttributes xmlTagAttributes   = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
-    xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.util.ArrayMap"));
-    NodeRendererSettings.getInstance().addPluginRenderer(new ArrayMapRenderer("android.support.v4.util.ArrayMap"));
-
-    checkAndSetAndroidSdkSources();
   }
 }

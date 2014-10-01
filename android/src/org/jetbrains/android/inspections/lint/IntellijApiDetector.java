@@ -17,7 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.detector.api.*;
@@ -307,7 +307,11 @@ public class IntellijApiDetector extends ApiDetector {
         Location location;
         if (type instanceof PsiClassReferenceType) {
           PsiReference reference = ((PsiClassReferenceType)type).getReference();
-          location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
+          PsiElement element = reference.getElement();
+          if (isWithinVersionCheckConditional(element, api)) {
+            continue;
+          }
+          location = IntellijLintUtils.getLocation(myContext.file, element);
         } else {
           location = IntellijLintUtils.getLocation(myContext.file, aClass);
         }
@@ -394,6 +398,50 @@ public class IntellijApiDetector extends ApiDetector {
         Location location = IntellijLintUtils.getLocation(myContext.file, resourceList);
         String message = String.format("Try-with-resources requires API level %1$d (current min is %2$d)", api, minSdk);
         myContext.report(UNSUPPORTED, location, message, null);
+      }
+
+      for (PsiParameter parameter : statement.getCatchBlockParameters()) {
+        PsiTypeElement typeElement = parameter.getTypeElement();
+        if (typeElement != null) {
+          PsiType type = typeElement.getType();
+          if (type instanceof PsiClassReferenceType) {
+            PsiClassReferenceType referenceType = (PsiClassReferenceType)type;
+            PsiClass resolved = referenceType.resolve();
+            if (resolved != null) {
+              String signature = IntellijLintUtils.getInternalName(resolved);
+              if (signature == null) {
+                continue;
+              }
+
+              int api = mApiDatabase.getClassVersion(signature);
+              if (api == -1) {
+                continue;
+              }
+              int minSdk = getMinSdk(myContext);
+              if (api <= minSdk) {
+                continue;
+              }
+              if (mySeenTargetApi) {
+                int target = getTargetApi(statement, myFile);
+                if (target != -1) {
+                  if (api <= target) {
+                    continue;
+                  }
+                }
+              }
+              if (mySeenSuppress && IntellijLintUtils.isSuppressed(statement, myFile, UNSUPPORTED)) {
+                continue;
+              }
+
+              Location location;
+              PsiReference reference = referenceType.getReference();
+              location = IntellijLintUtils.getLocation(myContext.file, reference.getElement());
+              String fqcn = referenceType.getClassName();
+              String message = String.format("Class requires API level %1$d (current min is %2$d): %3$s", api, minSdk, fqcn);
+              myContext.report(UNSUPPORTED, location, message, null);
+            }
+          }
+        }
       }
     }
 
@@ -582,7 +630,8 @@ public class IntellijApiDetector extends ApiDetector {
           PsiBinaryExpression binary = (PsiBinaryExpression)condition;
           IElementType tokenType = binary.getOperationTokenType();
           if (tokenType == JavaTokenType.GT || tokenType == JavaTokenType.GE ||
-              tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT) {
+              tokenType == JavaTokenType.LE || tokenType == JavaTokenType.LT ||
+              tokenType == JavaTokenType.EQEQ) {
             PsiExpression left = binary.getLOperand();
             if (left instanceof PsiReferenceExpression) {
               PsiReferenceExpression ref = (PsiReferenceExpression)left;
@@ -606,19 +655,23 @@ public class IntellijApiDetector extends ApiDetector {
                   assert fromThen == !fromElse;
                   if (tokenType == JavaTokenType.GE) {
                     // if (SDK_INT >= ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return api >= level && fromThen;
+                    return level >= api && fromThen;
                   }
                   else if (tokenType == JavaTokenType.GT) {
                     // if (SDK_INT > ICE_CREAM_SANDWICH) { <call> } else { ... }
-                    return api > level && fromThen;
+                    return level >= api - 1 && fromThen;
                   }
                   else if (tokenType == JavaTokenType.LE) {
                     // if (SDK_INT <= ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return api > level && fromElse;
+                    return level >= api - 1 && fromElse;
                   }
                   else if (tokenType == JavaTokenType.LT) {
                     // if (SDK_INT < ICE_CREAM_SANDWICH) { ... } else { <call> }
-                    return api >= level && fromElse;
+                    return level >= api && fromElse;
+                  }
+                  else if (tokenType == JavaTokenType.EQEQ) {
+                      // if (SDK_INT == ICE_CREAM_SANDWICH) { <call> } else {  }
+                      return level >= api && fromThen;
                   } else {
                     assert false : tokenType;
                   }

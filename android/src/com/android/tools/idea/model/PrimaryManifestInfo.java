@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.ide.common.rendering.HardwareConfigHelper;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -105,11 +108,21 @@ class PrimaryManifestInfo extends ManifestInfo {
 
   @NotNull
   @Override
-  public String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize) {
+  public String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize, @Nullable Device device) {
     sync();
 
     if (myManifestTheme != null) {
       return myManifestTheme;
+    }
+
+    // For Android Wear and Android TV, the defaults differ
+    if (device != null) {
+      if (HardwareConfigHelper.isWear(device)) {
+        return "@android:style/Theme.DeviceDefault.Light";
+      } else if (HardwareConfigHelper.isTv(device)) {
+        //noinspection SpellCheckingInspection
+        return "@style/Theme.Leanback";
+      }
     }
 
     // From manifest theme documentation:
@@ -326,7 +339,11 @@ class PrimaryManifestInfo extends ManifestInfo {
       if (myVFile == null || !myVFile.exists()) {
         return null;
       }
-      PsiFile psiFile = PsiManager.getInstance(myModule.getProject()).findFile(myVFile);
+      Project project = myModule.getProject();
+      if (project.isDisposed()) {
+        return null;
+      }
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(myVFile);
       return (psiFile instanceof XmlFile) ? (XmlFile)psiFile : null;
     }
 

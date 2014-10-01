@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.devices.Device;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.*;
 import com.intellij.openapi.module.Module;
@@ -247,10 +248,12 @@ public abstract class ManifestInfo {
    *
    * @param renderingTarget the rendering target use to render the theme, or null
    * @param screenSize      the screen size to obtain a default theme for, or null if unknown
+   * @param device          the device to obtain a default theme for, or null if unknown
    * @return the theme to use for this project, never null
    */
   @NotNull
-  public abstract String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize);
+  public abstract String getDefaultTheme(@Nullable IAndroidTarget renderingTarget, @Nullable ScreenSize screenSize,
+                                         @Nullable Device device);
 
   /**
    * Returns the application icon, or null

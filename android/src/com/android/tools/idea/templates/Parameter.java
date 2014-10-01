@@ -17,9 +17,12 @@ package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.AppResourceRepository;
+import com.android.tools.idea.rendering.ResourceFolderRegistry;
+import com.android.tools.idea.rendering.ResourceFolderRepository;
 import com.android.tools.idea.rendering.ResourceNameValidator;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
@@ -32,11 +35,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.SearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -47,6 +46,7 @@ import org.w3c.dom.Element;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.android.tools.idea.templates.Template.*;
 
@@ -57,18 +57,30 @@ import static com.android.tools.idea.templates.Template.*;
  */
 public class Parameter {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.Parameter");
+  private static final Set<String> typeValues = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
   public enum Type {
     STRING,
     BOOLEAN,
     ENUM,
     SEPARATOR,
-    EXTERNAL;
+    EXTERNAL,
+    CUSTOM;
     // TODO: Numbers?
 
     public static Type get(String name) {
       try {
-        return Type.valueOf(name.toUpperCase(Locale.US));
+        if (typeValues.isEmpty()) {
+          for(Type t : Type.values()) {
+            typeValues.add(t.name().toUpperCase(Locale.US));
+          }
+        }
+
+        String upperCaseName = name.toUpperCase(Locale.US);
+        if (!typeValues.contains(upperCaseName)) {
+          return Type.CUSTOM;
+        }
+        return Type.valueOf(upperCaseName);
       } catch (IllegalArgumentException e) {
         LOG.error("Unexpected template type '" + name + "'");
         LOG.error("Expected one of :");
@@ -215,6 +227,10 @@ public class Parameter {
   @NotNull
   public final EnumSet<Constraint> constraints;
 
+  /** The dsl name of the type that will be created in the ui for the user to enter this parameter.
+   *  This should correspond to a name registered by an ExternalWizardParameterFactory extension. */
+  public String externalTypeName;
+
   Parameter(@NotNull TemplateMetadata template, @NotNull Element parameter) {
     this.template = template;
     element = parameter;
@@ -230,6 +246,12 @@ public class Parameter {
     sourceUrl = type == Type.EXTERNAL ? parameter.getAttribute(ATTR_SOURCE_URL) : null;
     name = parameter.getAttribute(ATTR_NAME);
     help = parameter.getAttribute(ATTR_HELP);
+    if (type == Type.CUSTOM) {
+        externalTypeName = typeName;
+    }
+    else {
+      externalTypeName = null;
+    }
     String constraintString = parameter.getAttribute(ATTR_CONSTRAINTS);
     if (constraintString != null && !constraintString.isEmpty()) {
       EnumSet<Constraint> constraintSet = null;
@@ -284,6 +306,7 @@ public class Parameter {
                          @Nullable String packageName, @Nullable Object value) {
     switch (type) {
       case EXTERNAL:
+      case CUSTOM:
       case STRING:
         return getErrorMessageForStringType(project, module, provider, packageName, value.toString());
       case BOOLEAN:
@@ -371,7 +394,6 @@ public class Parameter {
   protected Collection<Constraint> validateStringType(@Nullable Project project, @Nullable Module module, @Nullable SourceProvider provider,
                                                       @Nullable String packageName, @Nullable String value) {
     GlobalSearchScope searchScope = module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) :
-                                    project != null ? GlobalSearchScope.projectScope(project) :
                                     GlobalSearchScope.EMPTY_SCOPE;
 
     Set<Constraint> violations = Sets.newHashSet();
@@ -433,7 +455,7 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.LAYOUT);
       }
-      exists = provider != null ? existsResourceFile(provider, ResourceFolderType.LAYOUT, value) :
+      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, value) :
                                   existsResourceFile(module, ResourceType.LAYOUT, value);
     }
     if (constraints.contains(Constraint.DRAWABLE)) {
@@ -441,7 +463,7 @@ public class Parameter {
       if (resourceNameError != null) {
         violations.add(Constraint.DRAWABLE);
       }
-      exists = provider != null ? existsResourceFile(provider, ResourceFolderType.DRAWABLE, value) :
+      exists = provider != null ? existsResourceFile(provider, module, ResourceFolderType.DRAWABLE, ResourceType.DRAWABLE, value) :
                                   existsResourceFile(module, ResourceType.DRAWABLE, value);
     }
     if (constraints.contains(Constraint.ID)) {
@@ -495,32 +517,46 @@ public class Parameter {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
       AppResourceRepository repository = facet.getAppResources(true);
-      if (repository != null) {
-        return repository.hasResourceItem(resourceType, name);
+      return repository.hasResourceItem(resourceType, name);
+    }
+    return false;
+  }
+
+  public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider, @Nullable Module module,
+                                           @NotNull ResourceFolderType resourceFolderType, @NotNull ResourceType resourceType,
+                                           @Nullable String name) {
+    if (name == null || name.isEmpty() || sourceProvider == null) {
+      return false;
+    }
+    AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+    for (File resDir : sourceProvider.getResDirectories()) {
+      if (facet != null) {
+        VirtualFile virtualResDir = VfsUtil.findFileByIoFile(resDir, false);
+        if (virtualResDir != null) {
+          ResourceFolderRepository folderRepository = ResourceFolderRegistry.get(facet, virtualResDir);
+          List<ResourceItem> resourceItemList = folderRepository.getResourceItem(resourceType, name);
+          if (resourceItemList != null && !resourceItemList.isEmpty()) {
+            return true;
+          }
+        }
+      } else if (existsResourceFile(resDir, resourceFolderType, name)) {
+        return true;
       }
     }
     return false;
   }
 
-  public static boolean existsResourceFile(@Nullable SourceProvider sourceProvider,
-                                           @NotNull ResourceFolderType resourceType, @Nullable String name) {
-    if (name == null || name.isEmpty() || sourceProvider == null) {
-      return false;
-    }
-    for (File resDir : sourceProvider.getResDirectories()) {
-      File[] resTypes = resDir.listFiles();
-      if (resTypes == null) {
-        continue;
-      }
+  public static boolean existsResourceFile(File resDir, ResourceFolderType resourceType, String name) {
+    File[] resTypes = resDir.listFiles();
+    if (resTypes != null) {
       for (File resTypeDir : resTypes) {
         if (resTypeDir.isDirectory() && resourceType.equals(ResourceFolderType.getFolderType(resTypeDir.getName()))) {
           File[] files = resTypeDir.listFiles();
-          if (files == null) {
-            continue;
-          }
-          for (File f : files) {
-            if (getNameWithoutExtensions(f).equalsIgnoreCase(name)) {
-              return true;
+          if (files != null) {
+            for (File f : files) {
+              if (getNameWithoutExtensions(f).equalsIgnoreCase(name)) {
+                return true;
+              }
             }
           }
         }
@@ -529,7 +565,7 @@ public class Parameter {
     return false;
   }
 
-  @Nullable
+  @NotNull
   private static String getNameWithoutExtensions(@NotNull File f) {
     if (f.getName().indexOf('.') == -1) {
       return f.getName();
@@ -551,8 +587,10 @@ public class Parameter {
         }
       }
       return false;
-    } else {
+    } else if (searchScope != GlobalSearchScope.EMPTY_SCOPE) {
       return JavaPsiFacade.getInstance(project).findClass(fullyQualifiedClassName, searchScope) != null;
+    } else {
+      return false;
     }
   }
 

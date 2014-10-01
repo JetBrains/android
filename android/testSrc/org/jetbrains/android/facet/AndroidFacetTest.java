@@ -15,8 +15,14 @@
  */
 package org.jetbrains.android.facet;
 
+import com.android.builder.model.AndroidArtifact;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 
 import static org.easymock.classextension.EasyMock.*;
 
@@ -34,28 +40,74 @@ public class AndroidFacetTest extends AndroidTestCase {
 
   public void testProjectSyncCompletedNotification() {
     GradleSyncListener listener1 = createMock(GradleSyncListener.class);
-    listener1.performedGradleSync(myFacet, true);
+    listener1.syncSucceeded(getProject());
     expectLastCall().once();
 
-    GradleSyncListener listener2 = createMock(GradleSyncListener.class);
-    listener2.performedGradleSync(myFacet, true);
-    expectLastCall().once();
-
-    replay(listener1, listener2);
+    replay(listener1);
 
     myFacet.addListener(listener1);
-
     // This should notify listener1.
     myFacet.setIdeaAndroidProject(myAndroidProject);
-    myFacet.projectSyncCompleted(true);
+    notifyBuildComplete();
+    verify(listener1);
+  }
 
-    myFacet.addListener(listener2);
-    myFacet.removeListener(listener1);
+  private void notifyBuildComplete() {
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
+          @Override
+          public void run() {
+            getProject().getMessageBus().syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(getProject());
+          }
+        });
+      }
+    }, ModalityState.NON_MODAL);
+  }
 
-    // This should notify listener2.
-    myFacet.setIdeaAndroidProject(myAndroidProject);
-    myFacet.projectSyncCompleted(true);
+  public void testUpdateGradleTaskNames() {
+    JpsAndroidModuleProperties state = new JpsAndroidModuleProperties();
+    AndroidArtifact mainArtifact = createMock(AndroidArtifact.class);
+    AndroidArtifact testArtifact = createMock(AndroidArtifact.class);
 
-    verify(listener1, listener2);
+    expect(mainArtifact.getAssembleTaskName()).andStubReturn("assemble");
+    expect(mainArtifact.getJavaCompileTaskName()).andStubReturn("compileJava");
+    expect(mainArtifact.getSourceGenTaskName()).andStubReturn("generateSources");
+
+    expect(testArtifact.getAssembleTaskName()).andStubReturn("assembleTest");
+    expect(testArtifact.getSourceGenTaskName()).andStubReturn("generateTestSources");
+
+    replay(mainArtifact, testArtifact);
+
+    AndroidFacet.updateGradleTaskNames(state, mainArtifact, testArtifact);
+    assertEquals("assemble", state.ASSEMBLE_TASK_NAME);
+    assertEquals("compileJava", state.COMPILE_JAVA_TASK_NAME);
+    assertEquals("generateSources", state.SOURCE_GEN_TASK_NAME);
+    assertEquals("assembleTest", state.ASSEMBLE_TEST_TASK_NAME);
+    assertEquals("generateTestSources", state.TEST_SOURCE_GEN_TASK_NAME);
+
+    verify(mainArtifact, testArtifact);
+  }
+
+
+  public void testUpdateGradleTaskNamesWithoutTestArtifact() {
+    JpsAndroidModuleProperties state = new JpsAndroidModuleProperties();
+    AndroidArtifact mainArtifact = createMock(AndroidArtifact.class);
+
+    expect(mainArtifact.getAssembleTaskName()).andStubReturn("assemble");
+    expect(mainArtifact.getJavaCompileTaskName()).andStubReturn("compileJava");
+    expect(mainArtifact.getSourceGenTaskName()).andStubReturn("generateSources");
+
+    replay(mainArtifact);
+
+    AndroidFacet.updateGradleTaskNames(state, mainArtifact, null);
+    assertEquals("assemble", state.ASSEMBLE_TASK_NAME);
+    assertEquals("compileJava", state.COMPILE_JAVA_TASK_NAME);
+    assertEquals("generateSources", state.SOURCE_GEN_TASK_NAME);
+    assertEquals("", state.ASSEMBLE_TEST_TASK_NAME);
+    assertEquals("", state.TEST_SOURCE_GEN_TASK_NAME);
+
+    verify(mainArtifact);
   }
 }

@@ -18,12 +18,11 @@ package org.jetbrains.android.sdk;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.ClientData;
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.descriptors.PkgType;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
@@ -31,9 +30,11 @@ import com.android.tools.idea.sdk.VersionCheck;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.CommonBundle;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.OSProcessManager;
 import com.intellij.facet.ProjectFacetManager;
@@ -44,34 +45,30 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.android.actions.AndroidEnableAdbServiceAction;
 import org.jetbrains.android.actions.AndroidRunDdmsAction;
 import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.logcat.AndroidToolWindowFactory;
+import org.jetbrains.android.logcat.AdbErrors;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidUtils;
@@ -80,9 +77,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
-
-import static com.android.SdkConstants.FD_EXTRAS;
-import static com.android.SdkConstants.FD_M2_REPOSITORY;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Eugene.Kudelevsky
@@ -267,6 +264,9 @@ public final class AndroidSdkUtils {
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     if (sdkData != null) {
       IAndroidTarget[] targets = sdkData.getTargets();
+      if (targets.length == 1) {
+        return targets[0];
+      }
       return findBestTarget(targets);
     }
     return null;
@@ -462,8 +462,9 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  public static Sdk findSuitableAndroidSdk(@NotNull String targetHashString) {
-    List<Pair<Boolean, Sdk>> matchingSdks = Lists.newArrayList();
+  public static Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
+    Set<String> foundSdkHomePaths = Sets.newHashSet();
+    List<Sdk> notCompatibleSdks = Lists.newArrayList();
 
     for (Sdk sdk : getAllAndroidSdks()) {
       SdkAdditionalData originalData = sdk.getSdkAdditionalData();
@@ -475,23 +476,21 @@ public final class AndroidSdkUtils {
       if (androidPlatform == null) {
         continue;
       }
-      String baseDir = androidPlatform.getSdkData().getLocation().getPath();
-      String platformHashString = androidPlatform.getTarget().hashString();
-      if (targetHashString.equals(platformHashString)) {
-        boolean compatible = VersionCheck.isCompatibleVersion(baseDir);
-        matchingSdks.add(Pair.create(compatible, sdk));
+      String sdkHomePath = sdk.getHomePath();
+      if (!foundSdkHomePaths.contains(sdkHomePath) && targetHash.equals(androidPlatform.getTarget().hashString())) {
+        if (VersionCheck.isCompatibleVersion(sdkHomePath)) {
+          return sdk;
+        }
+        notCompatibleSdks.add(sdk);
+        if (sdkHomePath != null) {
+          foundSdkHomePaths.add(sdkHomePath);
+        }
       }
     }
 
-    for (Pair<Boolean, Sdk> sdk : matchingSdks) {
-      // We try to find an SDK that matches the given platform string and has a compatible Tools version.
-      if (sdk.getFirst()) {
-        return sdk.getSecond();
-      }
-    }
-    if (!matchingSdks.isEmpty()) {
+    if (!notCompatibleSdks.isEmpty()) {
       // We got here because we have SDKs but none of them have a compatible Tools version. Pick the first one.
-      return matchingSdks.get(0).getSecond();
+      return notCompatibleSdks.get(0);
     }
 
     return null;
@@ -670,8 +669,8 @@ public final class AndroidSdkUtils {
     return null;
   }
 
-  private static boolean isAndroidSdk(@NotNull Sdk sdk) {
-    return sdk.getSdkType().equals(AndroidSdkType.getInstance());
+  public static boolean isAndroidSdk(@NotNull Sdk sdk) {
+    return sdk.getSdkType() == AndroidSdkType.getInstance();
   }
 
   public static boolean checkSdkRoots(@NotNull Sdk sdk, @NotNull IAndroidTarget target, boolean forMaven) {
@@ -703,23 +702,46 @@ public final class AndroidSdkUtils {
   }
 
   @Nullable
-  public static AndroidDebugBridge getDebugBridge(@NotNull Project project) {
+  public static File getAdb(@NotNull Project project) {
+    AndroidSdkData data = getProjectSdkData(project);
+    if (data == null) {
+      data = getFirstAndroidModuleSdkData(project);
+    }
+    File adb = data == null ? null : new File(data.getLocation(), AndroidCommonUtils.platformToolPath(SdkConstants.FN_ADB));
+    return adb != null && adb.exists() ? adb : null;
+  }
+
+  @Nullable
+  private static AndroidSdkData getFirstAndroidModuleSdkData(Project project) {
     final List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     for (AndroidFacet facet : facets) {
-      final AndroidDebugBridge debugBridge = facet.getDebugBridge();
-      if (debugBridge != null) {
-        return debugBridge;
+      AndroidPlatform androidPlatform = facet.getConfiguration().getAndroidPlatform();
+      if (androidPlatform != null) {
+        return androidPlatform.getSdkData();
       }
     }
     return null;
   }
 
-  public static boolean activateDdmsIfNecessary(@NotNull Project project, @NotNull Computable<AndroidDebugBridge> bridgeProvider) {
+  @Nullable
+  private static AndroidSdkData getProjectSdkData(Project project) {
+    Sdk projectSdk = ProjectRootManager.getInstance(project).getProjectSdk();
+    if (projectSdk != null && projectSdk.getSdkType() == AndroidSdkType.getInstance()) {
+      AndroidSdkAdditionalData sdkData = (AndroidSdkAdditionalData)projectSdk.getSdkAdditionalData();
+      if (sdkData != null) {
+        AndroidPlatform platform = sdkData.getAndroidPlatform();
+        return platform != null ? platform.getSdkData() : null;
+      }
+    }
+    return null;
+  }
+
+  public static boolean activateDdmsIfNecessary(@NotNull Project project) {
     if (AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
-      AndroidDebugBridge bridge = bridgeProvider.compute();
-      if (bridge != null && isDdmsCorrupted(bridge)) {
+      AndroidDebugBridge bridge = getDebugBridge(project);
+      if (bridge != null && AdbService.isDdmsCorrupted(bridge)) {
         LOG.info("DDMLIB is corrupted and will be restarted");
-        restartDdmlib(project);
+        AdbService.restartDdmlib(project);
       }
     }
     else {
@@ -756,50 +778,6 @@ public final class AndroidSdkUtils {
       AndroidEnableAdbServiceAction.setAdbServiceEnabled(project, true);
     }
     return true;
-  }
-
-  public static boolean canDdmsBeCorrupted(@NotNull AndroidDebugBridge bridge) {
-    return isDdmsCorrupted(bridge) || allDevicesAreEmpty(bridge);
-  }
-
-  private static boolean allDevicesAreEmpty(@NotNull AndroidDebugBridge bridge) {
-    for (IDevice device : bridge.getDevices()) {
-      if (device.getClients().length > 0) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public static boolean isDdmsCorrupted(@NotNull AndroidDebugBridge bridge) {
-    // TODO: find other way to check if debug service is available
-
-    IDevice[] devices = bridge.getDevices();
-    if (devices.length > 0) {
-      for (IDevice device : devices) {
-        Client[] clients = device.getClients();
-
-        if (clients.length > 0) {
-          ClientData clientData = clients[0].getClientData();
-          return clientData.getVmIdentifier() == null;
-        }
-      }
-    }
-    return false;
-  }
-
-  public static void restartDdmlib(@NotNull Project project) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(
-      AndroidToolWindowFactory.TOOL_WINDOW_ID);
-    boolean hidden = false;
-    if (toolWindow != null && toolWindow.isVisible()) {
-      hidden = true;
-      toolWindow.hide(null);
-    }
-    AndroidSdkData.terminateDdmlib();
-    if (hidden) {
-      toolWindow.show(null);
-    }
   }
 
   public static boolean isAndroidSdkAvailable() {
@@ -847,19 +825,115 @@ public final class AndroidSdkUtils {
     return null;
   }
 
+  /**
+   * For a given target, returns a brief user-facing string that describes the platform, including the API level,
+   * platform version number, and codename. Does the right thing with prerelease platforms.
+   */
   @NotNull
-  public static File getAndroidSupportRepositoryLocation(@NotNull File androidHome) {
-    return getRepositoryLocation(androidHome, "android");
+  public static String getTargetLabel(@NotNull IAndroidTarget target) {
+    if (!target.isPlatform()) {
+      return String.format("%1$s (API %2$s)", target.getFullName(), target.getVersion().getApiString());
+    }
+    AndroidVersion version = target.getVersion();
+    if (version.isPreview()) {
+      return String.format("API %d+: %s", target.getVersion().getApiLevel(), target.getName());
+    }
+    String name = SdkVersionInfo.getAndroidName(target.getVersion().getApiLevel());
+    if (name != null) {
+      return name;
+    }
+    String release = target.getProperty("ro.build.version.release"); //$NON-NLS-1$
+    if (release != null) {
+      return String.format("API %1$d: Android %2$s", version.getApiLevel(), release);
+    }
+    return String.format("API %1$d", version.getApiLevel());
   }
 
-  @NotNull
-  public static File getGoogleRepositoryLocation(@NotNull File androidHome) {
-    return getRepositoryLocation(androidHome, "google");
+  @Nullable
+  public static AndroidDebugBridge getDebugBridge(@NotNull Project project) {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    AndroidSdkData data = getProjectSdkData(project);
+    if (data == null) {
+      data = getFirstAndroidModuleSdkData(project);
+    }
+    if (data == null) {
+      return null;
+    }
+
+    AndroidDebugBridge bridge = null;
+    boolean retry;
+    do {
+      File adb = getAdb(project);
+      if (adb == null) {
+        LOG.error("Unable to locate adb within SDK");
+        return null;
+      }
+
+      Future<AndroidDebugBridge> future = AdbService.getDebugBridge(adb);
+      MyMonitorBridgeConnectionTask task = new MyMonitorBridgeConnectionTask(project, future);
+      ProgressManager.getInstance().run(task);
+
+      if (task.wasCanceled()) { // if the user cancelled the dialog
+        return null;
+      }
+
+      retry = false;
+      try {
+        bridge = future.get();
+      }
+      catch (InterruptedException e) {
+        break;
+      }
+      catch (ExecutionException e) {
+        // timed out waiting for bridge, ask the user what to do
+        final String adbErrors = Joiner.on('\n').join(AdbErrors.getErrors());
+        String message =
+          "ADB not responding. If you'd like to retry, then please manually kill \"" + SdkConstants.FN_ADB + "\" and click 'Restart'";
+        if (!adbErrors.isEmpty()) {
+          message += "\nErrors from ADB:\n" + adbErrors;
+        }
+        retry = Messages.showYesNoDialog(project, message, CommonBundle.getErrorTitle(), "&Restart", "&Cancel", Messages.getErrorIcon()) ==
+                Messages.YES;
+      }
+    } while (retry);
+
+    return bridge;
   }
 
-  @NotNull
-  private static File getRepositoryLocation(@NotNull File androidHome, @NotNull String extrasName) {
-    return new File(androidHome, FileUtil.join(FD_EXTRAS, extrasName, FD_M2_REPOSITORY));
-  }
+  private static class MyMonitorBridgeConnectionTask extends Task.Modal {
+    private final Future<AndroidDebugBridge> myFuture;
+    private boolean myCancelled; // set/read only on EDT
 
+    public MyMonitorBridgeConnectionTask(@Nullable Project project, Future<AndroidDebugBridge> future) {
+      super(project, "Waiting for adb", true);
+      myFuture = future;
+    }
+
+    @Override
+    public void run(@NotNull ProgressIndicator indicator) {
+      indicator.setIndeterminate(true);
+      while (!myFuture.isDone()) {
+        try {
+          myFuture.get(200, TimeUnit.MILLISECONDS);
+        }
+        catch (Exception ignored) {
+          // all we need to know is whether the future completed or not..
+        }
+
+        if (indicator.isCanceled()) {
+          return;
+        }
+      }
+    }
+
+    @Override
+    public void onCancel() {
+      myCancelled = true;
+    }
+
+    public boolean wasCanceled() {
+      return myCancelled;
+    }
+  }
 }

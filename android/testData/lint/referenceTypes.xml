@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bad_ref"><error descr="Unexpected resource reference type; expected value of type `@string/`">@la<caret>yout/fragment</error></string>
+</resources>

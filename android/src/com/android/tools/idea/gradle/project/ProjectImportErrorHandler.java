@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.service.notification.errors.FailedToParseSdkErrorHandler;
+import com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Pair;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -27,21 +29,20 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHa
 
 import java.io.File;
 import java.net.UnknownHostException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
 /**
  * Provides better error messages for android projects import failures.
  */
 public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler {
-  public static final String FAILED_TO_PARSE_SDK_ERROR = "failed to parse SDK";
 
   public static final String INSTALL_ANDROID_SUPPORT_REPO = "Please install the Android Support Repository from the Android SDK Manager.";
-  public static final String FIX_SDK_DIR_PROPERTY = "Please fix the 'sdk.dir' property in the local.properties file.";
 
-  private static final Pattern SDK_NOT_FOUND = Pattern.compile("The SDK directory '(.*?)' does not exist.");
+  private static final Pattern SDK_NOT_FOUND_PATTERN = Pattern.compile("The SDK directory '(.*?)' does not exist.");
+  private static final Pattern CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.");
 
   private static final String EMPTY_LINE = "\n\n";
   private static final String UNSUPPORTED_GRADLE_VERSION_ERROR = "Gradle version " + GRADLE_MINIMUM_VERSION + " is required";
@@ -61,8 +62,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     Throwable rootCause = rootCauseAndLocation.getFirst();
 
     if (isOldGradleVersion(rootCause)) {
-      String msg = String.format("You are using an unsupported version of Gradle. Please use version %1$s.", GRADLE_LATEST_VERSION);
-      msg += ('\n' + FIX_GRADLE_VERSION);
+      String msg = "The project is using an unsupported version of Gradle.\n" + FIX_GRADLE_VERSION;
       // Location of build.gradle is useless for this error. Omitting it.
       return createUserFriendlyError(msg, null);
     }
@@ -98,20 +98,49 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
         return createUserFriendlyError(newMsg, null);
       }
 
-      if (msg != null && msg.contains(FAILED_TO_PARSE_SDK_ERROR)) {
+      if (msg != null && msg.contains(FailedToParseSdkErrorHandler.FAILED_TO_PARSE_SDK_ERROR)) {
         String newMsg = msg + EMPTY_LINE + "The Android SDK may be missing the directory 'add-ons'.";
         // Location of build.gradle is useless for this error. Omitting it.
         return createUserFriendlyError(newMsg, null);
       }
 
-      if (msg != null && (msg.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND.matcher(msg).matches())) {
+      if (msg != null && (msg.equals(SDK_DIR_PROPERTY_MISSING) || SDK_NOT_FOUND_PATTERN.matcher(msg).matches())) {
         String newMsg = msg;
         File buildProperties = new File(projectPath, SdkConstants.FN_LOCAL_PROPERTIES);
         if (buildProperties.isFile()) {
-          newMsg += EMPTY_LINE + FIX_SDK_DIR_PROPERTY;
+          newMsg += EMPTY_LINE + MissingAndroidSdkErrorHandler.FIX_SDK_DIR_PROPERTY;
         }
         return createUserFriendlyError(newMsg, null);
       }
+    }
+
+    if (rootCause instanceof OutOfMemoryError) {
+      // The OutOfMemoryError happens in the Gradle daemon process.
+      String originalMessage = rootCause.getMessage();
+      String msg = "Out of memory";
+      if (originalMessage != null && !originalMessage.isEmpty()) {
+        msg = msg + ": " + originalMessage;
+      }
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof NoSuchMethodError) {
+      String msg = String.format("Unable to find method '%1$s'.", rootCause.getMessage());
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
+    }
+
+    if (rootCause instanceof ClassNotFoundException) {
+      String className = rootCause.getMessage();
+      Matcher matcher = CLASS_NOT_FOUND_PATTERN.matcher(className);
+      if (matcher.matches()) {
+        className = matcher.group(1);
+      }
+
+      String msg = String.format("Unable to load class '%1$s'.", className);
+      // Location of build.gradle is useless for this error. Omitting it.
+      return createUserFriendlyError(msg, null);
     }
 
     // give others GradleProjectResolverExtensions a chance to handle this error

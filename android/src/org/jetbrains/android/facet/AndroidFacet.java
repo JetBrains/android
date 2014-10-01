@@ -18,7 +18,6 @@ package org.jetbrains.android.facet;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.prefs.AndroidLocation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -26,7 +25,9 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.gradle.GradleSyncState;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
+import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.*;
@@ -35,6 +36,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.sdk.DefaultSdks;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.utils.ILogger;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
 import com.intellij.ProjectTopics;
@@ -79,6 +81,7 @@ import com.intellij.util.Processor;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.HashSet;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import org.jetbrains.android.compiler.AndroidAutogeneratorMode;
@@ -139,7 +142,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   private IdeaAndroidProject myIdeaAndroidProject;
   private final ResourceFolderManager myFolderManager = new ResourceFolderManager(this);
 
-  private final List<GradleSyncListener> myGradleSyncListeners = Lists.newArrayList();
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
   private final AndroidModuleInfo myAndroidModuleInfo = AndroidModuleInfo.create(this);
@@ -167,13 +169,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Returns the main source set of the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
+   * Returns the main source provider for the project. For non-Gradle projects it returns a {@link SourceProvider} wrapper
    * which provides information about the old project.
-   *
-   * @return the main source set
    */
   @NotNull
-  public SourceProvider getMainSourceSet() {
+  public SourceProvider getMainSourceProvider() {
     if (myIdeaAndroidProject != null) {
       return myIdeaAndroidProject.getDelegate().getDefaultConfig().getSourceProvider();
     } else {
@@ -185,19 +185,35 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   @NotNull
-  public IdeaSourceProvider getMainIdeaSourceSet() {
+  public IdeaSourceProvider getMainIdeaSourceProvider() {
     if (!isGradleProject()) {
       if (myMainIdeaSourceSet == null) {
         myMainIdeaSourceSet = IdeaSourceProvider.create(this);
       }
     } else {
-      SourceProvider mainSourceSet = getMainSourceSet();
+      SourceProvider mainSourceSet = getMainSourceProvider();
       if (myMainIdeaSourceSet == null || mainSourceSet != myMainSourceSet) {
         myMainIdeaSourceSet = IdeaSourceProvider.create(mainSourceSet);
       }
     }
 
     return myMainIdeaSourceSet;
+  }
+
+  @NotNull
+  public List<IdeaSourceProvider> getMainIdeaTestSourceProviders() {
+    if (!isGradleProject()) {
+      return Collections.emptyList();
+    }
+
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+    for (SourceProviderContainer container : myIdeaAndroidProject.getDelegate().getDefaultConfig().getExtraSourceProviders()) {
+      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
+      }
+    }
+
+    return providers;
   }
 
   /**
@@ -207,7 +223,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return the build type source set or null
    */
   @Nullable
-  public SourceProvider getBuildTypeSourceSet() {
+  public SourceProvider getBuildTypeSourceProvider() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
       BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
@@ -219,19 +235,37 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getBuildTypeSourceSet()} but typed for internal IntelliJ usage with
+   * Like {@link #getBuildTypeSourceProvider()} but typed for internal IntelliJ usage with
    * {@link VirtualFile} instead of {@link File} references
    *
    * @return the build type source set or null
    */
   @Nullable
-  public IdeaSourceProvider getIdeaBuildTypeSourceSet() {
-    SourceProvider sourceProvider = getBuildTypeSourceSet();
+  public IdeaSourceProvider getIdeaBuildTypeSourceProvider() {
+    SourceProvider sourceProvider = getBuildTypeSourceProvider();
     if (sourceProvider != null) {
       return IdeaSourceProvider.create(sourceProvider);
     } else {
       return null;
     }
+  }
+
+  @NotNull
+  public List<IdeaSourceProvider> getIdeaBuildTypeTestSourceProvider() {
+    if (myIdeaAndroidProject == null) {
+      return Collections.emptyList();
+    }
+
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+    Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    BuildTypeContainer buildType = myIdeaAndroidProject.findBuildType(selectedVariant.getBuildType());
+    assert buildType != null;
+    for (SourceProviderContainer container : buildType.getExtraSourceProviders()) {
+      if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+        providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
+      }
+    }
+    return providers;
   }
 
   public ResourceFolderManager getResourceFolderManager() {
@@ -263,7 +297,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * @return the flavor source providers or null in legacy projects
    */
   @Nullable
-  public List<SourceProvider> getFlavorSourceSets() {
+  public List<SourceProvider> getFlavorSourceProviders() {
     if (myIdeaAndroidProject != null) {
       Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
       List<String> productFlavors = selectedVariant.getProductFlavors();
@@ -281,14 +315,14 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   }
 
   /**
-   * Like {@link #getFlavorSourceSets()} but typed for internal IntelliJ usage with
+   * Like {@link #getFlavorSourceProviders()} but typed for internal IntelliJ usage with
    * {@link VirtualFile} instead of {@link File} references
    *
    * @return the flavor source providers or null in legacy projects
    */
   @Nullable
-  public List<IdeaSourceProvider> getIdeaFlavorSourceSets() {
-    List<SourceProvider> sourceProviders = getFlavorSourceSets();
+  public List<IdeaSourceProvider> getIdeaFlavorSourceProviders() {
+    List<SourceProvider> sourceProviders = getFlavorSourceProviders();
     if (sourceProviders != null) {
       List<IdeaSourceProvider> ideaSourceProviders = Lists.newArrayListWithExpectedSize(sourceProviders.size());
       for (SourceProvider provider : sourceProviders) {
@@ -299,6 +333,28 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     } else {
       return null;
     }
+  }
+
+  @NotNull
+  public List<IdeaSourceProvider> getIdeaFlavorTestSourceProviders() {
+    if (myIdeaAndroidProject == null) {
+      return Collections.emptyList();
+    }
+
+    Variant selectedVariant = myIdeaAndroidProject.getSelectedVariant();
+    List<String> productFlavors = selectedVariant.getProductFlavors();
+    List<IdeaSourceProvider> providers = Lists.newArrayList();
+    for (String flavor : productFlavors) {
+      ProductFlavorContainer productFlavor = myIdeaAndroidProject.findProductFlavor(flavor);
+      assert productFlavor != null;
+      for (SourceProviderContainer container : productFlavor.getExtraSourceProviders()) {
+        if (AndroidProject.ARTIFACT_ANDROID_TEST.equals(container.getArtifactName())) {
+          providers.add(IdeaSourceProvider.create(container.getSourceProvider()));
+        }
+      }
+    }
+
+    return providers;
   }
 
   /**
@@ -375,7 +431,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    * This returns the primary resource directory; the default location to place
    * newly created resources etc.  This method is marked deprecated since we should
    * be gradually adding in UI to allow users to choose specific resource folders
-   * among the available flavors (see {@link #getFlavorSourceSets()} etc).
+   * among the available flavors (see {@link #getFlavorSourceProviders()} etc).
    *
    * @return the primary resource dir, if any
    */
@@ -445,16 +501,6 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myLocalResourceManager = null;
     myPublicSystemResourceManager = null;
     myInitialClassMaps.clear();
-  }
-
-  // can be invoked only from dispatch thread!
-  @Nullable
-  public AndroidDebugBridge getDebugBridge() {
-    AndroidPlatform platform = getConfiguration().getAndroidPlatform();
-    if (platform != null) {
-      return platform.getSdkData().getDebugBridge(getModule().getProject());
-    }
-    return null;
   }
 
   @NotNull
@@ -846,7 +892,7 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public Manifest getManifest() {
-    File manifestIoFile = getMainSourceSet().getManifestFile();
+    File manifestIoFile = getMainSourceProvider().getManifestFile();
 
     final VirtualFile manifestFile = LocalFileSystem.getInstance().findFileByIoFile(manifestIoFile);
     if (manifestFile == null) return null;
@@ -1004,11 +1050,11 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @NotNull
   public ConfigurationManager getConfigurationManager() {
-    //noinspection ConstantConditions
     return getConfigurationManager(true);
   }
 
 
+  @Contract("true -> !null")
   @Nullable
   public ConfigurationManager getConfigurationManager(boolean createIfNecessary) {
     if (myConfigurationManager == null && createIfNecessary) {
@@ -1077,27 +1123,10 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     myIdeaAndroidProject = project;
   }
 
-  public void projectSyncCompleted(boolean success) {
-    if (myIdeaAndroidProject != null && !myGradleSyncListeners.isEmpty()) {
-      // Make copy first since listeners may remove themselves as they are notified, and we
-      // don't want a concurrent modification exception
-      List<GradleSyncListener> listeners = new ArrayList<GradleSyncListener>(myGradleSyncListeners);
-      for (GradleSyncListener listener : listeners) {
-        listener.performedGradleSync(this, success);
-      }
-    }
-  }
-
   public void addListener(@NotNull GradleSyncListener listener) {
-    synchronized (myGradleSyncListeners) {
-      myGradleSyncListeners.add(listener);
-    }
-  }
-
-  public void removeListener(@NotNull GradleSyncListener listener) {
-    synchronized (myGradleSyncListeners) {
-      myGradleSyncListeners.remove(listener);
-    }
+    Module module = getModule();
+    MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
+    connection.subscribe(GradleSyncState.GRADLE_SYNC_TOPIC, listener);
   }
 
   /**
@@ -1112,17 +1141,31 @@ public final class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     if (myIdeaAndroidProject != null) {
       Variant variant = myIdeaAndroidProject.getSelectedVariant();
       JpsAndroidModuleProperties state = getProperties();
+      state.SELECTED_BUILD_VARIANT = variant.getName();
 
       AndroidArtifact mainArtifact = variant.getMainArtifact();
-      state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
-      state.COMPILE_JAVA_TASK_NAME = mainArtifact.getJavaCompileTaskName();
-
       AndroidArtifact testArtifact = myIdeaAndroidProject.findInstrumentationTestArtifactInSelectedVariant();
-      state.ASSEMBLE_TEST_TASK_NAME = testArtifact != null ? testArtifact.getAssembleTaskName() : "";
-
-      state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
-      state.SELECTED_BUILD_VARIANT = variant.getName();
+      updateGradleTaskNames(state, mainArtifact, testArtifact);
     }
+  }
+
+  @VisibleForTesting
+  static void updateGradleTaskNames(@NotNull JpsAndroidModuleProperties state,
+                                    @NotNull AndroidArtifact mainArtifact,
+                                    @Nullable AndroidArtifact testArtifact) {
+    state.ASSEMBLE_TASK_NAME = mainArtifact.getAssembleTaskName();
+    state.COMPILE_JAVA_TASK_NAME = mainArtifact.getJavaCompileTaskName();
+
+    if (testArtifact != null) {
+      state.TEST_SOURCE_GEN_TASK_NAME = testArtifact.getSourceGenTaskName();
+      state.ASSEMBLE_TEST_TASK_NAME = testArtifact.getAssembleTaskName();
+    }
+    else {
+      state.TEST_SOURCE_GEN_TASK_NAME = "";
+      state.ASSEMBLE_TEST_TASK_NAME = "";
+    }
+
+    state.SOURCE_GEN_TASK_NAME = mainArtifact.getSourceGenTaskName();
   }
 
   @NotNull

@@ -16,7 +16,6 @@
 package com.android.tools.idea.wizard;
 
 import com.android.builder.model.SourceProvider;
-import com.android.ide.common.res2.SourceSet;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,12 +37,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * TemplateParameterStep is a step in new project or add module wizards that pulls eligible parameters from the template being run
  * and puts up a UI to let the user edit those parameters.
+ *
+ * Deprecated. Use {@link TemplateParameterStep2} instead.
  */
+@Deprecated
 public class TemplateParameterStep extends TemplateWizardStep {
   private static final Logger LOG = Logger.getInstance(TemplateParameterStep.class);
 
@@ -113,6 +114,7 @@ public class TemplateParameterStep extends TemplateWizardStep {
             myPreferredFocusComponent = comboBox;
           }
           break;
+        case CUSTOM:
         case STRING:
           myParamContainer.add(label, c);
           c.setHSizePolicy(GridConstraints.SIZEPOLICY_WANT_GROW);

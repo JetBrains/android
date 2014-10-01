@@ -56,8 +56,6 @@ import static com.android.SdkConstants.*;
  * </ul>
  */
 public class MenuPreviewRenderer extends LayoutPullParserFactory {
-  private static final String TAG_GROUP = "group";
-  private static final String TAG_MENU = "menu";
   private static final String ATTR_ORDER_IN_CATEGORY = "orderInCategory";
   private static final String ATTR_MENU_CATEGORY = "menuCategory";
   private static final String ATTR_CHECKABLE = "checkable";

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.navigation.macros;
 
+import com.android.tools.idea.editors.navigation.Utilities;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -27,11 +28,65 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class Macros {
-  private static final String TEMPLATES_PACKAGE = /*"com.android.templates.".replace('.', '/')*/ "";
-  private static final String GENERAL_TEMPLATES = TEMPLATES_PACKAGE + "GeneralTemplates";
-  private static final String LISTENER_TEMPLATES = TEMPLATES_PACKAGE + "InstallListenerTemplates";
-  private static final String ACCESS_TEMPLATES = TEMPLATES_PACKAGE + "AccessTemplates";
-  private static final String LAUNCH_ACTIVITY_TEMPLATES = TEMPLATES_PACKAGE + "LaunchActivityTemplates";
+  private static final String DEFINE_ASSIGNMENT =
+    "void macro(String $fragmentName, Void $messageController) {" +
+    "    getFragment($fragmentName, $messageController);" +
+    "}";
+
+  private static final String DEFINE_INNER_CLASS =
+    "void macro(Class $Interface, Void $method, Class $Type, Object $arg, final Statement $f) {" +
+    "    new $Interface() {" +
+    "        public void $method($Type $arg) {" +
+    "            $f.$();" +
+    "        }" +
+    "    };" +
+    "}";
+
+  private static final String INSTALL_CLICK_LISTENER =
+    "void macro(View $view, Statement $f) {" +
+    "    $view.setOnClickListener(new View.OnClickListener() {" +
+    "        @Override" +
+    "        public void onClick(View view) {" +
+    "            $f.$();" +
+    "        }" +
+    "    });" +
+    "}";
+
+  private static final String INSTALL_MENU_ITEM_CLICK =
+    "void macro(MenuItem $menuItem, final Statement $f, final boolean $consume) {" +
+    "    $menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {" +
+    "        @Override" +
+    "        public boolean onMenuItemClick(MenuItem menuItem) {" +
+    "            $f.$();" +
+    "            return $consume;" +
+    "        }" +
+    "    });" +
+    "}";
+
+  private static final String INSTALL_ITEM_CLICK_LISTENER =
+    "void macro(ListView $listView, final Statement $f) {" +
+    "    $listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {" +
+    "        @Override" +
+    "        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {" +
+    "            $f.$$();" +
+    "        }" +
+    "    });" +
+    "}";
+
+  private static final String GET_MENU_ITEM =
+    "void macro(Menu $menu, int $id) {" +
+    "    $menu.findItem($id);" +
+    "}";
+
+  private static final String LAUNCH_ACTIVITY =
+    "void macro(Context context, Class activityClass) {" +
+    "    context.startActivity(new Intent(context, activityClass));" +
+    "}";
+
+  private static final String LAUNCH_ACTIVITY_WITH_ARG =
+    "<T extends Serializable> void macro(Context context, Class activityClass, String name, T value) {" +
+    "    context.startActivity(new Intent(context, activityClass).putExtra(name, value));" +
+    "}";
 
   public final PsiMethod defineAssignment;
 
@@ -83,19 +138,23 @@ public class Macros {
     return MultiMatch.create(myProject, methodDefinition);
   }
 
+  private PsiMethod getMethodFromText(String definition) {
+    return Utilities.createMethodFromText(myProject, definition);
+  }
+
   private Macros(Project project) {
     myProject = project;
-    defineAssignment = getMethodsByName(GENERAL_TEMPLATES, "defineAssignment", project)[0];
-    PsiMethod defineInnerClassMacro = getMethodsByName(GENERAL_TEMPLATES, "defineInnerClass", project)[0];
+    defineAssignment = getMethodFromText(DEFINE_ASSIGNMENT);
+    PsiMethod defineInnerClassMacro = getMethodFromText(DEFINE_INNER_CLASS);
 
-    PsiMethod installClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installClickListener", project)[0];
-    PsiMethod installMenuItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installMenuItemClick", project)[0];
-    PsiMethod installItemClickMacro = getMethodsByName(LISTENER_TEMPLATES, "installItemClickListener", project)[0];
+    PsiMethod installClickMacro = getMethodFromText(INSTALL_CLICK_LISTENER);
+    PsiMethod installMenuItemClickMacro = getMethodFromText(INSTALL_MENU_ITEM_CLICK);
+    PsiMethod installItemClickMacro = getMethodFromText(INSTALL_ITEM_CLICK_LISTENER);
 
-    PsiMethod getMenuItemMacro = getMethodsByName(ACCESS_TEMPLATES, "getMenuItem", project)[0];
+    PsiMethod getMenuItemMacro = getMethodFromText(GET_MENU_ITEM);
 
-    PsiMethod launchActivityMacro = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[0];
-    PsiMethod launchActivityMacro2 = getMethodsByName(LAUNCH_ACTIVITY_TEMPLATES, "launchActivity", project)[1];
+    PsiMethod launchActivityMacro = getMethodFromText(LAUNCH_ACTIVITY);
+    PsiMethod launchActivityMacro2 = getMethodFromText(LAUNCH_ACTIVITY_WITH_ARG);
 
     createIntent = createMacro("void macro(Context context, Class activityClass) { new Intent(context, activityClass); }");
     installClickAndCallMacro = new MultiMatch(installClickMacro);

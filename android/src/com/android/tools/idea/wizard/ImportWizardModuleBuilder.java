@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.templates.Template;
+import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -55,10 +56,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.FormFactorUtils.ATTR_MODULE_NAME;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
 
 public class ImportWizardModuleBuilder extends ModuleBuilder implements TemplateWizardStep.UpdateListener, ChooseTemplateStep.TemplateChangeListener {
   @NotNull protected final List<ModuleWizardStep> mySteps;
@@ -135,8 +136,8 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     if (project != null) {
       myWizardState.put(ATTR_PROJECT_LOCATION, project.getBasePath());
     }
-    myWizardState.put(ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    myWizardState.put(ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
+    myWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     update();
 
     myInitializationComplete = true;
@@ -298,5 +299,10 @@ public class ImportWizardModuleBuilder extends ModuleBuilder implements Template
     for (ModuleWizardStep step : mySteps) {
       step.updateStep();
     }
+  }
+
+  @NotNull
+  public Iterable<WizardPath> getPaths() {
+    return myPaths;
   }
 }

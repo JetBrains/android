@@ -17,8 +17,8 @@ package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.service.notification.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.service.notification.hyperlink.CustomNotificationListener;
+import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -75,6 +75,8 @@ import org.jetbrains.jps.util.JpsPathUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 
 /**
@@ -783,7 +785,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
     final OpenAndroidSdkManagerHyperlink hyperlink = new OpenAndroidSdkManagerHyperlink();
     AndroidUtils.reportImportErrorToEventLog(
       "Cannot find appropriate Android platform" + (apiLevel != null ? " for API level " + apiLevel : "") +
-      ". " + hyperlink.toString(),
+      ". " + hyperlink.toHtml(),
       moduleName, project, new CustomNotificationListener(project, hyperlink));
   }
 
@@ -958,7 +960,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private boolean isAppropriateSdk(@NotNull Sdk sdk, MavenProject mavenProject) {
-    if (!(sdk.getSdkType() == AndroidSdkType.getInstance())) {
+    if (!isAndroidSdk(sdk)) {
       return false;
     }
     final String platformId = getPlatformFromConfig(mavenProject);

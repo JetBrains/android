@@ -19,7 +19,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
@@ -97,14 +96,30 @@ public class GradleInvokerTest extends IdeaTestCase {
   }
 
   public void testGenerateSources() throws Exception {
-    final String taskName = "sourceGen";
-    myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = taskName;
+    myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = "sourceGen";
+    myAndroidFacet.getProperties().TEST_SOURCE_GEN_TASK_NAME = "testSourceGen";
+
+    myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
+      @Override
+      public void execute(@NotNull List<String> tasks) {
+        assertEquals(2, tasks.size());
+        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "sourceGen", tasks.get(0));
+        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "testSourceGen", tasks.get(1));
+        assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
+      }
+    });
+    myInvoker.generateSources();
+  }
+
+  public void testGenerateSourcesWithoutTestSourceGen() throws Exception {
+    myAndroidFacet.getProperties().SOURCE_GEN_TASK_NAME = "sourceGen";
+    myAndroidFacet.getProperties().TEST_SOURCE_GEN_TASK_NAME = "";
 
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override
       public void execute(@NotNull List<String> tasks) {
         assertEquals(1, tasks.size());
-        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName, tasks.get(0));
+        assertEquals(myModuleGradlePath + SdkConstants.GRADLE_PATH_SEPARATOR + "sourceGen", tasks.get(0));
         assertEquals(BuildMode.SOURCE_GEN, getBuildMode());
       }
     });
@@ -138,12 +153,12 @@ public class GradleInvokerTest extends IdeaTestCase {
         assertEquals(BuildMode.ASSEMBLE, getBuildMode());
       }
     });
-    myInvoker.assemble(new Module[]{myModule}, GradleBuilds.TestCompileType.NONE);
+    myInvoker.assemble(new Module[]{myModule}, GradleInvoker.TestCompileType.NONE);
   }
 
   public void testRebuild() throws Exception {
     final String taskName = "assemble";
-    myAndroidFacet.getProperties().ASSEMBLE_TASK_NAME = taskName;
+    myAndroidFacet.getProperties().COMPILE_JAVA_TASK_NAME = taskName;
 
     myInvoker.addBeforeGradleInvocationTask(new GradleInvoker.BeforeGradleInvocationTask() {
       @Override

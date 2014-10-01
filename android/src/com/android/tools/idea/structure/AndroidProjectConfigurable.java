@@ -21,33 +21,38 @@ import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.NamedConfigurable;
+import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ActionRunner;
 import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A standard {@linkplan Configurable} instance that allows editing of project-wide project structure parameters, including the top-level
  * build file.
  */
-public class AndroidProjectConfigurable extends NamedConfigurable {
+public class AndroidProjectConfigurable extends NamedConfigurable implements KeyValuePane.ModificationListener {
   private static final Logger LOG = Logger.getInstance(AndroidProjectConfigurable.class);
   private static final String DISPLAY_NAME = "Project";
   private final KeyValuePane myKeyValuePane;
   private final Project myProject;
   private final GradleBuildFile myGradleBuildFile;
   private final Map<BuildFileKey, Object> myProjectProperties = Maps.newHashMap();
+  private Set<BuildFileKey> myModifiedKeys = Sets.newHashSet();
 
   public static final ImmutableList<BuildFileKey> PROJECT_PROPERTIES =
     ImmutableList.of(BuildFileKey.GRADLE_WRAPPER_VERSION, BuildFileKey.PLUGIN_VERSION, BuildFileKey.PLUGIN_REPOSITORY,
@@ -57,7 +62,7 @@ public class AndroidProjectConfigurable extends NamedConfigurable {
     if (project.isDefault()) {
       throw new IllegalArgumentException("Can't instantiate an AndroidProjectConfigurable with the default project.");
     }
-    myKeyValuePane = new KeyValuePane(project);
+    myKeyValuePane = new KeyValuePane(project, this);
     myProject = project;
     VirtualFile vf = project.getBaseDir().findChild(SdkConstants.FN_BUILD_GRADLE);
     if (vf != null) {
@@ -101,11 +106,24 @@ public class AndroidProjectConfigurable extends NamedConfigurable {
 
   @Override
   public boolean isModified() {
-    return myKeyValuePane.isModified();
+    return !myModifiedKeys.isEmpty();
+  }
+
+  @Override
+  public void modified(@NotNull BuildFileKey key) {
+    myModifiedKeys.add(key);
   }
 
   @Override
   public void apply() throws ConfigurationException {
+    if (myGradleBuildFile == null) {
+      return;
+    }
+    VirtualFile file = myGradleBuildFile.getFile();
+    if (!ReadonlyStatusHandler.ensureFilesWritable(myProject, file)) {
+      throw new ConfigurationException(String.format("Build file %1$s is not writable", file.getPath()));
+    }
+
     CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
       @Override
       public void run() {
@@ -113,11 +131,8 @@ public class AndroidProjectConfigurable extends NamedConfigurable {
           ActionRunner.runInsideWriteAction(new ActionRunner.InterruptibleRunnable() {
             @Override
             public void run() throws Exception {
-              if (myGradleBuildFile == null) {
-                return;
-              }
               for (BuildFileKey key : PROJECT_PROPERTIES) {
-                if (key == BuildFileKey.GRADLE_WRAPPER_VERSION) {
+                if (key == BuildFileKey.GRADLE_WRAPPER_VERSION || !myModifiedKeys.contains(key)) {
                   continue;
                 }
                 Object value = myProjectProperties.get(key);
@@ -138,7 +153,7 @@ public class AndroidProjectConfigurable extends NamedConfigurable {
                   }
                 }
               }
-              myKeyValuePane.clearModified();
+              myModifiedKeys.clear();
             }
           });
         }

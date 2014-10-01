@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.AndroidTestCase;
@@ -79,6 +80,17 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("@layout/foo1", getResourceUrl(file1.getVirtualFile()));
     assertEquals("@menu/foo2", getResourceUrl(file2.getVirtualFile()));
     assertEquals("@drawable/foo3", getResourceUrl(file3.getVirtualFile()));
+  }
+
+  @SuppressWarnings("ConstantConditions")
+  public void testGetFolderConfiguration() throws Exception {
+    PsiFile file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>");
+    PsiFile file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>");
+
+    assertEquals("layout-land", ResourceHelper.getFolderConfiguration(file1).getFolderName(ResourceFolderType.LAYOUT));
+    assertEquals("menu-en-rUS", ResourceHelper.getFolderConfiguration(file2).getFolderName(ResourceFolderType.MENU));
+    assertEquals("layout-land", ResourceHelper.getFolderConfiguration(file1.getVirtualFile()).getFolderName(ResourceFolderType.LAYOUT));
+    assertEquals("menu-en-rUS", ResourceHelper.getFolderConfiguration(file2.getVirtualFile()).getFolderName(ResourceFolderType.MENU));
   }
 
   public void testRGB() {

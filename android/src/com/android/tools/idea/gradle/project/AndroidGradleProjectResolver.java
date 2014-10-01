@@ -23,6 +23,8 @@ import com.android.tools.idea.gradle.AndroidProjectKeys;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.IdeaGradleProject;
 import com.android.tools.idea.gradle.IdeaJavaProject;
+import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.service.notification.errors.UnsupportedModelVersionErrorHandler;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.DefaultSdks;
@@ -31,6 +33,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.execution.configurations.SimpleJavaParameters;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -38,19 +42,23 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.KeyValue;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ContainerUtilRt;
+import org.gradle.tooling.model.GradleTask;
 import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.util.GradleVersion;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
-import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -58,7 +66,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
+import static com.android.tools.idea.gradle.service.notification.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 
 /**
@@ -66,16 +74,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_N
  */
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
-  /**
-   * These String constants are being used in {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension} to add
-   * "quick-fix"/"help" hyperlinks to error messages. Given that the contract between the consumer and producer of error messages is pretty
-   * loose, please do not use these constants, to prevent any unexpected side effects during project sync.
-   */
-  @NotNull public static final String UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX =
-    "The project is using an unsupported version of the Android Gradle plug-in";
-  @NotNull public static final String UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX = "Unable to find 'build folder for project";
-  @NotNull public static final String READ_MIGRATION_GUIDE_MSG = "Please read the migration guide";
-
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
 
   public AndroidGradleProjectResolver() {
@@ -135,10 +133,19 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                                              gradleModule.getGradleProject(), buildFilePath);
     ideModule.createChild(AndroidProjectKeys.IDE_GRADLE_PROJECT, gradleProject);
 
-    if (androidProject == null) {
+    if (androidProject == null && isJavaProject(gradleModule)) {
       // This is a Java lib module.
       createJavaProject(gradleModule, ideModule);
     }
+  }
+
+  private static boolean isJavaProject(@NotNull IdeaModule gradleModule) {
+    for (GradleTask task : gradleModule.getGradleProject().getTasks()) {
+      if (JavaGradleFacet.COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void createJavaProject(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
@@ -146,15 +153,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     IdeaJavaProject javaProject = new IdeaJavaProject(gradleModule, model);
     ideModule.createChild(AndroidProjectKeys.IDE_JAVA_PROJECT, javaProject);
   }
-
-  private void populateContentRootsForProjectModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    // We need to warn users that we were not able to undo the exclusion of the top-level build folder. The IDE will not work properly.
-    String msg = UNABLE_TO_FIND_BUILD_FOLDER_ERROR_PREFIX + String.format(" '%1$s'.\n", gradleModule.getProject().getName());
-    msg +=
-      "The IDE will not find references to the project's dependencies, and, as a result, basic functionality will not work properly.";
-    throw new IllegalArgumentException(msg);
-  }
-
 
   @Override
   public void populateModuleCompileOutputSettings(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
@@ -193,9 +191,17 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     return Sets.<Class>newHashSet(AndroidProject.class);
   }
 
-
   @Override
   public void preImportCheck() {
+    if (AndroidPlugin.isGuiTestingMode()) {
+      // We use this task in GUI tests to simulate errors coming from Gradle project sync.
+      Application application = ApplicationManager.getApplication();
+      Runnable task = application.getUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY);
+      if (task != null) {
+        application.putUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY, null);
+        task.run();
+      }
+    }
     if (AndroidStudioSpecificInitializer.isAndroidStudio()) {
       LocalProperties localProperties = getLocalProperties();
       // Ensure that Android Studio and the project (local.properties) point to the same Android SDK home. If they are not the same, we'll
@@ -229,9 +235,41 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public List<String> getExtraCommandLineArgs() {
     List<String> args = Lists.newArrayList();
+
+    Project project = findProject();
+    if (project != null) {
+      String[] commandLineOptions = project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY);
+      if (commandLineOptions != null) {
+        project.putUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY, null);
+        Collections.addAll(args, commandLineOptions);
+      }
+    }
+
     args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_BUILD_MODEL_ONLY, true));
     args.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+
+    if (AndroidPlugin.isGuiTestingMode()) {
+      // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
+      ApplicationManager.getApplication().putUserData(AndroidPlugin.GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtil.toStringArray(args));
+    }
+
     return args;
+  }
+
+  @Nullable
+  private Project findProject() {
+    String projectDir = resolverCtx.getProjectPath();
+    if (StringUtil.isNotEmpty(projectDir)) {
+      File projectDirPath = new File(FileUtil.toSystemDependentName(projectDir));
+      Project[] projects = ProjectManager.getInstance().getOpenProjects();
+      for (Project project : projects) {
+        File currentPath = new File(project.getBasePath());
+        if (FileUtil.filesEqual(projectDirPath, currentPath)) {
+          return project;
+        }
+      }
+    }
+    return null;
   }
 
   @NotNull
@@ -253,15 +291,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
     String msg = error.getMessage();
-    if (msg != null && !msg.contains(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
+    if (msg != null && !msg.contains(UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX)) {
       Throwable rootCause = ExceptionUtil.getRootCause(error);
       if (rootCause instanceof ClassNotFoundException) {
         msg = rootCause.getMessage();
         // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
         if ("org.gradle.api.artifacts.result.ResolvedComponentResult".equals(msg) ||
             "org.gradle.api.artifacts.result.ResolvedModuleVersionResult".equals(msg)) {
-          GradleVersion supported = getGradleSupportedVersion();
-          return new ExternalSystemException(getUnsupportedGradleVersionErrorMsg(supported));
+          return new ExternalSystemException("The project is using an unsupported version of Gradle.");
         }
       }
     }
@@ -270,30 +307,18 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   }
 
   @NotNull
-  private static GradleVersion getGradleSupportedVersion() {
-    return GradleVersion.version(GRADLE_MINIMUM_VERSION);
-  }
-
-  @NotNull
   private static String getUnsupportedModelVersionErrorMsg(@Nullable FullRevision modelVersion) {
     StringBuilder builder = new StringBuilder();
-    builder.append(UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
+    builder.append(UnsupportedModelVersionErrorHandler.UNSUPPORTED_MODEL_VERSION_ERROR_PREFIX);
     if (modelVersion != null) {
       builder.append(String.format(" (%1$s)", modelVersion.toString()));
       if (modelVersion.getMajor() == 0 && modelVersion.getMinor() <= 8) {
         builder.append(".\n\nStarting with version 0.9.0 incompatible changes were introduced in the build language.\n")
-               .append(READ_MIGRATION_GUIDE_MSG)
+               .append(UnsupportedModelVersionErrorHandler.READ_MIGRATION_GUIDE_MSG)
                .append(" to learn how to update your project.");
       }
     }
     return builder.toString();
-  }
-
-  @NotNull
-  private static String getUnsupportedGradleVersionErrorMsg(@NotNull GradleVersion supportedVersion) {
-    String version = supportedVersion.getVersion();
-    return String.format("The project is using an unsupported version of Gradle. Please use version %1$s.\n", version) +
-           AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION;
   }
 
   @NotNull

@@ -1,8 +1,8 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.SdkConstants;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
@@ -36,15 +36,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.SdkConstants.*;
+
 /**
  * @author Eugene.Kudelevsky
  */
 public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringAction {
   @NonNls public static final String ACTION_ID = "AndroidExtractStyleAction";
 
-  private static String[] NON_EXTRACTABLE_ATTRIBUTES =
-    new String[]{AndroidDomUtil.ATTR_ID, AndroidDomUtil.ATTR_TEXT, AndroidDomUtil.ATTR_HINT, AndroidDomUtil.ATTR_SRC,
-      AndroidDomUtil.ATTR_ON_CLICK};
+  private static String[] NON_EXTRACTABLE_ATTRIBUTES = new String[]{ATTR_ID, ATTR_TEXT, ATTR_HINT, ATTR_SRC, ATTR_ON_CLICK};
 
   private final MyTestConfig myTestConfig;
 
@@ -243,7 +243,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     if (ArrayUtilRt.find(NON_EXTRACTABLE_ATTRIBUTES, name) >= 0) {
       return false;
     }
-    if (name.startsWith(AndroidDomUtil.ATTR_STYLE)) {
+    if (name.startsWith(ATTR_STYLE)) {
       return false;
     }
     return true;

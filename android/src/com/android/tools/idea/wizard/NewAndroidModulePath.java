@@ -40,7 +40,11 @@ import static com.android.tools.idea.wizard.ChooseTemplateStep.MetadataListItem;
 /**
  * This class deals with the "main" flow of the new module wizard when
  * either Android application or Android library is added to the project.
+ *
+ * Deprecated. Use {@link NewModuleWizardDynamic} instead.
  */
+@Deprecated
+@LegacyWizardPathProvider.Migrated
 public final class NewAndroidModulePath implements WizardPath {
   private static final Logger LOG = Logger.getInstance(NewAndroidModulePath.class);
   @NotNull private final NewModuleWizardState myWizardState;
@@ -92,7 +96,7 @@ public final class NewAndroidModulePath implements WizardPath {
       try {
         myWizardState.populateDirectoryParameters();
         File projectRoot = new File(myProject.getBasePath());
-        File moduleRoot = new File(projectRoot, myWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME));
+        File moduleRoot = new File(projectRoot, myWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME));
         // TODO: handle return type of "mkdirs".
         projectRoot.mkdirs();
         myWizardState.updateParameters();

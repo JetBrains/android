@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,67 +15,61 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
-import com.intellij.notification.NotificationListener;
+import com.android.tools.idea.gradle.service.notification.errors.AbstractSyncErrorHandler;
+import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.service.notification.NotificationSource;
 import com.intellij.openapi.project.Project;
 import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.classextension.EasyMock.*;
 
 /**
- * Tests for {@link GradleNotificationExtension}.
+ * Tests for {@link com.android.tools.idea.gradle.service.notification.GradleNotificationExtension}.
  */
 public class GradleNotificationExtensionTest extends TestCase {
+  private AbstractSyncErrorHandler myHandler1;
+  private AbstractSyncErrorHandler myHandler2;
+  private NotificationData myNotification;
   private Project myProject;
-  private NotificationHyperlink myHyperlink1;
-  private NotificationHyperlink myHyperlink2;
+
+  private GradleNotificationExtension myNotificationExtension;
 
   @Override
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
+    myHandler1 = createMock(AbstractSyncErrorHandler.class);
+    myHandler2 = createMock(AbstractSyncErrorHandler.class);
+    myNotification = new NotificationData("Title", "Message", NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
     myProject = createMock(Project.class);
-    myHyperlink1 = new TestingHyperlink("1", "Hyperlink 1");
-    myHyperlink2 = new TestingHyperlink("2", "Hyperlink 2");
+
+    myNotificationExtension = new GradleNotificationExtension(Arrays.asList(myHandler1, myHandler2));
   }
 
-  public void testCreateNotification() {
-    String projectName = "project1";
-    String errorMsg = "Hello";
+  public void testCustomizeWithExternalSystemException() throws Exception {
+    List<String> message = Arrays.asList("Testing");
+    //noinspection ThrowableInstanceNeverThrown
+    ExternalSystemException error = new ExternalSystemException("Testing");
+    // myHandler1 returns 'true', myHandler2 should not be invoked.
+    expect(myHandler1.handleError(message, error, myNotification, myProject)).andStubReturn(true);
+    replay(myHandler1, myHandler2);
 
-    expect(myProject.getName()).andReturn(projectName);
-    replay(myProject);
+    myNotificationExtension.customize(myNotification, myProject, error);
 
-    NotificationData notification = new NotificationData("title", "msg", NotificationCategory.ERROR, NotificationSource.PROJECT_SYNC);
-    GradleNotificationExtension.updateNotification(notification, myProject, errorMsg, myHyperlink1, myHyperlink2);
+    verify(myHandler1, myHandler2);
 
-    verify(myProject);
+    // myHandler1 returns 'false', myHandler2 should be invoked;
+    reset(myHandler1, myHandler2);
+    expect(myHandler1.handleError(message, error, myNotification, myProject)).andStubReturn(false);
+    expect(myHandler2.handleError(message, error, myNotification, myProject)).andStubReturn(true);
+    replay(myHandler1, myHandler2);
 
-    String title = notification.getTitle();
-    assertNotNull(title);
-    assertTrue(title.contains("'" + projectName + "'"));
+    myNotificationExtension.customize(myNotification, myProject, error);
 
-    assertEquals(errorMsg + "\n<a href=\"1\">Hyperlink 1</a><br><a href=\"2\">Hyperlink 2</a>", notification.getMessage());
-
-    NotificationListener notificationListener = notification.getListener();
-    assertNotNull(notificationListener);
-    List<String> hyperlinks = notification.getRegisteredListenerIds();
-    assertEquals(2, hyperlinks.size());
-    assertTrue(hyperlinks.contains(myHyperlink1.getUrl()));
-    assertTrue(hyperlinks.contains(myHyperlink2.getUrl()));
-  }
-
-  private static class TestingHyperlink extends NotificationHyperlink {
-    TestingHyperlink(@NotNull String url, @NotNull String text) {
-      super(url, text);
-    }
-
-    @Override
-    protected void execute(@NotNull Project project) {
-    }
+    verify(myHandler1, myHandler2);
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.wizard;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -37,28 +38,19 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.Document;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
 
-import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
-import static com.android.tools.idea.wizard.ScopedStateStore.Scope.WIZARD;
-import static com.android.tools.idea.wizard.ScopedStateStore.createKey;
 
 /**
  * ConfigureAndroidModuleStep is the first page in the New Project wizard that sets project/module name, location, and other project-global
  * parameters.
  */
 public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndDescription {
-  public static final Key<String> APPLICATION_NAME_KEY = createKey(ATTR_APP_TITLE, WIZARD, String.class);
-  public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
-  public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
-  public static final Key<String> PROJECT_LOCATION_KEY = createKey(ATTR_TOP_OUT, WIZARD, String.class);
 
 
   private static final String EXAMPLE_DOMAIN = "example.com";
@@ -73,22 +65,27 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
         "$badclus", "$secure", "$upcase", "$extend", "$quota", "$objid", "$reparse");
 
 
-  private TextFieldWithBrowseButton myProjectLocation;
-  private JTextField myAppName;
-  private JPanel myPanel;
-  private JTextField myCompanyDomain;
-  private LabelWithEditLink myPackageName;
+  protected TextFieldWithBrowseButton myProjectLocation;
+  protected JTextField myAppName;
+  protected JPanel myPanel;
+  protected JTextField myCompanyDomain;
+  protected LabelWithEditLink myPackageName;
+  protected JLabel myProjectLocationLabel;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
-    super("Configure your new project", null, null, disposable);
+    this("Configure your new project", disposable);
+  }
+
+  public ConfigureAndroidProjectStep(String title, Disposable parentDisposable) {
+    super(title, null, null, parentDisposable);
     setBodyComponent(myPanel);
   }
 
   @Override
   public void init() {
-    register(APPLICATION_NAME_KEY, myAppName);
-    register(COMPANY_DOMAIN_KEY, myCompanyDomain);
-    register(PACKAGE_NAME_KEY, myPackageName, new ComponentBinding<String, LabelWithEditLink>() {
+    register(WizardConstants.APPLICATION_NAME_KEY, myAppName);
+    register(WizardConstants.COMPANY_DOMAIN_KEY, myCompanyDomain);
+    register(WizardConstants.PACKAGE_NAME_KEY, myPackageName, new ComponentBinding<String, LabelWithEditLink>() {
       @Override
       public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
         newValue = newValue == null ? "" : newValue;
@@ -107,9 +104,9 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
         return component.getDocument();
       }
     });
-    registerValueDeriver(PACKAGE_NAME_KEY, myPackageNameDeriver);
-    register(PROJECT_LOCATION_KEY, myProjectLocation);
-    registerValueDeriver(PROJECT_LOCATION_KEY, myProjectLocationDeriver);
+    registerValueDeriver(WizardConstants.PACKAGE_NAME_KEY, PACKAGE_NAME_DERIVER);
+    register(WizardConstants.PROJECT_LOCATION_KEY, myProjectLocation);
+    registerValueDeriver(WizardConstants.PROJECT_LOCATION_KEY, myProjectLocationDeriver);
 
     myProjectLocation.addActionListener(new ActionListener() {
       @Override
@@ -118,7 +115,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       }
     });
 
-    myState.put(APPLICATION_NAME_KEY, "My Application");
+    myState.put(WizardConstants.APPLICATION_NAME_KEY, "My Application");
     String savedCompanyDomain = PropertiesComponent.getInstance().getValue(SAVED_COMPANY_DOMAIN);
     if (savedCompanyDomain == null) {
       savedCompanyDomain = nameToPackage(System.getProperty("user.name"));
@@ -129,7 +126,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     if (savedCompanyDomain == null) {
       savedCompanyDomain = EXAMPLE_DOMAIN;
     }
-    myState.put(COMPANY_DOMAIN_KEY, savedCompanyDomain);
+    myState.put(WizardConstants.COMPANY_DOMAIN_KEY, savedCompanyDomain);
     super.init();
   }
 
@@ -154,11 +151,11 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   public void deriveValues(Set<Key> modified) {
     super.deriveValues(modified);
     // Save the user edited value of the company domain
-    if (modified.contains(COMPANY_DOMAIN_KEY)) {
-      String domain = myState.get(COMPANY_DOMAIN_KEY);
-      if (domain != null && !domain.isEmpty() && myState.containsKey(PACKAGE_NAME_KEY)) {
+    if (modified.contains(WizardConstants.COMPANY_DOMAIN_KEY)) {
+      String domain = myState.get(WizardConstants.COMPANY_DOMAIN_KEY);
+      if (domain != null && !domain.isEmpty() && myState.containsKey(WizardConstants.PACKAGE_NAME_KEY)) {
         @SuppressWarnings("ConstantConditions")
-        String message = AndroidUtils.validateAndroidPackageName(myState.get(PACKAGE_NAME_KEY));
+        String message = AndroidUtils.validateAndroidPackageName(myState.get(WizardConstants.PACKAGE_NAME_KEY));
         if (message == null) {
           PropertiesComponent.getInstance().setValue(SAVED_COMPANY_DOMAIN, domain);
         }
@@ -169,37 +166,11 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   @Override
   public boolean validate() {
     setErrorHtml("");
-    // App Name validation
-    String appName = myState.get(APPLICATION_NAME_KEY);
-    if (appName == null || appName.isEmpty()) {
-      setErrorHtml("Please enter an application name (shown in launcher)");
-      return false;
-    } else if (Character.isLowerCase(appName.charAt(0))) {
-      setErrorHtml("The application name for most apps begins with an uppercase letter");
-    }
+    return validateAppName() && validatePackageName() && validateLocation();
+  }
 
-    // Company Domain validation
-    String companyDomain = myState.get(COMPANY_DOMAIN_KEY);
-    if (companyDomain == null || companyDomain.isEmpty()) {
-      setErrorHtml("Please enter a company domain");
-      return false;
-    }
-
-    // Package name validation
-    String packageName = myState.get(PACKAGE_NAME_KEY);
-    if (packageName == null) {
-      setErrorHtml("Please enter a package name (This package uniquely identifies your application)");
-      return false;
-    } else {
-      String message = AndroidUtils.validateAndroidPackageName(packageName);
-      if (message != null) {
-        setErrorHtml(message);
-        return false;
-      }
-    }
-
-    // Project location validation
-    String projectLocation = myState.get(PROJECT_LOCATION_KEY);
+  protected boolean validateLocation() {
+    String projectLocation = myState.get(WizardConstants.PROJECT_LOCATION_KEY);
     if (projectLocation == null || projectLocation.isEmpty()) {
       setErrorHtml("Please specify a project location");
       return false;
@@ -255,7 +226,32 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       setErrorHtml("The project location's parent directory must be a directory, not a plain file");
       return false;
     }
+    return true;
+  }
 
+  protected boolean validateAppName() {
+    String appName = myState.get(WizardConstants.APPLICATION_NAME_KEY);
+    if (appName == null || appName.isEmpty()) {
+      setErrorHtml("Please enter an application name (shown in launcher)");
+      return false;
+    } else if (Character.isLowerCase(appName.charAt(0))) {
+      setErrorHtml("The application name for most apps begins with an uppercase letter");
+    }
+    return true;
+  }
+
+  protected boolean validatePackageName() {
+    String packageName = myState.get(WizardConstants.PACKAGE_NAME_KEY);
+    if (packageName == null) {
+      setErrorHtml("Please enter a package name (This package uniquely identifies your application)");
+      return false;
+    } else {
+      String message = AndroidUtils.validateAndroidPackageName(packageName);
+      if (message != null) {
+        setErrorHtml("Invalid package name: " + message);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -272,9 +268,9 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
 
   @Nullable
   public String getHelpText(@NotNull Key<?> key) {
-    if (key.equals(APPLICATION_NAME_KEY)) {
+    if (key.equals(WizardConstants.APPLICATION_NAME_KEY)) {
       return "The application name is shown in the Play store, as well as in the Manage Applications list in Settings.";
-    } else if (key.equals(PACKAGE_NAME_KEY)) {
+    } else if (key.equals(WizardConstants.PACKAGE_NAME_KEY)) {
       return "The package name must be a unique identifier for your application.\n It is typically not shown to users, " +
              "but it <b>must</b> stay the same for the lifetime of your application; it is how multiple versions of the same application " +
              "are considered the \"same app\".\nThis is typically the reverse domain name of your organization plus one or more " +
@@ -284,34 +280,41 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     }
   }
 
-  private static String nameToPackage(String name) {
+  @VisibleForTesting
+  static String nameToPackage(String name) {
     name = name.replace('-', '_');
     name = name.replaceAll("[^a-zA-Z0-9_]", "");
     name = name.toLowerCase();
     return name;
   }
 
-  private static final ValueDeriver<String> myPackageNameDeriver = new ValueDeriver<String>() {
+  public static final ValueDeriver<String> PACKAGE_NAME_DERIVER = new ValueDeriver<String>() {
     @Nullable
     @Override
     public Set<Key<?>> getTriggerKeys() {
-      return makeSetOf(APPLICATION_NAME_KEY, COMPANY_DOMAIN_KEY);
+      return makeSetOf(WizardConstants.APPLICATION_NAME_KEY, WizardConstants.COMPANY_DOMAIN_KEY);
     }
 
     @Nullable
     @Override
-    public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-      String projectName = state.get(APPLICATION_NAME_KEY);
+    public String deriveValue(@NotNull ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
+      String projectName = state.get(WizardConstants.APPLICATION_NAME_KEY);
       if (projectName == null) {
         projectName = "app";
       }
       projectName = nameToPackage(projectName);
-      String companyDomain = state.get(COMPANY_DOMAIN_KEY);
+      String companyDomain = state.get(WizardConstants.COMPANY_DOMAIN_KEY);
       if (companyDomain == null) {
         companyDomain = EXAMPLE_DOMAIN;
       }
       ArrayList domainParts = Lists.newArrayList(companyDomain.split("\\."));
-      String reversedDomain = Joiner.on('.').join(Lists.reverse(domainParts));
+      String reversedDomain = Joiner.on('.').skipNulls().join(Lists.reverse(Lists.transform(domainParts, new Function<String, String>() {
+        @Override
+        public String apply(String input) {
+          String name = nameToPackage(input);
+          return name.isEmpty() ? null : name;
+        }
+      })));
       return reversedDomain + '.' + projectName;
     }
   };
@@ -320,13 +323,13 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
     @Nullable
     @Override
     public Set<Key<?>> getTriggerKeys() {
-      return makeSetOf(APPLICATION_NAME_KEY);
+      return makeSetOf(WizardConstants.APPLICATION_NAME_KEY);
     }
 
     @Nullable
     @Override
     public String deriveValue(ScopedStateStore state, Key changedKey, @Nullable String currentValue) {
-      String name = state.get(APPLICATION_NAME_KEY);
+      String name = state.get(WizardConstants.APPLICATION_NAME_KEY);
       name = name == null ? "" : name;
       name = name.replaceAll(INVALID_FILENAME_CHARS, "");
       name = name.replaceAll("\\s", "");
@@ -350,6 +353,6 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   @Override
   @Nullable
   protected JBColor getTitleTextColor() {
-    return ConfigureAndroidProjectPath.ANDROID_NPW_TITLE_COLOR;
+    return WizardConstants.ANDROID_NPW_TITLE_COLOR;
   }
 }

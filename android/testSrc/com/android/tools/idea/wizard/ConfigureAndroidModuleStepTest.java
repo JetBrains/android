@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wizard;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.templates.AndroidGradleTestCase;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -25,7 +24,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 
 import javax.swing.*;
 import java.io.File;
@@ -34,7 +33,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.NewModuleWizardState.ATTR_PROJECT_LOCATION;
-import static com.android.tools.idea.wizard.NewProjectWizardState.ATTR_MODULE_NAME;
+import static com.android.tools.idea.wizard.FormFactorUtils.ATTR_MODULE_NAME;
 
 /**
  * Test cases for the Android Module Configuration wizard step.
@@ -95,7 +94,7 @@ public class ConfigureAndroidModuleStepTest extends AndroidGradleTestCase {
 
     Set<String> expectedCompileTargets = Sets.newHashSet();
     for (IAndroidTarget target : myStep.getCompilationTargets()) {
-      expectedCompileTargets.add(ConfigureAndroidModuleStep.AndroidTargetComboBoxItem.getLabel(target));
+      expectedCompileTargets.add(AndroidSdkUtils.getTargetLabel(target));
     }
 
     assertContainsElements(compileTargets, expectedCompileTargets);

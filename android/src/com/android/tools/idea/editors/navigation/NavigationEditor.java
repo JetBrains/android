@@ -36,6 +36,7 @@ import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -75,13 +76,16 @@ public class NavigationEditor implements FileEditor {
   private static final int INITIAL_FILE_BUFFER_SIZE = 1000;
   private static final int SCROLL_UNIT_INCREMENT = 20;
   private static final NavigationModel.Event PROJECT_READ = new Event(Operation.UPDATE, Object.class);
+  private static final com.android.navigation.Dimension UNATTACHED_STRIDE = new com.android.navigation.Dimension(50, 50);
 
   private final UserDataHolderBase myUserDataHolder = new UserDataHolderBase();
   @Nullable
   private RenderingParameters myRenderingParams;
   private NavigationModel myNavigationModel;
+  private SelectionModel mySelectionModel = new SelectionModel();
   private final VirtualFile myFile;
   private JComponent myComponent;
+  private Inspector myInspector;
   private CodeGenerator myCodeGenerator;
   private boolean myModified;
   private boolean myPendingFileSystemChanges;
@@ -111,19 +115,36 @@ public class NavigationEditor implements FileEditor {
     if (myRenderingParams != null) {
       Configuration configuration = myRenderingParams.myConfiguration;
       Module module = configuration.getModule();
-      myAnalyser = new Analyser(project, module);
+      myAnalyser = new Analyser(module);
       try {
         myNavigationModel = read(file);
         myCodeGenerator = new CodeGenerator(myNavigationModel, module);
-        NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel);
-        JBScrollPane scrollPane = new JBScrollPane(editor);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
-        JPanel p = new JPanel(new BorderLayout());
-
-        JComponent controls = createToolbar(editor);
-        p.add(controls, BorderLayout.NORTH);
-        p.add(scrollPane);
-        myComponent = p;
+        NavigationView editor = new NavigationView(myRenderingParams, myNavigationModel, mySelectionModel);
+        // Create UI
+        {
+          JPanel panel = new JPanel(new BorderLayout());
+          {
+            JComponent toolBar = createToolbar(editor);
+            panel.add(toolBar, BorderLayout.NORTH);
+          }
+          {
+            Splitter splitPane = new Splitter();
+            splitPane.setDividerWidth(1);
+            splitPane.setShowDividerIcon(false);
+            splitPane.setProportion(.8f);
+            {
+              JBScrollPane scrollPane = new JBScrollPane(editor);
+              scrollPane.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+              splitPane.setFirstComponent(scrollPane);
+            }
+            {
+              myInspector = new Inspector(mySelectionModel);
+              splitPane.setSecondComponent(new JBScrollPane(myInspector.container));
+            }
+            panel.add(splitPane);
+          }
+          myComponent = panel;
+        }
       }
       catch (FileReadException e) {
         myErrorHandler.handleError("Invalid Navigation File", e.getMessage());
@@ -298,12 +319,12 @@ public class NavigationEditor implements FileEditor {
     {
       ActionManager actionManager = ActionManager.getInstance();
       ActionToolbar zoomToolBar = actionManager.createActionToolbar(TOOLBAR, getActions(myDesigner), true);
-      panel.add(zoomToolBar.getComponent(), BorderLayout.WEST);
+      panel.add(zoomToolBar.getComponent(), BorderLayout.EAST);
       {
         HyperlinkLabel label = new HyperlinkLabel();
         label.setHyperlinkTarget("http://tools.android.com/navigation-editor");
-        label.setHyperlinkText(" ", "What's this?", " ");
-        panel.add(label, BorderLayout.EAST);
+        label.setHyperlinkText("   ", "What's this?", "");
+        panel.add(label, BorderLayout.WEST);
       }
     }
 
@@ -402,6 +423,10 @@ public class NavigationEditor implements FileEditor {
     final Point location = new Point(GAP.width, GAP.height);
     final int gridWidth = gridSize.width;
     final int gridHeight = gridSize.height;
+    // Gather childless roots and deal with them differently, there could be many of them
+    Set<State> transitionStates = getTransitionStates();
+    Collection<State> unattached = getNonTransitionStates(states, transitionStates);
+    visited.addAll(unattached);
     for (State state : states) {
       if (visited.contains(state)) {
         continue;
@@ -426,6 +451,28 @@ public class NavigationEditor implements FileEditor {
         }
       }.addChildrenFor(state);
     }
+    for (State root : unattached) {
+        stateToLocation.put(root, new com.android.navigation.Point(location.x, location.y));
+        location.x += UNATTACHED_STRIDE.width;
+        location.y += UNATTACHED_STRIDE.height;
+    }
+  }
+
+  private Set<State> getTransitionStates() {
+    Set<State> result = new HashSet<State>();
+    for (Transition transition : myNavigationModel.getTransitions()) {
+      State source = transition.getSource().getState();
+      State destination = transition.getDestination().getState();
+      result.add(source);
+      result.add(destination);
+    }
+    return result;
+  }
+
+  private static Collection<State> getNonTransitionStates(Collection<State> states, Set<State> transitionStates) {
+    Collection<State> unattached = new ArrayList<State>(states);
+    unattached.removeAll(transitionStates);
+    return unattached;
   }
 
   private List<State> findDestinationsFor(State source, Set<State> visited) {

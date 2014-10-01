@@ -43,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.ANDROID_URI;
@@ -208,18 +209,25 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   @Nullable
   public VirtualFile getMatchingFile(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
-    @SuppressWarnings("deprecation")
-    ResourceFile best = super.getMatchingFile(ResourceHelper.getResourceName(file), type, config);
-    if (best != null) {
-      if (best instanceof PsiResourceFile) {
-        PsiResourceFile prf = (PsiResourceFile)best;
-        return prf.getPsiFile().getVirtualFile();
+    List<VirtualFile> matches = getMatchingFiles(file, type, config);
+    return matches.isEmpty() ? null : matches.get(0);
+  }
+
+  @NonNull
+  public List<VirtualFile> getMatchingFiles(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
+    List<ResourceFile> matches = super.getMatchingFiles(ResourceHelper.getResourceName(file), type, config);
+    List<VirtualFile> matchesFiles = new ArrayList<VirtualFile>(matches.size());
+    for (ResourceFile match : matches) {
+      if (match != null) {
+        if (match instanceof PsiResourceFile) {
+          matchesFiles.add(((PsiResourceFile)match).getPsiFile().getVirtualFile());
+        }
+        else {
+          matchesFiles.add(LocalFileSystem.getInstance().findFileByIoFile(match.getFile()));
+        }
       }
-
-      return LocalFileSystem.getInstance().findFileByIoFile(best.getFile());
     }
-
-    return null;
+    return matchesFiles;
   }
 
   /** @deprecated Use {@link #getMatchingFile(VirtualFile, ResourceType, FolderConfiguration)} in the plugin code */
@@ -245,7 +253,9 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
 
     ResourceFile source = item.getSource();
-    assert source != null : item.getName();
+    if (source == null) { // most likely a dynamically defined value
+      return null;
+    }
 
     if (source instanceof PsiResourceFile) {
       PsiResourceFile prf = (PsiResourceFile)source;

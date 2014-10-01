@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
@@ -185,12 +186,7 @@ public class RenderErrorPanel extends JPanel {
             close();
             return;
           }
-          Module module = myResult.getModule();
-          PsiFile file = myResult.getFile();
-          DataContext dataContext = DataManager.getInstance().getDataContext(RenderErrorPanel.this);
-          assert dataContext != null;
-
-          myLinkManager.handleUrl(url, module, file, dataContext, myResult);
+          performClick(url);
         }
       }
     };
@@ -201,6 +197,16 @@ public class RenderErrorPanel extends JPanel {
     setupStyle();
 
     add(myScrollPane, BorderLayout.CENTER);
+  }
+
+  @VisibleForTesting
+  public void performClick(@NotNull String url) {
+    Module module = myResult.getModule();
+    PsiFile file = myResult.getFile();
+    DataContext dataContext = DataManager.getInstance().getDataContext(this);
+    assert dataContext != null;
+
+    myLinkManager.handleUrl(url, module, file, dataContext, myResult);
   }
 
   private void close() {
@@ -238,6 +244,11 @@ public class RenderErrorPanel extends JPanel {
       background = new Color(background.getRed(), background.getGreen(), background.getBlue(), ERROR_PANEL_OPACITY);
       myHTMLViewer.setBackground(background);
     }
+  }
+
+  @VisibleForTesting
+  public JEditorPane getEditorPane() {
+    return myHTMLViewer;
   }
 
   public int getPreferredHeight(@SuppressWarnings("UnusedParameters") int width) {

@@ -17,9 +17,11 @@ package com.android.tools.idea.ddms.screenshot;
 
 import com.android.resources.ScreenOrientation;
 import junit.framework.TestCase;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
@@ -30,10 +32,10 @@ public class DeviceArtDescriptorTest extends TestCase {
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
 
     // Currently there are 9 devices for which we have device art, plus 2 generic/stretchable
-    assertEquals(11, specs.size());
+    assertEquals(15, specs.size());
 
-    DeviceArtDescriptor nexus4 = specs.get(1);
-    assertEquals("nexus_4", nexus4.getId());
+    DeviceArtDescriptor nexus4 = getDescriptorFor("nexus_4", specs);
+    assertNotNull(nexus4);
 
     Point offsets = nexus4.getScreenPos(ScreenOrientation.PORTRAIT);
     assertEquals(213, offsets.x);
@@ -55,11 +57,14 @@ public class DeviceArtDescriptorTest extends TestCase {
       assertNotNull(id);
       assertNotNull(descriptor.getName());
       for (ScreenOrientation orientation : new ScreenOrientation[] { ScreenOrientation.LANDSCAPE, ScreenOrientation.PORTRAIT}) {
+        if (orientation == ScreenOrientation.PORTRAIT && id.startsWith("tv_")) {
+          continue;
+        }
         assertNotNull(id, descriptor.getFrameSize(orientation));
         assertNotNull(id, descriptor.getScreenPos(orientation));
         assertNotNull(id, descriptor.getScreenSize(orientation));
         //noinspection StatementWithEmptyBody
-        if (id.equals("phone") || id.equals("tablet")) {
+        if (id.equals("phone") || id.equals("tablet") || id.startsWith("wear_") || id.startsWith("tv_")) {
           // No crop for these
         } else {
           assertNotNull(id, descriptor.getCrop(orientation));
@@ -72,10 +77,50 @@ public class DeviceArtDescriptorTest extends TestCase {
         }
       }
     }
+
+    DeviceArtDescriptor generic_phone = getDescriptorFor("phone", specs);
+    assertNull(generic_phone.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
+  }
+
+  public void testCanFrameImage() {
+    // Regression test for issue 72580
+    //noinspection UndesirableClassUsage
+    BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB_PRE);
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      spec.canFrameImage(image, ScreenOrientation.LANDSCAPE);
+      spec.canFrameImage(image, ScreenOrientation.PORTRAIT);
+    }
+  }
+
+  public void test2() throws FileNotFoundException {
+    List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
+    for (DeviceArtDescriptor spec : specs) {
+      if (!"wear_round".equals(spec.getId())) {
+        continue;
+      }
+
+      verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.LANDSCAPE));
+      verifyFileExists(spec.getReflectionOverlay(ScreenOrientation.PORTRAIT));
+      verifyFileExists(spec.getMask(ScreenOrientation.PORTRAIT));
+      verifyFileExists(spec.getMask(ScreenOrientation.LANDSCAPE));
+
+      return;
+    }
+    fail("Did not find wear_round spec");
   }
 
   private static void verifyFileExists(@Nullable File f) {
     assertNotNull(f);
     assertTrue(f.exists());
+  }
+
+  private static DeviceArtDescriptor getDescriptorFor(@NotNull String id, List<DeviceArtDescriptor> descriptors) {
+    for (DeviceArtDescriptor descriptor : descriptors) {
+      if (id.equals(descriptor.getId())) {
+        return descriptor;
+      }
+    }
+    return null;
   }
 }

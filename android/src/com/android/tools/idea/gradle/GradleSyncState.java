@@ -17,19 +17,19 @@ package com.android.tools.idea.gradle;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.project.ProjectValidator;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.android.tools.idea.stats.StatsKeys;
 import com.android.tools.idea.stats.StatsTimeCollector;
 import com.android.tools.lint.detector.api.LintUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -38,6 +38,8 @@ import com.intellij.openapi.options.ConfigurableEP;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.AppUIUtil;
@@ -80,7 +82,19 @@ public class GradleSyncState {
     myMessageBus = messageBus;
   }
 
+  public void syncSkipped(long lastSyncTimestamp) {
+    cleanUpProjectPreferences();
+    setLastGradleSyncTimestamp(lastSyncTimestamp);
+    syncPublisher(new Runnable() {
+      @Override
+      public void run() {
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject);
+      }
+    });
+  }
+
   public void syncStarted(boolean notifyUser) {
+    cleanUpProjectPreferences();
     StatsTimeCollector.start(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     mySyncInProgress = true;
     if (notifyUser) {
@@ -100,7 +114,6 @@ public class GradleSyncState {
       @Override
       public void run() {
         myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message);
-        ProjectValidator.mergeQueuedMessages(myProject);
       }
     });
   }
@@ -115,8 +128,7 @@ public class GradleSyncState {
     syncPublisher(new Runnable() {
       @Override
       public void run() {
-        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncEnded(myProject);
-        ProjectValidator.mergeQueuedMessages(myProject);
+        myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject);
       }
     });
   }
@@ -126,16 +138,10 @@ public class GradleSyncState {
     setLastGradleSyncTimestamp(System.currentTimeMillis());
     StatsTimeCollector.stop(StatsKeys.GRADLE_SYNC_PROJECT_TIME_MS);
     notifyUser();
-    cleanUpProjectPreferences();
   }
 
-  private void syncPublisher(@NotNull final Runnable publishingTask) {
-    AppUIUtil.invokeLaterIfProjectAlive(myProject, new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runWriteAction(publishingTask);
-      }
-    });
+  private void syncPublisher(@NotNull Runnable publishingTask) {
+    AppUIUtil.invokeLaterIfProjectAlive(myProject, publishingTask);
   }
 
   public void notifyUser() {
@@ -165,7 +171,7 @@ public class GradleSyncState {
     return mySyncInProgress;
   }
 
-  public void setLastGradleSyncTimestamp(long timestamp) {
+  private void setLastGradleSyncTimestamp(long timestamp) {
     myProject.putUserData(PROJECT_LAST_SYNC_TIMESTAMP_KEY, timestamp);
   }
 
@@ -204,14 +210,27 @@ public class GradleSyncState {
     if (mySyncInProgress) {
       return false;
     }
+
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
     File settingsFilePath = new File(myProject.getBasePath(), SdkConstants.FN_SETTINGS_GRADLE);
-    if (settingsFilePath.exists() && settingsFilePath.lastModified() > referenceTimeInMillis) {
-      return true;
+    if (settingsFilePath.exists()) {
+      VirtualFile settingsFile = VfsUtil.findFileByIoFile(settingsFilePath, true);
+      if (fileDocumentManager.isFileModified(settingsFile)) {
+        return true;
+      }
+      if (settingsFilePath.lastModified() > referenceTimeInMillis) {
+        return true;
+      }
     }
+
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     for (Module module : moduleManager.getModules()) {
       VirtualFile buildFile = GradleUtil.getGradleBuildFile(module);
       if (buildFile != null) {
+        if (fileDocumentManager.isFileModified(buildFile)) {
+          return true;
+        }
+
         File buildFilePath = VfsUtilCore.virtualToIoFile(buildFile);
         if (buildFilePath.lastModified() > referenceTimeInMillis) {
           return true;
@@ -237,4 +256,8 @@ public class GradleSyncState {
     }
   }
 
+  @VisibleForTesting
+  public void resetTimestamp() {
+    setLastGradleSyncTimestamp(-1L);
+  }
 }

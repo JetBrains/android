@@ -32,18 +32,31 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.builder.model.AndroidProject.FD_INTERMEDIATES;
 import static com.android.builder.model.AndroidProject.FD_OUTPUTS;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
 /**
  * Sets the content roots of an IDEA module imported from an {@link com.android.builder.model.AndroidProject}.
  */
 public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustomizer<IdeaAndroidProject> {
-  public static final List<String> EXCLUDED_OUTPUT_FOLDER_NAMES = Arrays.asList(FD_INTERMEDIATES, FD_OUTPUTS);
+  // TODO This is a temporary solution. The real fix is in the Android Gradle plug-in we need to take exploded-aar/${library}/${version}/res
+  // folder somewhere else out of "exploded-aar" so the IDE can index it, but we need to exclude everything else in "exploded-aar"
+  // (e.g. jar files) to avoid unnecessary indexing.
+  private static final String[] EXCLUDED_INTERMEDIATE_FOLDER_NAMES = {"assets", "bundles", "classes", "coverage-instrumented-classes",
+    "dependency-cache", "dex-cache", "dex", "incremental", "jacoco", "javaResources", "libs", "lint", "manifests", "ndk", "pre-dexed",
+    "proguard", "res", "rs", "symbols"};
+
+  @NotNull public static final List<String> EXCLUDED_OUTPUT_FOLDER_NAMES = Lists.newArrayList(FD_OUTPUTS);
+
+  static {
+    for (String name : EXCLUDED_INTERMEDIATE_FOLDER_NAMES) {
+      EXCLUDED_OUTPUT_FOLDER_NAMES.add(join(FD_INTERMEDIATES, name));
+    }
+  }
 
   @Override
   @NotNull
@@ -149,10 +162,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
     JpsModuleSourceRootType sourceType = getResourceSourceType(isTest);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getResDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getResourcesDirectories(), sourceType, false, orphans);
+    addSourceFolders(androidProject, contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
 
     sourceType = getSourceType(isTest);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getAidlDirectories(), sourceType, false, orphans);
-    addSourceFolders(androidProject, contentEntries, sourceProvider.getAssetsDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getJavaDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getJniDirectories(), sourceType, false, orphans);
     addSourceFolders(androidProject, contentEntries, sourceProvider.getRenderscriptDirectories(), sourceType, false, orphans);
@@ -189,8 +202,10 @@ public class ContentRootModuleCustomizer extends AbstractContentRootModuleCustom
 
   private void addExcludedOutputFolders(@NotNull Collection<ContentEntry> contentEntries, @NotNull IdeaAndroidProject androidProject) {
     File buildFolderPath = androidProject.getDelegate().getBuildFolder();
-    ContentEntry parentContentEntry = findParentContentEntry(contentEntries, buildFolderPath);
-    assert parentContentEntry != null;
+    ContentEntry parentContentEntry = FilePaths.findParentContentEntry(buildFolderPath, contentEntries);
+    if (parentContentEntry == null) {
+      return;
+    }
 
     // Explicitly exclude the output folders created by the Android Gradle plug-in
     for (String folderName : EXCLUDED_OUTPUT_FOLDER_NAMES) {

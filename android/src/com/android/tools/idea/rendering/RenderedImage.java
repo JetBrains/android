@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.uipreview.AndroidLayoutPreviewToolWindowSettings;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 
 import static com.android.tools.idea.rendering.ShadowPainter.SHADOW_SIZE;
@@ -99,7 +100,7 @@ public class RenderedImage {
       assert myMaxHeight > 0;
       double imageWidth = myImage.getWidth();
       double imageHeight = myImage.getHeight();
-      scale = Math.min(myMaxWidth / imageWidth, myMaxHeight / imageHeight);
+      scale = Math.min(1, Math.min(myMaxWidth / imageWidth, myMaxHeight / imageHeight));
     }
 
     if (myScale != scale) {
@@ -134,8 +135,7 @@ public class RenderedImage {
         DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
         Device device = myConfiguration.getDevice();
         if (device != null) {
-          AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-            AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+          AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
           if (settings.isShowDeviceFrames()) {
             State deviceState = myConfiguration.getDeviceState();
             if (deviceState != null) {
@@ -254,8 +254,7 @@ public class RenderedImage {
   public int getRequiredWidth() {
     int width = (int)(myScale * myImage.getWidth());
     if (myThumbnailHasFrame || myImageBounds == null && myScaledImage == null && myDeviceFrameEnabled &&
-        AndroidLayoutPreviewToolWindowSettings.getInstance(
-          myConfiguration.getModule().getProject()).getGlobalState().isShowDeviceFrames()) {
+        AndroidEditorSettings.getInstance().getGlobalState().isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
       if (device != null) {
@@ -279,8 +278,7 @@ public class RenderedImage {
   public int getRequiredHeight() {
     int height = (int)(myScale * myImage.getHeight());
     if (myThumbnailHasFrame || myImageBounds == null && myScaledImage == null && myDeviceFrameEnabled &&
-        AndroidLayoutPreviewToolWindowSettings.getInstance(
-          myConfiguration.getModule().getProject()).getGlobalState().isShowDeviceFrames()) {
+        AndroidEditorSettings.getInstance().getGlobalState().isShowDeviceFrames()) {
       DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
       Device device = myConfiguration.getDevice();
       if (device != null) {
@@ -319,8 +317,7 @@ public class RenderedImage {
         DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
         Device device = myConfiguration.getDevice();
         if (device != null) {
-          AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-            AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+          AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
           if (settings.isShowDeviceFrames()) {
             boolean showEffects = settings.isShowEffects();
             State deviceState = myConfiguration.getDeviceState();
@@ -342,17 +339,35 @@ public class RenderedImage {
       if (myScale == 1) {
         // Scaling to 100% is easy!
         myScaledImage = myImage;
+        // ...unless we need to clip:
+        Device device = myConfiguration.getDevice();
+        if (HardwareConfigHelper.isRound(device)) {
+          int imageType = myScaledImage.getType();
+          if (imageType == BufferedImage.TYPE_CUSTOM) {
+            imageType = BufferedImage.TYPE_INT_ARGB;
+          }
+          @SuppressWarnings("UndesirableClassUsage") // layoutlib doesn't create retina images
+          BufferedImage clipped = new BufferedImage(myImage.getWidth(), myImage.getHeight(), imageType);
+          Graphics2D g2 = clipped.createGraphics();
+          g2.setComposite(AlphaComposite.Src);
+          //noinspection UseJBColor
+          g2.setColor(new Color(0, true));
+          g2.fillRect(0, 0, clipped.getWidth(), clipped.getHeight());
+          paintClipped(g2, myImage, device, 0, 0, true);
+          g2.dispose();
+          myScaledImage = clipped;
+        }
 
         if (myShadowType == ShadowType.RECTANGULAR) {
           // Just need to draw drop shadows
           if (myUseLargeShadows) {
-            myScaledImage = ShadowPainter.createRectangularDropShadow(myImage);
+            myScaledImage = ShadowPainter.createRectangularDropShadow(myScaledImage);
           } else {
-            myScaledImage = ShadowPainter.createSmallRectangularDropShadow(myImage);
+            myScaledImage = ShadowPainter.createSmallRectangularDropShadow(myScaledImage);
           }
         } else if (myShadowType == ShadowType.ARBITRARY) {
           int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
-          myScaledImage = ShadowPainter.createDropShadow(myImage, shadowSize);
+          myScaledImage = ShadowPainter.createDropShadow(myScaledImage, shadowSize);
         }
         //noinspection ConstantConditions
         UIUtil.drawImage(g, myScaledImage, x, y, null);
@@ -362,9 +377,13 @@ public class RenderedImage {
         if (myShadowType != ShadowType.NONE) {
           int shadowSize = myUseLargeShadows ? SHADOW_SIZE : SMALL_SHADOW_SIZE;
           if (myShadowType == ShadowType.ARBITRARY) {
-            myScaledImage = ImageUtils.scale(myImage, myScale, myScale);
+            int scaledWidth = (int)(myImage.getWidth() * myScale);
+            int scaledHeight = (int)(myImage.getHeight() * myScale);
+            Shape clip = getClip(myConfiguration.getDevice(), 0, 0, scaledWidth, scaledHeight);
+            myScaledImage = ImageUtils.scale(myImage, myScale, myScale, clip);
             myScaledImage = ShadowPainter.createDropShadow(myScaledImage, shadowSize);
           } else {
+            // Clip should not apply here
             // Reserve room for the shadow; then paint directly into the target image
             myScaledImage = ImageUtils.scale(myImage, myScale, myScale, shadowSize, shadowSize);
             if (myUseLargeShadows) {
@@ -376,6 +395,7 @@ public class RenderedImage {
             }
           }
         } else {
+          // Clip should not apply here
           myScaledImage = ImageUtils.scale(myImage, myScale, myScale);
         }
         //noinspection ConstantConditions
@@ -391,10 +411,25 @@ public class RenderedImage {
         int scaledHeight = (int)(scale * h);
         myThumbnailHasFrame = false;
 
+        Device device = myConfiguration.getDevice();
+        boolean round = device != null && HardwareConfigHelper.isRound(device);
+
         Graphics2D g2 = (Graphics2D)g.create();
         try {
           g2.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
+
+          Shape prevClip = null;
+          if (round) {
+            prevClip = g.getClip();
+            int extra = 0;
+            g2.setClip(new Ellipse2D.Double(x - extra, y - extra, scaledWidth + 2 * extra, scaledHeight + 2 * extra));
+          }
+
           g2.drawImage(myImage, x, y, x + scaledWidth, y + scaledHeight, 0, 0, w, h, null);
+
+          if (round) {
+            g.setClip(prevClip);
+          }
         } finally {
           g2.dispose();
         }
@@ -402,10 +437,8 @@ public class RenderedImage {
         myThumbnailHasFrame = false;
         if (myDeviceFrameEnabled) {
           DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
-          Device device = myConfiguration.getDevice();
           if (device != null) {
-            AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-              AndroidLayoutPreviewToolWindowSettings.getInstance(myConfiguration.getModule().getProject()).getGlobalState();
+            AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
             if (settings.isShowDeviceFrames()) {
               State state = myConfiguration.getDeviceState();
               if (state != null) {
@@ -418,7 +451,7 @@ public class RenderedImage {
           }
         }
 
-        if (hasDropShadow()) {
+        if (hasDropShadow() && myShadowType == ShadowType.RECTANGULAR) {
           // We don't draw arbitrary drop shadows in up-scale mode; hopefully the visual artifacts aren't too noticeable
           ShadowPainter.drawRectangleShadow(g, x, y, scaledWidth, scaledHeight);
         }
@@ -434,9 +467,7 @@ public class RenderedImage {
       return false;
     }
 
-    Project project = myConfiguration.getModule().getProject();
-    AndroidLayoutPreviewToolWindowSettings.GlobalState settings =
-      AndroidLayoutPreviewToolWindowSettings.getInstance(project).getGlobalState();
+    AndroidEditorSettings.GlobalState settings = AndroidEditorSettings.getInstance().getGlobalState();
     if (!settings.isRetina()) {
       return false;
     }
@@ -481,10 +512,28 @@ public class RenderedImage {
       if (image == null) {
         image = myImage;
 
+        Device device = myConfiguration.getDevice();
+        if (HardwareConfigHelper.isRound(device)) {
+          int imageType = image.getType();
+          if (imageType == BufferedImage.TYPE_CUSTOM) {
+            imageType = BufferedImage.TYPE_INT_ARGB;
+          }
+          @SuppressWarnings("UndesirableClassUsage") // layoutlib doesn't create retina images
+          BufferedImage clipped = new BufferedImage(image.getWidth(), image.getHeight(), imageType);
+          Graphics2D g2 = clipped.createGraphics();
+          g2.setComposite(AlphaComposite.Src);
+          //noinspection UseJBColor
+          g2.setColor(new Color(0, true));
+          g2.fillRect(0, 0, clipped.getWidth(), clipped.getHeight());
+          paintClipped(g2, image, device, 0, 0, true);
+          g2.dispose();
+          image = clipped;
+        }
+
         // No scaling if very close to 1.0
         double retinaScale = 2 * myScale;
         if (Math.abs(myScale - 1.0) > 0.01) {
-          image = ImageUtils.scale(myImage, retinaScale, retinaScale);
+          image = ImageUtils.scale(image, retinaScale, retinaScale);
         }
       }
 
@@ -553,5 +602,43 @@ public class RenderedImage {
 
   public void imageChanged() {
     myScaledImage = null;
+  }
+
+  @Nullable
+  public static Shape getClip(@Nullable Device device, int x, int y, int width, int height) {
+    boolean round = device != null && HardwareConfigHelper.isRound(device);
+    if (round) {
+      int slop = 3; // to hide mask aliasing effects under device chrome by a pixel or two
+      return new Ellipse2D.Double(x - slop, y - slop, width + 2 * slop, height + 2 * slop);
+    }
+
+    return null;
+  }
+
+
+  /** Paints a rendered device image into the given graphics context  */
+  public static void paintClipped(@NotNull Graphics2D g,
+                                  @NotNull BufferedImage image,
+                                  @Nullable Device device,
+                                  int x,
+                                  int y,
+                                  boolean withRetina) {
+    Shape prevClip = null;
+    Shape clip = getClip(device, x, y, image.getWidth(), image.getHeight());
+    if (clip != null) {
+      prevClip = g.getClip();
+      g.setClip(clip);
+    }
+
+    if (withRetina) {
+      //noinspection ConstantConditions
+      UIUtil.drawImage(g, image, x, y, null);
+    } else {
+      g.drawImage(image, x, y, null);
+    }
+
+    if (clip != null) {
+      g.setClip(prevClip);
+    }
   }
 }

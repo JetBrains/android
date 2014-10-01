@@ -456,6 +456,10 @@ public class AndroidCommonUtils {
     return SdkConstants.OS_SDK_TOOLS_FOLDER + toolFileName;
   }
 
+  public static String platformToolPath(@NotNull String toolFileName) {
+    return SdkConstants.OS_SDK_PLATFORM_TOOLS_FOLDER + toolFileName;
+  }
+
   public static boolean isIncludingInProguardSupported(int sdkToolsRevision) {
     return sdkToolsRevision == -1 || sdkToolsRevision >= 17;
   }
@@ -467,6 +471,9 @@ public class AndroidCommonUtils {
     if (propFile.exists() && propFile.isFile()) {
       final Map<String, String> map =
         ProjectProperties.parsePropertyFile(new BufferingFileWrapper(propFile), new MessageBuildingSdkLog());
+      if (map == null) {
+        return -1;
+      }
       String revision = map.get("Pkg.Revision");
 
       if (revision != null) {

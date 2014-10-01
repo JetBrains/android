@@ -225,18 +225,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       Boolean isDebuggable = AndroidModuleInfo.get(facet).isDebuggable();
       nonDebuggableOnDevice = isDebuggable != null && !isDebuggable;
 
-      if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject(), new Computable<AndroidDebugBridge>() {
-        @Nullable
-        @Override
-        public AndroidDebugBridge compute() {
-          return facet.getDebugBridge();
-        }
-      })) {
+      if (!AndroidSdkUtils.activateDdmsIfNecessary(facet.getModule().getProject())) {
         return null;
       }
     }
 
-    if (platform.getSdkData().getDebugBridge(getProject()) == null) return null;
+    if (AndroidSdkUtils.getDebugBridge(getProject()) == null) return null;
 
     TargetChooser targetChooser = null;
     switch (getTargetSelectionMode()) {

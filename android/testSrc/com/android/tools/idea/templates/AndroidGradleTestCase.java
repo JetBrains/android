@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.gradle.eclipse.GradleImport;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
@@ -196,6 +196,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected void loadProject(String relativePath, boolean buildProject) throws IOException, ConfigurationException {
+    loadProject(relativePath, buildProject, null);
+  }
+
+  protected void loadProject(String relativePath, boolean buildProject, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException {
     File root = new File(getTestDataPath(), relativePath.replace('/', File.separatorChar));
     assertTrue(root.getPath(), root.exists());
     File build = new File(root, FN_BUILD_GRADLE);
@@ -221,7 +226,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       }
     }
 
-    importProject(project, project.getName(), projectRoot);
+    importProject(project, project.getName(), projectRoot, listener);
 
     assertTrue(Projects.isGradleProject(project));
     assertFalse(Projects.isIdeaAndroidProject(project));
@@ -235,7 +240,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private static void updateGradleVersions(@NotNull File file) throws IOException {
+  public static void updateGradleVersions(@NotNull File file) throws IOException {
     if (file.isDirectory()) {
       File[] files = file.listFiles();
       if (files != null) {
@@ -250,7 +255,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       Pattern pattern = Pattern.compile("classpath ['\"]com.android.tools.build:gradle:(.+)['\"]");
       Matcher matcher = pattern.matcher(contents);
       if (matcher.find()) {
-        contents = contents.substring(0, matcher.start(1)) + SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION +
+        contents = contents.substring(0, matcher.start(1)) + SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION +
                    contents.substring(matcher.end(1));
         changed = true;
       }
@@ -304,23 +309,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   public static void createGradleWrapper(File projectRoot) throws IOException {
-    File gradleWrapperSrc = new File(TemplateManager.getTemplateRootFolder(), FD_GRADLE_WRAPPER);
-    if (!gradleWrapperSrc.exists()) {
-      for (File root : TemplateManager.getExtraTemplateRootFolders()) {
-        gradleWrapperSrc = new File(root, FD_GRADLE_WRAPPER);
-        if (gradleWrapperSrc.exists()) {
-          break;
-        } else {
-          gradleWrapperSrc = null;
-        }
-      }
-    }
-    if (gradleWrapperSrc == null) {
-      return;
-    }
-    FileUtil.copyDirContent(gradleWrapperSrc, projectRoot);
-    File wrapperPropertiesFile = GradleUtil.getGradleWrapperPropertiesFilePath(projectRoot);
-    GradleUtil.updateGradleDistributionUrl(GRADLE_LATEST_VERSION, wrapperPropertiesFile);
+    GradleUtil.createGradleWrapper(projectRoot, null /* use latest supported Gradle version */);
   }
 
   protected static void assertFilesExist(@Nullable File baseDir, @NotNull String... paths) {
@@ -354,9 +343,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     Template.convertApisToInt(projectWizardState.getParameters());
     projectWizardState.put(TemplateMetadata.ATTR_GRADLE_VERSION, GRADLE_LATEST_VERSION);
-    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_LATEST_VERSION);
+    projectWizardState.put(TemplateMetadata.ATTR_GRADLE_PLUGIN_VERSION, GRADLE_PLUGIN_RECOMMENDED_VERSION);
     projectWizardState.put(NewModuleWizardState.ATTR_PROJECT_LOCATION, project.getBasePath());
-    projectWizardState.put(NewProjectWizardState.ATTR_MODULE_NAME, "TestModule");
+    projectWizardState.put(FormFactorUtils.ATTR_MODULE_NAME, "TestModule");
     projectWizardState.put(TemplateMetadata.ATTR_PACKAGE_NAME, "test.pkg");
     projectWizardState.put(TemplateMetadata.ATTR_CREATE_ICONS, false); // If not, you need to initialize additional state
     BuildToolInfo buildTool = sdkData.getLatestBuildTool();
@@ -388,10 +377,10 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     // Sync model
     if (syncModel) {
-      String projectName = projectWizardState.getString(NewProjectWizardState.ATTR_MODULE_NAME);
+      String projectName = projectWizardState.getString(FormFactorUtils.ATTR_MODULE_NAME);
       File projectRoot = new File(projectWizardState.getString(NewModuleWizardState.ATTR_PROJECT_LOCATION));
       assertEquals(projectRoot, VfsUtilCore.virtualToIoFile(myFixture.getProject().getBaseDir()));
-      importProject(myFixture.getProject(), projectName, projectRoot);
+      importProject(myFixture.getProject(), projectName, projectRoot, null);
     }
   }
 
@@ -462,23 +451,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  public static void importProject(Project project, String projectName, File projectRoot) throws IOException, ConfigurationException {
+  private static void importProject(Project project, String projectName, File projectRoot, @Nullable GradleSyncListener listener)
+    throws IOException, ConfigurationException {
     GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
     // When importing project for tests we do not generate the sources as that triggers a compilation which finishes asynchronously. This
     // causes race conditions and intermittent errors. If a test needs source generation this should be handled separately.
-    projectImporter.importProject(projectName, projectRoot, false /* do not generate sources */, new GradleSyncListener() {
-      @Override
-      public void syncStarted(@NotNull Project project) {
-      }
 
-      @Override
-      public void syncEnded(@NotNull Project project) {
-      }
-
-      @Override
-      public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
-        fail(errorMessage);
-      }
-    }, project, null);
+    if (listener == null) {
+      listener = new GradleSyncListener.Adapter() {
+        @Override
+        public void syncFailed(@NotNull Project project, @NotNull final String errorMessage) {
+          fail(errorMessage);
+        }
+      };
+    }
+    projectImporter.importProject(projectName, projectRoot, false /* do not generate sources */, listener, project, null);
   }
 }

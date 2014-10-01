@@ -23,6 +23,7 @@ import com.android.builder.model.Variant;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.IdeaAndroidProject;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.PropertiesUtil;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
@@ -34,7 +35,10 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.JarFileSystem;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.containers.OrderedSet;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -42,14 +46,12 @@ import org.jetbrains.android.compiler.AndroidDexCompiler;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -76,7 +78,7 @@ public class AndroidRootUtil {
   @Deprecated
   public static VirtualFile getManifestFile(@NotNull AndroidFacet facet) {
     if (facet.isGradleProject()) {
-      return facet.getMainIdeaSourceSet().getManifestFile();
+      return facet.getMainIdeaSourceProvider().getManifestFile();
     }
     return getFileByRelativeModulePath(facet.getModule(), facet.getProperties().MANIFEST_FILE_RELATIVE_PATH, true);
   }
@@ -88,7 +90,7 @@ public class AndroidRootUtil {
    */
   @Nullable
   public static VirtualFile getPrimaryManifestFile(@NotNull AndroidFacet facet) {
-    return facet.getMainIdeaSourceSet().getManifestFile();
+    return facet.getMainIdeaSourceProvider().getManifestFile();
   }
 
   @Nullable
@@ -338,7 +340,7 @@ public class AndroidRootUtil {
 
   private static void addAnnotationsJar(Module module, OrderedSet<VirtualFile> libs) {
     final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !sdk.getSdkType().equals(AndroidSdkType.getInstance())) {
+    if (sdk == null || !isAndroidSdk(sdk)) {
       return;
     }
 
@@ -469,10 +471,10 @@ public class AndroidRootUtil {
   private static Pair<Properties, VirtualFile> readPropertyFile(@NotNull VirtualFile contentRoot, @NotNull String propertyFileName) {
     final VirtualFile vFile = contentRoot.findChild(propertyFileName);
     if (vFile != null) {
-      final Properties properties = new Properties();
       try {
-        properties.load(new FileInputStream(new File(vFile.getPath())));
-        return Pair.create(properties, vFile);
+        File file = VfsUtilCore.virtualToIoFile(vFile);
+        Properties properties = PropertiesUtil.getProperties(file);
+        return new Pair<Properties, VirtualFile>(properties, vFile);
       }
       catch (IOException e) {
         LOG.info(e);

@@ -117,15 +117,16 @@ public class AndroidModuleInfo {
     return ManifestInfo.get(myFacet.getModule(), false).getTargetSdkVersion();
   }
 
-  public int getBuildSdkVersion() {
+  @Nullable
+  public AndroidVersion getBuildSdkVersion() {
     // TODO: Get this from the model! For now, we take advantage of the fact that
     // the model should have synced the right type of Android SDK to the IntelliJ facet.
     AndroidPlatform platform = AndroidPlatform.getPlatform(myFacet.getModule());
     if (platform != null) {
-      return platform.getApiLevel();
+      return platform.getApiVersion();
     }
 
-    return -1;
+    return null;
   }
 
   /**
@@ -145,7 +146,8 @@ public class AndroidModuleInfo {
     return ManifestInfo.get(myFacet.getModule(), false).getApplicationDebuggable();
   }
 
-  public static int getBuildSdkVersion(@Nullable Module module) {
+  @Nullable
+  public static AndroidVersion getBuildSdkVersion(@Nullable Module module) {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
@@ -156,7 +158,12 @@ public class AndroidModuleInfo {
       }
     }
 
-    return -1;
+    return null;
+  }
+
+  public static int getBuildSdkApiLevel(@Nullable Module module) {
+    AndroidVersion version = getBuildSdkVersion(module);
+    return version != null ? version.getApiLevel() : -1;
   }
 
   @NotNull

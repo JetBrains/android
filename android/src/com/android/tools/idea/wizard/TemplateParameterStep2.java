@@ -24,15 +24,13 @@ import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import com.intellij.ide.util.ClassFilter;
 import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.ide.util.TreeClassChooserFactory;
@@ -40,14 +38,13 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.event.DocumentAdapter;
 import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaCodeFragment;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -59,8 +56,6 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ArrayUtil;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -92,9 +87,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   private final Function<Parameter, Key<?>> myParameterToKey;
   private final Map<String, Object> myPresetParameters = Maps.newHashMap();
-  private final VirtualFile myTargetDirectory;
   @NotNull private final Key<String> myPackageNameKey;
-  private final LoadingCache<File, Icon> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
+  private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = CacheBuilder.newBuilder().build(new TemplateIconLoader());
+  private final SourceProvider[] mySourceProviders;
   private JLabel myTemplateIcon;
   private JPanel myTemplateParameters;
   private JLabel myTemplateDescription;
@@ -106,6 +101,9 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
   private JComboBox mySourceSet;
   private JLabel mySourceSetLabel;
   private boolean myUpdatingDefaults = false;
+  private Map<Parameter, List<JComponent>> myParameterComponents = new WeakHashMap<Parameter, List<JComponent>>();
+  private final StringEvaluator myEvaluator = new StringEvaluator();
+  private Map<String, WizardParameterFactory> myExternalWizardParameterFactoryMap = null;
 
   /**
    * Creates a new template parameters wizard step.
@@ -114,11 +112,11 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
    *                         User will not be allowed to change their values.
    */
   public TemplateParameterStep2(@NotNull FormFactorUtils.FormFactor formFactor, Map<String, Object> presetParameters,
-                                @Nullable VirtualFile targetDirectory, @Nullable Disposable disposable,
-                                @NotNull Key<String> packageNameKey) {
+                                @Nullable Disposable disposable, @NotNull Key<String> packageNameKey,
+                                SourceProvider[] sourceProviders) {
     super("Choose options for your new file", null, formFactor.getIcon(), disposable);
+    mySourceProviders = sourceProviders;
     myPresetParameters.putAll(presetParameters);
-    myTargetDirectory = targetDirectory;
     myPackageNameKey = packageNameKey;
     myParameterToKey = CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(new ParameterKeyFunction()));
     myRootPanel.setBorder(createBodyBorder());
@@ -137,21 +135,27 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
   public void setPresetValue(@NotNull String key, @Nullable Object value) {
     myPresetParameters.put(key, value);
+    invokeUpdate(null);
   }
 
   private static JComponent createEnumCombo(Parameter parameter) {
-    JComboBox combo = new ComboBox();
     List<Element> options = parameter.getOptions();
+    ComboBoxItem[] items = new ComboBoxItem[options.size()];
+    int initialSelection = -1;
+    int i = 0;
     assert !options.isEmpty();
     for (Element option : options) {
       //noinspection unchecked
-      combo.addItem(createItemForOption(parameter, option));
+      items[i++] = createItemForOption(parameter, option);
       String isDefault = option.getAttribute(Template.ATTR_DEFAULT);
       if (isDefault != null && !isDefault.isEmpty() && Boolean.valueOf(isDefault)) {
-        combo.setSelectedIndex(combo.getItemCount() - 1);
+        initialSelection = i - 1;
       }
     }
-    return combo;
+    @SuppressWarnings("UndesirableClassUsage")
+    JComboBox comboBox = new JComboBox(items);
+    comboBox.setSelectedIndex(initialSelection);
+    return comboBox;
   }
 
   public static ComboBoxItem createItemForOption(Parameter parameter, Element option) {
@@ -177,7 +181,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private static void addComponent(JComponent parent, JComponent component, int row, int column, boolean isLast) {
+  private static int addComponent(JComponent parent, JComponent component, int row, int column, boolean isLast) {
     GridConstraints gridConstraints = new GridConstraints();
     gridConstraints.setRow(row);
     gridConstraints.setColumn(column);
@@ -200,13 +204,15 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     if (isLast && !isGreedyComponent && column < COLUMN_COUNT - 1) {
       addComponent(parent, new Spacer(), row, column + 1, true);
     }
+
+    return columnSpan;
   }
 
   private Map<Parameter, Object> getParameterObjectMap(Collection<Parameter> parameters,
                                                        Map<Parameter, Object> parametersWithDefaultValues,
                                                        Map<Parameter, Object> parametersWithNonDefaultValues) {
     Map<Parameter, Object> computedDefaultValues = ParameterDefaultValueComputer.
-      newDefaultValuesMap(parameters, parametersWithNonDefaultValues, new DeduplicateValuesFunction());
+      newDefaultValuesMap(parameters, parametersWithNonDefaultValues, getImplicitParameters(), new DeduplicateValuesFunction());
     Map<Parameter, Object> parameterValues = Maps.newHashMap(parametersWithDefaultValues);
     for (Map.Entry<Parameter, Object> entry : computedDefaultValues.entrySet()) {
       if (!parametersWithNonDefaultValues.keySet().contains(entry.getKey()) && entry.getValue() != null) {
@@ -214,6 +220,17 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       }
     }
     return parameterValues;
+  }
+
+  private Map<String, Object> getImplicitParameters() {
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<String, Object>();
+    for (Key<String> parameter : AddAndroidActivityPath.IMPLICIT_PARAMETERS) {
+      String value = myState.get(parameter);
+      if (value != null) {
+        builder.put(parameter.name, value);
+      }
+    }
+    return builder.build();
   }
 
   @Override
@@ -246,7 +263,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     else {
       switch (parameter.type) {
         case BOOLEAN:
-          label.setText(null);
+          label = null;
           dataComponent = new JCheckBox(parameter.name);
           break;
         case ENUM:
@@ -260,12 +277,63 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
           break;
         case SEPARATOR:
           return Collections.<JComponent>singletonList(new JSeparator(SwingConstants.HORIZONTAL));
+        case CUSTOM:
+          JComponent createdComponent = null;
+          try {
+            WizardParameterFactory factory = getExternalFactory(parameter.externalTypeName);
+            if (factory != null) {
+              createdComponent = factory.createComponent(parameter.externalTypeName, parameter);
+            }
+            if (createdComponent == null) {
+              LOG.error(String.format("Bad registration for custom wizard type %1$s.  See ExternalWizardParameterFactory extension point.",
+                                      Strings.isNullOrEmpty(parameter.externalTypeName) ? "(null)" : parameter.externalTypeName));
+              createdComponent = new JTextField();
+            }
+          }
+          catch(Exception e) {
+            LOG.error(String.format("Exception creating class %1$s", parameter.externalTypeName), e);
+            createdComponent = new JTextField();
+          }
+          dataComponent = createdComponent;
+          break;
         default:
           throw new IllegalStateException(parameter.type.toString());
       }
     }
+    if (!StringUtil.isEmpty(parameter.help) && dataComponent.getAccessibleContext() != null) {
+      dataComponent.getAccessibleContext().setAccessibleDescription(parameter.help);
+    }
     register(parameter, dataComponent);
-    return Arrays.asList(label, dataComponent);
+    if (label != null) {
+      label.setLabelFor(dataComponent);
+    }
+    return label != null ? Arrays.asList(label, dataComponent) : Arrays.asList(dataComponent);
+  }
+
+  private WizardParameterFactory getExternalFactory(String uiTypeName) {
+    if (Strings.isNullOrEmpty(uiTypeName)) {
+      return null;
+    }
+
+    if (myExternalWizardParameterFactoryMap == null) {
+      Map<String,WizardParameterFactory> externalWizardParameterFactoryHashMap = new HashMap<String,WizardParameterFactory>();
+      WizardParameterFactory[] factories = Extensions.getExtensions(WizardParameterFactory.EP_NAME);
+      for(WizardParameterFactory factory : factories) {
+        String[] types = factory.getSupportedTypes();
+        if (types != null) {
+          for(String type : types) {
+            if (externalWizardParameterFactoryHashMap.containsKey(type)) {
+              LOG.error("Duplicate ExternalWizardParameterFactory registration on Type:" + type);
+              continue;
+            }
+            externalWizardParameterFactoryHashMap.put(type, factory);
+          }
+        }
+      }
+      myExternalWizardParameterFactoryMap = externalWizardParameterFactoryHashMap;
+    }
+
+    return myExternalWizardParameterFactoryMap.get(uiTypeName);
   }
 
   private JComponent createClassEntry(Parameter parameter, Module module) {
@@ -384,7 +452,13 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       });
     }
     else {
-      throw new IllegalArgumentException(dataComponent.getClass().getName());
+      WizardParameterFactory factory = getExternalFactory(parameter.externalTypeName);
+      if (factory != null) {
+        register((Key<String>)key, dataComponent, factory.createBinding(dataComponent, parameter));
+      }
+      else {
+        throw new IllegalArgumentException(dataComponent.getClass().getName());
+      }
     }
   }
 
@@ -398,7 +472,35 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     super.deriveValues(modified);
     if (myCurrentTemplate != null) {
       updateStateWithDefaults(myCurrentTemplate.getParameters());
+      updateControlsVisibility();
     }
+  }
+
+  private void updateControlsVisibility() {
+    if (myUpdatingDefaults) {
+      return;
+    }
+    Map<String, Object> contextValues = getContextValues();
+    for (Parameter parameter : myCurrentTemplate.getParameters()) {
+      String visibility = parameter.visibility;
+      if (!StringUtil.isEmpty(visibility)) {
+        boolean visible = myEvaluator.evaluateBooleanExpression(visibility, contextValues, true);
+        List<JComponent> components = myParameterComponents.get(parameter);
+        if (components != null) {
+          for (JComponent component : components) {
+            component.setVisible(visible);
+          }
+        }
+      }
+    }
+  }
+
+  private Map<String, Object> getContextValues() {
+    Map<String, Object> values = Maps.newHashMap();
+    for (Key key : myState.getAllKeys()) {
+      values.put(key.name, myState.get(key));
+    }
+    return values;
   }
 
   @Override
@@ -415,7 +517,8 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     for (Parameter param : templateEntry.getParameters()) {
       if (param != null) {
         Object value = getStateParameterValue(param);
-        String error = param.validate(getProject(), getModule(), getSourceProvider(),
+        String error = param.validate(getProject(), getModule(),
+                                      myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER),
                                       myState.get(myPackageNameKey),
                                       value != null ? value : "");
         if (error != null) {
@@ -444,17 +547,12 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     return true;
   }
 
-  @Nullable
-  private SourceProvider getSourceProvider() {
-    return myState.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER);
-  }
-
   @Override
   public void init() {
     super.init();
-    List<SourceProvider> sourceProviders = getSourceProviders();
-    if (sourceProviders.size() > 0) {
-      myState.put(AddAndroidActivityPath.KEY_SOURCE_PROVIDER, sourceProviders.get(0));
+    if (mySourceProviders.length > 0) {
+      myState.put(AddAndroidActivityPath.KEY_SOURCE_PROVIDER, mySourceProviders[0]);
+      myState.put(AddAndroidActivityPath.KEY_SOURCE_PROVIDER_NAME, mySourceProviders[0].getName());
     }
     register(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE, (JComponent)myTemplateDescription.getParent(),
              new ComponentBinding<TemplateEntry, JComponent>() {
@@ -473,7 +571,10 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     register(KEY_TEMPLATE_ICON, myTemplateIcon, new ComponentBinding<File, JLabel>() {
       @Override
       public void setValue(@Nullable File newValue, @NotNull JLabel component) {
-        component.setIcon(newValue == null ? null : myThumbnailsCache.apply(newValue));
+        Optional<Icon> thumbnail = newValue == null ? null : myThumbnailsCache.apply(newValue);
+        Icon icon = thumbnail != null ? thumbnail.orNull() : null;
+        component.setIcon(icon);
+        component.setVisible(thumbnail != null);
       }
     });
     registerValueDeriver(KEY_TEMPLATE_ICON, new ValueDeriver<File>() {
@@ -481,6 +582,14 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       @Override
       public File deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable File currentValue) {
         return getTemplateIconPath(state.get(AddAndroidActivityPath.KEY_SELECTED_TEMPLATE));
+      }
+    });
+    registerValueDeriver(AddAndroidActivityPath.KEY_SOURCE_PROVIDER_NAME, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state, @Nullable Key changedKey, @Nullable String currentValue) {
+        SourceProvider sourceProvider = state.get(AddAndroidActivityPath.KEY_SOURCE_PROVIDER);
+        return sourceProvider == null ? null : sourceProvider.getName();
       }
     });
   }
@@ -518,7 +627,6 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
 
     String string = ImportUIUtil.makeHtmlString(metadata.getDescription());
     myTemplateDescription.setText(string);
-    //myState.put(KEY_TITLE, template.getTitle());
     updateControls(template);
   }
 
@@ -541,52 +649,53 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         deregister((JComponent)component);
       }
     }
-    GridLayoutManager layout = new GridLayoutManager(parameters.size() + 1, COLUMN_COUNT);
+    int lastRow = addParameterComponents(parameters.size() + 1, parameters);
+    addSourceSetControls(lastRow);
+  }
+
+  private int addParameterComponents(final int rowCount, final Set<Parameter> parameters) {
+    CellLocation location = new CellLocation();
+    myTemplateParameters.removeAll();
+    GridLayoutManager layout = new GridLayoutManager(rowCount + 1, COLUMN_COUNT);
     layout.setSameSizeHorizontally(false);
     myTemplateParameters.setLayout(layout);
-    int row = 0;
+
     for (final Parameter parameter : parameters) {
-      addComponents(parameter, row++);
+      addComponents(parameter, location);
     }
-    addSourceSetControls(row);
+    if (location.column > 0) {
+      //add spacers before moving to the next row.
+      if (location.column < COLUMN_COUNT) {
+        addComponent(myTemplateParameters, new Spacer(), location.row, location.column, true);
+      }
+      location.row++;
+    }
+    return location.row;
+  }
+
+  class CellLocation {
+    public int row = 0, column = 0;
   }
 
   private void addSourceSetControls(int row) {
-    List<SourceProvider> sourceProviders = getSourceProviders();
-    if (sourceProviders.size() > 1) {
+    if (mySourceProviders.length > 1) {
       if (mySourceSetLabel == null) {
         mySourceSetLabel = new JLabel("Target Source Set:");
-        mySourceSet = new ComboBox();
+        //noinspection UndesirableClassUsage
+        mySourceSet = new JComboBox();
         register(AddAndroidActivityPath.KEY_SOURCE_PROVIDER, mySourceSet);
         setControlDescription(mySourceSet, "The selected folder contains multiple source sets, " +
                                            "this can include source sets that do not yet exist on disk. " +
                                            "Please select the target source set in which to create the files.");
       }
       mySourceSet.removeAllItems();
-      for (SourceProvider sourceProvider : sourceProviders) {
+      for (SourceProvider sourceProvider : mySourceProviders) {
         //noinspection unchecked
         mySourceSet.addItem(new ComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
       }
       addComponent(myTemplateParameters, mySourceSetLabel, row, 0, false);
       addComponent(myTemplateParameters, mySourceSet, row, 1, true);
     }
-  }
-
-  @NotNull
-  private List<SourceProvider> getSourceProviders() {
-    Module module = getModule();
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        if (myTargetDirectory != null) {
-          return IdeaSourceProvider.getSourceProvidersForFile(facet, myTargetDirectory, facet.getMainSourceSet());
-        }
-        else {
-          return IdeaSourceProvider.getAllSourceProviders(facet);
-        }
-      }
-    }
-    return ImmutableList.of();
   }
 
   private Iterable<Parameter> filterNonUIParameters(TemplateEntry entry) {
@@ -663,13 +772,48 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private void addComponents(Parameter parameter, int row) {
+  private void addComponents(Parameter parameter, CellLocation location) {
     List<JComponent> keyComponents = createComponents(parameter);
-    int column = 0;
+
+    // If a group of components take a full row, we ensure we are on
+    // a fresh row at the start, and also ensure we end on a new row
+    // for the next component.
+    // We only group components together on the same row if both
+    // component sets indicate they allow it.
+    // Right now, our indication for requiring a full row is simply
+    // if the # of components is > 1.  Only checkbox is allowed to
+    // share a row.
+    boolean isFullRow = keyComponents.size() > 1;
+
+    // We start a new row if these components are "fullrow" while on an previously used row
+    // or if there isn't enough space.
+    if ((isFullRow && location.column > 0)
+        || location.column + keyComponents.size() > COLUMN_COUNT) {
+
+      // Add spacers before moving to the next row.
+      if (location.column < COLUMN_COUNT) {
+        addComponent(myTemplateParameters, new Spacer(), location.row, location.column, true);
+      }
+      location.column = 0;
+      location.row++;
+    }
+
+    // For any component that didn't return a label (checkbox for now), we manually add a null label here to keep the layout the same.
+    if (location.column == 0 && keyComponents.size() == 1 && keyComponents.get(0) instanceof JCheckBox) {
+      location.column += addComponent(myTemplateParameters, new JLabel(), location.row, location.column, false);
+    }
+
+    myParameterComponents.put(parameter, keyComponents);
     for (Iterator<JComponent> iterator = keyComponents.iterator(); iterator.hasNext(); ) {
       JComponent keyComponent = iterator.next();
-      addComponent(myTemplateParameters, keyComponent, row, column++, !iterator.hasNext());
+      location.column += addComponent(myTemplateParameters, keyComponent, location.row, location.column,
+                                      isFullRow && !iterator.hasNext() );
       setControlDescription(keyComponent, parameter.help);
+    }
+
+    if (isFullRow) {
+      location.row++;
+      location.column = 0;
     }
   }
 
@@ -701,6 +845,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
         case EXTERNAL:
         case STRING:
         case SEPARATOR:
+        case CUSTOM:
           clazz = String.class;
           break;
         default:
@@ -772,22 +917,29 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
     }
   }
 
-  private static class TemplateIconLoader extends CacheLoader<File, Icon> {
+  private static class TemplateIconLoader extends CacheLoader<File, Optional<Icon>> {
     @Nullable
     @Override
-    public Icon load(@NotNull File key) {
+    public Optional<Icon> load(@NotNull File key) {
+      Logger log = Logger.getInstance(ActivityGalleryStep.class);
       try {
         if (key.isFile()) {
           BufferedImage image = ImageIO.read(key);
           if (image != null) {
-            return new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH));
+            return Optional.<Icon>of(new ImageIcon(image.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
           }
+          else {
+            log.error("File " + key.getAbsolutePath() + " exists but is not a valid image");
+          }
+        }
+        else {
+          log.error("Image file " + key.getAbsolutePath() + " was not found");
         }
       }
       catch (IOException e) {
-        Logger.getInstance(ActivityGalleryStep.class).warn(e);
+        log.warn(e);
       }
-      return null;
+      return Optional.absent();
     }
   }
 
@@ -810,10 +962,17 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithHeaderAndDescri
       if (StringUtil.isEmpty(value) || !parameter.constraints.contains(Parameter.Constraint.UNIQUE)) {
         return value;
       }
-      int i = 2;
       String suggested = value;
-      while (!parameter.uniquenessSatisfied(project, module, provider, packageName, suggested)) {
-        suggested = value + (i++);
+      int extensionOffset = value.length() - 4;
+      boolean hasExtension = value.charAt(extensionOffset) == '.';
+      //noinspection ForLoopThatDoesntUseLoopVariable
+      for (int i = 2; !parameter.uniquenessSatisfied(project, module, provider, packageName, suggested); i++) {
+        if (hasExtension) {
+          suggested = value.substring(0, extensionOffset) + i + value.substring(extensionOffset);
+        }
+        else {
+          suggested = value + i;
+        }
       }
       return suggested;
     }

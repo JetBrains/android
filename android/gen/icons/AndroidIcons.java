@@ -53,14 +53,38 @@ public class AndroidIcons {
   public static final Icon EmptyFlag = load("/icons/flags/flag_empty.png"); // 16x16
 
   public static final Icon GradleSync = load("/icons/gradlesync.png"); // 16x16
-
   public static final Icon GradleConsole = load("/icons/gradle_console.png"); // 16x16
   public static final Icon GradleConsoleToolWindow = load("/icons/gradle_console_tool_window.png"); // 13x13
+  public static final Icon MavenLogo = load("/icons/mavenLogo.png"); // 16x16
+
+  public static final Icon MemoryMonitor = load("/icons/memory_monitor.png"); // 16x16
+  public static final Icon MemoryMonitorToolWindow = load("/icons/memory_monitor_tool_window.png"); // 13x13
 
   public static final Icon Variant = load("/icons/variant.png");
 
   public static final Icon AppModule = load("/icons/appModule.png");
   public static final Icon LibraryModule = load("/icons/libraryModule.png");
+
+  // Form factors
+  public static class FormFactors {
+    public static final Icon Wear_16 = load("/icons/wear.png"); // 16x16
+    public static final Icon Car_16 = load("/icons/car.png");   // 16x16
+    public static final Icon Glass_16 = load("/icons/glass.png"); // 16x16
+    public static final Icon Mobile_16 = load("/icons/mobile.png"); // 16x16
+    public static final Icon Tv_16 = load("/icons/tv.png"); // 16x16
+
+    public static final Icon Wear_32 = load("/icons/formfactors/wear_32.png");     // 32x32
+    public static final Icon Car_32 = load("/icons/formfactors/car_32.png");       // 32x32
+    public static final Icon Glass_32 = load("/icons/formfactors/glass_32.png");   // 32x32
+    public static final Icon Mobile_32 = load("/icons/formfactors/phone_tablet_32.png"); // 32x32
+    public static final Icon Tv_32 = load("/icons/formfactors/tv_32.png");         // 32x32
+
+    public static final Icon Wear_128 = load("/icons/wear_128.png"); // 128x128
+    public static final Icon Car_128 = load("/icons/car_128.png");   // 128x128
+    public static final Icon Glass_128 = load("/icons/glass_128.png"); // 128x128
+    public static final Icon Mobile_128 = load("/icons/mobile_128.png"); // 128x128
+    public static final Icon Tv_128 = load("/icons/tv_128.png"); // 128x128
+  }
 
   public static class Configs {
     public static final Icon Dock = load("/icons/dockmode.png");
@@ -111,14 +135,13 @@ public class AndroidIcons {
     public static final Icon DefaultTemplate = load("/icons/wizards/defaultTemplate.png"); //512x512
     public static final Icon DefaultTemplate256 = load("/icons/wizards/defaultTemplate256.png"); // 256x256
     public static final Icon GithubIcon = load("/icons/wizards/github_icon.png"); // 256x256
-    public static final Icon FormFactorPhoneTabletLight = load("/icons/wizards/phone_tablet_light.png"); // 64x64
-    public static final Icon FormFactorPhoneTabletDark = load("/icons/wizards/phone_tablet_dark.png"); // 64x64
-    public static final Icon FormFactorWearLight = load("/icons/wizards/wear-light.png"); // 64x64
-    public static final Icon FormFactorWearDark = load("/icons/wizards/wear-dark.png"); // 64x64
-    public static final Icon FormFactorGlassLight = load("/icons/wizards/glass-light.png"); // 64x64
-    public static final Icon FormFactorGlassDark = load("/icons/wizards/glass-dark.png"); // 64x64
+    public static final Icon FormFactorPhoneTablet = load("/icons/wizards/phone_tablet.png"); // 64x64
+    public static final Icon FormFactorWear = load("/icons/wizards/wear.png"); // 64x64
+    public static final Icon FormFactorGlass = load("/icons/wizards/glass.png"); // 64x64
+    public static final Icon FormFactorTV = load("/icons/wizards/tv.png"); // 64x64
     public static final Icon NewProjectMascot = load("/icons/wizards/welcome.png"); // 60x60
     public static final Icon NewProjectMascotGreen = load("/icons/wizards/welcome_green.png"); // 60x60
+    public static final Icon FirstRunWizard = load("/icons/wizards/welcome_material.png"); // 80x80
   }
 
   public static class Views {
@@ -193,5 +216,14 @@ public class AndroidIcons {
     public static final Icon WebView = load("/icons/views/WebView.png"); // 16x16
     public static final Icon ZoomButton = load("/icons/views/ZoomButton.png"); // 16x16
     public static final Icon ZoomControls = load("/icons/views/ZoomControls.png"); // 16x16
+  }
+
+  public static class Versions {
+    public static final Icon Froyo = load("/icons/versions/Froyo.png"); // 512x512
+    public static final Icon Gingerbread = load("/icons/versions/Gingerbread.png"); // 512x512
+    public static final Icon Honeycomb = load("/icons/versions/Honeycomb.png"); // 512x512
+    public static final Icon IceCreamSandwich = load("/icons/versions/IceCreamSandwich.png"); // 512x512
+    public static final Icon JellyBean = load("/icons/versions/Jelly Bean.png"); // 512x512
+    public static final Icon KitKat = load("/icons/versions/KitKat.png"); // 512x512
   }
 }

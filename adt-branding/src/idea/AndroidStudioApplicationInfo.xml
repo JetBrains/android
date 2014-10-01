@@ -14,11 +14,11 @@
   ~ limitations under the License.
   -->
 <component>
-  <version codename="Preview" major="0" minor="6.2" eap="true"/>
+  <version codename="Beta" major="0" minor="8.12" eap="true"/>
   <company name="Google Inc." url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="138.538"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="135.1286"/>
   <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
-  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="ffaa16" progressY="238" progressTailIcon="/community_progress_tail.png"/>
+  <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="8bc34a" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
   <icon size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png"/>
   <package code="__PACKAGE_CODE__"/>
@@ -35,8 +35,8 @@
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://tools.android.com/welcome-to-android-studio"/>
-  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"
-            release-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__&amp;status=New"/>
+  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__,%20$DESCR&amp;status=New"
+            release-url="https://code.google.com/p/android/issues/entry?template=Android%20Studio%20bug&amp;comment=Build:%20$VERSION,%20__BUILD_NUMBER__,%20__BUILD_DATE__,%20$DESCR&amp;status=New"/>
   <plugins url="http://plugins.intellij.net"/>
   <whatsnew url="http://tools.android.com/recent"/>
   <keymap win="http://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"

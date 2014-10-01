@@ -22,6 +22,8 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.resources.ResourceValue;
 
+import java.util.List;
+
 /**
  * @author coyote
  */
@@ -29,4 +31,10 @@ public interface ApplicationComponent extends ManifestElementWithName {
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("string")
   AndroidAttributeValue<ResourceValue> getLabel();
+
+  @Convert(ResourceReferenceConverter.class)
+  @AndroidResourceType("drawable")
+  AndroidAttributeValue<ResourceValue> getIcon();
+
+  List<MetaData> getMetaDatas();
 }

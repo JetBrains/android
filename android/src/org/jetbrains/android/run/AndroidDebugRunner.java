@@ -17,7 +17,9 @@ package org.jetbrains.android.run;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
+import com.intellij.debugger.ui.DebuggerContentInfo;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
+import com.intellij.debugger.ui.DebuggerSessionTab;
 import com.intellij.execution.*;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RemoteState;
@@ -28,18 +30,23 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.*;
-import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.execution.ui.RunContentManager;
+import com.intellij.execution.runners.DefaultProgramRunner;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.ui.*;
+import com.intellij.execution.ui.layout.PlaceInGrid;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
@@ -47,15 +54,21 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.ui.content.ContentManagerEvent;
 import com.intellij.xdebugger.DefaultDebugProcessHandler;
+import com.intellij.xdebugger.XDebuggerBundle;
+import icons.AndroidIcons;
 import org.jetbrains.android.dom.manifest.Instrumentation;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.logcat.AndroidLogcatView;
 import org.jetbrains.android.logcat.AndroidToolWindowFactory;
 import org.jetbrains.android.run.testing.AndroidTestRunConfiguration;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.util.List;
 
@@ -71,6 +84,8 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
   private static final Object myDebugLock = new Object();
   public static final String ANDROID_LOGCAT_CONTENT_ID = "Android Logcat";
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.run.AndroidDebugRunner");
+
+  private static NotificationGroup ourNotificationGroup; // created and accessed only in EDT
 
   private static void tryToCloseOldSessions(final Executor executor, Project project) {
     final ExecutionManager manager = ExecutionManager.getInstance(project);
@@ -301,9 +316,12 @@ public class AndroidDebugRunner extends DefaultProgramRunner {
           notificationMessage = "Session <a href=''>'" + sessionName + "'</a>: " + status;
         }
 
-        NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId())
-          .createNotification("", notificationMessage,
-                              type, new NotificationListener() {
+        if (ourNotificationGroup == null) {
+          ourNotificationGroup = NotificationGroup.toolWindowGroup("Android Session Restarted", executor.getToolWindowId(), true);
+        }
+
+        ourNotificationGroup
+          .createNotification("", notificationMessage, type, new NotificationListener() {
             @Override
             public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
               if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {

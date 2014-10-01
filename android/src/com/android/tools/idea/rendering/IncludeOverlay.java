@@ -73,12 +73,16 @@ public class IncludeOverlay extends Overlay {
     Composite prevComposite = gc.getComposite();
     gc.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, MASK_TRANSPARENCY / 255.0f));
 
+    Shape prevClip = gc.getClip();
+    Shape clip = setScreenClip(myContainer, component, gc, deltaX, deltaY);
     Collection<Rectangle> masks = computeMasks(component, includedRoots);
     for (Rectangle r : masks) {
       gc.fillRect(r.x + deltaX, r.y + deltaY, r.width, r.height);
     }
-
     gc.setComposite(prevComposite);
+    if (clip != null) {
+      gc.setClip(prevClip);
+    }
   }
 
   /** Computes the set of rectangles we should paint to cover everything up <b>except</b> for

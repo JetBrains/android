@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="test.pkg" >
+    <permission android:name="foo.permission.SIGNATURE_OR_SYSTEM"
+        <warning descr="`protectionLevel` should probably not be set to `signatureOrSystem`">android:protectionLevel="<caret>signatureOrSystem"</warning>/>
+
+    <application/>
+
+</manifest>

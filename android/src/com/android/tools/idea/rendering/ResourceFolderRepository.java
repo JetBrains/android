@@ -107,9 +107,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       @Override
       public void run() {
         PsiManager manager = PsiManager.getInstance(myFacet.getModule().getProject());
-        PsiDirectory directory = manager.findDirectory(myResourceDir);
-        if (directory != null) {
-          scanResFolder(directory);
+        if (myResourceDir.isValid()) {
+          PsiDirectory directory = manager.findDirectory(myResourceDir);
+          if (directory != null) {
+            scanResFolder(directory);
+          }
         }
       }
     });
@@ -406,7 +408,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
+        ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
             rescanImmediately(psiFile, folderType);
@@ -1135,6 +1137,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
               if (parent instanceof XmlAttributeValue) {
                 PsiElement attribute = parent.getParent();
+                if (attribute instanceof XmlProcessingInstruction) {
+                  // Don't care about edits in the processing instructions, e.g. editing the encoding attribute in
+                  // <?xml version="1.0" encoding="utf-8"?>
+                  return;
+                }
                 PsiElement tag = attribute.getParent();
                 assert attribute instanceof XmlAttribute : attribute;
                 XmlAttribute xmlAttribute = (XmlAttribute)attribute;

@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
@@ -36,6 +37,7 @@ import java.util.Set;
  */
 public final class ParameterDefaultValueComputer implements Function<Parameter, Object> {
   private final Map<Parameter, Object> nonDefaultValues;
+  private final Map<String, Object> myImplicitParameters;
   @Nullable private final Deduplicator myDeduplicateValueFunction;
   private final StringEvaluator myStringEvaluator = new StringEvaluator();
   private final Map<String, Parameter> myParameterIds;
@@ -44,8 +46,10 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
 
   private ParameterDefaultValueComputer(Set<Parameter> parameterSet,
                                         Map<Parameter, Object> nonCurrentValues,
+                                        Map<String, Object> implicitParameters,
                                         @Nullable Deduplicator deduplicateValueFunction) {
     nonDefaultValues = nonCurrentValues;
+    myImplicitParameters = implicitParameters;
     myDeduplicateValueFunction = deduplicateValueFunction;
     myParameterIds = Maps.uniqueIndex(parameterSet, new Function<Parameter, String>() {
       @Override
@@ -64,10 +68,11 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
    *
    * @param parameters list of parameters that need to be present in the map
    * @param values map of parameters with non-default values.
+   * @param implicitParameters
    * @return dynamic map
    */
   public static Map<Parameter, Object> newDefaultValuesMap(Iterable<Parameter> parameters,
-                                                           Map<Parameter, Object> values,
+                                                           Map<Parameter, Object> values, Map<String, Object> implicitParameters,
                                                            @Nullable Deduplicator deduplicateValueFunction) {
     Set<Parameter> parameterSet = FluentIterable.from(parameters).filter(new Predicate<Parameter>() {
       @Override
@@ -75,7 +80,8 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
         return input != null && !StringUtil.isEmpty(input.name);
       }
     }).toSet();
-    ParameterDefaultValueComputer computer = new ParameterDefaultValueComputer(parameterSet, values, deduplicateValueFunction);
+    ParameterDefaultValueComputer computer = new ParameterDefaultValueComputer(parameterSet, values,
+                                                                               implicitParameters, deduplicateValueFunction);
     Map<Parameter, Object> defaultsMap = Maps.asMap(parameterSet, computer);
     computer.setDefaultsMap(defaultsMap);
     return defaultsMap;
@@ -122,11 +128,18 @@ public final class ParameterDefaultValueComputer implements Function<Parameter, 
       Function<Parameter, Object> values = Functions.forMap(myDefaultsMap);
       Function<String, Parameter> name = Functions.forMap(myParameterIds);
       Function<String, Object> nameToValue = Functions.compose(values, name);
-      return myStringEvaluator.evaluate(parameter.suggest, Maps.asMap(myParameterIds.keySet(), nameToValue));
+      Map<String, Object> parameterIdToValue = Maps.newHashMap();
+      parameterIdToValue.putAll(getExternalValues());
+      parameterIdToValue.putAll(Maps.asMap(myParameterIds.keySet(), nameToValue));
+      return myStringEvaluator.evaluate(parameter.suggest, parameterIdToValue);
     }
     finally {
       inComputation.remove(parameter);
     }
+  }
+
+  private Map<String, Object> getExternalValues() {
+    return myImplicitParameters;
   }
 
   public interface Deduplicator {

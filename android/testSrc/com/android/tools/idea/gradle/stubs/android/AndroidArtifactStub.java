@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull private final List<File> myGeneratedResourceFolders = Lists.newArrayList();
@@ -88,6 +89,12 @@ public class AndroidArtifactStub implements AndroidArtifact {
 
   @Override
   @NotNull
+  public String getCompileTaskName() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
   public String getAssembleTaskName() {
     return "assemble" + StringUtil.capitalize(myBuildType);
   }
@@ -102,6 +109,12 @@ public class AndroidArtifactStub implements AndroidArtifact {
   @NotNull
   public List<File> getGeneratedResourceFolders() {
     return myGeneratedResourceFolders;
+  }
+
+  @Override
+  @Nullable
+  public Set<String> getAbiFilters() {
+    return null;
   }
 
   @Override

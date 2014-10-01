@@ -59,7 +59,10 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
  * TemplateWizardStep is the base class for step pages in Freemarker template-based wizards.
+ *
+ * Deprecated. Use {@link DynamicWizardStepWithHeaderAndDescription} instead.
  */
+@Deprecated
 public abstract class TemplateWizardStep extends ModuleWizardStep
   implements ActionListener, FocusListener, DocumentListener, ChangeListener, AndroidStudioWizardStep {
   private static final Logger LOG = Logger.getInstance("#" + TemplateWizardStep.class.getName());

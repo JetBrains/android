@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -510,6 +511,20 @@ public class GradleBuildFileTest extends IdeaTestCase {
     Dependency dependency = (Dependency)dependencies.get(0);
     assertNotNull(dependency);
     assertEquals("com.google.guava:guava:12.0@jar", dependency.getValueAsString());
+  }
+
+  public void testGetDependencyInAnotherAlternateFormat() throws IOException {
+    GradleBuildFile file = getTestFile(
+      "    dependencies {\n" +
+      "        compile project(path: ':foo', configuration: 'bar')\n" +
+      "    }\n"
+    );
+    List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency dependency = (Dependency)dependencies.get(0);
+    assertNotNull(dependency);
+    Map<String, Object> expected = ImmutableMap.of("path", (Object)":foo", "configuration", (Object)"bar");
+    assert(Maps.difference(expected, (Map<? extends String, ?>)dependency.data).areEqual());
   }
 
   public void testGetsMavenRepositories() throws Exception {
@@ -1116,7 +1131,6 @@ public class GradleBuildFileTest extends IdeaTestCase {
     assertEquals("foo", file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
   }
 
-
   public void testGetIntegerOrStringAsInteger() throws Exception {
     final GradleBuildFile file = getTestFile(
       "android {\n" +
@@ -1128,6 +1142,179 @@ public class GradleBuildFileTest extends IdeaTestCase {
     GrStatementOwner closure = file.getClosure("android/defaultConfig");
     assertNotNull(closure);
     assertEquals("5", file.getValue(closure, BuildFileKey.TARGET_SDK_VERSION));
+  }
+
+  public void testPreservesDependencyExcludes() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    compile('com.android.support:support-v4:13.0.+') {\n" +
+      "        exclude module: 'blah'\n" +
+      "    }\n" +
+      "}\n");
+
+    final List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency newDependency = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:1.0", null);
+    dependencies.add(newDependency);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+      }
+    });
+
+    String expected =
+      "dependencies {\n" +
+      "    compile('com.android.support:support-v4:13.0.+') {\n" +
+      "        exclude module: 'blah'\n" +
+      "    }\n" +
+      "    compile 'com.foo:1.0'\n" +
+      "}\n";
+    assertContents(file, expected);
+  }
+
+  public void testPreservesModuleDependencyExcludes() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "dependencies {\n" +
+      "    compile(project(':blah')) {\n" +
+      "        exclude group: 'blah'\n" +
+      "    }\n" +
+      "}\n");
+
+    final List<BuildFileStatement> dependencies = file.getDependencies();
+    assertEquals(1, dependencies.size());
+    Dependency newDependency = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:1.0", null);
+    dependencies.add(newDependency);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.DEPENDENCIES, dependencies);
+      }
+    });
+
+    String expected =
+      "dependencies {\n" +
+      "    compile(project(':blah')) {\n" +
+      "        exclude group: 'blah'\n" +
+      "    }\n" +
+      "    compile 'com.foo:1.0'\n" +
+      "}\n";
+    assertContents(file, expected);
+  }
+
+  public void testFiltering() throws IOException {
+    final GradleBuildFile file = getTestFile(
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        debug {\n" +
+      "            keyAlias 'a1'\n" +
+      "            keyPassword 'a2'\n" +
+      "            storeFile file('/a3')\n" +
+      "            storePassword 'a4'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n");
+    final List<NamedObject> signingConfigs = (List<NamedObject>)file.getValue(BuildFileKey.SIGNING_CONFIGS);
+    assertEquals(1, signingConfigs.size());
+    NamedObject signingConfig = signingConfigs.get(0);
+    assertEquals("a1", signingConfig.getValue(BuildFileKey.KEY_ALIAS));
+    assertEquals("a2", signingConfig.getValue(BuildFileKey.KEY_PASSWORD));
+    assertEquals(new File("/a3"), signingConfig.getValue(BuildFileKey.STORE_FILE));
+    assertEquals("a4", signingConfig.getValue(BuildFileKey.STORE_PASSWORD));
+
+    signingConfig.setValue(BuildFileKey.KEY_ALIAS, "b1");
+    signingConfig.setValue(BuildFileKey.KEY_PASSWORD, "b2");
+    signingConfig.setValue(BuildFileKey.STORE_FILE, new File("/b3"));
+    signingConfig.setValue(BuildFileKey.STORE_PASSWORD, "b4");
+
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.SIGNING_CONFIGS, signingConfigs, new ValueFactory.KeyFilter() {
+          @Override
+          public boolean shouldWriteKey(BuildFileKey key, Object object) {
+            return key == BuildFileKey.KEY_ALIAS;
+          }});}});
+
+    String expected =
+      "android {\n" +
+      "    signingConfigs {\n" +
+      "        debug {\n" +
+      "            keyAlias 'b1'\n" +
+      "            keyPassword 'a2'\n" +
+      "            storeFile file('/a3')\n" +
+      "            storePassword 'a4'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n";
+    assertContents(file, expected);
+  }
+
+  public void testRepositoryCredentials() throws Exception {
+    final GradleBuildFile file = getTestFile(
+      "repositories {\n" +
+      "    maven {\n" +
+      "        url 'www.foo.com'\n" +
+      "        credentials {\n" +
+      "            username 'user'\n" +
+      "            password 'password'\n" +
+      "        }\n" +
+      "    }\n" +
+      "}\n");
+
+    final List<Repository> repositories = (List<Repository>)file.getValue(BuildFileKey.LIBRARY_REPOSITORY);
+    assertEquals(1, repositories.size());
+    Repository newRepository = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    repositories.add(newRepository);
+    WriteCommandAction.runWriteCommandAction(myProject, new Runnable() {
+      @Override
+      public void run() {
+        file.setValue(BuildFileKey.LIBRARY_REPOSITORY, repositories);
+      }
+    });
+
+    String expected =
+      "repositories {\n" +
+      "    maven {\n" +
+      "        url 'www.foo.com'\n" +
+      "        credentials {\n" +
+      "            username 'user'\n" +
+      "            password 'password'\n" +
+      "        }\n" +
+      "    }\n" +
+      "    mavenCentral()\n" +
+      "}\n";
+    assertContents(file, expected);
+  }
+
+  public void testShouldWriteValue() {
+    List emptyList = ImmutableList.of();
+    Repository mc1 = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    Repository mc2 = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    Repository mc3 = new Repository(Repository.Type.MAVEN_CENTRAL, null);
+    Repository ml = new Repository(Repository.Type.MAVEN_LOCAL, null);
+    BuildFileStatement up1 = new UnparseableStatement("I'm a little teapot", myProject);
+    BuildFileStatement up2 = new UnparseableStatement("Here is my spout", myProject);
+    List<Repository> listOne = ImmutableList.of(mc1, mc2);
+    List<Repository> otherListOne = ImmutableList.of(mc2, mc1);
+    List<Repository> listTwo = ImmutableList.of(mc1, ml);
+    List<Repository> longList = ImmutableList.of(mc1, mc2, mc3);
+    List<BuildFileStatement> unparseableOne = ImmutableList.of(mc1, up1);
+    List<BuildFileStatement> unparseableTwo = ImmutableList.of(mc2, up2);
+
+    assertFalse(GradleBuildFile.shouldWriteValue(null, null));
+    assertTrue(GradleBuildFile.shouldWriteValue(emptyList, null));
+    assertTrue(GradleBuildFile.shouldWriteValue(null, emptyList));
+    assertTrue(GradleBuildFile.shouldWriteValue(mc1, ml));
+    assertFalse(GradleBuildFile.shouldWriteValue(mc1, mc2));
+    assertFalse(GradleBuildFile.shouldWriteValue(listOne, otherListOne));
+    assertTrue(GradleBuildFile.shouldWriteValue(listOne, listTwo));
+    assertTrue(GradleBuildFile.shouldWriteValue(listOne, longList));
+
+    // Even though the unparseables are different, we ignore them for the purposes of deciding
+    // whether to write them out.
+    assertFalse(unparseableOne.equals(unparseableTwo));
+    assertFalse(GradleBuildFile.shouldWriteValue(unparseableOne, unparseableTwo));
   }
 
   private static String getSimpleTestFile() throws IOException {

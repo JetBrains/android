@@ -17,12 +17,19 @@ package com.android.tools.idea.wizard;
 
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBColor;
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,18 +40,44 @@ import static com.android.tools.idea.wizard.ScopedStateStore.Scope.STEP;
  * A step in a wizard path.
  */
 public abstract class DynamicWizardStep extends ScopedDataBinder implements Step {
+  private static final Logger LOG = Logger.getInstance(DynamicWizardStep.class);
 
   // Reference to the parent path.
   protected DynamicWizardPath myPath;
-
 
   // Used by update() to ensure multiple update steps are not run at the same time
   private boolean myUpdateInProgress;
   // used by update() to save whether this step is valid and the wizard can progress.
   private boolean myIsValid;
+  private boolean myInitialized;
 
   public DynamicWizardStep() {
     myState = new ScopedStateStore(STEP, null, this);
+  }
+
+  public static JPanel createWizardStepHeader(JBColor headerColor, Icon icon, String title) {
+    JPanel panel = new JPanel();
+    panel.setBackground(headerColor);
+    panel.setBorder(new EmptyBorder(WizardConstants.STUDIO_WIZARD_INSETS));
+    panel.setLayout(new GridLayoutManager(2, 2, new Insets(18, 0, 12, 0), 2, 2));
+    GridConstraints c = new GridConstraints(0, 0, 2, 1, GridConstraints.ANCHOR_NORTHWEST,
+                                            GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                                            GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(60, 60), null);
+    ImageComponent image = new ImageComponent(icon);
+    panel.add(image, c);
+    c = new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_SOUTHWEST, GridConstraints.FILL_HORIZONTAL,
+                            GridConstraints.SIZEPOLICY_CAN_GROW | GridConstraints.SIZEPOLICY_WANT_GROW,
+                            GridConstraints.SIZEPOLICY_FIXED, null, null, null);
+    JLabel titleLabel = new JLabel(title);
+    titleLabel.setForeground(Color.WHITE);
+    titleLabel.setFont(titleLabel.getFont().deriveFont(24f));
+    panel.add(titleLabel, c);
+    c.setRow(1);
+    c.setAnchor(GridConstraints.ANCHOR_NORTHWEST);
+    JLabel productLabel = new JLabel("Android Studio");
+    productLabel.setForeground(Color.WHITE);
+    panel.add(productLabel, c);
+    return panel;
   }
 
   /**
@@ -57,7 +90,6 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     for (String keyName : myCurrentValues.keySet()) {
       myState.put(myState.createKey(keyName, Object.class), myCurrentValues.get(keyName));
     }
-    init();
   }
 
   /**
@@ -81,6 +113,14 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   @Nullable
   protected final Module getModule() {
     return myPath != null ? myPath.getModule() : null;
+  }
+
+  @Nullable
+  protected final DynamicWizard getWizard() {
+    if (myPath != null) {
+      return myPath.getWizard();
+    }
+    return null;
   }
 
   /**
@@ -116,6 +156,10 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
    * The step should do any initialization/update work here to prepare for user interaction.
    */
   public void onEnterStep() {
+    if (!myInitialized) {
+      init();
+      myInitialized = true;
+    }
     invokeUpdate(null);
   }
 
@@ -233,7 +277,13 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
     if (errorMessage != null && !errorMessage.startsWith("<html>")) {
       errorMessage = "<html>" + errorMessage + "</html>";
     }
-    getMessageLabel().setText(errorMessage);
+    JLabel label = getMessageLabel();
+    if (label != null) {
+      label.setText(errorMessage);
+    }
+    else {
+      LOG.debug("Message was displayed on a step without error label", new Exception());
+    }
   }
 
   @Override
@@ -252,10 +302,11 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   public abstract JComponent getComponent();
 
   /**
-   * Must return a label that can be used to display messages to users.
-   * @return a JLabel (or descendent) used to display errors and information to the user.
+   * Returns a label that can be used to display messages to users.
+   * @return a JLabel (or descendent) used to display errors and information to the user
+   *         or <code>null</code> if no errors can be displayed on this page.
    */
-  @NotNull
+  @Nullable
   public abstract JLabel getMessageLabel();
 
   /**

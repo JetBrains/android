@@ -31,6 +31,8 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.DefaultSdks;
+import com.android.tools.idea.sdk.SelectSdkDialog;
+import com.android.tools.idea.startup.AndroidStudioSpecificInitializer;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -38,6 +40,7 @@ import com.google.common.io.Closeables;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompilerBundle;
@@ -79,6 +82,7 @@ import com.intellij.util.ui.UIUtil;
 import org.gradle.tooling.BuildException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -335,18 +339,42 @@ class GradleTasksExecutor extends Task.Backgroundable {
     };
 
     try {
+      if (AndroidPlugin.isGuiTestingMode()) {
+        // We use this task in GUI tests to simulate errors coming from Gradle project sync.
+        Application application = ApplicationManager.getApplication();
+        Runnable task = application.getUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY);
+        if (task != null) {
+          application.putUserData(AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY, null);
+          task.run();
+        }
+      }
       myHelper.execute(projectPath, executionSettings, executeTasksFunction);
     }
-    catch (final ExternalSystemException e) {
+    catch (ExternalSystemException e) {
       if (myIndicator.isCanceled()) {
         LOG.info("Failed to complete Gradle execution. Project may be closing or already closed.", e);
       }
       else {
+        final String error = e.getMessage();
         Runnable showErrorTask = new Runnable() {
           @Override
           public void run() {
-            String msg = "Failed to complete Gradle execution.\n\nCause:\n" + e.getMessage();
+            String msg = "Failed to complete Gradle execution.\n\nCause:\n" + error;
             Messages.showErrorDialog(myProject, msg, GRADLE_RUNNING_MSG_TITLE);
+
+            // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
+            // hyperlink to set the JDK home.
+            // For now we show the "Select SDK" dialog, but only giving the option to set the JDK path.
+            if (AndroidStudioSpecificInitializer.isAndroidStudio() && error.startsWith("Supplied javaHome is not a valid folder")) {
+              File androidHome = DefaultSdks.getDefaultAndroidHome();
+              String androidSdkPath = androidHome != null ? androidHome.getPath() : null;
+              SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
+              selectSdkDialog.setModal(true);
+              if (selectSdkDialog.showAndGet()) {
+                String jdkHome = selectSdkDialog.getJdkHome();
+                DefaultSdks.setDefaultJavaHome(new File(jdkHome));
+              }
+            }
           }
         };
         AppUIUtil.invokeLaterIfProjectAlive(getNotNullProject(), showErrorTask);
@@ -388,7 +416,11 @@ class GradleTasksExecutor extends Task.Backgroundable {
         addMessage(msg, null);
       }
       finally {
-        try { Closeables.close(out, true); } catch (IOException ignored) {}
+        try {
+          Closeables.close(out, true /* swallowIOException */);
+        } catch (IOException ex) {
+          // Cannot happen
+        }
       }
     }
   }

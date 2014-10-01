@@ -1,0 +1,3 @@
+# Reduced version of tools/support/typos-en.txt, for use with unit tests
+andriod->android
+teh->the

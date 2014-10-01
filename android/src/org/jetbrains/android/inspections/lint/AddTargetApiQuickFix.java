@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import com.android.ide.common.sdk.SdkVersionInfo;
+import com.android.sdklib.SdkVersionInfo;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
@@ -59,11 +59,15 @@ class AddTargetApiQuickFix implements AndroidLintQuickFix {
     return PsiTreeUtil.getParentOfType(startElement, PsiModifierListOwner.class, false) != null;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     // Find nearest method or class; can't add @TargetApi on modifier list owners like variable declarations
     @SuppressWarnings("unchecked")
     PsiModifierListOwner container = PsiTreeUtil.getParentOfType(startElement, PsiMethod.class, PsiClass.class);
+    while (container != null && container instanceof PsiAnonymousClass) {
+      container = PsiTreeUtil.getParentOfType(container, PsiMethod.class, true, PsiClass.class);
+    }
     if (container == null) {
       return;
     }

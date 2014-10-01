@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="test.pkg" >
+
+    <uses-sdk android:minSdkVersion="4" />
+    <<warning descr="Should explicitly set `android:allowBackup` to `true` or `false` (it's `true` by default, and that can have some security implications for the application's data)">applicat<caret>ion</warning> android:icon="@drawable/ic_launcher">
+    </application>
+
+</manifest>

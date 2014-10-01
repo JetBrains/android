@@ -58,19 +58,25 @@ public class AndroidRootComponent extends JComponent {
     myIsMenu = isMenu;
   }
 
-  public void launchLayoutEditor() {
-    if (myLayoutFile != null) {
-      Project project = myRenderingParameters.myProject;
-      VirtualFile virtualFile = myLayoutFile.getVirtualFile();
+  public static void launchEditor(RenderingParameters renderingParameters, @Nullable PsiFile file, boolean layoutFile) {
+    if (file != null) {
+      Project project = renderingParameters.myProject;
+      VirtualFile virtualFile = file.getVirtualFile();
       OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, 0);
       FileEditorManager manager = FileEditorManager.getInstance(project);
       manager.openEditor(descriptor, true);
-      manager.setSelectedEditor(virtualFile, AndroidDesignerEditorProvider.ANDROID_DESIGNER_ID);
+      if (layoutFile) {
+        manager.setSelectedEditor(virtualFile, AndroidDesignerEditorProvider.ANDROID_DESIGNER_ID);
+      }
     }
   }
 
+  public void launchLayoutEditor() {
+    launchEditor(myRenderingParameters, myLayoutFile, true);
+  }
+
   @Nullable
-  private RenderResult getRenderResult() {
+  public RenderResult getRenderResult() {
     return myRenderResult;
   }
 
@@ -286,31 +292,6 @@ public class AndroidRootComponent extends JComponent {
         }
       }
     });
-  }
-
-  @Nullable
-  public RenderedView getRootView() {
-    RenderResult renderResult = getRenderResult();
-    if (renderResult == null) {
-      return null;
-    }
-    return getRoot(renderResult);
-  }
-
-  @Nullable
-  private static RenderedView getRoot(@Nullable RenderResult renderResult) {
-    if (renderResult == null) {
-      return null;
-    }
-    RenderedViewHierarchy hierarchy = renderResult.getHierarchy();
-    if (hierarchy == null) {
-      return null;
-    }
-    List<RenderedView> roots = hierarchy.getRoots();
-    if (roots.isEmpty()) {
-      return null;
-    }
-    return roots.get(0);
   }
 
   @Nullable

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.NonNull;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.ClassField;
-import com.android.builder.model.NdkConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,12 +86,6 @@ public class BuildTypeStub implements BuildType {
   }
 
   @Override
-  @Nullable
-  public NdkConfig getNdkConfig() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public boolean isEmbedMicroApp() {
     throw new UnsupportedOperationException();
   }
@@ -118,6 +111,12 @@ public class BuildTypeStub implements BuildType {
   @Override
   @NotNull
   public Collection<File> getConsumerProguardFiles() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  @NotNull
+  public Map<String, String> getManifestPlaceholders() {
     throw new UnsupportedOperationException();
   }
 }

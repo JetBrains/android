@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="<error descr="ISO-8859-1: Not using UTF-8 as the file encoding. This can lead to subtle bugs with non-ascii characters"><caret>ISO-8859-1</error>"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+</LinearLayout>
