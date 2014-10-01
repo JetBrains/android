@@ -55,6 +55,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
+
 /**
  * @author Eugene.Kudelevsky
  */

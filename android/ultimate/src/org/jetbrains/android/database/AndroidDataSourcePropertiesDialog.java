@@ -4,16 +4,18 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.FileListingService;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.MultiLineReceiver;
-import com.android.tools.idea.ddms.DeviceComboBoxRenderer;
+import com.android.tools.idea.ddms.DeviceRenderer;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
 import com.intellij.database.dataSource.DatabaseDriver;
 import com.intellij.database.util.DbImplUtil;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.FieldPanel;
 import com.intellij.ui.IdeBorderFactory;
@@ -41,7 +43,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> implements Disposable {
+public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigurable<AndroidDbManager, AndroidDataSource> implements
+                                                                                                                           Disposable {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
@@ -78,7 +81,7 @@ public class AndroidDataSourcePropertiesDialog extends AbstractDataSourceConfigu
       }
     });
 
-    myDeviceComboBox.setRenderer(new DeviceComboBoxRenderer() {
+    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer() {
       @Override
       protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof String) {
